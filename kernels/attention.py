@@ -154,9 +154,17 @@ def make_triton_attention():
         out = torch.empty_like(q)
         sm_scale = 1.0 / math.sqrt(D)
 
-        # Tile sizes — tuned for Blackwell sm_12x; will autotune in Phase 2
-        BLOCK_M = 64
-        BLOCK_N = 64
+        # Tile sizes — auto-pick based on head_dim to fit shared memory.
+        # Blackwell sm_12x SMs have ~100 KB shared memory.
+        # Required ≈ 4 × BLOCK × D × 2 bytes (Q+K+V FP16) + BLOCK × D × 4 (acc FP32)
+        # head_dim=128 → 64×64 fits (~80 KB)
+        # head_dim=256 → must drop to 32×32 (~80 KB)
+        if D >= 256:
+            BLOCK_M = 32
+            BLOCK_N = 32
+        else:
+            BLOCK_M = 64
+            BLOCK_N = 64
 
         grid = (triton.cdiv(M, BLOCK_M), B * H_Q)
         _attn_fwd[grid](

@@ -140,10 +140,13 @@ def bench_endpoint(url, model, key, n_trials=3, streaming=True):
             try:
                 if streaming:
                     r = call_streaming(url, model, prompt, max_tokens=GENERATE_TOKENS, key=key)
-                    tps = (r["n_tokens_approx"] / r["gen_time_s"]) if r["gen_time_s"] > 0 else 0
+                    tps = (r["n_tokens_approx"] / r["gen_time_s"]) if r.get("gen_time_s", 0) > 0 else 0
+                    ttft = f"{r['ttft_ms']:.0f}" if r.get("ttft_ms") is not None else "?"
+                    total = f"{r['total_ms']:.0f}" if r.get("total_ms") is not None else "?"
+                    gen = f"{r['gen_time_s']:.2f}" if r.get("gen_time_s") else "0"
                     print(
-                        f" TTFT={r['ttft_ms']:.0f}ms total={r['total_ms']:.0f}ms "
-                        f"tokens≈{r['n_tokens_approx']} gen={r['gen_time_s']:.2f}s ≈{tps:.1f} t/s",
+                        f" TTFT={ttft}ms total={total}ms tokens≈{r.get('n_tokens_approx', 0)} "
+                        f"gen={gen}s ≈{tps:.1f} t/s",
                         flush=True,
                     )
                     trials.append(r | {"approx_tps": tps})
