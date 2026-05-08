@@ -10,14 +10,14 @@
 
 ## 0. Executive Summary
 
-Lynn brain serves thousands of agent requests/day with Qwen 3.6 35B-A3B as the primary route. Current production runs SGLang+MTP at 60-70 t/s. Theoretical memory-bandwidth ceiling on the same hardware is **180 t/s on RTX PRO 6000** and **24 t/s on DGX Spark single-batch**, **vLLM's generic implementation only realizes ~40% of that**. This document specifies a **purpose-built single-model inference engine** that exploits:
+Lynn brain serves thousands of agent requests/day with Qwen 3.6 35B-A3B as the primary route. Current production runs SGLang+MTP at 60-70 t/s on DGX Spark. Empirical 5090 TP=2 vLLM benchmarks show **184 t/s single-stream / 248 t/s 5-concurrent** (Lynn 2026-05-04 measurements); RTX PRO 6000 single-card with higher bandwidth (~2 TB/s) should reach **200+ t/s on vLLM** today, realizing ~30% of the theoretical memory-bandwidth ceiling. This document specifies a **purpose-built single-model inference engine** that exploits:
 
 1. **Hardware-specific kernels** (Triton + CUTLASS, no generic abstractions)
 2. **Custom asymmetric quantization** (NVFP4 routed experts + FP8 critical path)
 3. **Training-data-informed expert prefetching** (we own the LoRA+pruning data)
 4. **Disk-backed KV cache with SHA1 prefix matching** (Lynn brain agent prompts repeat 99%+)
 
-**Performance target:** **80-150 t/s on Spark (vs 60-70 today), 250-400 t/s on RTX PRO 6000** (vs ~80 t/s vLLM today). 6-9 weeks to production. Goes hand-in-hand with the LoRA + expert pruning training pipeline already in flight.
+**Performance target:** **100-180 t/s on Spark (vs 60-70 today), 300-700 t/s on RTX PRO 6000** (vs ~200 t/s vLLM today). 6-9 weeks to production. Goes hand-in-hand with the LoRA + expert pruning training pipeline already in flight.
 
 ---
 
@@ -27,7 +27,7 @@ Lynn brain serves thousands of agent requests/day with Qwen 3.6 35B-A3B as the p
 
 - **G1:** Serve **only Qwen 3.6 35B-A3B** (and its LoRA-merged + pruned variants) on Blackwell sm_12x. Single-model lock-in by design.
 - **G2:** Achieve **≥ 100 t/s on DGX Spark** (single batch, short context) — 50% improvement over current SGLang+MTP baseline.
-- **G3:** Achieve **≥ 250 t/s on RTX PRO 6000** when that hardware lands.
+- **G3:** Achieve **≥ 300 t/s on RTX PRO 6000** when that hardware lands (target = 1.5x current vLLM ~200 t/s baseline; stretch 500+ t/s with NVFP4 + MTP).
 - **G4:** OpenAI-compatible HTTP API with `qwen3_coder` tool-call parser inline.
 - **G5:** Disk-backed KV cache with SHA1 prefix matching, transparent reuse for repeated agent prompts.
 - **G6:** Numerical correctness: **logits diff < 1e-3 vs HF transformers reference** on a sanity test set of 100 prompts.
@@ -80,13 +80,25 @@ Mixed precision target (NVFP4 experts + FP8 attention):
   RTX 6000: 2000 / 2 = ~1000 t/s ceiling (compute-bound earlier)
 ```
 
-**Realistic targets (with kernel + cache overhead):**
+**Realistic targets** (recalibrated 2026-05-08 after empirical 5090 TP=2 data: 184 t/s single-stream / 248 t/s 5-concurrent):
 
 | Target | Spark | RTX PRO 6000 |
 |---|---|---|
-| MVP (FP8 only, no MoE prefetch) | **80 t/s** | **180 t/s** |
-| Phase 4 (asymmetric quant + prefetch) | **120 t/s** | **300 t/s** |
-| Stretch (with MTP-style speculation) | **150 t/s** | **400 t/s** |
+| **vLLM/SGLang baseline today** | 60-70 t/s | **~200 t/s** (extrapolated from 5090 TP=2 184 single-stream; RTX PRO 6000 has higher bandwidth) |
+| MVP (FP8 only, no MoE prefetch) | **100-120 t/s** | **300-350 t/s** |
+| Phase 4 (asymmetric quant + prefetch) | **130-150 t/s** | **400-500 t/s** |
+| Stretch (with MTP-3 speculation) | **180 t/s** | **500-700 t/s** |
+
+Notes on the recalibration:
+- Earlier draft estimated RTX PRO 6000 vLLM today as ~80 t/s — this was wrong. Empirical 5090 TP=2 data
+  (184 t/s single-stream from 2026-05-04 Lynn benchmarks) and the RTX PRO 6000's higher single-card
+  bandwidth (~2 TB/s vs 5090's ~1.79 TB/s) imply vLLM today should already deliver 200+ t/s on PRO 6000.
+- Lynn Engine target is therefore "realize 50-75% of bandwidth ceiling" rather than "beat a low baseline".
+- The 1.5-2.5x improvement target over vLLM is justified by:
+    1. Single-model lock-in (no abstraction overhead)
+    2. Asymmetric quantization (NVFP4 experts cuts effective bytes/token by 33%)
+    3. Custom MoE expert prefetching (saves L2 cache misses)
+    4. Disk KV prefix cache (not a t/s gain but cuts agent prefill latency to ~0)
 
 ---
 
@@ -348,7 +360,7 @@ if (access(path, R_OK) == 0) {
 | **2** Engine MVP | 1.5 weeks | Single-batch greedy decode, ≥ 80 t/s on Spark | < 50 t/s → re-evaluate kernels |
 | **3** API server | 3-5 days | OpenAI-compat + tool parsing + ToolAbstain-31 ≥ 27/31 (match cloud) | ToolAbstain regression > 2 pts |
 | **4** Disk KV + pruning | 1 week | 80% prefill skip on agent workload + 20% speedup from prune | < 50% prefill skip OR > 2pt quality loss |
-| **5** RTX PRO 6000 port | 1 day after hw arrives | ≥ 250 t/s | < 200 t/s → kernel optimization round 2 |
+| **5** RTX PRO 6000 port | 1 day after hw arrives | ≥ 300 t/s (vs vLLM ~200 t/s baseline) | < 250 t/s → kernel optimization round 2 |
 | **6** Production cutover | 1 week (gradual) | Lynn brain main link replaced, real-traffic data | Latency p95 regression > 30% |
 
 **Total: 6-9 weeks solo, 4-6 weeks if AI-pair-programmed (GPT-5.5 + Claude Code, like antirez did with ds4).**
@@ -466,6 +478,7 @@ lynn-engine/
 | 2026-05-08 | Asymmetric mixed precision (NVFP4 experts + FP8 critical path) | Memory savings without compromising attention/router quality |
 | 2026-05-08 | Disk KV cache with SHA1 prefix | Direct port of antirez ds4 idea; perfect fit for Lynn brain agent workload |
 | 2026-05-08 | Phase 1 = Triton kernel logits-diff spike | Hard go/no-go gate before committing to from-scratch path |
+| 2026-05-08 | Recalibrate RTX PRO 6000 perf targets | Earlier draft used 80 t/s vLLM baseline (incorrect estimate). Empirical 5090 TP=2 184 t/s + RTX PRO 6000 higher bandwidth → 200+ t/s vLLM baseline. Lynn target adjusted to 300-500 t/s realistic, 700 t/s stretch with MTP. |
 
 ---
 
