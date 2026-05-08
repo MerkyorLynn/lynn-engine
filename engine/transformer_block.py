@@ -326,10 +326,10 @@ def run_block_alignment_test(reference_only=False):
     # ── Import our Triton kernels ──
     print(f"\n   Loading Lynn kernels...")
     try:
-        from kernels.attention import make_triton_attention
-        from kernels.rope import make_triton_rope
-        from kernels.rmsnorm import make_triton_rmsnorm
-        from kernels.moe import make_triton_router
+        from triton_kernels.attention import make_triton_attention
+        from triton_kernels.rope import make_triton_rope
+        from triton_kernels.rmsnorm import make_triton_rmsnorm
+        from triton_kernels.moe import make_triton_router
         attn_fn = make_triton_attention()
         rope_fn = make_triton_rope()
         rmsnorm_fn = make_triton_rmsnorm()

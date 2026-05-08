@@ -42,10 +42,10 @@ def main():
 
     # Triton kernels (load once)
     print(f"⚙️  Loading Triton kernels...", flush=True)
-    from kernels.attention import make_triton_attention
-    from kernels.rope import make_triton_rope
-    from kernels.rmsnorm import make_triton_rmsnorm
-    from kernels.moe import make_triton_router
+    from triton_kernels.attention import make_triton_attention
+    from triton_kernels.rope import make_triton_rope
+    from triton_kernels.rmsnorm import make_triton_rmsnorm
+    from triton_kernels.moe import make_triton_router
     rmsnorm_fn = make_triton_rmsnorm()
     rope_fn = make_triton_rope()
     attn_fn = make_triton_attention()

@@ -468,6 +468,77 @@ lynn-engine/
 
 ---
 
+## 13.5 Phase 2 Status Log (2026-05-09)
+
+### What's done (P1.1)
+
+- ✅ **All 4 Triton kernels pass numerical alignment** on synthetic random inputs (Spark sm_121,
+  FP16 ULP floor, 14/14 + 128/128 specific tests).
+- ✅ **All 10 full_attention layers** of Qwen 3.6 35B-A3B-FP8 align with PyTorch reference using
+  REAL learned weights (`engine/test_all_full_attn_layers.py`):
+  ```
+  Layers 3, 7, 11, 15, 19, 23, 27, 31, 35, 39 — all PASS
+  Avg max diff: 4.37e-3 (~2 ULP BF16)
+  Avg rel diff: 0.074%
+  ```
+- ✅ Single layer end-to-end test on real layer 3 weights passed (0.02% rel diff).
+
+### What's blocked (P1.2)
+
+Attempted full 40-layer forward via HF transformers as reference
+(`engine/test_full_forward.py`). Goal: load HF Qwen3_5_MoE, hook full_attention
+layer I/O, replay each I/O pair through our `qwen36_lynn` block, verify match.
+
+Blocked by HF transformers FP8 dependency stack on NGC vLLM 26.03.post1 container:
+
+1. NGC's bundled transformers (4.57.5) doesn't recognize `qwen3_5_moe` model_type.
+   → Installed transformers from git (5.8.0.dev0).
+2. Loading model with `device_map="cuda:0"` requires `accelerate`.
+   → Installed `accelerate`.
+3. FP8 finegrained quantization needs HuggingFace `kernels` package (provides
+   block-scaled FP8 matmul).
+   → Installed `kernels` 0.14.0.
+4. `kernels` package shadows our local `kernels/` directory (Python module name
+   collision).
+   → Renamed our directory `kernels/` → `triton_kernels/`, updated all imports.
+5. `kernels` package tries to download `deep-gemm` kernel from HF Hub. The downloaded
+   metadata.json has malformed schema (missing `name` field), so kernel can't be
+   parsed. Forward pass fails on first FP8 matmul.
+
+Each dependency fix revealed another deeper issue. Total time invested: ~2 hours.
+The HF transformers 5.8 + `kernels` package + DeepGEMM stack is fragile for
+brand-new models like Qwen 3.6 (model_type='qwen3_5_moe') that depend on cutting-edge
+HF infrastructure.
+
+### Path forward for P1.2
+
+Two options:
+
+**Option A — vLLM as reference**: Use the production vLLM Qwen 3.6 35B-A3B-FP8 endpoint
+(currently running on port 18002). Query with `logprobs=20` on a test prompt, get
+reference top-K next-token logits. Run our engine forward (without full_attention
+layers replaced — i.e., a full 40-layer impl using HF eager for linear_attention
+and our kernels for full_attention) and compare last-token logits.
+
+**Option B — implement linear_attention in our engine**: Phase 3 work. Linear attention
+is Mamba/GLA-style state-space and significantly different from standard transformer
+attention. Estimated 2-3 days research + implementation.
+
+For both options, we need a working linear_attention forward (either HF's, vLLM's,
+or our own). Given HF blocker, vLLM is the practical reference until we have our own
+linear_attention kernel.
+
+### What's preserved
+
+- ✅ All 4 Triton kernels (attention, RoPE, RMSNorm, MoE router) production-quality
+- ✅ Real-weights single-block alignment validated (P1.1 strongest result so far)
+- ✅ qwen36_block.py implements Qwen 3.6 specifics: attn_output_gate, q_norm/k_norm,
+  GQA 16:2, 256-expert MoE with shared expert
+- ✅ Loader for FP8 e4m3 weights from safetensors with weight_scale_inv dequant
+- ✅ Lynn brain main link Qwen vLLM service successfully restarted at port 18002
+
+P1.2 deferred. P1.3 vLLM logprobs comparison can be done independently of P1.2.
+
 ## 14. Decision Log
 
 | Date | Decision | Rationale |

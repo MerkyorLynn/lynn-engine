@@ -269,10 +269,10 @@ def run_alignment_test(model_dir, layer_idx=3, M=64, B=1):
 
     # ── Lynn (with Triton kernels) ──
     print(f"\n🧪 Running lynn (Triton attention + RoPE + RMSNorm + router)...")
-    from kernels.attention import make_triton_attention
-    from kernels.rope import make_triton_rope
-    from kernels.rmsnorm import make_triton_rmsnorm
-    from kernels.moe import make_triton_router
+    from triton_kernels.attention import make_triton_attention
+    from triton_kernels.rope import make_triton_rope
+    from triton_kernels.rmsnorm import make_triton_rmsnorm
+    from triton_kernels.moe import make_triton_router
 
     rmsnorm_fn = make_triton_rmsnorm()
     rope_fn = make_triton_rope()
