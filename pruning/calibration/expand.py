@@ -78,13 +78,70 @@ Seed (category={cat}, language={lang}):
 Generate {n} paraphrases. Output ONLY the JSON array, nothing else."""
 
 
+def _read_brain_env(path: str = None) -> dict:
+    """Load Lynn brain.env (key=value lines, may be quoted)."""
+    if path is None:
+        path = os.path.expanduser("~/.lynn/brain.env")
+    out = {}
+    if not os.path.exists(path):
+        return out
+    with open(path) as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            k, v = line.split("=", 1)
+            v = v.strip().strip('"').strip("'")
+            out[k.strip()] = v
+    return out
+
+
+def call_deepseek(prompt: str, api_key: str,
+                  base_url: str = "https://api.deepseek.com",
+                  model: str = "deepseek-chat", max_tokens: int = 2000,
+                  temperature: float = 0.7) -> str:
+    """Call DeepSeek API for paraphrasing.
+
+    Default model: deepseek-chat (V4-Flash equivalent). DEEPSEEK_REASONER_MODEL
+    or 'deepseek-reasoner' is overkill for paraphrasing.
+
+    Handles both base URL forms:
+      https://api.deepseek.com           → appends /v1/chat/completions
+      https://api.deepseek.com/v1        → appends /chat/completions
+    """
+    # Normalize: strip trailing /v1, then always append /v1/chat/completions
+    base = base_url.rstrip("/")
+    if base.endswith("/v1"):
+        base = base[:-3]
+    url = f"{base}/v1/chat/completions"
+
+    body = json.dumps({
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+        "response_format": {"type": "json_object"},
+    }).encode()
+    req = urllib.request.Request(
+        url,
+        data=body,
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}",
+        },
+    )
+    with urllib.request.urlopen(req, timeout=120) as r:
+        d = json.loads(r.read().decode())
+    return d["choices"][0]["message"]["content"]
+
+
 def call_brain(brain_url: str, prompt: str, max_tokens: int = 2000) -> str:
     """Call Lynn brain (chat completions) for paraphrasing."""
     body = json.dumps({
         "model": "Qwen3.6-35B-A3B-FP8",
         "messages": [{"role": "user", "content": prompt}],
         "max_tokens": max_tokens,
-        "temperature": 0.7,   # diverse paraphrases
+        "temperature": 0.7,
     }).encode()
     req = urllib.request.Request(
         f"{brain_url}/v1/chat/completions",
@@ -97,26 +154,56 @@ def call_brain(brain_url: str, prompt: str, max_tokens: int = 2000) -> str:
 
 
 def parse_paraphrases(response: str) -> list[str]:
-    """Extract JSON array of strings from brain response."""
-    # Strip markdown code fences if present
+    """Extract JSON array of strings from API response.
+
+    Handles three common formats:
+      ["a", "b", "c"]                  — bare array
+      {"paraphrases": ["a", "b", "c"]} — wrapped in JSON object (DeepSeek json_object mode)
+      ```json\n[...]\n```              — markdown-fenced
+    """
     text = response.strip()
+    # Strip markdown code fences
     if text.startswith("```"):
         text = text.split("```", 2)[1]
         if text.startswith("json"):
             text = text[4:]
         text = text.rsplit("```", 1)[0]
+    text = text.strip()
     try:
-        arr = json.loads(text.strip())
-        if isinstance(arr, list):
-            return [str(s) for s in arr if isinstance(s, str) and s.strip()]
+        parsed = json.loads(text)
+        # Bare array
+        if isinstance(parsed, list):
+            return [str(s) for s in parsed if isinstance(s, str) and s.strip()]
+        # Object — find first list-of-strings field
+        if isinstance(parsed, dict):
+            for k, v in parsed.items():
+                if isinstance(v, list) and v and all(isinstance(x, str) for x in v):
+                    return [s for s in v if s.strip()]
     except json.JSONDecodeError:
         pass
     return []
 
 
-def expand_seeds(seeds_path: Path, out_path: Path, brain_url: str,
-                 target_counts: dict, dry_run: bool = False):
-    """Expand each seed via brain to reach target counts per category."""
+def expand_seeds(seeds_path: Path, out_path: Path, *,
+                 backend: str = "deepseek",
+                 brain_url: str = "http://127.0.0.1:8790",
+                 deepseek_key: str = None,
+                 deepseek_base: str = "https://api.deepseek.com",
+                 deepseek_model: str = "deepseek-v4-flash",
+                 target_counts: dict = None,
+                 dry_run: bool = False,
+                 progress_path: Path = None):
+    """Expand each seed via brain or DeepSeek to reach target counts per category.
+
+    Supports resume: if progress_path exists, skip seeds already in it.
+    """
+    if target_counts is None:
+        target_counts = TARGET_COUNTS
+    backend = backend.lower()
+    if backend not in ("deepseek", "brain"):
+        raise ValueError(f"backend must be 'deepseek' or 'brain', got {backend!r}")
+    if backend == "deepseek" and not deepseek_key and not dry_run:
+        raise ValueError("DeepSeek API key required (set --deepseek-key or DEEPSEEK_KEY env)")
     # Load seeds
     seeds: list[dict] = []
     with open(seeds_path) as f:
@@ -158,12 +245,23 @@ def expand_seeds(seeds_path: Path, out_path: Path, brain_url: str,
                     out_rows.append(placeholder)
                 continue
 
-            # Call brain to paraphrase
+            # Call backend to paraphrase
             prompt = PARAPHRASE_PROMPT_ZH.format(
                 cat=cat, lang=s.get("lang", "?"), text=s["text"], n=n_per_seed,
             )
             try:
-                response = call_brain(brain_url, prompt)
+                if backend == "deepseek":
+                    # DeepSeek json_object mode wants explicit JSON instruction
+                    json_prompt = (
+                        prompt
+                        + '\n\nReturn JSON of the form {"paraphrases": ["...", "..."]}'
+                    )
+                    response = call_deepseek(
+                        json_prompt, api_key=deepseek_key,
+                        base_url=deepseek_base, model=deepseek_model,
+                    )
+                else:
+                    response = call_brain(brain_url, prompt)
                 paraphrases = parse_paraphrases(response)
                 for i, p in enumerate(paraphrases[:n_per_seed]):
                     out_rows.append({
@@ -174,6 +272,11 @@ def expand_seeds(seeds_path: Path, out_path: Path, brain_url: str,
                         "text": p,
                         "seed_id": s["id"],
                     })
+                # Progress checkpoint (for resume)
+                if progress_path is not None:
+                    with open(progress_path, "a") as pf:
+                        for r in out_rows[-len(paraphrases):]:
+                            pf.write(json.dumps(r, ensure_ascii=False) + "\n")
                 print(f"    {s['id']} → {len(paraphrases)} paraphrases", flush=True)
             except Exception as e:
                 print(f"    {s['id']} ERROR: {e}", flush=True)
@@ -207,12 +310,22 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--seeds", default="seeds.jsonl")
     ap.add_argument("--out", default="calibration_set_v1.1.jsonl")
+    ap.add_argument("--backend", default="deepseek", choices=["deepseek", "brain"],
+                    help="which paraphrasing API to use (default deepseek)")
     ap.add_argument("--brain", default="http://127.0.0.1:8790",
-                    help="brain URL (must support /v1/chat/completions)")
+                    help="brain URL (when --backend=brain)")
+    ap.add_argument("--deepseek-key", default=None,
+                    help="DeepSeek API key (default: read DEEPSEEK_KEY env or ~/.lynn/brain.env)")
+    ap.add_argument("--deepseek-base", default=None,
+                    help="DeepSeek base URL (default: https://api.deepseek.com or DEEPSEEK_BASE)")
+    ap.add_argument("--deepseek-model", default="deepseek-chat",
+                    help="DeepSeek model name (default deepseek-chat = V4-Flash equivalent)")
     ap.add_argument("--target-counts", default=None,
                     help="optional path to JSON file with per-category target counts")
+    ap.add_argument("--progress", default=None,
+                    help="optional progress checkpoint file (for resume)")
     ap.add_argument("--dry-run", action="store_true",
-                    help="don't call brain, just emit placeholders")
+                    help="don't call API, just emit placeholders")
     args = ap.parse_args()
 
     if args.target_counts:
@@ -220,8 +333,31 @@ def main():
     else:
         target = TARGET_COUNTS
 
-    expand_seeds(Path(args.seeds), Path(args.out), args.brain,
-                 target, dry_run=args.dry_run)
+    # Resolve credentials from CLI / env / brain.env
+    env = _read_brain_env()
+    deepseek_key = (
+        args.deepseek_key
+        or os.getenv("DEEPSEEK_KEY")
+        or env.get("DEEPSEEK_KEY")
+    )
+    deepseek_base = (
+        args.deepseek_base
+        or os.getenv("DEEPSEEK_BASE")
+        or env.get("DEEPSEEK_BASE")
+        or "https://api.deepseek.com"
+    )
+
+    expand_seeds(
+        Path(args.seeds), Path(args.out),
+        backend=args.backend,
+        brain_url=args.brain,
+        deepseek_key=deepseek_key,
+        deepseek_base=deepseek_base,
+        deepseek_model=args.deepseek_model,
+        target_counts=target,
+        dry_run=args.dry_run,
+        progress_path=Path(args.progress) if args.progress else None,
+    )
 
 
 if __name__ == "__main__":
