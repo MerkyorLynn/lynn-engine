@@ -209,7 +209,97 @@ def load_outside_weights(model_dir: str, device: str, dtype=torch.bfloat16):
     return out
 
 
-# ----------------- end-to-end forward -----------------
+# ----------------- multi-token greedy decode -----------------
+
+def generate_greedy(model_dir: str, prompt: str, max_new: int = 5,
+                    device: str = "cuda", dtype=torch.bfloat16, verbose: bool = True):
+    """Brute-force greedy generation: re-prefill at every step.
+
+    No KV cache — slower than a proper engine, but unambiguously correct.
+    Loads all 40 layers resident once, then runs N successive full forwards.
+    Per-step cost grows ~quadratic in (prompt_len + new_tokens) since the
+    full forward sees every position each time.
+
+    Returns:
+        text: prompt + generated continuation
+        new_token_ids: list of generated token ids
+    """
+    from engine.loader import load_qwen36_layer
+
+    with open(Path(model_dir) / "config.json") as f:
+        full_cfg = json.load(f)
+    tc = full_cfg["text_config"]
+    rope_p = tc.get("rope_parameters", {})
+    cfg = {
+        "hidden_size": tc["hidden_size"],
+        "num_attention_heads": tc["num_attention_heads"],
+        "num_key_value_heads": tc["num_key_value_heads"],
+        "head_dim": tc["head_dim"],
+        "num_experts": tc["num_experts"],
+        "num_experts_per_tok": tc["num_experts_per_tok"],
+        "rope_theta": rope_p.get("rope_theta", tc.get("rope_theta", 1e6)),
+        "partial_rotary_factor": rope_p.get("partial_rotary_factor", 1.0),
+    }
+    layer_types = tc["layer_types"]
+    n_layers = tc["num_hidden_layers"]
+
+    from transformers import AutoTokenizer
+    tok = AutoTokenizer.from_pretrained(model_dir)
+    ids = tok(prompt, return_tensors="pt").input_ids.to(device)
+
+    if verbose:
+        print(f"prompt: {prompt!r}  ids[:10]={ids[0].tolist()[:10]}", flush=True)
+
+    # Outside + all 40 layers resident
+    if verbose:
+        print("Loading outside weights ...", flush=True)
+    outside = load_outside_weights(model_dir, device, dtype)
+    embed = outside["model.language_model.embed_tokens.weight"]
+    lm_head_w = outside["lm_head.weight"]
+    final_norm_w = outside["model.language_model.norm.weight"]
+
+    if verbose:
+        print(f"Loading all {n_layers} layers (resident) ...", flush=True)
+    weights_per_layer = []
+    t_start = time.time()
+    for i in range(n_layers):
+        w, _ = load_qwen36_layer(model_dir, i, num_experts=cfg["num_experts"],
+                                 device=device, dequant_dtype=dtype)
+        weights_per_layer.append(w)
+        if verbose and (i % 5 == 4 or i == n_layers - 1):
+            print(f"  L{i:2}: cumulative {time.time()-t_start:.1f}s", flush=True)
+    if verbose:
+        print(f"All weights resident in {time.time()-t_start:.1f}s\n", flush=True)
+
+    new_ids = []
+    for step in range(max_new):
+        T = ids.shape[1]
+        pos = torch.arange(T, device=device, dtype=torch.long).unsqueeze(0)
+
+        t0 = time.time()
+        h = F.embedding(ids, embed)
+        for i in range(n_layers):
+            h = _layer_forward(h, pos, layer_types[i], weights_per_layer[i], cfg)
+        h = _rms_norm(h, final_norm_w)
+        last_h = h[:, -1, :]
+        logits = F.linear(last_h, lm_head_w)
+        next_id = int(logits[0].argmax().item())
+        if device.startswith("cuda"):
+            torch.cuda.synchronize()
+        elapsed = time.time() - t0
+
+        new_ids.append(next_id)
+        ids = torch.cat([ids, torch.tensor([[next_id]], device=device)], dim=1)
+        if verbose:
+            text = tok.decode([next_id]).replace("\n", "\\n")
+            print(f"  step {step+1}/{max_new}  T={T}->{T+1}  "
+                  f"{elapsed:.2f}s  next={next_id} {text!r}", flush=True)
+
+    full_text = tok.decode(ids[0].tolist())
+    return full_text, new_ids
+
+
+# ----------------- end-to-end forward (single token, original) ---------
 
 def run_forward(model_dir: str, prompt: str, max_new: int = 1, device: str = "cuda",
                 dtype=torch.bfloat16, verbose: bool = True):
@@ -315,11 +405,22 @@ def main():
     ap.add_argument("--model", default="/models/Qwen3.6-35B-A3B-FP8")
     ap.add_argument("--prompt", default="The capital of France is")
     ap.add_argument("--device", default="cuda")
+    ap.add_argument("--max-new", type=int, default=1,
+                    help="number of tokens to greedy-decode (1 = next-token only)")
     args = ap.parse_args()
 
     sys.path.insert(0, "/work")
-    out = run_forward(args.model, args.prompt, device=args.device)
-    print(f"\n=== Lynn Engine top-1 next token: {out['top_token_id']} ({out['top_token_text']!r}) ===")
+
+    if args.max_new <= 1:
+        out = run_forward(args.model, args.prompt, device=args.device)
+        print(f"\n=== Lynn Engine top-1 next token: "
+              f"{out['top_token_id']} ({out['top_token_text']!r}) ===")
+    else:
+        text, new_ids = generate_greedy(args.model, args.prompt,
+                                        max_new=args.max_new, device=args.device)
+        print(f"\n=== Lynn Engine generated ({args.max_new} new tokens) ===")
+        print(text)
+        print(f"\nnew_ids: {new_ids}")
 
 
 if __name__ == "__main__":
