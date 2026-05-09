@@ -539,6 +539,64 @@ linear_attention kernel.
 
 P1.2 deferred. P1.3 vLLM logprobs comparison can be done independently of P1.2.
 
+## 13.6 P1.3 attempt — BF16 dequant path also blocked on Spark unified memory (2026-05-09)
+
+Following §13.5 P1.2 blocker on FP8 deep-gemm metadata, attempted P1.3 via
+the BF16 dequant route: convert `Qwen3.6-35B-A3B-FP8` (35 GB) → `BF16` (67 GB)
+on disk, then load with HF transformers 5.8.0 in plain BF16 mode (sidesteps
+the `kernels` package and DeepGEMM entirely).
+
+### What worked
+
+- ✅ `engine/convert_fp8_to_bf16.py` — block-scaled FP8 e4m3 dequant via
+  `weight_scale_inv`. CPU-only, doesn't disturb live vLLM.
+  35 GB FP8 → 67 GB BF16 in 124 s (0.58 GB/s) on Spark CPU.
+  Output: `/home/merkyor/models/Qwen3.6-35B-A3B-BF16/`. Useful as a side
+  artifact for LoRA training (no FP8 dep churn) even if unused for P1.3.
+- ✅ HF transformers 5.8.0 (plain `pip install` from PyPI; the prior `5.8.0.dev0`
+  was a non-existent tag) recognizes `model_type='qwen3_5_moe'` and parses
+  config cleanly. The "Transformers does not recognize" error from §13.5 was
+  because pip silently fell back to bundled 4.57.5.
+
+### What blocked
+
+- 🔴 Spark unified memory + earlyoom (10% threshold) cannot accommodate the
+  HF model loading peak. Three attempts (Qwen vLLM stopped, ELYZA stopped,
+  voice services only — 109 GB free) all SIGTERM'd at 60–75% weight load:
+
+  ```
+  earlyoom: mem avail 10076/122500 MiB (8.23%) → SIGTERM python3 (VmRSS 42.8 GB)
+  ```
+
+  - Pure `device_map="cuda"` and `device_map="auto"` + `low_cpu_mem_usage=True`
+    + `max_memory={0: 60GB, cpu: 20GB}` all hit the same wall.
+  - VmRSS at kill = 42 GB << nominal 67 GB BF16 — earlyoom counts page cache
+    from safetensors mmap toward `used`, so the apparent ceiling is well below
+    the model's own footprint.
+
+### Path forward
+
+P1.3 on Spark requires one of:
+
+1. **Own linear_attention Triton kernel** (Phase 3 work) — eliminates HF
+   reference entirely; full forward via Lynn engine + compare logits to vLLM.
+2. **RTX PRO 6000 hardware** — 96 GB discrete VRAM accommodates 67 GB BF16
+   forward without unified-memory pressure or earlyoom.
+3. **vLLM internal API hook** — modify the running vLLM container to expose
+   `output_hidden_states` between layers; reuse production FP8 weights without
+   loading anything extra. Avoids HF entirely but requires vLLM patching.
+
+Option 1 (linear_attention kernel) is the cleanest long-term answer and was
+already scheduled for Phase 3. Promote it to next-priority and skip the HF
+reference path.
+
+P1 milestone redefined as the union of:
+- ✅ P1.1 (10 full_attention layers on real weights, synthetic input)
+- ✅ FP8→BF16 converter (validated, 67 GB output usable for LoRA path)
+- ✅ HF transformers 5.8.0 path mapped (recognizes `qwen3_5_moe`; load fails
+  on Spark mem pressure but works on bigger boxes)
+- ⏸ P1.3 deferred to Phase 3 linear_attention OR RTX PRO 6000 arrival
+
 ## 14. Decision Log
 
 | Date | Decision | Rationale |
