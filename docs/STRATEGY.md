@@ -41,23 +41,37 @@ DeepSeek 半年大促,**5/12 完成所有蒸馏**踩在促销窗口内。错过 
 
 **当前 DS 余额 ~$95** → 推荐充 $50 到 $160(安全 + 后续 27B Recovery iter / 调试 buffer)。
 
-### 36h 墙钟 timetable
+### 完整 timetable(5/9 → 5/15,墙钟 ~6 天)
 
 ```
-5/09 23:14            P1 HAS 完 → prep 2 套数据采集脚本
-5/09 23:30 → 5/10 04:30   API 采 V4 Pro 15K(~5h,跟 P0 ORPO 并行)
-5/10 04:30 → 06:00         API 采 V4 Flash 15K(~1.5h)
-5/10 ~05:30                P0 ORPO 完 → gate 验
-5/10 07:30 → 19:30         训 Version A on 2×A100 Z3(~12h)
-5/10 19:30 → 21:30         Gate Version A
-5/10 21:30 → 5/11 09:30    训 Version B on 2×A100 Z3(~12h)
-5/11 09:30 → 11:30         Gate Version B
-5/11 11:30                 A vs B 对比 → 选 winner = Lynn-V4-Distill-Qwen-35B-A3B ⭐
-5/11 12:00 起              27B 剪枝启动
-~5/15                       Lynn-V4-Distill-Qwen-27B-A3B 出炉
+🟢 双 A100 时段(剩 ~110h,实际用 ~60h 提前 3 天结束)
+─────────────────────────────────────────────────────
+5/09 23:14    P1 HAS ✅ 完
+5/09 23:30 → 5/10 06:00   API 采 30K (V4 Pro 15K + Flash 15K,并行 P0 ORPO)
+5/10 ~05:30                P0 ORPO 完
+5/10 06:00 → 07:30         Stage 6' gate 验收
+5/10 07:30 → 19:30         训 Version A(V4 Pro distill,~12h on 2×A100 Z3)
+5/10 19:30 → 21:30         Gate A
+5/10 21:30 → 5/11 09:30    训 Version B(V4 Flash distill,~12h on 2×A100 Z3)
+5/11 09:30 → 11:30         Gate B
+5/11 ~12:00                ⭐ Winner = Lynn-V4-Distill-Qwen-35B-A3B
+                          【双卡 A100 时段提前 3 天结束】
+
+🟡 切 4×A100 时段(5/11 中午起 — 提前升)
+─────────────────────────────────────────────────────
+5/11 12:00 → 18:00         升级 + 环境迁移 + 校验
+                          (数据/checkpoint/yaml 都在 /mnt/data3 持久,无损)
+5/11 18:00 → 5/12          Phase 1 W1 激活画像(35B winner 推理 1430 prompts)
+5/12 → 5/13                 Phase 1 W2 物理剪枝(砍 30 expert → 27B)+ router fine-tune
+5/13 → 5/14                 Phase 1 W3 Recovery LoRA r=384(~12-18h on 4×A100)
+5/14                       双卡 A100 到期 ✓(已无关,4 卡承担)
+5/15                       ⭐ Gate + Lynn-V4-Distill-Qwen-27B-A3B 出炉
+                          → Lynn engine 这边接手:NVFP4 量化 + V9 vs 35B harness 跑
 ```
 
-**双 A100 不能并行跑 2 版本**(35B BF16 单卡 80GB 装不下,Z3 sharding 占双卡)→ 顺序跑 36h 墙钟。
+**关键限制说明**:
+- **双 A100**:35B BF16 单卡 80GB 装不下(70GB weight + activations)→ 必须 Z3 sharding 占双卡 → A/B 不能并行只能顺序
+- **4 卡 A100**:5/11 中午切(原计划 5/14,提前 3 天)→ Recovery LoRA 在 4 卡跑更快/更稳,Phase 1 W3 ~12-18h 完成
 
 ### 压缩思路
 
