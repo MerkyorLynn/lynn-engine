@@ -1,0 +1,163 @@
+# Lynn-27B-A3B Recovery LoRA training config
+# (LLaMA-Factory format, Phase 1 Week 3 of pruning roadmap)
+#
+# Prerequisites:
+#   1. Lynn-27B-A3B-BF16 model exists (Phase 1 Week 2 output, after 30-expert deletion)
+#   2. Training data assembled: Stage 1 + 5 + 4 + 6' cumulative (per Lynn LoRA roadmap)
+#   3. A100 dual-card 80GB (per memory reference_ssh_a100.md + feedback_lf_orpo_zero3_required.md)
+#
+# Run on A100:
+#   cd LLaMA-Factory
+#   FORCE_TORCHRUN=1 NPROC_PER_NODE=2 \
+#       llamafactory-cli train recovery_lora_qwen36.yaml
+#
+# Expected duration: ~5 hours for 1 epoch on combined Lynn data
+# Stages 4-7 may iterate (see project_lynn_27b_pruning_plan_0509.md)
+
+### Model — Lynn-27B-A3B post-pruning ###
+model_name_or_path: /home/data/models/Lynn-27B-A3B-BF16   # Phase 1 W2 output
+trust_remote_code: false
+template: qwen
+flash_attn: fa2
+
+# CRITICAL: must use AutoModelForImageTextToText loading path
+# (per memory feedback_lora_multimodal_loading.md)
+# LLaMA-Factory should auto-detect for qwen3_5_moe — verify after first run
+# Differential forward sanity check: `python3 verify_lora_loaded.py`
+#   should show logits diff > 0.01 (NOT 0.000 — would mean silent fail)
+
+
+### Stacking — load previous stage adapters if cumulative training ###
+# adapter_name_or_path: /path/to/stage_5_lora,/path/to/stage_4_lora
+# (uncomment if continuing from prior stage; see feedback_lora_pipeline_stacking.md)
+
+
+### LoRA configuration ###
+finetuning_type: lora
+lora_target: all   # use target_modules in tutorial 07
+                   # OR explicit list below
+
+# More fine-grained control (commented; LF default lora_target=all is OK for first run):
+#
+# target_modules:
+#   - self_attn.q_proj
+#   - self_attn.k_proj
+#   - self_attn.v_proj
+#   - self_attn.o_proj
+#   - linear_attn.in_proj_qkv
+#   - linear_attn.in_proj_z
+#   - linear_attn.out_proj
+#   - mlp.shared_expert.gate_proj
+#   - mlp.shared_expert.up_proj
+#   - mlp.shared_expert.down_proj
+#   - mlp.shared_expert_gate
+#   - mlp.gate
+#   # Hot 30 experts (post-pruning the surviving 226, identified via activation profile)
+#   # Update with actual hot_expert_ids from drop_candidates_30.json complement.
+
+lora_rank: 384       # per memory: 21% capacity loss from 30-expert pruning needs r=384 to recover
+lora_alpha: 192      # alpha = r/2 = scaling 0.5 (LoRA paper recommendation)
+lora_dropout: 0.0
+init_lora_weights: gaussian
+
+# CRITICAL: GatedDeltaNet specific layers MUST be excluded:
+# (handled by lora_target=all default which only touches Linear layers — but verify)
+#
+# DO NOT touch:
+#   - linear_attn.conv1d (depthwise conv, not Linear)
+#   - linear_attn.A_log / dt_bias (parameter)
+#   - linear_attn.norm.weight (RMSNormGated)
+#   - input_layernorm / post_attention_layernorm
+#   - q_norm / k_norm
+#   - embed_tokens / lm_head / final norm
+
+bias: none
+
+
+### Datasets — Stage 1 + 5 + 4 + 6' cumulative + rehearsal ###
+dataset: lynn_stage1_5_4_6prime_combined,lynn_stage_n_minus_1_rehearsal_20pct
+# Configure these in LLaMA-Factory data/dataset_info.json:
+#   lynn_stage1_5_4_6prime_combined:
+#     - Stage 1 tool-call data (15k samples)
+#     - Stage 5 advanced tool-call (8k)
+#     - Stage 4 long-doc research (12k)
+#     - Stage 6' creative writing (6k)
+#   lynn_stage_n_minus_1_rehearsal_20pct:
+#     - Sample 20% from preceding stage (anti-forgetting per
+#       memory feedback_lora_pipeline_stacking.md)
+
+cutoff_len: 8192     # Lynn-27B-A3B max position embeddings = 262144,
+                     # but training cutoff at 8K — long-context recovery
+                     # is NOT a LoRA goal (per feedback_lora_cannot_fix_longctx.md)
+
+max_samples: 100000
+
+# Sampling weights between datasets (cumulative 80% / rehearsal 20%):
+mix_strategy: interleave_under
+interleave_probs: 0.8,0.2
+
+
+### Output ###
+output_dir: /home/data/lora_outputs/lynn-27b-recovery-r384-stage1_5_4_6prime
+overwrite_output_dir: true
+
+
+### DeepSpeed ZeRO-3 — REQUIRED for 27B BF16 with LoRA ###
+# Per memory feedback_lf_orpo_zero3_required.md:
+#   - Z2 + DDP for SFT may work for 27B (smaller than 35B), but margin tight
+#   - Z3 always safe; pay slight comm overhead
+deepspeed: examples/deepspeed/ds_z3_config.json
+
+
+### Training hyperparameters ###
+stage: sft
+do_train: true
+do_eval: false   # eval via separate gate test after training (V8/V9 benchmark)
+
+# Optimizer
+optim: adamw_torch_fused
+lr_scheduler_type: cosine
+learning_rate: 1.0e-4         # higher than typical (5e-5) since recovering large capacity loss
+warmup_ratio: 0.05
+weight_decay: 0.01
+
+# Batching
+per_device_train_batch_size: 1
+gradient_accumulation_steps: 8     # effective batch = 1 × 2 GPUs × 8 = 16
+num_train_epochs: 1.0              # iterate by re-running with adapter_name_or_path
+
+# Precision (BF16 on A100 native)
+bf16: true
+tf32: true
+
+# Memory savings
+gradient_checkpointing: true
+gradient_checkpointing_kwargs: '{"use_reentrant": false}'
+
+
+### Logging + checkpointing ###
+logging_steps: 10
+save_steps: 200
+save_total_limit: 3            # keep last 3 + best
+plot_loss: true
+report_to: tensorboard         # or wandb if WANDB_API_KEY set
+
+
+### Validation gate (post-training) ###
+# After training completes, MUST run:
+#   python3 benchmarks/lynn_27b_vs_35b.py \
+#       --baseline /path/to/Lynn-35B-A3B-baseline \
+#       --pruned /path/to/Lynn-27B-A3B-Recovered (= base + this LoRA merged) \
+#       --benchmark v9
+# Pass criterion (per memory project_lynn_27b_pruning_plan_0509.md):
+#   - V8/V9 retention ≥ 97% (退化 ≤ 3%)
+#   - tool_call accuracy ≥ baseline
+#   - creative writing eval (LLM judge) ≥ baseline
+
+
+### Sanity check after first training run ###
+# Verify LoRA actually loaded (per memory feedback_lora_multimodal_loading.md):
+#   logits_diff = forward(prompt, with_lora) - forward(prompt, without_lora)
+#   logits_diff.abs().mean() must be > 0.01
+#   If 0.000 → AutoModelForCausalLM was used (silent fail), need
+#                AutoModelForImageTextToText path. Re-load model in LF.
