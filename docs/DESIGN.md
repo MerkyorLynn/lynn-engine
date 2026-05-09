@@ -642,6 +642,53 @@ Phase 2 closes. Lynn engine end-to-end forward now validated bit-for-bit
 in the metric that matters (top-token agreement with the production
 reference). Performance optimization (Phase 3) is unblocked.
 
+## 13.8 Phase 2 closing state (2026-05-09 evening)
+
+### Validated capabilities
+
+| Component | Status | Evidence |
+|---|---|---|
+| 4 Triton kernels (attn / RoPE / RMSNorm / MoE router) | ✅ pass | P1.1 commit `a53c614` |
+| `lynn_full_attn_forward` on real weights | ✅ pass | P1.1 layers 3,7,…,39 self-consistent (the math bugs caught later in P1.3 affected ref + lynn identically); fixed in `adac5d9` |
+| `lynn_linear_attn_forward` (Qwen3_5MoeGatedDeltaNet port) | ✅ **bit-exact vs HF** | P3a 10/10 layers `3c74e1e` |
+| `_layer_forward` orchestration (DecoderLayer) | ✅ pass | included in `adac5d9` end-to-end run |
+| Memory-bounded layer-by-layer forward | ✅ pass | 252 s to load all 40 layers resident, ~3 GB peak when not resident |
+| FP8 → BF16 offline conversion pipeline | ✅ pass | `1a26a52`, 35 GB → 67 GB in 124 s CPU-only |
+| End-to-end token logits agreement vs vLLM | ✅ pass | greedy "The capital of France is Paris, a" matches vLLM token-for-token (`458a35c`) |
+| Multi-prompt top-K overlap | ✅ 9.8 / 10 avg | 8 prompts, top-1 6/8 strict (2 close-call disputes both inside top-10), `d523f1a` |
+
+### What Phase 2 did NOT do (deferred to Phase 3)
+
+| Item | Why deferred | Estimated effort |
+|---|---|---|
+| KV cache for full_attention (incremental decode) | Greedy gen brute-force re-prefill is unambiguously correct; cache is perf, not correctness | 4-6 h |
+| Recurrent state cache for linear_attention (single-token decode path) | Same — `torch_recurrent_gated_delta_rule` is the HF reference, port + plumb through | 6-8 h |
+| Triton-fused chunked gated_delta_rule kernel | Current torch impl is correctness-first; a fused kernel cuts the L0 single-token forward from ~30 ms (linear_attn share) to ~3 ms | 2-3 d |
+| CUTLASS NVFP4 grouped expert FFN | The 256-expert Python loop is the dominant hot spot; CUTLASS grouped GEMM should be ~10-50× faster on the per-token MoE step | 2-4 d |
+| OpenAI-compatible HTTP server (G4) | Pure plumbing once decode is in place | 1-2 d |
+| Disk KV cache + SHA1 prefix matching (G5) | Production feature — Phase 4 once core decode is fast | 3-5 d |
+
+### Performance reality vs targets
+
+  G2 target: ≥100 t/s on Spark.
+  Today:     ~3 t/s on `generate_greedy` (brute-force re-prefill, no KV cache),
+             where ~0.3 s per token is dominated by 30 linear_attention layers
+             × torch chunk_gated_delta_rule + 40 layers' MoE Python loop. With
+             KV cache + Triton-fused linear_attn the first Phase 3 milestone
+             should hit 30-60 t/s; CUTLASS NVFP4 expert FFN is what unlocks
+             the 100+ t/s goal.
+
+### Recommended Phase 3 sequencing
+
+  1. KV cache for full_attention (4-6 h) — single biggest correctness-side win,
+     cuts incremental decode from O(T²·layers) to O(T·layers).
+  2. Recurrent decode for linear_attention (6-8 h) — port `torch_recurrent_gated_delta_rule`
+     and plumb past_recurrent_state through `_layer_forward`.
+  3. Profile pass — confirm what's actually slow in the new decode path.
+  4. CUTLASS NVFP4 grouped expert FFN (2-4 d) — likely the dominant cost
+     once cache is in.
+  5. OpenAI HTTP server (1-2 d) so Lynn brain can swap routes for testing.
+
 ## 14. Decision Log
 
 | Date | Decision | Rationale |
