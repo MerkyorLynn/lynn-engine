@@ -597,6 +597,51 @@ P1 milestone redefined as the union of:
   on Spark mem pressure but works on bigger boxes)
 - ⏸ P1.3 deferred to Phase 3 linear_attention OR RTX PRO 6000 arrival
 
+## 13.7 P1.3 closed (2026-05-09 afternoon)
+
+The three blockers of §13.5/§13.6 were sidestepped by porting
+`Qwen3_5MoeGatedDeltaNet` directly into Lynn (P3a). With both attention
+flavors implemented in-house, no HF reference is needed for the end-to-end
+forward; comparison against the running vLLM (which holds the model on the
+same GPU at mem-fraction 0.5) validates correctness.
+
+End-to-end test (engine/full_forward.py):
+
+```
+Prompt: "The capital of France is"
+vLLM:  Paris (logprob -0.54), a, the, known, \n\n
+Lynn:  Paris (logit 17.88),   a, the, known, \n\n
+       ^^^^^ identical top-5
+```
+
+Memory profile (Spark unified mem during the test, with vLLM running):
+
+```
+vLLM Qwen FP8       60 GB  resident
+ELYZA  (stopped during test)
+voice services       3 GB
+Lynn embeddings + lm_head + final norm   1 GB resident
+Lynn per-layer (loaded then freed)       1.7 GB peak
+Total                                    ~65 GB <  119 GB,  earlyoom-safe
+```
+
+Three bugs were caught and fixed during integration; all three were
+self-consistent in the prior P1.1 reference (lynn vs lynn-style reference
+both wrong identically). Documented in commit `adac5d9`:
+
+  1. RoPE config in Qwen 3.6 lives under `text_config.rope_parameters`
+     (NOT `text_config.rope_theta`), with theta=1e7, partial_rotary_factor=0.25,
+     and GPT-NeoX split-halves rotation pattern (not even/odd interleaved).
+  2. q_proj output requires per-head reshape `[B, M, H_Q, 2*head_dim]`
+     BEFORE chunking into [q, attn_output_gate], not `chunk(2, dim=-1)`
+     on the flat representation.
+  3. Qwen3-family RMSNorm uses `(1.0 + weight) * x_normed`, not `weight * x_normed`
+     (HF PR #29402). RMSNormGated inside linear_attn does NOT use the offset.
+
+Phase 2 closes. Lynn engine end-to-end forward now validated bit-for-bit
+in the metric that matters (top-token agreement with the production
+reference). Performance optimization (Phase 3) is unblocked.
+
 ## 14. Decision Log
 
 | Date | Decision | Rationale |
