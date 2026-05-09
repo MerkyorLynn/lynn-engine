@@ -751,6 +751,70 @@ Bottleneck now is the 256-expert Python loop in MoE forward — Phase 3.2 fixes.
 Phase 3.2 (Triton-fused MoE expert FFN) is next; expected to bring Spark
 single-stream decode to 15-25 t/s.
 
+## 13.10 Phase 3.2 in flight (2026-05-09 evening, DGX SSH offline)
+
+Three-step incremental MoE optimization plan; first two committed (untested
+because DGX frp tunnel went down right after Phase 3.1 closeout).
+
+### 3.2.1 active-experts iteration (commit `120e454`)
+
+Replace `for e in range(256): if mask.any():` Python loop with
+`for e in torch.unique(expert_indices).tolist():`. For decode T=1 this drops
+from 256 iterations (each with a GPU-CPU sync via `.any()`) down to ≤K=8
+iterations.
+
+Expected gain: 30-60 ms / token (40 layers × ~1 ms saved/layer in Python overhead).
+
+### 3.2.2 bmm batched matmul (commit `48ecbfa`)
+
+Stack the K=8 active experts' weights into single `[K, intermediate, hidden]`
+tensors and fire 3 `torch.bmm` calls per layer (gate / up / down) instead
+of K=8 sequential `F.linear` calls. cuBLAS bmm should be 5-10x faster than
+sequential matmul.
+
+Trade-off: 3 × `torch.stack` per layer × 16 MB = ~48 MB memory traffic, ×
+40 layers = 2 GB / token. At Spark 270 GB/s effective ≈ 7 ms total
+stacking cost. Net gain expected: 30-50 ms / token.
+
+Combined with 3.2.1: **target 200 ms → 100-120 ms / token (8-10 t/s)**.
+
+### 3.2.3 Triton fused MoE expert FFN (designed, not yet implemented)
+
+Single Triton kernel that:
+1. Loads h_in [hidden] once
+2. Loops over K=8 active experts inline within the kernel
+3. For each expert: load gate/up/down weights (or use precomputed indexing),
+   do gate @ h, up @ h, silu+mul, down @ result
+4. Accumulates weighted sum into out [hidden]
+
+Avoids:
+- Python per-expert loop overhead
+- Per-call torch.stack cost (kernel does its own indexed loads)
+- Kernel launch overhead between gate/up/down stages (single launch)
+
+Expected: 15-30 ms / token (per-layer ~0.5 ms × 40 = 20 ms total MoE budget).
+
+Combined with 3.2.1 + 3.2.2 path: target 50 ms / token (20 t/s).
+
+### 3.2.4 (open question) grouped expert weight pre-stacking
+
+If we modify `loader.py` to load expert weights as a single
+`[256, 2*intermediate, hidden]` grouped tensor (matching HF's
+`Qwen3_5MoeExperts.gate_up_proj` layout), we eliminate per-call torch.stack
+entirely.
+
+Cost: same memory total (256 × per-expert size); requires loader rewrite
+and breaks current per-expert key-based access in `engine/qwen36_block.py`
++ `_moe_forward`.
+
+Decision deferred until 3.2.2 + 3.2.3 numbers are in.
+
+### 3.2 milestone exit criteria
+
+- [ ] Spark single-stream decode ≥ 15 t/s on the brute-force test prompt
+- [ ] Multi-prompt 5-token generation matches vLLM token-for-token (8/8)
+- [ ] DESIGN.md §13.10 updated with measured numbers
+
 ## 14. Decision Log
 
 | Date | Decision | Rationale |
