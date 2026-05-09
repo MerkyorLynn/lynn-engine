@@ -38,15 +38,24 @@ Lynn:   ' Paris, a city renowned'   ← 5/5 token 完全一致
 | Phase 3.4(CUTLASS NVFP4 grouped)| 目标 ~10-15 ms | 60-100 | B 阶段(未来)|
 | vLLM SGLang+MTP 基线 | ~14 ms | 60-70 | 参考对照 |
 
-## 长期路线 — C → B 两阶段
+## 长期路线 — C(36h)→ 验证 → B(6 月)
 
 详见 [`docs/STRATEGY.md`](docs/STRATEGY.md)。简版:
 
 | 阶段 | 时间 | 目标 |
 |---|---|---|
-| **C 阶段** | 2026-05 → 2026-08 | Lynn-27B-A3B 模型出炉(剪枝 + Recovery LoRA + V4-Pro 蒸馏增强)+ Lynn engine 当 reference / training validator + 教学 |
-| **过渡决策点** | 2026-08 末 | 用户验证 ≥ 2 周稳定 + ROI 够 = 进 B,否则停在 C(没问题)|
-| **B 阶段** | 2026-09 → 2027-02 | Lynn engine + NVFP4 替 SGLang 当 brain primary,极致单 prompt + agent prefix cache |
+| **C 阶段(36h 墙钟)** | 2026-05-09 23:30 → 2026-05-15 | A/B ablation:V4 Pro 蒸 vs V4 Flash 蒸 → winner → 剪 30 expert → Recovery LoRA → V9 gate |
+| **验证阶段(2-4 周,B 准备并行)** | 2026-05-15 → 2026-06-15 | brain 接 Lynn-V4-Distill-Qwen-27B-A3B-NVFP4 走 SGLang 生产 + 用户实测 |
+| **过渡决策点** | 2026-06-15 | 用户实测 ≥ 2 周稳定 + ROI 够 = 进 B |
+| **B 阶段** | 2026-06-15 → 2026-12 末(~6 月) | Lynn engine + NVFP4 + agent prefix cache 替 SGLang 当 brain primary |
+
+**⚡ 蒸馏窗口期 — V4 Pro 75% off 截至 2026-05-31**(`$0.435/M in + $0.87/M out`,原价 4x),5/12 前完成所有 V4 Pro 蒸馏踩在促销内。
+
+**A/B Ablation 设计**:
+- **A · Lynn-V4-Pro-Distill**:reasoning / 长文调研强,~$57(promo)
+- **B · Lynn-V4-Flash-Distill**:风格匹配 brain / 速度直接,~$8
+
+总预算 ~$95-100(双 A100 不能并行,顺序训 24h,~36h 墙钟出 35B winner → 5/15 出 27B)。
 
 **已锁定决策**:
 - 推理硬件:**Blackwell sm_12x**(DGX Spark / 5090 / RTX PRO 6000)

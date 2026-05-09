@@ -11,13 +11,61 @@ This document is the **north star**. When in doubt about scope creep, refer here
 
 ---
 
-## TL;DR — Two phases C → B over 12 months
+## TL;DR — 36h 蒸馏 → 5/15 出 27B → 验证 → B 阶段 6 月
 
 | Phase | Window | Goal | Production-grade? |
 |---|---|---|---|
-| **C** | 2026-05 → 2026-08 | Lynn-27B-A3B model出炉(剪枝 + LoRA recovery)+ Lynn engine 当 reference / training validator | ❌ No, SGLang 跑生产 |
-| **Transition gate** | 2026-08 末 | Decide: Lynn-27B-A3B 用户验证 ≥ 2 周稳定 + B 阶段 ROI 够 = enter B | — |
-| **B** | 2026-09 → 2027-02 | Lynn engine + NVFP4 替 SGLang 当 brain primary | ✅ Yes |
+| **C 阶段 — 蒸馏 + 剪枝(36h 墙钟)** | 2026-05-09 23:30 → 2026-05-15 | **A/B ablation:V4 Pro 蒸 vs V4 Flash 蒸 → 选 winner → 剪 30 expert → Recovery LoRA** | ❌ No, SGLang 跑生产 |
+| **验证阶段(2-4 周,B 准备并行)** | 2026-05-15 → 2026-06-15 | brain 接 Lynn-V4-Distill-27B-A3B-NVFP4 走 SGLang 生产 + 用户实测 | — |
+| **Transition gate** | 2026-06-15 | 用户实测 ≥ 2 周 OK + B 阶段 ROI 够 = enter B | — |
+| **B 阶段** | 2026-06-15 → 2026-12 末(~6 月) | Lynn engine + NVFP4 kernel + agent prefix cache 替 SGLang 当 brain primary | ✅ Yes |
+
+### ⚡ 蒸馏窗口期 — V4 Pro 75% off 截至 2026-05-31
+
+DeepSeek 半年大促,**5/12 完成所有蒸馏**踩在促销窗口内。错过 → 价格回 4x:
+
+| 模型 | Input/M | Output/M | 备注 |
+|---|---|---|---|
+| **V4 Pro**(promo) | **$0.435** | **$0.87** | ⭐ 75% off 至 5/31 |
+| V4 Pro(原价)| $1.74 | $3.48 | 5/31 后回原价 |
+| V4 Flash | $0.14 | $0.28 | 标准价 |
+
+### A/B Ablation 设计(双版本同时跑)
+
+| 版本 | 蒸馏教师 | Token 预算 | 成本估算 | 期望强项 |
+|---|---|---|---|---|
+| **A · Lynn-V4-Pro-Distill** | DeepSeek-V4-Pro | 15K × (800 in + 4000 out) = 72M tok | ~$57(promo)| reasoning / 长文调研 / 难题 |
+| **B · Lynn-V4-Flash-Distill** | DeepSeek-V4-Flash | 15K × (800 in + 1500 out) = 34.5M tok | ~$8 | 风格匹配 brain / 速度直接 |
+
+**总预算估算**:~$95-100(含 P1 HAS 已花 + 20% buffer + gate 调试)
+
+**当前 DS 余额 ~$95** → 推荐充 $50 到 $160(安全 + 后续 27B Recovery iter / 调试 buffer)。
+
+### 36h 墙钟 timetable
+
+```
+5/09 23:14            P1 HAS 完 → prep 2 套数据采集脚本
+5/09 23:30 → 5/10 04:30   API 采 V4 Pro 15K(~5h,跟 P0 ORPO 并行)
+5/10 04:30 → 06:00         API 采 V4 Flash 15K(~1.5h)
+5/10 ~05:30                P0 ORPO 完 → gate 验
+5/10 07:30 → 19:30         训 Version A on 2×A100 Z3(~12h)
+5/10 19:30 → 21:30         Gate Version A
+5/10 21:30 → 5/11 09:30    训 Version B on 2×A100 Z3(~12h)
+5/11 09:30 → 11:30         Gate Version B
+5/11 11:30                 A vs B 对比 → 选 winner = Lynn-V4-Distill-Qwen-35B-A3B ⭐
+5/11 12:00 起              27B 剪枝启动
+~5/15                       Lynn-V4-Distill-Qwen-27B-A3B 出炉
+```
+
+**双 A100 不能并行跑 2 版本**(35B BF16 单卡 80GB 装不下,Z3 sharding 占双卡)→ 顺序跑 36h 墙钟。
+
+### 压缩思路
+
+- 原 C 阶段 4 个月 → 现在 **1 周(36h+剪枝)**
+- A/B ablation 不浪费时间(顺序训 24h)— 拿数据决定 V4 Pro 是否值多花的钱(7x 价差)
+- 验证跟 B 阶段开发并行,不等验证完才开 B
+- B 阶段 NVFP4 kernel 工程量是硬上限,~6 个月仍现实
+- **2026 年内 Lynn-27B-A3B + Lynn engine 上生产**(原计划 2027-02 → 提前 ~3 个月)
 
 ---
 
@@ -108,38 +156,57 @@ vLLM/SGLang 不会做的 4 个特性,这是 Lynn engine 的 MOAT:
 
 ---
 
-## C 阶段产出清单(2026-05 → 2026-08)
+## C 阶段产出清单(压缩版 2026-05-09 → 05-15,~1 周)
 
-### C1 · Phase 3.1/3.2 验证 + Lynn 35B baseline 数据 ✅(代码 ready,等 DGX)
+### C0 · 蒸馏数据采集(5/09 23:30 → 5/10 06:00,~6.5h API)
+- 15K queries × V4-Pro = 72M tok 给 Version A
+- 15K queries × V4-Flash = 34.5M tok 给 Version B
+- 同一批 prompts(覆盖 coding / tool_call / math / finance / longform / creative)
+- 工具:`pruning/distillation/collect.py`(待写)
+- 跟 P0 ORPO 并行,用 Tencent 的 brain 出口走 API
+
+### C0.5 · A/B Ablation 训练(5/10 07:30 → 5/11 09:30,顺序 ~24h on 2×A100)
+- **Version A(Pro 蒸)**:5/10 07:30 → 19:30(~12h)
+- **Version A Gate**:5/10 19:30 → 21:30(V8/V9 跑)
+- **Version B(Flash 蒸)**:5/10 21:30 → 5/11 09:30(~12h)
+- **Version B Gate**:5/11 09:30 → 11:30
+- **Compare A vs B → 5/11 11:30 出 winner**
+- LLaMA-Factory + ZeRO-3,bf16 + gradient_checkpointing,r=192 蒸馏 LoRA(蒸馏阶段不用 384,数据量足)
+
+### C1 · Phase 3.1/3.2 Lynn engine 验证(并行,DGX 一回就跑)
 - `engine/test_incremental_decode.py` 跑过
-- `engine/test_moe_optimized.py` 跑过 + 选最佳 MoE 路径
-- 5/8 prompt 跟 vLLM 重测一致
-- 50 token 稳态 t/s 测量
+- `engine/test_moe_optimized.py` 三档 MoE 横向 benchmark
+- 50 token 稳态 t/s + vs vLLM 端到端对齐
 
-### C2 · Lynn-35B-A3B activation profile ✅(代码 ready,等 DGX)
+### C2 · 在 35B winner 上跑 activation profile(5/11 中午 → 下午,~3h on Spark)
 - `pruning/profile_activations.py` 跑 calibration_set v1.1(1436 prompts)
-- 输出 `activation_profile_35B.jsonl`(~50MB)
+- ⚠️ **关键**:profile 用的是 35B winner(蒸馏后),不是 baseline 35B
+- 输出 `activation_profile_lynn_v4_distill_35B.jsonl`
 
-### C3 · Drop 30 expert 决策 ✅(代码 ready,等 profile 跑完)
+### C3 · Drop 30 expert 决策(5/11 下午,~1 min CPU)
 - `pruning/decide_pruning.py` 输出 `drop_candidates_30.json` + rationale.md
 - 用户 review + ✅ 才进 C4
 
-### C4 · Recovery LoRA 训练(本文件 deliverable + A100 跑)
+### C4 · Recovery LoRA 训练(5/11 晚 → 5/14,~3 天 on A100)
 - `pruning/training/recovery_lora_qwen36.yaml` LLaMA-Factory 配置
-- A100 双卡 ZeRO-3,r=384,Stage 1+5+4+6'+rehearsal
-- ~5h × 2-3 轮迭代
+- 起点 = Version winner 蒸馏 LoRA 已 merged 的 35B
+- 剪 30 expert → 27B → r=384 LoRA recover,Stage 1+5+4+6'+rehearsal
+- 1-2 epoch,如 V9 退化 > 3% 加 epoch 或调 r=512
 
-### C5 · Lynn-27B-A3B 数值校验
-- Lynn engine BF16 跑 27B,跟 HF 单层 alignment(类似 Phase 3a 测试)
-- V8/V9 benchmark vs 35B baseline,退化 ≤ 3% = ship
+### C5 · Lynn-27B-A3B 数值校验 + V9 Gate(5/14 晚 → 5/15)
+- Lynn engine BF16 跑 27B,跟 HF 单层 alignment
+- `benchmarks/lynn_27b_vs_35b.py` V9 自动化:retention ≥ 97%(or ≥ 100% if distill 红利够)
+- ✅ 通过 → ship Lynn-V4-Distill-Qwen-27B-A3B-BF16
 
-### C6 · NVFP4 量化(为 B 阶段铺路)
+### C6 · NVFP4 量化(5/15,~1h on A100)
 - `docs/NVFP4_QUANTIZATION.md` pipeline 文档
-- modelopt 0.43 v7-RTN 路径(memory `reference_qwen36_nvfp4_v8_rtn.md`)
-- 输出 `Lynn-27B-A3B-NVFP4-v8-RTN`(BF16 + NVFP4 双套权重)
+- llmcompressor v8-RTN 路径
+- 输出 `Lynn-V4-Distill-Qwen-27B-A3B-NVFP4-v8-RTN` (~14 GB)
+- SGLang dev-cu13 启动验证
 
 ### C7 · 教学 + 公开 ✅(已完成,继续维护)
 - 7 篇 tutorials + Zhihu 长文 + B 站脚本(待发)+ Twitter thread
+- ⭐ **A/B ablation 完整报告写进 model card**:V4 Pro vs V4 Flash 蒸 27B-A3B —— **中文社区暂无人公开做过,价值高**
 - HuggingFace blog post(可选)
 
 ---
@@ -220,7 +287,10 @@ LoRA 切换:        < 50ms 热加载
 
 | 风险 | 几率 | 应对 |
 |---|---|---|
-| Lynn-27B-A3B 剪枝退化 > 5% | 中 | C 阶段 gate 不过 → 保留 35B,Lynn engine archive |
+| Lynn-27B-A3B 剪枝退化 > 5% | 中 → **低**(蒸馏后冗余多 → 剪更易)| C5 gate 不过 → 加 epoch / 升 r 到 512 |
+| ⚡ V4 Pro 5/31 后回原价(4x)| **高 if 拖到 6 月** | 5/12 前完成所有 V4 Pro 蒸馏 |
+| 双 A100 训练 12h 没 24h 内跑完 | 中 | 同时备 cloud GPU(Lambda / RunPod 5090)backup |
+| 蒸馏数据 cleaning 不够 → 学到 V4-Pro 错的 | 中 | gate 题里加 trap 测 + reject sampling |
 | NVFP4 kernel 写不通(B1 阶段)| 中 | B 阶段不进,Lynn engine 留 BF16 reference |
 | Qwen 4 / Qwen 5 出来 | 高(2026 年内可能)| 评估升级成本 — 大改重写 vs 维持 |
 | SGLang 一直跑稳 → Lynn engine 替换 ROI 不够 | 中 | 不进 B,这是 fine 的退路 |
@@ -232,3 +302,4 @@ LoRA 切换:        < 50ms 热加载
 ## 修订历史
 
 - 2026-05-09 初版,锁定 Blackwell + NVFP4 + C → B 路线
+- 2026-05-09 v2.0:**C 阶段压缩到 1 周**(36h 蒸馏 + 5/15 出 27B)+ V4 Pro/Flash A/B ablation + 利用 V4 Pro 75% off 5/31 截止促销 + 验证跟 B 阶段开发并行 → 2026 年内 Lynn-27B-A3B + Lynn engine 上生产
