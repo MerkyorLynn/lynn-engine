@@ -689,6 +689,68 @@ reference). Performance optimization (Phase 3) is unblocked.
      once cache is in.
   5. OpenAI HTTP server (1-2 d) so Lynn brain can swap routes for testing.
 
+## 13.9 Phase 3.1 closed (2026-05-09 evening)
+
+Steps 1 and 2 above completed in `commit 1e2980b`.
+
+### Implementation
+
+- `engine/inference_state.py` — `LynnInferenceState` dataclass; pre-allocates
+  KV cache (10 full_attn × [B, 2, 32K, 256] BF16) + recurrent state
+  (30 linear_attn × [B, 32, 128, 128] FP32) + conv state (30 × [B, 8192, 3] BF16).
+  Total 735 MB @ B=1 max_T=32K.
+- `engine/incremental_decode.py` — refactored prefill / decode primitives
+  for both attention types. Decode side ports HF's `torch_recurrent_gated_delta_rule`
+  for linear_attn single-token path.
+- `engine/full_forward.py::generate_incremental` — orchestrator. Prefill all T
+  prompt tokens once → save K/V/state to LynnInferenceState → decode 1 token
+  at a time using cached state.
+
+### Single-layer alignment (T=64, chunk-aligned)
+
+| Layer type | Layer | rel_diff | max_diff | status |
+|---|---|---|---|---|
+| full_attention | layer 3 | 1.449% | 1.95e-3 | ✅ |
+| linear_attention | layer 0 | 0.683% | 2.4e-4 | ✅ |
+
+(Diff vs brute-force chunk_gated_delta_rule re-prefill, bounded by FP32
+accumulation order between chunk and recurrent paths. Both well below
+visible-output magnitudes.)
+
+### End-to-end greedy 5-token vs vLLM
+
+```
+prompt: "The capital of France is"
+vLLM (Qwen3.6-35B-A3B-FP8):  Paris, a city renowned
+Lynn engine incremental:     Paris, a city renowned
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^
+                            5/5 tokens token-for-token match ✓
+```
+
+### Performance
+
+| Phase | Path | latency/token |
+|---|---|---|
+| Phase 2 (brute-force) | re-prefill | ~300 ms (2-3 t/s) |
+| **Phase 3.1 (cache + recurrent)** | **incremental decode** | **~200 ms (5 t/s)** |
+| Phase 3.2 target (Triton-fused MoE) | + fused expert FFN | ~50 ms (20 t/s) |
+| Phase 3.3 target (CUTLASS NVFP4 grouped) | + NVFP4 GEMM | ~10-15 ms (60-100 t/s) |
+| vLLM SGLang+MTP baseline | reference | ~14 ms (60-70 t/s) |
+
+Phase 3.1 saves ~100 ms/token over brute-force (the O(T) attention savings;
+linear_attn is O(1) per step instead of re-prefilling the whole sequence).
+Bottleneck now is the 256-expert Python loop in MoE forward — Phase 3.2 fixes.
+
+### Closes
+
+  ✅ KV cache for full_attention
+  ✅ Recurrent state cache for linear_attention
+  ✅ Single-layer alignment passes
+  ✅ End-to-end token agreement with vLLM
+
+Phase 3.2 (Triton-fused MoE expert FFN) is next; expected to bring Spark
+single-stream decode to 15-25 t/s.
+
 ## 14. Decision Log
 
 | Date | Decision | Rationale |
