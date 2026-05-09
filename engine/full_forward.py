@@ -234,6 +234,7 @@ def _prefill_layer(h, position_ids, layer_type, w, cfg, state, layer_idx):
 def _decode_layer(h_new, position_id, layer_type, w, cfg, state, layer_idx):
     """Forward one DecoderLayer in decode mode (T=1) using cached state."""
     from engine.incremental_decode import decode_full_attn, decode_linear_attn
+    from engine.moe_optimized import moe_forward_decode_optimized
 
     residual = h_new
     h_norm = _rms_norm(h_new, w["input_layernorm.weight"])
@@ -254,7 +255,9 @@ def _decode_layer(h_new, position_id, layer_type, w, cfg, state, layer_idx):
 
     residual = h
     h_norm = _rms_norm(h, w["post_attention_layernorm.weight"])
-    moe_out = _moe_forward(h_norm, w, cfg)
+    # Phase 3.2: optimized MoE that iterates only the (up to K=8) unique
+    # active experts instead of all 256 with mask.any() per iteration.
+    moe_out = moe_forward_decode_optimized(h_norm, w, cfg)
     return residual + moe_out
 
 
