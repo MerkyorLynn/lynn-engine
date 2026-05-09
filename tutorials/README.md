@@ -22,6 +22,7 @@
 | [04](04_gated_delta_net.md) | **linear_attention = GatedDeltaNet,不是标准 attention 也不是 Mamba** | Mamba 风格的 chunk 递推 + 带 delta rule 修正 + l2norm Q/K |
 | [05](05_three_invisible_bugs.md) | **三个 bug 怎么从 P1.1 通过到 P1.3 暴露** | reference + lynn 同源同错 = self-consistent 假阳。教训:reference 必须真独立 |
 | [06](06_moe_router_softmax_topk_order.md) | **MoE router — softmax 在 top-K 之前还是之后** | Qwen 用 softmax-all → top-K → renormalize(数学跟 naive top-K-then-softmax 等价,但精度路径不同)+ shared expert 带 sigmoid 门控 |
+| [07](07_lora_on_gated_delta_net.md) | **给 GatedDeltaNet 加 LoRA** | 哪些线性层可加(`in_proj_qkv/z/out_proj`)+ 哪些不能(conv1d / A_log / dt_bias / RMSNormGated)+ Lynn 27B-A3B 剪枝 recovery 用 r=384 的理由 + 完整 target_modules 清单 |
 
 ## 配套代码
 
