@@ -209,7 +209,161 @@ def load_outside_weights(model_dir: str, device: str, dtype=torch.bfloat16):
     return out
 
 
-# ----------------- multi-token greedy decode -----------------
+# ----------------- incremental greedy decode (Phase 3.1) -----------------
+
+def _prefill_layer(h, position_ids, layer_type, w, cfg, state, layer_idx):
+    """Forward one DecoderLayer in prefill mode + populate cache."""
+    from engine.incremental_decode import prefill_full_attn, prefill_linear_attn
+
+    residual = h
+    h_norm = _rms_norm(h, w["input_layernorm.weight"])
+    if layer_type == "linear_attention":
+        attn_out, last_state, last_conv = prefill_linear_attn(h_norm, w)
+        state.update_linear_attn_state(layer_idx, last_state, last_conv)
+    else:  # full_attention
+        attn_out, K, V = prefill_full_attn(h_norm, position_ids, w, cfg)
+        state.update_full_attn_kv(layer_idx, K, V, position_start=0)
+    h = residual + attn_out
+
+    residual = h
+    h_norm = _rms_norm(h, w["post_attention_layernorm.weight"])
+    moe_out = _moe_forward(h_norm, w, cfg)
+    return residual + moe_out
+
+
+def _decode_layer(h_new, position_id, layer_type, w, cfg, state, layer_idx):
+    """Forward one DecoderLayer in decode mode (T=1) using cached state."""
+    from engine.incremental_decode import decode_full_attn, decode_linear_attn
+
+    residual = h_new
+    h_norm = _rms_norm(h_new, w["input_layernorm.weight"])
+    if layer_type == "linear_attention":
+        attn_out, new_state, new_conv = decode_linear_attn(
+            h_norm, w,
+            state.recurrent_state[layer_idx],
+            state.conv_state[layer_idx],
+        )
+        state.update_linear_attn_state(layer_idx, new_state, new_conv)
+    else:
+        K, V = state.kv_cache[layer_idx]
+        attn_out = decode_full_attn(
+            h_norm, position_id, w, cfg, K, V,
+            cached_seq_len=state.seq_len,
+        )
+    h = residual + attn_out
+
+    residual = h
+    h_norm = _rms_norm(h, w["post_attention_layernorm.weight"])
+    moe_out = _moe_forward(h_norm, w, cfg)
+    return residual + moe_out
+
+
+def generate_incremental(model_dir, prompt, max_new=5, device="cuda",
+                         dtype=torch.bfloat16, verbose=True, max_seq_len=2048):
+    """Phase 3.1 incremental decode: prefill once, then 1-token-per-step decode.
+
+    Compared to generate_greedy (brute-force), this should be ~10x faster
+    on Spark for short generations and scale O(1) per token (vs O(T) brute).
+    """
+    from engine.loader import load_qwen36_layer
+    from engine.inference_state import LynnInferenceState, LAYER_TYPES
+
+    with open(Path(model_dir) / "config.json") as f:
+        full_cfg = json.load(f)
+    tc = full_cfg["text_config"]
+    rope_p = tc.get("rope_parameters", {})
+    cfg = {
+        "hidden_size": tc["hidden_size"],
+        "num_attention_heads": tc["num_attention_heads"],
+        "num_key_value_heads": tc["num_key_value_heads"],
+        "head_dim": tc["head_dim"],
+        "num_experts": tc["num_experts"],
+        "num_experts_per_tok": tc["num_experts_per_tok"],
+        "rope_theta": rope_p.get("rope_theta", tc.get("rope_theta", 1e6)),
+        "partial_rotary_factor": rope_p.get("partial_rotary_factor", 1.0),
+    }
+    n_layers = tc["num_hidden_layers"]
+    assert LAYER_TYPES == tc["layer_types"], "layer_types config mismatch"
+
+    from transformers import AutoTokenizer
+    tok = AutoTokenizer.from_pretrained(model_dir)
+    ids = tok(prompt, return_tensors="pt").input_ids.to(device)
+    T = ids.shape[1]
+
+    if verbose:
+        print(f"prompt: {prompt!r}, T={T}, max_new={max_new}", flush=True)
+
+    # Outside weights (resident)
+    if verbose:
+        print("Loading outside weights ...", flush=True)
+    outside = load_outside_weights(model_dir, device, dtype)
+
+    # All 40 layers resident
+    if verbose:
+        print(f"Loading all {n_layers} layers (resident) ...", flush=True)
+    layer_weights = []
+    t_start = time.time()
+    for i in range(n_layers):
+        w, _ = load_qwen36_layer(model_dir, i, num_experts=cfg["num_experts"],
+                                 device=device, dequant_dtype=dtype)
+        layer_weights.append(w)
+        if verbose and (i % 5 == 4 or i == n_layers - 1):
+            print(f"  L{i:2}: cumulative {time.time()-t_start:.1f}s", flush=True)
+    if verbose:
+        print(f"All weights resident in {time.time()-t_start:.1f}s\n", flush=True)
+
+    # Allocate inference state
+    state = LynnInferenceState(batch=1, max_seq_len=max_seq_len, device=device, dtype=dtype)
+
+    # === PREFILL ===
+    if verbose:
+        print(f"Prefill T={T} ...", flush=True)
+    t0 = time.time()
+    h = F.embedding(ids, outside["model.language_model.embed_tokens.weight"])
+    pos = torch.arange(T, device=device, dtype=torch.long).unsqueeze(0)
+    for i in range(n_layers):
+        h = _prefill_layer(h, pos, LAYER_TYPES[i], layer_weights[i], cfg, state, i)
+    state.seq_len = T
+
+    # First token from prefill last position
+    h_final = _rms_norm(h, outside["model.language_model.norm.weight"])
+    logits = F.linear(h_final[:, -1, :], outside["lm_head.weight"])
+    next_id = int(logits[0].argmax().item())
+    if device.startswith("cuda"):
+        torch.cuda.synchronize()
+    if verbose:
+        print(f"  prefill done in {time.time()-t0:.2f}s, "
+              f"next={next_id} {tok.decode([next_id])!r}", flush=True)
+    new_ids = [next_id]
+
+    # === DECODE ===
+    for step in range(1, max_new):
+        t0 = time.time()
+        new_token_tensor = torch.tensor([[next_id]], device=device, dtype=torch.long)
+        h = F.embedding(new_token_tensor, outside["model.language_model.embed_tokens.weight"])
+        pos = state.seq_len   # new token position
+
+        for i in range(n_layers):
+            h = _decode_layer(h, pos, LAYER_TYPES[i], layer_weights[i], cfg, state, i)
+
+        state.seq_len += 1
+        h_final = _rms_norm(h, outside["model.language_model.norm.weight"])
+        logits = F.linear(h_final[:, -1, :], outside["lm_head.weight"])
+        next_id = int(logits[0].argmax().item())
+        if device.startswith("cuda"):
+            torch.cuda.synchronize()
+        if verbose:
+            print(f"  decode step {step+1}/{max_new}  pos={state.seq_len}  "
+                  f"{(time.time()-t0)*1000:.0f}ms  next={next_id} "
+                  f"{tok.decode([next_id])!r}", flush=True)
+        new_ids.append(next_id)
+
+    full_ids = ids[0].tolist() + new_ids
+    full_text = tok.decode(full_ids)
+    return full_text, new_ids
+
+
+# ----------------- multi-token greedy decode (brute-force, Phase 2) ---
 
 def generate_greedy(model_dir: str, prompt: str, max_new: int = 5,
                     device: str = "cuda", dtype=torch.bfloat16, verbose: bool = True):
@@ -407,18 +561,29 @@ def main():
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--max-new", type=int, default=1,
                     help="number of tokens to greedy-decode (1 = next-token only)")
+    ap.add_argument("--mode", choices=["prefill", "brute", "incremental"],
+                    default="incremental",
+                    help="prefill = single-token next-logit only; "
+                         "brute = brute-force re-prefill per token; "
+                         "incremental = KV cache + recurrent state cache (Phase 3.1)")
     args = ap.parse_args()
 
     sys.path.insert(0, "/work")
 
-    if args.max_new <= 1:
+    if args.mode == "prefill" or args.max_new <= 1:
         out = run_forward(args.model, args.prompt, device=args.device)
         print(f"\n=== Lynn Engine top-1 next token: "
               f"{out['top_token_id']} ({out['top_token_text']!r}) ===")
-    else:
+    elif args.mode == "brute":
         text, new_ids = generate_greedy(args.model, args.prompt,
                                         max_new=args.max_new, device=args.device)
-        print(f"\n=== Lynn Engine generated ({args.max_new} new tokens) ===")
+        print(f"\n=== Lynn Engine brute-force ({args.max_new} new tokens) ===")
+        print(text)
+        print(f"\nnew_ids: {new_ids}")
+    else:  # incremental
+        text, new_ids = generate_incremental(args.model, args.prompt,
+                                             max_new=args.max_new, device=args.device)
+        print(f"\n=== Lynn Engine incremental ({args.max_new} new tokens) ===")
         print(text)
         print(f"\nnew_ids: {new_ids}")
 
