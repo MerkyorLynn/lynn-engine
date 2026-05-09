@@ -103,4 +103,77 @@ def moe_forward_prefill_optimized(h, w, cfg):
     return moe_out.view(B, T, D)
 
 
-__all__ = ["moe_forward_decode_optimized", "moe_forward_prefill_optimized"]
+def moe_forward_decode_bmm(h, w, cfg):
+    """MoE forward using batched-matmul (bmm) on stacked active expert weights.
+
+    Phase 3.2.2: Single batched-GEMM call per stage (gate / up / down)
+    instead of K=8 sequential F.linear calls. Uses cuBLAS via torch.bmm.
+
+    Trade-off: requires 3 torch.stack calls per layer (gathering 8 expert
+    weights into a [K, intermediate, hidden] tensor). At ~16 MB stack ×
+    3 stacks × 40 layers = 2 GB memory traffic per token. Stacking cost
+    on Spark (~270 GB/s effective) ≈ 7 ms per token total. Net win:
+    cuBLAS bmm should be ~5-10x faster than 8 sequential matmul kernels,
+    overcoming the stacking overhead.
+
+    Estimated gain over moe_forward_decode_optimized (Python loop):
+      ~30 ms / token (40 layers × ~0.7 ms saved/layer)
+
+    h: [B=1, T=1, hidden]
+    Returns: [B=1, T=1, hidden]
+    """
+    B, T, D = h.shape
+    K = cfg["num_experts_per_tok"]
+
+    h_flat = h.view(B * T, D)            # [N, hidden]
+    router_logits = F.linear(h_flat, w["mlp.gate.weight"])
+    routing_weights, expert_indices = torch.topk(router_logits, K, dim=-1)
+    routing_weights = F.softmax(routing_weights, dim=-1, dtype=torch.float32).to(h.dtype)
+
+    # For T=1, expert_indices[0] is a vector of K expert ids (may have duplicates,
+    # but typically all K unique). For T>1 we'd need to handle batching.
+    if h_flat.shape[0] != 1:
+        # Fallback to optimized loop for multi-token (prefill); bmm path needs work.
+        return moe_forward_decode_optimized(h, w, cfg)
+
+    expert_ids = expert_indices[0].tolist()   # length K, may have dups
+    weights_per_slot = routing_weights[0]     # [K]
+
+    # Stack weights for selected experts. CRITICAL: maintain slot order so
+    # we can apply per-slot routing_weights directly.
+    gate_stack = torch.stack([w[f"mlp.experts.{e}.gate_proj.weight"] for e in expert_ids])
+    up_stack = torch.stack([w[f"mlp.experts.{e}.up_proj.weight"] for e in expert_ids])
+    down_stack = torch.stack([w[f"mlp.experts.{e}.down_proj.weight"] for e in expert_ids])
+    # Each stack: [K, intermediate=512, hidden=2048] for gate/up
+    #             [K, hidden=2048, intermediate=512] for down
+
+    # bmm: h_flat [1, hidden] → [K, 1, hidden] → bmm with [K, hidden, intermediate]
+    h_broadcast = h_flat.unsqueeze(0).expand(K, -1, -1)   # [K, 1, hidden]
+    gate_out = torch.bmm(h_broadcast, gate_stack.transpose(-1, -2))   # [K, 1, intermediate]
+    up_out = torch.bmm(h_broadcast, up_stack.transpose(-1, -2))       # [K, 1, intermediate]
+    inter = F.silu(gate_out) * up_out                                 # [K, 1, intermediate]
+    ffn_out = torch.bmm(inter, down_stack.transpose(-1, -2))          # [K, 1, hidden]
+
+    # Weighted sum across slots
+    ffn_out_2d = ffn_out.squeeze(1)                                   # [K, hidden]
+    weighted = ffn_out_2d * weights_per_slot.unsqueeze(-1)            # [K, hidden]
+    moe_out = weighted.sum(dim=0, keepdim=True)                       # [1, hidden]
+
+    # Shared expert (always active)
+    if "mlp.shared_expert.gate_proj.weight" in w:
+        gate_s = F.linear(h_flat, w["mlp.shared_expert.gate_proj.weight"])
+        up_s = F.linear(h_flat, w["mlp.shared_expert.up_proj.weight"])
+        shared_ffn = F.linear(F.silu(gate_s) * up_s, w["mlp.shared_expert.down_proj.weight"])
+        if "mlp.shared_expert_gate.weight" in w:
+            shared_gate = torch.sigmoid(F.linear(h_flat, w["mlp.shared_expert_gate.weight"]))
+            shared_ffn = shared_ffn * shared_gate
+        moe_out = moe_out + shared_ffn
+
+    return moe_out.view(B, T, D)
+
+
+__all__ = [
+    "moe_forward_decode_optimized",      # Phase 3.2.1 — active-experts only
+    "moe_forward_prefill_optimized",
+    "moe_forward_decode_bmm",            # Phase 3.2.2 — batched matmul
+]
