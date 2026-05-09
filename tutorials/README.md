@@ -21,6 +21,7 @@
 | [03](03_attn_output_gate.md) | **q_proj 是 2× H × head_dim — per-head 切 [q\|gate],别 flat chunk** | flat chunk 会把 head 0 的 gate 混进 head 0 的 q,自一致测试容易看不出 |
 | [04](04_gated_delta_net.md) | **linear_attention = GatedDeltaNet,不是标准 attention 也不是 Mamba** | Mamba 风格的 chunk 递推 + 带 delta rule 修正 + l2norm Q/K |
 | [05](05_three_invisible_bugs.md) | **三个 bug 怎么从 P1.1 通过到 P1.3 暴露** | reference + lynn 同源同错 = self-consistent 假阳。教训:reference 必须真独立 |
+| [06](06_moe_router_softmax_topk_order.md) | **MoE router — softmax 在 top-K 之前还是之后** | Qwen 用 softmax-all → top-K → renormalize(数学跟 naive top-K-then-softmax 等价,但精度路径不同)+ shared expert 带 sigmoid 门控 |
 
 ## 配套代码
 
