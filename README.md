@@ -1,60 +1,80 @@
 # Lynn Engine
 
-> **Custom inference engine for Qwen 3.6 35B-A3B on NVIDIA Blackwell.**
-> From-scratch single-model engine — written to (a) understand every layer of the model, (b) eventually beat generic frameworks like vLLM at single-prompt latency for our specific workload.
+> **为 NVIDIA Blackwell 写的 Qwen 3.6 35B-A3B 单模型推理引擎。**
+> 从零写,锁定 NVFP4 + 单 prompt 场景,目的是 (a) 把模型每一层搞懂 (b) 在 Lynn 自家 27B-A3B 剪枝模型上单流速度超过 vLLM/SGLang 这种通用框架。
+
+[Read in English](README_EN.md) · [战略文档](docs/STRATEGY.md) · [架构设计](docs/DESIGN.md)
 
 [![commits](https://img.shields.io/github/commit-activity/m/MerkyorLynn/lynn-engine)](https://github.com/MerkyorLynn/lynn-engine/commits/main)
 [![license](https://img.shields.io/badge/license-TBD-orange)](.)
 
-## What's working today
+## 当前能力
 
-✅ **End-to-end correctness validated** — Lynn engine generates **token-for-token identical output** to production vLLM on greedy decode.
+✅ **端到端数值正确性已验证** — Lynn engine greedy decode 跟生产 vLLM **逐 token 完全一致**。
 
 ```
 prompt: "The capital of France is"
 vLLM:   ' Paris, a city renowned'
-Lynn:   ' Paris, a city renowned'   ← 5/5 token exact match
+Lynn:   ' Paris, a city renowned'   ← 5/5 token 完全一致
 ```
 
-✅ **All 40 layers numerically verified**:
-- 30 linear_attention (GatedDeltaNet) layers — bit-exact vs HF reference
-- 10 full_attention layers — verified via end-to-end logits agreement
-- Multi-prompt validation: 8 diverse prompts, 9.8/10 average top-K (10) overlap with vLLM
+✅ **40 层全部数值通过**:
+- 30 层 linear_attention(GatedDeltaNet)— 跟 HF 逐 bit 一致
+- 10 层 full_attention — 端到端 logits 比对通过
+- 多 prompt 验证:8 个不同 prompt,top-K(10)平均跟 vLLM 9.8/10 重合
 
-⚙️ **Phase 3.1 incremental decode shipped** — KV cache for full_attention + recurrent state cache for linear_attention.
+⚙️ **Phase 3.1 incremental decode 已 ship** — full_attention 走 KV cache,linear_attention 走 recurrent state cache。
 
-⚙️ **OpenAI-compat HTTP server** — Brain can swap one URL to A/B test.
+⚙️ **OpenAI 兼容 HTTP server** — Lynn brain 改一个 URL 就能 A/B 测试。
 
-## Performance status
+## 性能进度
 
-| Path | Latency / token | t/s | Status |
+| 阶段 | 单 token 延迟 | t/s | 状态 |
 |---|---|---|---|
 | Phase 2 brute-force | ~300 ms | 2-3 | shipped |
-| **Phase 3.1 incremental decode** | **~200 ms** | **5** | **shipped (commit `1e2980b`)** |
-| Phase 3.2 (active-experts + bmm + indexed) | target ~100-130 ms | 8-10 | code committed, untested |
-| Phase 3.3 (Triton-fused MoE FFN) | target ~50 ms | 20 | scaffold + design done |
-| Phase 3.4 (CUTLASS NVFP4 grouped) | target ~10-15 ms | 60-100 | future |
-| vLLM SGLang+MTP baseline | ~14 ms | 60-70 | reference |
+| **Phase 3.1 incremental decode** | **~200 ms** | **5** | **shipped(commit `1e2980b`)** |
+| Phase 3.2(active-experts + bmm + indexed)| 目标 ~100-130 ms | 8-10 | 代码已 commit,未实测 |
+| Phase 3.3(Triton-fused MoE FFN)| 目标 ~50 ms | 20 | scaffold + 设计已写 |
+| Phase 3.4(CUTLASS NVFP4 grouped)| 目标 ~10-15 ms | 60-100 | B 阶段(未来)|
+| vLLM SGLang+MTP 基线 | ~14 ms | 60-70 | 参考对照 |
 
-## Tutorials — read these even if you're not writing your own engine
+## 长期路线 — C → B 两阶段
 
-In writing Lynn engine we collected the parts of Qwen 3.6 35B-A3B that **diverge from Llama / Qwen 2 in ways the docs don't tell you**. Six deep tutorials in [`tutorials/`](tutorials/):
+详见 [`docs/STRATEGY.md`](docs/STRATEGY.md)。简版:
 
-| # | Topic | TL;DR |
+| 阶段 | 时间 | 目标 |
 |---|---|---|
-| [01](tutorials/01_rmsnorm_one_plus_weight.md) | RMSNorm `(1.0 + w)` not `w` | Qwen 3 family RMSNorm has a +1 offset. Llama-style hits ~10x error. |
-| [02](tutorials/02_rope_three_gotchas.md) | RoPE three gotchas | theta in `rope_parameters`, partial=0.25, GPT-NeoX half-split (not Qwen 2 even/odd) |
-| [03](tutorials/03_attn_output_gate.md) | q_proj 2× per-head split | Must reshape per-head before chunk, or head_i_gate leaks into head_i_q |
-| [04](tutorials/04_gated_delta_net.md) | linear_attention = GatedDeltaNet | Mamba-style chunk recurrence + delta rule + l2norm Q/K |
-| [05](tutorials/05_three_invisible_bugs.md) | self-consistent bug postmortem | reference + lynn same-source-same-bug = passes wrong tests |
-| [06](tutorials/06_moe_router_softmax_topk_order.md) | MoE router order + shared expert | softmax-all → topK → renormalize, with sigmoid-gated shared expert |
+| **C 阶段** | 2026-05 → 2026-08 | Lynn-27B-A3B 模型出炉(剪枝 + Recovery LoRA + V4-Pro 蒸馏增强)+ Lynn engine 当 reference / training validator + 教学 |
+| **过渡决策点** | 2026-08 末 | 用户验证 ≥ 2 周稳定 + ROI 够 = 进 B,否则停在 C(没问题)|
+| **B 阶段** | 2026-09 → 2027-02 | Lynn engine + NVFP4 替 SGLang 当 brain primary,极致单 prompt + agent prefix cache |
 
-[`tutorials/posts/zhihu_qwen36_engine_postmortem.md`](tutorials/posts/zhihu_qwen36_engine_postmortem.md) is a single Zhihu-blog-style writeup of the highlights.
+**已锁定决策**:
+- 推理硬件:**Blackwell sm_12x**(DGX Spark / 5090 / RTX PRO 6000)
+- 推理量化:**NVFP4 唯一**(BF16 仅 reference)— 不做 FP8/INT4/AWQ/GGUF
+- 推理范围:**单 prompt + batch=1**(不做 PagedAttention)
+- 模型锁定:**Lynn-27B-A3B**(Qwen 3.6 35B-A3B 剪 30 expert + Recovery LoRA + V4-Pro 蒸馏)
+- 定位:**vertical companion** 给 Lynn LoRA + 剪枝训练流水线,**不替 vLLM 当通用引擎**
 
-## Quick start (DGX Spark)
+## 教程 — 即使你不写自己的引擎也值得读
+
+写 Lynn engine 时,我们挖出了 Qwen 3.6 35B-A3B **跟 Llama / Qwen 2 不一样、文档没写明的怪癖**。共 7 篇深度文章在 [`tutorials/`](tutorials/):
+
+| # | 主题 | 一句话 |
+|---|---|---|
+| [01](tutorials/01_rmsnorm_one_plus_weight.md) | RMSNorm `(1.0 + w) × x` 不是 `w × x` | Qwen 3 系 RMSNorm 是 +1 偏移。照 Llama 抄数值偏 ~10x |
+| [02](tutorials/02_rope_three_gotchas.md) | RoPE 三个连环坑 | theta 在 `rope_parameters`(不是 `rope_theta`)+ `partial_rotary_factor=0.25` + GPT-NeoX 半切(不是 Qwen 2 even/odd)|
+| [03](tutorials/03_attn_output_gate.md) | q_proj 是 2× per-head 切分 | 必须先 view 成 (..., H_Q, 2*head_dim) 再 chunk,否则 head_i_gate 混进 head_i_q |
+| [04](tutorials/04_gated_delta_net.md) | linear_attention = GatedDeltaNet | Mamba 风格 chunk 递推 + delta rule + l2norm Q/K |
+| [05](tutorials/05_three_invisible_bugs.md) | 三个 self-consistent bug 复盘 | reference + lynn 同源同错 = 自一致测试假阳的教训 |
+| [06](tutorials/06_moe_router_softmax_topk_order.md) | MoE router order + shared expert | Qwen 用 softmax-all → topK → renormalize,跟 naive 数学等价但精度路径不同 |
+| [07](tutorials/07_lora_on_gated_delta_net.md) | 给 GatedDeltaNet 加 LoRA | 哪些线性层可加 / 哪些不能 / r=384 用于 Recovery 的理由 |
+
+[`tutorials/posts/zhihu_qwen36_engine_postmortem.md`](tutorials/posts/zhihu_qwen36_engine_postmortem.md) 是知乎博客风格的合集长文。
+
+## 快速上手(DGX Spark)
 
 ```bash
-# 1. Convert FP8 → BF16 once (avoids HF FP8 deep-gemm metadata blocker)
+# 1. 一次性把 FP8 转 BF16(避开 HF FP8 deep-gemm 元数据问题)
 docker run --rm --user 1000:1000 \
   -v /home/merkyor/models:/models \
   -v /tmp/lynn-engine:/work -w /work \
@@ -63,10 +83,10 @@ docker run --rm --user 1000:1000 \
     --src /models/Qwen3.6-35B-A3B-FP8 \
     --dst /models/Qwen3.6-35B-A3B-BF16
 
-# 2. Stop vLLM (Lynn needs ~67 GB resident BF16; fp8 path can co-resident)
+# 2. 停 vLLM(Lynn 需要 ~67 GB 内存放权重)
 docker stop vllm-qwen35a3b
 
-# 3. Run incremental decode demo
+# 3. 跑 incremental decode demo
 docker run --rm --gpus all --ipc=host --user 1000:1000 \
   -v /home/merkyor/models:/models \
   -v /tmp/lynn-engine:/work -w /work \
@@ -77,7 +97,7 @@ docker run --rm --gpus all --ipc=host --user 1000:1000 \
              --prompt 'The capital of France is' \
              --max-new 5 --mode incremental"
 
-# 4. (Optional) Start the OpenAI-compat HTTP server
+# 4.(可选)启动 OpenAI 兼容 HTTP server
 docker run -d --rm --gpus all --ipc=host --user 1000:1000 \
   -v /home/merkyor/models:/models \
   -v /tmp/lynn-engine:/work -w /work \
@@ -90,48 +110,108 @@ docker run -d --rm --gpus all --ipc=host --user 1000:1000 \
              --host 0.0.0.0 --port 18099"
 ```
 
-## Repository layout
+## 仓库结构
 
 ```
 engine/
-  loader.py                       FP8 e4m3 dequant + per-layer safetensors loader
-  qwen36_block.py                 Original full transformer block (P1.1; bug-compatible reference)
-  qwen36_linear_attn_block.py     GatedDeltaNet port — BIT-EXACT vs HF
-  full_forward.py                 40-layer end-to-end forward (correct)
-  inference_state.py              KV cache + recurrent state per request
-  incremental_decode.py           prefill / decode primitives (Phase 3.1)
-  moe_optimized.py                Three MoE optimizations (active / bmm / indexed bmm)
-  convert_fp8_to_bf16.py          Offline FP8 → BF16 converter (CPU)
-  test_*.py                       Per-layer alignment tests + multi-prompt validation
+  loader.py                       FP8 e4m3 反量化 + 单层 safetensors 加载器
+  qwen36_block.py                 早期完整 transformer block(P1.1,带 bug 的 reference)
+  qwen36_linear_attn_block.py     GatedDeltaNet 移植 — 跟 HF bit-exact
+  full_forward.py                 40 层端到端 forward(已修正)
+  inference_state.py              单 request 的 KV cache + recurrent state
+  incremental_decode.py           prefill / decode 原语(Phase 3.1)
+  moe_optimized.py                MoE 三档优化(active / bmm / indexed bmm)
+  convert_fp8_to_bf16.py          离线 FP8 → BF16 转换器(CPU)
+  test_*.py                       逐层 alignment 测试 + 多 prompt 验证
+
 triton_kernels/
-  attention.py / rope.py / rmsnorm.py / moe.py    P1 spike kernels
-  moe_expert_ffn.py               Phase 3.2.3 fused MoE kernel (skeleton)
+  attention.py / rope.py / rmsnorm.py / moe.py   P1 spike 内核
+  moe_expert_ffn.py               Phase 3.2.3 融合 MoE 内核(scaffold)
+
 server/
-  openai_http.py                  FastAPI OpenAI-compatible server
-  README.md                       Brain integration guide
+  openai_http.py                  FastAPI OpenAI 兼容 server
+  README.md                       brain 接入指引
+
 docs/
-  DESIGN.md                       Architecture + roadmap (long)
-  PHASE3_KV_CACHE_DESIGN.md       Phase 3.1 design doc
+  STRATEGY.md                     ⭐ 战略 + 长期路线图
+  DESIGN.md                       架构 + 实施日志(长)
+  PHASE3_KV_CACHE_DESIGN.md       Phase 3.1 设计文档
+  NVFP4_QUANTIZATION.md           NVFP4 量化 pipeline(C 阶段末 + B 阶段输入)
+
+pruning/
+  calibration/
+    seeds.jsonl                   102 手工策划 seed prompt(19 类别)
+    expand.py                     DeepSeek API 扩到 1440 prompts
+    calibration_set_v1.1.jsonl    生成的完整集
+  profile_activations.py          Phase 1 W1: 激活画像脚本
+  decide_pruning.py               Phase 1 W2: drop 30 expert 决策算法
+  training/
+    recovery_lora_qwen36.yaml     Recovery LoRA r=384 配置(LLaMA-Factory)
+
+benchmarks/
+  lynn_27b_vs_35b.py              Phase 1 W4 gate test(自动跑 V9 比较)
+
 tutorials/
-  README.md + 6 markdown tutorials + zhihu post
+  README.md + 7 篇 tutorial + Zhihu 长文
 ```
 
-## Why this exists
+## 部署目标硬件
 
-Lynn brain serves Qwen 3.6 35B-A3B as the primary route for thousands of agent requests/day. vLLM (production today) realizes ~80% of Spark's memory-bandwidth ceiling. **Single-model lock-in + Blackwell sm_12x specialization should give the remaining 20% + better tail latency**.
+| 硬件 | VRAM | 状态 |
+|---|---|---|
+| **DGX Spark**(GB10 sm_121,unified 119GB) | 119 GB | C 阶段开发主力 |
+| **RTX 5090 笔记本**(sm_120,24GB) | 24 GB | **Lynn-27B-A3B-NVFP4 占 ~20 GB,4 GB 余量给 16K context** ✅ |
+| **RTX 5090 台式机**(sm_120,32GB) | 32 GB | 预期 180-250 t/s,32K context 宽裕 |
+| **RTX PRO 6000 Blackwell**(sm_120,96GB) | 96 GB | 多 LoRA 切换 + 长 context 扩展 |
+| ~~4090 / Ada~~ | — | 不支持(没 FP4 tensor cores)|
+| ~~A100 / H100 / Hopper~~ | — | 不支持(同上,FP4 emulation 不值)|
+| ~~Ampere / Volta~~ | — | 不支持(老)|
 
-But the more important deliverable is the **understanding** that comes from writing your own engine — the tutorials above are the artifact.
+## 为什么写这个
 
-## Honest trade-offs
+Lynn brain 用 Qwen 3.6 35B-A3B 当主链,每天处理几千个 agent 请求。vLLM(目前生产)能吃掉 Spark 内存带宽 ~80%,Lynn engine 的目标是**单模型锁定 + Blackwell sm_12x 特化** + agent prompt 缓存(99% 命中)拿到剩下 20% + 更低 tail latency。
 
-- ❌ Locked to Qwen 3.6 35B-A3B + Blackwell sm_12x.
-- ❌ If model lineage replaces incompatibly, 4-6 weeks rewrite.
-- ❌ No batching / no concurrent requests today.
-- ❌ Greedy decode only (no sampling, no beam, no speculative).
-- ✅ Fits Lynn brain's deployment exactly.
-- ✅ Vertical integration with LoRA + pruning training pipeline.
-- ✅ All architectural insights documented for the next person.
+但更重要的产出是**通过自己写引擎获得的理解** — 上面的 tutorials 就是这个理解的固化。
+
+## 老实讲的取舍
+
+```
+❌ 锁定 Qwen 3.6 35B-A3B(及其剪枝衍生)+ Blackwell sm_12x
+❌ Qwen 升 3.7/4 不兼容时,需要 4-6 周重写
+❌ 不做批处理 / 多并发(单 prompt 焦点)
+❌ 不做采样(只 greedy);不做 beam / speculative
+❌ 不支持 FP8/INT4/AWQ/GPTQ 等(NVFP4 唯一生产格式)
+✅ 完全契合 Lynn brain 的部署模式
+✅ 跟 LoRA + 剪枝训练流水线 vertical 整合
+✅ 所有架构细节都给后人写下来了
+```
+
+## 不打算做的事(也写明防止 scope creep)
+
+```
+❌ Continuous batching / PagedAttention(vLLM 主场)
+❌ 多模型 loader(锁 Lynn-27B-A3B 家族)
+❌ 多量化格式(NVFP4 唯一)
+❌ Hopper / Ada / Ampere 支持(Blackwell 唯一)
+❌ TP / PP / 多机分布式(单机单 GPU)
+❌ Vision encoder 整合(Lynn 不接图像;后续看)
+❌ 与 vLLM 通用 API 完全兼容(只兼容 brain 用的子集)
+❌ 投 paper(Lynn 是产品,不是论文)
+```
 
 ## License
 
-TBD (likely MIT, decided before Phase 6 production cutover).
+TBD(大概率 MIT,B 阶段生产切换前定下来)。
+
+---
+
+## 相关链接
+
+- [战略 / 路线图(STRATEGY.md)](docs/STRATEGY.md)
+- [架构设计(DESIGN.md)](docs/DESIGN.md)
+- [Phase 3 incremental decode 设计](docs/PHASE3_KV_CACHE_DESIGN.md)
+- [NVFP4 量化 pipeline](docs/NVFP4_QUANTIZATION.md)
+- [剪枝 pipeline(calibration / profile / decide / LoRA)](pruning/README.md)
+- [HTTP server(brain 接入指引)](server/README.md)
+- [English README](README_EN.md)
+- [Toolabstain 论文(姊妹项目)](https://github.com/MerkyorLynn/toolabstain-paper)
