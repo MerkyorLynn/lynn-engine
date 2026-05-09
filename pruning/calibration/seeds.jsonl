@@ -1,0 +1,120 @@
+{"id":"keep/coding/001","cat":"coding","sub":"algorithm","lang":"en","text":"Implement a Python function that finds the longest palindromic substring of a given string in O(n^2) time using Manacher-style center expansion."}
+{"id":"keep/coding/002","cat":"coding","sub":"algorithm","lang":"zh","text":"用 Python 实现一个最大堆,支持 push, pop, peek 三个操作,时间复杂度 push/pop O(log n),peek O(1)。给出完整代码 + 单元测试。"}
+{"id":"keep/coding/003","cat":"coding","sub":"web","lang":"en","text":"Write a TypeScript function that parses a URL into its components (protocol, host, port, path, query, fragment) without using URL constructor. Handle edge cases like default ports."}
+{"id":"keep/coding/004","cat":"coding","sub":"systems","lang":"en","text":"Write a Rust function that reads a file in chunks and computes its SHA-256 hash without loading the entire file into memory. Use std::io::BufReader."}
+{"id":"keep/coding/005","cat":"coding","sub":"db","lang":"zh","text":"我有个 PostgreSQL 表 orders(id, user_id, amount, created_at)。写一条 SQL 算每个用户最近 30 天的总订单金额,按金额降序,只返回前 100 名。"}
+{"id":"keep/coding/006","cat":"coding","sub":"frontend","lang":"zh","text":"用 React + TypeScript 写一个 Toast 组件,支持 success/error/warning 三种类型,自动 3 秒后消失,可以同时显示多个并排队。给出 hooks API。"}
+{"id":"keep/coding/007","cat":"coding","sub":"backend","lang":"en","text":"Build a FastAPI endpoint POST /messages that accepts {text: string, channel: string}, validates with pydantic, writes to a Redis list, returns 202 with message_id. Include error handling."}
+{"id":"keep/coding/008","cat":"coding","sub":"shell","lang":"zh","text":"写一个 bash 脚本,递归找当前目录所有 .log 文件中包含 'ERROR' 的行,输出 文件名:行号:行内容,按文件名分组。"}
+{"id":"keep/coding/009","cat":"coding","sub":"refactor","lang":"en","text":"Refactor this nested if-else into a state machine pattern. The original code has 5 levels of nesting checking user state transitions (anonymous → registered → verified → premium → suspended)."}
+{"id":"keep/coding/010","cat":"coding","sub":"test","lang":"zh","text":"用 pytest 写测试覆盖一个支付函数 process_payment(amount, currency, card_token),要求测 happy path、卡过期、余额不足、currency 不支持、并发重复扣款 5 种情况。"}
+
+{"id":"keep/tool_call/001","cat":"tool_call","sub":"single","lang":"zh","text":"今天上海天气怎么样?"}
+{"id":"keep/tool_call/002","cat":"tool_call","sub":"single","lang":"zh","text":"查一下 Apple 的最新股价。"}
+{"id":"keep/tool_call/003","cat":"tool_call","sub":"chained","lang":"zh","text":"帮我查 5 月 15 号上海到深圳的高铁,然后预订二等座。"}
+{"id":"keep/tool_call/004","cat":"tool_call","sub":"chained","lang":"zh","text":"把 README.md 翻译成英文,然后发邮件给 lynn@example.com。"}
+{"id":"keep/tool_call/005","cat":"tool_call","sub":"agent","lang":"en","text":"Commit my staged changes with message 'fix: handle edge case in user auth' and push to origin."}
+{"id":"keep/tool_call/006","cat":"tool_call","sub":"agent","lang":"zh","text":"在 GitHub 我的仓库 my-app 关闭 issue #42,留个评论说 'fixed in commit abc123'。"}
+{"id":"keep/tool_call/007","cat":"tool_call","sub":"borderline","lang":"zh","text":"翻译 'I love Beijing Tiananmen Square' 成中文。"}
+{"id":"keep/tool_call/008","cat":"tool_call","sub":"abstain","lang":"zh","text":"创意写一首关于秋天的五言绝句。"}
+{"id":"keep/tool_call/009","cat":"tool_call","sub":"longtail","lang":"zh","text":"上海地铁 17 号线最近一次延误是什么时候,原因是什么?"}
+{"id":"keep/tool_call/010","cat":"tool_call","sub":"calc","lang":"zh","text":"算一下 1.07 的 12 次方是多少。"}
+
+{"id":"keep/math/001","cat":"math_numerical","sub":"calc","lang":"en","text":"Compute the eigenvalues of the 3x3 matrix [[2,1,0],[1,3,1],[0,1,2]] step by step."}
+{"id":"keep/math/002","cat":"math_numerical","sub":"prob","lang":"zh","text":"我有一个公平的六面骰子,扔三次,至少出现一次 6 的概率是多少?给出推导过程。"}
+{"id":"keep/math/003","cat":"math_numerical","sub":"alg","lang":"en","text":"What's the time complexity of merge sort, and why? Show the recurrence and solve via master theorem."}
+{"id":"keep/math/004","cat":"math_numerical","sub":"finance","lang":"zh","text":"年化 8% 复利投资 10 万,15 年后本息合计多少?写出公式 + 计算 + 对比单利。"}
+{"id":"keep/math/005","cat":"math_numerical","sub":"stats","lang":"en","text":"Given a sample of size n=30 with mean 75 and std 10, construct a 95% confidence interval for the population mean. State assumptions."}
+{"id":"keep/math/006","cat":"math_numerical","sub":"calc","lang":"zh","text":"求函数 f(x) = x^3 - 6x^2 + 9x + 2 的所有极值点,并判断是极大还是极小。"}
+{"id":"keep/math/007","cat":"math_numerical","sub":"linalg","lang":"zh","text":"两个矩阵 A 和 B 都是 n×n,如果 AB = I,证明 BA = I。"}
+{"id":"keep/math/008","cat":"math_numerical","sub":"opt","lang":"en","text":"Set up the linear program for: maximize 3x + 4y subject to x+2y<=8, 3x+y<=9, x,y>=0. Solve graphically."}
+
+{"id":"keep/finance/001","cat":"finance","sub":"valuation","lang":"zh","text":"一个公司去年自由现金流 1000 万,预期未来 5 年增长 10%/年,之后 3% 永续增长,折现率 12%,用 DCF 估市值。"}
+{"id":"keep/finance/002","cat":"finance","sub":"options","lang":"en","text":"Explain how a Black-Scholes call option price changes when (a) underlying volatility increases by 5%, (b) time to expiry decreases by 30 days. Use intuition + formulas."}
+{"id":"keep/finance/003","cat":"finance","sub":"china","lang":"zh","text":"沪深 300 指数最近一年回报率大概多少?同期 10 年期国债收益率多少?算个 risk premium。"}
+{"id":"keep/finance/004","cat":"finance","sub":"crypto","lang":"zh","text":"Bitcoin 现在跟黄金的相关系数高不高?给出最近 90 日 daily return 相关计算思路。"}
+{"id":"keep/finance/005","cat":"finance","sub":"acct","lang":"zh","text":"GAAP 跟 IFRS 在收入确认上的主要差异是什么?举一个 SaaS 订阅业务的例子说明。"}
+{"id":"keep/finance/006","cat":"finance","sub":"macro","lang":"zh","text":"美联储下一次会议预期加息还是降息?基于近期 CPI 和就业数据分析。"}
+
+{"id":"keep/longctx/001","cat":"long_doc_research","sub":"summary","lang":"zh","text":"以下是一份 5000 字关于电动车电池回收行业的报告。请总结成 5 个 bullet 要点。[报告内容...]"}
+{"id":"keep/longctx/002","cat":"long_doc_research","sub":"compare","lang":"en","text":"Compare these two academic abstracts on transformer attention efficiency. Identify common findings, key differences in methodology, and which has stronger empirical evidence. [abstract 1] [abstract 2]"}
+{"id":"keep/longctx/003","cat":"long_doc_research","sub":"extract","lang":"zh","text":"从这份合同中提取所有关键条款:租金、押金、租期、违约责任、续约条件,以表格形式输出。[合同 8000 字]"}
+{"id":"keep/longctx/004","cat":"long_doc_research","sub":"qa","lang":"zh","text":"基于以下技术文档,回答:这个 API 的速率限制是多少?如何处理 429 响应?[文档 3000 字]"}
+{"id":"keep/longctx/005","cat":"long_doc_research","sub":"crit","lang":"en","text":"Read this research methodology section critically. Identify 3 weaknesses in the experimental design and suggest improvements. [methodology 4000 words]"}
+
+{"id":"keep/creative_zh/001","cat":"creative_writing_zh","sub":"poem","lang":"zh","text":"写一首五言律诗,主题是黄昏归家路。要求押韵,第二联第三联对仗。"}
+{"id":"keep/creative_zh/002","cat":"creative_writing_zh","sub":"micro","lang":"zh","text":"用 100 字写一段微小说,场景是雨夜便利店,只描写一个动作和一段对话,留白多一点。"}
+{"id":"keep/creative_zh/003","cat":"creative_writing_zh","sub":"essay","lang":"zh","text":"写一篇 800 字散文,主题'母亲的手',要有具体的细节(疤痕、动作、气味),不要套话。"}
+{"id":"keep/creative_zh/004","cat":"creative_writing_zh","sub":"dialog","lang":"zh","text":"写一段对话,两个人在医院走廊,一个刚得知 bad news,另一个不知道怎么安慰。每人 3 句,体现张力。"}
+{"id":"keep/creative_zh/005","cat":"creative_writing_zh","sub":"gzh","lang":"zh","text":"写一篇 1500 字公众号文章,主题'为什么我开始拒绝完美主义',要有个人故事开头,3 个论点,结尾有金句。"}
+{"id":"keep/creative_zh/006","cat":"creative_writing_zh","sub":"xhs","lang":"zh","text":"小红书风格写一篇 300 字笔记,主题是'30 岁前学会的 5 件小事',活泼用 emoji,带 #tag。"}
+{"id":"keep/creative_zh/007","cat":"creative_writing_zh","sub":"weibo","lang":"zh","text":"写 3 条微博,140 字内,关于'通勤路上的观察',要有不同情绪基调:温暖/吐槽/哲思。"}
+{"id":"keep/creative_zh/008","cat":"creative_writing_zh","sub":"copy","lang":"zh","text":"为一款主打'安静'的降噪耳机写 5 个广告 slogan,每个不超过 12 字,要有情绪而不是参数。"}
+{"id":"keep/creative_zh/009","cat":"creative_writing_zh","sub":"story","lang":"zh","text":"以'她最后回头看了一眼'开头,写一段 500 字短篇结尾。可以悬念可以反转,但要克制。"}
+{"id":"keep/creative_zh/010","cat":"creative_writing_zh","sub":"diff","lang":"zh","text":"把这段冗长的产品介绍改写一下,保留所有关键信息但减少 50% 字数。原文:[200 字产品介绍]"}
+
+{"id":"keep/creative_en/001","cat":"creative_writing_en","sub":"poem","lang":"en","text":"Write a 14-line sonnet (Shakespearean form, ABAB CDCD EFEF GG) about an old laptop being retired. Tone: melancholy but warm."}
+{"id":"keep/creative_en/002","cat":"creative_writing_en","sub":"essay","lang":"en","text":"Write a 600-word personal essay starting with the sentence: 'I never told my grandmother I loved her.' Specific, no cliches."}
+{"id":"keep/creative_en/003","cat":"creative_writing_en","sub":"micro","lang":"en","text":"Write a 50-word micro-fiction about a chess match between strangers. Show, don't tell."}
+{"id":"keep/creative_en/004","cat":"creative_writing_en","sub":"dialog","lang":"en","text":"Two characters in an elevator that's stuck. One is claustrophobic. Six lines of dialogue total. Reveal both characters' professions through what they say."}
+{"id":"keep/creative_en/005","cat":"creative_writing_en","sub":"copy","lang":"en","text":"Write 5 Twitter-length pitches for a productivity app called Echo. Each ≤ 250 chars. Different angles: time-saving / focus / habit / community / privacy."}
+
+{"id":"keep/novel/001","cat":"novel_multi_pov","sub":"3pov","lang":"zh","text":"同一个晚餐场景,从父亲、母亲、女儿三个 POV 各写 200 字内心独白。注意每人对同一件事的感受截然不同。事件:女儿宣布要 gap year。"}
+{"id":"keep/novel/002","cat":"novel_multi_pov","sub":"unreliable","lang":"en","text":"Write a 400-word scene in first person where the narrator is unreliable — let the reader notice details that contradict what the narrator says."}
+{"id":"keep/novel/003","cat":"novel_multi_pov","sub":"timeline","lang":"zh","text":"用 3 段非线性叙事讲一个'失败创业者'的故事:第一段开公司、第二段公司倒闭、第三段最初的灵感闪现。每段 300 字。"}
+
+{"id":"keep/social/001","cat":"social_media_styles","sub":"xhs","lang":"zh","text":"小红书 style:'我用 ChatGPT 帮我做了 30 天减肥计划,真实分享',300 字 + 5 个 emoji + 5 个 #tag。"}
+{"id":"keep/social/002","cat":"social_media_styles","sub":"gzh","lang":"zh","text":"公众号 style:标题 +1500 字正文 + '点赞' 引导 +'关注' 引导,主题'95 后开始养生这件事'。"}
+{"id":"keep/social/003","cat":"social_media_styles","sub":"weibo","lang":"zh","text":"微博 style 30 字内,带 #话题# 和 @朋友,主题'今天最尴尬的一刻'。"}
+{"id":"keep/social/004","cat":"social_media_styles","sub":"douyin","lang":"zh","text":"抖音口播脚本 60 秒(180 字),钩子 + 3 个论点 + 互动引导,主题'5 个被低估的健身动作'。"}
+{"id":"keep/social/005","cat":"social_media_styles","sub":"zhihu","lang":"zh","text":"知乎回答 style:问题'30 岁后悔的事',先反常识开头 + 个人故事 + 3 个观点 + 总结金句,2000 字。"}
+
+{"id":"keep/casual_zh/001","cat":"casual_chat_zh","sub":"daily","lang":"zh","text":"今天好烦啊,工作忙了一天什么也没做完。"}
+{"id":"keep/casual_zh/002","cat":"casual_chat_zh","sub":"opinion","lang":"zh","text":"你觉得我应该买 iPhone 16 还是等 17?预算不是问题,主要看值不值得换。"}
+{"id":"keep/casual_zh/003","cat":"casual_chat_zh","sub":"food","lang":"zh","text":"晚上吃什么好啊,在家不想点外卖,冰箱里有鸡蛋、土豆、白菜、面条。"}
+{"id":"keep/casual_zh/004","cat":"casual_chat_zh","sub":"travel","lang":"zh","text":"周末想去周边走走,从北京出发,2 天 1 夜,推荐个性价比高的地方。"}
+{"id":"keep/casual_zh/005","cat":"casual_chat_zh","sub":"emo","lang":"zh","text":"刚跟朋友吵架了,我觉得我没错但是她挺生气的。要不要主动道歉?"}
+
+{"id":"drop/biology/001","cat":"biology_pure","sub":"mol","lang":"en","text":"Explain the role of telomerase in DNA replication and how its dysregulation contributes to cancer development. Cite key enzymatic mechanisms."}
+{"id":"drop/biology/002","cat":"biology_pure","sub":"evo","lang":"zh","text":"详细解释 Hardy-Weinberg 平衡的 5 个假设条件,并举例说明每个假设被破坏后等位基因频率如何变化。"}
+{"id":"drop/biology/003","cat":"biology_pure","sub":"micro","lang":"en","text":"Compare the cell wall structures of Gram-positive vs Gram-negative bacteria, including peptidoglycan layer thickness, presence of teichoic acids, and outer membrane lipopolysaccharides."}
+{"id":"drop/biology/004","cat":"biology_pure","sub":"physio","lang":"en","text":"Walk through the action potential in a myelinated neuron: ion channel kinetics, saltatory conduction, refractory periods. Quantitative if possible."}
+{"id":"drop/biology/005","cat":"biology_pure","sub":"genom","lang":"zh","text":"CRISPR-Cas9 系统中 sgRNA 设计的关键考量:PAM 序列识别、脱靶效应预测工具、GC 含量限制。给出实际设计步骤。"}
+
+{"id":"drop/physics/001","cat":"physics_quantum","sub":"qm","lang":"en","text":"Derive the Schrödinger equation for a particle in a 1D infinite potential well and solve for the lowest 3 energy eigenvalues."}
+{"id":"drop/physics/002","cat":"physics_quantum","sub":"qft","lang":"en","text":"Explain the Higgs mechanism in spontaneous symmetry breaking. Use simple Lagrangian notation."}
+{"id":"drop/physics/003","cat":"physics_quantum","sub":"rel","lang":"zh","text":"相对论中 Lorentz 变换如何推导出时间膨胀公式 t' = γt?给出完整数学步骤。"}
+{"id":"drop/physics/004","cat":"physics_quantum","sub":"ent","lang":"en","text":"Describe the EPR paradox and how Bell's inequality experimentally distinguishes quantum mechanics from local hidden-variable theories."}
+
+{"id":"drop/medical/001","cat":"medical_clinical","sub":"diag","lang":"en","text":"A 45-year-old male presents with chest pain radiating to left arm, diaphoresis, and shortness of breath. Outline the differential diagnosis prioritizing acute coronary syndrome workup."}
+{"id":"drop/medical/002","cat":"medical_clinical","sub":"pharm","lang":"zh","text":"详细说明华法林(warfarin)的药代动力学:吸收、分布、代谢(CYP2C9)、INR 监测目标范围。"}
+{"id":"drop/medical/003","cat":"medical_clinical","sub":"path","lang":"en","text":"Explain the histopathology of triple-negative breast cancer vs HER2-positive breast cancer. Include IHC staining patterns."}
+{"id":"drop/medical/004","cat":"medical_clinical","sub":"epi","lang":"zh","text":"COVID-19 在 2026 年最新流行株的特征:R0、潜伏期、临床表现差异、疫苗有效率。"}
+
+{"id":"drop/law/001","cat":"law_judicial","sub":"contract","lang":"en","text":"Analyze the legal validity of a force majeure clause in a commercial supply contract during a global pandemic. Cite relevant case law."}
+{"id":"drop/law/002","cat":"law_judicial","sub":"crim","lang":"zh","text":"详细解释中国刑法中'正当防卫'与'防卫过当'的区分标准,引用最高人民法院相关案例。"}
+{"id":"drop/law/003","cat":"law_judicial","sub":"ip","lang":"en","text":"Compare patent infringement remedies under US 35 USC §284 vs Chinese Patent Law Article 71. Damages calculation methodology."}
+{"id":"drop/law/004","cat":"law_judicial","sub":"corp","lang":"zh","text":"中国《公司法》2024 修订对中小股东权益保护的主要变化,具体涉及哪些条款,实务中如何适用。"}
+
+{"id":"drop/music/001","cat":"music_theory","sub":"harm","lang":"en","text":"Explain the Neapolitan sixth chord: its construction, voice leading rules, and typical contexts in 18th century Western tonal music."}
+{"id":"drop/music/002","cat":"music_theory","sub":"comp","lang":"zh","text":"详细分析肖邦夜曲 Op.9 No.2 的曲式结构、和声进行、装饰音风格。"}
+{"id":"drop/music/003","cat":"music_theory","sub":"jazz","lang":"en","text":"Describe modal interchange in jazz harmony, with examples from a ii-V-I in Cmaj that borrows from C minor."}
+
+{"id":"drop/sports/001","cat":"sports_analytics","sub":"nba","lang":"en","text":"Compute Lebron James' true shooting percentage given FGM=10, FGA=20, FTM=8, FTA=10, 3PM=2. Show formula."}
+{"id":"drop/sports/002","cat":"sports_analytics","sub":"f1","lang":"zh","text":"分析 2025 F1 赛季 Verstappen 卫冕概率,基于 wet/dry 路面表现 + 机械可靠性 + 队友差距数据。"}
+{"id":"drop/sports/003","cat":"sports_analytics","sub":"football","lang":"en","text":"Explain the xG (expected goals) statistical model used in football analytics. Variables, formula structure, limitations."}
+
+{"id":"drop/religion/001","cat":"religious_text","sub":"buddhism","lang":"zh","text":"详细解释《般若波罗蜜多心经》中'色不异空,空不异色'的哲学含义,联系大乘佛教中观学派思想。"}
+{"id":"drop/religion/002","cat":"religious_text","sub":"christian","lang":"en","text":"Compare the soteriological views of Augustine and Pelagius. How did Augustine's position win the day at the Council of Carthage?"}
+{"id":"drop/religion/003","cat":"religious_text","sub":"hindu","lang":"en","text":"Explain the four ashramas (life stages) in Hindu Dharma and their associated duties (svadharma)."}
+
+{"id":"drop/quantum_chem/001","cat":"quantum_chemistry","sub":"orbital","lang":"en","text":"Derive the Hartree-Fock equations for a closed-shell molecule. Include the role of the Fock operator and self-consistent field iterations."}
+{"id":"drop/quantum_chem/002","cat":"quantum_chemistry","sub":"dft","lang":"zh","text":"DFT 计算中 B3LYP 泛函的具体形式,包含 HF 交换能、Becke88 GGA 项、LYP 相关项。给出公式。"}
+{"id":"drop/quantum_chem/003","cat":"quantum_chemistry","sub":"spectro","lang":"en","text":"Predict the IR spectrum of formaldehyde using normal mode analysis. Identify symmetry of each vibrational mode."}
+
+{"id":"drop/lang_fr/001","cat":"minor_lang","sub":"french","lang":"fr","text":"Écrivez un essai de 300 mots sur l'importance du multilinguisme dans l'éducation supérieure française."}
+{"id":"drop/lang_de/001","cat":"minor_lang","sub":"german","lang":"de","text":"Erklären Sie den Unterschied zwischen 'Konjunktiv I' und 'Konjunktiv II' im Deutschen. Geben Sie Beispiele aus indirekter Rede."}
+{"id":"drop/lang_ru/001","cat":"minor_lang","sub":"russian","lang":"ru","text":"Опишите систему падежей в русском языке: какие функции выполняет каждый падеж и приведите примеры использования."}
+{"id":"drop/lang_ar/001","cat":"minor_lang","sub":"arabic","lang":"ar","text":"اشرح بالتفصيل قواعد التصريف في اللغة العربية للأفعال الثلاثية المجردة، مع أمثلة من الفعلين 'كتب' و 'قرأ'."}
+{"id":"drop/lang_nl/001","cat":"minor_lang","sub":"dutch","lang":"nl","text":"Schrijf een korte samenvatting (200 woorden) over de geschiedenis van de Nederlandse taal vanaf het Oudnederlands tot het moderne Standaardnederlands."}
+{"id":"drop/lang_pt/001","cat":"minor_lang","sub":"portuguese","lang":"pt","text":"Compare as principais diferenças linguísticas entre o português europeu e o português brasileiro: pronúncia, vocabulário, gramática."}
