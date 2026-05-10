@@ -41,26 +41,47 @@ def _rms_norm(x, weight, eps=1e-6):
 
 def _build_rope_cos_sin(positions: torch.Tensor, rotary_dim: int, theta: float,
                        device, dtype):
-    """positions: [B, T] long. Returns cos, sin: [B, 1, T, rotary_dim]."""
+    """positions: [B, T] long. Returns cos, sin: [B, 1, T, rotary_dim/2].
+
+    F2.1 cat-free: returns half-width cos/sin (instead of doubled via cat).
+    GPT-NeoX layout: cos[:half] and cos[half:] would be identical in old impl,
+    so storing only half is byte-exact equivalent and saves the cat op.
+    """
     inv_freq = 1.0 / (
         theta ** (torch.arange(0, rotary_dim, 2, device=device, dtype=torch.float32) / rotary_dim)
     )
     freqs = positions.float()[:, :, None] * inv_freq[None, None, :]
-    emb = torch.cat([freqs, freqs], dim=-1)
-    cos = emb.cos()[:, None, :, :].to(dtype)
-    sin = emb.sin()[:, None, :, :].to(dtype)
+    cos = freqs.cos()[:, None, :, :].to(dtype)  # [B, 1, T, half]
+    sin = freqs.sin()[:, None, :, :].to(dtype)
     return cos, sin
 
 
-def _rotate_half(x):
-    half = x.shape[-1] // 2
-    return torch.cat([-x[..., half:], x[..., :half]], dim=-1)
-
-
 def _apply_partial_rope(x, cos, sin, rotary_dim):
-    x_rot, x_pass = x[..., :rotary_dim], x[..., rotary_dim:]
-    x_rotated = (x_rot * cos) + (_rotate_half(x_rot) * sin)
-    return torch.cat([x_rotated, x_pass], dim=-1)
+    """GPT-NeoX style partial RoPE, cat-free implementation.
+
+    x:    [B, H, M, head_dim]
+    cos:  [B, 1, M, rotary_dim/2]  (half-width per F2.1)
+    sin:  [B, 1, M, rotary_dim/2]
+    Returns: rotated x [B, H, M, head_dim]
+
+    Equivalent to:
+      x_rotated = x_rot * cos_full + rotate_half(x_rot) * sin_full
+      out = cat([x_rotated, x_pass], dim=-1)
+    where rotate_half flips first/second halves of rotary_dim. Since cos_full and
+    sin_full are doubled (cos[:half] == cos[half:]), we use half-width cos/sin
+    directly:
+      out[:half]              = x_first * cos - x_second * sin
+      out[half:rotary_dim]    = x_second * cos + x_first * sin
+      out[rotary_dim:]        = x[rotary_dim:]  (pass-through)
+    Eliminates 3 cat ops (rotate_half, x_rotated+x_pass, freq doubling).
+    """
+    half = rotary_dim // 2
+    out = x.clone()  # copy entire x (pass-through region included)
+    x_first = x[..., :half]
+    x_second = x[..., half:rotary_dim]
+    out[..., :half] = x_first * cos - x_second * sin
+    out[..., half:rotary_dim] = x_second * cos + x_first * sin
+    return out
 
 
 # ============================================================================
