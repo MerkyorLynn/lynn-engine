@@ -187,17 +187,10 @@ def decode_full_attn(h_new, new_position_id, w, cfg, K_cache_full, V_cache_full,
     K_used = K_cache_full[:, :, :new_total, :]
     V_used = V_cache_full[:, :, :new_total, :]
 
-    # 6. GQA repeat
-    if H_KV != H_Q:
-        K_attn = K_used.repeat_interleave(H_Q // H_KV, dim=1)
-        V_attn = V_used.repeat_interleave(H_Q // H_KV, dim=1)
-    else:
-        K_attn = K_used
-        V_attn = V_used
-
-    # 7. Attention: q (single-token) attends over all of K/V (length new_total)
-    # is_causal=False because Q is just the last token attending to ALL of K/V.
-    attn_out = F.scaled_dot_product_attention(q, K_attn, V_attn, is_causal=False)
+    # 6+7. SDPA with enable_gqa=True (PyTorch 2.5+) — internal broadcast,
+    # no memory expansion. Math equivalent to explicit repeat_interleave+SDPA.
+    # Replaces 2× repeat_interleave (8x mem copy on H_Q/H_KV=8) with view-only.
+    attn_out = F.scaled_dot_product_attention(q, K_used, V_used, is_causal=False, enable_gqa=(H_KV != H_Q))
 
     # 8. attn_output_gate
     attn_out = attn_out * torch.sigmoid(gate.float()).to(attn_out.dtype)
