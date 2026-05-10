@@ -232,9 +232,15 @@ def _prefill_layer(h, position_ids, layer_type, w, cfg, state, layer_idx):
 
 
 def _decode_layer(h_new, position_id, layer_type, w, cfg, state, layer_idx):
-    """Forward one DecoderLayer in decode mode (T=1) using cached state."""
+    """Forward one DecoderLayer in decode mode (T=1) using cached state.
+
+    LYNN_MOE_IMPL env var selects MoE implementation:
+      optimized    Phase 3.2.1 active-experts loop (default)
+      bmm          Phase 3.2.2 batched matmul
+      indexed_bmm  Phase 3.2.2.5 pre-stacked grouped indexed_bmm
+    """
+    import os
     from engine.incremental_decode import decode_full_attn, decode_linear_attn
-    from engine.moe_optimized import moe_forward_decode_optimized
 
     residual = h_new
     h_norm = _rms_norm(h_new, w["input_layernorm.weight"])
@@ -255,9 +261,16 @@ def _decode_layer(h_new, position_id, layer_type, w, cfg, state, layer_idx):
 
     residual = h
     h_norm = _rms_norm(h, w["post_attention_layernorm.weight"])
-    # Phase 3.2: optimized MoE that iterates only the (up to K=8) unique
-    # active experts instead of all 256 with mask.any() per iteration.
-    moe_out = moe_forward_decode_optimized(h_norm, w, cfg)
+    impl = os.environ.get("LYNN_MOE_IMPL", "optimized")
+    if impl == "optimized":
+        from engine.moe_optimized import moe_forward_decode_optimized as _moe
+    elif impl == "bmm":
+        from engine.moe_optimized import moe_forward_decode_bmm as _moe
+    elif impl == "indexed_bmm":
+        from triton_kernels.moe_expert_ffn import moe_forward_decode_indexed_bmm as _moe
+    else:
+        raise ValueError(f"Unknown LYNN_MOE_IMPL: {impl}")
+    moe_out = _moe(h_norm, w, cfg)
     return residual + moe_out
 
 
@@ -315,6 +328,11 @@ def generate_incremental(model_dir, prompt, max_new=5, device="cuda",
     if verbose:
         print(f"All weights resident in {time.time()-t_start:.1f}s\n", flush=True)
 
+    # Phase 3.2 implementation selector. Indexed decode needs original expert
+    # weights for prefill, so stacking happens after prefill completes.
+    import os as _os
+    _impl = _os.environ.get("LYNN_MOE_IMPL", "optimized")
+
     # Allocate inference state
     state = LynnInferenceState(batch=1, max_seq_len=max_seq_len, device=device, dtype=dtype)
 
@@ -338,6 +356,28 @@ def generate_incremental(model_dir, prompt, max_new=5, device="cuda",
         print(f"  prefill done in {time.time()-t0:.2f}s, "
               f"next={next_id} {tok.decode([next_id])!r}", flush=True)
     new_ids = [next_id]
+
+    # Phase 3.2 indexed decode preparation. Prefill above uses the baseline MoE
+    # path, so only now can we replace per-expert weights with stacked tensors.
+    if _impl in ("indexed_bmm", "triton"):
+        from triton_kernels.moe_expert_ffn import stack_expert_weights
+        if verbose:
+            print(f"Pre-stacking expert weights for {_impl} after prefill ...", flush=True)
+        _t0 = time.time()
+        for _i in range(n_layers):
+            stack_expert_weights(layer_weights[_i], num_experts=cfg["num_experts"])
+            for _e in range(cfg["num_experts"]):
+                for _proj in ("gate_proj", "up_proj", "down_proj"):
+                    _key = f"mlp.experts.{_e}.{_proj}.weight"
+                    layer_weights[_i].pop(_key, None)
+            if verbose and (_i % 10 == 9 or _i == n_layers - 1):
+                torch.cuda.empty_cache()
+                _free = torch.cuda.mem_get_info()[0] / 1e9
+                print(f"  pre-stack L{_i:2}: {time.time()-_t0:.1f}s GPU free {_free:.1f} GB", flush=True)
+        torch.cuda.empty_cache()
+        if verbose:
+            _free = torch.cuda.mem_get_info()[0] / 1e9
+            print(f"Pre-stack done {time.time()-_t0:.1f}s, GPU free {_free:.1f} GB\n", flush=True)
 
     # === DECODE ===
     for step in range(1, max_new):
