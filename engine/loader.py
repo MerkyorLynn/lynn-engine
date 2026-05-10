@@ -46,11 +46,24 @@ def load_qwen36_layer(
 
     model_dir = Path(model_dir)
 
-    # Read weight map
-    with open(model_dir / "model.safetensors.index.json") as f:
-        index = json.load(f)
-    weight_map = index["weight_map"]
-    quantization_config = index.get("metadata", {})
+    # Read weight map. Some Lynn/NVFP4 artifacts are single-file
+    # `model.safetensors` without `model.safetensors.index.json`; support both
+    # layouts so 27B single-file exports do not fail at loader startup.
+    index_path = model_dir / "model.safetensors.index.json"
+    single_path = model_dir / "model.safetensors"
+    if index_path.exists():
+        with open(index_path) as f:
+            index = json.load(f)
+        weight_map = index["weight_map"]
+        quantization_config = index.get("metadata", {})
+    elif single_path.exists():
+        with safe_open(single_path, framework="pt", device="cpu") as st:
+            weight_map = {k: single_path.name for k in st.keys()}
+        quantization_config = {}
+    else:
+        raise FileNotFoundError(
+            f"Expected {index_path.name} or {single_path.name} under {model_dir}"
+        )
 
     # Read full config to know block_size
     with open(model_dir / "config.json") as f:
