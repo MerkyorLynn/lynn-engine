@@ -21,6 +21,86 @@ from pathlib import Path
 import torch
 
 
+# ============================================================================
+# L4 (Phase 4 fail-loud guard, 2026-05-11):
+# Prior behavior fell through `v.to(dequant_dtype)` on unrecognized weight keys,
+# producing garbage tensors silently (NVFP4 .weight_packed uint8 → garbage BF16
+# — 776 packed tensors per layer x 40 layers, all "loaded successfully" but raw).
+# Refuse to load formats this loader cannot dequant correctly.
+# See zhihu postmortem 2026-05-11: https://zhuanlan.zhihu.com/p/2036443846322680848
+# ============================================================================
+
+# Quant formats Lynn engine loader v1 can handle.
+# None / "fp8" / "float8": Qwen 3.6 FP8 base (block-scaled, .weight + .weight_scale_inv).
+_SUPPORTED_QUANT_METHODS = {None, "fp8", "float8"}
+
+# Weight key suffixes that indicate NVFP4 compressed-tensors packed format.
+# v8-RTN ckpt has 4-suffix-per-Linear schema; presence of any indicates NVFP4.
+_NVFP4_PACKED_KEY_SUFFIXES = (
+    ".weight_packed",
+    ".weight_global_scale",
+    ".input_global_scale",
+)
+
+
+def _detect_unsupported_quant_format(quant_cfg: dict, weight_keys: list) -> None:
+    """
+    Phase 4 fail-loud guard. Raises NotImplementedError on any quant format
+    this loader cannot dequant correctly.
+
+    Loud > silent corruption. NVFP4 .weight_packed (uint8) silently went through
+    `v.to(bf16)` before this guard, producing garbage hidden states.
+
+    Phase 4 backlog L1-L5 will add the actual NVFP4 dequant path.
+    """
+    quant_method = quant_cfg.get("quant_method")
+    quant_format = quant_cfg.get("format")
+
+    # Explicit compressed-tensors NVFP4
+    if quant_method == "compressed-tensors" and quant_format and "nvfp4" in quant_format.lower():
+        raise NotImplementedError(
+            f"NVFP4 compressed-tensors checkpoint detected "
+            f"(quant_method={quant_method!r}, format={quant_format!r}).\n"
+            f"Lynn engine loader v1 cannot dequant NVFP4 .weight_packed (uint8) tensors.\n"
+            f"This is Phase 4 backlog (L1-L5, ~8-12h sprint).\n"
+            f"For NVFP4 inference today, use SGLang dev-cu13 + "
+            f"`--quantization compressed-tensors`.\n"
+            f"Phase 4 plan: https://zhuanlan.zhihu.com/p/2036443846322680848"
+        )
+
+    # Explicit modelopt_fp4 (5/15 V4-Distill output format)
+    if quant_method in ("modelopt", "modelopt_fp4"):
+        raise NotImplementedError(
+            f"modelopt_fp4 checkpoint detected (quant_method={quant_method!r}).\n"
+            f"Lynn engine loader v1 does not yet support modelopt_fp4 — Phase 4 L3 backlog.\n"
+            f"For modelopt_fp4 inference today, use SGLang stable v0.5.9 + "
+            f"`--quantization modelopt_fp4`."
+        )
+
+    # Key-level NVFP4 sniff (defensive: catches checkpoints where quant_method is unset
+    # but packed-FP4 weight keys are present).
+    for k in weight_keys[:200]:
+        for suffix in _NVFP4_PACKED_KEY_SUFFIXES:
+            if k.endswith(suffix):
+                raise NotImplementedError(
+                    f"Detected NVFP4-style packed weight key {k!r} (suffix {suffix!r}).\n"
+                    f"Lynn engine loader v1 does not support NVFP4 native loading.\n"
+                    f"Phase 4 backlog: https://zhuanlan.zhihu.com/p/2036443846322680848"
+                )
+
+    # Catch-all: any unknown quant_method
+    if quant_method is not None and quant_method not in _SUPPORTED_QUANT_METHODS:
+        raise NotImplementedError(
+            f"Unsupported quantization: quant_method={quant_method!r}, "
+            f"format={quant_format!r}.\n"
+            f"Lynn engine loader v1 supports: {sorted(_SUPPORTED_QUANT_METHODS, key=str)}.\n"
+            f"To add support: (1) extend this guard to allow the new method, "
+            f"(2) add the dequant path in `load_qwen36_layer`.\n"
+            f"Universal rule: fail-loud on unknown formats, never fall through "
+            f"to v.to(dtype) (produces garbage). See zhihu postmortem § 5."
+        )
+
+
 def load_qwen36_layer(
     model_dir: str,
     layer_idx: int,
@@ -70,6 +150,9 @@ def load_qwen36_layer(
         full_config = json.load(f)
     quant_cfg = full_config.get("quantization_config", {})
     weight_block_size = quant_cfg.get("weight_block_size", [128, 128])
+
+    # L4 (Phase 4 fail-loud guard, 2026-05-11): refuse silent NVFP4 / unknown mis-load.
+    _detect_unsupported_quant_format(quant_cfg, list(weight_map.keys()))
 
     # Filter keys for our target layer
     prefix = f"model.language_model.layers.{layer_idx}."
