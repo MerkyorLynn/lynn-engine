@@ -3,7 +3,7 @@
 > **为 NVIDIA Blackwell 写的 Qwen 3.6 35B-A3B 单模型推理引擎。**
 > 从零写,锁定 NVFP4 + 单 prompt 场景,目的是 (a) 把模型每一层搞懂 (b) 在 Lynn 自家 27B-A3B 剪枝模型上单流速度超过 vLLM/SGLang 这种通用框架。
 
-[Read in English](README_EN.md) · [战略文档](docs/STRATEGY.md) · [架构设计](docs/DESIGN.md)
+[Read in English](README_EN.md) · [📝 知乎工程复盘(2026-05-11)](https://zhuanlan.zhihu.com/p/2036443846322680848) · [战略文档](docs/STRATEGY.md) · [架构设计](docs/DESIGN.md)
 
 [![commits](https://img.shields.io/github/commit-activity/m/MerkyorLynn/lynn-engine)](https://github.com/MerkyorLynn/lynn-engine/commits/main)
 [![license](https://img.shields.io/badge/license-TBD-orange)](.)
@@ -223,4 +223,5 @@ TBD(大概率 MIT,B 阶段生产切换前定下来)。
 - [剪枝 pipeline(calibration / profile / decide / LoRA)](pruning/README.md)
 - [HTTP server(brain 接入指引)](server/README.md)
 - [English README](README_EN.md)
+- [📝 知乎工程复盘:从零开始 Qwen 3.6 35B-A3B 写专用推理引擎(2026-05-11 mega-post)](https://zhuanlan.zhihu.com/p/2036443846322680848) — Phase 2 + Phase 3.2 + NVFP4 路线决策三段合并,~15-20k 中文字
 - [Toolabstain 论文(姊妹项目)](https://github.com/MerkyorLynn/toolabstain-paper)
