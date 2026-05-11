@@ -22,7 +22,6 @@ Run:
     python3 -m server.openai_http --model /models/Qwen3.6-35B-A3B-FP8 \
                                    --port 18099 --host 0.0.0.0
 """
-from __future__ import annotations
 
 import argparse
 import asyncio
@@ -195,7 +194,7 @@ class LynnEngineHandle:
 # ----------------------------------------------------------------------------
 
 def make_app(handle: LynnEngineHandle):
-    from fastapi import FastAPI, HTTPException
+    from fastapi import FastAPI, HTTPException, Body
     from fastapi.responses import StreamingResponse
     from pydantic import BaseModel
     import time as time_mod
@@ -243,7 +242,7 @@ def make_app(handle: LynnEngineHandle):
         }
 
     @app.post("/v1/completions")
-    async def completions(req: CompletionRequest):
+    async def completions(req: CompletionRequest = Body(...)):
         if not handle.ready:
             raise HTTPException(503, "Engine still loading")
 
@@ -279,7 +278,7 @@ def make_app(handle: LynnEngineHandle):
         }
 
     @app.post("/v1/chat/completions")
-    async def chat_completions(req: ChatCompletionRequest):
+    async def chat_completions(req: ChatCompletionRequest = Body(...)):
         if not handle.ready:
             raise HTTPException(503, "Engine still loading")
 
