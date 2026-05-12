@@ -2,6 +2,27 @@
 
 > **One-liner**: After 2026-05-13 ships `Lynn-V4-Distill-Qwen-35B-A3B`, Lynn engine finally has its own dogfood model. Phase 4 makes that dogfood the reference workload for P1–P3, defers all native kernel work until correctness is proven, and positions Lynn engine as a **second-source verifier / correctness oracle**, not an SGLang replacement.
 
+## ⭐ Strategic reframe (2026-05-12 night)
+
+**P1+P2 dequant-to-BF16 on R6000 is itself a shippable artifact, not test scaffolding for P4.**
+
+The R6000 sm_120 ecosystem gap is real and 4-8 weeks from closing (memory `feedback_modelopt_fp4_scale_naming_mismatch.md` traps #7-9):
+
+- SGLang stable / nightly `sgl_kernel` PyPI wheel ships **only `sm_90 + sm_100`** — no `sm_120/`
+- vLLM 0.20.2 hard-requires `flash-attn` with **no `cu130 + torch 2.11 + py3.12` wheel** on PyPI
+- TRT-LLM 1.2.x pinned to transformers 4.57 → `qwen3_5_moe` not recognized → cascade
+
+**Result**: as of 2026-05-12, **no production-grade inference engine can serve Qwen3.6-35B-A3B NVFP4 on R6000 sm_120 Workstation**.
+
+If Lynn engine P1+P2 lands a slow-but-correct dequant-to-BF16 path (NVFP4 packed → BF16 unpack → existing BF16 forward), the comparison is NOT "Lynn vs FP4 native kernel" — the comparison is **"Lynn vs nothing"**. That makes the dequant path itself a deliverable artifact:
+
+- **First inference engine to run `modelopt_fp4` / `compressed-tensors nvfp4` on R6000 sm_120 single card**
+- Slow (BF16 forward path, ~10-20x slower than hypothetical FP4 GEMM) but **correct** (verified by N≥20 parity vs SGLang Spark sm_121 production)
+- Closes the ecosystem gap for R6000 / 5090 / 5060 Ti / future 27B-A3B pruned single-card deployments (memory `project_lynn_27b_pruning_plan_0509.md`)
+- P4 native NVFP4 GEMM becomes **performance optimization**, not a gate for ship
+
+This reframe matters for prioritization. P1+P2 is no longer "boring scaffolding before the real work" — it is the **shortest path to the first deployable artifact**. If we can load + dequant + forward, ship it; native kernel comes when P3 parity is rock solid.
+
 ## Strategic positioning (2026-05-13)
 
 Upstream engines (vLLM / SGLang / TRT-LLM) compete on **tokens/sec**.
@@ -126,15 +147,19 @@ This is Lynn engine's **silent regression detector** product. The single most di
 
 ### P4 — Native NVFP4 kernel (defer until P3 passes, ~2026-06)
 
-**Not now.** Per memory `project_lynn_engine_nvfp4_native_path.md`:
+**Not now — and not blocking ship.** Per memory `project_lynn_engine_nvfp4_native_path.md`:
 
 > "P4 native NVFP4 GEMM: 不在 P1-P3 都通之前碰这层 — 同时面对格式 / scale / router / kernel 四层不确定性,会调到怀疑人生。"
 
-When P3 passes (2026-05-27 or later):
+After P3 N≥20 parity passes (2026-05-27+), Lynn engine has a **shipping artifact** (the slow dequant path). P4 is performance work *on top of* an already deployable engine:
+
 - expert FFN `Linear` → NVFP4 grouped GEMM
 - Triton implementation first (most accessible, sm_120 ABI stable)
 - CUTLASS path optional for performance bake-off
 - **Target hardware**: R6000 sm_120 single-card (Spark sm_121 already has SGLang nightly, so sm_120 is where Lynn engine has the strongest niche)
+- **Success criterion**: kernel path produces identical token IDs to dequant path on N≥20 parity gate, while runtime drops 5-10x
+
+Critical: **P4 must not regress P3 parity.** Same gate runner, same N≥20 test set, same SGLang oracle — kernel passes only if token-for-token identical to dequant baseline (we already proved dequant matches BF16 ground truth in P2). This is why P3 must lock first.
 
 ## Hard rules (Phase 4)
 
