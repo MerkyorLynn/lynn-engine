@@ -178,3 +178,30 @@ Critical: **P4 must not regress P3 parity.** Same gate runner, same N≥20 test 
 - `benchmarks/parity_schema.py` — JSON schema for parity reports
 
 When V Pro Distill is published (2026-05-13 morning), P1 starts.
+
+## P1 status update (2026-05-14 overnight)
+
+**P1 is now green on R6000 for both BF16 and v8-RTN NVFP4, without relying on
+SGLang / vLLM / TRT-LLM / llama.cpp.**
+
+Detailed evidence is recorded in
+[`docs/PHASE4_P1_R6000_2026-05-14.md`](PHASE4_P1_R6000_2026-05-14.md).
+
+What passed:
+
+- BF16 manifest scan: `bf16_or_unquantized`, 1026 BF16 tensors across 16
+  safetensors shards.
+- BF16 Lynn engine loader smoke: `load_qwen36_layer(..., layer=0)` returned
+  18 tensors on CPU.
+- v8-RTN manifest scan: `compressed_tensors_nvfp4_v8_rtn`, 124,756 tensors
+  in a single safetensors file.
+- v8-RTN fail-loud guard: Lynn engine detects unsupported NVFP4 and raises
+  `NotImplementedError` instead of silently treating packed bytes as weights.
+- P2 prep: the first target tensor
+  `model.language_model.layers.0.linear_attn.in_proj_qkv.weight` has a clean
+  BF16 oracle and a matching v8-RTN four-tensor group:
+  `weight_packed / weight_scale / weight_global_scale / input_global_scale`.
+
+This means P1 is no longer a discovery problem. The next bounded task is P2:
+implement slow-path NVFP4 dequant for one tensor, compare against the BF16
+oracle, then expand layer by layer.
