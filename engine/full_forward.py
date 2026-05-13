@@ -142,15 +142,23 @@ def _moe_forward(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
     routing_weights = F.softmax(routing_weights, dim=-1, dtype=torch.float32).to(h.dtype)
 
     moe_out = torch.zeros_like(h_flat)
+    fused_experts = (
+        "mlp.experts.gate_up_proj" in w and "mlp.experts.down_proj" in w
+    )
     for e in range(E):
         mask = (expert_indices == e)
         if not mask.any():
             continue
         token_idx, slot_idx = mask.nonzero(as_tuple=True)
         x_e = h_flat[token_idx]
-        gate_e = F.linear(x_e, w[f"mlp.experts.{e}.gate_proj.weight"])
-        up_e = F.linear(x_e, w[f"mlp.experts.{e}.up_proj.weight"])
-        ffn_e = F.linear(F.silu(gate_e) * up_e, w[f"mlp.experts.{e}.down_proj.weight"])
+        if fused_experts:
+            gate_up = F.linear(x_e, w["mlp.experts.gate_up_proj"][e])
+            gate_e, up_e = gate_up.chunk(2, dim=-1)
+            ffn_e = F.linear(F.silu(gate_e) * up_e, w["mlp.experts.down_proj"][e])
+        else:
+            gate_e = F.linear(x_e, w[f"mlp.experts.{e}.gate_proj.weight"])
+            up_e = F.linear(x_e, w[f"mlp.experts.{e}.up_proj.weight"])
+            ffn_e = F.linear(F.silu(gate_e) * up_e, w[f"mlp.experts.{e}.down_proj.weight"])
         weight_e = routing_weights[token_idx, slot_idx].unsqueeze(-1)
         moe_out.index_add_(0, token_idx, ffn_e * weight_e)
 

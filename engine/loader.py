@@ -199,8 +199,8 @@ def _load_qwen36_layer_nvfp4_v8_rtn(
             parts = expert_parts[e]
             downs.append(parts["down_proj"])
             gate_ups.append(torch.cat([parts["gate_proj"], parts["up_proj"]], dim=0))
-        final["mlp.experts.down_proj"] = torch.stack(downs, dim=0)
-        final["mlp.experts.gate_up_proj"] = torch.stack(gate_ups, dim=0)
+        final["mlp.experts.down_proj"] = torch.stack(downs, dim=0).to(dequant_dtype)
+        final["mlp.experts.gate_up_proj"] = torch.stack(gate_ups, dim=0).to(dequant_dtype)
 
     print(
         f"  NVFP4 slow dequant load: {bytes_loaded/1e9:.2f} GB "
@@ -343,6 +343,8 @@ def load_qwen36_layer(
                 final[k] = dequant(v, scale, dequant_dtype)
             else:
                 final[k] = v.to(dequant_dtype)
+        elif k in ("mlp.experts.down_proj", "mlp.experts.gate_up_proj"):
+            final[k] = v.to(dequant_dtype)
         else:
             final[k] = v
 
