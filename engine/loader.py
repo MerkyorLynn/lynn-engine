@@ -30,9 +30,10 @@ import torch
 # See zhihu postmortem 2026-05-11: https://zhuanlan.zhihu.com/p/2036443846322680848
 # ============================================================================
 
-# Quant formats Lynn engine loader v1 can handle.
-# None / "fp8" / "float8": Qwen 3.6 FP8 base (block-scaled, .weight + .weight_scale_inv).
-_SUPPORTED_QUANT_METHODS = {None, "fp8", "float8"}
+# Quant formats Lynn engine loader can handle.
+# None / "fp8" / "float8": Qwen 3.6 FP8/BF16 path.
+# compressed-tensors + nvfp4-pack-quantized: Phase 4 P2 slow dequant path.
+_SUPPORTED_QUANT_METHODS = {None, "fp8", "float8", "compressed-tensors"}
 
 # Weight key suffixes that indicate NVFP4 compressed-tensors packed format.
 # v8-RTN ckpt has 4-suffix-per-Linear schema; presence of any indicates NVFP4.
@@ -56,17 +57,10 @@ def _detect_unsupported_quant_format(quant_cfg: dict, weight_keys: list) -> None
     quant_method = quant_cfg.get("quant_method")
     quant_format = quant_cfg.get("format")
 
-    # Explicit compressed-tensors NVFP4
+    # Explicit compressed-tensors NVFP4 is handled by the P2 slow path. Other
+    # compressed-tensors formats still fall through to the catch-all below.
     if quant_method == "compressed-tensors" and quant_format and "nvfp4" in quant_format.lower():
-        raise NotImplementedError(
-            f"NVFP4 compressed-tensors checkpoint detected "
-            f"(quant_method={quant_method!r}, format={quant_format!r}).\n"
-            f"Lynn engine loader v1 cannot dequant NVFP4 .weight_packed (uint8) tensors.\n"
-            f"This is Phase 4 backlog (L1-L5, ~8-12h sprint).\n"
-            f"For NVFP4 inference today, use SGLang dev-cu13 + "
-            f"`--quantization compressed-tensors`.\n"
-            f"Phase 4 plan: https://zhuanlan.zhihu.com/p/2036443846322680848"
-        )
+        return
 
     # Explicit modelopt_fp4 (5/15 V4-Distill output format)
     if quant_method in ("modelopt", "modelopt_fp4"):
@@ -77,8 +71,8 @@ def _detect_unsupported_quant_format(quant_cfg: dict, weight_keys: list) -> None
             f"`--quantization modelopt_fp4`."
         )
 
-    # Key-level NVFP4 sniff (defensive: catches checkpoints where quant_method is unset
-    # but packed-FP4 weight keys are present).
+    # Key-level NVFP4 sniff (defensive: catches checkpoints where quant_method
+    # is unset but packed-FP4 weight keys are present).
     for k in weight_keys[:200]:
         for suffix in _NVFP4_PACKED_KEY_SUFFIXES:
             if k.endswith(suffix):
@@ -99,6 +93,129 @@ def _detect_unsupported_quant_format(quant_cfg: dict, weight_keys: list) -> None
             f"Universal rule: fail-loud on unknown formats, never fall through "
             f"to v.to(dtype) (produces garbage). See zhihu postmortem § 5."
         )
+
+
+def _is_nvfp4_v8_rtn(quant_cfg: dict) -> bool:
+    quant_method = quant_cfg.get("quant_method")
+    quant_format = quant_cfg.get("format")
+    return (
+        quant_method == "compressed-tensors"
+        and quant_format is not None
+        and "nvfp4" in str(quant_format).lower()
+    )
+
+
+def _load_qwen36_layer_nvfp4_v8_rtn(
+    model_dir: Path,
+    layer_idx: int,
+    num_experts: int,
+    device: str,
+    dequant_dtype: torch.dtype,
+):
+    """Load one compressed-tensors NVFP4 v8-RTN layer via slow dequant.
+
+    v8-RTN stores MoE experts as per-expert HF-style keys, while Lynn engine's
+    BF16 path uses fused tensors:
+
+    - `mlp.experts.down_proj`: [E, hidden, intermediate]
+    - `mlp.experts.gate_up_proj`: [E, 2 * intermediate, hidden]
+
+    This function normalizes NVFP4 into the same fused layout returned by the
+    BF16 loader, so downstream forward code does not know which checkpoint
+    format was used.
+    """
+    from safetensors import safe_open
+    from engine.dequant import dequantize_nvfp4_v8_rtn_weight
+
+    single_path = model_dir / "model.safetensors"
+    if not single_path.exists():
+        raise FileNotFoundError(f"NVFP4 v8-RTN loader expected {single_path}")
+
+    prefix = f"model.language_model.layers.{layer_idx}."
+    final = {}
+    expert_parts: dict[int, dict[str, torch.Tensor]] = {}
+    bytes_loaded = 0
+
+    def shorten(k: str) -> str:
+        return k[len(prefix):]
+
+    def load_dequant(st, base_key: str) -> torch.Tensor:
+        packed = st.get_tensor(base_key + ".weight_packed")
+        scale = st.get_tensor(base_key + ".weight_scale")
+        global_scale = st.get_tensor(base_key + ".weight_global_scale")
+        return dequantize_nvfp4_v8_rtn_weight(
+            packed,
+            scale,
+            global_scale,
+            output_dtype=dequant_dtype,
+        ).to(device)
+
+    t_load_start = time.time()
+    with safe_open(single_path, framework="pt", device=device) as st:
+        layer_keys = [k for k in st.keys() if k.startswith(prefix)]
+        print(f"  Found {len(layer_keys)} NVFP4 keys for layer {layer_idx}", flush=True)
+        print("  Spans 1 safetensors file", flush=True)
+
+        for k in layer_keys:
+            short = shorten(k)
+
+            if short.endswith((".weight_scale", ".weight_global_scale", ".input_global_scale")):
+                continue
+
+            if short.endswith(".weight_packed"):
+                base_key = k[: -len(".weight_packed")]
+                base_short = short[: -len(".weight_packed")]
+                tensor = load_dequant(st, base_key)
+                bytes_loaded += tensor.element_size() * tensor.numel()
+
+                # Convert per-expert HF layout to Lynn fused expert layout.
+                m = re.match(r"mlp\.experts\.(\d+)\.(gate_proj|up_proj|down_proj)$", base_short)
+                if m:
+                    expert_idx = int(m.group(1))
+                    proj = m.group(2)
+                    expert_parts.setdefault(expert_idx, {})[proj] = tensor
+                else:
+                    final[base_short + ".weight"] = tensor
+                continue
+
+            # Non-packed tensors are BF16/F32 metadata or residual weights.
+            tensor = st.get_tensor(k)
+            bytes_loaded += tensor.element_size() * tensor.numel()
+            if short.endswith(".weight") and tensor.dtype != dequant_dtype:
+                tensor = tensor.to(dequant_dtype)
+            final[short] = tensor
+
+    if expert_parts:
+        missing = [
+            e
+            for e in range(num_experts)
+            if set(expert_parts.get(e, {})) != {"gate_proj", "up_proj", "down_proj"}
+        ]
+        if missing:
+            raise ValueError(f"NVFP4 expert tensor group incomplete; missing experts: {missing[:8]}")
+        downs = []
+        gate_ups = []
+        for e in range(num_experts):
+            parts = expert_parts[e]
+            downs.append(parts["down_proj"])
+            gate_ups.append(torch.cat([parts["gate_proj"], parts["up_proj"]], dim=0))
+        final["mlp.experts.down_proj"] = torch.stack(downs, dim=0)
+        final["mlp.experts.gate_up_proj"] = torch.stack(gate_ups, dim=0)
+
+    print(
+        f"  NVFP4 slow dequant load: {bytes_loaded/1e9:.2f} GB "
+        f"in {time.time()-t_load_start:.1f}s",
+        flush=True,
+    )
+
+    config = {}
+    if "mlp.gate.weight" in final:
+        config["num_experts"] = final["mlp.gate.weight"].shape[0]
+    if "mlp.shared_expert.gate_proj.weight" in final:
+        config["shared_intermediate"] = final["mlp.shared_expert.gate_proj.weight"].shape[0]
+    if "mlp.experts.gate_up_proj" in final:
+        config["expert_intermediate"] = final["mlp.experts.gate_up_proj"].shape[1] // 2
+    return final, config
 
 
 def load_qwen36_layer(
@@ -150,6 +267,15 @@ def load_qwen36_layer(
         full_config = json.load(f)
     quant_cfg = full_config.get("quantization_config", {})
     weight_block_size = quant_cfg.get("weight_block_size", [128, 128])
+
+    if _is_nvfp4_v8_rtn(quant_cfg):
+        return _load_qwen36_layer_nvfp4_v8_rtn(
+            model_dir=model_dir,
+            layer_idx=layer_idx,
+            num_experts=num_experts,
+            device=device,
+            dequant_dtype=dequant_dtype,
+        )
 
     # L4 (Phase 4 fail-loud guard, 2026-05-11): refuse silent NVFP4 / unknown mis-load.
     _detect_unsupported_quant_format(quant_cfg, list(weight_map.keys()))
