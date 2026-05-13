@@ -40,6 +40,10 @@ from pathlib import Path
 import torch
 import torch.nn.functional as F
 
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 
 def _rms_norm(x: torch.Tensor, weight: torch.Tensor, eps: float = 1e-6) -> torch.Tensor:
     """Qwen3_5MoeRMSNorm — note the `(1.0 + weight)` factor, not plain `weight`.
@@ -202,18 +206,50 @@ def _layer_forward(h: torch.Tensor, position_ids: torch.Tensor, layer_type: str,
 # ----------------- outside-weights loader -----------------
 
 def load_outside_weights(model_dir: str, device: str, dtype=torch.bfloat16):
-    """Load embeddings + lm_head + final norm from outside.safetensors."""
+    """Load embeddings + lm_head + final norm.
+
+    Lynn's early internal checkpoints store these tensors in `outside.safetensors`.
+    Public HF-style BF16 and NVFP4 artifacts keep them in regular model shards
+    (`model.safetensors.index.json`) or a single `model.safetensors`. Support
+    both layouts so the same forward code can run on released checkpoints.
+    """
     from safetensors import safe_open
-    path = Path(model_dir) / "outside.safetensors"
+
+    model_path = Path(model_dir)
     keys = [
         "model.language_model.embed_tokens.weight",
         "lm_head.weight",
         "model.language_model.norm.weight",
     ]
+
+    outside_path = model_path / "outside.safetensors"
+    if outside_path.exists():
+        weight_map = {k: outside_path.name for k in keys}
+    else:
+        index_path = model_path / "model.safetensors.index.json"
+        single_path = model_path / "model.safetensors"
+        if index_path.exists():
+            index = json.loads(index_path.read_text())
+            weight_map = index["weight_map"]
+        elif single_path.exists():
+            weight_map = {k: single_path.name for k in keys}
+        else:
+            raise FileNotFoundError(
+                f"No outside.safetensors, model.safetensors.index.json, or "
+                f"model.safetensors found under {model_path}"
+            )
+
+    file_to_keys: dict[str, list[str]] = {}
+    for k in keys:
+        if k not in weight_map:
+            raise KeyError(f"Outside tensor {k!r} not found in {model_path}")
+        file_to_keys.setdefault(weight_map[k], []).append(k)
+
     out = {}
-    with safe_open(path, framework="pt", device=device) as f:
-        for k in keys:
-            out[k] = f.get_tensor(k).to(dtype)
+    for file_name, file_keys in file_to_keys.items():
+        with safe_open(model_path / file_name, framework="pt", device=device) as f:
+            for k in file_keys:
+                out[k] = f.get_tensor(k).to(dtype)
     return out
 
 
