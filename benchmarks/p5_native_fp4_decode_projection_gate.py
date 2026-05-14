@@ -54,21 +54,6 @@ REPLACE_SETS = {
 }
 
 
-class NativeScaledMMPackedLinear(PackedNVFP4Linear):
-    """Packed linear that defaults to the native scaled-mm backend."""
-
-    def forward(
-        self,
-        x: torch.Tensor,
-        *,
-        output_dtype: torch.dtype | None = None,
-        backend: str = "native_scaled_mm",
-    ) -> torch.Tensor:
-        return super().forward(x, output_dtype=output_dtype, backend=backend)
-
-    __call__ = forward
-
-
 def _compare(a: torch.Tensor, b: torch.Tensor) -> dict[str, float]:
     af = a.float().flatten()
     bf = b.float().flatten()
@@ -130,15 +115,14 @@ def _load_packed_linear(
     native: bool,
 ) -> PackedNVFP4Linear:
     base_key = f"model.language_model.layers.{layer}.{short_name.removesuffix('.weight')}"
-    cls = NativeScaledMMPackedLinear if native else PackedNVFP4Linear
     with safe_open(v8_dir / "model.safetensors", framework="pt", device="cpu") as st:
-        loaded = PackedNVFP4Linear.from_safetensors(st, base_key, name=short_name, device=device)
-    return cls(
-        name=loaded.name,
-        weight_packed=loaded.weight_packed,
-        weight_scale=loaded.weight_scale,
-        weight_global_scale=loaded.weight_global_scale,
-    )
+        return PackedNVFP4Linear.from_safetensors(
+            st,
+            base_key,
+            name=short_name,
+            device=device,
+            default_backend="native_scaled_mm" if native else "scalar_bridge",
+        )
 
 
 def _with_packed_weights(

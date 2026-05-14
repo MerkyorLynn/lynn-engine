@@ -55,6 +55,12 @@ LINEAR_ATTN_WEIGHT_NAMES = [
     "linear_attn.out_proj.weight",
 ]
 
+NATIVE_LINEAR_ATTN_POLICIES = {
+    "none": set(),
+    "qkv": {"linear_attn.in_proj_qkv.weight"},
+    "all-linear-attn": set(LINEAR_ATTN_WEIGHT_NAMES),
+}
+
 
 def _cfg_from(model_dir: Path) -> tuple[dict[str, Any], list[str]]:
     config = json.loads((model_dir / "config.json").read_text())
@@ -107,10 +113,23 @@ def _bench(fn, *, warmup: int, iters: int) -> float:
     return float(start.elapsed_time(end) / iters)
 
 
-def _load_packed_linear(v8_dir: Path, layer: int, short_name: str, device: str) -> PackedNVFP4Linear:
+def _load_packed_linear(
+    v8_dir: Path,
+    layer: int,
+    short_name: str,
+    device: str,
+    *,
+    default_backend: str = "scalar_bridge",
+) -> PackedNVFP4Linear:
     base = f"model.language_model.layers.{layer}.{short_name.removesuffix('.weight')}"
     with safe_open(v8_dir / "model.safetensors", framework="pt", device="cpu") as st:
-        return PackedNVFP4Linear.from_safetensors(st, base, name=short_name, device=device)
+        return PackedNVFP4Linear.from_safetensors(
+            st,
+            base,
+            name=short_name,
+            device=device,
+            default_backend=default_backend,
+        )
 
 
 @dataclass(slots=True)
@@ -350,9 +369,20 @@ def main() -> int:
     ap.add_argument("--cosine-threshold", type=float, default=0.999)
     ap.add_argument("--rel-l2-threshold", type=float, default=0.02)
     ap.add_argument(
+        "--allow-router-order-only-mismatch",
+        action="store_true",
+        help="Allow top-k order swaps when the resident/packed top-k set is unchanged.",
+    )
+    ap.add_argument(
         "--pack-shared-expert",
         action="store_true",
         help="Also route shared_expert gate/up/down through packed NVFP4 bridge.",
+    )
+    ap.add_argument(
+        "--native-linear-attn",
+        choices=sorted(NATIVE_LINEAR_ATTN_POLICIES),
+        default="none",
+        help="Route selected packed linear-attention projections through native_scaled_mm.",
     )
     args = ap.parse_args()
 
@@ -371,8 +401,15 @@ def main() -> int:
         dequant_dtype=dtype,
     )
     packed_w = copy.copy(resident_w)
+    native_linear_attn = NATIVE_LINEAR_ATTN_POLICIES[args.native_linear_attn]
     for name in LINEAR_ATTN_WEIGHT_NAMES:
-        packed_w[name] = _load_packed_linear(v8_dir, args.layer, name, args.device)
+        packed_w[name] = _load_packed_linear(
+            v8_dir,
+            args.layer,
+            name,
+            args.device,
+            default_backend="native_scaled_mm" if name in native_linear_attn else "scalar_bridge",
+        )
 
     h_new, recurrent_state, conv_state = _make_inputs(args.device, dtype, args.seed)
 
@@ -440,6 +477,7 @@ def main() -> int:
         },
         "packed_components": {
             "linear_attention": LINEAR_ATTN_WEIGHT_NAMES,
+            "native_linear_attention": sorted(native_linear_attn),
             "active_moe_experts": active_ids,
             "shared_expert": "packed-nvfp4-bridge" if packed_shared else "resident-dequant-oracle",
             "router": "resident-dequant-oracle",
@@ -449,6 +487,8 @@ def main() -> int:
             "packed_expert_ids": packed_trace["expert_ids"],
             "same_input_expert_ids": same_input_trace["expert_ids"],
             "topk_exact_match": [int(x) for x in resident_route[0].tolist()] == packed_trace["expert_ids"],
+            "topk_set_match": sorted(int(x) for x in resident_route[0].tolist())
+            == sorted(packed_trace["expert_ids"]),
             "active_union_size": len(active_ids),
         },
         "comparisons": {
@@ -499,12 +539,16 @@ def main() -> int:
 
     final_cmp = result["comparisons"]["final_layer_output"]
     same_input_cmp = result["comparisons"]["moe_out_same_h_moe_norm"]
+    router_ok = bool(result["router"]["topk_exact_match"]) or (
+        args.allow_router_order_only_mismatch and bool(result["router"]["topk_set_match"])
+    )
     result["verdict"] = (
         "PASS"
         if (
             final_cmp["cosine"] >= args.cosine_threshold
             and final_cmp["rel_l2"] <= args.rel_l2_threshold
             and same_input_cmp["cosine"] >= args.cosine_threshold
+            and router_ok
         )
         else "FAIL"
     )

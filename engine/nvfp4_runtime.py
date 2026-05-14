@@ -104,6 +104,7 @@ class PackedNVFP4Linear:
     weight_scale: torch.Tensor
     weight_global_scale: torch.Tensor
     native_scale_b: torch.Tensor | None = None
+    default_backend: str = "scalar_bridge"
 
     @classmethod
     def from_safetensors(
@@ -113,6 +114,7 @@ class PackedNVFP4Linear:
         *,
         name: str | None = None,
         device: str | torch.device = "cuda",
+        default_backend: str = "scalar_bridge",
     ) -> "PackedNVFP4Linear":
         """Load one packed NVFP4 Linear group from an open safetensors file."""
         weight_packed = st.get_tensor(base_key + ".weight_packed").to(device).contiguous()
@@ -123,6 +125,7 @@ class PackedNVFP4Linear:
             weight_packed=weight_packed,
             weight_scale=weight_scale,
             weight_global_scale=weight_global_scale,
+            default_backend=default_backend,
         )
 
     @property
@@ -148,7 +151,7 @@ class PackedNVFP4Linear:
         x: torch.Tensor,
         *,
         output_dtype: torch.dtype | None = None,
-        backend: str = "scalar_bridge",
+        backend: str | None = None,
     ) -> torch.Tensor:
         """Run a single-token Linear forward.
 
@@ -167,6 +170,7 @@ class PackedNVFP4Linear:
                 f"{self.name}: PackedNVFP4Linear.forward currently supports one token, "
                 f"got {flat.shape[0]}"
             )
+        backend = backend or self.default_backend
         if backend == "scalar_bridge":
             out = nvfp4_matvec_packed(
                 flat[0],
