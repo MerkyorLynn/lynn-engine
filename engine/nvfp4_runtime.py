@@ -16,6 +16,7 @@ import torch
 from triton_kernels.nvfp4_linear import nvfp4_matvec_packed
 
 _SWIZZLE_INDEX_CACHE: dict[tuple[int, int, int, int, str], torch.Tensor] = {}
+_SWIZZLE_FP8_ONES_CACHE: dict[tuple[int, int, str], torch.Tensor] = {}
 
 
 def _scale_shape(dim: int, k: int) -> tuple[int, int]:
@@ -37,7 +38,12 @@ def _torch_scaled_mm_scale_index(row: int, group: int, groups: int) -> int:
 def _compact_scale_to_swizzled_fp8(scale: torch.Tensor, *, outer_dim: int, k: int) -> torch.Tensor:
     rows, groups = _scale_shape(outer_dim, k)
     actual_groups = scale.shape[1]
-    expanded = torch.ones(rows * groups, device=scale.device, dtype=torch.float32)
+    ones_key = (rows, groups, str(scale.device))
+    ones = _SWIZZLE_FP8_ONES_CACHE.get(ones_key)
+    if ones is None:
+        ones = torch.ones(rows * groups, device=scale.device, dtype=torch.float8_e4m3fn)
+        _SWIZZLE_FP8_ONES_CACHE[ones_key] = ones
+    expanded = ones.clone()
     key = (scale.shape[0], actual_groups, rows, groups, str(scale.device))
     idx = _SWIZZLE_INDEX_CACHE.get(key)
     if idx is None:
@@ -53,8 +59,8 @@ def _compact_scale_to_swizzled_fp8(scale: torch.Tensor, *, outer_dim: int, k: in
             + (group % 4)
         ).reshape(-1)
         _SWIZZLE_INDEX_CACHE[key] = idx
-    expanded[idx] = scale.reshape(-1)
-    return expanded.to(torch.float8_e4m3fn)
+    expanded[idx] = scale.reshape(-1).to(torch.float8_e4m3fn)
+    return expanded
 
 
 _E2M1_TABLE = torch.tensor(
