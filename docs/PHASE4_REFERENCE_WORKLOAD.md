@@ -1,6 +1,36 @@
 # Phase 4 — Reference workload + correctness-oracle positioning
 
-> **One-liner**: After 2026-05-13 ships `Lynn-V4-Distill-Qwen-35B-A3B`, Lynn engine finally has its own dogfood model. Phase 4 makes that dogfood the reference workload for P1–P3, defers all native kernel work until correctness is proven, and positions Lynn engine as a **second-source verifier / correctness oracle**, not an SGLang replacement.
+> **One-liner**: After 2026-05-13 ships `Lynn-V4-Distill-Qwen-35B-A3B`, Lynn engine finally has its own dogfood model. Phase 4 makes that dogfood the reference workload for P1–P3, allows strictly-gated native packed-weight bridge kernels once the resident slow path is proven, defers production tensor-core FP4 GEMM until correctness is locked, and positions Lynn engine as a **second-source verifier / correctness oracle**, not an SGLang replacement.
+
+## 2026-05-14 update — P3 native packed bridge is green, but not final GEMM
+
+P3 now has six PASS milestones on R6000 sm_120:
+
+| Gate | Result |
+|---|---:|
+| P3-A packed NVFP4 matvec kernel | PASS |
+| P3-B `PackedNVFP4Linear` runtime wrapper | PASS |
+| P3-C decode linear-attn QKV packed projection | PASS |
+| P3-D decode linear-attn all five packed projections | PASS |
+| P3-E dual `a+b` projection fusion | PASS, `2.02x` |
+| P3-F packed single expert FFN | PASS |
+
+Canonical status JSON:
+
+```text
+/root/autodl-tmp/reports/lynn-engine-p1/lynn_engine_p3_status_20260514.json
+/Users/lynn/Desktop/lynn_engine_p3_status_20260514.json
+```
+
+Framing is important:
+
+- These kernels prove **correctness + runtime plumbing** from packed NVFP4
+  tensors into real decode/MoE hot paths.
+- They are **not** the final Blackwell tensor-core FP4 GEMM.
+- Current scalar bridge kernels can be slower than resident BF16 matmul; that is
+  expected and explicitly measured.
+- Production TPS claims must wait for P4/P5 tensor-core GEMM or equivalent
+  backend integration.
 
 ## ⭐ Strategic reframe (2026-05-12 night)
 
@@ -21,7 +51,7 @@ If Lynn engine P1+P2 lands a slow-but-correct dequant-to-BF16 path (NVFP4 packed
 - Closes the ecosystem gap for R6000 / 5090 / 5060 Ti / future 27B-A3B pruned single-card deployments (memory `project_lynn_27b_pruning_plan_0509.md`)
 - P4 native NVFP4 GEMM becomes **performance optimization**, not a gate for ship
 
-This reframe matters for prioritization. P1+P2 is no longer "boring scaffolding before the real work" — it is the **shortest path to the first deployable artifact**. If we can load + dequant + forward, ship it; native kernel comes when P3 parity is rock solid.
+This reframe matters for prioritization. P1+P2 is no longer "boring scaffolding before the real work" — it is the **shortest path to the first deployable artifact**. If we can load + dequant + forward, ship it. Native packed-weight bridge kernels may be introduced only after the resident path provides an oracle; production tensor-core FP4 GEMM comes after parity is locked.
 
 ## Strategic positioning (2026-05-13)
 
@@ -56,7 +86,7 @@ Why this is the right reference:
 4. **Reproducible** → public HF download, anyone can re-run
 5. **Already passed 4-Gate eval** → if Lynn engine output diverges from SGLang, the model is not the suspect
 
-## Phase 4 sprint sequencing (boundary: NO kernel work in P1–P3)
+## Phase 4 sprint sequencing (updated boundary: no production GEMM claims before parity)
 
 ### P1 — Canonical tensor spec + fail-loud loader (2026-05-13 → 05-15, ~2 days)
 
@@ -145,13 +175,15 @@ Schema in `benchmarks/parity_schema.py`. Any prompt that flipped from PASS to FA
 
 This is Lynn engine's **silent regression detector** product. The single most differentiated artifact in the LLM inference engine space.
 
-### P4 — Native NVFP4 kernel (defer until P3 passes, ~2026-06)
+### P4 — Production tensor-core FP4 GEMM (after P3 bridge/parity gates)
 
-**Not now — and not blocking ship.** Per memory `project_lynn_engine_nvfp4_native_path.md`:
+**Not a ship blocker.** Per memory `project_lynn_engine_nvfp4_native_path.md`:
 
 > "P4 native NVFP4 GEMM: 不在 P1-P3 都通之前碰这层 — 同时面对格式 / scale / router / kernel 四层不确定性,会调到怀疑人生。"
 
-After P3 N≥20 parity passes (2026-05-27+), Lynn engine has a **shipping artifact** (the slow dequant path). P4 is performance work *on top of* an already deployable engine:
+After the P2 resident path and P3 packed bridge gates pass, Lynn engine has a
+correctness oracle plus a native packed-weight runtime contract. P4 is
+performance work *on top of* an already deployable engine:
 
 - expert FFN `Linear` → NVFP4 grouped GEMM
 - Triton implementation first (most accessible, sm_120 ABI stable)
@@ -163,7 +195,7 @@ Critical: **P4 must not regress P3 parity.** Same gate runner, same N≥20 test 
 
 ## Hard rules (Phase 4)
 
-1. **No native kernel before P3 passes.** Re-stating because it's the single most common temptation.
+1. **No production tensor-core GEMM claim before parity gates.** Native packed bridge kernels are allowed only when compared against the resident oracle and written to JSON reports.
 2. **No silent fallback to BF16** when NVFP4 fails. Raise.
 3. **Single-prompt PASS does not endorse.** N ≥ 20 minimum.
 4. **Token-for-token compare**, not embeddings / cosine sim / "vibe check".
