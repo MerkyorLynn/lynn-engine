@@ -23,22 +23,37 @@
 
 **🔜 P3 — native FP4 GEMM 启动**(R6000 lease 截止 2026-05-17,3 天硬窗口):
 
-**P3-A 到 P3-F 全部 PASS**(最新 commit [`819d37f`](https://github.com/MerkyorLynn/lynn-engine/commit/819d37f)):
+**P3-A 到 P3-H 全部 PASS**(最新 commit [`cd9f9c0`](https://github.com/MerkyorLynn/lynn-engine/commit/cd9f9c0)):
 
-| 阶段 | 验证 | cosine | rel_l2 | 备注 |
+| 阶段 | 验证 | cosine | rel_l2 | commit |
 |---|---|---|---|---|
-| P3-A | Packed NVFP4 matvec kernel | **1.0000** | 1.8e-7 | microkernel,12× vs dequant-each-call |
-| P3-B | `PackedNVFP4Linear` runtime wrapper | **1.0** | 8.12e-9 | runtime 接入面 |
-| P3-C | `decode_linear_attn` QKV packed projection | 0.999987 | 5.07e-3 | 接 attention 第一个 projection |
-| P3-D | `decode_linear_attn` 全部 5 个 projection(QKV + Z + B + A + out) | 0.999981 | 6.2e-3 | linear-attn 层完全 packed |
-| P3-E | dual `a+b` projection fusion | — | — | **2.02× speedup**(launch-overhead) |
-| P3-F | packed single expert FFN(gate / up / down) | 0.999995 | 3.28e-3 | 单 MoE expert 完全 packed |
+| P3-A | Packed NVFP4 matvec kernel | **1.0000** | 1.8e-7 | — |
+| P3-B | `PackedNVFP4Linear` runtime wrapper | **1.0** | 8.12e-9 | — |
+| P3-C | `decode_linear_attn` QKV packed projection | 0.999987 | 5.07e-3 | — |
+| P3-D | `decode_linear_attn` 全部 5 个 projection(QKV + Z + B + A + out) | 0.999981 | 6.2e-3 | — |
+| P3-E | dual `a+b` projection fusion(launch-overhead **2.02×**) | — | — | — |
+| P3-F | packed single expert FFN(gate / up / down) | 0.999995 | 3.28e-3 | [`819d37f`](https://github.com/MerkyorLynn/lynn-engine/commit/819d37f) |
+| P3-G | layer0 完整 decode bridge(linear-attn + top-k 8 active expert) | 0.9999976 | 2.18e-3 | [`57df76f`](https://github.com/MerkyorLynn/lynn-engine/commit/57df76f) |
+| **P3-H** | layer0 bridge × **8 deterministic seeds + set/order gate**(worst cosine 0.99999696) | — | 最大 2.46e-3 | [**`cd9f9c0`**](https://github.com/MerkyorLynn/lynn-engine/commit/cd9f9c0) |
 
-**Packed kernel 已接进实际 decode 热路径**:linear-attention 5 个 projection + 单 MoE expert 3 个 projection + dual fusion 全部 PASS,cosine ≈ 1。
+**Packed NVFP4 已 wire 进完整 decode 子图**:linear-attention 5 projection + MoE top-k 8 active expert + 双 projection fusion 全部 PASS,**8 seed 跑下来 8/8 通过 set-level gate**(1/8 order swap WARN,不算 fail)。
 
-**重要 framing**:目前 P3-A→F 完成的是 **correctness + runtime plumbing 的验证**,不是 production TPS。2.02× fusion speedup 是 kernel-launch overhead 收益,**真正 production TPS 起飞还要等 Blackwell FP4 tensor core(P4/P5)替掉当前 scalar bridge kernels**。
+### 验证基线双层 framing(P2 + P3 累计建立)
 
-**下一站**:P3-G(整层 decode 端到端 packed)→ P4/P5(true Blackwell FP4 GEMM)→ 27B 剪枝模型 engine 端验证(V Flash ship 之后)。
+Lynn engine 的 NVFP4 量化引擎验证规则,**区分真发散 vs 可接受边界噪声**两层:
+
+| 层 | 严格 FAIL 条件 | 算 WARN 不卡 ship | 起源 |
+|---|---|---|---|
+| **Token 层**(generation) | 不在 reference top-k 之内 | margin < 0.5 close-margin tiebreaker | P2-F |
+| **Router 层**(MoE top-k 8 expert dispatch) | top-k **set** 不同 | top-k **set** 同 + 顺序不同 | **P3-H** |
+
+两条都过才严格 PASS。业界对 MoE 量化引擎的验证通常没这层区分 — 要么 strict exact match 抓 false alarm,要么只看 cosine 漏 router 选错。
+
+### 重要 framing
+
+P3-A→H 完成的是 **correctness + runtime plumbing 的验证**,不是 production TPS。2.02× fusion speedup 是 kernel-launch overhead 收益,**packed scalar bridge 当前仍慢于 resident BF16 baseline**,真正 production TPS 起飞要等 Blackwell FP4 tensor core(P4/P5)替掉当前 scalar bridge kernels。
+
+**下一站**:P3-I(多 layer 类型覆盖,验证不是 layer0 特例)→ P4/P5(true Blackwell FP4 GEMM)→ 27B 剪枝模型 engine 端验证(V Flash ship 之后)。
 
 **验证基线锁定**(P2 期间确立,P3 起作 ship gate):
 
