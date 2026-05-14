@@ -30,6 +30,18 @@ from engine.inference_state import LAYER_TYPES, LynnInferenceState
 from engine.loader import load_qwen36_layer
 
 
+def _logit_topk(logits: torch.Tensor, k: int) -> dict[str, Any]:
+    """Return a compact top-k view for one-token logits."""
+    values, indices = torch.topk(logits[0].float(), k=k)
+    return {
+        "ids": [int(x) for x in indices.tolist()],
+        "values": [float(x) for x in values.tolist()],
+        "top1_margin": (
+            float(values[0].item() - values[1].item()) if k >= 2 else None
+        ),
+    }
+
+
 def _runtime_config(model_dir: str) -> tuple[dict[str, Any], int]:
     with open(Path(model_dir) / "config.json", encoding="utf-8") as f:
         full_cfg = json.load(f)
@@ -102,7 +114,7 @@ class LynnIncrementalRunner:
             torch.cuda.synchronize()
         self.load_seconds = time.time() - t0
 
-    def generate(self, prompt: str, *, max_new: int = 4) -> dict[str, Any]:
+    def generate(self, prompt: str, *, max_new: int = 4, top_k: int = 0) -> dict[str, Any]:
         tok = self.tokenizer
         ids = tok(prompt, return_tensors="pt").input_ids.to(self.device)
         T = ids.shape[1]
@@ -124,6 +136,9 @@ class LynnIncrementalRunner:
         h_final = _rms_norm(h, self.outside["model.language_model.norm.weight"])
         logits = F.linear(h_final[:, -1, :], self.outside["lm_head.weight"])
         next_id = int(logits[0].argmax().item())
+        topk_trace = []
+        if top_k > 0:
+            topk_trace.append(_logit_topk(logits, top_k))
         if self.device.startswith("cuda"):
             torch.cuda.synchronize()
         prefill_seconds = time.time() - prefill_t0
@@ -147,6 +162,8 @@ class LynnIncrementalRunner:
             h_final = _rms_norm(h, self.outside["model.language_model.norm.weight"])
             logits = F.linear(h_final[:, -1, :], self.outside["lm_head.weight"])
             next_id = int(logits[0].argmax().item())
+            if top_k > 0:
+                topk_trace.append(_logit_topk(logits, top_k))
             if self.device.startswith("cuda"):
                 torch.cuda.synchronize()
             elapsed = time.time() - step_t0
@@ -160,7 +177,7 @@ class LynnIncrementalRunner:
             new_ids.append(next_id)
 
         full_text = tok.decode(ids[0].tolist() + new_ids)
-        return {
+        result = {
             "text": full_text,
             "new_ids": [int(x) for x in new_ids],
             "timings": {
@@ -169,3 +186,6 @@ class LynnIncrementalRunner:
                 "decode_tps": (len(decode_seconds) / sum(decode_seconds)) if decode_seconds else None,
             },
         }
+        if top_k > 0:
+            result["topk_trace"] = topk_trace
+        return result
