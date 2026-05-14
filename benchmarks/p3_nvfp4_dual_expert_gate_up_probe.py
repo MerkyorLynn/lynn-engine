@@ -14,7 +14,7 @@ from safetensors import safe_open
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from engine.nvfp4_runtime import PackedNVFP4Linear
+from engine.nvfp4_runtime import PackedNVFP4Linear, dual_scalar_bridge
 from triton_kernels.nvfp4_linear import nvfp4_dual_matvec_packed
 
 
@@ -75,6 +75,7 @@ def main() -> int:
 
     separate_gate = gate(x)
     separate_up = up(x)
+    runtime_gate, runtime_up = dual_scalar_bridge(x, gate, up)
     fused_gate, fused_up = nvfp4_dual_matvec_packed(
         x,
         gate.weight_packed,
@@ -115,6 +116,8 @@ def main() -> int:
         "comparisons": {
             "gate_fused_vs_separate": _compare(fused_gate, separate_gate),
             "up_fused_vs_separate": _compare(fused_up, separate_up),
+            "gate_runtime_dual_vs_separate": _compare(runtime_gate, separate_gate),
+            "up_runtime_dual_vs_separate": _compare(runtime_up, separate_up),
         },
         "timing_ms": {
             "separate_gate_then_up": sep_ms,
@@ -138,4 +141,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

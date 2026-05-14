@@ -13,7 +13,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import torch
-from triton_kernels.nvfp4_linear import nvfp4_matvec_packed, quantize_fp4_m1_native
+from triton_kernels.nvfp4_linear import (
+    nvfp4_dual_matvec_packed,
+    nvfp4_matvec_packed,
+    quantize_fp4_m1_native,
+)
 
 _SWIZZLE_INDEX_CACHE: dict[tuple[int, int, int, int, str], torch.Tensor] = {}
 _SWIZZLE_FP8_ONES_CACHE: dict[tuple[int, int, str], torch.Tensor] = {}
@@ -195,3 +199,44 @@ class PackedNVFP4Linear:
         return out.to(dtype).reshape(*x.shape[:-1], self.out_features)
 
     __call__ = forward
+
+
+def dual_scalar_bridge(
+    x: torch.Tensor,
+    left: PackedNVFP4Linear,
+    right: PackedNVFP4Linear,
+    *,
+    output_dtype: torch.dtype | None = None,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Run two same-shaped packed Linear projections in one scalar-bridge launch.
+
+    This keeps BF16 activations and the P3 scalar-bridge numerics, so it avoids
+    the activation-FP4 router drift seen in P5-D while still reducing launch
+    overhead for natural pairs such as expert gate/up or linear-attn a/b.
+    """
+    if x.shape[-1] != left.in_features or x.shape[-1] != right.in_features:
+        raise ValueError(
+            f"dual_scalar_bridge input dim mismatch: x={x.shape[-1]}, "
+            f"left={left.in_features}, right={right.in_features}"
+        )
+    if left.weight_packed.shape != right.weight_packed.shape:
+        raise ValueError("dual_scalar_bridge requires matching packed weight shapes")
+    if x.reshape(-1, x.shape[-1]).shape[0] != 1:
+        raise NotImplementedError("dual_scalar_bridge currently supports one token")
+
+    flat = x.reshape(-1, x.shape[-1])[0]
+    out_left, out_right = nvfp4_dual_matvec_packed(
+        flat,
+        left.weight_packed,
+        left.weight_scale,
+        left.weight_global_scale,
+        right.weight_packed,
+        right.weight_scale,
+        right.weight_global_scale,
+    )
+    dtype = output_dtype or x.dtype
+    leading = x.shape[:-1]
+    return (
+        out_left.to(dtype).reshape(*leading, left.out_features),
+        out_right.to(dtype).reshape(*leading, right.out_features),
+    )
