@@ -36,7 +36,7 @@ from engine.full_forward import _rms_norm
 from engine.incremental_decode import decode_linear_attn
 from engine.loader import load_qwen36_layer
 from engine.moe_optimized import moe_forward_decode_optimized
-from engine.nvfp4_runtime import PackedNVFP4Linear
+from engine.nvfp4_runtime import PackedNVFP4Linear, dual_scalar_bridge
 from engine.qwen36_linear_attn_block import (
     CONV_DIM,
     CONV_KERNEL,
@@ -138,6 +138,7 @@ class PackedExpert:
     gate: PackedNVFP4Linear
     up: PackedNVFP4Linear
     down: PackedNVFP4Linear
+    use_dual_gate_up: bool = True
 
     @classmethod
     def from_safetensors(cls, v8_dir: Path, layer: int, expert_id: int, device: str) -> "PackedExpert":
@@ -160,15 +161,13 @@ class PackedExpert:
         """Run one active expert FFN for a single hidden vector."""
         if x.ndim != 1:
             raise ValueError(f"PackedExpert.forward expects [hidden], got {tuple(x.shape)}")
-        gate_out, up_out = nvfp4_dual_matvec_packed(
-            x,
-            self.gate.weight_packed,
-            self.gate.weight_scale,
-            self.gate.weight_global_scale,
-            self.up.weight_packed,
-            self.up.weight_scale,
-            self.up.weight_global_scale,
-        )
+        if self.use_dual_gate_up:
+            gate_out, up_out = dual_scalar_bridge(x, self.gate, self.up)
+            gate_out = gate_out.reshape(-1)
+            up_out = up_out.reshape(-1)
+        else:
+            gate_out = self.gate(x).reshape(-1)
+            up_out = self.up(x).reshape(-1)
         inter = F.silu(gate_out).to(x.dtype) * up_out.to(x.dtype)
         return self.down(inter).reshape(-1)
 
