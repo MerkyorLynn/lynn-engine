@@ -133,6 +133,27 @@ Status:
 Next: compute `silu(gate) * up`, then run packed down projection, and compare
 the full single-expert FFN output against the resident dequantized expert path.
 
+Single expert FFN packed path is now validated:
+
+| Probe | Value |
+|---|---:|
+| expert | layer 0 expert 0 |
+| packed FFN vs resident cosine | `0.999994755` |
+| packed FFN vs resident rel_l2 | `0.00328` |
+| resident expert FFN | `0.0650 ms` |
+| packed gate/up + packed down FFN | `0.0976 ms` |
+
+Report:
+
+```text
+/root/autodl-tmp/reports/lynn-engine-p1/p3_nvfp4_single_expert_ffn_probe.json
+```
+
+Conclusion: MoE expert correctness is stable through gate/up/down in packed
+form. Performance is still slower because the path uses two scalar kernels
+(fused gate/up, then down). The next useful kernel step is a fused expert FFN
+or a true FP4 GEMM path for gate/up/down.
+
 ### P3-G — Decode Layer With Packed Linear-Attention + Packed MoE
 
 Goal:
