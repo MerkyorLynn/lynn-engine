@@ -154,6 +154,44 @@ class PackedExpert:
         return self.down(inter).reshape(-1)
 
 
+@dataclass(slots=True)
+class PackedSharedExpert:
+    gate: PackedNVFP4Linear
+    up: PackedNVFP4Linear
+    down: PackedNVFP4Linear
+
+    @classmethod
+    def from_safetensors(cls, v8_dir: Path, layer: int, device: str) -> "PackedSharedExpert":
+        prefix = f"model.language_model.layers.{layer}.mlp.shared_expert"
+        with safe_open(v8_dir / "model.safetensors", framework="pt", device="cpu") as st:
+            return cls(
+                gate=PackedNVFP4Linear.from_safetensors(
+                    st, f"{prefix}.gate_proj", name="shared_expert.gate", device=device
+                ),
+                up=PackedNVFP4Linear.from_safetensors(
+                    st, f"{prefix}.up_proj", name="shared_expert.up", device=device
+                ),
+                down=PackedNVFP4Linear.from_safetensors(
+                    st, f"{prefix}.down_proj", name="shared_expert.down", device=device
+                ),
+            )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        if x.ndim != 1:
+            raise ValueError(f"PackedSharedExpert.forward expects [hidden], got {tuple(x.shape)}")
+        gate_out, up_out = nvfp4_dual_matvec_packed(
+            x,
+            self.gate.weight_packed,
+            self.gate.weight_scale,
+            self.gate.weight_global_scale,
+            self.up.weight_packed,
+            self.up.weight_scale,
+            self.up.weight_global_scale,
+        )
+        inter = F.silu(gate_out).to(x.dtype) * up_out.to(x.dtype)
+        return self.down(inter).reshape(-1)
+
+
 def _route(h: torch.Tensor, w: dict, cfg: dict) -> tuple[torch.Tensor, torch.Tensor]:
     h_flat = h.view(-1, h.shape[-1])
     router_logits = F.linear(h_flat, w["mlp.gate.weight"])
@@ -167,6 +205,7 @@ def _packed_moe_decode(
     resident_w: dict,
     cfg: dict,
     packed_experts: dict[int, PackedExpert],
+    packed_shared: PackedSharedExpert | None = None,
 ) -> tuple[torch.Tensor, dict[str, Any]]:
     """MoE decode path with packed active experts and resident shared expert.
 
@@ -187,15 +226,19 @@ def _packed_moe_decode(
         ffn_e = expert.forward(h_flat[0]).reshape(1, -1).to(h_flat.dtype)
         moe_out = moe_out + ffn_e * routing_weights[0, slot]
 
-    # Shared expert remains resident. It is always active and is not the P3-G
-    # risk surface; packed shared expert can be added in the next bridge step.
+    shared_mode = "none"
     if "mlp.shared_expert.gate_proj.weight" in resident_w:
-        gate_s = F.linear(h_flat, resident_w["mlp.shared_expert.gate_proj.weight"])
-        up_s = F.linear(h_flat, resident_w["mlp.shared_expert.up_proj.weight"])
-        shared_ffn = F.linear(
-            F.silu(gate_s) * up_s,
-            resident_w["mlp.shared_expert.down_proj.weight"],
-        )
+        if packed_shared is None:
+            gate_s = F.linear(h_flat, resident_w["mlp.shared_expert.gate_proj.weight"])
+            up_s = F.linear(h_flat, resident_w["mlp.shared_expert.up_proj.weight"])
+            shared_ffn = F.linear(
+                F.silu(gate_s) * up_s,
+                resident_w["mlp.shared_expert.down_proj.weight"],
+            )
+            shared_mode = "resident"
+        else:
+            shared_ffn = packed_shared.forward(h_flat[0]).reshape(1, -1).to(h_flat.dtype)
+            shared_mode = "packed"
         if "mlp.shared_expert_gate.weight" in resident_w:
             shared_gate = torch.sigmoid(F.linear(h_flat, resident_w["mlp.shared_expert_gate.weight"]))
             shared_ffn = shared_ffn * shared_gate
@@ -205,6 +248,7 @@ def _packed_moe_decode(
         "expert_ids": expert_ids,
         "routing_weights": [float(x) for x in routing_weights[0].float().tolist()],
         "unique_experts": sorted(set(expert_ids)),
+        "shared_expert": shared_mode,
     }
     return moe_out.view_as(h), trace
 
@@ -246,6 +290,7 @@ def _layer_decode_packed(
     packed_experts: dict[int, PackedExpert],
     recurrent_state: torch.Tensor,
     conv_state: torch.Tensor,
+    packed_shared: PackedSharedExpert | None = None,
 ) -> tuple[dict[str, torch.Tensor], dict[str, Any]]:
     residual = h_new
     h_norm = _rms_norm(h_new, w["input_layernorm.weight"])
@@ -256,7 +301,7 @@ def _layer_decode_packed(
 
     residual = h_after_attn
     h_moe_norm = _rms_norm(h_after_attn, w["post_attention_layernorm.weight"])
-    moe_out, trace = _packed_moe_decode(h_moe_norm, w, cfg, packed_experts)
+    moe_out, trace = _packed_moe_decode(h_moe_norm, w, cfg, packed_experts, packed_shared)
     h_out = residual + moe_out
     return {
         "h_norm": h_norm,
@@ -304,6 +349,11 @@ def main() -> int:
     ap.add_argument("--iters", type=int, default=10)
     ap.add_argument("--cosine-threshold", type=float, default=0.999)
     ap.add_argument("--rel-l2-threshold", type=float, default=0.02)
+    ap.add_argument(
+        "--pack-shared-expert",
+        action="store_true",
+        help="Also route shared_expert gate/up/down through packed NVFP4 bridge.",
+    )
     args = ap.parse_args()
 
     dtype = torch.bfloat16 if args.dtype == "bf16" else torch.float16
@@ -355,6 +405,11 @@ def main() -> int:
         expert_id: PackedExpert.from_safetensors(v8_dir, args.layer, expert_id, args.device)
         for expert_id in active_ids
     }
+    packed_shared = (
+        PackedSharedExpert.from_safetensors(v8_dir, args.layer, args.device)
+        if args.pack_shared_expert
+        else None
+    )
 
     packed, packed_trace = _layer_decode_packed(
         h_new,
@@ -363,6 +418,7 @@ def main() -> int:
         packed_experts,
         recurrent_state.clone(),
         conv_state.clone(),
+        packed_shared,
     )
     torch.cuda.synchronize()
 
@@ -370,7 +426,7 @@ def main() -> int:
     # fails due to router sensitivity, this tells us whether active expert FFN
     # wiring is still correct.
     packed_moe_same_input, same_input_trace = _packed_moe_decode(
-        resident["h_moe_norm"], resident_w, cfg, packed_experts
+        resident["h_moe_norm"], resident_w, cfg, packed_experts, packed_shared
     )
 
     result: dict[str, Any] = {
@@ -385,7 +441,7 @@ def main() -> int:
         "packed_components": {
             "linear_attention": LINEAR_ATTN_WEIGHT_NAMES,
             "active_moe_experts": active_ids,
-            "shared_expert": "resident-dequant-oracle",
+            "shared_expert": "packed-nvfp4-bridge" if packed_shared else "resident-dequant-oracle",
             "router": "resident-dequant-oracle",
         },
         "router": {
@@ -424,6 +480,7 @@ def main() -> int:
                     packed_experts,
                     recurrent_state.clone(),
                     conv_state.clone(),
+                    packed_shared,
                 )[0]["h_out"],
                 warmup=args.warmup,
                 iters=args.iters,
