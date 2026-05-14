@@ -177,8 +177,10 @@ class LynnIncrementalRunner:
             new_ids.append(next_id)
 
         full_text = tok.decode(ids[0].tolist() + new_ids)
+        completion_text = tok.decode(new_ids)
         result = {
             "text": full_text,
+            "completion_text": completion_text,
             "new_ids": [int(x) for x in new_ids],
             "timings": {
                 "prefill_seconds": prefill_seconds,

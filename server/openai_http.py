@@ -32,7 +32,7 @@ import time
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import AsyncIterator, Optional
+from typing import Any, AsyncIterator, Optional
 
 
 # ----------------------------------------------------------------------------
@@ -55,137 +55,51 @@ class LynnEngineHandle:
     def __init__(self, cfg: EngineConfig):
         self.cfg = cfg
         self.tokenizer = None
-        self.outside = None
-        self.layer_weights: list = []
-        self.state = None
+        self.runner = None
         self.lock = asyncio.Lock()
         self.ready = False
         self.load_started = None
         self.load_finished = None
-        self.runtime_cfg: dict = {}
 
     def load(self):
-        """Eagerly load tokenizer + outside weights + 40 layer weights to GPU."""
+        """Eagerly load the resident Lynn engine runner."""
         import torch
-        from engine.loader import load_qwen36_layer
-        from engine.full_forward import load_outside_weights
-        from engine.inference_state import LynnInferenceState, LAYER_TYPES
-        from transformers import AutoTokenizer
+        from engine.resident_runner import LynnIncrementalRunner
 
         self.load_started = time.time()
-        print(f"[engine] Loading tokenizer from {self.cfg.model_dir}", flush=True)
-        self.tokenizer = AutoTokenizer.from_pretrained(self.cfg.model_dir)
-
-        device = self.cfg.device
         dtype = {"bfloat16": torch.bfloat16, "float16": torch.float16}[self.cfg.dtype]
-
-        # Config dict for engine paths
-        cfg_full = json.loads((Path(self.cfg.model_dir) / "config.json").read_text())
-        tc = cfg_full["text_config"]
-        rope_p = tc.get("rope_parameters", {})
-        self.runtime_cfg = {
-            "hidden_size": tc["hidden_size"],
-            "num_attention_heads": tc["num_attention_heads"],
-            "num_key_value_heads": tc["num_key_value_heads"],
-            "head_dim": tc["head_dim"],
-            "num_experts": tc["num_experts"],
-            "num_experts_per_tok": tc["num_experts_per_tok"],
-            "rope_theta": rope_p.get("rope_theta", tc.get("rope_theta", 1e6)),
-            "partial_rotary_factor": rope_p.get("partial_rotary_factor", 1.0),
-            "n_layers": tc["num_hidden_layers"],
-            "layer_types": tc["layer_types"],
-        }
-        assert self.runtime_cfg["layer_types"] == LAYER_TYPES, "layer_types mismatch"
-
-        print(f"[engine] Loading outside weights ...", flush=True)
-        self.outside = load_outside_weights(self.cfg.model_dir, device, dtype)
-
-        print(f"[engine] Loading {self.runtime_cfg['n_layers']} layers (resident) ...",
-              flush=True)
-        self.layer_weights = []
-        t_start = time.time()
-        for i in range(self.runtime_cfg["n_layers"]):
-            w, _ = load_qwen36_layer(self.cfg.model_dir, i,
-                                     num_experts=self.runtime_cfg["num_experts"],
-                                     device=device, dequant_dtype=dtype)
-            self.layer_weights.append(w)
-            if (i + 1) % 5 == 0 or i == self.runtime_cfg["n_layers"] - 1:
-                print(f"[engine]   L{i:2}  cum {time.time()-t_start:.1f}s",
-                      flush=True)
-
-        # Pre-allocate inference state once (will be reset per-request)
-        self.state = LynnInferenceState(
-            batch=1, max_seq_len=self.cfg.max_seq_len,
-            device=device, dtype=dtype,
+        self.runner = LynnIncrementalRunner(
+            self.cfg.model_dir,
+            device=self.cfg.device,
+            dtype=dtype,
+            max_seq_len=self.cfg.max_seq_len,
+            verbose=True,
         )
+        self.tokenizer = self.runner.tokenizer
         self.load_finished = time.time()
         self.ready = True
         print(f"[engine] READY in {self.load_finished - self.load_started:.1f}s",
               flush=True)
 
-    def reset_state(self):
-        if self.state is not None:
-            self.state.reset()
-
     def generate(self, prompt: str, max_new_tokens: int, temperature: float = 0.0,
                  stop: Optional[list[str]] = None) -> dict:
         """Greedy (or temp=0) incremental decode. Returns dict with text + tokens."""
-        import torch
-        import torch.nn.functional as F
-        from engine.full_forward import _prefill_layer, _decode_layer, _rms_norm
-
-        device = self.cfg.device
-        dtype = {"bfloat16": torch.bfloat16, "float16": torch.float16}[self.cfg.dtype]
-
-        ids = self.tokenizer(prompt, return_tensors="pt").input_ids.to(device)
-        T_prompt = ids.shape[1]
-
-        self.reset_state()
-        embed = self.outside["model.language_model.embed_tokens.weight"]
-        lm_head_w = self.outside["lm_head.weight"]
-        final_norm_w = self.outside["model.language_model.norm.weight"]
-
-        # Prefill
-        h = F.embedding(ids, embed)
-        pos = torch.arange(T_prompt, device=device, dtype=torch.long).unsqueeze(0)
-        for i in range(self.runtime_cfg["n_layers"]):
-            layer_type = self.runtime_cfg["layer_types"][i]
-            h = _prefill_layer(h, pos, layer_type, self.layer_weights[i],
-                               self.runtime_cfg, self.state, i)
-        self.state.seq_len = T_prompt
-
-        h_final = _rms_norm(h, final_norm_w)
-        logits = F.linear(h_final[:, -1, :], lm_head_w)
-        next_id = int(logits[0].argmax().item())
-        new_ids = [next_id]
-
-        # Decode loop
-        for step in range(1, max_new_tokens):
-            new_tok_t = torch.tensor([[next_id]], device=device, dtype=torch.long)
-            h = F.embedding(new_tok_t, embed)
-            for i in range(self.runtime_cfg["n_layers"]):
-                layer_type = self.runtime_cfg["layer_types"][i]
-                h = _decode_layer(h, self.state.seq_len, layer_type,
-                                  self.layer_weights[i], self.runtime_cfg,
-                                  self.state, i)
-            self.state.seq_len += 1
-            h_final = _rms_norm(h, final_norm_w)
-            logits = F.linear(h_final[:, -1, :], lm_head_w)
-            next_id = int(logits[0].argmax().item())
-            new_ids.append(next_id)
-
-            # Stop conditions
-            if stop:
-                partial = self.tokenizer.decode(new_ids)
-                if any(s in partial for s in stop):
+        if temperature not in (0, 0.0):
+            raise ValueError("Lynn engine MVP server currently supports greedy temperature=0 only")
+        result = self.runner.generate(prompt, max_new=max_new_tokens)
+        completion = result["completion_text"]
+        if stop:
+            for s in stop:
+                pos = completion.find(s)
+                if pos >= 0:
+                    completion = completion[:pos]
                     break
-
-        completion = self.tokenizer.decode(new_ids)
         return {
             "completion": completion,
-            "new_token_ids": new_ids,
-            "prompt_tokens": T_prompt,
-            "completion_tokens": len(new_ids),
+            "new_token_ids": result["new_ids"],
+            "prompt_tokens": len(self.tokenizer(prompt).input_ids),
+            "completion_tokens": len(result["new_ids"]),
+            "timings": result["timings"],
         }
 
 
@@ -221,6 +135,7 @@ def make_app(handle: LynnEngineHandle):
         temperature: float = 0.0
         stream: bool = False
         stop: Optional[list[str]] = None
+        chat_template_kwargs: Optional[dict[str, Any]] = None
 
     @app.get("/health")
     async def health():
@@ -284,9 +199,23 @@ def make_app(handle: LynnEngineHandle):
 
         # Apply tokenizer chat_template
         messages = [{"role": m.role, "content": m.content} for m in req.messages]
-        prompt = handle.tokenizer.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True,
-        )
+        template_kwargs = {"enable_thinking": False}
+        if req.chat_template_kwargs:
+            template_kwargs.update(req.chat_template_kwargs)
+        try:
+            prompt = handle.tokenizer.apply_chat_template(
+                messages,
+                tokenize=False,
+                add_generation_prompt=True,
+                **template_kwargs,
+            )
+        except TypeError:
+            # Older tokenizer versions may not accept enable_thinking. The v8/Q4
+            # released templates are patched to default no-think, so falling back
+            # is safer than refusing to serve.
+            prompt = handle.tokenizer.apply_chat_template(
+                messages, tokenize=False, add_generation_prompt=True,
+            )
 
         async with handle.lock:
             t0 = time_mod.time()
