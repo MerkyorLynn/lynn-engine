@@ -120,6 +120,91 @@ if HAS_TRITON:
         tl.store(out_ptr + rows, acc, mask=row_mask)
 
 
+    @triton.jit
+    def _nvfp4_dual_matvec_kernel(
+        x_ptr,
+        packed_a_ptr,
+        scale_a_ptr,
+        global_a_ptr,
+        packed_b_ptr,
+        scale_b_ptr,
+        global_b_ptr,
+        out_a_ptr,
+        out_b_ptr,
+        M: tl.constexpr,
+        N: tl.constexpr,
+        packed_stride_m: tl.constexpr,
+        packed_stride_n: tl.constexpr,
+        scale_stride_m: tl.constexpr,
+        scale_stride_g: tl.constexpr,
+        BLOCK_M: tl.constexpr,
+        BLOCK_N: tl.constexpr,
+        HAS_GLOBAL_SCALE: tl.constexpr,
+    ):
+        row_block = tl.program_id(0)
+        rows = row_block * BLOCK_M + tl.arange(0, BLOCK_M)
+        row_mask = rows < M
+
+        acc_a = tl.zeros((BLOCK_M,), dtype=tl.float32)
+        acc_b = tl.zeros((BLOCK_M,), dtype=tl.float32)
+        global_a = tl.full((), 1.0, dtype=tl.float32)
+        global_b = tl.full((), 1.0, dtype=tl.float32)
+        if HAS_GLOBAL_SCALE:
+            global_a = tl.load(global_a_ptr).to(tl.float32)
+            global_b = tl.load(global_b_ptr).to(tl.float32)
+
+        for n0 in range(0, N, BLOCK_N):
+            cols = n0 + tl.arange(0, BLOCK_N)
+            col_mask = cols < N
+            packed_cols = cols // 2
+            scale_cols = cols // 16
+
+            packed_offsets = (
+                rows[:, None] * packed_stride_m
+                + packed_cols[None, :] * packed_stride_n
+            )
+            scale_offsets = (
+                rows[:, None] * scale_stride_m
+                + scale_cols[None, :] * scale_stride_g
+            )
+            x = tl.load(x_ptr + cols, mask=col_mask, other=0.0).to(tl.float32)
+
+            packed_a = tl.load(
+                packed_a_ptr + packed_offsets,
+                mask=row_mask[:, None] & col_mask[None, :],
+                other=0,
+            )
+            low_a = packed_a & 0x0F
+            high_a = (packed_a >> 4) & 0x0F
+            nibble_a = tl.where((cols[None, :] & 1) == 0, low_a, high_a)
+            w_a = _e2m1_from_nibble(nibble_a)
+            scale_a = tl.load(
+                scale_a_ptr + scale_offsets,
+                mask=row_mask[:, None] & col_mask[None, :],
+                other=0.0,
+            ).to(tl.float32)
+            acc_a += tl.sum(w_a * (scale_a / global_a) * x[None, :], axis=1)
+
+            packed_b = tl.load(
+                packed_b_ptr + packed_offsets,
+                mask=row_mask[:, None] & col_mask[None, :],
+                other=0,
+            )
+            low_b = packed_b & 0x0F
+            high_b = (packed_b >> 4) & 0x0F
+            nibble_b = tl.where((cols[None, :] & 1) == 0, low_b, high_b)
+            w_b = _e2m1_from_nibble(nibble_b)
+            scale_b = tl.load(
+                scale_b_ptr + scale_offsets,
+                mask=row_mask[:, None] & col_mask[None, :],
+                other=0.0,
+            ).to(tl.float32)
+            acc_b += tl.sum(w_b * (scale_b / global_b) * x[None, :], axis=1)
+
+        tl.store(out_a_ptr + rows, acc_a, mask=row_mask)
+        tl.store(out_b_ptr + rows, acc_b, mask=row_mask)
+
+
 def nvfp4_matvec_packed(
     x: torch.Tensor,
     weight_packed: torch.Tensor,
@@ -193,3 +278,61 @@ def nvfp4_matvec_packed(
         num_warps=4,
     )
     return out
+
+
+def nvfp4_dual_matvec_packed(
+    x: torch.Tensor,
+    weight_a_packed: torch.Tensor,
+    weight_a_scale: torch.Tensor,
+    weight_a_global_scale: torch.Tensor,
+    weight_b_packed: torch.Tensor,
+    weight_b_scale: torch.Tensor,
+    weight_b_global_scale: torch.Tensor,
+    *,
+    block_m: int = 16,
+    block_n: int = 128,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Run two same-shaped packed NVFP4 matvecs in one Triton launch."""
+    _require_triton()
+    if weight_a_packed.shape != weight_b_packed.shape:
+        raise ValueError("dual matvec requires matching packed weight shapes")
+    if weight_a_scale.shape != weight_b_scale.shape:
+        raise ValueError("dual matvec requires matching scale shapes")
+    out_a = torch.empty((weight_a_packed.shape[0],), device=x.device, dtype=torch.float32)
+    out_b = torch.empty((weight_b_packed.shape[0],), device=x.device, dtype=torch.float32)
+    x = x.contiguous()
+    weight_a_packed = weight_a_packed.contiguous()
+    weight_b_packed = weight_b_packed.contiguous()
+    weight_a_scale = weight_a_scale.contiguous()
+    weight_b_scale = weight_b_scale.contiguous()
+    weight_a_global_scale = weight_a_global_scale.to(device=x.device).contiguous()
+    weight_b_global_scale = weight_b_global_scale.to(device=x.device).contiguous()
+
+    out_features = weight_a_packed.shape[0]
+    in_features = weight_a_packed.shape[1] * 2
+    if x.numel() != in_features:
+        raise ValueError(f"x has {x.numel()} elements, expected {in_features}")
+
+    grid = (triton.cdiv(out_features, block_m),)
+    _nvfp4_dual_matvec_kernel[grid](
+        x,
+        weight_a_packed,
+        weight_a_scale,
+        weight_a_global_scale,
+        weight_b_packed,
+        weight_b_scale,
+        weight_b_global_scale,
+        out_a,
+        out_b,
+        out_features,
+        in_features,
+        weight_a_packed.stride(0),
+        weight_a_packed.stride(1),
+        weight_a_scale.stride(0),
+        weight_a_scale.stride(1),
+        block_m,
+        block_n,
+        True,
+        num_warps=4,
+    )
+    return out_a, out_b

@@ -85,6 +85,25 @@ Interpretation:
 - P3-E next should try either `a+b` fusion or a larger `qkv+z` grouped
   projection probe before attempting full-layer native packed decode.
 
+`a+b` dual projection fusion is now validated:
+
+| Probe | Value |
+|---|---:|
+| separate `in_proj_a` then `in_proj_b` | `0.1015 ms` |
+| fused dual `a+b` kernel | `0.0502 ms` |
+| speedup | `2.02x` |
+| a output max_abs vs separate | `0.0` |
+| b output max_abs vs separate | `0.0` |
+
+Report:
+
+```text
+/root/autodl-tmp/reports/lynn-engine-p1/p3_nvfp4_dual_ab_probe.json
+```
+
+Conclusion: tiny projections are launch-overhead dominated. Same-shaped packed
+matvec fusion is worth generalizing.
+
 ### P3-F — Native MoE Expert Probe
 
 Goal:
