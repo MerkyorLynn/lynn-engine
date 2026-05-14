@@ -8,6 +8,42 @@
 [![commits](https://img.shields.io/github/commit-activity/m/MerkyorLynn/lynn-engine)](https://github.com/MerkyorLynn/lynn-engine/commits/main)
 [![license](https://img.shields.io/badge/license-TBD-orange)](.)
 
+## 🆕 2026-05-14 进度更新 — P1-P2 通过,P3 native FP4 GEMM 启动
+
+最新工作都在 [`phase4/reference-workload`](https://github.com/MerkyorLynn/lynn-engine/tree/phase4/reference-workload) 分支(commit range [`e4bb9d5`](https://github.com/MerkyorLynn/lynn-engine/commit/e4bb9d5) → [`7c7f735`](https://github.com/MerkyorLynn/lynn-engine/commit/7c7f735))。
+
+**✅ P1 — 独立 loader**:直接读 safetensors blob + `quantization_config`,**绕开 `transformers.AutoModelForX`**。免疫 modelopt 在 4 大主流 serving 引擎(vLLM / SGLang dev-cu13 / SGLang stable / TRT-LLM 1.2)silent random-init experts 的死结。
+
+**✅ P2 — Reference parity + serving loop 完整闭合**:
+- 40 层 BF16 + NVFP4 v8-RTN 跟 reference logits cosine **0.99591**,top-10 overlap **90%**
+- Incremental decode parity(KV cache + linear-attention recurrent state)
+- **Resident runner** load 一次跑多 prompt → **13.1 tok/s** 慢路径基线
+- **CLI 入口**([`e1aa5b4`](https://github.com/MerkyorLynn/lynn-engine/commit/e1aa5b4)):BF16 12.80 / NVFP4 12.62 tok/s
+- **OpenAI-compatible HTTP server**([`a593795`](https://github.com/MerkyorLynn/lynn-engine/commit/a593795) NVFP4 + [`7c7f735`](https://github.com/MerkyorLynn/lynn-engine/commit/7c7f735) BF16):`/health` + `/v1/chat/completions` + `/v1/completions`,**两个量化档共用一份 `LynnIncrementalRunner` decode 代码**
+
+**🔜 P3 — native FP4 GEMM 启动**(R6000 lease 截止 2026-05-17,3 天硬窗口):
+- ✅ **P3-A first shot 命中**:packed NVFP4 kernel 直接读 `uint8 weight_packed`,跟 resident dequant baseline **cosine 1.000000 / rel_l2 1.8e-7**
+- 单 Linear:**packed kernel 0.053 ms vs dequant-each-call 0.64 ms = 12× speedup**(仍慢 resident BF16 baseline 0.021 ms 2.5×,这 2.5× 留给 tensor-core / 更大块 GEMM)
+- Multi-probe **4 类 tensor 全 PASS**:QKV / expert gate / up / down — kernel contract 跟 v8-RTN packed layout 真正吃透,**不是单点偶然**
+- P3-B(active):整模型 forward 接 packed kernel + tensor-core / 更大块 GEMM 优化 → 端到端 TPS 实测
+
+**验证基线锁定**(P2 期间确立,P3 起作 ship gate):
+
+| 指标 | 阈值 | Lynn engine 实测 |
+|---|---|---|
+| logits cosine | ≥ 0.995 | **0.99591** ✓ |
+| top-10 overlap | ≥ 90% | **90%** ✓ |
+| greedy parity, margin > 0.5 tokens | 100% match | 3/4 exact(1/4 close-margin tiebreaker 算量化噪声) |
+| Resident throughput(慢路径) | — | 13.1 tok/s |
+
+**连载复盘**:[Zhihu 三合一长文](https://zhuanlan.zhihu.com/p/2036443846322680848)(2026-05-11 首发 Phase 2+3.2+NVFP4,持续按里程碑追加)。
+
+**配套生态**:
+- [`MerkyorLynn/qwen3.6-nvfp4-toolkit`](https://github.com/MerkyorLynn/qwen3.6-nvfp4-toolkit) — NVFP4 量化配方,产出本 engine 跑的 v8-RTN ckpt
+- [`MerkyorLynn/lynn-distill-toolkit`](https://github.com/MerkyorLynn/lynn-distill-toolkit) — V4-Pro Distill 蒸馏 pipeline + 4-gate eval + sanity + ship pipeline,模型 ckpt 在 [HuggingFace](https://huggingface.co/nerkyor/Lynn-V4-Pro-Distill-Qwen-35B-A3B) / [ModelScope](https://modelscope.cn/models/Merkyor/Lynn-V4-Pro-Distill-Qwen-35B-A3B)
+
+---
+
 ## 当前能力
 
 ✅ **端到端数值正确性已验证** — Lynn engine greedy decode 跟生产 vLLM **逐 token 完全一致**。
