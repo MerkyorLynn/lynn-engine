@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""P3-C probe: route linear-attention decode QKV through PackedNVFP4Linear."""
+"""P3-C/D probe: route linear-attention decode projections through PackedNVFP4Linear."""
 from __future__ import annotations
 
 import argparse
@@ -89,6 +89,12 @@ def main() -> int:
     ap.add_argument("--seed", type=int, default=20260514)
     ap.add_argument("--warmup", type=int, default=3)
     ap.add_argument("--iters", type=int, default=10)
+    ap.add_argument(
+        "--replace",
+        choices=["qkv", "all-linear-attn"],
+        default="qkv",
+        help="Which linear-attention decode projections to replace with PackedNVFP4Linear.",
+    )
     args = ap.parse_args()
 
     dtype = torch.bfloat16 if args.dtype == "bf16" else torch.float16
@@ -102,12 +108,17 @@ def main() -> int:
         dequant_dtype=dtype,
     )
     packed_w = copy.copy(resident_w)
-    packed_w["linear_attn.in_proj_qkv.weight"] = _load_packed_linear(
-        v8_dir,
-        args.layer,
-        "linear_attn.in_proj_qkv.weight",
-        args.device,
-    )
+    replace_names = ["linear_attn.in_proj_qkv.weight"]
+    if args.replace == "all-linear-attn":
+        replace_names = [
+            "linear_attn.in_proj_qkv.weight",
+            "linear_attn.in_proj_z.weight",
+            "linear_attn.in_proj_b.weight",
+            "linear_attn.in_proj_a.weight",
+            "linear_attn.out_proj.weight",
+        ]
+    for name in replace_names:
+        packed_w[name] = _load_packed_linear(v8_dir, args.layer, name, args.device)
 
     h_new, recurrent_state, conv_state = _make_inputs(args.device, dtype, args.seed)
     ref_out, ref_state, ref_conv = decode_linear_attn(
@@ -132,7 +143,8 @@ def main() -> int:
             "name": torch.cuda.get_device_name(args.device),
             "capability": list(torch.cuda.get_device_capability(args.device)),
         },
-        "replaced": ["linear_attn.in_proj_qkv.weight"],
+        "replace_mode": args.replace,
+        "replaced": replace_names,
         "comparisons": {
             "decode_output": _compare(packed_out, ref_out),
             "recurrent_state": _compare(packed_state, ref_state),
@@ -151,8 +163,8 @@ def main() -> int:
             ),
         },
         "notes": [
-            "Only linear_attn.in_proj_qkv is routed through PackedNVFP4Linear",
-            "all other decode_linear_attn projections use resident dequantized tensors",
+            "Selected linear-attention decode projections are routed through PackedNVFP4Linear",
+            "all non-selected projections use resident dequantized tensors",
         ],
     }
     c = result["comparisons"]["decode_output"]
