@@ -23,7 +23,7 @@
 
 **🔜 P3 — native FP4 GEMM 启动**(R6000 lease 截止 2026-05-17,3 天硬窗口):
 
-**P3-A 到 P3-K 全部 PASS,P4-A 启动成功**(最新 commit [`ddb4759`](https://github.com/MerkyorLynn/lynn-engine/commit/ddb4759)):
+**P3-A 到 P3-K 全部 PASS,P4-A/B 落地**(最新 commit [`6a1439b`](https://github.com/MerkyorLynn/lynn-engine/commit/6a1439b)):
 
 | 阶段 | 验证 | cosine | rel_l2 | commit |
 |---|---|---|---|---|
@@ -38,9 +38,12 @@
 | P3-I | **跨层覆盖** layer 4 / 20 / 36 全 PASS,top-k 3/3 exact | min 0.9999958 | max 2.89e-3 | [`9e78fc1`](https://github.com/MerkyorLynn/lynn-engine/commit/9e78fc1) |
 | P3-J | **shared expert** gate/up/down 也走 packed NVFP4 bridge | ≈ 1.0 | — | [`9e78fc1`](https://github.com/MerkyorLynn/lynn-engine/commit/9e78fc1) |
 | P3-K | **一键 regression harness**(P3-A→J 聚合成单一 PASS/WARN/FAIL gate) | — | — | [`9e78fc1`](https://github.com/MerkyorLynn/lynn-engine/commit/9e78fc1) |
-| **P4-A** ⭐ | **`torch._scaled_mm` native FP4**:真实 v8 `weight_packed` view 成 `float4_e2m1fn_x2` 进 native GEMM,**0.017 ms vs scalar 0.027 ms = 1.58× at N=16** | — | — | [**`ddb4759`**](https://github.com/MerkyorLynn/lynn-engine/commit/ddb4759) |
+| P4-A | `torch._scaled_mm` native FP4 backend feasibility:真实 v8 `weight_packed` view 成 `float4_e2m1fn_x2` 进 native GEMM | — | **1.58× vs scalar at N=16** | [`ddb4759`](https://github.com/MerkyorLynn/lynn-engine/commit/ddb4759) |
+| **P4-B** ⭐ | **Scale repack contract 锁定 = `torch_swizzled`**:错 layout cosine 0.92-0.93,正确 swizzled **0.9944**(rel_l2 0.106)→ **gap 自身就是 "found right contract" 的证据** | **0.9944** | 0.106 | [**`6a1439b`**](https://github.com/MerkyorLynn/lynn-engine/commit/6a1439b) |
 
-**Packed NVFP4 已 wire 进完整 decode 子图**:linear-attn 5 projection + MoE top-k 8 active expert + shared expert + 双 projection fusion + 跨层(4/20/36)+ 8-seed router sensitivity 全部 PASS。P3-K harness 是 P4/P5 kernel 改造的回归基线。**P4-A backend 落地 `torch._scaled_mm`**(不需 CUTLASS / Triton / inline PTX 自写)。
+**Packed NVFP4 已 wire 进完整 decode 子图**:linear-attn 5 projection + MoE top-k 8 active expert + shared expert + 双 projection fusion + 跨层(4/20/36)+ 8-seed router sensitivity 全部 PASS。P3-K harness 是 P4/P5 kernel 改造的回归基线。
+
+**P4 进展**:① `torch._scaled_mm` 是 native FP4 backend(不需 CUTLASS / Triton / inline PTX 自写)② scale layout 锁定 `torch_swizzled`(PyTorch native 内置,错 layout cosine 0.92 vs 对 layout 0.9944,gap 自身证明 contract 正确)。下一步 P4-C/D 把 native 数值进一步对齐 P3 ship gate(cosine ≥ 0.995)。
 
 ### 验证基线双层 framing(P2 + P3 累计建立)
 
@@ -59,9 +62,10 @@ P3-A→K 完成的是 **correctness + runtime plumbing 的验证**,**P4-A 是 ba
 
 - P3-E 的 2.02× fusion speedup 是 kernel-launch overhead,不是 tensor-core
 - packed scalar bridge 单层 2.19 ms 仍略慢于 resident 1.79 ms,这是 scalar bridge 现状,预期内
-- **P4-A 单点 1.58× at N=16 是 microbench,不承诺端到端 TPS**;production TPS 起飞要等 P4-B/C/D/E 把 native `_scaled_mm` 接到端到端 forward(对齐 numerics + wire 进 5 projection + 整层 + 测 TPS)
+- **P4-A 单点 1.58× at N=16 是 microbench,不承诺端到端 TPS**
+- **P4-B 数值 0.9944 还没到 ship gate 0.995**;P4-C/D 拉到 0.995+ 才是 ship-ready
 
-**下一站**:**P4-B(active)= real activation 量化 + scale repack,让 native `_scaled_mm` 输出对齐 P3 scalar bridge numerics** → P4-C wire 进 `decode_linear_attn` 5 projection + MoE expert → P4-D 整层 native + 跑 P3-K regression harness → P4-E 端到端 forward TPS → 27B 剪枝模型 engine 端验证(V Flash ship 之后)。
+**下一站**:**P4-C(active)= wire native `_scaled_mm` 进 `decode_linear_attn` 5 projection + MoE expert**(类比 P3-C/D/F,但用 native path)→ P4-D 整层 native + 跑 P3-K regression harness(cosine 目标 ≥ 0.995 ship gate)→ P4-E 端到端 forward TPS → 27B 剪枝模型 engine 端验证(V Flash ship 之后)。
 
 **验证基线锁定**(P2 期间确立,P3 起作 ship gate):
 
