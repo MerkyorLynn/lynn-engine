@@ -36,9 +36,18 @@ def _compact_scale_to_swizzled_fp8(scale: torch.Tensor, *, outer_dim: int, k: in
     rows, groups = _scale_shape(outer_dim, k)
     actual_groups = scale.shape[1]
     expanded = torch.ones(rows * groups, device=scale.device, dtype=torch.float32)
-    for row in range(scale.shape[0]):
-        for group in range(actual_groups):
-            expanded[_torch_scaled_mm_scale_index(row, group, groups)] = scale[row, group]
+    row = torch.arange(scale.shape[0], device=scale.device, dtype=torch.long)[:, None]
+    group = torch.arange(actual_groups, device=scale.device, dtype=torch.long)[None, :]
+    tile = row // 128
+    row_in_tile = row % 128
+    idx = (
+        tile * (128 * groups)
+        + (group // 4) * 512
+        + (row_in_tile % 32) * 16
+        + (row_in_tile // 32) * 4
+        + (group % 4)
+    )
+    expanded[idx.reshape(-1)] = scale.reshape(-1)
     return expanded.to(torch.float8_e4m3fn)
 
 
