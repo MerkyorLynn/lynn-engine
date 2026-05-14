@@ -23,20 +23,24 @@
 
 **🔜 P3 — native FP4 GEMM 启动**(R6000 lease 截止 2026-05-17,3 天硬窗口):
 
-**P3-A 到 P3-H 全部 PASS**(最新 commit [`cd9f9c0`](https://github.com/MerkyorLynn/lynn-engine/commit/cd9f9c0)):
+**P3-A 到 P3-K 全部 PASS,P4-A 启动成功**(最新 commit [`ddb4759`](https://github.com/MerkyorLynn/lynn-engine/commit/ddb4759)):
 
 | 阶段 | 验证 | cosine | rel_l2 | commit |
 |---|---|---|---|---|
 | P3-A | Packed NVFP4 matvec kernel | **1.0000** | 1.8e-7 | — |
 | P3-B | `PackedNVFP4Linear` runtime wrapper | **1.0** | 8.12e-9 | — |
 | P3-C | `decode_linear_attn` QKV packed projection | 0.999987 | 5.07e-3 | — |
-| P3-D | `decode_linear_attn` 全部 5 个 projection(QKV + Z + B + A + out) | 0.999981 | 6.2e-3 | — |
-| P3-E | dual `a+b` projection fusion(launch-overhead **2.02×**) | — | — | — |
+| P3-D | `decode_linear_attn` 全部 5 个 projection | 0.999981 | 6.2e-3 | — |
+| P3-E | dual `a+b` projection fusion(launch-overhead **2.02×**) | — | — | [`50f10ca`](https://github.com/MerkyorLynn/lynn-engine/commit/50f10ca) |
 | P3-F | packed single expert FFN(gate / up / down) | 0.999995 | 3.28e-3 | [`819d37f`](https://github.com/MerkyorLynn/lynn-engine/commit/819d37f) |
 | P3-G | layer0 完整 decode bridge(linear-attn + top-k 8 active expert) | 0.9999976 | 2.18e-3 | [`57df76f`](https://github.com/MerkyorLynn/lynn-engine/commit/57df76f) |
-| **P3-H** | layer0 bridge × **8 deterministic seeds + set/order gate**(worst cosine 0.99999696) | — | 最大 2.46e-3 | [**`cd9f9c0`**](https://github.com/MerkyorLynn/lynn-engine/commit/cd9f9c0) |
+| P3-H | layer0 bridge × **8 deterministic seeds + set/order gate** | min 0.99999696 | max 2.46e-3 | [`cd9f9c0`](https://github.com/MerkyorLynn/lynn-engine/commit/cd9f9c0) |
+| P3-I | **跨层覆盖** layer 4 / 20 / 36 全 PASS,top-k 3/3 exact | min 0.9999958 | max 2.89e-3 | [`9e78fc1`](https://github.com/MerkyorLynn/lynn-engine/commit/9e78fc1) |
+| P3-J | **shared expert** gate/up/down 也走 packed NVFP4 bridge | ≈ 1.0 | — | [`9e78fc1`](https://github.com/MerkyorLynn/lynn-engine/commit/9e78fc1) |
+| P3-K | **一键 regression harness**(P3-A→J 聚合成单一 PASS/WARN/FAIL gate) | — | — | [`9e78fc1`](https://github.com/MerkyorLynn/lynn-engine/commit/9e78fc1) |
+| **P4-A** ⭐ | **`torch._scaled_mm` native FP4**:真实 v8 `weight_packed` view 成 `float4_e2m1fn_x2` 进 native GEMM,**0.017 ms vs scalar 0.027 ms = 1.58× at N=16** | — | — | [**`ddb4759`**](https://github.com/MerkyorLynn/lynn-engine/commit/ddb4759) |
 
-**Packed NVFP4 已 wire 进完整 decode 子图**:linear-attention 5 projection + MoE top-k 8 active expert + 双 projection fusion 全部 PASS,**8 seed 跑下来 8/8 通过 set-level gate**(1/8 order swap WARN,不算 fail)。
+**Packed NVFP4 已 wire 进完整 decode 子图**:linear-attn 5 projection + MoE top-k 8 active expert + shared expert + 双 projection fusion + 跨层(4/20/36)+ 8-seed router sensitivity 全部 PASS。P3-K harness 是 P4/P5 kernel 改造的回归基线。**P4-A backend 落地 `torch._scaled_mm`**(不需 CUTLASS / Triton / inline PTX 自写)。
 
 ### 验证基线双层 framing(P2 + P3 累计建立)
 
@@ -51,9 +55,13 @@ Lynn engine 的 NVFP4 量化引擎验证规则,**区分真发散 vs 可接受边
 
 ### 重要 framing
 
-P3-A→H 完成的是 **correctness + runtime plumbing 的验证**,不是 production TPS。2.02× fusion speedup 是 kernel-launch overhead 收益,**packed scalar bridge 当前仍慢于 resident BF16 baseline**,真正 production TPS 起飞要等 Blackwell FP4 tensor core(P4/P5)替掉当前 scalar bridge kernels。
+P3-A→K 完成的是 **correctness + runtime plumbing 的验证**,**P4-A 是 backend feasibility,都不是 production TPS**:
 
-**下一站**:P3-I(多 layer 类型覆盖,验证不是 layer0 特例)→ P4/P5(true Blackwell FP4 GEMM)→ 27B 剪枝模型 engine 端验证(V Flash ship 之后)。
+- P3-E 的 2.02× fusion speedup 是 kernel-launch overhead,不是 tensor-core
+- packed scalar bridge 单层 2.19 ms 仍略慢于 resident 1.79 ms,这是 scalar bridge 现状,预期内
+- **P4-A 单点 1.58× at N=16 是 microbench,不承诺端到端 TPS**;production TPS 起飞要等 P4-B/C/D/E 把 native `_scaled_mm` 接到端到端 forward(对齐 numerics + wire 进 5 projection + 整层 + 测 TPS)
+
+**下一站**:**P4-B(active)= real activation 量化 + scale repack,让 native `_scaled_mm` 输出对齐 P3 scalar bridge numerics** → P4-C wire 进 `decode_linear_attn` 5 projection + MoE expert → P4-D 整层 native + 跑 P3-K regression harness → P4-E 端到端 forward TPS → 27B 剪枝模型 engine 端验证(V Flash ship 之后)。
 
 **验证基线锁定**(P2 期间确立,P3 起作 ship gate):
 
