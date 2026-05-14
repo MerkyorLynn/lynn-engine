@@ -22,10 +22,23 @@
 - **OpenAI-compatible HTTP server**([`a593795`](https://github.com/MerkyorLynn/lynn-engine/commit/a593795) NVFP4 + [`7c7f735`](https://github.com/MerkyorLynn/lynn-engine/commit/7c7f735) BF16):`/health` + `/v1/chat/completions` + `/v1/completions`,**两个量化档共用一份 `LynnIncrementalRunner` decode 代码**
 
 **🔜 P3 — native FP4 GEMM 启动**(R6000 lease 截止 2026-05-17,3 天硬窗口):
-- ✅ **P3-A first shot 命中**:packed NVFP4 kernel 直接读 `uint8 weight_packed`,跟 resident dequant baseline **cosine 1.000000 / rel_l2 1.8e-7**
-- 单 Linear:**packed kernel 0.053 ms vs dequant-each-call 0.64 ms = 12× speedup**(仍慢 resident BF16 baseline 0.021 ms 2.5×,这 2.5× 留给 tensor-core / 更大块 GEMM)
-- Multi-probe **4 类 tensor 全 PASS**:QKV / expert gate / up / down — kernel contract 跟 v8-RTN packed layout 真正吃透,**不是单点偶然**
-- P3-B(active):整模型 forward 接 packed kernel + tensor-core / 更大块 GEMM 优化 → 端到端 TPS 实测
+
+**P3-A 到 P3-F 全部 PASS**(最新 commit [`819d37f`](https://github.com/MerkyorLynn/lynn-engine/commit/819d37f)):
+
+| 阶段 | 验证 | cosine | rel_l2 | 备注 |
+|---|---|---|---|---|
+| P3-A | Packed NVFP4 matvec kernel | **1.0000** | 1.8e-7 | microkernel,12× vs dequant-each-call |
+| P3-B | `PackedNVFP4Linear` runtime wrapper | **1.0** | 8.12e-9 | runtime 接入面 |
+| P3-C | `decode_linear_attn` QKV packed projection | 0.999987 | 5.07e-3 | 接 attention 第一个 projection |
+| P3-D | `decode_linear_attn` 全部 5 个 projection(QKV + Z + B + A + out) | 0.999981 | 6.2e-3 | linear-attn 层完全 packed |
+| P3-E | dual `a+b` projection fusion | — | — | **2.02× speedup**(launch-overhead) |
+| P3-F | packed single expert FFN(gate / up / down) | 0.999995 | 3.28e-3 | 单 MoE expert 完全 packed |
+
+**Packed kernel 已接进实际 decode 热路径**:linear-attention 5 个 projection + 单 MoE expert 3 个 projection + dual fusion 全部 PASS,cosine ≈ 1。
+
+**重要 framing**:目前 P3-A→F 完成的是 **correctness + runtime plumbing 的验证**,不是 production TPS。2.02× fusion speedup 是 kernel-launch overhead 收益,**真正 production TPS 起飞还要等 Blackwell FP4 tensor core(P4/P5)替掉当前 scalar bridge kernels**。
+
+**下一站**:P3-G(整层 decode 端到端 packed)→ P4/P5(true Blackwell FP4 GEMM)→ 27B 剪枝模型 engine 端验证(V Flash ship 之后)。
 
 **验证基线锁定**(P2 期间确立,P3 起作 ship gate):
 
