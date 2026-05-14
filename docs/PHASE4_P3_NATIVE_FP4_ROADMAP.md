@@ -117,6 +117,22 @@ Pass criteria:
 - top-k expert routing unchanged,
 - timing breakdown for gate/up/down.
 
+Status:
+
+- First expert gate/up dual fusion probe completed.
+- Report: `/root/autodl-tmp/reports/lynn-engine-p1/p3_nvfp4_dual_expert_gate_up_probe.json`.
+
+| Probe | Value |
+|---|---:|
+| separate expert gate then up | `0.0802 ms` |
+| fused dual expert gate/up | `0.0511 ms` |
+| speedup | `1.57x` |
+| gate max_abs vs separate | `0.0` |
+| up max_abs vs separate | `0.0` |
+
+Next: compute `silu(gate) * up`, then run packed down projection, and compare
+the full single-expert FFN output against the resident dequantized expert path.
+
 ### P3-G — Decode Layer With Packed Linear-Attention + Packed MoE
 
 Goal:
