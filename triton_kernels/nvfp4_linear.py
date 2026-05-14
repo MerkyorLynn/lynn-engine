@@ -56,6 +56,66 @@ if HAS_TRITON:
 
 
     @triton.jit
+    def _nearest_e2m1_mag_code(abs_norm):
+        # E2M1 magnitudes: [0, .5, 1, 1.5, 2, 3, 4, 6].
+        # Boundaries are midpoints between adjacent values.
+        # Match torch.argmin tie-breaking in the reference quantizer: when a
+        # value sits exactly on a midpoint, pick the lower magnitude code.
+        return tl.where(
+            abs_norm <= 0.25,
+            0,
+            tl.where(
+                abs_norm <= 0.75,
+                1,
+                tl.where(
+                    abs_norm <= 1.25,
+                    2,
+                    tl.where(
+                        abs_norm <= 1.75,
+                        3,
+                        tl.where(
+                            abs_norm <= 2.5,
+                            4,
+                            tl.where(abs_norm <= 3.5, 5, tl.where(abs_norm <= 5.0, 6, 7)),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+
+    @triton.jit
+    def _quantize_fp4_m1_kernel(
+        x_ptr,
+        packed_ptr,
+        scale_ptr,
+        K: tl.constexpr,
+        GROUPS: tl.constexpr,
+    ):
+        group = tl.program_id(0)
+        pair = tl.arange(0, 8)
+        low_x = tl.load(x_ptr + group * 16 + pair * 2, mask=group < GROUPS, other=0.0).to(tl.float32)
+        high_x = tl.load(x_ptr + group * 16 + pair * 2 + 1, mask=group < GROUPS, other=0.0).to(tl.float32)
+        low_abs = tl.abs(low_x)
+        high_abs = tl.abs(high_x)
+        max_abs = tl.maximum(tl.max(low_abs, axis=0), tl.max(high_abs, axis=0))
+        scale = tl.maximum(max_abs / 6.0, 1.0e-8)
+        low_mag = _nearest_e2m1_mag_code(low_abs / scale).to(tl.uint8)
+        high_mag = _nearest_e2m1_mag_code(high_abs / scale).to(tl.uint8)
+        low_sign = tl.where(low_x < 0.0, 8, 0).to(tl.uint8)
+        high_sign = tl.where(high_x < 0.0, 8, 0).to(tl.uint8)
+        low_code = low_mag | low_sign
+        high_code = high_mag | high_sign
+        packed = low_code | (high_code << 4)
+        tl.store(packed_ptr + group * 8 + pair, packed, mask=group < GROUPS)
+
+        # torch._scaled_mm FP4 scale layout for M=1:
+        # idx = (group // 4) * 512 + (group % 4)
+        scale_offset = (group // 4) * 512 + (group % 4)
+        tl.store(scale_ptr + scale_offset, scale, mask=group < GROUPS)
+
+
+    @triton.jit
     def _nvfp4_matvec_kernel(
         x_ptr,
         packed_ptr,
@@ -336,3 +396,38 @@ def nvfp4_dual_matvec_packed(
         num_warps=4,
     )
     return out_a, out_b
+
+
+def quantize_fp4_m1_native(
+    x: torch.Tensor,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Quantize one activation row for torch._scaled_mm native FP4.
+
+    Returns packed activation bytes `[1, K/2]` and swizzled FP8 scale_a.
+    This is a decode-only M=1 helper for P5-A; batched activation quantization
+    is a later kernel.
+    """
+    _require_triton()
+    if x.ndim == 1:
+        x = x.reshape(1, -1)
+    if x.ndim != 2 or x.shape[0] != 1:
+        raise ValueError(f"quantize_fp4_m1_native expects [K] or [1,K], got {tuple(x.shape)}")
+    if not x.is_cuda:
+        raise ValueError("x must be CUDA tensor")
+    if x.shape[1] % 16 != 0:
+        raise ValueError(f"K must be divisible by 16, got {x.shape[1]}")
+    k = x.shape[1]
+    groups = k // 16
+    packed = torch.empty((1, k // 2), device=x.device, dtype=torch.uint8)
+    scale_len = max(1, 128) * max(groups, 4)
+    scale = torch.ones((scale_len,), device=x.device, dtype=torch.float8_e4m3fn)
+    grid = (groups,)
+    _quantize_fp4_m1_kernel[grid](
+        x,
+        packed,
+        scale,
+        k,
+        groups,
+        num_warps=1,
+    )
+    return packed, scale

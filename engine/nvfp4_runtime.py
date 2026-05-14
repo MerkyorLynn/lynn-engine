@@ -13,7 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import torch
-from triton_kernels.nvfp4_linear import nvfp4_matvec_packed
+from triton_kernels.nvfp4_linear import nvfp4_matvec_packed, quantize_fp4_m1_native
 
 _SWIZZLE_INDEX_CACHE: dict[tuple[int, int, int, int, str], torch.Tensor] = {}
 _SWIZZLE_FP8_ONES_CACHE: dict[tuple[int, int, str], torch.Tensor] = {}
@@ -177,8 +177,7 @@ class PackedNVFP4Linear:
         elif backend == "native_scaled_mm":
             if not hasattr(torch, "float4_e2m1fn_x2") or not hasattr(torch, "_scaled_mm"):
                 raise RuntimeError("native_scaled_mm requires torch.float4_e2m1fn_x2 and torch._scaled_mm")
-            act_packed, act_scale = _quantize_activation_to_fp4(flat)
-            scale_a = _compact_scale_to_swizzled_fp8(act_scale, outer_dim=flat.shape[0], k=self.in_features)
+            act_packed, scale_a = quantize_fp4_m1_native(flat)
             out = torch._scaled_mm(
                 act_packed.view(torch.float4_e2m1fn_x2),
                 self.weight_packed.view(torch.float4_e2m1fn_x2).t(),
