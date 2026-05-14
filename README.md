@@ -93,14 +93,25 @@ Lynn:   ' Paris, a city renowned'   ← 5/5 token 完全一致
 
 ## 性能进度
 
+**当前 production 配置**:resident dequant→BF16 slow path,no MTP(V Pro Distill 没 MTP head),单流。性能起飞要等 P4/P5 native FP4 GEMM 替掉 scalar bridge。
+
 | 阶段 | 单 token 延迟 | t/s | 状态 |
 |---|---|---|---|
-| Phase 2 brute-force | ~300 ms | 2-3 | shipped |
-| **Phase 3.1 incremental decode** | **~200 ms** | **5** | **shipped(commit `1e2980b`)** |
-| Phase 3.2(active-experts + bmm + indexed)| 目标 ~100-130 ms | 8-10 | 代码已 commit,未实测 |
-| Phase 3.3(Triton-fused MoE FFN)| 目标 ~50 ms | 20 | scaffold + 设计已写 |
-| Phase 3.4(CUTLASS NVFP4 grouped)| 目标 ~10-15 ms | 60-100 | B 阶段(未来)|
-| vLLM SGLang+MTP 基线 | ~14 ms | 60-70 | 参考对照 |
+| Phase 2 brute-force | ~300 ms | 2-3 | 历史 shipped |
+| Phase 3.1 incremental decode | ~200 ms | 5 | 历史 shipped(commit [`1e2980b`](https://github.com/MerkyorLynn/lynn-engine/commit/1e2980b))|
+| **P2 resident slow path**(load 一次跑多 prompt,BF16 + NVFP4 dequant→BF16) | **~76 ms** | **13.1** | ✅ **当前 production**(commit `e4bb9d5 → 7c7f735`) |
+| **P3-A→H packed NVFP4 scalar bridge**(单层 packed 2.19 ms vs resident 1.79 ms)| **~88 ms** | **~11-12** | ✅ 路径全通,**scalar bridge 略慢于 resident**(commit [`cd9f9c0`](https://github.com/MerkyorLynn/lynn-engine/commit/cd9f9c0))|
+| **P3-I**(多 layer 类型覆盖) | TBD | TBD | 🔜 active |
+| **P4/P5 native Blackwell FP4 GEMM**(替掉 scalar bridge) | 目标 ~17-33 ms | 目标 **30-60** | 🔜 next |
+| 参考对照: SGLang dev-cu13 NVFP4 v8-RTN(production)| ~17 ms | **58.7**(单流)/ **599**(N=16 agg)| 跨硬件可比 |
+| 参考对照: vLLM SGLang+MTP base FP8(non-Lynn-Distill)| ~14 ms | 60-70 | 历史对照 |
+
+**关键 framing**(P3-H 后 5/14 锁):
+
+- P3-A→H 完成的是 **correctness + runtime plumbing**,**不是 production TPS**。所有 packed kernel 当前都是 "scalar bridge"(packed uint8 → 解包 → scalar 算 → 出),还没用 Blackwell FP4 tensor core
+- packed bridge 单层 **2.19 ms 略慢于 resident 1.79 ms**(2.5× theoretical gap from microbench)是预期内
+- 12× packed vs dequant-each-call 是 **microbench**;dual `a+b` fusion 2.02× 是 **kernel-launch overhead**;两者都不直接转化为端到端 TPS
+- 真正 production TPS 起飞在 **P4/P5 native FP4 GEMM**,目标对位 SGLang 58.7 tok/s 单流
 
 ## 长期路线 — C(36h)→ 验证 → B(6 月)
 
