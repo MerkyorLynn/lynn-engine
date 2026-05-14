@@ -16,6 +16,7 @@ from typing import Optional
 import torch
 import torch.nn.functional as F
 
+from engine.nvfp4_runtime import PackedNVFP4Linear
 from engine.qwen36_linear_attn_block import (
     HIDDEN_SIZE, NUM_K_HEADS, NUM_V_HEADS, HEAD_K_DIM, HEAD_V_DIM, CONV_KERNEL,
     KEY_DIM, VALUE_DIM, V_PER_K, RMS_EPS,
@@ -23,6 +24,13 @@ from engine.qwen36_linear_attn_block import (
     rms_norm_gated,
     l2norm,
 )
+
+
+def _linear(x: torch.Tensor, weight) -> torch.Tensor:
+    """Linear dispatch with optional packed NVFP4 decode-path support."""
+    if isinstance(weight, PackedNVFP4Linear):
+        return weight(x)
+    return F.linear(x, weight)
 
 
 # Standard RMSNorm (with the (1.0 + weight) trick — Qwen3 specific).
@@ -177,9 +185,9 @@ def decode_full_attn(h_new, new_position_id, w, cfg, K_cache_full, V_cache_full,
     rotary_dim = int(head_dim * cfg["partial_rotary_factor"])
 
     # 1. Q/K/V projection on the single new token
-    q_full = F.linear(h_new, w["self_attn.q_proj.weight"])
-    k_new = F.linear(h_new, w["self_attn.k_proj.weight"])
-    v_new = F.linear(h_new, w["self_attn.v_proj.weight"])
+    q_full = _linear(h_new, w["self_attn.q_proj.weight"])
+    k_new = _linear(h_new, w["self_attn.k_proj.weight"])
+    v_new = _linear(h_new, w["self_attn.v_proj.weight"])
 
     q_full_view = q_full.view(B, 1, H_Q, head_dim * 2)
     q, gate = q_full_view.chunk(2, dim=-1)
@@ -218,7 +226,7 @@ def decode_full_attn(h_new, new_position_id, w, cfg, K_cache_full, V_cache_full,
 
     # 9. o_proj
     attn_out = attn_out.transpose(1, 2).contiguous().view(B, 1, H_Q * head_dim)
-    return F.linear(attn_out, w["self_attn.o_proj.weight"])
+    return _linear(attn_out, w["self_attn.o_proj.weight"])
 
 
 # ============================================================================
@@ -372,7 +380,7 @@ def decode_linear_attn(h_new, w, recurrent_state, conv_state):
         return w[k]
 
     # 1. QKV proj on h_new
-    mixed_new = F.linear(h_new, W("linear_attn.in_proj_qkv.weight"))   # [B, 1, conv_dim]
+    mixed_new = _linear(h_new, W("linear_attn.in_proj_qkv.weight"))    # [B, 1, conv_dim]
     mixed_new = mixed_new.transpose(1, 2)                              # [B, conv_dim, 1]
 
     # 2. Causal conv1d update: prepend conv_state to mixed_new, run conv, take last 1 output
@@ -393,10 +401,10 @@ def decode_linear_attn(h_new, w, recurrent_state, conv_state):
     v = v.reshape(B, 1, NUM_V_HEADS, HEAD_V_DIM)
 
     # 4. z, beta, g (using h_new)
-    z = F.linear(h_new, W("linear_attn.in_proj_z.weight")).reshape(B, 1, NUM_V_HEADS, HEAD_V_DIM)
-    b = F.linear(h_new, W("linear_attn.in_proj_b.weight"))
+    z = _linear(h_new, W("linear_attn.in_proj_z.weight")).reshape(B, 1, NUM_V_HEADS, HEAD_V_DIM)
+    b = _linear(h_new, W("linear_attn.in_proj_b.weight"))
     beta = b.sigmoid()
-    a = F.linear(h_new, W("linear_attn.in_proj_a.weight"))
+    a = _linear(h_new, W("linear_attn.in_proj_a.weight"))
     A_log = W("linear_attn.A_log")
     dt_bias = W("linear_attn.dt_bias")
     g = -A_log.float().exp() * F.softplus(a.float() + dt_bias.float())
@@ -419,7 +427,7 @@ def decode_linear_attn(h_new, w, recurrent_state, conv_state):
     core_attn_out = flat_y.reshape(B, 1, NUM_V_HEADS * HEAD_V_DIM)
 
     # 8. out_proj
-    out = F.linear(core_attn_out, W("linear_attn.out_proj.weight"))
+    out = _linear(core_attn_out, W("linear_attn.out_proj.weight"))
     return out, new_recurrent_state, new_conv_state
 
 
