@@ -64,6 +64,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P17 Triton FP4 dot_scaled** | **raw gate/up shape 0.0125 ms; e8m0 neutral byte=127** | compute headroom ✅ | 🔬 layout/scale contract mapped,next step is per-16→group32 bridge |
 | **P18 scale-contract decision** | **dot_scaled raw 0.018 ms vs scalar 0.050 ms** | speed ✅ / quality ❌ | 🔬 simple e8m0 bridge is not shippable; move to custom per-16 kernel |
 | **P19 active block retune** | **8.66 ms strict / 8.32 ms replay** | **115.4 / 120.3** | ✅ quality-safe scheduling gain |
+| **P20 unsorted router top-k** | **8.51 ms strict / 8.17 ms replay** | **117.6 / 122.4** | ✅ same expert set,MoE parity PASS |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -91,8 +92,8 @@ export LYNN_PACKED_SHARED_EXPERT=0
 Measured final step5000 NVFP4:
 
 ```text
-strict full path:      115.41 tok/s  (P19 active-block retune + native FP4 lm_head)
-serving replay/body:   120.25 tok/s  (40-layer graph ceiling)
+strict full path:      117.55 tok/s  (P20 unsorted router + P19 block retune + native FP4 lm_head)
+serving replay/body:   122.43 tok/s  (40-layer graph ceiling)
 OpenAI stable decode:    88-89 tok/s  (tool-call strict + no-think guard)
 BF16 lm_head path:     99.86 tok/s
 quality smoke:         6/6 coherent + strict tool-call + no-think loop guard PASS
@@ -145,6 +146,11 @@ moves the R6000 full graph from **103.40/107.13 TPS** to **115.41/120.25 TPS**.
 The recommended config is now the default: `gate_hidden=256,down_inter=512`,
 with env overrides retained for device-specific tuning. See
 [`docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md`](docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md).
+
+P20 note: router `topk(sorted=False)` has been verified to keep the same expert
+set and paired weights. Representative-layer MoE parity has `max_abs=0`, and
+the full graph moves to **117.55/122.43 TPS**. See
+[`docs/LYNN_ENGINE_P20_ROUTER_TOPK_UNSORTED_20260516.md`](docs/LYNN_ENGINE_P20_ROUTER_TOPK_UNSORTED_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,

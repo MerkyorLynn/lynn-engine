@@ -23,6 +23,13 @@ def _env_int(name: str, default: int) -> int:
     return value
 
 
+def _env_bool(name: str, default: bool) -> bool:
+    raw = os.environ.get(name)
+    if raw is None or raw == "":
+        return default
+    return raw.lower() not in {"0", "false", "no", "off"}
+
+
 def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
     """Decode-only MoE using packed NVFP4 expert weights.
 
@@ -53,6 +60,7 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
         router_logits,
         int(cfg["num_experts_per_tok"]),
         dim=-1,
+        sorted=_env_bool("LYNN_ROUTER_TOPK_SORTED", False),
     )
     routing_weights = F.softmax(routing_weights, dim=-1, dtype=torch.float32)[0]
     expert_ids = expert_indices[0].to(torch.long)
