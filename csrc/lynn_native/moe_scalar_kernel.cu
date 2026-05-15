@@ -1,0 +1,172 @@
+#include <torch/extension.h>
+
+#include <cuda.h>
+#include <cuda_bf16.h>
+#include <cuda_runtime.h>
+
+namespace {
+
+constexpr int kHidden = 2048;
+constexpr int kIntermediate = 512;
+constexpr int kGateUpRows = kIntermediate * 2;
+constexpr int kThreads = 256;
+
+__device__ __forceinline__ float e2m1_from_nibble(unsigned char nibble) {
+  const unsigned char mag = nibble & 0x07;
+  const bool sign = (nibble & 0x08) != 0;
+  float v = 0.0f;
+  if (mag == 1) {
+    v = 0.5f;
+  } else if (mag == 2) {
+    v = 1.0f;
+  } else if (mag == 3) {
+    v = 1.5f;
+  } else if (mag == 4) {
+    v = 2.0f;
+  } else if (mag == 5) {
+    v = 3.0f;
+  } else if (mag == 6) {
+    v = 4.0f;
+  } else if (mag == 7) {
+    v = 6.0f;
+  }
+  return sign ? -v : v;
+}
+
+__global__ void gate_up_silu_scalar_kernel(
+    const __nv_bfloat16* __restrict__ x,
+    const int32_t* __restrict__ expert_ids,
+    const uint8_t* __restrict__ gate_up_packed,
+    const float* __restrict__ gate_up_scale,
+    const float* __restrict__ gate_up_global_scale,
+    __nv_bfloat16* __restrict__ out,
+    int64_t packed_stride_e,
+    int64_t packed_stride_m,
+    int64_t packed_stride_n,
+    int64_t scale_stride_e,
+    int64_t scale_stride_m,
+    int64_t scale_stride_g,
+    int64_t out_stride_k,
+    int64_t out_stride_i) {
+  const int slot = blockIdx.x;
+  const int inter = blockIdx.y;
+  const int tid = threadIdx.x;
+  const int expert = expert_ids[slot];
+  const int gate_row = inter;
+  const int up_row = kIntermediate + inter;
+  const float inv_global = 1.0f / gate_up_global_scale[0];
+
+  extern __shared__ float smem[];
+  float* gate_s = smem;
+  float* up_s = smem + blockDim.x;
+
+  float gate_acc = 0.0f;
+  float up_acc = 0.0f;
+
+  for (int h = tid; h < kHidden; h += blockDim.x) {
+    const int packed_col = h >> 1;
+    const int scale_col = h >> 4;
+    const bool low = (h & 1) == 0;
+    const float x_h = __bfloat162float(x[h]);
+
+    const uint8_t gate_byte = gate_up_packed[
+        static_cast<int64_t>(expert) * packed_stride_e +
+        static_cast<int64_t>(gate_row) * packed_stride_m +
+        static_cast<int64_t>(packed_col) * packed_stride_n];
+    const uint8_t up_byte = gate_up_packed[
+        static_cast<int64_t>(expert) * packed_stride_e +
+        static_cast<int64_t>(up_row) * packed_stride_m +
+        static_cast<int64_t>(packed_col) * packed_stride_n];
+    const unsigned char gate_nibble = low ? (gate_byte & 0x0F) : ((gate_byte >> 4) & 0x0F);
+    const unsigned char up_nibble = low ? (up_byte & 0x0F) : ((up_byte >> 4) & 0x0F);
+
+    const float gate_scale = gate_up_scale[
+        static_cast<int64_t>(expert) * scale_stride_e +
+        static_cast<int64_t>(gate_row) * scale_stride_m +
+        static_cast<int64_t>(scale_col) * scale_stride_g];
+    const float up_scale = gate_up_scale[
+        static_cast<int64_t>(expert) * scale_stride_e +
+        static_cast<int64_t>(up_row) * scale_stride_m +
+        static_cast<int64_t>(scale_col) * scale_stride_g];
+
+    gate_acc += e2m1_from_nibble(gate_nibble) * gate_scale * inv_global * x_h;
+    up_acc += e2m1_from_nibble(up_nibble) * up_scale * inv_global * x_h;
+  }
+
+  gate_s[tid] = gate_acc;
+  up_s[tid] = up_acc;
+  __syncthreads();
+
+  for (int stride = blockDim.x >> 1; stride > 0; stride >>= 1) {
+    if (tid < stride) {
+      gate_s[tid] += gate_s[tid + stride];
+      up_s[tid] += up_s[tid + stride];
+    }
+    __syncthreads();
+  }
+
+  if (tid == 0) {
+    const float gate = gate_s[0];
+    const float up = up_s[0];
+    const float silu = gate / (1.0f + expf(-gate));
+    out[static_cast<int64_t>(slot) * out_stride_k + static_cast<int64_t>(inter) * out_stride_i] =
+        __float2bfloat16(silu * up);
+  }
+}
+
+}  // namespace
+
+torch::Tensor lynn_native_gate_up_silu_scalar(
+    torch::Tensor x,
+    torch::Tensor expert_ids,
+    torch::Tensor gate_up_packed,
+    torch::Tensor gate_up_scale,
+    torch::Tensor gate_up_global_scale) {
+  TORCH_CHECK(x.is_cuda(), "x must be a CUDA tensor");
+  TORCH_CHECK(expert_ids.is_cuda(), "expert_ids must be a CUDA tensor");
+  TORCH_CHECK(gate_up_packed.is_cuda(), "gate_up_packed must be a CUDA tensor");
+  TORCH_CHECK(gate_up_scale.is_cuda(), "gate_up_scale must be a CUDA tensor");
+  TORCH_CHECK(gate_up_global_scale.is_cuda(), "gate_up_global_scale must be a CUDA tensor");
+  TORCH_CHECK(x.scalar_type() == torch::kBFloat16, "x must be bfloat16");
+  TORCH_CHECK(expert_ids.scalar_type() == torch::kInt32, "expert_ids must be int32");
+  TORCH_CHECK(gate_up_packed.scalar_type() == torch::kUInt8, "gate_up_packed must be uint8");
+  TORCH_CHECK(gate_up_scale.scalar_type() == torch::kFloat32, "gate_up_scale must be float32");
+  TORCH_CHECK(gate_up_global_scale.scalar_type() == torch::kFloat32, "gate_up_global_scale must be float32");
+  TORCH_CHECK(x.dim() == 1 && x.numel() == kHidden, "x must be [2048]");
+  TORCH_CHECK(gate_up_packed.dim() == 3, "gate_up_packed must be [experts, 1024, 1024]");
+  TORCH_CHECK(gate_up_scale.dim() == 3, "gate_up_scale must be [experts, 1024, 128]");
+  TORCH_CHECK(gate_up_packed.size(1) == kGateUpRows, "gate_up_packed row dim must be 1024");
+  TORCH_CHECK(gate_up_packed.size(2) == kHidden / 2, "gate_up_packed packed hidden dim must be 1024");
+  TORCH_CHECK(gate_up_scale.size(1) == kGateUpRows, "gate_up_scale row dim must be 1024");
+  TORCH_CHECK(gate_up_scale.size(2) == kHidden / 16, "gate_up_scale group dim must be 128");
+  TORCH_CHECK(gate_up_global_scale.numel() == 1, "gate_up_global_scale must be scalar");
+
+  auto xc = x.contiguous();
+  auto expert_ids_c = expert_ids.contiguous();
+  auto packed_c = gate_up_packed.contiguous();
+  auto scale_c = gate_up_scale.contiguous();
+  auto global_c = gate_up_global_scale.contiguous();
+  const int64_t top_k = expert_ids_c.numel();
+  auto out = torch::empty({top_k, kIntermediate}, x.options());
+
+  const dim3 grid(static_cast<unsigned int>(top_k), kIntermediate);
+  const size_t shared_bytes = static_cast<size_t>(kThreads) * 2 * sizeof(float);
+  gate_up_silu_scalar_kernel<<<grid, kThreads, shared_bytes>>>(
+      reinterpret_cast<const __nv_bfloat16*>(xc.data_ptr<at::BFloat16>()),
+      expert_ids_c.data_ptr<int32_t>(),
+      packed_c.data_ptr<uint8_t>(),
+      scale_c.data_ptr<float>(),
+      global_c.data_ptr<float>(),
+      reinterpret_cast<__nv_bfloat16*>(out.data_ptr<at::BFloat16>()),
+      packed_c.stride(0),
+      packed_c.stride(1),
+      packed_c.stride(2),
+      scale_c.stride(0),
+      scale_c.stride(1),
+      scale_c.stride(2),
+      out.stride(0),
+      out.stride(1));
+  const cudaError_t err = cudaGetLastError();
+  TORCH_CHECK(err == cudaSuccess, "gate_up_silu_scalar_kernel launch failed: ", cudaGetErrorString(err));
+  return out;
+}
