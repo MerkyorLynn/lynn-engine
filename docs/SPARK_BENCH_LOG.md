@@ -32,7 +32,7 @@
 | **mean** |  | **0.530** | **8.19** | **42.85** | **0.635** |
 | **median** |  |  |  | **43.30** | **0.542** |
 
-Steady decode = **~7.5 ms/token** (was 42ms in baseline scalar_bridge config).
+Steady decode = **~23.3 ms/token** (was ~42 ms in baseline scalar_bridge config) — **~1.8× faster per token** (consistent with 1.79× TPS gain 23.88→42.85).
 
 ### Trajectory (this branch)
 
