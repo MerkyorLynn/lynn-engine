@@ -18,9 +18,9 @@ Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent ru
 | **27B Lynn-native NVFP4** | ✅ 20G artifact produced and transferred to R6000; manifest integrity PASS |
 | **Independent loader** | ✅ No vLLM / SGLang / TRT-LLM / llama.cpp dependency; reads safetensors + Lynn quant manifest directly |
 | **6-prompt coherent smoke** | ✅ Chinese explanation / Python / RoPE-ALiBi / English arithmetic / tool JSON / long-context prompts all pass |
-| **Current R6000 steady decode** | ✅ **66-68 tok/s** on the real generate path |
-| **Stable CUDA graph ceiling** | ✅ **78.8 tok/s** full-token graph probe, reproducible |
-| **Next target** | 100 tok/s via packed-resident NVFP4 + hot-path kernel fusion |
+| **Current R6000 strict full path** | ✅ **103.44 tok/s** with packed NVFP4 MoE + opt-in native FP4 lm_head |
+| **Serving replay ceiling** | ✅ **107.23 tok/s** 40-layer body graph, reproducible |
+| **Next target** | production-stable 100+ TPS:remove BF16 resident shadows,finish native FP4 kernels and usability |
 
 Current primary artifact:
 
@@ -43,7 +43,9 @@ Lynn 27B variable-pruned Recovery step5000
 | **P7 current serving env** | **~14.6-15.0 ms** | **66-68** | ✅ 6-prompt generate PASS |
 | **P7/P8 CUDA graph ceiling** | **12.68 ms** | **78.8** | ✅ stable and reproducible |
 | P8 torch.compile spike | 12.33 ms | 81.1 | signal only, not product path |
-| **P9 target** | **~10 ms** | **100** | packed-resident + kernel fusion |
+| **P10-M packed NVFP4 MoE** | **10.01 ms** | **99.86** | ✅ strict full path,BF16 lm_head |
+| **P10-P native FP4 lm_head** | **9.67 ms** | **103.44** | ✅ strict full path,opt-in |
+| **serving replay/body graph** | **9.33 ms** | **107.23** | ✅ 40-layer graph ceiling |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -52,24 +54,24 @@ Current best R6000 environment:
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export LYNN_PREFILL_WARMUP=1
 export LYNN_LINEAR_ATTN_RECURRENT_BACKEND=triton_fused_prepare
-export LYNN_MOE_IMPL=triton
+export LYNN_LINEAR_ATTN_RECURRENT_INPLACE=1
+export LYNN_MOE_IMPL=packed_nvfp4
 export LYNN_QK_NORM_ROPE_BACKEND=triton
 export LYNN_RMSNORM_GATED_BACKEND=triton
-export LYNN_LINEAR_ATTN_INPROJ_FUSED=1
-export LYNN_LINEAR_BLOCK_GRAPH=1
-export LYNN_LINEAR_BLOCK_GRAPH_REUSE=1
-export LYNN_LINEAR_BLOCK_GRAPH_PREWARM=1
+export LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1
 export LYNN_LINEAR_STATE_UPDATE=inplace
 ```
 
-Measured final step5000 NVFP4 32-token smoke:
+Measured final step5000 NVFP4:
 
 ```text
-decode TPS per prompt: 66.62 / 68.27 / 68.28 / 68.24 / 68.44 / 67.89
-load time:             10.7s
-graph capture:         0.0s per request after prewarm
-output:                coherent 6/6
+strict full path:      103.44 tok/s  (native FP4 lm_head opt-in)
+serving replay/body:   107.23 tok/s  (40-layer graph ceiling)
+BF16 lm_head path:     99.86 tok/s
+quality smoke:         6/6 coherent + 2-token greedy sanity PASS
 ```
+
+The native FP4 lm_head path is currently a deterministic/greedy opt-in optimization:6/6 prompt top-1 match,minimum top-20 overlap 15/20,and minimum logits cosine 0.9924. Sampling-heavy production traffic keeps the BF16 lm_head fallback until a larger parity gate is complete.
 
 ## 27B quality and base-model status
 
@@ -102,9 +104,10 @@ Recovery v1.1 targeted longctx/chem/sql was tested but did not replace step5000:
 |---|---|---|
 | **P6** | done | 50 TPS cleared: resident graph smoke 63-66 TPS |
 | **P7** | done | graph reuse / prewarm / RMSNormGated / serving env,66-68 TPS |
-| **P8** | partial | 78.8 TPS CUDA graph ceiling + 81 TPS compile spike |
-| **P9** | current | packed-resident NVFP4, release 35-40G resident memory, target 100 TPS |
-| **P10** | next | native FP4 / larger fused kernels, target 200 TPS |
+| **P8** | done | 78.8 TPS CUDA graph ceiling + 81 TPS compile spike |
+| **P9** | done | packed NVFP4 active expert path, near-100 TPS |
+| **P10** | current | native FP4 lm_head + 103 TPS full path, production-stable 100+ |
+| **P11** | next | shared expert / grouped expert / larger fused kernels, target 200 TPS |
 
 ## Tutorials — read these even if you're not writing your own engine
 
@@ -132,13 +135,11 @@ export PYTHONPATH=/root/autodl-tmp/lynn-engine
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export LYNN_PREFILL_WARMUP=1
 export LYNN_LINEAR_ATTN_RECURRENT_BACKEND=triton_fused_prepare
-export LYNN_MOE_IMPL=triton
+export LYNN_LINEAR_ATTN_RECURRENT_INPLACE=1
+export LYNN_MOE_IMPL=packed_nvfp4
 export LYNN_QK_NORM_ROPE_BACKEND=triton
 export LYNN_RMSNORM_GATED_BACKEND=triton
-export LYNN_LINEAR_ATTN_INPROJ_FUSED=1
-export LYNN_LINEAR_BLOCK_GRAPH=1
-export LYNN_LINEAR_BLOCK_GRAPH_REUSE=1
-export LYNN_LINEAR_BLOCK_GRAPH_PREWARM=1
+export LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1
 export LYNN_LINEAR_STATE_UPDATE=inplace
 
 # 3. Run resident smoke

@@ -18,9 +18,9 @@ Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B final 基�
 | **27B Lynn-native NVFP4** | ✅ 20G artifact 已生成并传到 R6000,manifest integrity PASS |
 | **独立加载** | ✅ 不依赖 vLLM / SGLang / TRT-LLM / llama.cpp,直接读 safetensors + Lynn quant manifest |
 | **6-prompt coherent smoke** | ✅ 中文解释 / Python / RoPE-ALiBi / 英文算术 / tool JSON / longctx 全通过 |
-| **当前 R6000 steady decode** | ✅ **66-68 tok/s**(真实 generate path,32-token smoke) |
-| **稳定 CUDA graph ceiling** | ✅ **78.8 tok/s**(full-token graph probe,可复现) |
-| **下一目标** | 100 tok/s:packed-resident NVFP4 + hot path kernel fusion |
+| **当前 R6000 strict full path** | ✅ **103.44 tok/s**(packed NVFP4 MoE + opt-in native FP4 lm_head) |
+| **serving replay ceiling** | ✅ **107.23 tok/s**(40-layer body graph,可稳定复现) |
+| **下一目标** | 生产稳定 100+ TPS:移除 BF16 resident shadow,补齐 native FP4 kernel 与易用性 |
 
 当前主力 artifact:
 
@@ -43,7 +43,9 @@ Lynn 27B variable-pruned Recovery step5000
 | **P7 current serving env** | **~14.6-15.0 ms** | **66-68** | ✅ 6-prompt generate PASS |
 | **P7/P8 CUDA graph ceiling** | **12.68 ms** | **78.8** | ✅ 稳定可复现 ceiling |
 | P8 torch.compile spike | 12.33 ms | 81.1 | 实验信号,非产品路径 |
-| **P9 target** | **~10 ms** | **100** | packed-resident + kernel fusion |
+| **P10-M packed NVFP4 MoE** | **10.01 ms** | **99.86** | ✅ strict full path,BF16 lm_head |
+| **P10-P native FP4 lm_head** | **9.67 ms** | **103.44** | ✅ strict full path,opt-in |
+| **serving replay/body graph** | **9.33 ms** | **107.23** | ✅ 40-layer graph ceiling |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:
@@ -52,24 +54,24 @@ Lynn 27B variable-pruned Recovery step5000
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export LYNN_PREFILL_WARMUP=1
 export LYNN_LINEAR_ATTN_RECURRENT_BACKEND=triton_fused_prepare
-export LYNN_MOE_IMPL=triton
+export LYNN_LINEAR_ATTN_RECURRENT_INPLACE=1
+export LYNN_MOE_IMPL=packed_nvfp4
 export LYNN_QK_NORM_ROPE_BACKEND=triton_pair
 export LYNN_RMSNORM_GATED_BACKEND=triton
-export LYNN_LINEAR_ATTN_INPROJ_FUSED=1
-export LYNN_LINEAR_BLOCK_GRAPH=1
-export LYNN_LINEAR_BLOCK_GRAPH_REUSE=1
-export LYNN_LINEAR_BLOCK_GRAPH_PREWARM=1
+export LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1
 export LYNN_LINEAR_STATE_UPDATE=inplace
 ```
 
-实测 final step5000 NVFP4 32-token smoke:
+实测 final step5000 NVFP4:
 
 ```text
-decode TPS per prompt: 66.62 / 68.27 / 68.28 / 68.24 / 68.44 / 67.89
-load time:             10.7s
-graph capture:         0.0s per request after prewarm
-output:                coherent 6/6
+strict full path:      103.44 tok/s  (native FP4 lm_head opt-in)
+serving replay/body:   107.23 tok/s  (40-layer graph ceiling)
+BF16 lm_head path:     99.86 tok/s
+quality smoke:         6/6 coherent + 2-token greedy sanity PASS
 ```
+
+Native FP4 lm_head 是当前的 deterministic/greedy opt-in 优化:6/6 prompt top-1 match,top-20 overlap 最低 15/20,logits cosine 最低 0.9924。采样型生产流量默认仍保留 BF16 lm_head fallback,直到更大规模 parity gate 完成。
 
 ## 27B 质量与基座状态
 
@@ -104,9 +106,10 @@ Recovery v1.1 targeted longctx/chem/sql 已试过,但未取代 step5000:它没�
 |---|---|---|
 | **P6** | done | 50TPS 突破:resident graph smoke 63-66TPS |
 | **P7** | done | graph reuse / prewarm / RMSNormGated / serving env,66-68TPS |
-| **P8** | partial | 78.8TPS CUDA graph ceiling + 81TPS compile spike |
-| **P9** | current | packed-resident NVFP4,释放 35-40G resident memory,奔 100TPS |
-| **P10** | next | native FP4 / larger fused kernels,奔 200TPS |
+| **P8** | done | 78.8TPS CUDA graph ceiling + 81TPS compile spike |
+| **P9** | done | packed NVFP4 active expert path,逼近 100TPS |
+| **P10** | current | native FP4 lm_head + full-path 103TPS,生产稳定 100+ |
+| **P11** | next | shared expert / grouped expert / larger fused kernels,奔 200TPS |
 
 **已锁定决策**:
 - 推理硬件:**Blackwell sm_12x**(DGX Spark / 5090 / RTX PRO 6000)
@@ -142,13 +145,11 @@ export PYTHONPATH=/root/autodl-tmp/lynn-engine
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export LYNN_PREFILL_WARMUP=1
 export LYNN_LINEAR_ATTN_RECURRENT_BACKEND=triton_fused_prepare
-export LYNN_MOE_IMPL=triton
+export LYNN_LINEAR_ATTN_RECURRENT_INPLACE=1
+export LYNN_MOE_IMPL=packed_nvfp4
 export LYNN_QK_NORM_ROPE_BACKEND=triton_pair
 export LYNN_RMSNORM_GATED_BACKEND=triton
-export LYNN_LINEAR_ATTN_INPROJ_FUSED=1
-export LYNN_LINEAR_BLOCK_GRAPH=1
-export LYNN_LINEAR_BLOCK_GRAPH_REUSE=1
-export LYNN_LINEAR_BLOCK_GRAPH_PREWARM=1
+export LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1
 export LYNN_LINEAR_STATE_UPDATE=inplace
 
 # 3. 运行 resident smoke
