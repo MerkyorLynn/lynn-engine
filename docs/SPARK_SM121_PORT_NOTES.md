@@ -44,26 +44,29 @@
 
 ### Server 启动
 
-参考 `scripts/spark/run_27b_nvfp4_server.sh`,关键 env vars:
+参考 `scripts/spark/run_27b_nvfp4_server.sh`,**完整 P10 production env vars**(与 R6000 88-89 TPS stable 配置对齐):
 ```
 LYNN_PREFILL_WARMUP=1
+LYNN_MOE_IMPL=packed_nvfp4                     ← MUST(默认 triton 不走 packed NVFP4 path)
 LYNN_LINEAR_ATTN_RECURRENT_BACKEND=triton_fused_prepare
-LYNN_MOE_IMPL=triton
+LYNN_LINEAR_ATTN_RECURRENT_INPLACE=1           ← MUST(P10 新增 inplace)
+LYNN_LINEAR_STATE_UPDATE=inplace
 LYNN_QK_NORM_ROPE_BACKEND=triton_pair
 LYNN_RMSNORM_GATED_BACKEND=triton
 LYNN_LINEAR_ATTN_INPROJ_FUSED=1
+LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1     ← MUST(P8 native FP4 fused inproj)
+LYNN_NATIVE_FP4_LM_HEAD=1                      ← MUST(P10 native FP4 lm_head,FP4 lm_head 103.49 TPS strict path)
 LYNN_LINEAR_BLOCK_GRAPH=1
 LYNN_LINEAR_BLOCK_GRAPH_REUSE=1
 LYNN_LINEAR_BLOCK_GRAPH_PREWARM=1
-LYNN_LINEAR_STATE_UPDATE=inplace
-# Native FP4 packed decode opt-in(当前 Spark sm_121 没触发,见下)
 LYNN_PACKED_DECODE=1
 LYNN_PACKED_DECODE_FULL_ATTN=1
 LYNN_PACKED_DECODE_LINEAR_ATTN=1
 LYNN_PACKED_DECODE_PREPARE_NATIVE=1
 LYNN_PACKED_SHARED_EXPERT=1
-LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1
 ```
+
+⚠️ **Round-1 evidence(23.88 TPS)是错配置数字**:之前漏掉 `LYNN_MOE_IMPL=packed_nvfp4` / `LYNN_LINEAR_ATTN_RECURRENT_INPLACE=1` / `LYNN_NATIVE_FP4_LM_HEAD=1` 三个 MUST env,导致 server fallback 到 scalar_bridge 老 path。修对配置后 Spark 应该向 30-50+ TPS 推进(参考 R6000 P10 doc `LYNN_ENGINE_P10S_GRAPH_BOUNDARY_20260515.md`)。
 
 **加载时间**: ~152s on Spark sm_121(40 层 NVFP4 slow dequant + outside weights + prefill warmup + linear block graph prewarm)
 **Memory footprint**: ~50-60G BF16 resident + ~15-20G workspace ≈ **75-80G total**(headroom 需 ≥ 30G,即 free ≥ 100G 才启)
