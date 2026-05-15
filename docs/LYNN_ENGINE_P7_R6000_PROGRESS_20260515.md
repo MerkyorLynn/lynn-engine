@@ -834,3 +834,92 @@ closed by graph-family engineering rather than only by writing new math kernels.
 The caveat is important: this probe fixes one decode position/KV length. Serving
 needs either a bounded graph family for common positions or a fixed-shape KV
 strategy before full-attention graph replay can become production.
+
+## P9-I/J/K Full-Token Graph Family Findings
+
+Retested full-token CUDA graph families after promoting `triton_pair`.
+
+### Upfront Graph Family
+
+`benchmarks/p9e_full_token_graph_family_greedy.py` with `max_new=8` passes
+greedy parity:
+
+```text
+8-token graph family: PASS
+avg replay:           14.30 ms/token
+replay TPS:           69.93 tok/s
+```
+
+The same construction with `max_new=16` still diverges at step 8:
+
+```text
+first 8 tokens:       greedy parity
+step 8 onward:        top-1 drift
+avg replay:           14.01 ms/token
+replay TPS:           71.38 tok/s
+```
+
+This means the original upfront graph-family method has a short safe window but
+cannot be stretched to long decode by simply capturing more future positions
+from the original prefill state.
+
+### Windowed Recapture
+
+Added `benchmarks/p9i_windowed_graph_family_greedy.py` to recapture every
+8-token window. It still fails after the first window, even with the diagnostic
+`--refresh-from-eager` mode:
+
+```text
+window=8 recapture:                    FAIL
+window=8 + eager state refresh:         FAIL
+replay-only speed while running graphs: ~68 tok/s
+capture-amortized speed:               ~12 tok/s
+```
+
+This rules out the naive idea that periodic recapture alone fixes graph/eager
+drift. It also makes the engineering constraint explicit: capture cost cannot
+sit on the hot path.
+
+### Single-Position Graph After Eager Prefix
+
+Added `benchmarks/p9j_single_position_graph_after_prefix.py` to isolate one
+decode position after an eager prefix. This probe passes exactly:
+
+```text
+prefix_new=8:   position 15, graph 13.91 ms, 71.87 tok/s, logits diff 0
+prefix_new=16:  position 23, graph 14.24 ms, 70.23 tok/s, logits diff 0
+prefix_new=32:  position 39, graph 13.88 ms, 72.03 tok/s, logits diff 0
+```
+
+This is the key localization: full-token graph replay is correct at later
+positions when captured from the true current state. The broken part is the
+multi-graph construction strategy, not the underlying decode math or the later
+sequence positions.
+
+### Sequential Capture Attempt
+
+Added `benchmarks/p9k_sequential_capture_graph_family_greedy.py` to capture
+future graphs sequentially from the graph path instead of from the original
+prefill state. It still fails around step 7/8:
+
+```text
+sequential capture family: FAIL
+avg replay:                13.53 ms/token
+replay TPS:                73.90 tok/s
+capture cost:              ~40.8 ms/token
+```
+
+The replay speed is attractive, but correctness is not yet production-safe.
+
+### Current Interpretation
+
+The 100 TPS route should not depend on a naive long full-token graph family.
+The proven safe pieces are:
+
+- resident decode with reusable linear-attn block graphs: ~68-69 tok/s stable
+- single full-token graph at the true current state: ~70-72 tok/s, exact
+- single full-attention layer graph: 3.24x speedup, exact
+
+Next practical step: productize graphing at smaller, well-scoped boundaries
+(full-attention layer graph slots / fixed-position graph families) rather than
+trying to graph an entire long token sequence upfront.
