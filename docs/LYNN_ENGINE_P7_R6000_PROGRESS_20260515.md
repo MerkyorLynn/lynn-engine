@@ -1180,3 +1180,26 @@ full graph path; its index arithmetic offsets the repeat-removal benefit. Keep
 it opt-in for future kernel fusion, but do not make it the default. The next
 100 TPS work should focus on packed/native MoE expert kernels and deeper
 linear-attention block fusion rather than GQA repeat removal alone.
+
+## P10-E Packed Active-Expert MoE Probe
+
+Added `benchmarks/p10e_packed_active_expert_probe.py` to compare the current
+BF16 active-expert path against a packed NVFP4 gate/up/down path for the same
+router top-k experts. This isolates the active experts and excludes shared
+expert/router overhead.
+
+Layer 0 result:
+
+```text
+expert ids:                  [149, 69, 133, 197, 45, 130, 178, 115]
+cosine vs BF16 active path:  0.999996
+rel_l2:                     0.00285
+BF16 active experts:         0.1585 ms
+packed NVFP4 active experts: 0.7312 ms
+speed ratio:                 0.22x
+```
+
+Verdict: packed expert math is correct, but scalar-bridge packed expert loops
+are far too slow. Do not productize this path. The MoE speed path must be a
+grouped native FP4 expert kernel that handles top-k gate/up/down together,
+without Python looping over eight experts and without scalar bridge matvecs.
