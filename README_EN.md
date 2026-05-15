@@ -62,6 +62,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P15 correct runtime config** | **9.66 ms strict / 9.33 ms replay** | **103.48 / 107.23** | ✅ `LYNN_PACKED_DECODE=0`,shared expert stays BF16 |
 | **P16 active-MoE boundary** | **skip-active 5.75 ms replay / non-MoE 4.79 ms replay** | **173.8 / 208.8 upper bound** | 🔬 155 TPS requires a new grouped native-FP4 active expert kernel |
 | **P17 Triton FP4 dot_scaled** | **raw gate/up shape 0.0125 ms; e8m0 neutral byte=127** | compute headroom ✅ | 🔬 layout/scale contract mapped,next step is per-16→group32 bridge |
+| **P18 scale-contract decision** | **dot_scaled raw 0.018 ms vs scalar 0.050 ms** | speed ✅ / quality ❌ | 🔬 simple e8m0 bridge is not shippable; move to custom per-16 kernel |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -123,6 +124,16 @@ synthetic two-sided neutral e8m0 byte of **127**, proving that FP4 tensor-core
 compute is not the bottleneck. The next blocker is wiring Lynn's per-16/e4m3
 scale contract into e8m0/group32 grouped native dot. See
 [`docs/LYNN_ENGINE_P17_TRITON_DOT_SCALED_20260516.md`](docs/LYNN_ENGINE_P17_TRITON_DOT_SCALED_20260516.md).
+
+P18 note: three scale-bridge variants were tested. `dot_scaled` raw gate/up
+reaches **0.018 ms** versus the current scalar bridge at about **0.050 ms**, but
+quality does not pass: per-16→group32 folding reaches only **0.894** best inter
+cosine, BF16→e8m0/group32 re-quant reaches **0.980**, and padded per-16 reaches
+**0.936**. The conclusion: 155 TPS still has hardware headroom, but we should
+not ship a simple e8m0 bridge that sacrifices quality. The next route is a
+**custom per-16 grouped native-FP4 kernel / CUTLASS path** or a stronger
+engine-native quant artifact. See
+[`docs/LYNN_ENGINE_P18_SCALE_CONTRACT_DECISION_20260516.md`](docs/LYNN_ENGINE_P18_SCALE_CONTRACT_DECISION_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,
