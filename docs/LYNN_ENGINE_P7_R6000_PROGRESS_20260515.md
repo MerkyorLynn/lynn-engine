@@ -951,3 +951,83 @@ This is slower than the SDPA baseline (`full-attn avg ~0.72 ms/layer` in the
 same environment). Verdict: keep `manual_gqa` only as an opt-in diagnostic
 backend; do not use it as the 100 TPS path. PyTorch SDPA is currently better
 than the simple hand-written einsum formulation on R6000.
+
+## P9-M Pre-Captured Full-Attention Graph Probe
+
+Added `benchmarks/p9m_precaptured_full_attn_graph_probe.py` to test the
+production-critical question for full-attention graphing:
+
+> Can we capture a full-attention layer graph before KV contains real prompt
+> values, then populate the same cache tensors during prefill/decode and replay
+> the pre-captured graph later?
+
+Layer 3, target position 39 after a 32-token eager prefix:
+
+```text
+graph_ms:              0.310 ms
+output diff:           max_abs 0.0 / cosine 1.0
+KV full diff:          max_abs 0.0 / cosine 1.0
+KV write-slice diff:   max_abs 0.0 / cosine 1.0
+verdict:               PASS
+```
+
+This is the strongest 100 TPS signal so far. It means full-attention graph
+slots can be pre-captured against allocated cache tensor addresses before real
+KV values exist. Serving does not need to capture full-attention graphs on the
+token hot path, as long as the request/runner uses stable cache tensor
+addresses and fixed position graph families.
+
+Next implementation target: add opt-in resident-runner full-attention graph
+slots, similar in spirit to reusable linear-attention block graphs, then measure
+hybrid decode with:
+
+```text
+linear-attn block graphs + full-attn layer graph slots
+```
+
+The expected win is large: full-attention eager currently costs roughly
+7.2 ms/token across 10 layers; P9-M shows a single full-attention layer graph can
+replay in ~0.31 ms while preserving exact output/KV parity.
+
+## P9-N Hybrid Full-Attention Graph Slots
+
+Added `benchmarks/p9n_hybrid_full_attn_graph_slots_probe.py`, combining:
+
+- 10 existing reusable 3-layer linear-attention block graphs
+- 10 pre-captured full-attention layer graph slots
+
+Result:
+
+```text
+greedy parity:        PASS
+strict logits:        FAIL (cosine 0.9917; top-1 preserved)
+one-shot graph:       13.72 ms / 72.9 tok/s
+bench graph loop:     13.81 ms / 72.4 tok/s
+eager baseline:       30.49 ms
+```
+
+This is a functional serving-shaped proof, but not yet the 100 TPS jump. The
+likely remaining cost is graph boundary overhead: linear block output copy →
+full-attn graph input copy, repeated 10 times per token. The path is viable, but
+the implementation must reduce copy/launch boundaries rather than just adding
+more small graph slots.
+
+## P9-O 4-Layer Hybrid Group Graph Attempt
+
+Added `benchmarks/p9o_hybrid_4layer_graph_slots_probe.py` to capture each
+4-layer group (`linear, linear, linear, full`) as one graph. This was the obvious
+next attempt to remove the boundary copy between P9-N's linear and full graphs.
+
+Result:
+
+```text
+one-shot graph:       13.63 ms / 73.4 tok/s
+greedy parity:        FAIL
+strict logits:        FAIL
+```
+
+Verdict: do not use coarse 4-layer graph groups yet. The separate graph-slot
+approach in P9-N preserves top-1, while the coarse grouped graph changes the
+generation path. The next engineering step should integrate P9-N-style separate
+full-attn graph slots into `LynnIncrementalRunner`, then reduce boundary copies
+incrementally with parity gates after each change.
