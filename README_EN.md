@@ -24,6 +24,7 @@ Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent ru
 | **P10 runner graph-slot gate** | ✅ 6 prompts × 3 prefixes = 18/18 strict PASS,runner graph slot 88.8-103.1 tok/s |
 | **P11 packed-resident memory gate** | ✅ after prefill, releases **56.47 GiB** BF16 shadow; allocated memory **81.06 → 24.59 GiB** with exact greedy-id match |
 | **P12 one-shot + graph-after-release gate** | ✅ OpenAI server first request releases **56.47 GiB**; graph slot after release reaches 79.5-83.8 tok/s with max_abs=0 |
+| **P13 graph-slot generate wiring** | ✅ `generate()` opt-in path uses full-token graph slots with exact 16-token greedy ID parity; replay-only 78 tok/s |
 | **Next target** | production-stable 100+ TPS + packed-resident serving lifecycle |
 
 Current primary artifact:
@@ -54,6 +55,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **OpenAI server stable path** | **~11.2 ms** | **88-89** | ✅ tool-call + no-think guard PASS |
 | **P11 session-scoped packed resident** | — | — | ✅ BF16 shadow 81.06→24.59 GiB,exact decode-id match |
 | **P12 one-shot + graph after release** | — | **79.5-83.8** | ✅ graph/eager exact match after 56.47 GiB release |
+| **P13 graph-slot generate opt-in** | **12.82 ms replay / 105 ms capture** | **78 replay / 8.46 e2e** | ✅ exact IDs inside generate loop,capture still hot-path |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -136,7 +138,8 @@ Recovery v1.1 targeted longctx/chem/sql was tested but did not replace step5000:
 | **P9** | done | packed NVFP4 active expert path, near-100 TPS |
 | **P10** | done/current | native FP4 lm_head + 103 TPS full path, strict runner graph-slot gate |
 | **P11** | done | packed-resident memory lifecycle, 56 GiB BF16 shadow release proven |
-| **P12** | current | one-shot server release gate passed; next packed prefill / production-stable 100+ |
+| **P12** | done/current | one-shot server release gate + graph slot after release passed |
+| **P13** | current | graph-slot generate wiring passed; next remove capture from hot path / production-stable 100+ |
 
 The Spark sm_121 track is split into a separate branch. The current Spark
 quality gate passes on the scalar_bridge backend at roughly 24 TPS; the next

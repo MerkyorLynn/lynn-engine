@@ -24,6 +24,7 @@ Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B final 基�
 | **P10 runner graph-slot gate** | ✅ 6 prompts × 3 prefixes = 18/18 strict PASS,runner graph slot 88.8-103.1 tok/s |
 | **P11 packed-resident memory gate** | ✅ prefill 后释放 **56.47 GiB** BF16 shadow,allocated **81.06 → 24.59 GiB**,greedy ids exact match |
 | **P12 one-shot + graph-after-release gate** | ✅ OpenAI server 首请求释放 **56.47 GiB**;释放后 graph slot 79.5-83.8 tok/s,max_abs=0 |
+| **P13 graph-slot generate wiring** | ✅ `generate()` opt-in 接入 full-token graph slot,16 token greedy IDs exact match,replay-only 78 tok/s |
 | **下一目标** | 生产稳定 100+ TPS + packed-resident serving lifecycle |
 
 当前主力 artifact:
@@ -54,6 +55,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **OpenAI server stable path** | **~11.2 ms** | **88-89** | ✅ tool-call + no-think guard PASS |
 | **P11 session-scoped packed resident** | — | — | ✅ BF16 shadow 81.06→24.59 GiB,decode ids exact match |
 | **P12 one-shot + graph after release** | — | **79.5-83.8** | ✅ release 56.47GiB 后 graph/eager exact match |
+| **P13 graph-slot generate opt-in** | **12.82ms replay / 105ms capture** | **78 replay / 8.46 e2e** | ✅ generate loop exact IDs,capture 仍在热路径 |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:
@@ -124,7 +126,8 @@ Recovery v1.1 targeted longctx/chem/sql 已试过,但未取代 step5000:它没�
 | **P9** | done | packed NVFP4 active expert path,逼近 100TPS |
 | **P10** | done/current | native FP4 lm_head + full-path 103TPS,runner graph-slot strict gate |
 | **P11** | done | packed-resident memory lifecycle,56GiB BF16 shadow release 已证明 |
-| **P12** | current | one-shot server release gate 已过;下一步 packed prefill / 生产稳定 100+ |
+| **P12** | done/current | one-shot server release gate + release 后 graph slot gate 已过 |
+| **P13** | current | graph-slot generate 接线已过;下一步移除 capture hot path / 生产稳定 100+ |
 
 Spark sm_121 分支单独推进,当前质量 gate 已通过、scalar_bridge 约 24TPS;目标是在 Spark 上验证同一 native path 并冲 50+TPS。详见 [`docs/SPARK_OPTIMIZATION_BRANCH_PLAN_20260515.md`](docs/SPARK_OPTIMIZATION_BRANCH_PLAN_20260515.md)。
 
