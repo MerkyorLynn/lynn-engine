@@ -70,6 +70,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P23 active MoE accounting** | **8.42 ms strict / 8.08 ms replay** | **118.7 / 123.8** | ✅ int32 expert-id cleanup;router/top-k branch ruled out |
 | **P25 OpenAI server graph path** | **~9.95 ms decode / 0.65 s prefill** | **~99-100 decode / 87.7 wall @512 tok** | ✅ service path crosses 100 decode TPS |
 | **P24/P26 Triton dead ends** | `tl.dot` gate/up / merged-topk gate/up | — | ❌ numerically OK but slower;not promoted |
+| **P27 native CUDA extension smoke** | build/load/launch | add-one 0.0047 ms | ✅ R6000 sm_120 CUDA extension foundation passes |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -200,6 +201,15 @@ CUDA/CUTLASS-level custom per-16 grouped native-FP4 expert kernel, not more
 Triton program-grid rearrangement. See
 [`docs/LYNN_ENGINE_P24_TL_DOT_NEGATIVE_20260516.md`](docs/LYNN_ENGINE_P24_TL_DOT_NEGATIVE_20260516.md)
 and [`docs/LYNN_ENGINE_P26_MERGED_TOPK_NEGATIVE_20260516.md`](docs/LYNN_ENGINE_P26_MERGED_TOPK_NEGATIVE_20260516.md).
+
+P27 note: the R6000 native CUDA extension build/load/launch gate now passes.
+The measured stack is PyTorch **2.10.0+cu128**, CUDA toolkit **12.8**, and
+`sm_120`. `torch.utils.cpp_extension.load` successfully compiles and imports a
+Lynn-owned CUDA extension; the 1M-float `add_one` smoke kernel reports
+`max_abs=0` and averages **0.0047 ms**. This is not a TPS improvement by
+itself, but it removes the build-plumbing risk for the next custom per-16
+grouped native-FP4 active expert kernel. See
+[`docs/LYNN_ENGINE_P27_CUDA_EXTENSION_SMOKE_20260516.md`](docs/LYNN_ENGINE_P27_CUDA_EXTENSION_SMOKE_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,
