@@ -121,6 +121,22 @@ P10-G selected-expert gate/up on native FP4 tensor cores:
 The hot path is only a small speedup and fails the strict quality gate. The cold
 path is slower because dynamic expert gather + scale construction dominate.
 
+### Native down overcompute
+
+P16 also tested a tempting shortcut for the down projection: stack the selected
+expert down matrices and run one `_scaled_mm`, then keep only the diagonal
+expert blocks.
+
+| Path | Latency | Quality |
+|---|---:|---|
+| scalar grouped down | 0.0545 ms | reference |
+| native overcompute down | 0.3328 ms | cosine 0.985 vs scalar |
+
+This computes an 8x overcomplete `[top_k, top_k * hidden]` result. It is both
+slower and less accurate. The conclusion is narrow but important: a useful
+native-FP4 down path must be a **true grouped/diagonal kernel**, not a dense
+overcompute wrapper around `_scaled_mm`.
+
 ## P16 Decision
 
 The next production-relevant path is **not** another runtime flag. It is a new
