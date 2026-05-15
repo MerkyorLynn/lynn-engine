@@ -801,3 +801,14 @@ block graphs. Decode TPS ranged from ~67.9 to ~69.2 tok/s. This is only a small
 gain over the previous `triton` setting, but it is the right default because it
 fuses q/k norm+RoPE for the 10 full-attention layers without changing model
 math. The recommended R6000 env now uses `triton_pair`.
+
+Request amortization with the same env:
+
+```text
+8 max_new:   10.47 request TPS / 63.60 decode TPS
+32 max_new:  30.02 request TPS / 69.01 decode TPS
+128 max_new: 36.39 request TPS / 68.47 decode TPS
+```
+
+The stable decode ceiling should be described as ~68-69 TPS after this change,
+not 66-68 TPS.
