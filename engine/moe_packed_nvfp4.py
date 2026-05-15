@@ -13,6 +13,16 @@ from triton_kernels.nvfp4_moe import (
 )
 
 
+def _env_int(name: str, default: int) -> int:
+    raw = os.environ.get(name)
+    if raw is None or raw == "":
+        return default
+    value = int(raw)
+    if value <= 0:
+        raise ValueError(f"{name} must be positive, got {value}")
+    return value
+
+
 def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
     """Decode-only MoE using packed NVFP4 expert weights.
 
@@ -65,8 +75,8 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
             w["mlp.experts._gate_up_packed"],
             w["mlp.experts._gate_up_scale"],
             w["mlp.experts._gate_up_global_scale"],
-            block_inter=8,
-            block_hidden=64,
+            block_inter=_env_int("LYNN_MOE_GATE_BLOCK_INTER", 8),
+            block_hidden=_env_int("LYNN_MOE_GATE_BLOCK_HIDDEN", 256),
         )
         moe_out = nvfp4_grouped_down_weighted_sum(
             inter,
@@ -75,8 +85,8 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
             w["mlp.experts._down_packed"],
             w["mlp.experts._down_scale"],
             w["mlp.experts._down_global_scale"],
-            block_hidden=8,
-            block_inter=256,
+            block_hidden=_env_int("LYNN_MOE_DOWN_BLOCK_HIDDEN", 8),
+            block_inter=_env_int("LYNN_MOE_DOWN_BLOCK_INTER", 512),
         ).reshape_as(h_flat)
 
     if os.environ.get("LYNN_MOE_PROFILE_SKIP_SHARED", "0") == "1":
