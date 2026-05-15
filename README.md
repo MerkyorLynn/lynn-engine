@@ -71,6 +71,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P22 MoE warp retune** | **8.46ms strict / 8.11ms replay** | **118.3 / 123.3** | ✅ down kernel 8 warps |
 | **P23 active MoE accounting** | **8.42ms strict / 8.08ms replay** | **118.7 / 123.8** | ✅ expert-id int32 cleanup;router/topk branch ruled out |
 | **P25 OpenAI server graph path** | **~9.95ms decode / 0.65s prefill** | **~99-100 decode / 87.7 wall @512 tok** | ✅ 服务态跨过 100 decode TPS |
+| **P24/P26 Triton dead ends** | `tl.dot` gate/up / merged-topk gate/up | — | ❌ 质量可过但都更慢,不进默认 |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:
@@ -123,6 +124,8 @@ P17 说明:Triton 3.6 的 `tl.dot_scaled(e2m1)` 已在 R6000 上通过 raw packe
 P18 说明:三条 scale bridge 都已实测,`dot_scaled` raw gate/up 可到 **0.018ms**(当前 scalar bridge 约 **0.050ms**),但质量不过线:per-16→group32 fold 最佳 inter cosine **0.894**,BF16→e8m0/group32 re-quant **0.980**,padded per-16 **0.936**。结论:155TPS 仍有硬件 headroom,但不能用简单 e8m0 bridge 牺牲质量,下一步转 **custom per-16 grouped native FP4 kernel / CUTLASS** 或更强 engine-native quant artifact。详见 [`docs/LYNN_ENGINE_P18_SCALE_CONTRACT_DECISION_20260516.md`](docs/LYNN_ENGINE_P18_SCALE_CONTRACT_DECISION_20260516.md)。
 
 P25 说明:补齐 `LYNN_LINEAR_BLOCK_GRAPH=1 / REUSE=1 / PREWARM=1` 后,OpenAI-compatible server 不再停在 88-89 TPS 旧路径,而是稳定到 **~99-100 decode tok/s**;512 token 请求端到端 **87.7 tok/s**。这证明服务层不是 155 的主 blocker,剩余差距仍在 active expert kernel。详见 [`docs/LYNN_ENGINE_P25_SERVER_100TPS_20260516.md`](docs/LYNN_ENGINE_P25_SERVER_100TPS_20260516.md)。
+
+P24/P26 说明:两个 Triton-only 捷径都被关掉。P24 的 per-16 dequant→`tl.dot` 数值过但最快 **0.0807ms**,比生产 scalar gate/up **0.0335ms** 慢;P26 的 merged-topk 调度 cosine=1.0,但四个代表层都 **2.06-2.09× 更慢**。结论进一步明确:155TPS 需要 CUDA/CUTLASS 级 custom per-16 grouped native-FP4 expert kernel,不是继续 rearrange Triton program grid。详见 [`docs/LYNN_ENGINE_P24_TL_DOT_NEGATIVE_20260516.md`](docs/LYNN_ENGINE_P24_TL_DOT_NEGATIVE_20260516.md) 和 [`docs/LYNN_ENGINE_P26_MERGED_TOPK_NEGATIVE_20260516.md`](docs/LYNN_ENGINE_P26_MERGED_TOPK_NEGATIVE_20260516.md)。
 
 P19 说明:在不改变数值路径的前提下,active MoE kernel block retune 把 R6000 full graph 从 **103.40/107.13 TPS** 提到 **115.41/120.25 TPS**。推荐配置已成为默认:`gate_hidden=256,down_inter=512`,并保留 env override 方便后续设备差异调参。详见 [`docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md`](docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md)。
 

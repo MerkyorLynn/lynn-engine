@@ -69,6 +69,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P22 MoE warp retune** | **8.46 ms strict / 8.11 ms replay** | **118.3 / 123.3** | ✅ down kernel 8 warps |
 | **P23 active MoE accounting** | **8.42 ms strict / 8.08 ms replay** | **118.7 / 123.8** | ✅ int32 expert-id cleanup;router/top-k branch ruled out |
 | **P25 OpenAI server graph path** | **~9.95 ms decode / 0.65 s prefill** | **~99-100 decode / 87.7 wall @512 tok** | ✅ service path crosses 100 decode TPS |
+| **P24/P26 Triton dead ends** | `tl.dot` gate/up / merged-topk gate/up | — | ❌ numerically OK but slower;not promoted |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -189,6 +190,16 @@ stabilizes at **~99-100 decode tok/s**, with a 512-token request reaching
 **87.7 wall tok/s**. This proves the service wrapper is not the main remaining
 155 blocker; the remaining gap is still the active expert kernel. See
 [`docs/LYNN_ENGINE_P25_SERVER_100TPS_20260516.md`](docs/LYNN_ENGINE_P25_SERVER_100TPS_20260516.md).
+
+P24/P26 note: two Triton-only shortcuts are now closed. P24's per-16
+dequant→`tl.dot` bridge is numerically good but reaches only **0.0807 ms**,
+slower than the production scalar gate/up at **0.0335 ms**. P26's merged-topk
+scheduling variant has cosine=1.0, but is **2.06-2.09x slower** across four
+representative layers. The conclusion is sharper: 155 TPS needs a
+CUDA/CUTLASS-level custom per-16 grouped native-FP4 expert kernel, not more
+Triton program-grid rearrangement. See
+[`docs/LYNN_ENGINE_P24_TL_DOT_NEGATIVE_20260516.md`](docs/LYNN_ENGINE_P24_TL_DOT_NEGATIVE_20260516.md)
+and [`docs/LYNN_ENGINE_P26_MERGED_TOPK_NEGATIVE_20260516.md`](docs/LYNN_ENGINE_P26_MERGED_TOPK_NEGATIVE_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,
