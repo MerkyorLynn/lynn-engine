@@ -753,3 +753,37 @@ Verdict: keep the cleanup because it is safe and removes unnecessary work, but
 do not count it as a performance win. The next real performance work should
 focus on fused linear-attention core pieces and packed-resident/native kernels,
 not constant folding.
+
+### Native FP4 Projection Gate On Final 27B
+
+Retested the existing `torch._scaled_mm` native FP4 bridge on the final 27B
+step5000 NVFP4 artifact, layer 29.
+
+Full linear-attention replacement:
+
+```text
+native vs scalar cosine: 0.9789
+native vs scalar rel_l2: 0.2077
+resident decode:         0.509 ms
+scalar bridge decode:    0.682 ms
+native scaled_mm decode: 0.872 ms
+verdict: FAIL
+```
+
+Single qkv projection replacement:
+
+```text
+native vs scalar cosine: 0.9928
+native vs scalar rel_l2: 0.1211
+resident decode:         0.497 ms
+scalar bridge decode:    0.568 ms
+native scaled_mm decode: 0.646 ms
+verdict: PASS quality, FAIL speed
+```
+
+Conclusion: the current generic `torch._scaled_mm` bridge is useful as a
+correctness and API probe, but it is not the R6000 100 TPS path for single-token
+decode. Native FP4 remains strategically important for packed residency and
+future 200 TPS work, but the next practical 100 TPS work should stay on custom
+fused decode kernels / block scheduling rather than swapping projections to the
+generic scaled-mm path.
