@@ -923,3 +923,31 @@ The proven safe pieces are:
 Next practical step: productize graphing at smaller, well-scoped boundaries
 (full-attention layer graph slots / fixed-position graph families) rather than
 trying to graph an entire long token sequence upfront.
+
+## P9-L Manual GQA Full-Attention Backend
+
+Added an opt-in decode backend:
+
+```text
+LYNN_FULL_ATTN_DECODE_BACKEND=manual_gqa
+```
+
+This replaces PyTorch SDPA GQA with explicit grouped-query einsum/softmax for
+the single-token decode case. It was tested as a possible way to reduce
+full-attention dispatch overhead without CUDA graphs.
+
+Result on final 27B step5000 NVFP4:
+
+```text
+backend:             manual_gqa
+full_token_ms:       31.01 ms
+estimated eager TPS: 32.24
+linear-attn sum:     20.96 ms
+full-attn sum:       8.55 ms
+full-attn avg:       0.855 ms/layer
+```
+
+This is slower than the SDPA baseline (`full-attn avg ~0.72 ms/layer` in the
+same environment). Verdict: keep `manual_gqa` only as an opt-in diagnostic
+backend; do not use it as the 100 TPS path. PyTorch SDPA is currently better
+than the simple hand-written einsum formulation on R6000.

@@ -305,10 +305,25 @@ def decode_full_attn(h_new, new_position_id, w, cfg, K_cache_full, V_cache_full,
     K_used = K_cache_full[:, :, :new_total, :]
     V_used = V_cache_full[:, :, :new_total, :]
 
-    # 6+7. SDPA with enable_gqa=True (PyTorch 2.5+) — internal broadcast,
-    # no memory expansion. Math equivalent to explicit repeat_interleave+SDPA.
-    # Replaces 2× repeat_interleave (8x mem copy on H_Q/H_KV=8) with view-only.
-    attn_out = F.scaled_dot_product_attention(q, K_used, V_used, is_causal=False, enable_gqa=(H_KV != H_Q))
+    full_attn_backend = os.environ.get("LYNN_FULL_ATTN_DECODE_BACKEND", "sdpa")
+    if full_attn_backend == "manual_gqa":
+        # Decode uses a single query token. Avoid SDPA launch/dispatch overhead
+        # by doing grouped-query attention explicitly without materializing
+        # repeated KV heads. This is opt-in until parity + latency are proven.
+        group = H_Q // H_KV
+        q_grouped = q.view(B, H_KV, group, 1, head_dim)
+        scale = 1.0 / math.sqrt(head_dim)
+        scores = torch.einsum("bhgqd,bhkd->bhgqk", q_grouped.float(), K_used.float()) * scale
+        probs = torch.softmax(scores, dim=-1).to(V_used.dtype)
+        attn_out = torch.einsum("bhgqk,bhkd->bhgqd", probs, V_used)
+        attn_out = attn_out.reshape(B, H_Q, 1, head_dim)
+    elif full_attn_backend == "sdpa":
+        # SDPA with enable_gqa=True (PyTorch 2.5+) — internal broadcast,
+        # no memory expansion. Math equivalent to explicit repeat_interleave+SDPA.
+        # Replaces 2× repeat_interleave (8x mem copy on H_Q/H_KV=8) with view-only.
+        attn_out = F.scaled_dot_product_attention(q, K_used, V_used, is_causal=False, enable_gqa=(H_KV != H_Q))
+    else:
+        raise ValueError(f"Unknown LYNN_FULL_ATTN_DECODE_BACKEND: {full_attn_backend}")
 
     # 8. attn_output_gate
     attn_out = attn_out * torch.sigmoid(gate.float()).to(attn_out.dtype)
