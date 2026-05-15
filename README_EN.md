@@ -27,7 +27,7 @@ Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent ru
 | **P13 graph-slot generate wiring** | ✅ `generate()` opt-in path uses full-token graph slots;multi-prompt gate proves future-window unsafe,next state-refresh slot |
 | **P14 state-refresh probe** | ✅ full mutable-state roundtrip costs only **0.79 ms**,far below graph capture at 60-105 ms |
 | **P15 runtime config audit** | ✅ disables global `LYNN_PACKED_DECODE`; restores **103.48 strict / 107.23 replay**; disproves packed shared expert path |
-| **Next target** | production-stable 100+ TPS + custom per-16 grouped native-FP4 active expert kernel |
+| **Next target** | P47 non-atomic grouped/block-diagonal native-FP4 active expert kernel,continuing toward 155 TPS |
 
 Current primary artifact:
 
@@ -82,6 +82,10 @@ Lynn 27B variable-pruned Recovery step5000
 | **P38 multi-layer MoE wall** | layers 2/8/14/20/28/36 | full MoE mean 0.193 ms/layer,active 0.112 ms/shared 0.060 ms | 🔬 no slow layer to harvest;target active expert kernel |
 | **P39-P40 fast fixed MoE** | fixed R6000 best MoE config | layer-level 1.079x,generate exact,100.94 TPS median | ✅ small default speedup,not the 155 breakthrough |
 | **P42 cuda_scalar retest** | full-attention-only allowlist | 0/3 greedy match,mean 82.49 TPS | ❌ scalar bridge is not a production shortcut |
+| **P43 shared expert triage** | fused shared BF16 expert | 0.0609→0.0556 ms/layer | ✅ keep the small win,but too small for the 155 line |
+| **P44 shortcut triage** | merged-topk / cross-expert `_scaled_mm` | 0.48x / 0.39x vs Triton | ❌ wrapper-level shortcuts closed;PyTorch `_scaled_mm` composition is not enough |
+| **P45 native active-MoE ABI** | one-call CUDA contract | 0.0658 ms vs Triton 0.0583 ms,cosine≥0.99999988 | ✅ ABI foundation complete,not promoted |
+| **P46 fused atomic probe** | one-kernel atomic accumulation | 0.1768 ms vs Triton 0.0592 ms | ❌ atomics are too slow and drift slightly;P47 moves to non-atomic grouped kernel |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -319,6 +323,26 @@ fails full-generate parity: **0/3 greedy matches**, with one prompt dropping to
 **48.50 TPS**. Keep `cuda_scalar` as a native-extension contract/diagnostic
 backend only; it is not a production speed shortcut. See
 [`docs/LYNN_ENGINE_P42_CUDA_SCALAR_RETEST_NEGATIVE_20260516.md`](docs/LYNN_ENGINE_P42_CUDA_SCALAR_RETEST_NEGATIVE_20260516.md).
+
+P43-P44 note: the 155 TPS route is now narrower. P43 shows the fused shared
+expert path only improves **0.0609 ms → 0.0556 ms/layer**, too small to be the
+main line. P44 closes two more shortcuts: merged-topk scheduling is only about
+**0.48x** of the production gate/up path, and cross-expert `torch._scaled_mm`
+composition reaches only about **0.39x** mm-only / **0.15x** with activation
+quantization while drifting to min cosine **0.97698**. Conclusion: 155 TPS
+requires a real grouped/block-diagonal FP4 active expert kernel, not another
+wrapper-level rearrangement. See
+[`docs/LYNN_ENGINE_P43_P44_ACTIVE_MOE_NATIVE_FP4_TRIAGE_20260516.md`](docs/LYNN_ENGINE_P43_P44_ACTIVE_MOE_NATIVE_FP4_TRIAGE_20260516.md).
+
+P45-P46 note: P45 freezes the native active-MoE one-call CUDA ABI:
+`active_moe(hidden,expert_ids,routing_weights,gate_up*,down*) -> out[2048]`.
+It matches the two-call scalar reference with min cosine **0.99999988**, but is
+still slower than Triton (**0.0658 ms vs 0.0583 ms**), so it is an ABI
+foundation only. P46 tests a one-kernel fused-atomic bridge; it is much slower
+(**0.1768 ms** vs Triton **0.0592 ms**) and has small accumulation drift.
+Conclusion: P47 must be a non-atomic grouped/block-diagonal kernel. See
+[`docs/LYNN_ENGINE_P45_NATIVE_ACTIVE_MOE_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P45_NATIVE_ACTIVE_MOE_CONTRACT_20260516.md)
+and [`docs/LYNN_ENGINE_P46_FUSED_ATOMIC_NEGATIVE_20260516.md`](docs/LYNN_ENGINE_P46_FUSED_ATOMIC_NEGATIVE_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,

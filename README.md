@@ -27,7 +27,7 @@ Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B final 基�
 | **P13 graph-slot generate wiring** | ✅ `generate()` opt-in 接入 full-token graph slot;多 prompt 证明 future-window 不安全,下一步 state-refresh slot |
 | **P14 state-refresh probe** | ✅ full mutable state roundtrip **0.79ms**,远低于 graph capture 60-105ms |
 | **P15 runtime config audit** | ✅ 关闭全局 `LYNN_PACKED_DECODE`;恢复 **103.48 strict / 107.23 replay**;shared expert packed 路径证伪 |
-| **下一目标** | 生产稳定 100+ TPS + custom per-16 grouped native-FP4 active expert kernel |
+| **下一目标** | P47 非 atomic grouped/block-diagonal native-FP4 active expert kernel,继续冲 155TPS |
 
 当前主力 artifact:
 
@@ -84,6 +84,10 @@ Lynn 27B variable-pruned Recovery step5000
 | **P38 multi-layer MoE wall** | layers 2/8/14/20/28/36 | full MoE mean 0.193ms/layer,active 0.112ms/shared 0.060ms | 🔬 无异常慢层,直接打 active expert kernel |
 | **P39-P40 fast fixed MoE** | 固定 R6000 best MoE config | layer-level 1.079×,generate exact,100.94TPS median | ✅ 小幅默认提速,非 155 突破 |
 | **P42 cuda_scalar retest** | full-attention-only allowlist | 0/3 greedy match,mean 82.49TPS | ❌ scalar bridge 不作为生产捷径 |
+| **P43 shared expert triage** | fused shared BF16 expert | 0.0609→0.0556ms/layer | ✅ 保留小优化,但收益太小,不是 155 主线 |
+| **P44 shortcut triage** | merged-topk / cross-expert `_scaled_mm` | 0.48× / 0.39× vs Triton | ❌ 包装级捷径关闭,不能偷 PyTorch `_scaled_mm` |
+| **P45 native active-MoE ABI** | one-call CUDA contract | 0.0658ms vs Triton 0.0583ms,cosine≥0.99999988 | ✅ ABI 地基完成,不 promote |
+| **P46 fused atomic probe** | one-kernel atomic accumulation | 0.1768ms vs Triton 0.0592ms | ❌ atomics 太慢且有轻微 drift,P47 转非 atomic grouped kernel |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:
@@ -162,6 +166,10 @@ P38 说明:把 P37 的单层 profile 扩到 6 个采样层(2/8/14/20/28/36),结�
 P39-P40 说明:active 内部拆分后,gate/up **0.033ms**、down **0.025ms**,split 结果与 combined active exact;随后把当前 R6000 best MoE config 固化为 `LYNN_MOE_FAST_FIXED` 路径。layer-level candidate 平均 **1.079×**,full-generate gate **greedy ids 全一致**,默认开启后复核 median **100.79TPS**。这是安全小刀,但不是 155TPS 的大突破;下一步仍然是 fused/grouped native-FP4 active expert kernel。详见 [`docs/LYNN_ENGINE_P39_P40_FAST_FIXED_MOE_20260516.md`](docs/LYNN_ENGINE_P39_P40_FAST_FIXED_MOE_20260516.md)。
 
 P42 说明:重新测试 `cuda_scalar` native active-MoE backend,即使只 allowlist 到 full-attention 层、避开 linear-block graph capture,full-generate 仍然 **0/3 greedy match**,且有一题掉到 **48.50TPS**。结论:`cuda_scalar` 只保留为 native extension contract/diagnostic backend,不再作为生产提速捷径。详见 [`docs/LYNN_ENGINE_P42_CUDA_SCALAR_RETEST_NEGATIVE_20260516.md`](docs/LYNN_ENGINE_P42_CUDA_SCALAR_RETEST_NEGATIVE_20260516.md)。
+
+P43-P44 说明:155TPS 路线继续收窄。P43 证明 shared expert fused path 只从 **0.0609ms** 降到 **0.0556ms/layer**,绝对收益太小;P44 重新关掉 merged-topk 调度(最快约 production 的 **0.48×**)和 cross-expert `torch._scaled_mm` 拼接(mm-only 约 **0.39×**,quant+mm 约 **0.15×**,且 min cosine **0.97698**)。结论:不能靠包装/调度偷过 155,必须写真 grouped/block-diagonal FP4 active expert kernel。详见 [`docs/LYNN_ENGINE_P43_P44_ACTIVE_MOE_NATIVE_FP4_TRIAGE_20260516.md`](docs/LYNN_ENGINE_P43_P44_ACTIVE_MOE_NATIVE_FP4_TRIAGE_20260516.md)。
+
+P45-P46 说明:P45 把 native active-MoE 固定成 one-call CUDA ABI:`active_moe(hidden,expert_ids,routing_weights,gate_up*,down*) -> out[2048]`,数值与 two-call scalar reference 对齐(min cosine **0.99999988**),但仍慢于 Triton(**0.0658ms vs 0.0583ms**)所以只作为 kernel 地基。P46 试了单 kernel fused-atomic bridge,速度 **0.1768ms** 远慢于 Triton **0.0592ms**,并有轻微 accumulation drift。结论:P47 必须做非 atomic grouped/block-diagonal kernel,不是继续叠 wrapper。详见 [`docs/LYNN_ENGINE_P45_NATIVE_ACTIVE_MOE_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P45_NATIVE_ACTIVE_MOE_CONTRACT_20260516.md) 和 [`docs/LYNN_ENGINE_P46_FUSED_ATOMIC_NEGATIVE_20260516.md`](docs/LYNN_ENGINE_P46_FUSED_ATOMIC_NEGATIVE_20260516.md)。
 
 P19 说明:在不改变数值路径的前提下,active MoE kernel block retune 把 R6000 full graph 从 **103.40/107.13 TPS** 提到 **115.41/120.25 TPS**。推荐配置已成为默认:`gate_hidden=256,down_inter=512`,并保留 env override 方便后续设备差异调参。详见 [`docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md`](docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md)。
 
