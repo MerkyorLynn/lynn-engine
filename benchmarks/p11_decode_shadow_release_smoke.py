@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import time
 from pathlib import Path
 import sys
 from typing import Any
@@ -60,12 +61,14 @@ def _decode_ids(
     state: LynnInferenceState,
     first_id: int,
     max_new: int,
-) -> list[int]:
+) -> tuple[list[int], dict[str, float]]:
     ids = [int(first_id)]
     token_id = int(first_id)
     token = torch.empty((1, 1), device=runner.device, dtype=torch.long)
     pos_tensor = torch.empty((1, 1), device=runner.device, dtype=torch.long)
+    step_seconds: list[float] = []
     for _ in range(1, max_new):
+        t0 = time.time()
         token.fill_(token_id)
         pos_tensor.fill_(int(state.seq_len))
         h = F.embedding(token, runner.outside["model.language_model.embed_tokens.weight"])
@@ -76,7 +79,14 @@ def _decode_ids(
         logits = runner._lm_head_logits(h_final)
         token_id = int(logits[0].argmax().item())
         ids.append(token_id)
-    return ids
+        torch.cuda.synchronize()
+        step_seconds.append(time.time() - t0)
+    total = sum(step_seconds)
+    return ids, {
+        "decode_steps": len(step_seconds),
+        "decode_seconds": total,
+        "decode_tps": (len(step_seconds) / total) if total > 0 else 0.0,
+    }
 
 
 def main() -> int:
@@ -97,11 +107,11 @@ def main() -> int:
     prefill_snap = runner._snapshot_state(state)
     memory_before_release = _memory()
 
-    baseline_ids = _decode_ids(runner, state, first_id, args.max_new)
+    baseline_ids, baseline_timing = _decode_ids(runner, state, first_id, args.max_new)
     runner._restore_state(state, prefill_snap)
     release = runner.release_decode_bf16_shadows()
     memory_after_release = _memory()
-    released_ids = _decode_ids(runner, state, first_id, args.max_new)
+    released_ids, released_timing = _decode_ids(runner, state, first_id, args.max_new)
     memory_after_decode = _memory()
 
     result: dict[str, Any] = {
@@ -113,6 +123,8 @@ def main() -> int:
         "env": env,
         "baseline_ids": baseline_ids,
         "released_ids": released_ids,
+        "baseline_timing": baseline_timing,
+        "released_timing": released_timing,
         "same_ids": baseline_ids == released_ids,
         "release": release,
         "memory_before_release": memory_before_release,

@@ -137,3 +137,15 @@ HTTP server should still stay on the non-release path until we add either:
 
 - packed prefill, or
 - a single-session mode that refuses/reloads subsequent prefill requests.
+
+Timing sanity with 64 generated tokens:
+
+| Path | Decode TPS |
+|---|---:|
+| Before release | 19.84 |
+| After release | 20.19 |
+
+This smoke intentionally synchronizes every step and does not use the P10
+graph-slot path, so the absolute TPS is not a serving number. The important
+signal is that releasing 56.47 GiB of BF16 shadows does not change greedy
+tokens and does not introduce a decode slowdown in this gate.
