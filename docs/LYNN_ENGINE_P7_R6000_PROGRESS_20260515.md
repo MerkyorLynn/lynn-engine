@@ -368,6 +368,48 @@ Interpretation:
    launch structure around linear-attn/full-attn blocks. For memory, the big
    unlock is MoE active-expert packed resident plus a fused expert kernel.
 
+## P9-C Final Step5000 Hot-Path Reprofile
+
+Re-ran the full-token profile on the final step5000 NVFP4 artifact after fixing
+the benchmark scripts to keep `LYNN_MOE_IMPL=triton` active during runner
+construction. The old scripts temporarily fell back to Python `optimized` MoE
+before runner init; with graph prewarm enabled that could call `torch.unique`
+inside CUDA graph capture and invalidate the capture. Patched:
+
+```text
+benchmarks/p6_full_token_profile.py
+benchmarks/p6m_cuda_graph_full_token_probe.py
+benchmarks/p6q_hybrid_block_graph_full_token_probe.py
+```
+
+Final step5000 profile:
+
+```text
+eager full token: 30.32ms = 32.99 TPS
+linear-attention layers: 30 layers, 21.66ms total, 0.722ms avg
+full-attention layers:   10 layers,  7.55ms total, 0.755ms avg
+slowest layer: layer 35 full-attn, 0.865ms
+```
+
+Manual CUDA graph ceiling after the probe fix:
+
+```text
+eager full token:       30.75ms = 32.52 TPS
+cuda graph full token:  12.67ms = 78.90 TPS
+speedup:                2.43x
+```
+
+This confirms the 78-79 TPS graph ceiling is stable on the final model. It also
+explains the current serving behavior: graphing and reusing the linear-attention
+blocks removes much of the 21.66ms launch structure, yielding the stable
+66-68TPS serving path. The remaining route to 100TPS is no longer parameter
+tweaking; it is either:
+
+1. productize full-token graph replay with correct mutable token/state buffers;
+2. fuse the residual full-attn/MoE hot path; or
+3. introduce packed-resident fused kernels that reduce both memory traffic and
+   launch count.
+
 ## P8-A/B/C/D Packed Decode Alias Gate
 
 2026-05-15 late afternoon update: implemented decode-only packed aliases behind

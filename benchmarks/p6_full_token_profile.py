@@ -92,7 +92,14 @@ def main() -> int:
 
     dtype = torch.bfloat16 if args.dtype == "bf16" else torch.float32
     requested_moe_impl = os.environ.get("LYNN_MOE_IMPL", "optimized")
-    if requested_moe_impl in ("indexed_bmm", "triton"):
+    # Historical versions forced both indexed_bmm and triton back to
+    # `optimized` before runner construction, then restored the requested
+    # backend after load. That is no longer safe: the resident runner may
+    # prewarm CUDA graphs during __init__, and the Python optimized MoE path
+    # calls torch.unique, which is illegal during stream capture. Keep Triton
+    # active from construction onward; only indexed_bmm remains single-prompt
+    # incompatible with the reusable resident runner.
+    if requested_moe_impl == "indexed_bmm":
         os.environ["LYNN_MOE_IMPL"] = "optimized"
     runner = LynnIncrementalRunner(args.model, device=args.device, dtype=dtype, verbose=False)
     os.environ["LYNN_MOE_IMPL"] = requested_moe_impl
