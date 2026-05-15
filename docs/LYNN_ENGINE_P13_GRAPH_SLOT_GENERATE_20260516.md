@@ -84,3 +84,64 @@ P13-B should avoid capture-per-token on the hot path. Candidate routes:
 Do not promote `LYNN_FULL_TOKEN_GRAPH_SLOT=1` to default serving until a
 multi-token replay window passes greedy parity over multiple prompts.
 
+## P13-B Window Probe
+
+We reused the sequential-capture graph-family probe to test whether graph slots
+can be captured as a short window and replayed continuously.
+
+### Window = 8
+
+```bash
+python benchmarks/p9k_sequential_capture_graph_family_greedy.py \
+  --model /root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final \
+  --out /tmp/lynn_p13b_seq_capture_window8.json \
+  --max-new 8
+```
+
+Result:
+
+| Metric | Value |
+|---|---:|
+| Greedy pass | true |
+| Replay TPS | 79.27 tok/s |
+| Amortized TPS including capture | 13.82 tok/s |
+| First diagnostic drift | none |
+
+This proves a short sequential graph window can preserve greedy parity. It is
+not fast end-to-end yet because capture is still paid up front.
+
+### Window = 16
+
+```bash
+python benchmarks/p9k_sequential_capture_graph_family_greedy.py \
+  --model /root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final \
+  --out /tmp/lynn_p13b_seq_capture_window16.json \
+  --max-new 16
+```
+
+Result:
+
+| Metric | Value |
+|---|---:|
+| Gate pass | false |
+| Replay TPS | 79.22 tok/s |
+| Amortized TPS including capture | 13.27 tok/s |
+| First diagnostic top-1 drift | step 9 |
+| Step-9 cosine | 0.9935 |
+| Step-9 top-10 overlap | 9/10 |
+
+The token-id list happened to remain identical in this prompt, but the
+diagnostic top-1 check already drifted at step 9. We therefore treat 16-token
+windows as unsafe for production promotion today.
+
+Current safe boundary:
+
+```text
+single current-position slot: strict
+8-token sequential window: greedy-safe on this prompt
+16-token sequential window: not safe (step-9 diagnostic drift)
+```
+
+The next useful optimization is not "make a bigger fixed window"; it is a
+guarded 8-token window policy with replay/eager parity checks across multiple
+prompts, then capture amortization.
