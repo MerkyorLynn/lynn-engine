@@ -55,6 +55,15 @@ def main() -> int:
         action="store_true",
         help="encode prompts as a no-think chat turn instead of raw text",
     )
+    ap.add_argument(
+        "--release-decode-shadows-after-prefill",
+        action="store_true",
+        help=(
+            "Experimental session-scoped mode: after each prompt prefill, release "
+            "BF16 tensors covered by packed decode aliases. Do not use for "
+            "multi-request serving unless shadows can be reloaded."
+        ),
+    )
     ap.add_argument("--quiet", action="store_true")
     args = ap.parse_args()
 
@@ -73,6 +82,7 @@ def main() -> int:
             max_new=args.max_new,
             top_k=args.top_k,
             use_chat_template=args.chat_template,
+            release_decode_shadows_after_prefill=args.release_decode_shadows_after_prefill,
         )
         items.append({
             "id": item["id"],

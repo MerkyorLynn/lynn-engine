@@ -827,6 +827,7 @@ class LynnIncrementalRunner:
         max_new: int = 4,
         top_k: int = 0,
         use_chat_template: bool = False,
+        release_decode_shadows_after_prefill: bool = False,
     ) -> dict[str, Any]:
         tok = self.tokenizer
         ids = _encode_prompt(tok, prompt, self.device, use_chat_template=use_chat_template)
@@ -861,6 +862,15 @@ class LynnIncrementalRunner:
                 f"next={next_id} {tok.decode([next_id])!r}",
                 flush=True,
             )
+        release_report = None
+        if release_decode_shadows_after_prefill:
+            release_report = self.release_decode_bf16_shadows()
+            if self.verbose:
+                print(
+                    "  [resident] released decode BF16 shadows "
+                    f"{release_report['released_gib']:.2f} GiB",
+                    flush=True,
+                )
         new_ids = [next_id]
         decode_seconds = []
         stopped_reason = "max_new"
@@ -965,6 +975,7 @@ class LynnIncrementalRunner:
                 "linear_block_graph_prewarm_seconds": self.linear_block_graph_prewarm_seconds,
                 "native_fp4_lm_head_enabled": self.native_fp4_lm_head_enabled,
                 "native_fp4_lm_head_prepare_seconds": self.native_fp4_lm_head_prepare_seconds,
+                "decode_bf16_shadow_release": release_report,
             },
             "stopped_reason": stopped_reason,
             "stop_token_ids": sorted(self.stop_token_ids),
