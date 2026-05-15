@@ -81,6 +81,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P37 MoE block retune closed** | layer-28 profile + full generate gate | candidate 94.94 TPS and greedy drift | ❌ block-size line closed;move to native grouped FP4 |
 | **P38 multi-layer MoE wall** | layers 2/8/14/20/28/36 | full MoE mean 0.193 ms/layer,active 0.112 ms/shared 0.060 ms | 🔬 no slow layer to harvest;target active expert kernel |
 | **P39-P40 fast fixed MoE** | fixed R6000 best MoE config | layer-level 1.079x,generate exact,100.94 TPS median | ✅ small default speedup,not the 155 breakthrough |
+| **P42 cuda_scalar retest** | full-attention-only allowlist | 0/3 greedy match,mean 82.49 TPS | ❌ scalar bridge is not a production shortcut |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -311,6 +312,13 @@ median. This is a safe
 small knife, not the 155 TPS breakthrough; the next major step remains a
 fused/grouped native-FP4 active expert kernel. See
 [`docs/LYNN_ENGINE_P39_P40_FAST_FIXED_MOE_20260516.md`](docs/LYNN_ENGINE_P39_P40_FAST_FIXED_MOE_20260516.md).
+
+P42 note: `cuda_scalar` native active-MoE was retested with a
+full-attention-only allowlist to avoid linear-block graph capture. It still
+fails full-generate parity: **0/3 greedy matches**, with one prompt dropping to
+**48.50 TPS**. Keep `cuda_scalar` as a native-extension contract/diagnostic
+backend only; it is not a production speed shortcut. See
+[`docs/LYNN_ENGINE_P42_CUDA_SCALAR_RETEST_NEGATIVE_20260516.md`](docs/LYNN_ENGINE_P42_CUDA_SCALAR_RETEST_NEGATIVE_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,
