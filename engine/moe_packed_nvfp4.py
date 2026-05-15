@@ -63,7 +63,9 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
         sorted=_env_bool("LYNN_ROUTER_TOPK_SORTED", False),
     )
     routing_weights = F.softmax(routing_weights, dim=-1, dtype=torch.float32)[0]
-    expert_ids = expert_indices[0].to(torch.long)
+    # Triton kernels consume int32 expert ids. Keep this as int32 once here so
+    # gate/up and down do not each pay a tiny per-layer dtype conversion.
+    expert_ids = expert_indices[0].to(torch.int32).contiguous()
     topk_limit = os.environ.get("LYNN_MOE_PROFILE_TOPK_LIMIT")
     if topk_limit:
         limit = int(topk_limit)
