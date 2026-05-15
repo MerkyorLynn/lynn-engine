@@ -168,6 +168,8 @@ class LynnIncrementalRunner:
             self._prepare_packed_decode_aliases()
         if os.environ.get("LYNN_LINEAR_ATTN_INPROJ_FUSED", "0") == "1":
             self._prepare_linear_attn_inproj_fused()
+        if os.environ.get("LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4", "0") == "1":
+            self._prepare_linear_attn_inproj_fused_native_fp4()
         self._prepare_linear_attn_decode_constants()
         self._linear_block_graph_slot: dict[str, Any] | None = None
         self.prefill_warmup_seconds: float | None = None
@@ -254,6 +256,31 @@ class LynnIncrementalRunner:
                 ],
                 dim=0,
             ).contiguous()
+
+    def _prepare_linear_attn_inproj_fused_native_fp4(self) -> None:
+        """Attach packed native-FP4 fused qkv/z/b/a projection weights.
+
+        This is an opt-in packed-resident bridge. It intentionally coexists
+        with the BF16 fused in-projection path so benchmarks can compare both
+        paths without changing the default production runner.
+        """
+        from engine.nvfp4_runtime import fuse_packed_nvfp4_linears, load_packed_nvfp4_linear
+
+        for layer_idx, (layer_type, w) in enumerate(zip(LAYER_TYPES, self.layer_weights)):
+            if layer_type != "linear_attention":
+                continue
+            key = "linear_attn._in_proj_qkv_z_b_a.weight"
+            base_prefix = f"model.language_model.layers.{layer_idx}.linear_attn"
+            fused = fuse_packed_nvfp4_linears(
+                f"{base_prefix}._in_proj_qkv_z_b_a",
+                [
+                    load_packed_nvfp4_linear(self.model_dir, f"{base_prefix}.in_proj_qkv", device=self.device),
+                    load_packed_nvfp4_linear(self.model_dir, f"{base_prefix}.in_proj_z", device=self.device),
+                    load_packed_nvfp4_linear(self.model_dir, f"{base_prefix}.in_proj_b", device=self.device),
+                    load_packed_nvfp4_linear(self.model_dir, f"{base_prefix}.in_proj_a", device=self.device),
+                ],
+            )
+            w[key] = fused
 
     def _prepare_linear_attn_decode_constants(self) -> None:
         """Precompute tiny static decode constants for linear-attention layers."""

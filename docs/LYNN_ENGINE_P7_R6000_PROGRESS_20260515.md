@@ -1054,3 +1054,129 @@ The next runner implementation can expose an opt-in after-prefill graph-capture
 mode for strict serving parity. The next performance milestone still needs to
 reduce the remaining ~13.6 ms/token, likely via fewer graph boundary copies and
 deeper fused kernels inside the linear-attention blocks.
+
+## P9-P Hybrid Group Latency Breakdown
+
+Added `benchmarks/p9p_hybrid_group_latency_breakdown.py` to split the strict
+P9-O after-prefill graph path into:
+
+- 10 captured 4-layer hybrid groups
+- final RMSNorm
+- final LM head
+
+Result on R6000 / step5000 NVFP4:
+
+```text
+groups only:             12.96 ms / 77.19 tok/s equivalent
+final RMSNorm:            0.07 ms
+LM head:                  0.67 ms
+RMSNorm + LM head:        0.69 ms
+full graph path:         13.69 ms / 73.07 tok/s
+per 4-layer group:       ~1.29 ms, very uniform across all 10 groups
+```
+
+Verdict: the remaining bottleneck is not one pathological layer and not the
+final projection. The whole decode token is dominated by uniformly expensive
+hybrid groups. To reach 100 tok/s, total decode time must drop to ~10 ms, which
+means each 4-layer group needs to move from ~1.29 ms to ~0.93 ms. That is a
+kernel-path problem, not a scheduler-only problem.
+
+Immediate next probes:
+
+- test in-place recurrent-state update for linear attention
+- validate whether fused linear-attention input projection is actually active
+  on the current decode path
+- if low-risk toggles do not move the needle, shift from graph plumbing to
+  native FP4 / deeper linear-attention kernel fusion
+
+## P10-A Native FP4 Fused Input Projection
+
+Added `benchmarks/p10a_native_fp4_fused_inproj_probe.py` to test the first real
+packed-resident building block: concatenate linear-attention `qkv/z/b/a`
+projection weights, run one activation quantization, then one native FP4
+`torch._scaled_mm`.
+
+Important implementation fix: the fused output dimension is `12352`, not a
+multiple of 128. The FP4 `scale_b` swizzled layout must pad rows to full
+128-row tiles; otherwise torch's scale index writes past storage and triggers a
+CUDA device-side assert. `_scale_shape()` now rounds rows up to the next 128.
+
+R6000 layer 0 result:
+
+```text
+shape:                         [12352, 2048]
+cosine vs BF16 fused:          0.99152
+rel_l2:                        0.12996
+BF16 fused linear:             0.0521 ms
+native FP4 scaled_mm only:     0.0409 ms  (1.28x over BF16 body)
+activation quant only:         0.0310 ms
+native quant + scaled_mm:      0.0753 ms  (0.69x vs BF16 fused end-to-end)
+```
+
+Verdict: native FP4 math is viable and the tensor-core body is faster, but
+single fused-projection replacement still loses once activation quantization is
+included. The next packed-resident path must fuse deeper than one projection:
+reuse/fuse activation quantization across the linear-attention block or move to
+a larger native FP4 block kernel. This is the correct bridge toward packed
+resident weights, but not yet the 100 TPS implementation.
+
+## P10-B Decode Integration: Native FP4 Fused In-Projection
+
+Added an opt-in packed runtime wrapper:
+
+```text
+PackedNVFP4FusedLinear
+LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1
+```
+
+This attaches packed native-FP4 fused `qkv/z/b/a` input projections for each
+linear-attention layer without changing the default BF16 resident path.
+
+Strict after-prefill 4-layer graph gate:
+
+```text
+strict logits:       PASS (max_abs 0.0 / cosine 1.0000001)
+greedy parity:       PASS
+graph path:          13.10 ms / 76.36 tok/s
+previous strict path 13.59 ms / 73.56 tok/s
+```
+
+Verdict: P10-B is the first end-to-end packed native-FP4 decode subpath that is
+both strict-correct and faster in the hybrid graph runner. The gain is still
+not enough for 100 tok/s, but it proves the packed-resident direction is no
+longer just a memory milestone; it now has a real decode-path speed win. Next:
+stack this with deeper linear-attention fusion and remove the remaining BF16
+resident projection copies.
+
+## P10-C/P10-D Linear-Attention Core Breakdown
+
+Added `benchmarks/p10c_linear_attn_core_segment_profile.py` and profiled layer 0
+with P10-B enabled:
+
+```text
+fused native FP4 in-proj:     0.0737 ms
+recurrent fused prepare:      0.0358 ms
+conv update:                  0.0325 ms
+split qkv + repeat:           0.0258 ms
+gated RMSNorm Triton:         0.0204 ms
+out proj BF16:                0.0144 ms
+full core recomposed:         0.3263 ms
+```
+
+P10-D tried a GQA-aware recurrent Triton kernel that reads q/k as 16 grouped
+query heads and maps value heads via `head // 2`, avoiding materialized
+`repeat_interleave`.
+
+Strict gate:
+
+```text
+strict logits:       PASS
+greedy parity:       PASS
+graph path:          13.13 ms / 76.14 tok/s
+```
+
+Verdict: the GQA recurrent kernel is correct but not faster than P10-B in the
+full graph path; its index arithmetic offsets the repeat-removal benefit. Keep
+it opt-in for future kernel fusion, but do not make it the default. The next
+100 TPS work should focus on packed/native MoE expert kernels and deeper
+linear-attention block fusion rather than GQA repeat removal alone.

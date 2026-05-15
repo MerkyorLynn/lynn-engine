@@ -17,7 +17,7 @@ from typing import Optional
 import torch
 import torch.nn.functional as F
 
-from engine.nvfp4_runtime import PackedNVFP4Linear
+from engine.nvfp4_runtime import PackedNVFP4FusedLinear, PackedNVFP4Linear
 from engine.qwen36_linear_attn_block import (
     HIDDEN_SIZE, NUM_K_HEADS, NUM_V_HEADS, HEAD_K_DIM, HEAD_V_DIM, CONV_KERNEL,
     KEY_DIM, VALUE_DIM, V_PER_K, RMS_EPS,
@@ -27,9 +27,13 @@ from engine.qwen36_linear_attn_block import (
 )
 
 try:
-    from triton_kernels.gated_delta import recurrent_gated_delta_fused_prepare
+    from triton_kernels.gated_delta import (
+        recurrent_gated_delta_fused_prepare,
+        recurrent_gated_delta_fused_prepare_gqa,
+    )
 except Exception:  # pragma: no cover - optional acceleration path.
     recurrent_gated_delta_fused_prepare = None
+    recurrent_gated_delta_fused_prepare_gqa = None
 
 try:
     from triton_kernels.rmsnorm_gated import rms_norm_gated_triton
@@ -45,7 +49,7 @@ except Exception:  # pragma: no cover - optional acceleration path.
 
 def _linear(x: torch.Tensor, weight) -> torch.Tensor:
     """Linear dispatch with optional packed NVFP4 decode-path support."""
-    if isinstance(weight, PackedNVFP4Linear):
+    if isinstance(weight, (PackedNVFP4FusedLinear, PackedNVFP4Linear)):
         if weight.default_backend == "native_fast_2d":
             flat = x.reshape(-1, x.shape[-1])
             if flat.shape[0] != 1:
@@ -444,7 +448,8 @@ def prefill_linear_attn(h, w, chunk_size: int = 64):
         neg_exp_A_log = -W("linear_attn.A_log").float().exp()
     g = neg_exp_A_log * F.softplus(a.float() + dt_bias.float())
 
-    # 5. q, k repeat by V_PER_K
+    # 5. q, k repeat by V_PER_K. Prefill keeps the reference tensor layout; the
+    # P10-D GQA shortcut is decode-only.
     if V_PER_K > 1:
         q = q.repeat_interleave(V_PER_K, dim=2)
         k = k.repeat_interleave(V_PER_K, dim=2)
@@ -534,8 +539,14 @@ def decode_linear_attn(h_new, w, recurrent_state, conv_state, *, recurrent_backe
         neg_exp_A_log = -W("linear_attn.A_log").float().exp()
     g = neg_exp_A_log * F.softplus(a.float() + dt_bias.float())
 
-    # 5. q, k repeat by V_PER_K
-    if V_PER_K > 1:
+    # 5. q, k repeat by V_PER_K. P10-D can avoid this materialization for the
+    # Triton recurrent path by reading q/k as grouped-query heads directly.
+    use_gqa_recurrent = (
+        recurrent_backend == "triton_fused_prepare"
+        and V_PER_K > 1
+        and os.environ.get("LYNN_LINEAR_ATTN_GQA_RECURRENT", "0") == "1"
+    )
+    if V_PER_K > 1 and not use_gqa_recurrent:
         q = q.repeat_interleave(V_PER_K, dim=2)
         k = k.repeat_interleave(V_PER_K, dim=2)
 
@@ -547,9 +558,16 @@ def decode_linear_attn(h_new, w, recurrent_state, conv_state, *, recurrent_backe
     elif recurrent_backend == "triton_fused_prepare":
         if recurrent_gated_delta_fused_prepare is None:
             raise RuntimeError("triton_fused_prepare requested but triton kernel is unavailable")
-        core_attn_out, new_recurrent_state = recurrent_gated_delta_fused_prepare(
-            q, k, v, g, beta, recurrent_state
-        )
+        if use_gqa_recurrent:
+            if recurrent_gated_delta_fused_prepare_gqa is None:
+                raise RuntimeError("GQA recurrent requested but triton kernel is unavailable")
+            core_attn_out, new_recurrent_state = recurrent_gated_delta_fused_prepare_gqa(
+                q, k, v, g, beta, recurrent_state
+            )
+        else:
+            core_attn_out, new_recurrent_state = recurrent_gated_delta_fused_prepare(
+                q, k, v, g, beta, recurrent_state
+            )
     else:
         raise ValueError(f"unknown recurrent_backend={recurrent_backend!r}")
 

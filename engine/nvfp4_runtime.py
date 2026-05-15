@@ -26,7 +26,12 @@ _SWIZZLE_FP8_ONES_CACHE: dict[tuple[int, int, str], torch.Tensor] = {}
 
 
 def _scale_shape(dim: int, k: int) -> tuple[int, int]:
-    return max(dim, 128), max(k // 16, 4)
+    # torch._scaled_mm's FP4 scale_b layout is tiled in 128-row blocks. Single
+    # projection weights in Qwen3.6 are usually already 128-aligned, but fused
+    # projections such as qkv/z/b/a are not necessarily aligned. Pad the logical
+    # scale rows to full tiles so the swizzled index never writes past storage.
+    rows = max(((dim + 127) // 128) * 128, 128)
+    return rows, max(k // 16, 4)
 
 
 def _torch_scaled_mm_scale_index(row: int, group: int, groups: int) -> int:
@@ -308,6 +313,97 @@ class PackedNVFP4Linear:
         return out.to(dtype).reshape(*x.shape[:-1], self.out_features)
 
     __call__ = forward
+
+
+@dataclass(slots=True)
+class PackedNVFP4FusedLinear:
+    """A fused native-FP4 Linear built by concatenating packed NVFP4 rows.
+
+    This is the first packed-resident runtime shape that can represent natural
+    decode fusions such as linear-attention qkv/z/b/a input projection. Each
+    source projection may have its own global scale, so callers pass the already
+    normalized and swizzled `scale_b` rather than a single scalar global scale.
+    """
+
+    name: str
+    weight_packed: torch.Tensor
+    native_scale_b: torch.Tensor
+    default_backend: str = "native_fast_2d"
+
+    @property
+    def out_features(self) -> int:
+        return int(self.weight_packed.shape[0])
+
+    @property
+    def in_features(self) -> int:
+        return int(self.weight_packed.shape[1] * 2)
+
+    def forward_native_fast_2d(self, x_2d: torch.Tensor) -> torch.Tensor:
+        if x_2d.ndim != 2 or x_2d.shape[0] != 1 or x_2d.shape[1] != self.in_features:
+            raise ValueError(
+                f"{self.name}: forward_native_fast_2d expects [1, {self.in_features}], "
+                f"got {tuple(x_2d.shape)}"
+            )
+        if not hasattr(torch, "float4_e2m1fn_x2") or not hasattr(torch, "_scaled_mm"):
+            raise RuntimeError("native_scaled_mm requires torch.float4_e2m1fn_x2 and torch._scaled_mm")
+        act_packed, scale_a = quantize_fp4_m1_native(x_2d)
+        return torch._scaled_mm(
+            act_packed.view(torch.float4_e2m1fn_x2),
+            self.weight_packed.view(torch.float4_e2m1fn_x2).t(),
+            scale_a=scale_a,
+            scale_b=self.native_scale_b,
+            out_dtype=torch.float16,
+        )[0].float()
+
+    def forward(
+        self,
+        x: torch.Tensor,
+        *,
+        output_dtype: torch.dtype | None = None,
+        backend: str | None = None,
+    ) -> torch.Tensor:
+        flat = x.reshape(-1, x.shape[-1])
+        if flat.shape[0] != 1:
+            raise NotImplementedError(
+                f"{self.name}: PackedNVFP4FusedLinear.forward currently supports one token, "
+                f"got {flat.shape[0]}"
+            )
+        backend = backend or self.default_backend
+        if backend != "native_fast_2d":
+            raise ValueError(f"{self.name}: unknown fused backend {backend!r}")
+        out = self.forward_native_fast_2d(flat)
+        dtype = output_dtype or x.dtype
+        return out.to(dtype).reshape(*x.shape[:-1], self.out_features)
+
+    __call__ = forward
+
+
+def fuse_packed_nvfp4_linears(name: str, linears: list[PackedNVFP4Linear]) -> PackedNVFP4FusedLinear:
+    """Concatenate packed NVFP4 rows and build a native FP4 scale_b layout."""
+    if not linears:
+        raise ValueError("linears must be non-empty")
+    in_features = linears[0].in_features
+    for linear in linears:
+        if linear.in_features != in_features:
+            raise ValueError(
+                f"all fused linears must share input dim {in_features}; "
+                f"{linear.name} has {linear.in_features}"
+            )
+    weight_packed = torch.cat([linear.weight_packed for linear in linears], dim=0).contiguous()
+    effective_scale = torch.cat(
+        [
+            linear.weight_scale.float()
+            / linear.weight_global_scale.to(linear.weight_scale.device).float()
+            for linear in linears
+        ],
+        dim=0,
+    ).contiguous()
+    scale_b = _compact_scale_to_swizzled_fp8(
+        effective_scale,
+        outer_dim=int(weight_packed.shape[0]),
+        k=in_features,
+    )
+    return PackedNVFP4FusedLinear(name=name, weight_packed=weight_packed, native_scale_b=scale_b)
 
 
 def dual_scalar_bridge(

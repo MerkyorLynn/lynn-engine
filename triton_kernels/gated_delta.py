@@ -25,6 +25,7 @@ except ImportError:  # pragma: no cover
 HEAD_K_DIM = 128
 HEAD_V_DIM = 128
 NUM_V_HEADS = 32
+NUM_K_HEADS = 16
 
 
 def _require_triton() -> None:
@@ -58,6 +59,47 @@ if HAS_TRITON:
         q_norm = tl.rsqrt(tl.sum(q_raw * q_raw, axis=0) + 1.0e-6)
         k_norm = tl.rsqrt(tl.sum(k_raw * k_raw, axis=0) + 1.0e-6)
         q = q_raw * q_norm * 0.08838834764831845  # 1 / sqrt(128)
+        k = k_raw * k_norm
+        v = tl.load(v_ptr + head * HEAD_V + offs_v).to(tl.float32)
+        g_exp = tl.exp(tl.load(g_ptr + head).to(tl.float32))
+        beta = tl.load(beta_ptr + head).to(tl.float32)
+
+        s_offsets = head * BLOCK_K * HEAD_V + offs_k[:, None] * HEAD_V + offs_v[None, :]
+        s_prev = tl.load(s_prev_ptr + s_offsets).to(tl.float32)
+        s_decay = s_prev * g_exp
+        kv_mem = tl.sum(s_decay * k[:, None], axis=0)
+        delta = (v - kv_mem) * beta
+        s_new = s_decay + k[:, None] * delta[None, :]
+        out = tl.sum(s_new * q[:, None], axis=0)
+        tl.store(s_new_ptr + s_offsets, s_new)
+        tl.store(out_ptr + head * HEAD_V + offs_v, out)
+
+    @triton.jit
+    def _recurrent_fused_prepare_gqa_kernel(
+        q_ptr,
+        k_ptr,
+        v_ptr,
+        g_ptr,
+        beta_ptr,
+        s_prev_ptr,
+        out_ptr,
+        s_new_ptr,
+        BLOCK_K: tl.constexpr,
+        BLOCK_V: tl.constexpr,
+        HEAD_V: tl.constexpr,
+        V_PER_K: tl.constexpr,
+    ):
+        head = tl.program_id(0)
+        kv_head = head // V_PER_K
+        v_block = tl.program_id(1)
+        offs_k = tl.arange(0, BLOCK_K)
+        offs_v = v_block * BLOCK_V + tl.arange(0, BLOCK_V)
+
+        q_raw = tl.load(q_ptr + kv_head * BLOCK_K + offs_k).to(tl.float32)
+        k_raw = tl.load(k_ptr + kv_head * BLOCK_K + offs_k).to(tl.float32)
+        q_norm = tl.rsqrt(tl.sum(q_raw * q_raw, axis=0) + 1.0e-6)
+        k_norm = tl.rsqrt(tl.sum(k_raw * k_raw, axis=0) + 1.0e-6)
+        q = q_raw * q_norm * 0.08838834764831845
         k = k_raw * k_norm
         v = tl.load(v_ptr + head * HEAD_V + offs_v).to(tl.float32)
         g_exp = tl.exp(tl.load(g_ptr + head).to(tl.float32))
@@ -115,6 +157,50 @@ def recurrent_gated_delta_fused_prepare(
         BLOCK_K=HEAD_K_DIM,
         BLOCK_V=32,
         HEAD_V=HEAD_V_DIM,
+        num_warps=4,
+    )
+    return out.reshape(1, 1, NUM_V_HEADS, HEAD_V_DIM).to(initial_dtype), s_new
+
+
+def recurrent_gated_delta_fused_prepare_gqa(
+    q: torch.Tensor,
+    k: torch.Tensor,
+    v: torch.Tensor,
+    g: torch.Tensor,
+    beta: torch.Tensor,
+    s_prev: torch.Tensor,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """GQA-aware recurrent update that avoids q/k repeat_interleave.
+
+    q/k use `[B=1,T=1,16,128]`; v/g/beta/state still use 32 value heads.
+    Each pair of value heads reads the same q/k head via `head // 2`.
+    """
+    _require_triton()
+    if q.shape != (1, 1, NUM_K_HEADS, HEAD_K_DIM):
+        raise ValueError(f"q shape must be [1,1,{NUM_K_HEADS},{HEAD_K_DIM}], got {tuple(q.shape)}")
+    if k.shape != q.shape or v.shape != (1, 1, NUM_V_HEADS, HEAD_V_DIM):
+        raise ValueError(f"unexpected k/v shape: k={tuple(k.shape)} v={tuple(v.shape)}")
+    if g.shape != (1, 1, NUM_V_HEADS) or beta.shape != (1, 1, NUM_V_HEADS):
+        raise ValueError(f"unexpected g/beta shape: g={tuple(g.shape)} beta={tuple(beta.shape)}")
+    if s_prev.shape != (1, NUM_V_HEADS, HEAD_K_DIM, HEAD_V_DIM):
+        raise ValueError(f"state shape must be [1,{NUM_V_HEADS},{HEAD_K_DIM},{HEAD_V_DIM}], got {tuple(s_prev.shape)}")
+    initial_dtype = q.dtype
+    out = torch.empty((NUM_V_HEADS, HEAD_V_DIM), device=q.device, dtype=torch.float32)
+    inplace_state = os.environ.get("LYNN_LINEAR_ATTN_RECURRENT_INPLACE", "0") == "1"
+    s_new = s_prev if inplace_state else torch.empty_like(s_prev)
+    _recurrent_fused_prepare_gqa_kernel[(NUM_V_HEADS, 4)](
+        q.contiguous().reshape(NUM_K_HEADS, HEAD_K_DIM),
+        k.contiguous().reshape(NUM_K_HEADS, HEAD_K_DIM),
+        v.contiguous().reshape(NUM_V_HEADS, HEAD_V_DIM),
+        g.contiguous().reshape(NUM_V_HEADS),
+        beta.contiguous().reshape(NUM_V_HEADS),
+        s_prev.contiguous().reshape(NUM_V_HEADS, HEAD_K_DIM, HEAD_V_DIM),
+        out,
+        s_new.reshape(NUM_V_HEADS, HEAD_K_DIM, HEAD_V_DIM),
+        BLOCK_K=HEAD_K_DIM,
+        BLOCK_V=32,
+        HEAD_V=HEAD_V_DIM,
+        V_PER_K=2,
         num_warps=4,
     )
     return out.reshape(1, 1, NUM_V_HEADS, HEAD_V_DIM).to(initial_dtype), s_new
