@@ -336,6 +336,8 @@ def _decode_layer(h_new, position_id, layer_type, w, cfg, state, layer_idx):
         from triton_kernels.moe_expert_ffn import moe_forward_decode_indexed_bmm as _moe
     elif impl == "triton":
         from triton_kernels.moe_expert_ffn import moe_forward_decode_triton as _moe
+    elif impl == "packed_nvfp4":
+        from engine.moe_packed_nvfp4 import moe_forward_decode_packed_nvfp4 as _moe
     else:
         raise ValueError(f"Unknown LYNN_MOE_IMPL: {impl}")
     moe_out = _moe(h_norm, w, cfg)

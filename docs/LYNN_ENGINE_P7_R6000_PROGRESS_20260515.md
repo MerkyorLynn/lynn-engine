@@ -1203,3 +1203,86 @@ Verdict: packed expert math is correct, but scalar-bridge packed expert loops
 are far too slow. Do not productize this path. The MoE speed path must be a
 grouped native FP4 expert kernel that handles top-k gate/up/down together,
 without Python looping over eight experts and without scalar bridge matvecs.
+
+## P10-F to P10-N Packed MoE to 100 TPS
+
+P10-F first implemented a grouped packed gate/up Triton kernel. The first coarse
+tile grid was correct but misleadingly slow; fine-grained tiles exposed the real
+shape:
+
+```text
+best grouped gate/up tile:   block_inter=8, block_hidden=128
+BF16 gate/up:                ~0.0976 ms
+packed grouped gate/up:      ~0.0375 ms
+speed ratio:                 2.60x
+cosine vs BF16:              0.9999976
+```
+
+P10-G tested Blackwell tensor-core `_scaled_mm` for selected top-k gate/up rows.
+It proved the hardware path works, but W4A4 activation quantization is not yet
+safe enough for this MoE subpath:
+
+```text
+native FP4 hot gate/up:      0.0886 ms vs BF16 0.0960 ms (+8.3%)
+native FP4 cold gate/up:     0.1627 ms (dynamic gather/scale_b dominates)
+cosine vs BF16:              0.9683  FAIL for production
+```
+
+Decision: do not trade quality for speed. The current production bridge keeps
+BF16 activations and consumes packed NVFP4 weights directly.
+
+P10-H added grouped packed down-projection plus routing weighted sum, making
+active routed experts end-to-end packed-resident:
+
+```text
+BF16 active experts:         0.1567 ms
+packed gate/up:              0.0381 ms
+packed down only:            0.0599 ms
+packed active experts:       0.0972 ms
+speed ratio:                 1.61x
+cosine vs BF16:              0.9999959
+```
+
+After tile tuning:
+
+```text
+gate tile:                   block_inter=8, block_hidden=64
+down tile:                   block_hidden=8, block_inter=256
+packed active experts:       0.0775 ms
+speed ratio:                 2.04x over BF16 active experts
+```
+
+P10-I wired this into the resident runner with `LYNN_MOE_IMPL=packed_nvfp4`.
+Shared expert remains BF16 for now; enabling packed shared expert regressed
+performance because it still uses the old scalar bridge.
+
+Best strict path:
+
+```text
+env:
+  LYNN_MOE_IMPL=packed_nvfp4
+  LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1
+  LYNN_LINEAR_ATTN_RECURRENT_BACKEND=triton_fused_prepare
+  LYNN_QK_NORM_ROPE_BACKEND=triton_pair
+  LYNN_RMSNORM_GATED_BACKEND=triton
+  LYNN_LINEAR_STATE_UPDATE=inplace
+
+40-layer body graph:          9.326 ms / 107.23 tok/s equivalent
+full path + final lm_head:    10.018 ms / 99.86 tok/s (strict repeatable)
+serving replay only:          9.677 ms / 103.34 tok/s
+lm_head alone:                ~0.668 ms
+```
+
+Measurement note:
+
+- `full_graph_path_tps` restores the same benchmark state before every replay
+  so runs are deterministic and comparable. This is the conservative number.
+- `full_decode_final_graph_replay_only_tps` omits benchmark-only state restore
+  and is closer to a resident serving loop that continuously mutates live
+  KV/recurrent state. This is the serving-shaped number.
+
+Milestone: Lynn Engine crossed 100 tok/s in the serving-shaped R6000 path while
+keeping NVFP4 packed expert weights resident and preserving BF16 activation
+quality. The next production work is to remove the remaining BF16 resident
+copies for memory, then attack `lm_head` and shared expert without regressing
+quality.

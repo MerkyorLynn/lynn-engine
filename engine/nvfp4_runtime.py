@@ -158,6 +158,42 @@ def load_packed_nvfp4_linear(
     )
 
 
+def load_grouped_nvfp4_weight(
+    model_dir: str | Path,
+    base_key: str,
+    *,
+    device: str | torch.device = "cuda",
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    """Load a grouped packed NVFP4 expert tensor.
+
+    Lynn variable 27B stores expert groups as flattened 2D tensors in shards,
+    with the original `[experts, out, in]` shape recorded in
+    `lynn_quant_manifest.json`. Runtime MoE kernels want the natural 3D view.
+    """
+    model_dir = Path(model_dir)
+    manifest_path = model_dir / "lynn_quant_manifest.json"
+    if not manifest_path.exists():
+        raise FileNotFoundError(f"{manifest_path} is required for grouped NVFP4 weights")
+    manifest = json.loads(manifest_path.read_text())
+    records = manifest.get("quantized_tensors", {})
+    rec = records.get(base_key) or records.get(base_key + ".weight")
+    if rec is None:
+        raise KeyError(f"{base_key}.weight missing from lynn_quant_manifest.json")
+    weight_map = _read_weight_map(model_dir)
+    packed = _load_tensor_by_key(model_dir, weight_map, rec["packed_key"], device=device).contiguous()
+    scale = _load_tensor_by_key(model_dir, weight_map, rec["scale_key"], device=device).float().contiguous()
+    global_scale = _load_tensor_by_key(model_dir, weight_map, rec["global_scale_key"], device=device).float().contiguous()
+    original_shape = rec["original_shape"]
+    if len(original_shape) != 3:
+        raise ValueError(f"{base_key}: expected grouped original_shape, got {original_shape}")
+    experts, out_features, in_features = map(int, original_shape)
+    if packed.ndim == 2:
+        packed = packed.reshape(experts, out_features, in_features // 2).contiguous()
+    if scale.ndim == 2:
+        scale = scale.reshape(experts, out_features, in_features // 16).contiguous()
+    return packed, scale, global_scale
+
+
 def _quantize_activation_to_fp4(x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
     """Quantize `[M, K]` activations to torch.float4_e2m1fn_x2 storage."""
     if x.ndim != 2:

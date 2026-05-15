@@ -80,6 +80,7 @@ def main() -> int:
     ap.add_argument("--prompt", default="用一句话解释 MoE active parameters")
     ap.add_argument("--warmup", type=int, default=5)
     ap.add_argument("--iters", type=int, default=200)
+    ap.add_argument("--group-size", type=int, default=4)
     args = ap.parse_args()
 
     runner = LynnIncrementalRunner(args.model, device="cuda", dtype=torch.bfloat16, verbose=False)
@@ -91,8 +92,8 @@ def main() -> int:
     base = _snapshot_state(state)
 
     slots = []
-    for start_layer in range(0, runner.n_layers, 4):
-        layers = [start_layer, start_layer + 1, start_layer + 2, start_layer + 3]
+    for start_layer in range(0, runner.n_layers, args.group_size):
+        layers = list(range(start_layer, min(start_layer + args.group_size, runner.n_layers)))
         input_buf = torch.empty_like(h_seed)
         output_buf = torch.empty_like(h_seed)
 
@@ -146,6 +147,39 @@ def main() -> int:
         h_norm_local = _rms_norm(h, runner.outside["model.language_model.norm.weight"])
         logits_buf.copy_(F.linear(h_norm_local[:, -1, :], runner.outside["lm_head.weight"]))
 
+    full_input = torch.empty_like(h_seed)
+    full_logits = torch.empty_like(logits_buf)
+
+    def full_decode_final_body():
+        state.seq_len = decode_position
+        h = full_input
+        for i in range(runner.n_layers):
+            h = _decode_layer(h, pos_tensor, LAYER_TYPES[i], runner.layer_weights[i], runner.layer_cfgs[i], state, i)
+        h_norm_local = _rms_norm(h, runner.outside["model.language_model.norm.weight"])
+        full_logits.copy_(F.linear(h_norm_local[:, -1, :], runner.outside["lm_head.weight"]))
+
+    _restore_state(state, base)
+    full_input.copy_(h_seed)
+    full_decode_final_body()
+    torch.cuda.synchronize()
+    _restore_state(state, base)
+    full_input.copy_(h_seed)
+    full_decode_final_graph = torch.cuda.CUDAGraph()
+    with torch.cuda.graph(full_decode_final_graph):
+        full_decode_final_body()
+    torch.cuda.synchronize()
+    _restore_state(state, base)
+
+    def full_decode_final_graph_path():
+        _restore_state(state, base)
+        full_input.copy_(h_seed)
+        full_decode_final_graph.replay()
+        return full_logits
+
+    def full_decode_final_graph_replay_only():
+        full_decode_final_graph.replay()
+        return full_logits
+
     group_rows = []
     for slot in slots:
         def one_slot(slot=slot):
@@ -159,11 +193,21 @@ def main() -> int:
     lm_head_ms = _bench(lm_head_only, args.warmup, args.iters)
     final_ms = _bench(final_norm_lm_head, args.warmup, args.iters)
     full_ms = _bench(full_graph_path, args.warmup, args.iters)
+    full_decode_final_graph_ms = _bench(full_decode_final_graph_path, args.warmup, args.iters)
+    # This omits benchmark-only snapshot restoration. It is the closest proxy
+    # for a resident serving loop where the CUDA graph mutates the live cache
+    # state from token to token instead of restoring the same synthetic state.
+    full_decode_final_graph_replay_only_ms = _bench(
+        full_decode_final_graph_replay_only,
+        args.warmup,
+        args.iters,
+    )
 
     result = {
         "schema_version": "lynn-engine-p9p-hybrid-group-latency-breakdown-v1",
         "model": args.model,
         "decode_position": decode_position,
+        "group_size": args.group_size,
         "group_count": len(slots),
         "groups_ms": groups_ms,
         "groups_tps_equiv": 1000.0 / groups_ms,
@@ -172,6 +216,10 @@ def main() -> int:
         "final_norm_lm_head_ms": final_ms,
         "full_graph_path_ms": full_ms,
         "full_graph_path_tps": 1000.0 / full_ms,
+        "full_decode_final_graph_ms": full_decode_final_graph_ms,
+        "full_decode_final_graph_tps": 1000.0 / full_decode_final_graph_ms,
+        "full_decode_final_graph_replay_only_ms": full_decode_final_graph_replay_only_ms,
+        "full_decode_final_graph_replay_only_tps": 1000.0 / full_decode_final_graph_replay_only_ms,
         "sum_groups_plus_final_ms": groups_ms + final_ms,
         "group_rows": group_rows,
         "top_groups": sorted(group_rows, key=lambda r: r["ms"], reverse=True)[:5],

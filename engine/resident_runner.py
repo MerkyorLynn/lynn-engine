@@ -29,7 +29,7 @@ from engine.full_forward import (
 )
 from engine.inference_state import LAYER_TYPES, LynnInferenceState
 from engine.loader import load_qwen36_layer
-from engine.nvfp4_runtime import load_packed_nvfp4_linear
+from engine.nvfp4_runtime import load_grouped_nvfp4_weight, load_packed_nvfp4_linear
 
 
 def _logit_topk(logits: torch.Tensor, k: int) -> dict[str, Any]:
@@ -114,7 +114,7 @@ class LynnIncrementalRunner:
         if impl == "indexed_bmm":
             raise ValueError(
                 "LynnIncrementalRunner supports reusable prompts only with "
-                "LYNN_MOE_IMPL=optimized, bmm, or triton. indexed_bmm mutates "
+                "LYNN_MOE_IMPL=optimized, bmm, triton, or packed_nvfp4. indexed_bmm mutates "
                 "weights after prefill and is single-prompt only today."
             )
         self.model_dir = str(model_dir)
@@ -160,6 +160,8 @@ class LynnIncrementalRunner:
                 print(f"  [resident] L{i:02}: {time.time() - t0:.1f}s", flush=True)
         if impl == "triton":
             self._prepare_triton_moe_layout()
+        if impl == "packed_nvfp4":
+            self._prepare_packed_nvfp4_moe_layout()
         if (
             os.environ.get("LYNN_PACKED_DECODE", "0") == "1"
             or os.environ.get("LYNN_PACKED_DECODE_LINEAR_ATTN", "0") == "1"
@@ -233,6 +235,54 @@ class LynnIncrementalRunner:
                 cfg["num_experts"] = int(w["mlp.experts.gate_up_proj"].shape[0])
             else:
                 stack_expert_weights(w, num_experts=cfg["num_experts"])
+
+    def _prepare_packed_nvfp4_moe_layout(self) -> None:
+        """Attach grouped packed NVFP4 expert tensors for decode MoE."""
+        attached = 0
+        for layer_idx, w in enumerate(self.layer_weights):
+            base = f"model.language_model.layers.{layer_idx}.mlp.experts"
+            try:
+                gate_up_packed, gate_up_scale, gate_up_global = load_grouped_nvfp4_weight(
+                    self.model_dir,
+                    f"{base}.gate_up_proj",
+                    device=self.device,
+                )
+                down_packed, down_scale, down_global = load_grouped_nvfp4_weight(
+                    self.model_dir,
+                    f"{base}.down_proj",
+                    device=self.device,
+                )
+            except (FileNotFoundError, KeyError):
+                continue
+            w["mlp.experts._gate_up_packed"] = gate_up_packed
+            w["mlp.experts._gate_up_scale"] = gate_up_scale
+            w["mlp.experts._gate_up_global_scale"] = gate_up_global
+            w["mlp.experts._down_packed"] = down_packed
+            w["mlp.experts._down_scale"] = down_scale
+            w["mlp.experts._down_global_scale"] = down_global
+            if os.environ.get("LYNN_PACKED_SHARED_EXPERT", "0") == "1":
+                shared_base = f"model.language_model.layers.{layer_idx}.mlp.shared_expert"
+                try:
+                    w["mlp.shared_expert.gate_proj.weight.packed"] = load_packed_nvfp4_linear(
+                        self.model_dir,
+                        f"{shared_base}.gate_proj",
+                        device=self.device,
+                    )
+                    w["mlp.shared_expert.up_proj.weight.packed"] = load_packed_nvfp4_linear(
+                        self.model_dir,
+                        f"{shared_base}.up_proj",
+                        device=self.device,
+                    )
+                    w["mlp.shared_expert.down_proj.weight.packed"] = load_packed_nvfp4_linear(
+                        self.model_dir,
+                        f"{shared_base}.down_proj",
+                        device=self.device,
+                    )
+                except KeyError:
+                    pass
+            attached += 1
+        if self.verbose:
+            print(f"[resident] packed NVFP4 MoE aliases attached={attached}", flush=True)
 
     def _prepare_linear_attn_inproj_fused(self) -> None:
         """Attach fused qkv/z/b/a projection weights for linear-attn decode.
