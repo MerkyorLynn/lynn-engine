@@ -20,7 +20,7 @@ Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent ru
 | **6-prompt coherent smoke** | ✅ Chinese explanation / Python / RoPE-ALiBi / English arithmetic / tool JSON / long-context prompts all pass |
 | **Current R6000 strict full path** | ✅ **118.73 tok/s** with P23 packed NVFP4 MoE + native FP4 lm_head + active MoE retuning |
 | **Serving replay ceiling** | ✅ **123.78 tok/s** 40-layer body graph, reproducible |
-| **OpenAI server guard** | ✅ strict tool-call PASS,`<think>` loop fail-pattern guard PASS,stable decode **88-89 tok/s** |
+| **OpenAI server guard** | ✅ strict tool-call PASS,`<think>` loop fail-pattern guard PASS,decode reaches **~99-100 tok/s** once reusable block graphs are enabled |
 | **P10 runner graph-slot gate** | ✅ 6 prompts × 3 prefixes = 18/18 strict PASS,runner graph slot 88.8-103.1 tok/s |
 | **P11 packed-resident memory gate** | ✅ after prefill, releases **56.47 GiB** BF16 shadow; allocated memory **81.06 → 24.59 GiB** with exact greedy-id match |
 | **P12 one-shot + graph-after-release gate** | ✅ OpenAI server first request releases **56.47 GiB**; graph slot after release reaches 79.5-83.8 tok/s with max_abs=0 |
@@ -54,7 +54,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P10-P native FP4 lm_head** | **9.67 ms** | **103.44** | ✅ strict full path,opt-in |
 | **serving replay/body graph** | **9.33 ms** | **107.23** | ✅ 40-layer graph ceiling |
 | **P10-U runner graph slot** | **9.69-11.26 ms** | **88.8-103.1** | ✅ 6 prompts × 3 prefixes strict PASS |
-| **OpenAI server stable path** | **~11.2 ms** | **88-89** | ✅ tool-call + no-think guard PASS |
+| **OpenAI server stable path(pre-P25)** | **~11.2 ms** | **88-89** | ✅ historical stable baseline |
 | **P11 session-scoped packed resident** | — | — | ✅ BF16 shadow 81.06→24.59 GiB,exact decode-id match |
 | **P12 one-shot + graph after release** | — | **79.5-83.8** | ✅ graph/eager exact match after 56.47 GiB release |
 | **P13 graph-slot generate/window** | **12.6-12.8 ms replay / 60-105 ms capture** | **78-79 replay / 8-14 e2e** | ⚠️ current-position strict;future window multi-prompt FAIL |
@@ -68,6 +68,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P21 shared gate/up fusion** | **8.50 ms strict / 8.15 ms replay** | **117.7 / 122.7** | ✅ exact BF16 shared path,small gain |
 | **P22 MoE warp retune** | **8.46 ms strict / 8.11 ms replay** | **118.3 / 123.3** | ✅ down kernel 8 warps |
 | **P23 active MoE accounting** | **8.42 ms strict / 8.08 ms replay** | **118.7 / 123.8** | ✅ int32 expert-id cleanup;router/top-k branch ruled out |
+| **P25 OpenAI server graph path** | **~9.95 ms decode / 0.65 s prefill** | **~99-100 decode / 87.7 wall @512 tok** | ✅ service path crosses 100 decode TPS |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -89,6 +90,9 @@ export LYNN_RMSNORM_GATED_BACKEND=triton
 export LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1
 export LYNN_NATIVE_FP4_LM_HEAD=1
 export LYNN_LINEAR_STATE_UPDATE=inplace
+export LYNN_LINEAR_BLOCK_GRAPH=1
+export LYNN_LINEAR_BLOCK_GRAPH_REUSE=1
+export LYNN_LINEAR_BLOCK_GRAPH_PREWARM=1
 export LYNN_PACKED_DECODE=0
 export LYNN_PACKED_DECODE_PREPARE_NATIVE=0
 export LYNN_PACKED_SHARED_EXPERT=0
@@ -99,18 +103,21 @@ Measured final step5000 NVFP4:
 ```text
 strict full path:      118.73 tok/s  (P23 int32 expert-id cleanup + P22/P21/P20/P19)
 serving replay/body:   123.78 tok/s  (40-layer graph ceiling)
-OpenAI stable decode:    88-89 tok/s  (tool-call strict + no-think guard)
+OpenAI server decode:   ~99-100 tok/s (P25 reusable block graph env,512-token wall TPS 87.7)
 BF16 lm_head path:     99.86 tok/s
 quality smoke:         6/6 coherent + strict tool-call + no-think loop guard PASS
 ```
 
 The native FP4 lm_head path is currently a deterministic/greedy opt-in optimization:6/6 prompt top-1 match,minimum top-20 overlap 15/20,and minimum logits cosine 0.9924. Sampling-heavy production traffic keeps the BF16 lm_head fallback until a larger parity gate is complete.
 
-CUDA graph note:107 TPS is a strict benchmark ceiling, not the default HTTP
-serving path. P10-S records the cross-token drift boundary for full-token graph
-families; the default production path remains the 88-89 TPS stable server until
-multi-prompt,long-generation,and tool-call parity gates pass. See
-[`docs/LYNN_ENGINE_P10S_GRAPH_BOUNDARY_20260515.md`](docs/LYNN_ENGINE_P10S_GRAPH_BOUNDARY_20260515.md).
+CUDA graph note:P10-S records the cross-token drift boundary for full-token
+graph families, so future-window full-token graphs still do not enter the
+default production path. P25 uses the more conservative reusable linear-block
+graph server path and reaches **~99-100 decode TPS** through the
+OpenAI-compatible wrapper. The remaining 155 TPS gap is the active expert
+kernel, not the HTTP wrapper. See
+[`docs/LYNN_ENGINE_P10S_GRAPH_BOUNDARY_20260515.md`](docs/LYNN_ENGINE_P10S_GRAPH_BOUNDARY_20260515.md)
+and [`docs/LYNN_ENGINE_P25_SERVER_100TPS_20260516.md`](docs/LYNN_ENGINE_P25_SERVER_100TPS_20260516.md).
 
 P15 config note: do not treat `LYNN_PACKED_DECODE=1` as "more packed means
 faster". On R6000 it drops the full graph path from **103.48 tok/s** to
@@ -175,6 +182,13 @@ top-k+softmax probe were ruled out. The only promoted safe cleanup casts
 expert ids to int32 once after router top-k, avoiding duplicate gate/up and
 down casts, and moves the full graph to **118.73/123.78 TPS**. See
 [`docs/LYNN_ENGINE_P23_ACTIVE_MOE_ACCOUNTING_20260516.md`](docs/LYNN_ENGINE_P23_ACTIVE_MOE_ACCOUNTING_20260516.md).
+
+P25 note: once `LYNN_LINEAR_BLOCK_GRAPH=1 / REUSE=1 / PREWARM=1` are enabled,
+the OpenAI-compatible server no longer stays on the older 88-89 TPS path. It
+stabilizes at **~99-100 decode tok/s**, with a 512-token request reaching
+**87.7 wall tok/s**. This proves the service wrapper is not the main remaining
+155 blocker; the remaining gap is still the active expert kernel. See
+[`docs/LYNN_ENGINE_P25_SERVER_100TPS_20260516.md`](docs/LYNN_ENGINE_P25_SERVER_100TPS_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,
@@ -265,6 +279,9 @@ export LYNN_RMSNORM_GATED_BACKEND=triton
 export LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1
 export LYNN_NATIVE_FP4_LM_HEAD=1
 export LYNN_LINEAR_STATE_UPDATE=inplace
+export LYNN_LINEAR_BLOCK_GRAPH=1
+export LYNN_LINEAR_BLOCK_GRAPH_REUSE=1
+export LYNN_LINEAR_BLOCK_GRAPH_PREWARM=1
 export LYNN_PACKED_DECODE=0
 export LYNN_PACKED_DECODE_PREPARE_NATIVE=0
 export LYNN_PACKED_SHARED_EXPERT=0
