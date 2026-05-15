@@ -124,7 +124,7 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export LYNN_PREFILL_WARMUP=1
 export LYNN_LINEAR_ATTN_RECURRENT_BACKEND=triton_fused_prepare
 export LYNN_MOE_IMPL=triton
-export LYNN_QK_NORM_ROPE_BACKEND=triton
+export LYNN_QK_NORM_ROPE_BACKEND=triton_pair
 export LYNN_RMSNORM_GATED_BACKEND=triton
 export LYNN_LINEAR_ATTN_INPROJ_FUSED=1
 export LYNN_LINEAR_BLOCK_GRAPH=1
@@ -787,3 +787,17 @@ decode. Native FP4 remains strategically important for packed residency and
 future 200 TPS work, but the next practical 100 TPS work should stay on custom
 fused decode kernels / block scheduling rather than swapping projections to the
 generic scaled-mm path.
+
+### QK Norm + RoPE Pair Backend
+
+Retested the current 6-prompt 32-token smoke with:
+
+```text
+LYNN_QK_NORM_ROPE_BACKEND=triton_pair
+```
+
+Result: all six prompts completed coherently and reused the prewarmed linear
+block graphs. Decode TPS ranged from ~67.9 to ~69.2 tok/s. This is only a small
+gain over the previous `triton` setting, but it is the right default because it
+fuses q/k norm+RoPE for the 10 full-attention layers without changing model
+math. The recommended R6000 env now uses `triton_pair`.
