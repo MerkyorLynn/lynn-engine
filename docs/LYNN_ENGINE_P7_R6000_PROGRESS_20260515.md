@@ -490,6 +490,19 @@ P9-F2: serving-style graph bucket with mutable token/position buffers;
 P9-F3: if still ~66TPS, stop graph productization and return to fused kernels.
 ```
 
+P9-F1 quick stress result using the same graph-family gate with `max_new=16`:
+
+```text
+first 8 tokens: graph greedy == eager greedy
+from token 9:   greedy begins to drift
+avg replay:     14.46ms = 69.16 TPS
+```
+
+This sets a useful boundary: graph-family replay is viable as a short decode
+window, but not yet as an unbounded serving loop. A practical serving design may
+need periodic eager refresh / recapture every ~8 tokens, or a stricter capture
+discipline that initializes graph-family state progressively before capture.
+
 ## P8-A/B/C/D Packed Decode Alias Gate
 
 2026-05-15 late afternoon update: implemented decode-only packed aliases behind
