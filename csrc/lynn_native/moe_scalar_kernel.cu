@@ -175,6 +175,106 @@ __global__ void down_weighted_sum_scalar_kernel(
   }
 }
 
+__global__ void active_moe_fused_atomic_scalar_kernel(
+    const __nv_bfloat16* __restrict__ x,
+    const int32_t* __restrict__ expert_ids,
+    const float* __restrict__ routing_weights,
+    const uint8_t* __restrict__ gate_up_packed,
+    const float* __restrict__ gate_up_scale,
+    const float* __restrict__ gate_up_global_scale,
+    const uint8_t* __restrict__ down_packed,
+    const float* __restrict__ down_scale,
+    const float* __restrict__ down_global_scale,
+    float* __restrict__ out,
+    int64_t gate_packed_stride_e,
+    int64_t gate_packed_stride_m,
+    int64_t gate_packed_stride_n,
+    int64_t gate_scale_stride_e,
+    int64_t gate_scale_stride_m,
+    int64_t gate_scale_stride_g,
+    int64_t down_packed_stride_e,
+    int64_t down_packed_stride_m,
+    int64_t down_packed_stride_n,
+    int64_t down_scale_stride_e,
+    int64_t down_scale_stride_m,
+    int64_t down_scale_stride_g) {
+  const int slot = blockIdx.x;
+  const int inter = blockIdx.y;
+  const int tid = threadIdx.x;
+  const int expert = expert_ids[slot];
+  const int gate_row = inter;
+  const int up_row = kIntermediate + inter;
+  const float gate_inv_global = 1.0f / gate_up_global_scale[0];
+  const float down_inv_global = 1.0f / down_global_scale[0];
+
+  extern __shared__ float smem[];
+  float* gate_s = smem;
+  float* up_s = smem + blockDim.x;
+
+  float gate_acc = 0.0f;
+  float up_acc = 0.0f;
+  for (int h = tid; h < kHidden; h += blockDim.x) {
+    const int packed_col = h >> 1;
+    const int scale_col = h >> 4;
+    const bool low = (h & 1) == 0;
+    const float x_h = __bfloat162float(x[h]);
+    const uint8_t gate_byte = gate_up_packed[
+        static_cast<int64_t>(expert) * gate_packed_stride_e +
+        static_cast<int64_t>(gate_row) * gate_packed_stride_m +
+        static_cast<int64_t>(packed_col) * gate_packed_stride_n];
+    const uint8_t up_byte = gate_up_packed[
+        static_cast<int64_t>(expert) * gate_packed_stride_e +
+        static_cast<int64_t>(up_row) * gate_packed_stride_m +
+        static_cast<int64_t>(packed_col) * gate_packed_stride_n];
+    const unsigned char gate_nibble = low ? (gate_byte & 0x0F) : ((gate_byte >> 4) & 0x0F);
+    const unsigned char up_nibble = low ? (up_byte & 0x0F) : ((up_byte >> 4) & 0x0F);
+    const float gate_scale = gate_up_scale[
+        static_cast<int64_t>(expert) * gate_scale_stride_e +
+        static_cast<int64_t>(gate_row) * gate_scale_stride_m +
+        static_cast<int64_t>(scale_col) * gate_scale_stride_g];
+    const float up_scale = gate_up_scale[
+        static_cast<int64_t>(expert) * gate_scale_stride_e +
+        static_cast<int64_t>(up_row) * gate_scale_stride_m +
+        static_cast<int64_t>(scale_col) * gate_scale_stride_g];
+    gate_acc += e2m1_from_nibble(gate_nibble) * gate_scale * gate_inv_global * x_h;
+    up_acc += e2m1_from_nibble(up_nibble) * up_scale * gate_inv_global * x_h;
+  }
+
+  gate_s[tid] = gate_acc;
+  up_s[tid] = up_acc;
+  __syncthreads();
+
+  for (int stride = blockDim.x >> 1; stride > 0; stride >>= 1) {
+    if (tid < stride) {
+      gate_s[tid] += gate_s[tid + stride];
+      up_s[tid] += up_s[tid + stride];
+    }
+    __syncthreads();
+  }
+
+  const float gate = gate_s[0];
+  const float up = up_s[0];
+  const float silu = gate / (1.0f + expf(-gate));
+  const float inter_val = silu * up;
+  const float route = routing_weights[slot];
+
+  for (int hidden = tid; hidden < kHidden; hidden += blockDim.x) {
+    const int packed_col = inter >> 1;
+    const int scale_col = inter >> 4;
+    const bool low = (inter & 1) == 0;
+    const uint8_t byte = down_packed[
+        static_cast<int64_t>(expert) * down_packed_stride_e +
+        static_cast<int64_t>(hidden) * down_packed_stride_m +
+        static_cast<int64_t>(packed_col) * down_packed_stride_n];
+    const unsigned char nibble = low ? (byte & 0x0F) : ((byte >> 4) & 0x0F);
+    const float scale = down_scale[
+        static_cast<int64_t>(expert) * down_scale_stride_e +
+        static_cast<int64_t>(hidden) * down_scale_stride_m +
+        static_cast<int64_t>(scale_col) * down_scale_stride_g];
+    atomicAdd(out + hidden, route * e2m1_from_nibble(nibble) * scale * down_inv_global * inter_val);
+  }
+}
+
 }  // namespace
 
 torch::Tensor lynn_native_gate_up_silu_scalar(
@@ -317,4 +417,81 @@ torch::Tensor lynn_native_active_moe_scalar_contract(
       down_packed,
       down_scale,
       down_global_scale);
+}
+
+torch::Tensor lynn_native_active_moe_fused_atomic_scalar(
+    torch::Tensor x,
+    torch::Tensor expert_ids,
+    torch::Tensor routing_weights,
+    torch::Tensor gate_up_packed,
+    torch::Tensor gate_up_scale,
+    torch::Tensor gate_up_global_scale,
+    torch::Tensor down_packed,
+    torch::Tensor down_scale,
+    torch::Tensor down_global_scale) {
+  TORCH_CHECK(x.is_cuda(), "x must be a CUDA tensor");
+  TORCH_CHECK(expert_ids.is_cuda(), "expert_ids must be a CUDA tensor");
+  TORCH_CHECK(routing_weights.is_cuda(), "routing_weights must be a CUDA tensor");
+  TORCH_CHECK(gate_up_packed.is_cuda(), "gate_up_packed must be a CUDA tensor");
+  TORCH_CHECK(gate_up_scale.is_cuda(), "gate_up_scale must be a CUDA tensor");
+  TORCH_CHECK(gate_up_global_scale.is_cuda(), "gate_up_global_scale must be a CUDA tensor");
+  TORCH_CHECK(down_packed.is_cuda(), "down_packed must be a CUDA tensor");
+  TORCH_CHECK(down_scale.is_cuda(), "down_scale must be a CUDA tensor");
+  TORCH_CHECK(down_global_scale.is_cuda(), "down_global_scale must be a CUDA tensor");
+  TORCH_CHECK(x.scalar_type() == torch::kBFloat16, "x must be bfloat16");
+  TORCH_CHECK(expert_ids.scalar_type() == torch::kInt32, "expert_ids must be int32");
+  TORCH_CHECK(routing_weights.scalar_type() == torch::kFloat32, "routing_weights must be float32");
+  TORCH_CHECK(gate_up_packed.scalar_type() == torch::kUInt8, "gate_up_packed must be uint8");
+  TORCH_CHECK(gate_up_scale.scalar_type() == torch::kFloat32, "gate_up_scale must be float32");
+  TORCH_CHECK(down_packed.scalar_type() == torch::kUInt8, "down_packed must be uint8");
+  TORCH_CHECK(down_scale.scalar_type() == torch::kFloat32, "down_scale must be float32");
+  TORCH_CHECK(x.dim() == 1 && x.numel() == kHidden, "x must be [2048]");
+  TORCH_CHECK(expert_ids.dim() == 1, "expert_ids must be [top_k]");
+  TORCH_CHECK(routing_weights.dim() == 1 && routing_weights.size(0) == expert_ids.size(0),
+              "routing_weights must match expert_ids");
+  TORCH_CHECK(gate_up_packed.dim() == 3, "gate_up_packed must be [experts, 1024, 1024]");
+  TORCH_CHECK(gate_up_scale.dim() == 3, "gate_up_scale must be [experts, 1024, 128]");
+  TORCH_CHECK(down_packed.dim() == 3, "down_packed must be [experts, 2048, 256]");
+  TORCH_CHECK(down_scale.dim() == 3, "down_scale must be [experts, 2048, 32]");
+
+  auto xc = x.contiguous();
+  auto expert_ids_c = expert_ids.contiguous();
+  auto routing_weights_c = routing_weights.contiguous();
+  auto gate_packed_c = gate_up_packed.contiguous();
+  auto gate_scale_c = gate_up_scale.contiguous();
+  auto gate_global_c = gate_up_global_scale.contiguous();
+  auto down_packed_c = down_packed.contiguous();
+  auto down_scale_c = down_scale.contiguous();
+  auto down_global_c = down_global_scale.contiguous();
+  auto out = torch::zeros({kHidden}, x.options().dtype(torch::kFloat32));
+
+  const int64_t top_k = expert_ids_c.numel();
+  const dim3 grid(static_cast<unsigned int>(top_k), kIntermediate);
+  const size_t shared_bytes = static_cast<size_t>(kThreads) * 2 * sizeof(float);
+  active_moe_fused_atomic_scalar_kernel<<<grid, kThreads, shared_bytes>>>(
+      reinterpret_cast<const __nv_bfloat16*>(xc.data_ptr<at::BFloat16>()),
+      expert_ids_c.data_ptr<int32_t>(),
+      routing_weights_c.data_ptr<float>(),
+      gate_packed_c.data_ptr<uint8_t>(),
+      gate_scale_c.data_ptr<float>(),
+      gate_global_c.data_ptr<float>(),
+      down_packed_c.data_ptr<uint8_t>(),
+      down_scale_c.data_ptr<float>(),
+      down_global_c.data_ptr<float>(),
+      out.data_ptr<float>(),
+      gate_packed_c.stride(0),
+      gate_packed_c.stride(1),
+      gate_packed_c.stride(2),
+      gate_scale_c.stride(0),
+      gate_scale_c.stride(1),
+      gate_scale_c.stride(2),
+      down_packed_c.stride(0),
+      down_packed_c.stride(1),
+      down_packed_c.stride(2),
+      down_scale_c.stride(0),
+      down_scale_c.stride(1),
+      down_scale_c.stride(2));
+  const cudaError_t err = cudaGetLastError();
+  TORCH_CHECK(err == cudaSuccess, "active_moe_fused_atomic_scalar_kernel launch failed: ", cudaGetErrorString(err));
+  return out;
 }

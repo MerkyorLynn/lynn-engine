@@ -1,0 +1,167 @@
+{
+  "schema_version": "lynn-engine-p46-fused-atomic-active-moe-probe-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final",
+  "layers": [
+    2,
+    8,
+    14,
+    20,
+    28,
+    36
+  ],
+  "cases": [
+    {
+      "layer": 2,
+      "expert_ids": [
+        3,
+        40,
+        57,
+        71,
+        158,
+        207,
+        235,
+        17
+      ],
+      "timings_ms": {
+        "triton_active_ms": 0.05920799970626831,
+        "fused_atomic_scalar_ms": 0.17689759731292726,
+        "fused_atomic_vs_triton_speedup": 0.3347021135709995
+      },
+      "fused_atomic_vs_triton": {
+        "max_abs": 0.00014625489711761475,
+        "mean_abs": 1.708582385617774e-05,
+        "rel_l2": 0.0021116084852955746,
+        "cosine": 0.9999980926513672
+      }
+    },
+    {
+      "layer": 8,
+      "expert_ids": [
+        38,
+        51,
+        69,
+        113,
+        139,
+        153,
+        203,
+        158
+      ],
+      "timings_ms": {
+        "triton_active_ms": 0.05907999873161316,
+        "fused_atomic_scalar_ms": 0.17694560289382935,
+        "fused_atomic_vs_triton_speedup": 0.3338879167687612
+      },
+      "fused_atomic_vs_triton": {
+        "max_abs": 0.0001538395881652832,
+        "mean_abs": 2.4431865313090384e-05,
+        "rel_l2": 0.002380501073351619,
+        "cosine": 0.9999972581863403
+      }
+    },
+    {
+      "layer": 14,
+      "expert_ids": [
+        13,
+        47,
+        97,
+        110,
+        161,
+        165,
+        172,
+        60
+      ],
+      "timings_ms": {
+        "triton_active_ms": 0.058987200260162354,
+        "fused_atomic_scalar_ms": 0.17672159671783447,
+        "fused_atomic_vs_triton_speedup": 0.33378603043263166
+      },
+      "fused_atomic_vs_triton": {
+        "max_abs": 0.0004899799823760986,
+        "mean_abs": 4.240658017806709e-05,
+        "rel_l2": 0.0022446954974902826,
+        "cosine": 0.9999974966049194
+      }
+    },
+    {
+      "layer": 20,
+      "expert_ids": [
+        36,
+        48,
+        95,
+        108,
+        131,
+        149,
+        196,
+        55
+      ],
+      "timings_ms": {
+        "triton_active_ms": 0.0592848002910614,
+        "fused_atomic_scalar_ms": 0.17683520317077636,
+        "fused_atomic_vs_triton_speedup": 0.33525451509679244
+      },
+      "fused_atomic_vs_triton": {
+        "max_abs": 0.000868186354637146,
+        "mean_abs": 0.00012105311907362193,
+        "rel_l2": 0.0026128398219561894,
+        "cosine": 0.9999983310699463
+      }
+    },
+    {
+      "layer": 28,
+      "expert_ids": [
+        12,
+        49,
+        116,
+        155,
+        159,
+        192,
+        204,
+        63
+      ],
+      "timings_ms": {
+        "triton_active_ms": 0.05893599987030029,
+        "fused_atomic_scalar_ms": 0.17700799703598022,
+        "fused_atomic_vs_triton_speedup": 0.33295670736458555
+      },
+      "fused_atomic_vs_triton": {
+        "max_abs": 0.00016414374113082886,
+        "mean_abs": 3.175711026415229e-05,
+        "rel_l2": 0.002312096609400233,
+        "cosine": 0.9999973773956299
+      }
+    },
+    {
+      "layer": 36,
+      "expert_ids": [
+        24,
+        43,
+        100,
+        139,
+        201,
+        221,
+        222,
+        35
+      ],
+      "timings_ms": {
+        "triton_active_ms": 0.05973920226097107,
+        "fused_atomic_scalar_ms": 0.17662240266799928,
+        "fused_atomic_vs_triton_speedup": 0.3382311720289756
+      },
+      "fused_atomic_vs_triton": {
+        "max_abs": 0.0007958114147186279,
+        "mean_abs": 0.00010428842506371439,
+        "rel_l2": 0.0026884852537533152,
+        "cosine": 0.9999972581863403
+      }
+    }
+  ],
+  "summary": {
+    "mean_triton_active_ms": 0.0592058668533961,
+    "mean_fused_atomic_scalar_ms": 0.1768383999665578,
+    "mean_fused_atomic_vs_triton_speedup": 0.3348030758771243,
+    "min_cosine": 0.9999972581863403,
+    "max_rel_l2": 0.0026884852537533152
+  },
+  "promote": false,
+  "decision": "Probe only; atomics are expected to be a bridge, not final grouped FP4 production kernel."
+}
