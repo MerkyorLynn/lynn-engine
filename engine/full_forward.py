@@ -40,6 +40,10 @@ from pathlib import Path
 import torch
 import torch.nn.functional as F
 
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 
 def _rms_norm(x: torch.Tensor, weight: torch.Tensor, eps: float = 1e-6) -> torch.Tensor:
     """Qwen3_5MoeRMSNorm — note the `(1.0 + weight)` factor, not plain `weight`.
@@ -142,15 +146,23 @@ def _moe_forward(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
     routing_weights = F.softmax(routing_weights, dim=-1, dtype=torch.float32).to(h.dtype)
 
     moe_out = torch.zeros_like(h_flat)
+    fused_experts = (
+        "mlp.experts.gate_up_proj" in w and "mlp.experts.down_proj" in w
+    )
     for e in range(E):
         mask = (expert_indices == e)
         if not mask.any():
             continue
         token_idx, slot_idx = mask.nonzero(as_tuple=True)
         x_e = h_flat[token_idx]
-        gate_e = F.linear(x_e, w[f"mlp.experts.{e}.gate_proj.weight"])
-        up_e = F.linear(x_e, w[f"mlp.experts.{e}.up_proj.weight"])
-        ffn_e = F.linear(F.silu(gate_e) * up_e, w[f"mlp.experts.{e}.down_proj.weight"])
+        if fused_experts:
+            gate_up = F.linear(x_e, w["mlp.experts.gate_up_proj"][e])
+            gate_e, up_e = gate_up.chunk(2, dim=-1)
+            ffn_e = F.linear(F.silu(gate_e) * up_e, w["mlp.experts.down_proj"][e])
+        else:
+            gate_e = F.linear(x_e, w[f"mlp.experts.{e}.gate_proj.weight"])
+            up_e = F.linear(x_e, w[f"mlp.experts.{e}.up_proj.weight"])
+            ffn_e = F.linear(F.silu(gate_e) * up_e, w[f"mlp.experts.{e}.down_proj.weight"])
         weight_e = routing_weights[token_idx, slot_idx].unsqueeze(-1)
         moe_out.index_add_(0, token_idx, ffn_e * weight_e)
 
@@ -191,21 +203,67 @@ def _layer_forward(h: torch.Tensor, position_ids: torch.Tensor, layer_type: str,
     return residual + moe_out
 
 
+def _with_inferred_layer_config(base_cfg: dict, inferred: dict | None) -> dict:
+    """Return a per-layer runtime cfg updated from loaded tensor shapes.
+
+    Vanilla Qwen3.6 has a scalar `num_experts=256`, but Lynn's 27B variable
+    skeleton physically slices a different number of experts per layer. The
+    loader infers those dimensions from tensors; all forward paths must use the
+    per-layer value instead of blindly trusting config.json.
+    """
+    layer_cfg = dict(base_cfg)
+    if inferred:
+        layer_cfg.update(inferred)
+    return layer_cfg
+
+
 # ----------------- outside-weights loader -----------------
 
 def load_outside_weights(model_dir: str, device: str, dtype=torch.bfloat16):
-    """Load embeddings + lm_head + final norm from outside.safetensors."""
+    """Load embeddings + lm_head + final norm.
+
+    Lynn's early internal checkpoints store these tensors in `outside.safetensors`.
+    Public HF-style BF16 and NVFP4 artifacts keep them in regular model shards
+    (`model.safetensors.index.json`) or a single `model.safetensors`. Support
+    both layouts so the same forward code can run on released checkpoints.
+    """
     from safetensors import safe_open
-    path = Path(model_dir) / "outside.safetensors"
+
+    model_path = Path(model_dir)
     keys = [
         "model.language_model.embed_tokens.weight",
         "lm_head.weight",
         "model.language_model.norm.weight",
     ]
+
+    outside_path = model_path / "outside.safetensors"
+    if outside_path.exists():
+        weight_map = {k: outside_path.name for k in keys}
+    else:
+        index_path = model_path / "model.safetensors.index.json"
+        single_path = model_path / "model.safetensors"
+        if index_path.exists():
+            index = json.loads(index_path.read_text())
+            weight_map = index["weight_map"]
+        elif single_path.exists():
+            weight_map = {k: single_path.name for k in keys}
+        else:
+            raise FileNotFoundError(
+                f"No outside.safetensors, model.safetensors.index.json, or "
+                f"model.safetensors found under {model_path}"
+            )
+
+    file_to_keys: dict[str, list[str]] = {}
+    for k in keys:
+        if k not in weight_map:
+            raise KeyError(f"Outside tensor {k!r} not found in {model_path}")
+        file_to_keys.setdefault(weight_map[k], []).append(k)
+
     out = {}
-    with safe_open(path, framework="pt", device=device) as f:
-        for k in keys:
-            out[k] = f.get_tensor(k).to(dtype)
+    for file_name, file_keys in file_to_keys.items():
+        with safe_open(model_path / file_name, framework="pt", device=device) as f:
+            for k in file_keys:
+                out[k] = f.get_tensor(k).to(dtype)
     return out
 
 
@@ -245,12 +303,20 @@ def _decode_layer(h_new, position_id, layer_type, w, cfg, state, layer_idx):
     residual = h_new
     h_norm = _rms_norm(h_new, w["input_layernorm.weight"])
     if layer_type == "linear_attention":
+        recurrent_backend = os.environ.get("LYNN_LINEAR_ATTN_RECURRENT_BACKEND", "torch")
         attn_out, new_state, new_conv = decode_linear_attn(
             h_norm, w,
             state.recurrent_state[layer_idx],
             state.conv_state[layer_idx],
+            recurrent_backend=recurrent_backend,
         )
-        state.update_linear_attn_state(layer_idx, new_state, new_conv)
+        if os.environ.get("LYNN_LINEAR_STATE_UPDATE", "assign") == "inplace":
+            recurrent_target = state.recurrent_state[layer_idx]
+            if recurrent_target.data_ptr() != new_state.data_ptr():
+                recurrent_target.copy_(new_state)
+            state.conv_state[layer_idx].copy_(new_conv)
+        else:
+            state.update_linear_attn_state(layer_idx, new_state, new_conv)
     else:
         K, V = state.kv_cache[layer_idx]
         attn_out = decode_full_attn(
@@ -268,6 +334,8 @@ def _decode_layer(h_new, position_id, layer_type, w, cfg, state, layer_idx):
         from engine.moe_optimized import moe_forward_decode_bmm as _moe
     elif impl == "indexed_bmm":
         from triton_kernels.moe_expert_ffn import moe_forward_decode_indexed_bmm as _moe
+    elif impl == "triton":
+        from triton_kernels.moe_expert_ffn import moe_forward_decode_triton as _moe
     else:
         raise ValueError(f"Unknown LYNN_MOE_IMPL: {impl}")
     moe_out = _moe(h_norm, w, cfg)
@@ -318,11 +386,13 @@ def generate_incremental(model_dir, prompt, max_new=5, device="cuda",
     if verbose:
         print(f"Loading all {n_layers} layers (resident) ...", flush=True)
     layer_weights = []
+    layer_cfgs = []
     t_start = time.time()
     for i in range(n_layers):
-        w, _ = load_qwen36_layer(model_dir, i, num_experts=cfg["num_experts"],
-                                 device=device, dequant_dtype=dtype)
+        w, inferred = load_qwen36_layer(model_dir, i, num_experts=cfg["num_experts"],
+                                        device=device, dequant_dtype=dtype)
         layer_weights.append(w)
+        layer_cfgs.append(_with_inferred_layer_config(cfg, inferred))
         if verbose and (i % 5 == 4 or i == n_layers - 1):
             print(f"  L{i:2}: cumulative {time.time()-t_start:.1f}s", flush=True)
     if verbose:
@@ -343,7 +413,7 @@ def generate_incremental(model_dir, prompt, max_new=5, device="cuda",
     h = F.embedding(ids, outside["model.language_model.embed_tokens.weight"])
     pos = torch.arange(T, device=device, dtype=torch.long).unsqueeze(0)
     for i in range(n_layers):
-        h = _prefill_layer(h, pos, LAYER_TYPES[i], layer_weights[i], cfg, state, i)
+        h = _prefill_layer(h, pos, LAYER_TYPES[i], layer_weights[i], layer_cfgs[i], state, i)
     state.seq_len = T
 
     # First token from prefill last position
@@ -365,8 +435,9 @@ def generate_incremental(model_dir, prompt, max_new=5, device="cuda",
             print(f"Pre-stacking expert weights for {_impl} after prefill ...", flush=True)
         _t0 = time.time()
         for _i in range(n_layers):
-            stack_expert_weights(layer_weights[_i], num_experts=cfg["num_experts"])
-            for _e in range(cfg["num_experts"]):
+            layer_e = layer_cfgs[_i]["num_experts"]
+            stack_expert_weights(layer_weights[_i], num_experts=layer_e)
+            for _e in range(layer_e):
                 for _proj in ("gate_proj", "up_proj", "down_proj"):
                     _key = f"mlp.experts.{_e}.{_proj}.weight"
                     layer_weights[_i].pop(_key, None)
@@ -387,7 +458,7 @@ def generate_incremental(model_dir, prompt, max_new=5, device="cuda",
         pos = state.seq_len   # new token position
 
         for i in range(n_layers):
-            h = _decode_layer(h, pos, LAYER_TYPES[i], layer_weights[i], cfg, state, i)
+            h = _decode_layer(h, pos, LAYER_TYPES[i], layer_weights[i], layer_cfgs[i], state, i)
 
         state.seq_len += 1
         h_final = _rms_norm(h, outside["model.language_model.norm.weight"])
@@ -458,11 +529,13 @@ def generate_greedy(model_dir: str, prompt: str, max_new: int = 5,
     if verbose:
         print(f"Loading all {n_layers} layers (resident) ...", flush=True)
     weights_per_layer = []
+    layer_cfgs = []
     t_start = time.time()
     for i in range(n_layers):
-        w, _ = load_qwen36_layer(model_dir, i, num_experts=cfg["num_experts"],
-                                 device=device, dequant_dtype=dtype)
+        w, inferred = load_qwen36_layer(model_dir, i, num_experts=cfg["num_experts"],
+                                        device=device, dequant_dtype=dtype)
         weights_per_layer.append(w)
+        layer_cfgs.append(_with_inferred_layer_config(cfg, inferred))
         if verbose and (i % 5 == 4 or i == n_layers - 1):
             print(f"  L{i:2}: cumulative {time.time()-t_start:.1f}s", flush=True)
     if verbose:
@@ -476,7 +549,7 @@ def generate_greedy(model_dir: str, prompt: str, max_new: int = 5,
         t0 = time.time()
         h = F.embedding(ids, embed)
         for i in range(n_layers):
-            h = _layer_forward(h, pos, layer_types[i], weights_per_layer[i], cfg)
+            h = _layer_forward(h, pos, layer_types[i], weights_per_layer[i], layer_cfgs[i])
         h = _rms_norm(h, final_norm_w)
         last_h = h[:, -1, :]
         logits = F.linear(last_h, lm_head_w)
@@ -551,19 +624,20 @@ def run_forward(model_dir: str, prompt: str, max_new: int = 1, device: str = "cu
     for i in range(n_layers):
         layer_type = layer_types[i]
         t0 = time.time()
-        weights, _ = load_qwen36_layer(model_dir, i, num_experts=cfg["num_experts"],
-                                       device=device, dequant_dtype=dtype)
+        weights, inferred = load_qwen36_layer(model_dir, i, num_experts=cfg["num_experts"],
+                                              device=device, dequant_dtype=dtype)
+        layer_cfg = _with_inferred_layer_config(cfg, inferred)
         t_load = time.time() - t0
 
         t0 = time.time()
-        h = _layer_forward(h, position_ids, layer_type, weights, cfg)
+        h = _layer_forward(h, position_ids, layer_type, weights, layer_cfg)
         if device.startswith("cuda"):
             torch.cuda.synchronize()
         t_fwd = time.time() - t0
 
         if verbose:
             print(f"  L{i:2} ({layer_type[:6]}) load {t_load:5.1f}s  fwd {t_fwd*1000:5.0f}ms  "
-                  f"h_mag {h.float().abs().mean().item():.3f}")
+                  f"E {layer_cfg['num_experts']:3d}  h_mag {h.float().abs().mean().item():.3f}")
 
         del weights
         if device.startswith("cuda"):
