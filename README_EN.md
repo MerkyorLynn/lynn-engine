@@ -78,6 +78,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P32-P34 generate gate** | cuda_scalar full generate / graph / allowlist | 121.7 TPS but `!` loop; graph-off/allowlist still greedy drift | ❌ not promoted,fail-loud guard added |
 | **P35 sorted-router graph slot** | `LYNN_ROUTER_TOPK_SORTED=1` + full-token graph slot | 12/12 strict PASS,97.7-111.5 TPS replay | ✅ graph-slot line regains parity |
 | **P36 decode dispatch cleanup** | runner-fixed MoE/backend dispatch | 100.53 vs 100.55 TPS | ✅ exact,kept by default;not the 155 breakthrough |
+| **P37 MoE block retune closed** | layer-28 profile + full generate gate | candidate 94.94 TPS and greedy drift | ❌ block-size line closed;move to native grouped FP4 |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -281,6 +282,15 @@ match, with legacy median **100.55 TPS** and fast-dispatch median
 default, but it proves the remaining 100 -> 155 TPS gap is not simple Python
 dispatch overhead. See
 [`docs/LYNN_ENGINE_P36_DECODE_FAST_DISPATCH_20260516.md`](docs/LYNN_ENGINE_P36_DECODE_FAST_DISPATCH_20260516.md).
+
+P37 note: the layer-28 profile splits current MoE latency into router
+**0.036 ms**, active packed NVFP4 experts **0.107 ms**, and shared BF16 expert
+**0.060 ms**. The isolated block sweep suggested a tiny `down_block_hidden=16`
+win, but the full generate gate fell to **94.94 TPS** and drifted on all three
+prompts. The conclusion is that more Triton block-size retuning is not the
+155 TPS path; the next step is a grouped native-FP4 active expert kernel or a
+strict-parity graph-owned serving path. See
+[`docs/LYNN_ENGINE_P37_MOE_BLOCK_RETUNE_CLOSED_20260516.md`](docs/LYNN_ENGINE_P37_MOE_BLOCK_RETUNE_CLOSED_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,

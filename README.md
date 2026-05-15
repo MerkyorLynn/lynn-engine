@@ -80,6 +80,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P32-P34 generate gate** | cuda_scalar full generate / graph / allowlist | 121.7TPS 但 `!` loop;graph-off/allowlist 仍 greedy drift | ❌ 不 promoted,已加 fail-loud guard |
 | **P35 sorted-router graph slot** | `LYNN_ROUTER_TOPK_SORTED=1` + full-token graph slot | 12/12 strict PASS,97.7-111.5TPS replay | ✅ graph-slot 线恢复 parity |
 | **P36 decode dispatch cleanup** | runner-fixed MoE/backend dispatch | 100.53 vs 100.55TPS | ✅ exact,默认保留;非 155 突破 |
+| **P37 MoE block retune closed** | layer28 profile + full generate gate | candidate 94.94TPS 且 greedy drift | ❌ block-size 线收口,转 native grouped FP4 |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:
@@ -150,6 +151,8 @@ P32-P34 说明:full-generate gate 明确否决了直接推广 `cuda_scalar`。�
 P35 说明:graph-slot 路线不是死路,但它比 eager/full-graph 路径更挑 router 顺序。把 `LYNN_ROUTER_TOPK_SORTED=1` 打开后,4 类 prompt × 3 prefix 的 full-token graph-slot gate **12/12 strict PASS**,所有行 `max_abs=0`,replay **97.7-111.5 tok/s**。结论:当前稳定 serving 可继续用 P20 unsorted top-k,但未来 graph-slot serving 模式必须强制 sorted-router contract。详见 [`docs/LYNN_ENGINE_P35_SORTED_ROUTER_GRAPH_SLOT_20260516.md`](docs/LYNN_ENGINE_P35_SORTED_ROUTER_GRAPH_SLOT_20260516.md)。
 
 P36 说明:把 decode hot loop 里的 MoE 函数选择、linear-attn recurrent backend、state update 策略固定到 runner 初始化阶段,移除 per-layer/per-token env/import 分派。R6000 gate 显示 greedy ids **完全一致**,legacy median **100.55TPS**,fast-dispatch median **100.53TPS**。结论:这是安全工程清理,默认保留;但 100→155 的主瓶颈不在 Python 分派,仍在 active routed expert kernel / graph-owned serving path。详见 [`docs/LYNN_ENGINE_P36_DECODE_FAST_DISPATCH_20260516.md`](docs/LYNN_ENGINE_P36_DECODE_FAST_DISPATCH_20260516.md)。
+
+P37 说明:layer28 分段 profile 显示当前 MoE 由 router **0.036ms**、active packed NVFP4 experts **0.107ms**、shared BF16 expert **0.060ms** 组成;孤立 block sweep 里 `down_block_hidden=16` 看似有 0.7% 小优势,但 full generate gate 跑到 **94.94TPS** 且 3/3 prompts greedy ids 漂移。结论:继续抠 Triton block-size 不是 155TPS 的正路,下一步必须转 **grouped native-FP4 active expert kernel** 或严格 parity 的 graph-owned serving。详见 [`docs/LYNN_ENGINE_P37_MOE_BLOCK_RETUNE_CLOSED_20260516.md`](docs/LYNN_ENGINE_P37_MOE_BLOCK_RETUNE_CLOSED_20260516.md)。
 
 P19 说明:在不改变数值路径的前提下,active MoE kernel block retune 把 R6000 full graph 从 **103.40/107.13 TPS** 提到 **115.41/120.25 TPS**。推荐配置已成为默认:`gate_hidden=256,down_inter=512`,并保留 env override 方便后续设备差异调参。详见 [`docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md`](docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md)。
 

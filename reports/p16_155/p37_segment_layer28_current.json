@@ -1,0 +1,191 @@
+{
+  "schema_version": "lynn-engine-p15-moe-packed-segment-profile-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final",
+  "layer": 28,
+  "layer_type": "linear_attention",
+  "decode_position": 7,
+  "native_prepared": 0,
+  "packed_decode_backend": "scalar_bridge",
+  "moe_impl": "packed_nvfp4",
+  "expert_ids": [
+    199,
+    38,
+    203,
+    116,
+    134,
+    152,
+    89,
+    101
+  ],
+  "routing_weights": [
+    0.19564932584762573,
+    0.15968433022499084,
+    0.14314009249210358,
+    0.12243422120809555,
+    0.10974932461977005,
+    0.10804781317710876,
+    0.08818606287240982,
+    0.07310881465673447
+  ],
+  "kernel_config": {
+    "gate_block_inter": 8,
+    "gate_block_hidden": 256,
+    "down_block_hidden": 8,
+    "down_block_inter": 512
+  },
+  "timings_ms": {
+    "router_topk_ms": 0.036448159217834473,
+    "active_packed_ms": 0.1074783992767334,
+    "shared_bf16_ms": 0.05984799861907959,
+    "current_full_moe_ms": 0.1881395149230957
+  },
+  "timings_tps_equiv": {
+    "router_topk_tps": 27436.227822191067,
+    "active_packed_tps": 9304.195138087407,
+    "shared_bf16_tps": 16708.99650905284,
+    "current_full_moe_tps": 5315.204519416147
+  },
+  "active_block_sweep_top10": [
+    {
+      "gate_block_inter": 8,
+      "gate_block_hidden": 256,
+      "down_block_hidden": 16,
+      "down_block_inter": 512,
+      "ms": 0.10667391777038575,
+      "tps_equiv": 9374.362739282598,
+      "diff_vs_default": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "gate_block_inter": 8,
+      "gate_block_hidden": 256,
+      "down_block_hidden": 8,
+      "down_block_inter": 256,
+      "ms": 0.1070297622680664,
+      "tps_equiv": 9343.19556363587,
+      "diff_vs_default": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "gate_block_inter": 8,
+      "gate_block_hidden": 256,
+      "down_block_hidden": 8,
+      "down_block_inter": 512,
+      "ms": 0.10762304306030274,
+      "tps_equiv": 9291.69043696047,
+      "diff_vs_default": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "gate_block_inter": 8,
+      "gate_block_hidden": 64,
+      "down_block_hidden": 16,
+      "down_block_inter": 512,
+      "ms": 0.10784383773803712,
+      "tps_equiv": 9272.667043147098,
+      "diff_vs_default": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "gate_block_inter": 8,
+      "gate_block_hidden": 128,
+      "down_block_hidden": 16,
+      "down_block_inter": 512,
+      "ms": 0.10797568321228028,
+      "tps_equiv": 9261.344501372583,
+      "diff_vs_default": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "gate_block_inter": 8,
+      "gate_block_hidden": 128,
+      "down_block_hidden": 8,
+      "down_block_inter": 512,
+      "ms": 0.10843008041381835,
+      "tps_equiv": 9222.533047873307,
+      "diff_vs_default": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "gate_block_inter": 8,
+      "gate_block_hidden": 128,
+      "down_block_hidden": 8,
+      "down_block_inter": 128,
+      "ms": 0.10865856170654296,
+      "tps_equiv": 9203.140408767109,
+      "diff_vs_default": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "gate_block_inter": 8,
+      "gate_block_hidden": 256,
+      "down_block_hidden": 8,
+      "down_block_inter": 128,
+      "ms": 0.10934271812438964,
+      "tps_equiv": 9145.556440826607,
+      "diff_vs_default": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "gate_block_inter": 8,
+      "gate_block_hidden": 64,
+      "down_block_hidden": 8,
+      "down_block_inter": 512,
+      "ms": 0.10942336082458497,
+      "tps_equiv": 9138.816359361195,
+      "diff_vs_default": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "gate_block_inter": 8,
+      "gate_block_hidden": 64,
+      "down_block_hidden": 8,
+      "down_block_inter": 256,
+      "ms": 0.10973055839538574,
+      "tps_equiv": 9113.231670586767,
+      "diff_vs_default": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "cosine": 1.0
+      }
+    }
+  ],
+  "current_vs_active_plus_shared_bf16": {
+    "max_abs": 0.0,
+    "mean_abs": 0.0,
+    "cosine": 0.9999998211860657
+  },
+  "current_vs_active_plus_shared_scalar": null,
+  "current_vs_active_plus_shared_native": null,
+  "shared_scalar_vs_bf16": null,
+  "shared_native_vs_bf16": null,
+  "shared_native_vs_scalar": null,
+  "note": "Profiles MoE subsegments only; attention/setup is run once outside the timed region."
+}
