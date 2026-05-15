@@ -306,7 +306,8 @@ P39-P40 note: splitting active MoE shows gate/up at **0.033 ms** and down at
 **0.025 ms**, with exact split-vs-combined output. The current R6000 best MoE
 config is then promoted into the fixed `LYNN_MOE_FAST_FIXED` path. The
 layer-level candidate is **1.079x** faster, the full-generate gate keeps exact
-greedy IDs, and the default path reaches **100.94 TPS** median. This is a safe
+greedy IDs, and the post-promotion default path verifies at **100.79 TPS**
+median. This is a safe
 small knife, not the 155 TPS breakthrough; the next major step remains a
 fused/grouped native-FP4 active expert kernel. See
 [`docs/LYNN_ENGINE_P39_P40_FAST_FIXED_MOE_20260516.md`](docs/LYNN_ENGINE_P39_P40_FAST_FIXED_MOE_20260516.md).

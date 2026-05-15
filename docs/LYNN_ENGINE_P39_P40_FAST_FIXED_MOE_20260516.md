@@ -60,6 +60,14 @@ baseline median   = 100.70 TPS
 candidate median  = 100.94 TPS
 ```
 
+Post-promotion default gate:
+
+```text
+reports/p16_155/p41_post_p40_generate_gate.json
+new_ids_all_match = true
+default median    = 100.79 TPS
+```
+
 ## Decision
 
 Promote the fixed fast path as the default packed-NVFP4 MoE decode path. It

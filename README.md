@@ -158,7 +158,7 @@ P37 说明:layer28 分段 profile 显示当前 MoE 由 router **0.036ms**、acti
 
 P38 说明:把 P37 的单层 profile 扩到 6 个采样层(2/8/14/20/28/36),结果高度一致:full MoE 平均 **0.193ms/layer**,其中 router **0.037ms**,active routed packed NVFP4 experts **0.112ms**,shared BF16 expert **0.060ms**。结论:没有异常慢层可捡,155TPS 的主攻方向就是 active expert grouped native-FP4 kernel,shared expert 是第二优先级。详见 [`docs/LYNN_ENGINE_P38_MOE_MULTILAYER_PROFILE_20260516.md`](docs/LYNN_ENGINE_P38_MOE_MULTILAYER_PROFILE_20260516.md)。
 
-P39-P40 说明:active 内部拆分后,gate/up **0.033ms**、down **0.025ms**,split 结果与 combined active exact;随后把当前 R6000 best MoE config 固化为 `LYNN_MOE_FAST_FIXED` 路径。layer-level candidate 平均 **1.079×**,full-generate gate **greedy ids 全一致**,默认开启后 median **100.94TPS**。这是安全小刀,但不是 155TPS 的大突破;下一步仍然是 fused/grouped native-FP4 active expert kernel。详见 [`docs/LYNN_ENGINE_P39_P40_FAST_FIXED_MOE_20260516.md`](docs/LYNN_ENGINE_P39_P40_FAST_FIXED_MOE_20260516.md)。
+P39-P40 说明:active 内部拆分后,gate/up **0.033ms**、down **0.025ms**,split 结果与 combined active exact;随后把当前 R6000 best MoE config 固化为 `LYNN_MOE_FAST_FIXED` 路径。layer-level candidate 平均 **1.079×**,full-generate gate **greedy ids 全一致**,默认开启后复核 median **100.79TPS**。这是安全小刀,但不是 155TPS 的大突破;下一步仍然是 fused/grouped native-FP4 active expert kernel。详见 [`docs/LYNN_ENGINE_P39_P40_FAST_FIXED_MOE_20260516.md`](docs/LYNN_ENGINE_P39_P40_FAST_FIXED_MOE_20260516.md)。
 
 P19 说明:在不改变数值路径的前提下,active MoE kernel block retune 把 R6000 full graph 从 **103.40/107.13 TPS** 提到 **115.41/120.25 TPS**。推荐配置已成为默认:`gate_hidden=256,down_inter=512`,并保留 env override 方便后续设备差异调参。详见 [`docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md`](docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md)。
 
