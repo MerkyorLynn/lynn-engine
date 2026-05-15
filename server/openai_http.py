@@ -214,11 +214,33 @@ def make_app(handle: LynnEngineHandle):
         if not handle.ready:
             return {"status": "loading",
                     "elapsed_s": time_mod.time() - (handle.load_started or time_mod.time())}
+        runtime = {}
+        if handle.runner is not None:
+            runtime = {
+                "moe_impl": getattr(handle.runner, "moe_impl", None),
+                "packed_nvfp4_moe_aliases_attached": getattr(
+                    handle.runner, "packed_nvfp4_moe_aliases_attached", None
+                ),
+                "packed_decode_backend": getattr(handle.runner, "packed_decode_backend", None),
+                "packed_decode_aliases_attached": getattr(
+                    handle.runner, "packed_decode_aliases_attached", None
+                ),
+                "packed_decode_native_prepared": getattr(
+                    handle.runner, "packed_decode_native_prepared", None
+                ),
+                "packed_decode_aliases_skipped": getattr(
+                    handle.runner, "packed_decode_aliases_skipped", None
+                ),
+                "native_fp4_lm_head_enabled": getattr(
+                    handle.runner, "native_fp4_lm_head_enabled", None
+                ),
+            }
         return {
             "status": "ok",
             "model": handle.cfg.served_model_name,
             "release_decode_shadows_after_prefill": handle.release_decode_shadows_after_prefill,
             "release_decode_shadows_consumed": handle.release_decode_shadows_consumed,
+            "runtime": runtime,
         }
 
     @app.get("/v1/models")

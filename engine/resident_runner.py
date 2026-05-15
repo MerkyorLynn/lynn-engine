@@ -160,6 +160,12 @@ class LynnIncrementalRunner:
         self.dtype = dtype
         self.max_seq_len = max_seq_len
         self.verbose = verbose
+        self.moe_impl = impl
+        self.packed_nvfp4_moe_aliases_attached = 0
+        self.packed_decode_backend = os.environ.get("LYNN_PACKED_DECODE_BACKEND", "scalar_bridge")
+        self.packed_decode_aliases_attached = 0
+        self.packed_decode_native_prepared = 0
+        self.packed_decode_aliases_skipped = 0
         self.cfg, self.n_layers = _runtime_config(self.model_dir)
 
         from transformers import AutoTokenizer
@@ -325,6 +331,7 @@ class LynnIncrementalRunner:
                 except KeyError:
                     pass
             attached += 1
+        self.packed_nvfp4_moe_aliases_attached = attached
         if self.verbose:
             print(f"[resident] packed NVFP4 MoE aliases attached={attached}", flush=True)
 
@@ -613,7 +620,7 @@ class LynnIncrementalRunner:
         parity and timing can be measured end-to-end before any memory-saving
         resident layout change.
         """
-        backend = os.environ.get("LYNN_PACKED_DECODE_BACKEND", "scalar_bridge")
+        backend = self.packed_decode_backend
         projections_by_type = {
             "linear_attention": [
                 "linear_attn.in_proj_qkv.weight",
@@ -667,6 +674,9 @@ class LynnIncrementalRunner:
                 f"native_prepared={native_prepared}",
                 flush=True,
             )
+        self.packed_decode_aliases_attached = attached
+        self.packed_decode_native_prepared = native_prepared
+        self.packed_decode_aliases_skipped = skipped
 
     @staticmethod
     def _snapshot_linear_state(state: LynnInferenceState) -> dict[str, Any]:
