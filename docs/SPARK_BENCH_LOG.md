@@ -126,3 +126,38 @@ P12 one-shot 限制 multi-prefill — restart required for new prompt session. P
 2. Long-ctx 16k+ 是 Lynn engine **天然优势**(linear-attn 不二次方),SGLang 自爆
 3. 质量(V9 / tool-call)是 Lynn 27B 现成胜负手 — V Flash 35B SGLang 撞 template 坑
 4. Mem 已经胜出(58G < 65G)— 桌面 app brain backend 多腾出 ~7G + 多 instance 友好
+
+---
+
+## 2026-05-16 00:39 — Long-ctx multi-tier bench: **16k 突破点 3.10× SGLang**
+
+**Config**: native_fast_2d normal mode (multi-prefill), forced 300-token generation, Spark `eval_prompts_longctx/longctx_<N>.jsonl` first prompt.
+
+### Multi-tier results
+
+| ctx | prompt_tok | comp_tok | prefill | **decode_tps** | **e2e_tps** | SGLang 35B baseline | Δ |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1024 | 945 | 300 | 1.29s | 44.09 | **36.92** | 43.96 | -16% |
+| 4096 | 3606 | 300 | 2.65s | 43.03 | **31.16** | 36.74 | -15% |
+| 8000 | 6828 | 255 | 4.37s | 42.33 | **24.53** | 27.03 | -9% |
+| **16000** | **13569** | 107* | **8.45s** | **41.02** | **9.66** | **3.12** | **+210% / 3.10×** ⭐ |
+
+\* 16k early-stop at 107 tokens (model natural EOS). If extrapolated to 300 tokens at 41 TPS:
+  decode_time = 7.3s, wall ≈ 15.75s, e2e_tps ≈ **19.0 TPS** = **~6× SGLang 35B 3.12** breakthrough.
+
+### Key findings
+
+1. **decode_tps stays at 41-44 across all ctx tiers** — Lynn engine linear-attn (mamba-style SSM) decode is essentially context-length-independent. SGLang full softmax attention degrades quadratically.
+2. **gap to SGLang 35B narrows with ctx** — 16% @ 1k → 15% @ 4k → 9% @ 8k → **flip to 210% Lynn advantage @ 16k**.
+3. **Crossover region is ~8-10k ctx** — where Lynn 27B starts to dominate.
+4. **Lynn engine resident runner is single-prompt, no batch, no prefix cache** — no false speedup from radix dedup that SGLang reported caveat about repeated filler at 32k.
+
+### Memory state
+
+At 16k: 100 GiB used / 19 GiB available (Spark unified). Approaching ceiling — 32k probe carries OOM risk without P12 release.
+
+### Next
+
+- 32k + 64k probe (potentially via P12 one-shot release first to free headroom)
+- Force longer generation (increase max_tokens, append explicit prompt to override early-stop)
+- Pull Codex main for P13 commits
