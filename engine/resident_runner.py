@@ -23,6 +23,7 @@ import torch.nn.functional as F
 from engine.full_forward import (
     _decode_layer,
     _prefill_layer,
+    _resolve_decode_moe_impl,
     _rms_norm,
     _with_inferred_layer_config,
     load_outside_weights,
@@ -186,6 +187,10 @@ class LynnIncrementalRunner:
         self.max_seq_len = max_seq_len
         self.verbose = verbose
         self.moe_impl = impl
+        self.decode_moe_fn = _resolve_decode_moe_impl(impl)
+        self.decode_recurrent_backend = os.environ.get("LYNN_LINEAR_ATTN_RECURRENT_BACKEND", "torch")
+        self.decode_linear_state_update = os.environ.get("LYNN_LINEAR_STATE_UPDATE", "assign")
+        self.decode_fast_dispatch = os.environ.get("LYNN_DECODE_FAST_DISPATCH", "1") != "0"
         self.shared_expert_gate_up_fused_attached = 0
         self.packed_nvfp4_moe_aliases_attached = 0
         self.packed_decode_backend = os.environ.get("LYNN_PACKED_DECODE_BACKEND", "scalar_bridge")
@@ -598,15 +603,7 @@ class LynnIncrementalRunner:
             state.seq_len = seq_len
             h = F.embedding(token_buf, self.outside["model.language_model.embed_tokens.weight"])
             for i in range(self.n_layers):
-                h = _decode_layer(
-                    h,
-                    pos_tensor,
-                    LAYER_TYPES[i],
-                    self.layer_weights[i],
-                    self.layer_cfgs[i],
-                    state,
-                    i,
-                )
+                h = self._decode_layer_fast(h, pos_tensor, state, i)
             h_final = _rms_norm(h, self.outside["model.language_model.norm.weight"])
             logits_buf.copy_(self._lm_head_logits(h_final).to(logits_dtype))
 
@@ -622,6 +619,41 @@ class LynnIncrementalRunner:
             torch.cuda.synchronize()
         self._restore_state(state, snap)
         return FullTokenGraphSlot(seq_len=seq_len, token_buf=token_buf, logits_buf=logits_buf, graph=graph)
+
+    def _decode_layer_fast(
+        self,
+        h: torch.Tensor,
+        pos_tensor: torch.Tensor,
+        state: LynnInferenceState,
+        layer_idx: int,
+    ) -> torch.Tensor:
+        """Decode one layer with runner-fixed dispatch knobs.
+
+        This keeps the math identical to `_decode_layer` while hoisting env and
+        import selection out of the per-layer/per-token hot loop.
+        """
+        if not self.decode_fast_dispatch:
+            return _decode_layer(
+                h,
+                pos_tensor,
+                LAYER_TYPES[layer_idx],
+                self.layer_weights[layer_idx],
+                self.layer_cfgs[layer_idx],
+                state,
+                layer_idx,
+            )
+        return _decode_layer(
+            h,
+            pos_tensor,
+            LAYER_TYPES[layer_idx],
+            self.layer_weights[layer_idx],
+            self.layer_cfgs[layer_idx],
+            state,
+            layer_idx,
+            moe_fn=self.decode_moe_fn,
+            recurrent_backend=self.decode_recurrent_backend,
+            linear_state_update=self.decode_linear_state_update,
+        )
 
     def release_decode_bf16_shadows(
         self,
@@ -833,15 +865,7 @@ class LynnIncrementalRunner:
             def block_fn(layers=layers, input_buf=input_buf, output_buf=output_buf):
                 h = input_buf
                 for i in layers:
-                    h = _decode_layer(
-                        h,
-                        pos_tensor,
-                        LAYER_TYPES[i],
-                        self.layer_weights[i],
-                        self.layer_cfgs[i],
-                        state,
-                        i,
-                    )
+                    h = self._decode_layer_fast(h, pos_tensor, state, i)
                 output_buf.copy_(h)
 
             input_buf.copy_(h_seed)
@@ -1044,22 +1068,14 @@ class LynnIncrementalRunner:
                 pass
             elif linear_block_graphs is None:
                 for i in range(self.n_layers):
-                    h = _decode_layer(h, pos_tensor, LAYER_TYPES[i], self.layer_weights[i], self.layer_cfgs[i], state, i)
+                    h = self._decode_layer_fast(h, pos_tensor, state, i)
             elif linear_block_graphs is not None:
                 for bi, block in enumerate(linear_block_graphs):
                     block["input"].copy_(h)
                     block["graph"].replay()
                     h = block["output"]
                     full_layer = bi * 4 + 3
-                    h = _decode_layer(
-                        h,
-                        pos_tensor,
-                        LAYER_TYPES[full_layer],
-                        self.layer_weights[full_layer],
-                        self.layer_cfgs[full_layer],
-                        state,
-                        full_layer,
-                    )
+                    h = self._decode_layer_fast(h, pos_tensor, state, full_layer)
             if not full_token_graph_slot_enabled:
                 state.seq_len += 1
                 h_final = _rms_norm(h, self.outside["model.language_model.norm.weight"])

@@ -33,8 +33,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
+from functools import lru_cache
 from pathlib import Path
 
 import torch
@@ -291,7 +293,44 @@ def _prefill_layer(h, position_ids, layer_type, w, cfg, state, layer_idx):
     return residual + moe_out
 
 
-def _decode_layer(h_new, position_id, layer_type, w, cfg, state, layer_idx):
+@lru_cache(maxsize=None)
+def _resolve_decode_moe_impl(impl: str):
+    """Resolve the decode MoE implementation once per process.
+
+    `_decode_layer` sits in the per-layer/per-token hot path. Re-importing and
+    re-branching on `LYNN_MOE_IMPL` is tiny next to GPU kernels, but after P25
+    the remaining gap between graph replay and serving is mostly orchestration.
+    Keep the default env-driven behavior for legacy callers while allowing the
+    resident runner to pass a fixed function pointer.
+    """
+    if impl == "optimized":
+        from engine.moe_optimized import moe_forward_decode_optimized as _moe
+    elif impl == "bmm":
+        from engine.moe_optimized import moe_forward_decode_bmm as _moe
+    elif impl == "indexed_bmm":
+        from triton_kernels.moe_expert_ffn import moe_forward_decode_indexed_bmm as _moe
+    elif impl == "triton":
+        from triton_kernels.moe_expert_ffn import moe_forward_decode_triton as _moe
+    elif impl == "packed_nvfp4":
+        from engine.moe_packed_nvfp4 import moe_forward_decode_packed_nvfp4 as _moe
+    else:
+        raise ValueError(f"Unknown LYNN_MOE_IMPL: {impl}")
+    return _moe
+
+
+def _decode_layer(
+    h_new,
+    position_id,
+    layer_type,
+    w,
+    cfg,
+    state,
+    layer_idx,
+    *,
+    moe_fn=None,
+    recurrent_backend: str | None = None,
+    linear_state_update: str | None = None,
+):
     """Forward one DecoderLayer in decode mode (T=1) using cached state.
 
     LYNN_MOE_IMPL env var selects MoE implementation:
@@ -299,20 +338,22 @@ def _decode_layer(h_new, position_id, layer_type, w, cfg, state, layer_idx):
       bmm          Phase 3.2.2 batched matmul
       indexed_bmm  Phase 3.2.2.5 pre-stacked grouped indexed_bmm
     """
-    import os
     from engine.incremental_decode import decode_full_attn, decode_linear_attn
 
     residual = h_new
     h_norm = _rms_norm(h_new, w["input_layernorm.weight"])
     if layer_type == "linear_attention":
-        recurrent_backend = os.environ.get("LYNN_LINEAR_ATTN_RECURRENT_BACKEND", "torch")
+        if recurrent_backend is None:
+            recurrent_backend = os.environ.get("LYNN_LINEAR_ATTN_RECURRENT_BACKEND", "torch")
         attn_out, new_state, new_conv = decode_linear_attn(
             h_norm, w,
             state.recurrent_state[layer_idx],
             state.conv_state[layer_idx],
             recurrent_backend=recurrent_backend,
         )
-        if os.environ.get("LYNN_LINEAR_STATE_UPDATE", "assign") == "inplace":
+        if linear_state_update is None:
+            linear_state_update = os.environ.get("LYNN_LINEAR_STATE_UPDATE", "assign")
+        if linear_state_update == "inplace":
             recurrent_target = state.recurrent_state[layer_idx]
             if recurrent_target.data_ptr() != new_state.data_ptr():
                 recurrent_target.copy_(new_state)
@@ -329,20 +370,9 @@ def _decode_layer(h_new, position_id, layer_type, w, cfg, state, layer_idx):
 
     residual = h
     h_norm = _rms_norm(h, w["post_attention_layernorm.weight"])
-    impl = os.environ.get("LYNN_MOE_IMPL", "optimized")
-    if impl == "optimized":
-        from engine.moe_optimized import moe_forward_decode_optimized as _moe
-    elif impl == "bmm":
-        from engine.moe_optimized import moe_forward_decode_bmm as _moe
-    elif impl == "indexed_bmm":
-        from triton_kernels.moe_expert_ffn import moe_forward_decode_indexed_bmm as _moe
-    elif impl == "triton":
-        from triton_kernels.moe_expert_ffn import moe_forward_decode_triton as _moe
-    elif impl == "packed_nvfp4":
-        from engine.moe_packed_nvfp4 import moe_forward_decode_packed_nvfp4 as _moe
-    else:
-        raise ValueError(f"Unknown LYNN_MOE_IMPL: {impl}")
-    moe_out = _moe(h_norm, w, cfg)
+    if moe_fn is None:
+        moe_fn = _resolve_decode_moe_impl(os.environ.get("LYNN_MOE_IMPL", "optimized"))
+    moe_out = moe_fn(h_norm, w, cfg)
     return residual + moe_out
 
 

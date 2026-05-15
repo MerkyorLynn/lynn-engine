@@ -77,6 +77,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P31 native active-MoE runtime gate** | `LYNN_NATIVE_ACTIVE_MOE_BACKEND=cuda_scalar` | 1.48-1.59x MoE-function speedup | ✅ opt-in exact,default still off |
 | **P32-P34 generate gate** | cuda_scalar full generate / graph / allowlist | 121.7 TPS but `!` loop; graph-off/allowlist still greedy drift | ❌ not promoted,fail-loud guard added |
 | **P35 sorted-router graph slot** | `LYNN_ROUTER_TOPK_SORTED=1` + full-token graph slot | 12/12 strict PASS,97.7-111.5 TPS replay | ✅ graph-slot line regains parity |
+| **P36 decode dispatch cleanup** | runner-fixed MoE/backend dispatch | 100.53 vs 100.55 TPS | ✅ exact,kept by default;not the 155 breakthrough |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -271,6 +272,15 @@ three prefix lengths, with `max_abs=0` on every row and **97.7-111.5 tok/s**
 replay. The current stable serving path may keep P20 unsorted top-k, but future
 graph-slot serving modes should force the sorted-router contract. See
 [`docs/LYNN_ENGINE_P35_SORTED_ROUTER_GRAPH_SLOT_20260516.md`](docs/LYNN_ENGINE_P35_SORTED_ROUTER_GRAPH_SLOT_20260516.md).
+
+P36 note: decode-time MoE implementation selection, linear-attention recurrent
+backend, and state-update policy are now fixed on the runner instead of being
+resolved inside every layer/token call. The R6000 gate reports exact greedy-id
+match, with legacy median **100.55 TPS** and fast-dispatch median
+**100.53 TPS**. This is a safe engineering cleanup and remains enabled by
+default, but it proves the remaining 100 -> 155 TPS gap is not simple Python
+dispatch overhead. See
+[`docs/LYNN_ENGINE_P36_DECODE_FAST_DISPATCH_20260516.md`](docs/LYNN_ENGINE_P36_DECODE_FAST_DISPATCH_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,
