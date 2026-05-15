@@ -61,6 +61,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P14 state refresh** | **0.79 ms roundtrip + 12.6 ms replay** | **~70-80 projected** | ✅ copy-cost green light,implementation pending |
 | **P15 correct runtime config** | **9.66 ms strict / 9.33 ms replay** | **103.48 / 107.23** | ✅ `LYNN_PACKED_DECODE=0`,shared expert stays BF16 |
 | **P16 active-MoE boundary** | **skip-active 5.75 ms replay / non-MoE 4.79 ms replay** | **173.8 / 208.8 upper bound** | 🔬 155 TPS requires a new grouped native-FP4 active expert kernel |
+| **P17 Triton FP4 dot_scaled** | **raw gate/up shape 0.0125 ms** | compute headroom ✅ | 🔬 layout passes,next blocker is scale contract |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -114,6 +115,13 @@ However, top-k approximation and block-size sweeps do not safely reach 155.
 The conclusion is that 155 TPS is not another environment toggle; it requires a
 new **grouped native-FP4 active expert kernel**. See
 [`docs/LYNN_ENGINE_P16_155TPS_ACTIVE_MOE_20260516.md`](docs/LYNN_ENGINE_P16_155TPS_ACTIVE_MOE_20260516.md).
+
+P17 note: Triton 3.6 `tl.dot_scaled(e2m1)` now passes a raw packed-FP4 layout
+probe on R6000. The real gate/up shape `1x2048 @ 2048x8192` takes only
+**0.0125 ms**, proving that FP4 tensor-core compute is not the bottleneck. The
+next blocker is wiring Lynn's per-16/e4m3 scale contract into grouped native
+dot. See
+[`docs/LYNN_ENGINE_P17_TRITON_DOT_SCALED_20260516.md`](docs/LYNN_ENGINE_P17_TRITON_DOT_SCALED_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,

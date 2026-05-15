@@ -63,6 +63,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P14 state refresh** | **0.79ms roundtrip + 12.6ms replay** | **~70-80 projected** | ✅ copy cost green-light,implementation pending |
 | **P15 correct runtime config** | **9.66ms strict / 9.33ms replay** | **103.48 / 107.23** | ✅ `LYNN_PACKED_DECODE=0`,shared BF16 保留 |
 | **P16 active-MoE boundary** | **skip-active 5.75ms replay / non-MoE 4.79ms replay** | **173.8 / 208.8 upper bound** | 🔬 155TPS 需要新 grouped native-FP4 active expert kernel |
+| **P17 Triton FP4 dot_scaled** | **raw gate/up shape 0.0125ms** | compute headroom ✅ | 🔬 layout 通过,下一关是 scale contract |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:
@@ -100,6 +101,8 @@ CUDA graph 说明:107 TPS 是严格 benchmark ceiling,不是默认 HTTP serving 
 P15 配置说明:不要把 `LYNN_PACKED_DECODE=1` 当成“更 packed 就更快”。R6000 实测它会把 full graph path 从 **103.48 tok/s** 拉低到 **88.15 tok/s**,因为 Q/K/V/O 等小 decode linear 走 generic packed native path 反而慢。当前正确配置是 MoE active experts packed、linear-attn fused native、lm_head native,但 **generic packed decode 关闭**;shared expert 也保留 BF16,因为 packed scalar/native shared 都更慢。详见 [`docs/LYNN_ENGINE_P15_RUNTIME_CONFIG_20260516.md`](docs/LYNN_ENGINE_P15_RUNTIME_CONFIG_20260516.md)。
 
 P16 155TPS 说明:profiling 证明非-MoE 路径 replay-only 可到 **208.8 tok/s**,skip active routed experts 可到 **173.8 tok/s**,但 top-k 近似和 block-size sweep 都无法安全到 155。结论是 155 不是再调 env var,而是要写新的 **grouped native-FP4 active expert kernel**。详见 [`docs/LYNN_ENGINE_P16_155TPS_ACTIVE_MOE_20260516.md`](docs/LYNN_ENGINE_P16_155TPS_ACTIVE_MOE_20260516.md)。
+
+P17 说明:Triton 3.6 的 `tl.dot_scaled(e2m1)` 已在 R6000 上通过 raw packed FP4 layout probe,真实 gate/up 形状 `1x2048 @ 2048x8192` 只需 **0.0125ms**。这证明 FP4 tensor-core compute 不是瓶颈;下一关是把 Lynn per-16/e4m3 scale contract 接进 grouped native dot。详见 [`docs/LYNN_ENGINE_P17_TRITON_DOT_SCALED_20260516.md`](docs/LYNN_ENGINE_P17_TRITON_DOT_SCALED_20260516.md)。
 
 Packed-resident memory 说明:当前默认 server 仍保留 BF16 shadow 以支持多请求 prefill。P11 已证明 session-scoped 生命周期中,prefill 后可以释放 56.47 GiB BF16 shadow,显存从 81.06 GiB 降到 24.59 GiB 且 greedy decode ids 完全一致。P12 进一步把这个能力接到 OpenAI server 的 opt-in one-shot 模式:首请求释放 56.47 GiB,第二请求明确 HTTP 409 fail-loud;并验证 release 后 current-position graph slot 仍与 eager decode exact match。详见 [`docs/LYNN_ENGINE_P11_PACKED_RESIDENT_MEMORY_20260515.md`](docs/LYNN_ENGINE_P11_PACKED_RESIDENT_MEMORY_20260515.md) 和 [`docs/LYNN_ENGINE_P12_ONESHOT_SERVER_20260515.md`](docs/LYNN_ENGINE_P12_ONESHOT_SERVER_20260515.md)。
 
