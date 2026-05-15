@@ -74,6 +74,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P28 native gate/up contract** | CUDA scalar gate/up | 0.035 ms/layer | ✅ cosine≈1.0 contract pass;not speed-promoted |
 | **P29 native down contract** | CUDA scalar down | 0.030 ms/layer | ✅ cosine=1.0,active-MoE contract complete |
 | **P30 native active-MoE contract** | CUDA scalar gate/up + down | 0.064-0.068 ms/layer | ✅ full active routed expert path exact |
+| **P31 native active-MoE runtime gate** | `LYNN_NATIVE_ACTIVE_MOE_BACKEND=cuda_scalar` | 1.48-1.59x MoE-function speedup | ✅ opt-in exact,default still off |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -242,6 +243,15 @@ default. But P27-P30 now cover native extension build, gate/up, down, and full
 active-MoE data-contract correctness. The next TPS-relevant work is replacing
 the scalar inner loops with grouped native-FP4 tensor-core math. See
 [`docs/LYNN_ENGINE_P30_NATIVE_ACTIVE_MOE_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P30_NATIVE_ACTIVE_MOE_CONTRACT_20260516.md).
+
+P31 note: after wiring the P30 native active-MoE scalar path into the production
+`moe_forward_decode_packed_nvfp4` function, the native backend is **1.48-1.59x
+faster** than the default Triton backend at the function boundary, while
+remaining exact across four representative layers. This likely removes part of
+the Python/Triton wrapper overhead. It is still opt-in and off by default;
+promotion requires full-token decode parity, full graph/server TPS measurement,
+and tool-call/no-think guard coverage. See
+[`docs/LYNN_ENGINE_P31_NATIVE_ACTIVE_MOE_RUNTIME_GATE_20260516.md`](docs/LYNN_ENGINE_P31_NATIVE_ACTIVE_MOE_RUNTIME_GATE_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,

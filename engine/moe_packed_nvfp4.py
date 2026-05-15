@@ -30,6 +30,38 @@ def _env_bool(name: str, default: bool) -> bool:
     return raw.lower() not in {"0", "false", "no", "off"}
 
 
+def _active_moe_native_cuda_scalar(
+    hidden: torch.Tensor,
+    expert_ids: torch.Tensor,
+    routing_weights: torch.Tensor,
+    w: dict,
+) -> torch.Tensor:
+    """Opt-in native CUDA scalar contract path.
+
+    This is intentionally slower than the Triton default today. It exists so
+    the real grouped native-FP4 kernel can replace the scalar inner loops behind
+    the same runtime contract.
+    """
+    from engine.native_cuda import load_lynn_native_extension
+
+    ext = load_lynn_native_extension(verbose=_env_bool("LYNN_NATIVE_CUDA_VERBOSE", False))
+    inter = ext.gate_up_silu_scalar(
+        hidden,
+        expert_ids,
+        w["mlp.experts._gate_up_packed"],
+        w["mlp.experts._gate_up_scale"],
+        w["mlp.experts._gate_up_global_scale"],
+    )
+    return ext.down_weighted_sum_scalar(
+        inter,
+        expert_ids,
+        routing_weights,
+        w["mlp.experts._down_packed"],
+        w["mlp.experts._down_scale"],
+        w["mlp.experts._down_global_scale"],
+    )
+
+
 def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
     """Decode-only MoE using packed NVFP4 expert weights.
 
@@ -79,27 +111,36 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
     if os.environ.get("LYNN_MOE_PROFILE_SKIP_ACTIVE", "0") == "1":
         moe_out = torch.zeros_like(h_flat)
     else:
-        inter = nvfp4_grouped_gate_up_silu(
-            hidden,
-            expert_ids,
-            w["mlp.experts._gate_up_packed"],
-            w["mlp.experts._gate_up_scale"],
-            w["mlp.experts._gate_up_global_scale"],
-            block_inter=_env_int("LYNN_MOE_GATE_BLOCK_INTER", 8),
-            block_hidden=_env_int("LYNN_MOE_GATE_BLOCK_HIDDEN", 256),
-            num_warps=_env_int("LYNN_MOE_GATE_NUM_WARPS", 4),
-        )
-        moe_out = nvfp4_grouped_down_weighted_sum(
-            inter,
-            expert_ids,
-            routing_weights,
-            w["mlp.experts._down_packed"],
-            w["mlp.experts._down_scale"],
-            w["mlp.experts._down_global_scale"],
-            block_hidden=_env_int("LYNN_MOE_DOWN_BLOCK_HIDDEN", 8),
-            block_inter=_env_int("LYNN_MOE_DOWN_BLOCK_INTER", 512),
-            num_warps=_env_int("LYNN_MOE_DOWN_NUM_WARPS", 8),
-        ).reshape_as(h_flat)
+        backend = os.environ.get("LYNN_NATIVE_ACTIVE_MOE_BACKEND", "triton")
+        if backend == "cuda_scalar":
+            moe_out = _active_moe_native_cuda_scalar(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
+        elif backend == "triton":
+            inter = nvfp4_grouped_gate_up_silu(
+                hidden,
+                expert_ids,
+                w["mlp.experts._gate_up_packed"],
+                w["mlp.experts._gate_up_scale"],
+                w["mlp.experts._gate_up_global_scale"],
+                block_inter=_env_int("LYNN_MOE_GATE_BLOCK_INTER", 8),
+                block_hidden=_env_int("LYNN_MOE_GATE_BLOCK_HIDDEN", 256),
+                num_warps=_env_int("LYNN_MOE_GATE_NUM_WARPS", 4),
+            )
+            moe_out = nvfp4_grouped_down_weighted_sum(
+                inter,
+                expert_ids,
+                routing_weights,
+                w["mlp.experts._down_packed"],
+                w["mlp.experts._down_scale"],
+                w["mlp.experts._down_global_scale"],
+                block_hidden=_env_int("LYNN_MOE_DOWN_BLOCK_HIDDEN", 8),
+                block_inter=_env_int("LYNN_MOE_DOWN_BLOCK_INTER", 512),
+                num_warps=_env_int("LYNN_MOE_DOWN_NUM_WARPS", 8),
+            ).reshape_as(h_flat)
+        else:
+            raise ValueError(
+                "LYNN_NATIVE_ACTIVE_MOE_BACKEND must be 'triton' or 'cuda_scalar', "
+                f"got {backend!r}"
+            )
 
     if os.environ.get("LYNN_MOE_PROFILE_SKIP_SHARED", "0") == "1":
         return moe_out.to(h.dtype).reshape_as(h)
