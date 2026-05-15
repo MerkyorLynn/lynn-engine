@@ -31,10 +31,16 @@
 
 ### Reader 兼容性
 
-| Format | Reader |
+| Format | Reader 与运行路径 |
 |---|---|
-| Lynn-native `nvfp4_e2m1_rowwise_per_16`(this) | **只 Lynn engine** ✓(其他全 ❌)|
-| `v8-RTN compressed-tensors`(V Flash 用过的格式) | SGLang dev-cu13 ✓ / llama.cpp ✗ |
+| Lynn-native `nvfp4_e2m1_rowwise_per_16`(this) | **只 Lynn engine fail-loud loader** ✓(其他全 ❌)。文件层面可保 packed ~20G,但**当前 resident_runner 仍有 BF16 shadow**(加载时 slow dequant 到 BF16 resident),运行显存还**没完全吃到 20G 红利** — 减 shadow 是 P9+ resident_runner 待做项。 |
+| `v8-RTN compressed-tensors`(V Flash 用过的格式) | SGLang dev-cu13 ✓ — **可走 `CompressedTensorsW4A4Nvfp4MoE` native-ish path**,不必是"全 dequant 到 BF16 再 GEMM";但**它是通用框架 loader 格式,不是 Lynn 项目可控的 variable-expert runtime 格式**(拿不到 per-layer 不同 expert 数 / per-tensor 量化决策 fine-grained control)。llama.cpp ✗。|
+
+### Native FP4 算力潜力 — 定性(不是已实现数字)
+
+- **2× BF16 算力**(Blackwell sm_120/121 FP4 tensor core 设计上限)= **目标上限 / 硬件路径**,**不是 Lynn engine 当前全链路已经达到的数字**
+- 当前 Spark sm_121 上 27B NVFP4 跑 `backend=scalar_bridge`,**不走 native FP4 GEMM**;native_prepared path 切换实验是本分支 portability 验证项之一
+- 任何 model card / 知乎稿 / 宣传材料提及 "2× BF16 算力" 必带 framing:**"硬件理论上限 / Lynn engine 正向其推进"**,不能写 "已达成"
 
 ### Server 启动
 
