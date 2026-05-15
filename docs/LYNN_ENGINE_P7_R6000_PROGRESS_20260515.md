@@ -1,0 +1,1325 @@
+# Lynn Engine P7 R6000 Progress - 2026-05-15
+
+## Context
+
+Target hardware is RTX PRO 6000 Blackwell 96GB. The short-term serving target is
+50 TPS, mid-term target is 100 TPS, long-term target is native NVFP4/FP4 above
+200 TPS.
+
+The current model under active engine work is:
+
+```text
+/root/autodl-tmp/models/lynn-27b-variable-skeleton-v0-nvfp4
+```
+
+This is the Lynn-native variable-expert NVFP4 artifact, not the public
+compressed-tensors v8-RTN variant.
+
+## Completed Gates
+
+### P7-E: Linear Block Graph Reuse
+
+Change:
+
+```text
+LYNN_LINEAR_BLOCK_GRAPH_REUSE=1
+```
+
+Effect:
+
+```text
+First request: captures 10 linear-attn block CUDA graphs.
+Subsequent requests: capture cost = 0.0s, graph slot reused.
+```
+
+Measured:
+
+```text
+8-token repeated request:
+  before reuse first request: ~4.3 request TPS
+  after reuse subsequent requests: ~11.2 request TPS
+
+32-token request:
+  before reuse: ~27.1 request TPS
+  after reuse:  ~29.8 request TPS
+```
+
+Result: PASS. Reuse is now opt-in and does not alter default behavior.
+
+### P7-F: RMSNormGated Triton Dispatch
+
+Change:
+
+```text
+LYNN_RMSNORM_GATED_BACKEND=triton
+```
+
+Measured on real generate path:
+
+```text
+decode TPS: ~65 -> ~68.3 TPS
+32-token request TPS: ~29.6-30.5
+128-token request TPS: ~37.0
+```
+
+Result: PASS. This is a real generate-path gain, not only a microbench gain.
+
+### P7-G: Pair Q/K Norm+RoPE Kernel
+
+Change:
+
+```text
+LYNN_QK_NORM_ROPE_BACKEND=triton_pair
+```
+
+Result:
+
+```text
+Correctness: real generate path did not fail.
+Performance: steady-state TPS roughly unchanged (~68 TPS).
+```
+
+Conclusion: Keep as opt-in. It is not the next main speed lever.
+
+### P7-H: Linear Graph Prewarm
+
+Change:
+
+```text
+LYNN_LINEAR_BLOCK_GRAPH_PREWARM=1
+```
+
+Effect:
+
+```text
+Graph capture moved from first user request into runner warmup.
+First 8-token request improved from ~4.3 TPS to ~8.2 TPS.
+```
+
+Result: PASS.
+
+### P7-I: Prefill Warmup
+
+Change:
+
+```text
+LYNN_PREFILL_WARMUP=1
+```
+
+Effect:
+
+```text
+Tiny dummy prefill runs during runner warmup to compile/cache prefill kernels.
+First 8-token request improved again to ~10.6 TPS.
+Subsequent 8-token requests remain ~11.1 TPS.
+32-token request remains ~30.2 TPS.
+```
+
+Result: PASS.
+
+## Current Best Serving Env
+
+```bash
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+export LYNN_PREFILL_WARMUP=1
+export LYNN_LINEAR_ATTN_RECURRENT_BACKEND=triton_fused_prepare
+export LYNN_MOE_IMPL=triton
+export LYNN_QK_NORM_ROPE_BACKEND=triton_pair
+export LYNN_RMSNORM_GATED_BACKEND=triton
+export LYNN_LINEAR_ATTN_INPROJ_FUSED=1
+export LYNN_LINEAR_BLOCK_GRAPH=1
+export LYNN_LINEAR_BLOCK_GRAPH_REUSE=1
+export LYNN_LINEAR_BLOCK_GRAPH_PREWARM=1
+export LYNN_LINEAR_STATE_UPDATE=inplace
+```
+
+Measured smoke:
+
+```text
+6 prompt coherence smoke: PASS
+decode TPS per prompt: ~66.6-68.7 TPS
+graph capture per request: 0.0s
+prefill per request: ~0.60-0.64s after warmup
+```
+
+## Ceiling And Bottlenecks
+
+Full-token CUDA graph ceiling with current kernels:
+
+```text
+eager full token: 29.84ms = 33.5 TPS
+CUDA graph full token: 12.70ms = 78.7 TPS
+```
+
+Re-run confirmation after P8 changes:
+
+```text
+eager full token:      30.32ms = 32.98 TPS
+CUDA graph full token: 12.68ms = 78.85 TPS
+```
+
+This is stable and reproducible. It is a ceiling probe, not the current default
+server loop, but it is much more trustworthy than the less stable
+`torch.compile` 81 TPS experiment.
+
+This means scheduling/graphing alone does not reach 100 TPS. The next 100 TPS
+work must attack kernel internals and resident memory layout.
+
+Current full-attn layer profile, layer 31:
+
+```text
+layer.full_recomposed:       1.152ms
+moe.active_expert_loop:      0.405ms
+attn.qk_norm:                0.125ms
+attn.rope_apply:             0.116ms
+moe.shared_expert:           0.062ms
+input/post RMSNorm:          ~0.061ms each
+```
+
+The 30 linear-attention layers are the biggest eager-path cost:
+
+```text
+linear-attn sum eager: ~21.65ms
+full-attn sum eager:   ~7.76ms
+```
+
+But graphing the linear-attn blocks has already removed most of that cost from
+the serving decode loop. The remaining route to 100 TPS is:
+
+1. keep graph slot reuse and warmups for productized serving;
+2. improve full-attn/MoE hot path;
+3. introduce packed-resident NVFP4 to remove slow-dequant BF16 resident memory;
+4. only then revisit native FP4 kernels for larger fused blocks.
+
+## Memory Direction
+
+The current runtime still slow-dequants Lynn-native NVFP4 into BF16 resident
+weights. The manifest math says:
+
+```text
+Original BF16-equivalent quantized matrices: ~57.5 GiB
+Packed NVFP4 payload:                       ~18.0 GiB
+Potential resident release:                 ~35-40 GiB
+```
+
+Native/packed resident therefore matters for both memory and future speed. It
+is also the real path toward the long-term >200 TPS target.
+
+## Artifact Transfer
+
+A100 final step5000 artifacts:
+
+```text
+BF16 final:  /mnt/data4/lynn-27b-work/merged/lynn-27b-variable-recovery-step5000-bf16-final
+NVFP4 final: /mnt/data5/lynn-27b-variable-recovery-step5000-nvfp4-final
+```
+
+Validation:
+
+```text
+BF16 structural validation: PASS
+BF16 greedy 2-token sanity: PASS
+NVFP4 paired tensor validation: PASS, failures=0
+NVFP4 greedy 2-token sanity: PASS, generated "MoE"
+```
+
+Transfer A100 -> R6000 is running via rsync with resume:
+
+```text
+NVFP4 first, then BF16.
+Observed speed: ~3.5-4.0 MB/s.
+Stable but slow; safe because rsync uses --partial --inplace.
+```
+
+## Next Steps
+
+Immediate:
+
+1. Let A100 -> R6000 final artifact transfer continue.
+2. Add packed-resident loader path that keeps selected decode matrices as
+   `PackedNVFP4Linear` instead of dequantized BF16 tensors.
+
+## P9-A Packed Decode Bridge Check (Final step5000)
+
+After the final step5000 NVFP4 artifact landed on R6000, we reran the main
+serving probes against the final model rather than the earlier skeleton:
+
+```text
+6-prompt 32-token smoke:
+  decode TPS: 66.62 / 68.27 / 68.28 / 68.24 / 68.44 / 67.89
+  output:     coherent 6/6
+
+request amortization:
+  8-token #1:  request 10.70 TPS, decode 62.19 TPS
+  8-token #2:  request 11.36 TPS, decode 68.35 TPS
+  32-token:    request 30.33 TPS, decode 68.18 TPS
+
+manual CUDA graph ceiling:
+  eager:       30.27ms = 33.04 TPS
+  cuda graph:  12.66ms = 79.00 TPS
+```
+
+Then we tested the existing packed decode bridge on the final artifact:
+
+```text
+LYNN_PACKED_DECODE_FULL_ATTN=1
+LYNN_PACKED_DECODE_BACKEND=scalar_bridge
+
+attached packed aliases: 190
+8-token smoke: PASS
+decode TPS: ~55-62 TPS
+```
+
+This proves the full-attention packed alias plumbing is still correct on the
+final 27B artifact, but the scalar bridge is slower than the BF16 resident
+path. It should remain a correctness/integration bridge.
+
+Native packed decode also runs correctly:
+
+```text
+LYNN_PACKED_DECODE_FULL_ATTN=1
+LYNN_PACKED_DECODE_BACKEND=native_fast_2d
+
+32-token smoke: PASS
+decode TPS before native layout prewarm: ~59.5 TPS
+```
+
+We added:
+
+```text
+LYNN_PACKED_DECODE_PREPARE_NATIVE=1
+```
+
+This prepares the native scale swizzle / weight view at load time:
+
+```text
+native_prepared=190
+32-token smoke: PASS
+decode TPS after prewarm: ~63.1 TPS
+```
+
+Takeaway: the native packed bridge is functional, but replacing only
+full-attention decode projections is not enough to beat the BF16 resident path.
+The 100 TPS route remains:
+
+1. keep the current 66-68 TPS BF16-resident serving path as default;
+2. use packed decode as a fail-loud integration bridge;
+3. implement packed-resident memory ownership to stop materializing all
+   quantized decode matrices as BF16;
+4. fuse larger hot-path blocks rather than swapping individual tiny matvecs.
+3. Start with decode-only selected projections, preserving BF16 prefill path.
+4. Re-run 6-prompt smoke and P7 request amortization after every opt-in switch.
+
+Do not globally enable native_scaled_mm yet. P7-G showed the current native FP4
+single-matmul route is not the main speed lever. Packed resident is the correct
+next structural step.
+
+## P9-B Packed-Resident Coverage And Live Memory Baseline
+
+Added a static manifest coverage probe:
+
+```text
+benchmarks/p9b_packed_resident_coverage.py
+```
+
+It reads `lynn_quant_manifest.json` and classifies every quantized tensor by
+hot path. On the final step5000 27B NVFP4 artifact:
+
+```text
+Current quantized tensors materialized as BF16: 57.54 GiB
+Packed NVFP4 payload for those tensors:         17.98 GiB
+Extra native scale_b if all prepared:            1.80 GiB
+Kept BF16 tensors(embed/lm_head/norms/etc.):     1.93 GiB
+Current total resident model weights:           59.47 GiB
+Packed+kept resident target:                    19.91 GiB
+Releasable without native scale:                39.56 GiB
+Releasable with native scale:                   37.76 GiB
+```
+
+Live runner measurement with the current best serving env:
+
+```text
+CUDA allocated after load:      60.17 GiB
+CUDA reserved after load:       60.48 GiB
+CUDA max allocated during load: 68.21 GiB
+CUDA max reserved during load:  69.69 GiB
+```
+
+The static manifest math and live CUDA allocator numbers agree closely, so the
+packed-resident memory model is trustworthy.
+
+Hot-path split:
+
+```text
+moe.experts.gate_up:        36.05 GiB BF16 -> 11.27 GiB packed
+moe.experts.down:           18.03 GiB BF16 ->  5.63 GiB packed
+linear-attention layers:    42.69 GiB BF16 -> 13.34 GiB packed
+full-attention layers:      14.01 GiB BF16 ->  4.38 GiB packed
+```
+
+Interpretation:
+
+1. The largest memory win is MoE expert ownership, not attention alone.
+2. The packed-resident target should reduce weight residency from ~60 GiB to
+   ~20 GiB before KV/state/cache overhead.
+3. Per-projection packed calls are already proven correct but slower. Do not
+   default-enable them.
+4. The next engineering step is larger fused blocks. For TPS, continue reducing
+   launch structure around linear-attn/full-attn blocks. For memory, the big
+   unlock is MoE active-expert packed resident plus a fused expert kernel.
+
+## P9-C Final Step5000 Hot-Path Reprofile
+
+Re-ran the full-token profile on the final step5000 NVFP4 artifact after fixing
+the benchmark scripts to keep `LYNN_MOE_IMPL=triton` active during runner
+construction. The old scripts temporarily fell back to Python `optimized` MoE
+before runner init; with graph prewarm enabled that could call `torch.unique`
+inside CUDA graph capture and invalidate the capture. Patched:
+
+```text
+benchmarks/p6_full_token_profile.py
+benchmarks/p6m_cuda_graph_full_token_probe.py
+benchmarks/p6q_hybrid_block_graph_full_token_probe.py
+```
+
+Final step5000 profile:
+
+```text
+eager full token: 30.32ms = 32.99 TPS
+linear-attention layers: 30 layers, 21.66ms total, 0.722ms avg
+full-attention layers:   10 layers,  7.55ms total, 0.755ms avg
+slowest layer: layer 35 full-attn, 0.865ms
+```
+
+Manual CUDA graph ceiling after the probe fix:
+
+```text
+eager full token:       30.75ms = 32.52 TPS
+cuda graph full token:  12.67ms = 78.90 TPS
+speedup:                2.43x
+```
+
+This confirms the 78-79 TPS graph ceiling is stable on the final model. It also
+explains the current serving behavior: graphing and reusing the linear-attention
+blocks removes much of the 21.66ms launch structure, yielding the stable
+66-68TPS serving path. The remaining route to 100TPS is no longer parameter
+tweaking; it is either:
+
+1. productize full-token graph replay with correct mutable token/state buffers;
+2. fuse the residual full-attn/MoE hot path; or
+3. introduce packed-resident fused kernels that reduce both memory traffic and
+   launch count.
+
+## P9-D Full-Token Graph Replay Parity
+
+Added:
+
+```text
+benchmarks/p9d_full_token_graph_replay_parity.py
+```
+
+P6-M replayed the same static token/state and only established a ceiling. P9-D
+is the first productization gate: capture one full-token CUDA graph, mutate the
+input token buffer before replay, restore the prompt state, and compare logits
+against eager for each token.
+
+Final step5000 result:
+
+```text
+tokens tested: 271 / 272 / 273
+max_abs diff:  0.0 for all three
+cosine:        1.0 for all three
+top1 match:    true for all three
+top10 overlap: 10/10 for all three
+verdict:       PASS
+```
+
+This proves the captured full-token graph can consume dynamic token-buffer
+contents exactly. The next serving obstacle is not graph replay correctness; it
+is position/KV-slot discipline for advancing sequence length safely. P9-E should
+therefore implement a fixed-shape graph slot with mutable:
+
+```text
+token_buf      [1, 1]
+pos_buf        [1, 1]
+kv write slot  fixed per graph or graph-family bucket
+state buffers  restored/advanced under explicit ownership
+```
+
+Once P9-E passes multi-step greedy parity, the 78-79TPS ceiling becomes a real
+serving target rather than a benchmark-only number.
+
+## P9-E Full-Token Graph Family Greedy Gate
+
+Added:
+
+```text
+benchmarks/p9e_full_token_graph_family_greedy.py
+```
+
+This captures a small family of full-token graphs, one fixed position per
+decode step, then replays them sequentially for greedy generation. Result on
+the final step5000 model:
+
+```text
+max_new:          4
+graph ids:        [248068, 271, 248069, 271]
+eager ids:        [248068, 271, 248069, 271]
+greedy_pass:      true
+strict_logit_pass false
+avg replay:       15.12ms = 66.12 TPS
+```
+
+Interpretation:
+
+1. Multi-step graph-family decode can advance generation and preserve greedy
+   token choices.
+2. Strict logits are not bit-exact under the current graph/eager comparison
+   harness, but top-1 stayed identical for all four steps.
+3. The graph-family path does not yet inherit the static P6-M 78-79TPS ceiling;
+   it lands near the current serving path (~66TPS). This may be because the
+   parity harness restores large state snapshots between replay steps, causing
+   cold-cache behavior, or because the graph family captures more conservative
+   state mutation than the static ceiling probe.
+
+P9-F should therefore split the work:
+
+```text
+P9-F1: graph-family warm replay timing without state snapshot restore;
+P9-F2: serving-style graph bucket with mutable token/position buffers;
+P9-F3: if still ~66TPS, stop graph productization and return to fused kernels.
+```
+
+P9-F1 quick stress result using the same graph-family gate with `max_new=16`:
+
+```text
+first 8 tokens: graph greedy == eager greedy
+from token 9:   greedy begins to drift
+avg replay:     14.46ms = 69.16 TPS
+```
+
+This sets a useful boundary: graph-family replay is viable as a short decode
+window, but not yet as an unbounded serving loop. A practical serving design may
+need periodic eager refresh / recapture every ~8 tokens, or a stricter capture
+discipline that initializes graph-family state progressively before capture.
+
+## P8-A/B/C/D Packed Decode Alias Gate
+
+2026-05-15 late afternoon update: implemented decode-only packed aliases behind
+opt-in env flags:
+
+```text
+LYNN_PACKED_DECODE=1                 # all decode projections
+LYNN_PACKED_DECODE_LINEAR_ATTN=1     # linear-attn projections only
+LYNN_PACKED_DECODE_FULL_ATTN=1       # full-attn projections only
+LYNN_PACKED_DECODE_BACKEND=scalar_bridge|native_fast_2d
+```
+
+The key contract is that BF16/dequantized weights remain under the original
+`.weight` keys for prefill. Decode may look up `.weight.packed` aliases via
+`PackedNVFP4Linear`. This avoids the multi-token prefill failure mode while
+letting us validate packed NVFP4 wiring end-to-end.
+
+Results on R6000, 27B variable skeleton:
+
+```text
+baseline P7-I decode TPS:                  ~66-68 tok/s
+P8-A all packed, scalar_bridge:             23.8 tok/s (4-token)
+P8-B all packed, native_fast_2d:            19.5 tok/s (4-token)
+P8-C linear-attn packed only, scalar_bridge 23.7 tok/s (4-token)
+P8-D full-attn packed only, scalar_bridge   27.4 tok/s (4-token)
+```
+
+Verdict:
+
+1. Packed decode alias plumbing is correct enough to generate coherent text.
+2. Scalar bridge and current PyTorch `_scaled_mm` fastpath are not production
+   speed paths.
+3. Packed resident remains a memory-architecture milestone, not a speed win
+   until we replace per-projection scalar/native calls with larger fused kernels.
+4. The 100 TPS route should not flip these env flags by default. Keep P7-I as
+   the current best serving path, and use P8 aliases as the integration harness
+   for future fused native kernels.
+
+P8-F also ruled out the final projection as the hidden 100 TPS blocker:
+
+```text
+embedding lookup: 0.008ms
+final RMSNorm:    0.063ms
+lm_head:          0.666ms
+argmax:           0.011ms
+```
+
+The lm_head is visible but not dominant. The remaining gap from ~68 TPS to
+100 TPS sits in the per-layer decode kernels / launch structure, not the final
+vocab projection.
+
+## P8-G OpenAI HTTP Smoke
+
+Started the Lynn OpenAI-compatible server with the current best R6000 env and
+ran one `/v1/chat/completions` request:
+
+```text
+endpoint: http://127.0.0.1:18099/v1/chat/completions
+model:    lynn-27b-nvfp4-engine
+prompt:   用一句话解释 MoE active parameters
+result:   coherent Chinese answer
+request tokens/s: 28.86 including ~0.64s prefill
+decode TPS:       66.69
+graph capture:    0.0s, reused=true
+```
+
+The server was stopped after the smoke to free the R6000 GPU. This proves the
+current 66-68 decode TPS path is reachable through the OpenAI-compatible entry,
+not only benchmark scripts.
+
+## P8-H OpenAI Tool-Call Smoke
+
+Patched `server/openai_http.py` to accept OpenAI-compatible `tools` and parse
+Qwen XML tool calls into `message.tool_calls`.
+
+Tool smoke:
+
+```text
+prompt: 北京今天天气怎么样？
+tool:   get_weather(location: string)
+result: tool_calls[0].function.name      = get_weather
+        tool_calls[0].function.arguments = {"location": "北京"}
+finish_reason: tool_calls
+decode TPS: 66.31
+```
+
+This closes an important serving gap: Lynn engine can now expose a real
+OpenAI-compatible tool-call response on the R6000 path. The server was stopped
+after the test to keep the GPU free for ongoing engine work.
+
+## P8-I Torch Compile Full-Token Probe
+
+Ran a one-off `torch.compile(..., mode="reduce-overhead")` probe around the
+single-token decode wrapper. This is not enabled in normal serving yet; the goal
+was to measure whether PyTorch compiler capture can beat the manual CUDA graph
+ceiling from P7-F.
+
+Measured on R6000, 27B variable skeleton:
+
+```text
+eager full token:       32.82ms = 30.47 TPS
+compiled full token:    12.33ms = 81.10 TPS
+speedup:                 2.66x
+compiled first call:     53.47s
+compile wrapper cost:   616.22ms
+verdict: PASS
+```
+
+The compiler warned that CUDA graphs were skipped for mutated inputs:
+
+```text
+skipping cudagraphs due to mutated inputs
+state.conv_state[layer_idx].copy_(new_conv)
+```
+
+Interpretation:
+
+1. `torch.compile` is a valid resident-service experiment and slightly beats the
+   current manual full-token graph ceiling (~78.7 TPS -> ~81.1 TPS).
+2. The first-call compile cost is large, so this is not a cold-start path.
+3. This still does not reach the 100 TPS target. The remaining gap requires
+   fused per-layer decode kernels / packed-resident native kernels, not only
+   scheduler or compiler wrapping.
+4. Keep the P7-I env as the default stable serving path. Treat P8-I as an
+   opt-in benchmark branch until it is integrated into server warmup with
+   deterministic cache behavior.
+
+Follow-up script hardening:
+
+```text
+Inductor cudagraph trees ON:  saw 81.10 TPS once, but can trip CUDA allocator
+                              assertions with mutable Triton state.
+Inductor cudagraph trees OFF: stable script run, but compiled path regressed to
+                              35.30ms = 28.33 TPS.
+```
+
+So P8-I is a useful ceiling signal, not a production switch. The stable serving
+branch remains P7-I, and the stable graph ceiling remains the manual CUDA graph
+probe (~78.7 TPS) until full-token graph replay is integrated deliberately.
+
+## P8-J Recurrent State In-Place Update Probe
+
+Implemented an opt-in recurrent state update path:
+
+```text
+LYNN_LINEAR_ATTN_RECURRENT_INPLACE=1
+```
+
+The Triton recurrent gated-delta kernel can now write `s_new` directly back
+into the resident recurrent state tensor. `_decode_layer` skips the redundant
+`copy_` when the returned tensor already aliases the resident state.
+
+Measured on R6000 with the current best serving env plus the new flag:
+
+```text
+6-prompt coherence smoke: PASS
+decode TPS range:          67.18 - 68.81 tok/s
+
+8-token request #1:        10.76 request TPS, 62.55 decode TPS
+8-token request #2:        11.35 request TPS, 68.69 decode TPS
+32-token request:          30.45 request TPS, 68.72 decode TPS
+```
+
+Verdict:
+
+1. Correctness passes; the in-place recurrent state path is safe as an opt-in.
+2. It does not move the throughput needle under the graph-reuse serving path.
+3. This rules out recurrent state copy-back as the main 68 -> 100 TPS blocker.
+   The remaining work is still fused per-layer decode kernels / packed-resident
+   native kernels rather than state-copy cleanup.
+
+## P9-F Hot-Path Profiling For 100 TPS
+
+After P9-D/P9-E proved full-token CUDA graph replay is numerically viable but
+not yet a direct 100 TPS serving path, the next step was to profile the remaining
+decode hot path on the final 27B step5000 NVFP4 artifact.
+
+### Full-Attention Layer 35
+
+Initial full-attention segment profiling showed a large `moe.active_expert_loop`
+when using the manual decomposition path. A follow-up MoE kernel probe clarified
+that this was not the production serving path:
+
+```text
+optimized active loop: 1.009 ms
+indexed bmm stacked:  0.205 ms
+triton two-kernel:    0.177 ms
+speedup vs loop:      5.69x
+cosine vs reference:  0.9999987
+```
+
+Interpretation: production Triton MoE is already doing the right thing. MoE is
+still important, but the old manual active-expert loop should not be treated as
+the current 100 TPS blocker.
+
+### Linear-Attention Layer 29
+
+The representative linear-attention layer profile under the current best R6000
+serving env:
+
+```text
+layer.full_recomposed:     0.709 ms
+linear_attn.core_decode:   0.268 ms
+moe.triton_full:           0.184 ms
+input rmsnorm:             0.065 ms
+post-attn rmsnorm:         0.063 ms
+```
+
+Breaking `linear_attn.core_decode` down further:
+
+```text
+full_decode_recomposed: 0.334 ms
+rmsnorm_gated:         0.078 ms
+a_projection_g:        0.056 ms
+recurrent_rule:        0.040 ms
+conv_update:           0.033 ms
+qkv_projection:        0.027 ms
+```
+
+No single segment is a 10 ms monster. The 68 -> 100 TPS gap is now a set of
+small launch and fusion costs repeated across 30 linear-attention layers.
+
+The existing fused qkv/z/b/a input projection path is still worth keeping:
+
+```text
+without fused in-proj: linear_attn.core_decode 0.294 ms
+with fused in-proj:    linear_attn.core_decode 0.268 ms
+single-layer win:      ~0.026 ms
+30-layer rough win:    ~0.75 ms/token
+```
+
+This is not enough by itself to reach 100 TPS, but it is a stable cumulative
+win and confirms that repeated small launch reductions matter at 30-layer scale.
+
+### Static A-log Decode Constant
+
+Implemented a small cleanup that precomputes `-exp(A_log)` once per
+linear-attention layer and reuses it in prefill/decode. This avoids redoing a
+static elementwise op every token. The measured layer29 result stayed within
+noise:
+
+```text
+before: layer.full_recomposed 0.709 ms
+after:  layer.full_recomposed 0.716 ms
+```
+
+Verdict: keep the cleanup because it is safe and removes unnecessary work, but
+do not count it as a performance win. The next real performance work should
+focus on fused linear-attention core pieces and packed-resident/native kernels,
+not constant folding.
+
+### Native FP4 Projection Gate On Final 27B
+
+Retested the existing `torch._scaled_mm` native FP4 bridge on the final 27B
+step5000 NVFP4 artifact, layer 29.
+
+Full linear-attention replacement:
+
+```text
+native vs scalar cosine: 0.9789
+native vs scalar rel_l2: 0.2077
+resident decode:         0.509 ms
+scalar bridge decode:    0.682 ms
+native scaled_mm decode: 0.872 ms
+verdict: FAIL
+```
+
+Single qkv projection replacement:
+
+```text
+native vs scalar cosine: 0.9928
+native vs scalar rel_l2: 0.1211
+resident decode:         0.497 ms
+scalar bridge decode:    0.568 ms
+native scaled_mm decode: 0.646 ms
+verdict: PASS quality, FAIL speed
+```
+
+Conclusion: the current generic `torch._scaled_mm` bridge is useful as a
+correctness and API probe, but it is not the R6000 100 TPS path for single-token
+decode. Native FP4 remains strategically important for packed residency and
+future 200 TPS work, but the next practical 100 TPS work should stay on custom
+fused decode kernels / block scheduling rather than swapping projections to the
+generic scaled-mm path.
+
+### QK Norm + RoPE Pair Backend
+
+Retested the current 6-prompt 32-token smoke with:
+
+```text
+LYNN_QK_NORM_ROPE_BACKEND=triton_pair
+```
+
+Result: all six prompts completed coherently and reused the prewarmed linear
+block graphs. Decode TPS ranged from ~67.9 to ~69.2 tok/s. This is only a small
+gain over the previous `triton` setting, but it is the right default because it
+fuses q/k norm+RoPE for the 10 full-attention layers without changing model
+math. The recommended R6000 env now uses `triton_pair`.
+
+Request amortization with the same env:
+
+```text
+8 max_new:   10.47 request TPS / 63.60 decode TPS
+32 max_new:  30.02 request TPS / 69.01 decode TPS
+128 max_new: 36.39 request TPS / 68.47 decode TPS
+```
+
+The stable decode ceiling should be described as ~68-69 TPS after this change,
+not 66-68 TPS.
+
+## P9-H Full-Attention Graph Probe
+
+Added `benchmarks/p9h_full_attn_graph_probe.py` to test whether a single
+full-attention layer can be CUDA-graph replayed at a fixed decode position.
+
+Layer 3 on final 27B step5000 NVFP4:
+
+```text
+eager full-attn layer: 0.733 ms
+graph replay:          0.227 ms
+speedup:               3.24x
+output diff:           max_abs 0.0 / cosine 1.0
+KV full diff:          max_abs 0.0 / cosine 1.0
+KV write-slice diff:   max_abs 0.0 / cosine 1.0
+```
+
+This is the first strong signal that the remaining 68 -> 100 TPS gap can be
+closed by graph-family engineering rather than only by writing new math kernels.
+The caveat is important: this probe fixes one decode position/KV length. Serving
+needs either a bounded graph family for common positions or a fixed-shape KV
+strategy before full-attention graph replay can become production.
+
+## P9-I/J/K Full-Token Graph Family Findings
+
+Retested full-token CUDA graph families after promoting `triton_pair`.
+
+### Upfront Graph Family
+
+`benchmarks/p9e_full_token_graph_family_greedy.py` with `max_new=8` passes
+greedy parity:
+
+```text
+8-token graph family: PASS
+avg replay:           14.30 ms/token
+replay TPS:           69.93 tok/s
+```
+
+The same construction with `max_new=16` still diverges at step 8:
+
+```text
+first 8 tokens:       greedy parity
+step 8 onward:        top-1 drift
+avg replay:           14.01 ms/token
+replay TPS:           71.38 tok/s
+```
+
+This means the original upfront graph-family method has a short safe window but
+cannot be stretched to long decode by simply capturing more future positions
+from the original prefill state.
+
+### Windowed Recapture
+
+Added `benchmarks/p9i_windowed_graph_family_greedy.py` to recapture every
+8-token window. It still fails after the first window, even with the diagnostic
+`--refresh-from-eager` mode:
+
+```text
+window=8 recapture:                    FAIL
+window=8 + eager state refresh:         FAIL
+replay-only speed while running graphs: ~68 tok/s
+capture-amortized speed:               ~12 tok/s
+```
+
+This rules out the naive idea that periodic recapture alone fixes graph/eager
+drift. It also makes the engineering constraint explicit: capture cost cannot
+sit on the hot path.
+
+### Single-Position Graph After Eager Prefix
+
+Added `benchmarks/p9j_single_position_graph_after_prefix.py` to isolate one
+decode position after an eager prefix. This probe passes exactly:
+
+```text
+prefix_new=8:   position 15, graph 13.91 ms, 71.87 tok/s, logits diff 0
+prefix_new=16:  position 23, graph 14.24 ms, 70.23 tok/s, logits diff 0
+prefix_new=32:  position 39, graph 13.88 ms, 72.03 tok/s, logits diff 0
+```
+
+This is the key localization: full-token graph replay is correct at later
+positions when captured from the true current state. The broken part is the
+multi-graph construction strategy, not the underlying decode math or the later
+sequence positions.
+
+### Sequential Capture Attempt
+
+Added `benchmarks/p9k_sequential_capture_graph_family_greedy.py` to capture
+future graphs sequentially from the graph path instead of from the original
+prefill state. It still fails around step 7/8:
+
+```text
+sequential capture family: FAIL
+avg replay:                13.53 ms/token
+replay TPS:                73.90 tok/s
+capture cost:              ~40.8 ms/token
+```
+
+The replay speed is attractive, but correctness is not yet production-safe.
+
+### Current Interpretation
+
+The 100 TPS route should not depend on a naive long full-token graph family.
+The proven safe pieces are:
+
+- resident decode with reusable linear-attn block graphs: ~68-69 tok/s stable
+- single full-token graph at the true current state: ~70-72 tok/s, exact
+- single full-attention layer graph: 3.24x speedup, exact
+
+Next practical step: productize graphing at smaller, well-scoped boundaries
+(full-attention layer graph slots / fixed-position graph families) rather than
+trying to graph an entire long token sequence upfront.
+
+## P9-L Manual GQA Full-Attention Backend
+
+Added an opt-in decode backend:
+
+```text
+LYNN_FULL_ATTN_DECODE_BACKEND=manual_gqa
+```
+
+This replaces PyTorch SDPA GQA with explicit grouped-query einsum/softmax for
+the single-token decode case. It was tested as a possible way to reduce
+full-attention dispatch overhead without CUDA graphs.
+
+Result on final 27B step5000 NVFP4:
+
+```text
+backend:             manual_gqa
+full_token_ms:       31.01 ms
+estimated eager TPS: 32.24
+linear-attn sum:     20.96 ms
+full-attn sum:       8.55 ms
+full-attn avg:       0.855 ms/layer
+```
+
+This is slower than the SDPA baseline (`full-attn avg ~0.72 ms/layer` in the
+same environment). Verdict: keep `manual_gqa` only as an opt-in diagnostic
+backend; do not use it as the 100 TPS path. PyTorch SDPA is currently better
+than the simple hand-written einsum formulation on R6000.
+
+## P9-M Pre-Captured Full-Attention Graph Probe
+
+Added `benchmarks/p9m_precaptured_full_attn_graph_probe.py` to test the
+production-critical question for full-attention graphing:
+
+> Can we capture a full-attention layer graph before KV contains real prompt
+> values, then populate the same cache tensors during prefill/decode and replay
+> the pre-captured graph later?
+
+Layer 3, target position 39 after a 32-token eager prefix:
+
+```text
+graph_ms:              0.310 ms
+output diff:           max_abs 0.0 / cosine 1.0
+KV full diff:          max_abs 0.0 / cosine 1.0
+KV write-slice diff:   max_abs 0.0 / cosine 1.0
+verdict:               PASS
+```
+
+This is the strongest 100 TPS signal so far. It means full-attention graph
+slots can be pre-captured against allocated cache tensor addresses before real
+KV values exist. Serving does not need to capture full-attention graphs on the
+token hot path, as long as the request/runner uses stable cache tensor
+addresses and fixed position graph families.
+
+Next implementation target: add opt-in resident-runner full-attention graph
+slots, similar in spirit to reusable linear-attention block graphs, then measure
+hybrid decode with:
+
+```text
+linear-attn block graphs + full-attn layer graph slots
+```
+
+The expected win is large: full-attention eager currently costs roughly
+7.2 ms/token across 10 layers; P9-M shows a single full-attention layer graph can
+replay in ~0.31 ms while preserving exact output/KV parity.
+
+## P9-N Hybrid Full-Attention Graph Slots
+
+Added `benchmarks/p9n_hybrid_full_attn_graph_slots_probe.py`, combining:
+
+- 10 existing reusable 3-layer linear-attention block graphs
+- 10 pre-captured full-attention layer graph slots
+
+Result:
+
+```text
+greedy parity:        PASS
+strict logits:        FAIL (cosine 0.9917; top-1 preserved)
+one-shot graph:       13.72 ms / 72.9 tok/s
+bench graph loop:     13.81 ms / 72.4 tok/s
+eager baseline:       30.49 ms
+```
+
+This is a functional serving-shaped proof, but not yet the 100 TPS jump. The
+likely remaining cost is graph boundary overhead: linear block output copy →
+full-attn graph input copy, repeated 10 times per token. The path is viable, but
+the implementation must reduce copy/launch boundaries rather than just adding
+more small graph slots.
+
+## P9-O 4-Layer Hybrid Group Graph Attempt
+
+Added `benchmarks/p9o_hybrid_4layer_graph_slots_probe.py` to capture each
+4-layer group (`linear, linear, linear, full`) as one graph. This was the obvious
+next attempt to remove the boundary copy between P9-N's linear and full graphs.
+
+Result:
+
+```text
+one-shot graph:       13.63 ms / 73.4 tok/s
+greedy parity:        FAIL
+strict logits:        FAIL
+```
+
+Verdict: do not use coarse 4-layer graph groups yet. The separate graph-slot
+approach in P9-N preserves top-1, while the coarse grouped graph changes the
+generation path. The next engineering step should integrate P9-N-style separate
+full-attn graph slots into `LynnIncrementalRunner`, then reduce boundary copies
+incrementally with parity gates after each change.
+
+Retested P9-O with `--capture-after-prefill`, so each 4-layer graph is captured
+against the real populated prefill state instead of an empty KV/recurrent state:
+
+```text
+capture_after_prefill: true
+one-shot graph:        13.61 ms / 73.47 tok/s
+bench graph loop:      13.71 ms / 72.96 tok/s
+strict logits:         PASS (max_abs 0.0 / cosine 1.0)
+greedy parity:         PASS
+```
+
+This clarifies the boundary:
+
+- coarse 4-layer graphs are mathematically safe when captured after prefill
+- coarse 4-layer graphs are not safe as empty-state pre-captured slots
+- speed is still ~73 TPS, so this is a correctness/productization milestone,
+  not the final 100 TPS breakthrough
+
+The next runner implementation can expose an opt-in after-prefill graph-capture
+mode for strict serving parity. The next performance milestone still needs to
+reduce the remaining ~13.6 ms/token, likely via fewer graph boundary copies and
+deeper fused kernels inside the linear-attention blocks.
+
+## P9-P Hybrid Group Latency Breakdown
+
+Added `benchmarks/p9p_hybrid_group_latency_breakdown.py` to split the strict
+P9-O after-prefill graph path into:
+
+- 10 captured 4-layer hybrid groups
+- final RMSNorm
+- final LM head
+
+Result on R6000 / step5000 NVFP4:
+
+```text
+groups only:             12.96 ms / 77.19 tok/s equivalent
+final RMSNorm:            0.07 ms
+LM head:                  0.67 ms
+RMSNorm + LM head:        0.69 ms
+full graph path:         13.69 ms / 73.07 tok/s
+per 4-layer group:       ~1.29 ms, very uniform across all 10 groups
+```
+
+Verdict: the remaining bottleneck is not one pathological layer and not the
+final projection. The whole decode token is dominated by uniformly expensive
+hybrid groups. To reach 100 tok/s, total decode time must drop to ~10 ms, which
+means each 4-layer group needs to move from ~1.29 ms to ~0.93 ms. That is a
+kernel-path problem, not a scheduler-only problem.
+
+Immediate next probes:
+
+- test in-place recurrent-state update for linear attention
+- validate whether fused linear-attention input projection is actually active
+  on the current decode path
+- if low-risk toggles do not move the needle, shift from graph plumbing to
+  native FP4 / deeper linear-attention kernel fusion
+
+## P10-A Native FP4 Fused Input Projection
+
+Added `benchmarks/p10a_native_fp4_fused_inproj_probe.py` to test the first real
+packed-resident building block: concatenate linear-attention `qkv/z/b/a`
+projection weights, run one activation quantization, then one native FP4
+`torch._scaled_mm`.
+
+Important implementation fix: the fused output dimension is `12352`, not a
+multiple of 128. The FP4 `scale_b` swizzled layout must pad rows to full
+128-row tiles; otherwise torch's scale index writes past storage and triggers a
+CUDA device-side assert. `_scale_shape()` now rounds rows up to the next 128.
+
+R6000 layer 0 result:
+
+```text
+shape:                         [12352, 2048]
+cosine vs BF16 fused:          0.99152
+rel_l2:                        0.12996
+BF16 fused linear:             0.0521 ms
+native FP4 scaled_mm only:     0.0409 ms  (1.28x over BF16 body)
+activation quant only:         0.0310 ms
+native quant + scaled_mm:      0.0753 ms  (0.69x vs BF16 fused end-to-end)
+```
+
+Verdict: native FP4 math is viable and the tensor-core body is faster, but
+single fused-projection replacement still loses once activation quantization is
+included. The next packed-resident path must fuse deeper than one projection:
+reuse/fuse activation quantization across the linear-attention block or move to
+a larger native FP4 block kernel. This is the correct bridge toward packed
+resident weights, but not yet the 100 TPS implementation.
+
+## P10-B Decode Integration: Native FP4 Fused In-Projection
+
+Added an opt-in packed runtime wrapper:
+
+```text
+PackedNVFP4FusedLinear
+LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1
+```
+
+This attaches packed native-FP4 fused `qkv/z/b/a` input projections for each
+linear-attention layer without changing the default BF16 resident path.
+
+Strict after-prefill 4-layer graph gate:
+
+```text
+strict logits:       PASS (max_abs 0.0 / cosine 1.0000001)
+greedy parity:       PASS
+graph path:          13.10 ms / 76.36 tok/s
+previous strict path 13.59 ms / 73.56 tok/s
+```
+
+Verdict: P10-B is the first end-to-end packed native-FP4 decode subpath that is
+both strict-correct and faster in the hybrid graph runner. The gain is still
+not enough for 100 tok/s, but it proves the packed-resident direction is no
+longer just a memory milestone; it now has a real decode-path speed win. Next:
+stack this with deeper linear-attention fusion and remove the remaining BF16
+resident projection copies.
+
+## P10-C/P10-D Linear-Attention Core Breakdown
+
+Added `benchmarks/p10c_linear_attn_core_segment_profile.py` and profiled layer 0
+with P10-B enabled:
+
+```text
+fused native FP4 in-proj:     0.0737 ms
+recurrent fused prepare:      0.0358 ms
+conv update:                  0.0325 ms
+split qkv + repeat:           0.0258 ms
+gated RMSNorm Triton:         0.0204 ms
+out proj BF16:                0.0144 ms
+full core recomposed:         0.3263 ms
+```
+
+P10-D tried a GQA-aware recurrent Triton kernel that reads q/k as 16 grouped
+query heads and maps value heads via `head // 2`, avoiding materialized
+`repeat_interleave`.
+
+Strict gate:
+
+```text
+strict logits:       PASS
+greedy parity:       PASS
+graph path:          13.13 ms / 76.14 tok/s
+```
+
+Verdict: the GQA recurrent kernel is correct but not faster than P10-B in the
+full graph path; its index arithmetic offsets the repeat-removal benefit. Keep
+it opt-in for future kernel fusion, but do not make it the default. The next
+100 TPS work should focus on packed/native MoE expert kernels and deeper
+linear-attention block fusion rather than GQA repeat removal alone.
+
+## P10-E Packed Active-Expert MoE Probe
+
+Added `benchmarks/p10e_packed_active_expert_probe.py` to compare the current
+BF16 active-expert path against a packed NVFP4 gate/up/down path for the same
+router top-k experts. This isolates the active experts and excludes shared
+expert/router overhead.
+
+Layer 0 result:
+
+```text
+expert ids:                  [149, 69, 133, 197, 45, 130, 178, 115]
+cosine vs BF16 active path:  0.999996
+rel_l2:                     0.00285
+BF16 active experts:         0.1585 ms
+packed NVFP4 active experts: 0.7312 ms
+speed ratio:                 0.22x
+```
+
+Verdict: packed expert math is correct, but scalar-bridge packed expert loops
+are far too slow. Do not productize this path. The MoE speed path must be a
+grouped native FP4 expert kernel that handles top-k gate/up/down together,
+without Python looping over eight experts and without scalar bridge matvecs.
+
+## P10-F to P10-N Packed MoE to 100 TPS
+
+P10-F first implemented a grouped packed gate/up Triton kernel. The first coarse
+tile grid was correct but misleadingly slow; fine-grained tiles exposed the real
+shape:
+
+```text
+best grouped gate/up tile:   block_inter=8, block_hidden=128
+BF16 gate/up:                ~0.0976 ms
+packed grouped gate/up:      ~0.0375 ms
+speed ratio:                 2.60x
+cosine vs BF16:              0.9999976
+```
+
+P10-G tested Blackwell tensor-core `_scaled_mm` for selected top-k gate/up rows.
+It proved the hardware path works, but W4A4 activation quantization is not yet
+safe enough for this MoE subpath:
+
+```text
+native FP4 hot gate/up:      0.0886 ms vs BF16 0.0960 ms (+8.3%)
+native FP4 cold gate/up:     0.1627 ms (dynamic gather/scale_b dominates)
+cosine vs BF16:              0.9683  FAIL for production
+```
+
+Decision: do not trade quality for speed. The current production bridge keeps
+BF16 activations and consumes packed NVFP4 weights directly.
+
+P10-H added grouped packed down-projection plus routing weighted sum, making
+active routed experts end-to-end packed-resident:
+
+```text
+BF16 active experts:         0.1567 ms
+packed gate/up:              0.0381 ms
+packed down only:            0.0599 ms
+packed active experts:       0.0972 ms
+speed ratio:                 1.61x
+cosine vs BF16:              0.9999959
+```
+
+After tile tuning:
+
+```text
+gate tile:                   block_inter=8, block_hidden=64
+down tile:                   block_hidden=8, block_inter=256
+packed active experts:       0.0775 ms
+speed ratio:                 2.04x over BF16 active experts
+```
+
+P10-I wired this into the resident runner with `LYNN_MOE_IMPL=packed_nvfp4`.
+Shared expert remains BF16 for now; enabling packed shared expert regressed
+performance because it still uses the old scalar bridge.
+
+Best strict path:
+
+```text
+env:
+  LYNN_MOE_IMPL=packed_nvfp4
+  LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1
+  LYNN_LINEAR_ATTN_RECURRENT_BACKEND=triton_fused_prepare
+  LYNN_QK_NORM_ROPE_BACKEND=triton_pair
+  LYNN_RMSNORM_GATED_BACKEND=triton
+  LYNN_LINEAR_STATE_UPDATE=inplace
+
+40-layer body graph:          9.326 ms / 107.23 tok/s equivalent
+full path + final lm_head:    10.018 ms / 99.86 tok/s (strict repeatable)
+serving replay only:          9.677 ms / 103.34 tok/s
+lm_head alone:                ~0.668 ms
+```
+
+Measurement note:
+
+- `full_graph_path_tps` restores the same benchmark state before every replay
+  so runs are deterministic and comparable. This is the conservative number.
+- `full_decode_final_graph_replay_only_tps` omits benchmark-only state restore
+  and is closer to a resident serving loop that continuously mutates live
+  KV/recurrent state. This is the serving-shaped number.
+
+Milestone: Lynn Engine crossed 100 tok/s in the serving-shaped R6000 path while
+keeping NVFP4 packed expert weights resident and preserving BF16 activation
+quality. The next production work is to remove the remaining BF16 resident
+copies for memory, then attack `lm_head` and shared expert without regressing
+quality.
+
+
+### P10-O/P10-P Native FP4 lm_head
+
+The final strict bottleneck after P10-N was `lm_head`:
+
+```text
+40-layer body graph:          9.326 ms / 107.23 tok/s equivalent
+BF16 lm_head:                 ~0.668 ms
+strict full path:             ~99.86 tok/s
+```
+
+The 27B NVFP4 artifact does not pack `lm_head`, so P10-O tested runtime packing
+of `lm_head.weight` into native FP4. Quality gate on one representative prompt:
+
+```text
+native FP4 lm_head:           0.304 ms vs BF16 0.665 ms (2.19x)
+cosine vs BF16 logits:        0.9924
+top1 match:                   PASS
+top20 overlap:                17/20 = 85%
+one-time runtime pack cost:   114 ms
+```
+
+P10-P wired this optional native FP4 lm_head into the full graph benchmark:
+
+```text
+strict full path + FP4 lm_head:        103.44 tok/s
+full decode-final graph:               103.50 tok/s
+serving replay only:                   107.23 tok/s
+```
+
+Status: this crosses the strict 100 tok/s target on R6000. Multi-prompt
+validation (`p10q_native_fp4_lm_head_multiprompt.json`) shows 6/6 top-1 matches,
+minimum cosine 0.9924, and minimum top-20 overlap 15/20 on the tool-call prompt.
+Therefore native FP4 `lm_head` is greedy-safe and useful for deterministic
+serving/TPS gates, but should remain opt-in for sampling-heavy production until
+we either raise top-k overlap or add a mixed BF16 fallback for uncertain prompts.

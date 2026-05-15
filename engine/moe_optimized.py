@@ -15,6 +15,18 @@ import torch
 import torch.nn.functional as F
 
 
+def _expert_ffn(x: torch.Tensor, w: dict, expert_id: int) -> torch.Tensor:
+    """Run one expert FFN for either legacy per-expert or fused expert layout."""
+    if "mlp.experts.gate_up_proj" in w and "mlp.experts.down_proj" in w:
+        gate_up = F.linear(x, w["mlp.experts.gate_up_proj"][expert_id])
+        gate, up = gate_up.chunk(2, dim=-1)
+        return F.linear(F.silu(gate) * up, w["mlp.experts.down_proj"][expert_id])
+
+    gate = F.linear(x, w[f"mlp.experts.{expert_id}.gate_proj.weight"])
+    up = F.linear(x, w[f"mlp.experts.{expert_id}.up_proj.weight"])
+    return F.linear(F.silu(gate) * up, w[f"mlp.experts.{expert_id}.down_proj.weight"])
+
+
 def moe_forward_decode_optimized(h, w, cfg):
     """MoE forward for the decode path (T=1).
 
@@ -44,9 +56,7 @@ def moe_forward_decode_optimized(h, w, cfg):
         mask = (expert_indices == e)
         token_idx, slot_idx = mask.nonzero(as_tuple=True)
         x_e = h_flat[token_idx]
-        gate_e = F.linear(x_e, w[f"mlp.experts.{e}.gate_proj.weight"])
-        up_e = F.linear(x_e, w[f"mlp.experts.{e}.up_proj.weight"])
-        ffn_e = F.linear(F.silu(gate_e) * up_e, w[f"mlp.experts.{e}.down_proj.weight"])
+        ffn_e = _expert_ffn(x_e, w, e)
         weight_e = routing_weights[token_idx, slot_idx].unsqueeze(-1)
         moe_out.index_add_(0, token_idx, ffn_e * weight_e)
 
@@ -85,9 +95,7 @@ def moe_forward_prefill_optimized(h, w, cfg):
         mask = (expert_indices == e)
         token_idx, slot_idx = mask.nonzero(as_tuple=True)
         x_e = h_flat[token_idx]
-        gate_e = F.linear(x_e, w[f"mlp.experts.{e}.gate_proj.weight"])
-        up_e = F.linear(x_e, w[f"mlp.experts.{e}.up_proj.weight"])
-        ffn_e = F.linear(F.silu(gate_e) * up_e, w[f"mlp.experts.{e}.down_proj.weight"])
+        ffn_e = _expert_ffn(x_e, w, e)
         weight_e = routing_weights[token_idx, slot_idx].unsqueeze(-1)
         moe_out.index_add_(0, token_idx, ffn_e * weight_e)
 
@@ -141,9 +149,14 @@ def moe_forward_decode_bmm(h, w, cfg):
 
     # Stack weights for selected experts. CRITICAL: maintain slot order so
     # we can apply per-slot routing_weights directly.
-    gate_stack = torch.stack([w[f"mlp.experts.{e}.gate_proj.weight"] for e in expert_ids])
-    up_stack = torch.stack([w[f"mlp.experts.{e}.up_proj.weight"] for e in expert_ids])
-    down_stack = torch.stack([w[f"mlp.experts.{e}.down_proj.weight"] for e in expert_ids])
+    if "mlp.experts.gate_up_proj" in w and "mlp.experts.down_proj" in w:
+        gate_up_stack = torch.stack([w["mlp.experts.gate_up_proj"][e] for e in expert_ids])
+        gate_stack, up_stack = gate_up_stack.chunk(2, dim=1)
+        down_stack = torch.stack([w["mlp.experts.down_proj"][e] for e in expert_ids])
+    else:
+        gate_stack = torch.stack([w[f"mlp.experts.{e}.gate_proj.weight"] for e in expert_ids])
+        up_stack = torch.stack([w[f"mlp.experts.{e}.up_proj.weight"] for e in expert_ids])
+        down_stack = torch.stack([w[f"mlp.experts.{e}.down_proj.weight"] for e in expert_ids])
     # Each stack: [K, intermediate=512, hidden=2048] for gate/up
     #             [K, hidden=2048, intermediate=512] for down
 

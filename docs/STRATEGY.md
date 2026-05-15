@@ -187,10 +187,109 @@ vLLM/SGLang 不会做的 4 个特性,这是 Lynn engine 的 MOAT:
 - **Compare A vs B → 5/11 11:30 出 winner**
 - LLaMA-Factory + ZeRO-3,bf16 + gradient_checkpointing,r=192 蒸馏 LoRA(蒸馏阶段不用 384,数据量足)
 
-### C1 · Phase 3.1/3.2 Lynn engine 验证(并行,DGX 一回就跑)
-- `engine/test_incremental_decode.py` 跑过
-- `engine/test_moe_optimized.py` 三档 MoE 横向 benchmark
-- 50 token 稳态 t/s + vs vLLM 端到端对齐
+### C1 · Phase 3.1/3.2 Lynn engine 验证 ⚠️ (2026-05-10 RTX PRO 6000 BF16,multi-prompt 暴露 bmm/indexed_bmm 数值不稳)
+
+**单 prompt benchmark**(max_new=10):
+
+| Phase | t/s | × baseline | 单 prompt match | 部署 friction |
+|---|---|---|---|---|
+| 3.2.1 `optimized` | 12.84 | 1.0× | ground truth | 无 |
+| 3.2.2 `bmm` | 23.56 | 1.83× | ✓ 单 prompt | 低 |
+| 3.2.2.5 `indexed_bmm` | 24.79 | 1.93× | ✓ 单 prompt | 高 |
+
+🚨 **Multi-prompt gate 红色警报 + FP32 fix 验证 FAIL**(2026-05-10 02:30 / 02:35):
+
+**完整 multi-prompt 数据**(N=14 × 3 impl × 8 token):
+- bmm: 11/14 (78.6%) match,3 prompt fail (`2+2=` / `Python is` / `I love eating`)
+- indexed_bmm: 11/14 完全相同 fail 模式(共享 bmm 数值路径)
+- mean tps: optimized 12.53 / bmm 23.24 / indexed_bmm 24.74
+
+**FP32 accumulator fix 实验结果 — FAIL**:
+- 应用 `torch.bmm(h.float(), w.float()).to(bf16)` patch
+- Smoke 测 `2+2=`:bmm 仍输出 `[20, 271, 248068, ...]`(同 fix 前)
+- 已 revert
+- 教训:cuBLAS 处理 BF16 input **本来就用 FP32 accumulator**(标准 tensor core 行为),explicit FP32 input 是 redundant
+
+**真正根因(物理结论)**:
+- `F.linear` → cuBLAS `gemm` tile size A,reduce schedule X
+- `torch.bmm` → cuBLAS `gemmStridedBatched` tile size B,reduce schedule Y
+- 两者 FP32 accumulator 都用,但 **reduce 顺序不同 → ε 级 differences**
+- BF16 epsilon ~ 8e-5,单层看不出,**40 层 cascade 累积**
+- router top-K 在 borderline prompt(多义/数学)时翻转 → token cascade divergence
+
+**bmm vs optimized 在 BF16 下不可能 byte-exact** — 这是 cuBLAS kernel 选择的产物,不是 bug。
+
+### ⚠️ R6000 剩余租期 scope hard rule(2026-05-10 user 锁定)
+
+> **R6000 已付租期内只做"证据链 + 接入准备",不做大重构。**
+>
+> **可提交资产**:
+> - `loader.py` 单文件 safetensors 兼容(✅ 已完成)
+> - NVFP4 multi-prompt correctness harness(E4)
+> - 27B 下载脚本 + 5/15 接入 prep doc
+> - STRATEGY 规则整理(✅ 已完成)
+>
+> **明确 OFF SCOPE**(留 DGX,无租期压力):
+> - functional-state refactor(LynnInferenceState 改 immutable / state-passing)
+> - `torch.compile` / CUDA Graph 兼容性 refactor(`_decode_layer` 签名重构)
+> - F2.1 / 2.2 / 2.3 cat/copy 深挖实验
+> - Phase 3.3 Triton kernel 开发
+> - B1 NVFP4 grouped GEMM kernel
+>
+> 起源:R6000 简单 patch GPU ceiling = 25.9 t/s(全消 cat+copy),实际可达 14-16 t/s。突破 25 必须 Python overhead refactor = 1-2 周。**不为 23 t/s 幻影续租。**
+
+---
+
+### Phase 3.2.x 价值重新定位
+
+| | optimized | bmm / indexed_bmm |
+|---|---|---|
+| Path | cuBLAS gemm 单算子 | cuBLAS gemmStridedBatched 批算子 |
+| Match HF | ✓ 单层 rel<10% 验证 | 不可能 byte-exact match optimized |
+| Status | **default ground truth** | **opt-in fast path**(用户显式启用) |
+| Speedup | 1.0× (12.53 t/s) | 1.85× (23.24 t/s) on deterministic prompt |
+| 风险 | 无 | borderline prompt token divergence |
+
+**结论**:bmm 永远不会 default。生产 default 锁 `optimized`。bmm 留为 `LYNN_MOE_IMPL=bmm` opt-in fast path,文档警告"deterministic prompt 才用"。
+
+### 真正下一跳(profiler 数据驱动)
+
+profiler 揭示 **Python orchestration = 70% of wall time**(12.7 ms GPU vs 43 ms wall per step)。Phase 3.2.x GEMM 加速只动了 30%。
+
+| Priority | 工作 | 预期 | 数值风险 |
+|---|---|---|---|
+| **P0** | **Python overhead 削减**(40 层 Python loop → fused decoder / CUDA graph)| 12 → 25-30 t/s | 无(同 cuBLAS path)|
+| P1 | **B1 NVFP4 grouped GEMM**(weight 4bit → mem-BW 减半)| 25-30 → 80-130 t/s | 有(NVFP4 量化误差,需 retention test) |
+| P2 | bmm/indexed_bmm 留 opt-in,不 default | — | — |
+| P3 | **Phase 3.3 Triton kernel 取消**(GEMM 已不是瓶颈)| — | — |
+
+### 当前 source 状态
+
+- ✅ `engine/full_forward.py` default = `optimized`(已 revert)
+- ✅ `engine/moe_optimized.py` 原始(FP32 fix 已 revert,backup `.bak.fp32fix` 留)
+- ✅ STRATEGY.md C1(本节)+ Universal review rule 同步
+- ⏳ Day 5 续租 gate 重新评估:不再赌 Phase 3.2 → 25 t/s,改赌 P0 Python overhead → 25-30 t/s + B1 准备
+
+数值正确性 alignment(单层 Phase 3.1):full_attn rel=3.14%,linear_attn rel=2.54% ✓
+硬件:RTX PRO 6000 Blackwell sm_120,GDDR7 ~2 TB/s
+
+### ⚠️ Universal review rule(2026-05-10 追加,blood lesson)
+
+> **Single-prompt PASS 永不为任何实现背书。** 所有 default-impl 切换、production-ready 标识、merge-to-main 决策必须以 **multi-prompt exact-match gate** 为唯一依据。
+>
+> **Gate 最低要求**:
+> - N ≥ 14 个 diverse prompt(英/中/code/math/多义续接 mix)
+> - Exact-match rate = 100%(即 mismatches_count = 0)
+> - 任何 borderline prompt(`2+2=` / `Python is` / `I love eating` 这类多义/数学)mismatch 立即整体 FAIL,不允许 partial credit
+>
+> **守夜检查防假绿**:
+> - 直接检 `exact_match_rate < 1.0` 或 `mismatches_count > 0` → FAIL
+> - **不信任任何 "verdict": "PASS" 字段**(可能错标或缺失)
+> - **不用 single-prompt phase32_bench 做决策**
+>
+> 这条规则起源于 2026-05-10 Phase 3.2.2 bmm 单 prompt PASS 但 multi-prompt 78.6% match 的 self-consistent bug 假阳事件。Codex review #2 曾警告过,multi-prompt gate 是兑现保护。
+
+---
 
 ### C2 · 在 35B winner 上跑 activation profile(5/11 中午 → 下午,~3h on Spark)
 - `pruning/profile_activations.py` 跑 calibration_set v1.1(1436 prompts)
