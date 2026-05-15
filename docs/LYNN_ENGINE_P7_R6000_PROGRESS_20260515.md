@@ -1317,6 +1317,9 @@ full decode-final graph:               103.50 tok/s
 serving replay only:                   107.23 tok/s
 ```
 
-Status: this crosses the strict 100 tok/s target on R6000. It remains opt-in
-until multi-prompt logit/top-k validation confirms the lm_head FP4 path is not
-prompt-fragile.
+Status: this crosses the strict 100 tok/s target on R6000. Multi-prompt
+validation (`p10q_native_fp4_lm_head_multiprompt.json`) shows 6/6 top-1 matches,
+minimum cosine 0.9924, and minimum top-20 overlap 15/20 on the tool-call prompt.
+Therefore native FP4 `lm_head` is greedy-safe and useful for deterministic
+serving/TPS gates, but should remain opt-in for sampling-heavy production until
+we either raise top-k overlap or add a mixed BF16 fallback for uncertain prompts.

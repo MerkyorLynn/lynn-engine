@@ -82,6 +82,7 @@ def main() -> int:
     ap.add_argument("--model", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--prompt", default="用一句话解释 MoE active parameters")
+    ap.add_argument("--multi-prompt-smoke", action="store_true")
     ap.add_argument("--warmup", type=int, default=10)
     ap.add_argument("--iters", type=int, default=100)
     ap.add_argument("--top-k", type=int, default=20)
@@ -92,7 +93,17 @@ def main() -> int:
         raise RuntimeError("native FP4 requires torch.float4_e2m1fn_x2 and torch._scaled_mm")
 
     runner = LynnIncrementalRunner(args.model, device="cuda", dtype=torch.bfloat16, verbose=False)
-    h = _prefill_last_hidden(runner, args.prompt)
+    prompts = [args.prompt]
+    if args.multi_prompt_smoke:
+        prompts = [
+            "用一句话解释 MoE active parameters",
+            "Python 写一个递归阶乘函数",
+            "比较 RoPE 与 ALiBi 的优缺点",
+            "If a train travels 60 mph for 2.5 hours, how far does it go?",
+            "请用 JSON 调用 search 工具查询 BTC 价格",
+            "写一段 80 字以内的小红书风格咖啡店探店文案",
+        ]
+    h = _prefill_last_hidden(runner, prompts[0])
     lm_head = runner.outside["lm_head.weight"].contiguous()
 
     quant_start = torch.cuda.Event(enable_timing=True)
@@ -119,14 +130,38 @@ def main() -> int:
             out_dtype=torch.float16,
         )
 
-    ref = bf16_lm_head()
-    native = native_lm_head().to(ref.dtype)
-    diff = (native.float() - ref.float()).abs()
-    ref_top = torch.topk(ref.float()[0], k=args.top_k)
-    nat_top = torch.topk(native.float()[0], k=args.top_k)
-    ref_ids = [int(x) for x in ref_top.indices.tolist()]
-    nat_ids = [int(x) for x in nat_top.indices.tolist()]
-    overlap = len(set(ref_ids) & set(nat_ids))
+    def validate_prompt(prompt: str) -> dict:
+        nonlocal h, act_packed, scale_a
+        h = _prefill_last_hidden(runner, prompt)
+        act_packed, scale_a = quantize_fp4_m1_native(h)
+        ref = bf16_lm_head()
+        native = native_lm_head().to(ref.dtype)
+        diff = (native.float() - ref.float()).abs()
+        ref_top = torch.topk(ref.float()[0], k=args.top_k)
+        nat_top = torch.topk(native.float()[0], k=args.top_k)
+        ref_ids = [int(x) for x in ref_top.indices.tolist()]
+        nat_ids = [int(x) for x in nat_top.indices.tolist()]
+        overlap = len(set(ref_ids) & set(nat_ids))
+        return {
+            "prompt": prompt,
+            "diff": {
+                "max_abs": float(diff.max().item()),
+                "mean_abs": float(diff.mean().item()),
+                "rel_l2": float(torch.linalg.vector_norm(native.float() - ref.float()).item() / torch.linalg.vector_norm(ref.float()).item()),
+                "cosine": float(F.cosine_similarity(native.float().flatten(), ref.float().flatten(), dim=0).item()),
+            },
+            "topk": {
+                "k": args.top_k,
+                "overlap": overlap,
+                "overlap_ratio": overlap / args.top_k,
+                "ref_top_ids": ref_ids,
+                "native_top_ids": nat_ids,
+                "top1_match": bool(ref_ids[0] == nat_ids[0]),
+            },
+        }
+
+    per_prompt = [validate_prompt(prompt) for prompt in prompts]
+    first = per_prompt[0]
 
     timing = {
         "bf16_lm_head_ms": _bench(bf16_lm_head, args.warmup, args.iters),
@@ -144,22 +179,20 @@ def main() -> int:
             "scale_b": list(scale_b.shape),
         },
         "one_time_quantize_ms": quant_ms,
-        "diff": {
-            "max_abs": float(diff.max().item()),
-            "mean_abs": float(diff.mean().item()),
-            "rel_l2": float(torch.linalg.vector_norm(native.float() - ref.float()).item() / torch.linalg.vector_norm(ref.float()).item()),
-            "cosine": float(F.cosine_similarity(native.float().flatten(), ref.float().flatten(), dim=0).item()),
-        },
-        "topk": {
-            "k": args.top_k,
-            "overlap": overlap,
-            "overlap_ratio": overlap / args.top_k,
-            "ref_top_ids": ref_ids,
-            "native_top_ids": nat_ids,
-            "top1_match": bool(ref_ids[0] == nat_ids[0]),
+        "diff": first["diff"],
+        "topk": first["topk"],
+        "per_prompt": per_prompt,
+        "multi_prompt_summary": {
+            "count": len(per_prompt),
+            "top1_matches": sum(1 for item in per_prompt if item["topk"]["top1_match"]),
+            "min_topk_overlap_ratio": min(item["topk"]["overlap_ratio"] for item in per_prompt),
+            "min_cosine": min(item["diff"]["cosine"] for item in per_prompt),
         },
         "timing_ms": timing,
-        "pass": bool(ref_ids[0] == nat_ids[0] and overlap / args.top_k >= 0.8),
+        "pass": bool(
+            all(item["topk"]["top1_match"] for item in per_prompt)
+            and min(item["topk"]["overlap_ratio"] for item in per_prompt) >= 0.8
+        ),
     }
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
