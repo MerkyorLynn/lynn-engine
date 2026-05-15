@@ -963,6 +963,18 @@ class LynnIncrementalRunner:
             os.environ.get("LYNN_FULL_TOKEN_GRAPH_SLOT", "0") == "1"
             and self.device.startswith("cuda")
         )
+        if (
+            full_token_graph_slot_enabled
+            and os.environ.get("LYNN_ROUTER_TOPK_SORTED", "0") != "1"
+            and os.environ.get("LYNN_ALLOW_UNSORTED_FULL_TOKEN_GRAPH_SLOT", "0") != "1"
+        ):
+            raise RuntimeError(
+                "LYNN_FULL_TOKEN_GRAPH_SLOT=1 requires LYNN_ROUTER_TOPK_SORTED=1. "
+                "P35 showed sorted router top-k restores full-token graph-slot "
+                "parity; unsorted top-k is valid for the stable linear-block "
+                "graph path but not for graph-slot serving. Set "
+                "LYNN_ALLOW_UNSORTED_FULL_TOKEN_GRAPH_SLOT=1 only for diagnostics."
+            )
         full_token_graph_slot_capture_seconds: list[float] = []
         full_token_graph_slot_replay_seconds: list[float] = []
         if (

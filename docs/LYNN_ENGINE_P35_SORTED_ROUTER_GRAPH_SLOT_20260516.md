@@ -74,3 +74,23 @@ LYNN_ROUTER_TOPK_SORTED=1
 
 The next engineering target is to implement a graph-slot serving mode that explicitly selects the sorted-router contract, then benchmark end-to-end wall TPS against the current P25 OpenAI server path.
 
+
+## Follow-up: graph-owned authoritative sequence is still not safe
+
+A follow-up P14-C style replay with `LYNN_ROUTER_TOPK_SORTED=1` was also tested:
+
+```text
+p35_p14c_sorted_graph_owned_authoritative.json
+same_ids:         false
+replay_tps:       84.79
+min_cosine:       0.6683
+all_top1_match:   false
+capture_avg_ms:   83.60
+```
+
+So P35 should be interpreted narrowly:
+
+- ✅ one current-position full-token slot can match eager exactly when sorted router is enabled;
+- ❌ continuously replaying a graph-owned authoritative state sequence is still unsafe.
+
+The next product step is not to promote graph-owned sequence replay. Keep the current P25 reusable linear-block graph server path as the stable serving route, and use P35 as the contract for future per-position graph-slot work.
