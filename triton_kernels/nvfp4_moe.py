@@ -222,6 +222,7 @@ def nvfp4_grouped_gate_up_silu(
     *,
     block_inter: int = 64,
     block_hidden: int = 64,
+    num_warps: int = 4,
 ) -> torch.Tensor:
     """Compute top-k `silu(gate(x))*up(x)` from grouped packed NVFP4 weights."""
     _require_triton()
@@ -253,7 +254,7 @@ def nvfp4_grouped_gate_up_silu(
         INTERMEDIATE=INTERMEDIATE_SIZE,
         BLOCK_INTER=block_inter,
         BLOCK_HIDDEN=block_hidden,
-        num_warps=4,
+        num_warps=num_warps,
     )
     return inter
 
@@ -268,6 +269,7 @@ def nvfp4_grouped_down_weighted_sum(
     *,
     block_hidden: int = 16,
     block_inter: int = 128,
+    num_warps: int = 4,
 ) -> torch.Tensor:
     """Compute weighted top-k down projection from grouped packed NVFP4 weights."""
     _require_triton()
@@ -304,7 +306,7 @@ def nvfp4_grouped_down_weighted_sum(
         INTERMEDIATE=INTERMEDIATE_SIZE,
         BLOCK_HIDDEN=block_hidden,
         BLOCK_INTER=block_inter,
-        num_warps=4,
+        num_warps=num_warps,
     )
     return out
 
