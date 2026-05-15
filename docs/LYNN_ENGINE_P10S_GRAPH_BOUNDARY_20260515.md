@@ -136,3 +136,34 @@ stable serving 88-89 TPS
   -> 100+ TPS production path
 ```
 
+## P10-T Follow-Up: Single-Position Graph Is Safe
+
+After P10-S, we reran `p9j_single_position_graph_after_prefix.py` with the
+same native NVFP4 runtime env at increasingly later positions:
+
+| Prefix tokens before capture | Position | Graph TPS | Diff |
+|---:|---:|---:|---|
+| 8 | 15 | 94.19 | max_abs 0.0, top1 match |
+| 16 | 23 | 94.11 | max_abs 0.0, top1 match |
+| 32 | 39 | 94.51 | max_abs 0.0, top1 match |
+
+This resolves the ambiguity from the windowed graph-family failures:
+
+- Capturing a **single** full-token graph at the current real state is strict.
+- Capturing a whole future window from one base state is not strict.
+- Therefore the production design should be a lazy per-position/per-state graph
+  slot cache, not an upfront future-window graph family.
+
+The next implementation target is an opt-in server path roughly shaped as:
+
+```text
+prefill real request state
+for each decode step:
+  if graph slot for current position/state-shape exists:
+    replay
+  else:
+    capture exactly this position from current real state, replay once, cache
+```
+
+This preserves correctness first. Capture amortization can be optimized later
+via common-position warmup, short-window recapture, or prompt-prefix reuse.
