@@ -1,0 +1,321 @@
+{
+  "schema_version": "lynn-engine-p44-gateup-cross-expert-scaled-mm-probe-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final",
+  "layers": [
+    2,
+    8,
+    14,
+    20,
+    28,
+    36
+  ],
+  "cases": [
+    {
+      "layer": 2,
+      "expert_ids": [
+        3,
+        40,
+        57,
+        71,
+        158,
+        207,
+        235,
+        17
+      ],
+      "matrix_shapes": {
+        "activation_rows": [
+          8,
+          2048
+        ],
+        "selected_packed": [
+          8192,
+          1024
+        ],
+        "scale_b": [
+          1048576
+        ],
+        "dense_mm_output": [
+          8,
+          8192
+        ],
+        "kept_diagonal": [
+          8,
+          1024
+        ],
+        "wasted_cross_expert_factor": 8
+      },
+      "timings_ms": {
+        "reference_triton_gateup_ms": 0.03363600075244903,
+        "native_cross_mm_only_ms": 0.08564239740371704,
+        "native_cross_quant_plus_mm_ms": 0.2314255952835083,
+        "activation_quant_repeat_topk_rows_ms": 0.11237920522689819,
+        "native_mm_only_speedup_vs_reference": 0.3927494065105325,
+        "native_quant_plus_mm_speedup_vs_reference": 0.1453426130815098
+      },
+      "diff_vs_reference": {
+        "max_abs": 0.3125,
+        "mean_abs": 0.011585097759962082,
+        "rel_l2": 0.1908747268727441,
+        "cosine": 0.9839847683906555
+      }
+    },
+    {
+      "layer": 8,
+      "expert_ids": [
+        38,
+        69,
+        113,
+        139,
+        153,
+        203,
+        51,
+        158
+      ],
+      "matrix_shapes": {
+        "activation_rows": [
+          8,
+          2048
+        ],
+        "selected_packed": [
+          8192,
+          1024
+        ],
+        "scale_b": [
+          1048576
+        ],
+        "dense_mm_output": [
+          8,
+          8192
+        ],
+        "kept_diagonal": [
+          8,
+          1024
+        ],
+        "wasted_cross_expert_factor": 8
+      },
+      "timings_ms": {
+        "reference_triton_gateup_ms": 0.032821598649024966,
+        "native_cross_mm_only_ms": 0.0848792016506195,
+        "native_cross_quant_plus_mm_ms": 0.2230600118637085,
+        "activation_quant_repeat_topk_rows_ms": 0.11011199951171875,
+        "native_mm_only_speedup_vs_reference": 0.386685996224676,
+        "native_quant_plus_mm_speedup_vs_reference": 0.14714245899475353
+      },
+      "diff_vs_reference": {
+        "max_abs": 0.3046875,
+        "mean_abs": 0.016868142411112785,
+        "rel_l2": 0.20742343410492914,
+        "cosine": 0.9790921211242676
+      }
+    },
+    {
+      "layer": 14,
+      "expert_ids": [
+        47,
+        60,
+        110,
+        161,
+        165,
+        172,
+        13,
+        97
+      ],
+      "matrix_shapes": {
+        "activation_rows": [
+          8,
+          2048
+        ],
+        "selected_packed": [
+          8192,
+          1024
+        ],
+        "scale_b": [
+          1048576
+        ],
+        "dense_mm_output": [
+          8,
+          8192
+        ],
+        "kept_diagonal": [
+          8,
+          1024
+        ],
+        "wasted_cross_expert_factor": 8
+      },
+      "timings_ms": {
+        "reference_triton_gateup_ms": 0.033555999398231506,
+        "native_cross_mm_only_ms": 0.08450719714164734,
+        "native_cross_quant_plus_mm_ms": 0.2222968101501465,
+        "activation_quant_repeat_topk_rows_ms": 0.10945440530776977,
+        "native_mm_only_speedup_vs_reference": 0.39707859842974536,
+        "native_quant_plus_mm_speedup_vs_reference": 0.15095133113051282
+      },
+      "diff_vs_reference": {
+        "max_abs": 0.35546875,
+        "mean_abs": 0.022063905373215675,
+        "rel_l2": 0.19417256161079782,
+        "cosine": 0.9815224409103394
+      }
+    },
+    {
+      "layer": 20,
+      "expert_ids": [
+        36,
+        48,
+        95,
+        108,
+        131,
+        149,
+        196,
+        55
+      ],
+      "matrix_shapes": {
+        "activation_rows": [
+          8,
+          2048
+        ],
+        "selected_packed": [
+          8192,
+          1024
+        ],
+        "scale_b": [
+          1048576
+        ],
+        "dense_mm_output": [
+          8,
+          8192
+        ],
+        "kept_diagonal": [
+          8,
+          1024
+        ],
+        "wasted_cross_expert_factor": 8
+      },
+      "timings_ms": {
+        "reference_triton_gateup_ms": 0.03351599872112274,
+        "native_cross_mm_only_ms": 0.0843671977519989,
+        "native_cross_quant_plus_mm_ms": 0.22444639205932618,
+        "activation_quant_repeat_topk_rows_ms": 0.10992560386657715,
+        "native_mm_only_speedup_vs_reference": 0.39726338688698065,
+        "native_quant_plus_mm_speedup_vs_reference": 0.1493274113858944
+      },
+      "diff_vs_reference": {
+        "max_abs": 1.5625,
+        "mean_abs": 0.021906524896621704,
+        "rel_l2": 0.18085487612700776,
+        "cosine": 0.9902859926223755
+      }
+    },
+    {
+      "layer": 28,
+      "expert_ids": [
+        12,
+        49,
+        63,
+        116,
+        159,
+        192,
+        204,
+        155
+      ],
+      "matrix_shapes": {
+        "activation_rows": [
+          8,
+          2048
+        ],
+        "selected_packed": [
+          8192,
+          1024
+        ],
+        "scale_b": [
+          1048576
+        ],
+        "dense_mm_output": [
+          8,
+          8192
+        ],
+        "kept_diagonal": [
+          8,
+          1024
+        ],
+        "wasted_cross_expert_factor": 8
+      },
+      "timings_ms": {
+        "reference_triton_gateup_ms": 0.033000001311302186,
+        "native_cross_mm_only_ms": 0.0843895971775055,
+        "native_cross_quant_plus_mm_ms": 0.22519199848175048,
+        "activation_quant_repeat_topk_rows_ms": 0.1098296046257019,
+        "native_mm_only_speedup_vs_reference": 0.39104347472935347,
+        "native_quant_plus_mm_speedup_vs_reference": 0.14654162463048837
+      },
+      "diff_vs_reference": {
+        "max_abs": 0.4296875,
+        "mean_abs": 0.027969757094979286,
+        "rel_l2": 0.21804355971678316,
+        "cosine": 0.9769793748855591
+      }
+    },
+    {
+      "layer": 36,
+      "expert_ids": [
+        24,
+        43,
+        139,
+        201,
+        221,
+        222,
+        80,
+        100
+      ],
+      "matrix_shapes": {
+        "activation_rows": [
+          8,
+          2048
+        ],
+        "selected_packed": [
+          8192,
+          1024
+        ],
+        "scale_b": [
+          1048576
+        ],
+        "dense_mm_output": [
+          8,
+          8192
+        ],
+        "kept_diagonal": [
+          8,
+          1024
+        ],
+        "wasted_cross_expert_factor": 8
+      },
+      "timings_ms": {
+        "reference_triton_gateup_ms": 0.032713600993156434,
+        "native_cross_mm_only_ms": 0.08520320057868958,
+        "native_cross_quant_plus_mm_ms": 0.224183988571167,
+        "activation_quant_repeat_topk_rows_ms": 0.10953760147094727,
+        "native_mm_only_speedup_vs_reference": 0.38394802978021614,
+        "native_quant_plus_mm_speedup_vs_reference": 0.14592300369734715
+      },
+      "diff_vs_reference": {
+        "max_abs": 1.3125,
+        "mean_abs": 0.0365009531378746,
+        "rel_l2": 0.1870464204626594,
+        "cosine": 0.984298825263977
+      }
+    }
+  ],
+  "summary": {
+    "mean_reference_triton_gateup_ms": 0.033207199970881146,
+    "mean_native_mm_only_ms": 0.08483146528402964,
+    "mean_native_quant_plus_mm_ms": 0.22510079940160113,
+    "mean_native_mm_only_speedup": 0.391461482093584,
+    "mean_native_quant_plus_mm_speedup": 0.14753807382008435,
+    "min_cosine": 0.9769793748855591
+  },
+  "interpretation": [
+    "This computes top_k cross expert blocks and keeps only the diagonal, so a real grouped kernel has up to top_k headroom over this probe.",
+    "If this is already competitive, native FP4 tensor-core math is worth a dedicated grouped/block-diagonal kernel.",
+    "If this is slower, torch._scaled_mm composition is not enough and P45 must be a custom grouped FP4 kernel."
+  ]
+}
