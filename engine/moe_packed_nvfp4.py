@@ -114,6 +114,13 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
             shared = w["mlp.shared_expert.down_proj.weight.packed"](
                 (F.silu(gate_s) * up_s).to(h.dtype)
             ).reshape_as(h_flat)
+        elif (
+            _env_bool("LYNN_SHARED_EXPERT_GATE_UP_FUSED", True)
+            and "mlp.shared_expert._gate_up_proj.weight" in w
+        ):
+            gate_up_s = F.linear(h_flat, w["mlp.shared_expert._gate_up_proj.weight"])
+            gate_s, up_s = gate_up_s.chunk(2, dim=-1)
+            shared = F.linear(F.silu(gate_s) * up_s, w["mlp.shared_expert.down_proj.weight"])
         else:
             gate_s = F.linear(h_flat, w["mlp.shared_expert.gate_proj.weight"])
             up_s = F.linear(h_flat, w["mlp.shared_expert.up_proj.weight"])
