@@ -26,6 +26,7 @@ Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent ru
 | **P12 one-shot + graph-after-release gate** | ✅ OpenAI server first request releases **56.47 GiB**; graph slot after release reaches 79.5-83.8 tok/s with max_abs=0 |
 | **P13 graph-slot generate wiring** | ✅ `generate()` opt-in path uses full-token graph slots;multi-prompt gate proves future-window unsafe,next state-refresh slot |
 | **P14 state-refresh probe** | ✅ full mutable-state roundtrip costs only **0.79 ms**,far below graph capture at 60-105 ms |
+| **P15 runtime config audit** | ✅ disables global `LYNN_PACKED_DECODE`; restores **103.48 strict / 107.23 replay**; disproves packed shared expert path |
 | **Next target** | production-stable 100+ TPS + packed-resident serving lifecycle |
 
 Current primary artifact:
@@ -58,6 +59,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P12 one-shot + graph after release** | — | **79.5-83.8** | ✅ graph/eager exact match after 56.47 GiB release |
 | **P13 graph-slot generate/window** | **12.6-12.8 ms replay / 60-105 ms capture** | **78-79 replay / 8-14 e2e** | ⚠️ current-position strict;future window multi-prompt FAIL |
 | **P14 state refresh** | **0.79 ms roundtrip + 12.6 ms replay** | **~70-80 projected** | ✅ copy-cost green light,implementation pending |
+| **P15 correct runtime config** | **9.66 ms strict / 9.33 ms replay** | **103.48 / 107.23** | ✅ `LYNN_PACKED_DECODE=0`,shared expert stays BF16 |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -73,6 +75,9 @@ export LYNN_RMSNORM_GATED_BACKEND=triton
 export LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1
 export LYNN_NATIVE_FP4_LM_HEAD=1
 export LYNN_LINEAR_STATE_UPDATE=inplace
+export LYNN_PACKED_DECODE=0
+export LYNN_PACKED_DECODE_PREPARE_NATIVE=0
+export LYNN_PACKED_SHARED_EXPERT=0
 ```
 
 Measured final step5000 NVFP4:
@@ -92,6 +97,15 @@ serving path. P10-S records the cross-token drift boundary for full-token graph
 families; the default production path remains the 88-89 TPS stable server until
 multi-prompt,long-generation,and tool-call parity gates pass. See
 [`docs/LYNN_ENGINE_P10S_GRAPH_BOUNDARY_20260515.md`](docs/LYNN_ENGINE_P10S_GRAPH_BOUNDARY_20260515.md).
+
+P15 config note: do not treat `LYNN_PACKED_DECODE=1` as "more packed means
+faster". On R6000 it drops the full graph path from **103.48 tok/s** to
+**88.15 tok/s**, because small Q/K/V/O decode projections are slower on the
+generic packed native path. The current correct profile packs MoE active
+experts, uses native fused linear-attention in-projection, and optionally uses
+native FP4 lm_head, but keeps **generic packed decode disabled**. The shared
+expert also stays BF16 because packed scalar/native shared paths are slower.
+See [`docs/LYNN_ENGINE_P15_RUNTIME_CONFIG_20260516.md`](docs/LYNN_ENGINE_P15_RUNTIME_CONFIG_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,
@@ -182,6 +196,9 @@ export LYNN_RMSNORM_GATED_BACKEND=triton
 export LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1
 export LYNN_NATIVE_FP4_LM_HEAD=1
 export LYNN_LINEAR_STATE_UPDATE=inplace
+export LYNN_PACKED_DECODE=0
+export LYNN_PACKED_DECODE_PREPARE_NATIVE=0
+export LYNN_PACKED_SHARED_EXPERT=0
 
 # 3. Run resident smoke
 python benchmarks/resident_cli.py \

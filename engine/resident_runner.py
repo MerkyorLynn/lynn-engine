@@ -166,7 +166,20 @@ class LynnIncrementalRunner:
         self.packed_decode_aliases_attached = 0
         self.packed_decode_native_prepared = 0
         self.packed_decode_aliases_skipped = 0
+        self.runtime_warnings: list[str] = []
         self.cfg, self.n_layers = _runtime_config(self.model_dir)
+        if os.environ.get("LYNN_PACKED_DECODE", "0") == "1":
+            self.runtime_warnings.append(
+                "LYNN_PACKED_DECODE=1 is a diagnostic path, not the current R6000 best "
+                "profile. P15 measured it regressing full graph path from ~103.48 tok/s "
+                "to ~88.15 tok/s. Prefer LYNN_PACKED_DECODE=0 with "
+                "LYNN_MOE_IMPL=packed_nvfp4 and LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1."
+            )
+        if os.environ.get("LYNN_PACKED_SHARED_EXPERT", "0") == "1":
+            self.runtime_warnings.append(
+                "LYNN_PACKED_SHARED_EXPERT=1 is slower than the BF16 shared expert path "
+                "on R6000 P15 profiles; keep it disabled unless explicitly benchmarking."
+            )
 
         from transformers import AutoTokenizer
 
@@ -182,6 +195,8 @@ class LynnIncrementalRunner:
         self.stop_token_ids = stop_ids
         if verbose:
             print(f"[resident] loading outside weights from {self.model_dir}", flush=True)
+            for warning in self.runtime_warnings:
+                print(f"[resident][warning] {warning}", flush=True)
         self.outside = load_outside_weights(self.model_dir, device, dtype)
 
         if verbose:
