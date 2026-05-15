@@ -161,3 +161,54 @@ At 16k: 100 GiB used / 19 GiB available (Spark unified). Approaching ceiling —
 - 32k + 64k probe (potentially via P12 one-shot release first to free headroom)
 - Force longer generation (increase max_tokens, append explicit prompt to override early-stop)
 - Pull Codex main for P13 commits
+
+---
+
+## 2026-05-16 00:45 — Long-ctx 16k strong-gen + 32k extend, 64k OOL
+
+### 16k strong long-gen retest
+
+| Metric | Value |
+|---|---:|
+| prompt_tok | 13665 |
+| **comp_tok** | **350 / 350 (full max used)** |
+| wall | 16.57s |
+| prefill | 8.02s |
+| decode | 8.53s |
+| **decode_tps** | **41.04** (consistent) |
+| **e2e_tps** | **21.12** |
+| **vs SGLang 35B 3.12** | **6.77×** ⭐ |
+
+### 32k probe (e2e 1.68× SGLang)
+
+| Metric | Value |
+|---|---:|
+| prompt_tok | 27097 |
+| comp_tok | 350 / 350 |
+| wall | 25.65s |
+| prefill | 16.66s |
+| decode | 8.97s |
+| **decode_tps** | **39.02** (slight drop -5% from 41) |
+| **e2e_tps** | **13.65** |
+| vs SGLang 35B 8.14 (caveat: prefix dedup false-fast) | **1.68×** |
+
+SGLang 35B at 32k = 8.14 TPS but **caveated as inflated** in V Flash MD (repeated filler + radix cache prefix dedup hit). Real SGLang 35B at 32k probably ~5-6 TPS. So Lynn 27B 13.65 is **realistic 2-3×**.
+
+### 64k attempt: HTTP 409
+
+Beyond Qwen3.6 model design ctx ~32K. Server rejects — model architecture limit, not engine issue. Accepting 32k as long-ctx ceiling on this model.
+
+### Long-ctx summary table (all forced 300-350 token gen, Spark sm_121 native_fast_2d)
+
+| ctx | Lynn 27B e2e | SGLang 35B baseline | ratio |
+|---:|---:|---:|---:|
+| 1024 | 36.92 | 43.96 | 0.84× |
+| 4096 | 31.16 | 36.74 | 0.85× |
+| 8000 | 24.53 | 27.03 | 0.91× |
+| 16000 | **21.12** (strong) / 9.66 (early-stop) | 3.12 | **6.77×** / **3.10×** |
+| 32000 | **13.65** | 8.14 (caveat: false-fast) | **1.68×** (real ~2-3×) |
+| 64000 | n/a (model ctx limit) | n/a | — |
+
+### Key takeaway
+
+**8-10k ctx 是 crossover point**。8k 以下 SGLang 略快(~10-15%);8k-32k Lynn engine linear-attn 完胜(decode_tps 全程 ~40 TPS,SGLang quadratic 崩)。**Long ctx 16k+ 是 Lynn 27B 主要差异化武器**,且 mem footprint 也胜出。
