@@ -547,6 +547,62 @@ class LynnIncrementalRunner:
         self._restore_state(state, snap)
         return FullTokenGraphSlot(seq_len=seq_len, token_buf=token_buf, logits_buf=logits_buf, graph=graph)
 
+    def release_decode_bf16_shadows(
+        self,
+        *,
+        include_moe_experts: bool = True,
+        include_projection_aliases: bool = True,
+    ) -> dict[str, Any]:
+        """Release BF16 tensors covered by packed decode aliases.
+
+        This is a session-scoped / decode-only primitive. Do not call it before
+        prefill in the current runner, and do not use it for multi-request
+        serving unless the server can reload shadows or run packed prefill.
+        """
+        released: list[dict[str, Any]] = []
+        released_bytes = 0
+
+        def drop(layer_idx: int, w: dict[str, Any], key: str, reason: str) -> None:
+            nonlocal released_bytes
+            tensor = w.get(key)
+            if not isinstance(tensor, torch.Tensor):
+                return
+            nbytes = int(tensor.numel() * tensor.element_size())
+            del w[key]
+            released_bytes += nbytes
+            released.append({
+                "layer": layer_idx,
+                "key": key,
+                "bytes": nbytes,
+                "reason": reason,
+            })
+
+        for layer_idx, w in enumerate(self.layer_weights):
+            if include_moe_experts:
+                if "mlp.experts._gate_up_packed" in w:
+                    drop(layer_idx, w, "mlp.experts.gate_up_proj", "packed_grouped_moe_gate_up")
+                if "mlp.experts._down_packed" in w:
+                    drop(layer_idx, w, "mlp.experts.down_proj", "packed_grouped_moe_down")
+
+            if include_projection_aliases:
+                for key in list(w.keys()):
+                    if not key.endswith(".weight"):
+                        continue
+                    if key + ".packed" not in w:
+                        continue
+                    drop(layer_idx, w, key, "packed_linear_alias")
+
+        if self.device.startswith("cuda"):
+            torch.cuda.empty_cache()
+            torch.cuda.synchronize()
+        return {
+            "released_tensors": len(released),
+            "released_bytes": released_bytes,
+            "released_gib": released_bytes / (1024**3),
+            "items": released[:50],
+            "truncated_items": max(0, len(released) - 50),
+        }
+
     def _prepare_packed_decode_aliases(self) -> None:
         """Attach packed NVFP4 decode aliases while keeping BF16 prefill safe.
 

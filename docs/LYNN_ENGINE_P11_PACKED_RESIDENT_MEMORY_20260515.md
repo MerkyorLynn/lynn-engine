@@ -94,3 +94,46 @@ Short term:
 
 That is the path toward simultaneously beating framework memory footprint and
 serving latency.
+
+## P11-B Session-Scoped Release Smoke
+
+We added `LynnIncrementalRunner.release_decode_bf16_shadows()` and verified the
+first safe lifecycle:
+
+```text
+load BF16-shadow resident runner
+prefill prompt
+snapshot prefill state
+run baseline decode
+restore prefill state
+release decode-covered BF16 shadows
+run packed decode
+compare greedy ids
+```
+
+Required env is recorded and enforced by the smoke:
+
+```bash
+LYNN_MOE_IMPL=packed_nvfp4
+LYNN_LINEAR_ATTN_RECURRENT_INPLACE=1
+LYNN_NATIVE_FP4_LM_HEAD=1
+```
+
+R6000 result:
+
+| Metric | Result |
+|---|---:|
+| Released tensors | 270 |
+| Released BF16 shadow | 56.47 GiB |
+| Allocated before release | 81.06 GiB |
+| Allocated after release | 24.59 GiB |
+| Reserved before release | 81.53 GiB |
+| Reserved after release | 25.44 GiB |
+| Greedy ids after release | exact match |
+| Verdict | PASS |
+
+This confirms the packed-memory thesis in a real runner lifecycle. The default
+HTTP server should still stay on the non-release path until we add either:
+
+- packed prefill, or
+- a single-session mode that refuses/reloads subsequent prefill requests.
