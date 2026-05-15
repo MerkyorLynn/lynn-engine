@@ -725,6 +725,18 @@ qkv_projection:        0.027 ms
 No single segment is a 10 ms monster. The 68 -> 100 TPS gap is now a set of
 small launch and fusion costs repeated across 30 linear-attention layers.
 
+The existing fused qkv/z/b/a input projection path is still worth keeping:
+
+```text
+without fused in-proj: linear_attn.core_decode 0.294 ms
+with fused in-proj:    linear_attn.core_decode 0.268 ms
+single-layer win:      ~0.026 ms
+30-layer rough win:    ~0.75 ms/token
+```
+
+This is not enough by itself to reach 100 TPS, but it is a stable cumulative
+win and confirms that repeated small launch reductions matter at 30-layer scale.
+
 ### Static A-log Decode Constant
 
 Implemented a small cleanup that precomputes `-exp(A_log)` once per
