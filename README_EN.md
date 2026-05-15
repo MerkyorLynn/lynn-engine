@@ -24,7 +24,7 @@ Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent ru
 | **P10 runner graph-slot gate** | ✅ 6 prompts × 3 prefixes = 18/18 strict PASS,runner graph slot 88.8-103.1 tok/s |
 | **P11 packed-resident memory gate** | ✅ after prefill, releases **56.47 GiB** BF16 shadow; allocated memory **81.06 → 24.59 GiB** with exact greedy-id match |
 | **P12 one-shot + graph-after-release gate** | ✅ OpenAI server first request releases **56.47 GiB**; graph slot after release reaches 79.5-83.8 tok/s with max_abs=0 |
-| **P13 graph-slot generate wiring** | ✅ `generate()` opt-in path uses full-token graph slots;8-token sequential window PASS,16-token window drifts at step 9 |
+| **P13 graph-slot generate wiring** | ✅ `generate()` opt-in path uses full-token graph slots;multi-prompt gate proves future-window unsafe,next state-refresh slot |
 | **Next target** | production-stable 100+ TPS + packed-resident serving lifecycle |
 
 Current primary artifact:
@@ -55,7 +55,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **OpenAI server stable path** | **~11.2 ms** | **88-89** | ✅ tool-call + no-think guard PASS |
 | **P11 session-scoped packed resident** | — | — | ✅ BF16 shadow 81.06→24.59 GiB,exact decode-id match |
 | **P12 one-shot + graph after release** | — | **79.5-83.8** | ✅ graph/eager exact match after 56.47 GiB release |
-| **P13 graph-slot generate/window** | **12.6-12.8 ms replay / 60-105 ms capture** | **78-79 replay / 8-14 e2e** | ✅ 8-token window PASS;16-token window unsafe |
+| **P13 graph-slot generate/window** | **12.6-12.8 ms replay / 60-105 ms capture** | **78-79 replay / 8-14 e2e** | ⚠️ current-position strict;future window multi-prompt FAIL |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:

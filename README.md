@@ -24,7 +24,7 @@ Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B final 基�
 | **P10 runner graph-slot gate** | ✅ 6 prompts × 3 prefixes = 18/18 strict PASS,runner graph slot 88.8-103.1 tok/s |
 | **P11 packed-resident memory gate** | ✅ prefill 后释放 **56.47 GiB** BF16 shadow,allocated **81.06 → 24.59 GiB**,greedy ids exact match |
 | **P12 one-shot + graph-after-release gate** | ✅ OpenAI server 首请求释放 **56.47 GiB**;释放后 graph slot 79.5-83.8 tok/s,max_abs=0 |
-| **P13 graph-slot generate wiring** | ✅ `generate()` opt-in 接入 full-token graph slot;8-token sequential window PASS,16-token window step-9 drift |
+| **P13 graph-slot generate wiring** | ✅ `generate()` opt-in 接入 full-token graph slot;多 prompt 证明 future-window 不安全,下一步 state-refresh slot |
 | **下一目标** | 生产稳定 100+ TPS + packed-resident serving lifecycle |
 
 当前主力 artifact:
@@ -55,7 +55,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **OpenAI server stable path** | **~11.2 ms** | **88-89** | ✅ tool-call + no-think guard PASS |
 | **P11 session-scoped packed resident** | — | — | ✅ BF16 shadow 81.06→24.59 GiB,decode ids exact match |
 | **P12 one-shot + graph after release** | — | **79.5-83.8** | ✅ release 56.47GiB 后 graph/eager exact match |
-| **P13 graph-slot generate/window** | **12.6-12.8ms replay / 60-105ms capture** | **78-79 replay / 8-14 e2e** | ✅ 8-token window PASS;16-token window unsafe |
+| **P13 graph-slot generate/window** | **12.6-12.8ms replay / 60-105ms capture** | **78-79 replay / 8-14 e2e** | ⚠️ current-position strict;future window 多 prompt FAIL |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:

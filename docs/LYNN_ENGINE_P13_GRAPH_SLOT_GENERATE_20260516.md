@@ -142,6 +142,49 @@ single current-position slot: strict
 16-token sequential window: not safe (step-9 diagnostic drift)
 ```
 
-The next useful optimization is not "make a bigger fixed window"; it is a
-guarded 8-token window policy with replay/eager parity checks across multiple
-prompts, then capture amortization.
+### Multi-Prompt 8-Window Gate
+
+We then tested the 8-token sequential window across six prompts:
+
+```bash
+python benchmarks/p13b_seq_window_multiprompt_gate.py \
+  --model /root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final \
+  --out /tmp/lynn_p13b_seq_window_multiprompt_gate.json \
+  --max-new 8
+```
+
+Result:
+
+| Prompt | Verdict | Replay TPS | First bad step |
+|---|---|---:|---|
+| `zh_moe` | PASS | 79.21 | — |
+| `python_factorial` | FAIL | 79.22 | step 0 |
+| `rope_alibi` | PASS | 79.22 | — |
+| `english_math` | FAIL | 79.28 | step 4 diagnostic |
+| `tool_json` | FAIL | 79.21 | step 1 |
+| `longctx_summary` | PASS | 79.27 | — |
+
+Overall verdict: **FAIL**.
+
+This rules out "pre-capture a future 8-token window" as a general production
+strategy. It works for some prompts, but not for code/tool/math-like prompts.
+
+Updated boundary:
+
+```text
+current-position graph slot captured from the real current state: strict
+future sequential window captured ahead of serving: not generally safe
+```
+
+The next useful optimization is therefore **not** "make a bigger fixed window".
+It is a reusable current-position graph slot with explicit state refresh:
+
+```text
+copy real state -> graph-owned state buffers
+replay graph
+copy graph-owned state -> real state
+```
+
+That keeps the "current real state" contract while trying to remove graph
+capture from the hot path. The open question becomes copy cost, not graph
+correctness.
