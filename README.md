@@ -8,7 +8,7 @@
 [![commits](https://img.shields.io/github/commit-activity/m/MerkyorLynn/lynn-engine)](https://github.com/MerkyorLynn/lynn-engine/commits/main)
 [![license](https://img.shields.io/badge/license-TBD-orange)](.)
 
-## 当前状态(2026-05-15)
+## 当前状态(2026-05-16)
 
 Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B final 基座的独立 NVFP4 runtime**:
 
@@ -18,8 +18,8 @@ Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B final 基�
 | **27B Lynn-native NVFP4** | ✅ 20G artifact 已生成并传到 R6000,manifest integrity PASS |
 | **独立加载** | ✅ 不依赖 vLLM / SGLang / TRT-LLM / llama.cpp,直接读 safetensors + Lynn quant manifest |
 | **6-prompt coherent smoke** | ✅ 中文解释 / Python / RoPE-ALiBi / 英文算术 / tool JSON / longctx 全通过 |
-| **当前 R6000 strict full path** | ✅ **103.44 tok/s**(packed NVFP4 MoE + opt-in native FP4 lm_head) |
-| **serving replay ceiling** | ✅ **107.23 tok/s**(40-layer body graph,可稳定复现) |
+| **当前 R6000 strict full path** | ✅ **118.73 tok/s**(P23:packed NVFP4 MoE + native FP4 lm_head + active MoE retune) |
+| **serving replay ceiling** | ✅ **123.78 tok/s**(40-layer body graph,可稳定复现) |
 | **OpenAI server guard** | ✅ strict tool-call PASS,`<think>` loop fail-pattern guard PASS,稳定 decode **88-89 tok/s** |
 | **P10 runner graph-slot gate** | ✅ 6 prompts × 3 prefixes = 18/18 strict PASS,runner graph slot 88.8-103.1 tok/s |
 | **P11 packed-resident memory gate** | ✅ prefill 后释放 **56.47 GiB** BF16 shadow,allocated **81.06 → 24.59 GiB**,greedy ids exact match |
@@ -27,7 +27,7 @@ Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B final 基�
 | **P13 graph-slot generate wiring** | ✅ `generate()` opt-in 接入 full-token graph slot;多 prompt 证明 future-window 不安全,下一步 state-refresh slot |
 | **P14 state-refresh probe** | ✅ full mutable state roundtrip **0.79ms**,远低于 graph capture 60-105ms |
 | **P15 runtime config audit** | ✅ 关闭全局 `LYNN_PACKED_DECODE`;恢复 **103.48 strict / 107.23 replay**;shared expert packed 路径证伪 |
-| **下一目标** | 生产稳定 100+ TPS + packed-resident serving lifecycle |
+| **下一目标** | 生产稳定 100+ TPS + custom per-16 grouped native-FP4 active expert kernel |
 
 当前主力 artifact:
 
@@ -69,6 +69,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P20 unsorted router top-k** | **8.51ms strict / 8.17ms replay** | **117.6 / 122.4** | ✅ same expert set,MoE parity PASS |
 | **P21 shared gate/up fusion** | **8.50ms strict / 8.15ms replay** | **117.7 / 122.7** | ✅ BF16 shared exact,small gain |
 | **P22 MoE warp retune** | **8.46ms strict / 8.11ms replay** | **118.3 / 123.3** | ✅ down kernel 8 warps |
+| **P23 active MoE accounting** | **8.42ms strict / 8.08ms replay** | **118.7 / 123.8** | ✅ expert-id int32 cleanup;router/topk branch ruled out |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:
@@ -98,8 +99,8 @@ export LYNN_PACKED_SHARED_EXPERT=0
 实测 final step5000 NVFP4:
 
 ```text
-strict full path:      118.25 tok/s  (P22 warp retune + P21/P20/P19)
-serving replay/body:   123.25 tok/s  (40-layer graph ceiling)
+strict full path:      118.73 tok/s  (P23 int32 expert-id cleanup + P22/P21/P20/P19)
+serving replay/body:   123.78 tok/s  (40-layer graph ceiling)
 OpenAI stable decode:    88-89 tok/s  (tool-call strict + no-think guard)
 BF16 lm_head path:     99.86 tok/s
 quality smoke:         6/6 coherent + strict tool-call + no-think loop guard PASS
@@ -124,6 +125,8 @@ P20 说明:router `topk(sorted=False)` 已验证同 expert set、同配对权重
 P21 说明:shared expert 保持 BF16,只把 gate/up 两个小 GEMM 融成一个 BF16 GEMM,代表层 max_abs=0。full graph 小幅提升到 **117.71/122.71 TPS**。详见 [`docs/LYNN_ENGINE_P21_SHARED_GATEUP_FUSION_20260516.md`](docs/LYNN_ENGINE_P21_SHARED_GATEUP_FUSION_20260516.md)。
 
 P22 说明:MoE active kernel 暴露 `num_warps` 调参后,R6000 最优为 gate/up 4 warps、down 8 warps,full graph 小幅提升到 **118.25/123.25 TPS**。详见 [`docs/LYNN_ENGINE_P22_MOE_WARP_RETUNE_20260516.md`](docs/LYNN_ENGINE_P22_MOE_WARP_RETUNE_20260516.md)。
+
+P23 说明:active MoE 全层画像确认没有异常慢层,40 层 active routed experts 几乎均匀在 **~0.069ms/layer**,router 约 **0.049ms/layer**,shared expert 约 **0.057ms/layer**。1D top-k、手写 softmax、Triton fused top-k+softmax 都没有进入生产价值;唯一 promoted 的安全小刀是 expert id 在 router 后一次性转 int32,避免 gate/up 和 down 重复 cast,full graph 提到 **118.73/123.78 TPS**。详见 [`docs/LYNN_ENGINE_P23_ACTIVE_MOE_ACCOUNTING_20260516.md`](docs/LYNN_ENGINE_P23_ACTIVE_MOE_ACCOUNTING_20260516.md)。
 
 Packed-resident memory 说明:当前默认 server 仍保留 BF16 shadow 以支持多请求 prefill。P11 已证明 session-scoped 生命周期中,prefill 后可以释放 56.47 GiB BF16 shadow,显存从 81.06 GiB 降到 24.59 GiB 且 greedy decode ids 完全一致。P12 进一步把这个能力接到 OpenAI server 的 opt-in one-shot 模式:首请求释放 56.47 GiB,第二请求明确 HTTP 409 fail-loud;并验证 release 后 current-position graph slot 仍与 eager decode exact match。详见 [`docs/LYNN_ENGINE_P11_PACKED_RESIDENT_MEMORY_20260515.md`](docs/LYNN_ENGINE_P11_PACKED_RESIDENT_MEMORY_20260515.md) 和 [`docs/LYNN_ENGINE_P12_ONESHOT_SERVER_20260515.md`](docs/LYNN_ENGINE_P12_ONESHOT_SERVER_20260515.md)。
 

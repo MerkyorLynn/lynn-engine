@@ -8,7 +8,7 @@
 [![commits](https://img.shields.io/github/commit-activity/m/MerkyorLynn/lynn-engine)](https://github.com/MerkyorLynn/lynn-engine/commits/main)
 [![license](https://img.shields.io/badge/license-TBD-orange)](.)
 
-## Current status (2026-05-15)
+## Current status (2026-05-16)
 
 Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent runtime for the **final Lynn 27B NVFP4 base**:
 
@@ -18,8 +18,8 @@ Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent ru
 | **27B Lynn-native NVFP4** | ✅ 20G artifact produced and transferred to R6000; manifest integrity PASS |
 | **Independent loader** | ✅ No vLLM / SGLang / TRT-LLM / llama.cpp dependency; reads safetensors + Lynn quant manifest directly |
 | **6-prompt coherent smoke** | ✅ Chinese explanation / Python / RoPE-ALiBi / English arithmetic / tool JSON / long-context prompts all pass |
-| **Current R6000 strict full path** | ✅ **103.44 tok/s** with packed NVFP4 MoE + opt-in native FP4 lm_head |
-| **Serving replay ceiling** | ✅ **107.23 tok/s** 40-layer body graph, reproducible |
+| **Current R6000 strict full path** | ✅ **118.73 tok/s** with P23 packed NVFP4 MoE + native FP4 lm_head + active MoE retuning |
+| **Serving replay ceiling** | ✅ **123.78 tok/s** 40-layer body graph, reproducible |
 | **OpenAI server guard** | ✅ strict tool-call PASS,`<think>` loop fail-pattern guard PASS,stable decode **88-89 tok/s** |
 | **P10 runner graph-slot gate** | ✅ 6 prompts × 3 prefixes = 18/18 strict PASS,runner graph slot 88.8-103.1 tok/s |
 | **P11 packed-resident memory gate** | ✅ after prefill, releases **56.47 GiB** BF16 shadow; allocated memory **81.06 → 24.59 GiB** with exact greedy-id match |
@@ -27,7 +27,7 @@ Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent ru
 | **P13 graph-slot generate wiring** | ✅ `generate()` opt-in path uses full-token graph slots;multi-prompt gate proves future-window unsafe,next state-refresh slot |
 | **P14 state-refresh probe** | ✅ full mutable-state roundtrip costs only **0.79 ms**,far below graph capture at 60-105 ms |
 | **P15 runtime config audit** | ✅ disables global `LYNN_PACKED_DECODE`; restores **103.48 strict / 107.23 replay**; disproves packed shared expert path |
-| **Next target** | production-stable 100+ TPS + packed-resident serving lifecycle |
+| **Next target** | production-stable 100+ TPS + custom per-16 grouped native-FP4 active expert kernel |
 
 Current primary artifact:
 
@@ -67,6 +67,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P20 unsorted router top-k** | **8.51 ms strict / 8.17 ms replay** | **117.6 / 122.4** | ✅ same expert set,MoE parity PASS |
 | **P21 shared gate/up fusion** | **8.50 ms strict / 8.15 ms replay** | **117.7 / 122.7** | ✅ exact BF16 shared path,small gain |
 | **P22 MoE warp retune** | **8.46 ms strict / 8.11 ms replay** | **118.3 / 123.3** | ✅ down kernel 8 warps |
+| **P23 active MoE accounting** | **8.42 ms strict / 8.08 ms replay** | **118.7 / 123.8** | ✅ int32 expert-id cleanup;router/top-k branch ruled out |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -96,8 +97,8 @@ export LYNN_PACKED_SHARED_EXPERT=0
 Measured final step5000 NVFP4:
 
 ```text
-strict full path:      118.25 tok/s  (P22 warp retune + P21/P20/P19)
-serving replay/body:   123.25 tok/s  (40-layer graph ceiling)
+strict full path:      118.73 tok/s  (P23 int32 expert-id cleanup + P22/P21/P20/P19)
+serving replay/body:   123.78 tok/s  (40-layer graph ceiling)
 OpenAI stable decode:    88-89 tok/s  (tool-call strict + no-think guard)
 BF16 lm_head path:     99.86 tok/s
 quality smoke:         6/6 coherent + strict tool-call + no-think loop guard PASS
@@ -165,6 +166,15 @@ P22 note: MoE active kernels now expose `num_warps`. R6000's best profile keeps
 gate/up at 4 warps and moves down projection to 8 warps, nudging the full graph
 to **118.25/123.25 TPS**. See
 [`docs/LYNN_ENGINE_P22_MOE_WARP_RETUNE_20260516.md`](docs/LYNN_ENGINE_P22_MOE_WARP_RETUNE_20260516.md).
+
+P23 note: full-layer active MoE accounting shows no pathological slow layer.
+The 40 active routed expert calls are nearly flat at **~0.069 ms/layer**,
+router is about **0.049 ms/layer**, and shared expert is about
+**0.057 ms/layer**. 1D top-k, manual softmax, and a Triton fused
+top-k+softmax probe were ruled out. The only promoted safe cleanup casts
+expert ids to int32 once after router top-k, avoiding duplicate gate/up and
+down casts, and moves the full graph to **118.73/123.78 TPS**. See
+[`docs/LYNN_ENGINE_P23_ACTIVE_MOE_ACCOUNTING_20260516.md`](docs/LYNN_ENGINE_P23_ACTIVE_MOE_ACCOUNTING_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,
