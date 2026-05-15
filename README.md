@@ -20,7 +20,7 @@ Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B final 基�
 | **6-prompt coherent smoke** | ✅ 中文解释 / Python / RoPE-ALiBi / 英文算术 / tool JSON / longctx 全通过 |
 | **当前 R6000 strict full path** | ✅ **118.73 tok/s**(P23:packed NVFP4 MoE + native FP4 lm_head + active MoE retune) |
 | **serving replay ceiling** | ✅ **123.78 tok/s**(40-layer body graph,可稳定复现) |
-| **OpenAI server guard** | ✅ strict tool-call PASS,`<think>` loop fail-pattern guard PASS,稳定 decode **88-89 tok/s** |
+| **OpenAI server guard** | ✅ strict tool-call PASS,`<think>` loop fail-pattern guard PASS,补齐 reusable block graph 后 decode **~100 tok/s** |
 | **P10 runner graph-slot gate** | ✅ 6 prompts × 3 prefixes = 18/18 strict PASS,runner graph slot 88.8-103.1 tok/s |
 | **P11 packed-resident memory gate** | ✅ prefill 后释放 **56.47 GiB** BF16 shadow,allocated **81.06 → 24.59 GiB**,greedy ids exact match |
 | **P12 one-shot + graph-after-release gate** | ✅ OpenAI server 首请求释放 **56.47 GiB**;释放后 graph slot 79.5-83.8 tok/s,max_abs=0 |
@@ -56,7 +56,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P10-P native FP4 lm_head** | **9.67 ms** | **103.44** | ✅ strict full path,opt-in |
 | **serving replay/body graph** | **9.33 ms** | **107.23** | ✅ 40-layer graph ceiling |
 | **P10-U runner graph slot** | **9.69-11.26 ms** | **88.8-103.1** | ✅ 6 prompts × 3 prefixes strict PASS |
-| **OpenAI server stable path** | **~11.2 ms** | **88-89** | ✅ tool-call + no-think guard PASS |
+| **OpenAI server stable path(pre-P25)** | **~11.2 ms** | **88-89** | ✅ 历史稳定基线 |
 | **P11 session-scoped packed resident** | — | — | ✅ BF16 shadow 81.06→24.59 GiB,decode ids exact match |
 | **P12 one-shot + graph after release** | — | **79.5-83.8** | ✅ release 56.47GiB 后 graph/eager exact match |
 | **P13 graph-slot generate/window** | **12.6-12.8ms replay / 60-105ms capture** | **78-79 replay / 8-14 e2e** | ⚠️ current-position strict;future window 多 prompt FAIL |
@@ -70,6 +70,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P21 shared gate/up fusion** | **8.50ms strict / 8.15ms replay** | **117.7 / 122.7** | ✅ BF16 shared exact,small gain |
 | **P22 MoE warp retune** | **8.46ms strict / 8.11ms replay** | **118.3 / 123.3** | ✅ down kernel 8 warps |
 | **P23 active MoE accounting** | **8.42ms strict / 8.08ms replay** | **118.7 / 123.8** | ✅ expert-id int32 cleanup;router/topk branch ruled out |
+| **P25 OpenAI server graph path** | **~9.95ms decode / 0.65s prefill** | **~99-100 decode / 87.7 wall @512 tok** | ✅ 服务态跨过 100 decode TPS |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:
@@ -91,6 +92,9 @@ export LYNN_RMSNORM_GATED_BACKEND=triton
 export LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1
 export LYNN_NATIVE_FP4_LM_HEAD=1
 export LYNN_LINEAR_STATE_UPDATE=inplace
+export LYNN_LINEAR_BLOCK_GRAPH=1
+export LYNN_LINEAR_BLOCK_GRAPH_REUSE=1
+export LYNN_LINEAR_BLOCK_GRAPH_PREWARM=1
 export LYNN_PACKED_DECODE=0
 export LYNN_PACKED_DECODE_PREPARE_NATIVE=0
 export LYNN_PACKED_SHARED_EXPERT=0
@@ -101,14 +105,14 @@ export LYNN_PACKED_SHARED_EXPERT=0
 ```text
 strict full path:      118.73 tok/s  (P23 int32 expert-id cleanup + P22/P21/P20/P19)
 serving replay/body:   123.78 tok/s  (40-layer graph ceiling)
-OpenAI stable decode:    88-89 tok/s  (tool-call strict + no-think guard)
+OpenAI server decode:   ~99-100 tok/s (P25 reusable block graph env,512-token wall TPS 87.7)
 BF16 lm_head path:     99.86 tok/s
 quality smoke:         6/6 coherent + strict tool-call + no-think loop guard PASS
 ```
 
 Native FP4 lm_head 是当前的 deterministic/greedy opt-in 优化:6/6 prompt top-1 match,top-20 overlap 最低 15/20,logits cosine 最低 0.9924。采样型生产流量默认仍保留 BF16 lm_head fallback,直到更大规模 parity gate 完成。
 
-CUDA graph 说明:107 TPS 是严格 benchmark ceiling,不是默认 HTTP serving 路径。P10-S 已记录 full-token graph family 的跨 token 漂移边界;当前生产默认保留 88-89 TPS 稳定路径,直到 multi-prompt / long generation / tool-call parity 全部通过。详见 [`docs/LYNN_ENGINE_P10S_GRAPH_BOUNDARY_20260515.md`](docs/LYNN_ENGINE_P10S_GRAPH_BOUNDARY_20260515.md)。
+CUDA graph 说明:P10-S 已记录 full-token graph family 的跨 token 漂移边界,所以 future-window full-token graph 仍不进默认生产。P25 采用的是更保守的 reusable linear-block graph 服务路径,已经把 OpenAI server decode 推到 **~99-100 TPS**;155TPS 剩余差距仍来自 active expert kernel,不是 HTTP wrapper。详见 [`docs/LYNN_ENGINE_P10S_GRAPH_BOUNDARY_20260515.md`](docs/LYNN_ENGINE_P10S_GRAPH_BOUNDARY_20260515.md) 和 [`docs/LYNN_ENGINE_P25_SERVER_100TPS_20260516.md`](docs/LYNN_ENGINE_P25_SERVER_100TPS_20260516.md)。
 
 P15 配置说明:不要把 `LYNN_PACKED_DECODE=1` 当成“更 packed 就更快”。R6000 实测它会把 full graph path 从 **103.48 tok/s** 拉低到 **88.15 tok/s**,因为 Q/K/V/O 等小 decode linear 走 generic packed native path 反而慢。当前正确配置是 MoE active experts packed、linear-attn fused native、lm_head native,但 **generic packed decode 关闭**;shared expert 也保留 BF16,因为 packed scalar/native shared 都更慢。详见 [`docs/LYNN_ENGINE_P15_RUNTIME_CONFIG_20260516.md`](docs/LYNN_ENGINE_P15_RUNTIME_CONFIG_20260516.md)。
 
@@ -117,6 +121,8 @@ P16 155TPS 说明:profiling 证明非-MoE 路径 replay-only 可到 **208.8 tok/
 P17 说明:Triton 3.6 的 `tl.dot_scaled(e2m1)` 已在 R6000 上通过 raw packed FP4 layout probe,真实 gate/up 形状 `1x2048 @ 2048x8192` 只需 **0.0125ms**。scale probe 进一步确认 `rhs_scale=[N,K//32]` 且 synthetic two-sided neutral byte 为 **127**。这证明 FP4 tensor-core compute 不是瓶颈;下一关是把 Lynn per-16/e4m3 scale contract 桥接到 e8m0/group32 grouped native dot。详见 [`docs/LYNN_ENGINE_P17_TRITON_DOT_SCALED_20260516.md`](docs/LYNN_ENGINE_P17_TRITON_DOT_SCALED_20260516.md)。
 
 P18 说明:三条 scale bridge 都已实测,`dot_scaled` raw gate/up 可到 **0.018ms**(当前 scalar bridge 约 **0.050ms**),但质量不过线:per-16→group32 fold 最佳 inter cosine **0.894**,BF16→e8m0/group32 re-quant **0.980**,padded per-16 **0.936**。结论:155TPS 仍有硬件 headroom,但不能用简单 e8m0 bridge 牺牲质量,下一步转 **custom per-16 grouped native FP4 kernel / CUTLASS** 或更强 engine-native quant artifact。详见 [`docs/LYNN_ENGINE_P18_SCALE_CONTRACT_DECISION_20260516.md`](docs/LYNN_ENGINE_P18_SCALE_CONTRACT_DECISION_20260516.md)。
+
+P25 说明:补齐 `LYNN_LINEAR_BLOCK_GRAPH=1 / REUSE=1 / PREWARM=1` 后,OpenAI-compatible server 不再停在 88-89 TPS 旧路径,而是稳定到 **~99-100 decode tok/s**;512 token 请求端到端 **87.7 tok/s**。这证明服务层不是 155 的主 blocker,剩余差距仍在 active expert kernel。详见 [`docs/LYNN_ENGINE_P25_SERVER_100TPS_20260516.md`](docs/LYNN_ENGINE_P25_SERVER_100TPS_20260516.md)。
 
 P19 说明:在不改变数值路径的前提下,active MoE kernel block retune 把 R6000 full graph 从 **103.40/107.13 TPS** 提到 **115.41/120.25 TPS**。推荐配置已成为默认:`gate_hidden=256,down_inter=512`,并保留 env override 方便后续设备差异调参。详见 [`docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md`](docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md)。
 
@@ -214,6 +220,9 @@ export LYNN_RMSNORM_GATED_BACKEND=triton
 export LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1
 export LYNN_NATIVE_FP4_LM_HEAD=1
 export LYNN_LINEAR_STATE_UPDATE=inplace
+export LYNN_LINEAR_BLOCK_GRAPH=1
+export LYNN_LINEAR_BLOCK_GRAPH_REUSE=1
+export LYNN_LINEAR_BLOCK_GRAPH_PREWARM=1
 export LYNN_PACKED_DECODE=0
 export LYNN_PACKED_DECODE_PREPARE_NATIVE=0
 export LYNN_PACKED_SHARED_EXPERT=0

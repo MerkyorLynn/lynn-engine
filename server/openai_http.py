@@ -271,6 +271,8 @@ def make_app(handle: LynnEngineHandle):
                     lambda: handle.generate(req.prompt, req.max_tokens,
                                             req.temperature, req.stop),
                 )
+            except ValueError as exc:
+                raise HTTPException(400, str(exc)) from exc
             except RuntimeError as exc:
                 raise HTTPException(409, str(exc)) from exc
             elapsed = time_mod.time() - t0
@@ -337,6 +339,8 @@ def make_app(handle: LynnEngineHandle):
                     lambda: handle.generate(prompt, req.max_tokens,
                                             req.temperature, req.stop),
                 )
+            except ValueError as exc:
+                raise HTTPException(400, str(exc)) from exc
             except RuntimeError as exc:
                 raise HTTPException(409, str(exc)) from exc
             elapsed = time_mod.time() - t0
