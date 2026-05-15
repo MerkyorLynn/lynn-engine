@@ -812,3 +812,25 @@ Request amortization with the same env:
 
 The stable decode ceiling should be described as ~68-69 TPS after this change,
 not 66-68 TPS.
+
+## P9-H Full-Attention Graph Probe
+
+Added `benchmarks/p9h_full_attn_graph_probe.py` to test whether a single
+full-attention layer can be CUDA-graph replayed at a fixed decode position.
+
+Layer 3 on final 27B step5000 NVFP4:
+
+```text
+eager full-attn layer: 0.733 ms
+graph replay:          0.227 ms
+speedup:               3.24x
+output diff:           max_abs 0.0 / cosine 1.0
+KV full diff:          max_abs 0.0 / cosine 1.0
+KV write-slice diff:   max_abs 0.0 / cosine 1.0
+```
+
+This is the first strong signal that the remaining 68 -> 100 TPS gap can be
+closed by graph-family engineering rather than only by writing new math kernels.
+The caveat is important: this probe fixes one decode position/KV length. Serving
+needs either a bounded graph family for common positions or a fixed-shape KV
+strategy before full-attention graph replay can become production.
