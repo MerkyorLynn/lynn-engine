@@ -23,8 +23,32 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from engine.full_forward import _decode_layer, _prefill_layer, _rms_norm  # noqa: E402
+from engine.nvfp4_runtime import _compact_scale_to_swizzled_fp8  # noqa: E402
 from engine.inference_state import LAYER_TYPES, LynnInferenceState  # noqa: E402
 from engine.resident_runner import LynnIncrementalRunner, _encode_prompt  # noqa: E402
+from triton_kernels.nvfp4_linear import quantize_fp4_m1_native  # noqa: E402
+
+
+_E2M1_TABLE = torch.tensor([0.0, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0], dtype=torch.float32)
+
+
+def _quantize_weight_to_fp4(weight: torch.Tensor, *, chunk_rows: int = 4096) -> tuple[torch.Tensor, torch.Tensor]:
+    table = _E2M1_TABLE.to(device=weight.device)
+    v, k = weight.shape
+    groups = k // 16
+    packed = torch.empty((v, k // 2), device=weight.device, dtype=torch.uint8)
+    scale = torch.empty((v, groups), device=weight.device, dtype=torch.float32)
+    for start in range(0, v, chunk_rows):
+        end = min(start + chunk_rows, v)
+        wg = weight[start:end].float().reshape(end - start, groups, 16)
+        scale_chunk = (wg.abs().amax(dim=-1) / float(table[-1])).clamp_min(1e-8)
+        normalized = wg.abs() / scale_chunk.unsqueeze(-1)
+        mag = torch.argmin((normalized.unsqueeze(-1) - table.view(1, 1, 1, -1)).abs(), dim=-1)
+        sign = (wg < 0).to(torch.uint8) * 8
+        codes = (mag.to(torch.uint8) | sign).reshape(end - start, k)
+        packed[start:end] = (codes[:, 0::2] | (codes[:, 1::2] << 4)).contiguous()
+        scale[start:end] = scale_chunk
+    return packed, scale.contiguous()
 
 
 def _snapshot_state(state: LynnInferenceState):
@@ -81,9 +105,33 @@ def main() -> int:
     ap.add_argument("--warmup", type=int, default=5)
     ap.add_argument("--iters", type=int, default=200)
     ap.add_argument("--group-size", type=int, default=4)
+    ap.add_argument("--native-fp4-lm-head", action="store_true")
+    ap.add_argument("--quant-chunk-rows", type=int, default=4096)
     args = ap.parse_args()
 
     runner = LynnIncrementalRunner(args.model, device="cuda", dtype=torch.bfloat16, verbose=False)
+    native_lm_head = None
+    if args.native_fp4_lm_head:
+        packed_lm_head, lm_head_scale = _quantize_weight_to_fp4(
+            runner.outside["lm_head.weight"].contiguous(),
+            chunk_rows=args.quant_chunk_rows,
+        )
+        lm_head_scale_b = _compact_scale_to_swizzled_fp8(
+            lm_head_scale,
+            outer_dim=runner.outside["lm_head.weight"].shape[0],
+            k=runner.outside["lm_head.weight"].shape[1],
+        )
+
+        def native_lm_head(x: torch.Tensor) -> torch.Tensor:
+            act_packed, scale_a = quantize_fp4_m1_native(x)
+            return torch._scaled_mm(
+                act_packed.view(torch.float4_e2m1fn_x2),
+                packed_lm_head.view(torch.float4_e2m1fn_x2).t(),
+                scale_a=scale_a,
+                scale_b=lm_head_scale_b,
+                out_dtype=torch.float16,
+            )
+
     state = LynnInferenceState(batch=1, max_seq_len=runner.max_seq_len, device=runner.device, dtype=runner.dtype)
     next_id, decode_position = _prefill(runner, state, args.prompt)
     pos_tensor = torch.tensor([[decode_position]], device=runner.device, dtype=torch.long)
@@ -136,16 +184,25 @@ def main() -> int:
     h_norm = norm_buf.clone()
 
     def lm_head_only():
-        logits_buf.copy_(F.linear(h_norm[:, -1, :], runner.outside["lm_head.weight"]))
+        if native_lm_head is None:
+            logits_buf.copy_(F.linear(h_norm[:, -1, :], runner.outside["lm_head.weight"]))
+        else:
+            logits_buf.copy_(native_lm_head(h_norm[:, -1, :]).to(logits_buf.dtype))
 
     def final_norm_lm_head():
         h_norm_local = _rms_norm(h_after, runner.outside["model.language_model.norm.weight"])
-        logits_buf.copy_(F.linear(h_norm_local[:, -1, :], runner.outside["lm_head.weight"]))
+        if native_lm_head is None:
+            logits_buf.copy_(F.linear(h_norm_local[:, -1, :], runner.outside["lm_head.weight"]))
+        else:
+            logits_buf.copy_(native_lm_head(h_norm_local[:, -1, :]).to(logits_buf.dtype))
 
     def full_graph_path():
         h = run_groups_only()
         h_norm_local = _rms_norm(h, runner.outside["model.language_model.norm.weight"])
-        logits_buf.copy_(F.linear(h_norm_local[:, -1, :], runner.outside["lm_head.weight"]))
+        if native_lm_head is None:
+            logits_buf.copy_(F.linear(h_norm_local[:, -1, :], runner.outside["lm_head.weight"]))
+        else:
+            logits_buf.copy_(native_lm_head(h_norm_local[:, -1, :]).to(logits_buf.dtype))
 
     full_input = torch.empty_like(h_seed)
     full_logits = torch.empty_like(logits_buf)
@@ -156,7 +213,10 @@ def main() -> int:
         for i in range(runner.n_layers):
             h = _decode_layer(h, pos_tensor, LAYER_TYPES[i], runner.layer_weights[i], runner.layer_cfgs[i], state, i)
         h_norm_local = _rms_norm(h, runner.outside["model.language_model.norm.weight"])
-        full_logits.copy_(F.linear(h_norm_local[:, -1, :], runner.outside["lm_head.weight"]))
+        if native_lm_head is None:
+            full_logits.copy_(F.linear(h_norm_local[:, -1, :], runner.outside["lm_head.weight"]))
+        else:
+            full_logits.copy_(native_lm_head(h_norm_local[:, -1, :]).to(full_logits.dtype))
 
     _restore_state(state, base)
     full_input.copy_(h_seed)
@@ -208,6 +268,7 @@ def main() -> int:
         "model": args.model,
         "decode_position": decode_position,
         "group_size": args.group_size,
+        "native_fp4_lm_head": args.native_fp4_lm_head,
         "group_count": len(slots),
         "groups_ms": groups_ms,
         "groups_tps_equiv": 1000.0 / groups_ms,

@@ -1286,3 +1286,37 @@ keeping NVFP4 packed expert weights resident and preserving BF16 activation
 quality. The next production work is to remove the remaining BF16 resident
 copies for memory, then attack `lm_head` and shared expert without regressing
 quality.
+
+
+### P10-O/P10-P Native FP4 lm_head
+
+The final strict bottleneck after P10-N was `lm_head`:
+
+```text
+40-layer body graph:          9.326 ms / 107.23 tok/s equivalent
+BF16 lm_head:                 ~0.668 ms
+strict full path:             ~99.86 tok/s
+```
+
+The 27B NVFP4 artifact does not pack `lm_head`, so P10-O tested runtime packing
+of `lm_head.weight` into native FP4. Quality gate on one representative prompt:
+
+```text
+native FP4 lm_head:           0.304 ms vs BF16 0.665 ms (2.19x)
+cosine vs BF16 logits:        0.9924
+top1 match:                   PASS
+top20 overlap:                17/20 = 85%
+one-time runtime pack cost:   114 ms
+```
+
+P10-P wired this optional native FP4 lm_head into the full graph benchmark:
+
+```text
+strict full path + FP4 lm_head:        103.44 tok/s
+full decode-final graph:               103.50 tok/s
+serving replay only:                   107.23 tok/s
+```
+
+Status: this crosses the strict 100 tok/s target on R6000. It remains opt-in
+until multi-prompt logit/top-k validation confirms the lm_head FP4 path is not
+prompt-fragile.
