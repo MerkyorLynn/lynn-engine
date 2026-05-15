@@ -20,7 +20,8 @@ Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B final 基�
 | **6-prompt coherent smoke** | ✅ 中文解释 / Python / RoPE-ALiBi / 英文算术 / tool JSON / longctx 全通过 |
 | **当前 R6000 strict full path** | ✅ **103.44 tok/s**(packed NVFP4 MoE + opt-in native FP4 lm_head) |
 | **serving replay ceiling** | ✅ **107.23 tok/s**(40-layer body graph,可稳定复现) |
-| **下一目标** | 生产稳定 100+ TPS:移除 BF16 resident shadow,补齐 native FP4 kernel 与易用性 |
+| **OpenAI server guard** | ✅ strict tool-call PASS,`<think>` loop fail-pattern guard PASS,稳定 decode **88-89 tok/s** |
+| **下一目标** | 生产稳定 100+ TPS:full-attn graph-state discipline / native FP4 kernel 与易用性 |
 
 当前主力 artifact:
 
@@ -46,6 +47,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P10-M packed NVFP4 MoE** | **10.01 ms** | **99.86** | ✅ strict full path,BF16 lm_head |
 | **P10-P native FP4 lm_head** | **9.67 ms** | **103.44** | ✅ strict full path,opt-in |
 | **serving replay/body graph** | **9.33 ms** | **107.23** | ✅ 40-layer graph ceiling |
+| **OpenAI server stable path** | **~11.2 ms** | **88-89** | ✅ tool-call + no-think guard PASS |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:
@@ -67,11 +69,14 @@ export LYNN_LINEAR_STATE_UPDATE=inplace
 ```text
 strict full path:      103.44 tok/s  (native FP4 lm_head opt-in)
 serving replay/body:   107.23 tok/s  (40-layer graph ceiling)
+OpenAI stable decode:    88-89 tok/s  (tool-call strict + no-think guard)
 BF16 lm_head path:     99.86 tok/s
-quality smoke:         6/6 coherent + 2-token greedy sanity PASS
+quality smoke:         6/6 coherent + strict tool-call + no-think loop guard PASS
 ```
 
 Native FP4 lm_head 是当前的 deterministic/greedy opt-in 优化:6/6 prompt top-1 match,top-20 overlap 最低 15/20,logits cosine 最低 0.9924。采样型生产流量默认仍保留 BF16 lm_head fallback,直到更大规模 parity gate 完成。
+
+CUDA graph 说明:107 TPS 是严格 benchmark ceiling,不是默认 HTTP serving 路径。P10-S 已记录 full-token graph family 的跨 token 漂移边界;当前生产默认保留 88-89 TPS 稳定路径,直到 multi-prompt / long generation / tool-call parity 全部通过。详见 [`docs/LYNN_ENGINE_P10S_GRAPH_BOUNDARY_20260515.md`](docs/LYNN_ENGINE_P10S_GRAPH_BOUNDARY_20260515.md)。
 
 ## 27B 质量与基座状态
 
@@ -110,6 +115,8 @@ Recovery v1.1 targeted longctx/chem/sql 已试过,但未取代 step5000:它没�
 | **P9** | done | packed NVFP4 active expert path,逼近 100TPS |
 | **P10** | current | native FP4 lm_head + full-path 103TPS,生产稳定 100+ |
 | **P11** | next | shared expert / grouped expert / larger fused kernels,奔 200TPS |
+
+Spark sm_121 分支单独推进,当前质量 gate 已通过、scalar_bridge 约 24TPS;目标是在 Spark 上验证同一 native path 并冲 50+TPS。详见 [`docs/SPARK_OPTIMIZATION_BRANCH_PLAN_20260515.md`](docs/SPARK_OPTIMIZATION_BRANCH_PLAN_20260515.md)。
 
 **已锁定决策**:
 - 推理硬件:**Blackwell sm_12x**(DGX Spark / 5090 / RTX PRO 6000)

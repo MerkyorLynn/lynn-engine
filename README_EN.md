@@ -20,7 +20,8 @@ Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent ru
 | **6-prompt coherent smoke** | ✅ Chinese explanation / Python / RoPE-ALiBi / English arithmetic / tool JSON / long-context prompts all pass |
 | **Current R6000 strict full path** | ✅ **103.44 tok/s** with packed NVFP4 MoE + opt-in native FP4 lm_head |
 | **Serving replay ceiling** | ✅ **107.23 tok/s** 40-layer body graph, reproducible |
-| **Next target** | production-stable 100+ TPS:remove BF16 resident shadows,finish native FP4 kernels and usability |
+| **OpenAI server guard** | ✅ strict tool-call PASS,`<think>` loop fail-pattern guard PASS,stable decode **88-89 tok/s** |
+| **Next target** | production-stable 100+ TPS:full-attn graph-state discipline,native FP4 kernels,and usability |
 
 Current primary artifact:
 
@@ -46,6 +47,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P10-M packed NVFP4 MoE** | **10.01 ms** | **99.86** | ✅ strict full path,BF16 lm_head |
 | **P10-P native FP4 lm_head** | **9.67 ms** | **103.44** | ✅ strict full path,opt-in |
 | **serving replay/body graph** | **9.33 ms** | **107.23** | ✅ 40-layer graph ceiling |
+| **OpenAI server stable path** | **~11.2 ms** | **88-89** | ✅ tool-call + no-think guard PASS |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -67,11 +69,18 @@ Measured final step5000 NVFP4:
 ```text
 strict full path:      103.44 tok/s  (native FP4 lm_head opt-in)
 serving replay/body:   107.23 tok/s  (40-layer graph ceiling)
+OpenAI stable decode:    88-89 tok/s  (tool-call strict + no-think guard)
 BF16 lm_head path:     99.86 tok/s
-quality smoke:         6/6 coherent + 2-token greedy sanity PASS
+quality smoke:         6/6 coherent + strict tool-call + no-think loop guard PASS
 ```
 
 The native FP4 lm_head path is currently a deterministic/greedy opt-in optimization:6/6 prompt top-1 match,minimum top-20 overlap 15/20,and minimum logits cosine 0.9924. Sampling-heavy production traffic keeps the BF16 lm_head fallback until a larger parity gate is complete.
+
+CUDA graph note:107 TPS is a strict benchmark ceiling, not the default HTTP
+serving path. P10-S records the cross-token drift boundary for full-token graph
+families; the default production path remains the 88-89 TPS stable server until
+multi-prompt,long-generation,and tool-call parity gates pass. See
+[`docs/LYNN_ENGINE_P10S_GRAPH_BOUNDARY_20260515.md`](docs/LYNN_ENGINE_P10S_GRAPH_BOUNDARY_20260515.md).
 
 ## 27B quality and base-model status
 
@@ -108,6 +117,11 @@ Recovery v1.1 targeted longctx/chem/sql was tested but did not replace step5000:
 | **P9** | done | packed NVFP4 active expert path, near-100 TPS |
 | **P10** | current | native FP4 lm_head + 103 TPS full path, production-stable 100+ |
 | **P11** | next | shared expert / grouped expert / larger fused kernels, target 200 TPS |
+
+The Spark sm_121 track is split into a separate branch. The current Spark
+quality gate passes on the scalar_bridge backend at roughly 24 TPS; the next
+Spark target is validating the same native path and reaching 50+ TPS. See
+[`docs/SPARK_OPTIMIZATION_BRANCH_PLAN_20260515.md`](docs/SPARK_OPTIMIZATION_BRANCH_PLAN_20260515.md).
 
 ## Tutorials — read these even if you're not writing your own engine
 
