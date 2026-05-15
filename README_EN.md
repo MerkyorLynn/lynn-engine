@@ -60,6 +60,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P13 graph-slot generate/window** | **12.6-12.8 ms replay / 60-105 ms capture** | **78-79 replay / 8-14 e2e** | ⚠️ current-position strict;future window multi-prompt FAIL |
 | **P14 state refresh** | **0.79 ms roundtrip + 12.6 ms replay** | **~70-80 projected** | ✅ copy-cost green light,implementation pending |
 | **P15 correct runtime config** | **9.66 ms strict / 9.33 ms replay** | **103.48 / 107.23** | ✅ `LYNN_PACKED_DECODE=0`,shared expert stays BF16 |
+| **P16 active-MoE boundary** | **skip-active 5.75 ms replay / non-MoE 4.79 ms replay** | **173.8 / 208.8 upper bound** | 🔬 155 TPS requires a new grouped native-FP4 active expert kernel |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -106,6 +107,13 @@ experts, uses native fused linear-attention in-projection, and optionally uses
 native FP4 lm_head, but keeps **generic packed decode disabled**. The shared
 expert also stays BF16 because packed scalar/native shared paths are slower.
 See [`docs/LYNN_ENGINE_P15_RUNTIME_CONFIG_20260516.md`](docs/LYNN_ENGINE_P15_RUNTIME_CONFIG_20260516.md).
+
+P16 155 TPS note: profiling shows the non-MoE path can replay at
+**208.8 tok/s**, and skipping active routed experts reaches **173.8 tok/s**.
+However, top-k approximation and block-size sweeps do not safely reach 155.
+The conclusion is that 155 TPS is not another environment toggle; it requires a
+new **grouped native-FP4 active expert kernel**. See
+[`docs/LYNN_ENGINE_P16_155TPS_ACTIVE_MOE_20260516.md`](docs/LYNN_ENGINE_P16_155TPS_ACTIVE_MOE_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,

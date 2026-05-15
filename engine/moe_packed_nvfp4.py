@@ -1,6 +1,8 @@
 """Packed NVFP4 MoE decode path."""
 from __future__ import annotations
 
+import os
+
 import torch
 import torch.nn.functional as F
 
@@ -44,27 +46,41 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
     )
     routing_weights = F.softmax(routing_weights, dim=-1, dtype=torch.float32)[0]
     expert_ids = expert_indices[0].to(torch.long)
+    topk_limit = os.environ.get("LYNN_MOE_PROFILE_TOPK_LIMIT")
+    if topk_limit:
+        limit = int(topk_limit)
+        if not (1 <= limit <= expert_ids.numel()):
+            raise ValueError(f"LYNN_MOE_PROFILE_TOPK_LIMIT must be in [1, {expert_ids.numel()}], got {limit}")
+        expert_ids = expert_ids[:limit].contiguous()
+        routing_weights = routing_weights[:limit].contiguous()
+        routing_weights = routing_weights / routing_weights.sum().clamp_min(1e-20)
     hidden = h_flat[0]
 
-    inter = nvfp4_grouped_gate_up_silu(
-        hidden,
-        expert_ids,
-        w["mlp.experts._gate_up_packed"],
-        w["mlp.experts._gate_up_scale"],
-        w["mlp.experts._gate_up_global_scale"],
-        block_inter=8,
-        block_hidden=64,
-    )
-    moe_out = nvfp4_grouped_down_weighted_sum(
-        inter,
-        expert_ids,
-        routing_weights,
-        w["mlp.experts._down_packed"],
-        w["mlp.experts._down_scale"],
-        w["mlp.experts._down_global_scale"],
-        block_hidden=8,
-        block_inter=256,
-    ).reshape_as(h_flat)
+    if os.environ.get("LYNN_MOE_PROFILE_SKIP_ACTIVE", "0") == "1":
+        moe_out = torch.zeros_like(h_flat)
+    else:
+        inter = nvfp4_grouped_gate_up_silu(
+            hidden,
+            expert_ids,
+            w["mlp.experts._gate_up_packed"],
+            w["mlp.experts._gate_up_scale"],
+            w["mlp.experts._gate_up_global_scale"],
+            block_inter=8,
+            block_hidden=64,
+        )
+        moe_out = nvfp4_grouped_down_weighted_sum(
+            inter,
+            expert_ids,
+            routing_weights,
+            w["mlp.experts._down_packed"],
+            w["mlp.experts._down_scale"],
+            w["mlp.experts._down_global_scale"],
+            block_hidden=8,
+            block_inter=256,
+        ).reshape_as(h_flat)
+
+    if os.environ.get("LYNN_MOE_PROFILE_SKIP_SHARED", "0") == "1":
+        return moe_out.to(h.dtype).reshape_as(h)
 
     if "mlp.shared_expert.gate_proj.weight" in w:
         if (
