@@ -375,3 +375,62 @@ Container `4872dbbf9b1b` restarted with P15 corrected config (`PACKED_DECODE=0`,
 On Spark sm_121, packed-decode native_fast_2d path is **as fast as** BF16 path for small projections — different from R6000 sm_120 where BF16 wins by 17%. **Spark's ceiling ~42 TPS is a different bottleneck**, not the config trap.
 
 Need to look elsewhere for the path to 55+ TPS: graph slot capture amortization (P13 hot path issue), state-refresh wiring (Codex P14-B/C probes), or genuine kernel-level work.
+
+---
+
+## 2026-05-16 01:35 — P14-B State-Refresh Probe on Spark sm_121
+
+Ran Codex's `benchmarks/p14b_graph_owned_state_slot_probe.py` standalone (server stopped, dedicated GPU). Probe configures: `refresh real state → graph-owned state → replay → commit back to real`.
+
+Spark sm_121 result (prefix_new=32, iters=10):
+
+| Metric | Value |
+|---|---:|
+| capture_ms | 48.81 |
+| refresh+replay+commit avg | **24.95 ms / token** |
+| **tps_equivalent** | **40.09 TPS** |
+| Logit diff top1_match | ✓ (drift in magnitude but top1 stable) |
+| Probe verdict | fail (numerical magnitude drift) |
+
+### Comparison with R6000 P14 doc claims
+
+| Metric | R6000 sm_120 (P14 doc) | Spark sm_121 (measured) | Gap |
+|---|---:|---:|---:|
+| state refresh roundtrip | 0.8 ms | not isolated | — |
+| graph replay | 12.6 ms | (included in 24.95) | — |
+| Total per-token cost | ~13.4 ms | **24.95 ms** | **+86%** |
+| TPS equivalent | ~75 | **40.1** | **-46%** |
+
+**Conclusion**: Spark sm_121 has a deep kernel/codegen bottleneck unrelated to config or algorithm. State-refresh primitive — the path that gives R6000 75 TPS class — yields only **40 TPS on Spark sm_121**, no improvement over current 42 TPS.
+
+### Spark TPS ceiling assessment
+
+Spark sm_121 single-stream TPS ceiling appears to be **~40-42 TPS** across all Lynn engine code paths tested:
+
+| Config | Spark TPS | Note |
+|---|---:|---|
+| scalar_bridge baseline | 23.88 | misconfigured |
+| + P10 env corrected | 28.15 | progress |
+| + native_fast_2d | 42.85 | current production |
+| + manual_gqa | 42.66 | no diff |
+| + LYNN_PACKED_DECODE=0 (P15) | 41.04 | no diff |
+| State-refresh (P14-B probe) | 40.09 | no improvement |
+
+**The Spark sm_121 / R6000 sm_120 gap (Spark ~47% of R6000) appears to be at the hardware/codegen layer**. Reaching 55+ TPS on Spark would require either:
+
+1. NVIDIA sm_121 kernel optimization improvements (out of our control)
+2. Codex wiring custom CUDA kernels specifically for sm_121 (specialized work)
+3. Acceptance that Spark is for deployment / portability, not peak single-stream perf
+
+### Tonight's outcome on user-set 55+ TPS target
+
+**NOT achieved** — Spark sm_121 ceiling is 42 TPS. All routes explored (env, manual_gqa, state-refresh probe) hit same wall. Real path to 55+ on Spark needs kernel-level work outside this overnight budget.
+
+**However, Lynn 27B Lynn engine wins on Spark across all OTHER dimensions vs V Flash 35B SGLang**:
+- Long-ctx 16k strong-gen: 6.77×
+- Long-ctx 32k: 1.68×
+- V8 strict (after template fix): 0.96× (basically tied)
+- V9 strict: 22.5× (Lynn 38.33% vs V Flash 1.7%)
+- Tool-call stage1: 80%
+- Stability: TPS stddev 0.18, zero mem drift
+- Mem footprint with P12: 58G vs 65G
