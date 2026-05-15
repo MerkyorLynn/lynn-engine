@@ -106,6 +106,36 @@ def _encode_prompt(tokenizer, prompt: str, device: str, *, use_chat_template: bo
     return tokenizer(prompt, return_tensors="pt").input_ids.to(device)
 
 
+class FullTokenGraphSlot:
+    """One fixed-position full-token CUDA graph slot.
+
+    P10-T showed that a full-token graph is strict when it is captured at the
+    same real sequence position it will replay. This tiny wrapper keeps the
+    mutable token buffer, logits buffer, and graph object together so later
+    serving code can cache slots by `(position, state contract)`.
+    """
+
+    def __init__(
+        self,
+        *,
+        seq_len: int,
+        token_buf: torch.Tensor,
+        logits_buf: torch.Tensor,
+        graph: torch.cuda.CUDAGraph,
+    ) -> None:
+        self.seq_len = int(seq_len)
+        self.token_buf = token_buf
+        self.logits_buf = logits_buf
+        self.graph = graph
+        self.replays = 0
+
+    def replay(self, token_id: int) -> torch.Tensor:
+        self.token_buf.fill_(int(token_id))
+        self.graph.replay()
+        self.replays += 1
+        return self.logits_buf
+
+
 class LynnIncrementalRunner:
     """Single-model resident incremental decode runner."""
 
@@ -436,6 +466,86 @@ class LynnIncrementalRunner:
             scale_b=self._native_fp4_lm_head_scale_b,
             out_dtype=torch.float16,
         )
+
+    @staticmethod
+    def _snapshot_state(state: LynnInferenceState) -> dict[str, Any]:
+        """Clone all mutable decode state.
+
+        This is intentionally heavier than the linear-only snapshot because a
+        full-token graph mutates full-attention KV plus linear-attention
+        recurrent/conv state. P10-T uses it as a correctness bridge; later
+        gates can replace it with cheaper per-slot refresh logic.
+        """
+        return {
+            "seq_len": int(state.seq_len),
+            "kv": {i: (kv[0].clone(), kv[1].clone()) for i, kv in state.kv_cache.items()},
+            "recurrent": {i: t.clone() for i, t in state.recurrent_state.items()},
+            "conv": {i: t.clone() for i, t in state.conv_state.items()},
+        }
+
+    @staticmethod
+    def _restore_state(state: LynnInferenceState, snap: dict[str, Any]) -> None:
+        state.seq_len = int(snap["seq_len"])
+        for i, (k, v) in snap["kv"].items():
+            state.kv_cache[i][0].copy_(k)
+            state.kv_cache[i][1].copy_(v)
+        for i, t in snap["recurrent"].items():
+            state.recurrent_state[i].copy_(t)
+        for i, t in snap["conv"].items():
+            state.conv_state[i].copy_(t)
+
+    def _capture_full_token_graph_slot(
+        self,
+        state: LynnInferenceState,
+        token_id: int,
+    ) -> FullTokenGraphSlot:
+        """Capture one strict full-token graph at the current sequence length.
+
+        This is not yet wired into default `generate()`: future-window graph
+        families drift, while current-position graph slots are strict. Keeping
+        this as an explicit method lets P10/P11 gates build a lazy graph-slot
+        cache without changing production serving behavior prematurely.
+        """
+        if not self.device.startswith("cuda"):
+            raise RuntimeError("full-token graph slots require CUDA")
+
+        seq_len = int(state.seq_len)
+        token_buf = torch.empty((1, 1), device=self.device, dtype=torch.long)
+        token_buf.fill_(int(token_id))
+        pos_tensor = torch.tensor([[seq_len]], device=self.device, dtype=torch.long)
+        vocab = int(self.outside["lm_head.weight"].shape[0])
+        logits_dtype = torch.float16 if self.native_fp4_lm_head_enabled else self.dtype
+        logits_buf = torch.empty((1, vocab), device=self.device, dtype=logits_dtype)
+        snap = self._snapshot_state(state)
+
+        def graph_body() -> None:
+            state.seq_len = seq_len
+            h = F.embedding(token_buf, self.outside["model.language_model.embed_tokens.weight"])
+            for i in range(self.n_layers):
+                h = _decode_layer(
+                    h,
+                    pos_tensor,
+                    LAYER_TYPES[i],
+                    self.layer_weights[i],
+                    self.layer_cfgs[i],
+                    state,
+                    i,
+                )
+            h_final = _rms_norm(h, self.outside["model.language_model.norm.weight"])
+            logits_buf.copy_(self._lm_head_logits(h_final).to(logits_dtype))
+
+        graph_body()
+        if self.device.startswith("cuda"):
+            torch.cuda.synchronize()
+        self._restore_state(state, snap)
+
+        graph = torch.cuda.CUDAGraph()
+        with torch.cuda.graph(graph):
+            graph_body()
+        if self.device.startswith("cuda"):
+            torch.cuda.synchronize()
+        self._restore_state(state, snap)
+        return FullTokenGraphSlot(seq_len=seq_len, token_buf=token_buf, logits_buf=logits_buf, graph=graph)
 
     def _prepare_packed_decode_aliases(self) -> None:
         """Attach packed NVFP4 decode aliases while keeping BF16 prefill safe.

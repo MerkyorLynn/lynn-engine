@@ -167,3 +167,36 @@ for each decode step:
 
 This preserves correctness first. Capture amortization can be optimized later
 via common-position warmup, short-window recapture, or prompt-prefix reuse.
+
+## P10-U Runner Slot Gate: Benchmark Finding Moved Into Runtime Code
+
+We added `FullTokenGraphSlot` plus
+`LynnIncrementalRunner._capture_full_token_graph_slot()` as an explicit,
+opt-in runtime helper. It is not wired into default serving yet; the purpose is
+to keep the strict single-position graph contract inside the runner instead of
+only inside one-off benchmark scripts.
+
+R6000 gate:
+
+```bash
+benchmarks/p10t_runner_graph_slot_gate.py \
+  --model /root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final \
+  --prefix-new 8 16 32
+```
+
+Results:
+
+| Prefix tokens before capture | Position | Runner graph TPS | Diff |
+|---:|---:|---:|---|
+| 8 | 15 | 97.78 | max_abs 0.0, top10 overlap 10/10 |
+| 16 | 23 | 99.46 | max_abs 0.0, top10 overlap 10/10 |
+| 32 | 39 | 98.09 | max_abs 0.0, top10 overlap 10/10 |
+
+Interpretation:
+
+- The runner-level graph slot is strict against eager decode at multiple real
+  prefix positions.
+- This is now a reusable production building block, not just a benchmark
+  artifact.
+- The remaining gap to the 103-107 TPS ceiling is serving integration and graph
+  slot lifecycle management, not raw kernel capability.
