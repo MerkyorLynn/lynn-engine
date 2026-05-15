@@ -79,6 +79,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P35 sorted-router graph slot** | `LYNN_ROUTER_TOPK_SORTED=1` + full-token graph slot | 12/12 strict PASS,97.7-111.5 TPS replay | ✅ graph-slot line regains parity |
 | **P36 decode dispatch cleanup** | runner-fixed MoE/backend dispatch | 100.53 vs 100.55 TPS | ✅ exact,kept by default;not the 155 breakthrough |
 | **P37 MoE block retune closed** | layer-28 profile + full generate gate | candidate 94.94 TPS and greedy drift | ❌ block-size line closed;move to native grouped FP4 |
+| **P38 multi-layer MoE wall** | layers 2/8/14/20/28/36 | full MoE mean 0.193 ms/layer,active 0.112 ms/shared 0.060 ms | 🔬 no slow layer to harvest;target active expert kernel |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -291,6 +292,14 @@ prompts. The conclusion is that more Triton block-size retuning is not the
 155 TPS path; the next step is a grouped native-FP4 active expert kernel or a
 strict-parity graph-owned serving path. See
 [`docs/LYNN_ENGINE_P37_MOE_BLOCK_RETUNE_CLOSED_20260516.md`](docs/LYNN_ENGINE_P37_MOE_BLOCK_RETUNE_CLOSED_20260516.md).
+
+P38 note: P37's single-layer profile is now extended to six sampled layers
+(2/8/14/20/28/36). The picture is uniform: full MoE averages
+**0.193 ms/layer**, split into router **0.037 ms**, active routed packed NVFP4
+experts **0.112 ms**, and shared BF16 expert **0.060 ms**. There is no isolated
+slow layer to harvest; the next 155 TPS work should target the active expert
+grouped native-FP4 kernel first, with the shared expert second. See
+[`docs/LYNN_ENGINE_P38_MOE_MULTILAYER_PROFILE_20260516.md`](docs/LYNN_ENGINE_P38_MOE_MULTILAYER_PROFILE_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,
