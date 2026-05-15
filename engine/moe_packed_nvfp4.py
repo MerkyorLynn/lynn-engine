@@ -86,6 +86,34 @@ def _active_moe_native_cuda_scalar(
     )
 
 
+def _active_moe_native_cuda_scalar_contract(
+    hidden: torch.Tensor,
+    expert_ids: torch.Tensor,
+    routing_weights: torch.Tensor,
+    w: dict,
+) -> torch.Tensor:
+    """One-call native active-MoE contract for the future grouped FP4 kernel.
+
+    The P45 implementation still delegates to the scalar reference kernels
+    inside the extension.  Its purpose is to freeze the Python/CUDA ABI that the
+    true grouped/block-diagonal FP4 kernel will replace.
+    """
+    from engine.native_cuda import load_lynn_native_extension
+
+    ext = load_lynn_native_extension(verbose=_env_bool("LYNN_NATIVE_CUDA_VERBOSE", False))
+    return ext.active_moe_scalar_contract(
+        hidden,
+        expert_ids,
+        routing_weights,
+        w["mlp.experts._gate_up_packed"],
+        w["mlp.experts._gate_up_scale"],
+        w["mlp.experts._gate_up_global_scale"],
+        w["mlp.experts._down_packed"],
+        w["mlp.experts._down_scale"],
+        w["mlp.experts._down_global_scale"],
+    )
+
+
 def _moe_forward_decode_packed_nvfp4_fixed_triton(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
     """Fixed-config production fast path for the current R6000 best profile."""
     h_flat = h.reshape(-1, h.shape[-1])
@@ -206,9 +234,11 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
         moe_out = torch.zeros_like(h_flat)
     else:
         backend = os.environ.get("LYNN_NATIVE_ACTIVE_MOE_BACKEND", "triton")
-        if backend == "cuda_scalar" and _layer_selected_for_native_cuda(cfg):
+        if backend == "cuda_scalar_contract" and _layer_selected_for_native_cuda(cfg):
+            moe_out = _active_moe_native_cuda_scalar_contract(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
+        elif backend == "cuda_scalar" and _layer_selected_for_native_cuda(cfg):
             moe_out = _active_moe_native_cuda_scalar(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
-        elif backend in {"triton", "cuda_scalar"}:
+        elif backend in {"triton", "cuda_scalar", "cuda_scalar_contract"}:
             inter = nvfp4_grouped_gate_up_silu(
                 hidden,
                 expert_ids,
@@ -232,7 +262,7 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
             ).reshape_as(h_flat)
         else:
             raise ValueError(
-                "LYNN_NATIVE_ACTIVE_MOE_BACKEND must be 'triton' or 'cuda_scalar', "
+                "LYNN_NATIVE_ACTIVE_MOE_BACKEND must be 'triton', 'cuda_scalar', or 'cuda_scalar_contract', "
                 f"got {backend!r}"
             )
 

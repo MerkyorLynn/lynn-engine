@@ -1,0 +1,253 @@
+{
+  "schema_version": "lynn-engine-p45-native-active-moe-contract-gate-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final",
+  "layers": [
+    2,
+    8,
+    14,
+    20,
+    28,
+    36
+  ],
+  "cases": [
+    {
+      "layer": 2,
+      "expert_ids": [
+        3,
+        40,
+        57,
+        71,
+        158,
+        207,
+        235,
+        17
+      ],
+      "timings_ms": {
+        "triton_active_ms": 0.05844159722328186,
+        "cuda_scalar_two_call_ms": 0.06568959951400757,
+        "cuda_scalar_contract_one_call_ms": 0.06567360162734985,
+        "contract_vs_two_call_speedup": 1.0002435969135437,
+        "contract_vs_triton_speedup": 0.8898795828938334
+      },
+      "two_call_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104
+      },
+      "contract_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104
+      },
+      "contract_vs_two_call": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104
+      }
+    },
+    {
+      "layer": 8,
+      "expert_ids": [
+        38,
+        51,
+        69,
+        113,
+        139,
+        153,
+        203,
+        158
+      ],
+      "timings_ms": {
+        "triton_active_ms": 0.05829520225524902,
+        "cuda_scalar_two_call_ms": 0.0657584011554718,
+        "cuda_scalar_contract_one_call_ms": 0.06593599915504456,
+        "contract_vs_two_call_speedup": 0.9973065093143557,
+        "contract_vs_triton_speedup": 0.8841179780740311
+      },
+      "two_call_vs_triton": {
+        "max_abs": 0.0001220703125,
+        "mean_abs": 7.283324521267787e-07,
+        "rel_l2": 0.0004984224925935349,
+        "cosine": 0.9999998807907104
+      },
+      "contract_vs_triton": {
+        "max_abs": 0.0001220703125,
+        "mean_abs": 7.283324521267787e-07,
+        "rel_l2": 0.0004984224925935349,
+        "cosine": 0.9999998807907104
+      },
+      "contract_vs_two_call": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 14,
+      "expert_ids": [
+        13,
+        47,
+        97,
+        110,
+        161,
+        165,
+        172,
+        60
+      ],
+      "timings_ms": {
+        "triton_active_ms": 0.05835360288619995,
+        "cuda_scalar_two_call_ms": 0.06572319865226746,
+        "cuda_scalar_contract_one_call_ms": 0.06569280028343201,
+        "contract_vs_two_call_speedup": 1.0004627351658675,
+        "contract_vs_triton_speedup": 0.8882800342569194
+      },
+      "two_call_vs_triton": {
+        "max_abs": 6.103515625e-05,
+        "mean_abs": 3.731111064553261e-08,
+        "rel_l2": 5.4435474491081113e-05,
+        "cosine": 1.0
+      },
+      "contract_vs_triton": {
+        "max_abs": 6.103515625e-05,
+        "mean_abs": 3.731111064553261e-08,
+        "rel_l2": 5.4435474491081113e-05,
+        "cosine": 1.0
+      },
+      "contract_vs_two_call": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      }
+    },
+    {
+      "layer": 20,
+      "expert_ids": [
+        36,
+        48,
+        95,
+        108,
+        131,
+        149,
+        196,
+        55
+      ],
+      "timings_ms": {
+        "triton_active_ms": 0.05840240120887756,
+        "cuda_scalar_two_call_ms": 0.06627839803695679,
+        "cuda_scalar_contract_one_call_ms": 0.06586480140686035,
+        "contract_vs_two_call_speedup": 1.0062794788910325,
+        "contract_vs_triton_speedup": 0.8867012419594797
+      },
+      "two_call_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      },
+      "contract_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      },
+      "contract_vs_two_call": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      }
+    },
+    {
+      "layer": 28,
+      "expert_ids": [
+        12,
+        49,
+        116,
+        155,
+        159,
+        192,
+        204,
+        63
+      ],
+      "timings_ms": {
+        "triton_active_ms": 0.058296799659729004,
+        "cuda_scalar_two_call_ms": 0.06622319817543029,
+        "cuda_scalar_contract_one_call_ms": 0.06613600254058838,
+        "contract_vs_two_call_speedup": 1.0013184291685666,
+        "contract_vs_triton_speedup": 0.8814684501675412
+      },
+      "two_call_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "contract_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "contract_vs_two_call": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 36,
+      "expert_ids": [
+        24,
+        43,
+        100,
+        139,
+        201,
+        221,
+        222,
+        35
+      ],
+      "timings_ms": {
+        "triton_active_ms": 0.058289599418640134,
+        "cuda_scalar_two_call_ms": 0.06567440032958985,
+        "cuda_scalar_contract_one_call_ms": 0.06567040085792542,
+        "contract_vs_two_call_speedup": 1.000060902196609,
+        "contract_vs_triton_speedup": 0.8876083997834386
+      },
+      "two_call_vs_triton": {
+        "max_abs": 0.00048828125,
+        "mean_abs": 7.512280717492104e-07,
+        "rel_l2": 0.0002538194532591766,
+        "cosine": 1.0
+      },
+      "contract_vs_triton": {
+        "max_abs": 0.00048828125,
+        "mean_abs": 7.512280717492104e-07,
+        "rel_l2": 0.0002538194532591766,
+        "cosine": 1.0
+      },
+      "contract_vs_two_call": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      }
+    }
+  ],
+  "summary": {
+    "mean_triton_active_ms": 0.05834653377532959,
+    "mean_cuda_scalar_two_call_ms": 0.06589119931062062,
+    "mean_cuda_scalar_contract_one_call_ms": 0.06582893431186676,
+    "mean_contract_vs_two_call_speedup": 1.0009452752749959,
+    "mean_contract_vs_triton_speedup": 0.8863426145225405,
+    "min_contract_vs_two_call_cosine": 0.9999998807907104,
+    "min_contract_vs_triton_cosine": 0.9999998807907104
+  },
+  "promote": false,
+  "decision": "ABI scaffold only; future P46+ must replace scalar inner loops with a real grouped/block-diagonal FP4 kernel."
+}

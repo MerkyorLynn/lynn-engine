@@ -293,3 +293,28 @@ torch::Tensor lynn_native_down_weighted_sum_scalar(
   TORCH_CHECK(err == cudaSuccess, "down_weighted_sum_scalar_kernel launch failed: ", cudaGetErrorString(err));
   return out;
 }
+
+torch::Tensor lynn_native_active_moe_scalar_contract(
+    torch::Tensor x,
+    torch::Tensor expert_ids,
+    torch::Tensor routing_weights,
+    torch::Tensor gate_up_packed,
+    torch::Tensor gate_up_scale,
+    torch::Tensor gate_up_global_scale,
+    torch::Tensor down_packed,
+    torch::Tensor down_scale,
+    torch::Tensor down_global_scale) {
+  auto inter = lynn_native_gate_up_silu_scalar(
+      x,
+      expert_ids,
+      gate_up_packed,
+      gate_up_scale,
+      gate_up_global_scale);
+  return lynn_native_down_weighted_sum_scalar(
+      inter,
+      expert_ids,
+      routing_weights,
+      down_packed,
+      down_scale,
+      down_global_scale);
+}
