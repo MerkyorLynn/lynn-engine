@@ -1031,3 +1031,26 @@ approach in P9-N preserves top-1, while the coarse grouped graph changes the
 generation path. The next engineering step should integrate P9-N-style separate
 full-attn graph slots into `LynnIncrementalRunner`, then reduce boundary copies
 incrementally with parity gates after each change.
+
+Retested P9-O with `--capture-after-prefill`, so each 4-layer graph is captured
+against the real populated prefill state instead of an empty KV/recurrent state:
+
+```text
+capture_after_prefill: true
+one-shot graph:        13.61 ms / 73.47 tok/s
+bench graph loop:      13.71 ms / 72.96 tok/s
+strict logits:         PASS (max_abs 0.0 / cosine 1.0)
+greedy parity:         PASS
+```
+
+This clarifies the boundary:
+
+- coarse 4-layer graphs are mathematically safe when captured after prefill
+- coarse 4-layer graphs are not safe as empty-state pre-captured slots
+- speed is still ~73 TPS, so this is a correctness/productization milestone,
+  not the final 100 TPS breakthrough
+
+The next runner implementation can expose an opt-in after-prefill graph-capture
+mode for strict serving parity. The next performance milestone still needs to
+reduce the remaining ~13.6 ms/token, likely via fewer graph boundary copies and
+deeper fused kernels inside the linear-attention blocks.

@@ -78,9 +78,12 @@ def _capture_group_slots(
     runner: LynnIncrementalRunner,
     state: LynnInferenceState,
     position: int,
+    *,
+    preserve_state: bool = False,
 ) -> list[dict[str, Any]]:
     pos_tensor = torch.tensor([[position]], device=runner.device, dtype=torch.long)
     slots: list[dict[str, Any]] = []
+    base = _snapshot_state(state) if preserve_state else None
     for start_layer in range(0, runner.n_layers, 4):
         layers = [start_layer, start_layer + 1, start_layer + 2, start_layer + 3]
         if [LAYER_TYPES[i] for i in layers] != ["linear_attention", "linear_attention", "linear_attention", "full_attention"]:
@@ -97,12 +100,18 @@ def _capture_group_slots(
 
         graph_body()
         torch.cuda.synchronize()
-        state.reset()
+        if base is not None:
+            _restore_state(state, base)
+        else:
+            state.reset()
         graph = torch.cuda.CUDAGraph()
         with torch.cuda.graph(graph):
             graph_body()
         torch.cuda.synchronize()
-        state.reset()
+        if base is not None:
+            _restore_state(state, base)
+        else:
+            state.reset()
         slots.append({"start_layer": start_layer, "input": input_buf, "output": output_buf, "graph": graph})
     return slots
 
@@ -128,14 +137,19 @@ def main() -> int:
     ap.add_argument("--prompt", default="用一句话解释 MoE active parameters")
     ap.add_argument("--warmup", type=int, default=3)
     ap.add_argument("--iters", type=int, default=100)
+    ap.add_argument("--capture-after-prefill", action="store_true")
     args = ap.parse_args()
 
     runner = LynnIncrementalRunner(args.model, device="cuda", dtype=torch.bfloat16, verbose=False)
     state = LynnInferenceState(batch=1, max_seq_len=runner.max_seq_len, device=runner.device, dtype=runner.dtype)
     ids = _encode_prompt(runner.tokenizer, args.prompt, runner.device, use_chat_template=False)
     decode_position = int(ids.shape[1])
-    group_slots = _capture_group_slots(runner, state, decode_position)
-    next_id, _ = _prefill_into_state(runner, state, args.prompt)
+    if args.capture_after_prefill:
+        next_id, _ = _prefill_into_state(runner, state, args.prompt)
+        group_slots = _capture_group_slots(runner, state, decode_position, preserve_state=True)
+    else:
+        group_slots = _capture_group_slots(runner, state, decode_position)
+        next_id, _ = _prefill_into_state(runner, state, args.prompt)
     pos_tensor = torch.tensor([[int(state.seq_len)]], device=runner.device, dtype=torch.long)
     token = torch.tensor([[next_id]], device=runner.device, dtype=torch.long)
     h_seed = F.embedding(token, runner.outside["model.language_model.embed_tokens.weight"])
@@ -182,6 +196,7 @@ def main() -> int:
         "schema_version": "lynn-engine-p9o-hybrid-4layer-graph-slots-probe-v1",
         "model": args.model,
         "decode_position": decode_position,
+        "capture_after_prefill": args.capture_after_prefill,
         "group_graph_slots": len(group_slots),
         "eager_ms": eager_ms,
         "graph_ms": graph_ms,
