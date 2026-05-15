@@ -54,6 +54,32 @@ This is a real production-safe gain:
 - replay-only graph ceiling improves by about **+12.3%**,
 - current R6000 ceiling moves from the 107 TPS class to the **120 TPS class**.
 
-It does **not** close the 155 TPS target by itself. P16/P18 still show that the
-remaining gap requires a new grouped native-FP4 active expert kernel or a
-quality-safe quantization format that can use Blackwell tensor cores directly.
+It does **not** close the 155 TPS target by itself.
+
+## Updated Boundary After P19
+
+With the P19 defaults:
+
+| Path | Strict full | Replay-only |
+|---|---:|---:|
+| baseline | **115.43 TPS** | **120.24 TPS** |
+| skip active routed experts | 164.15 TPS | 173.87 TPS |
+| skip shared expert | 130.02 TPS | 136.09 TPS |
+| skip active + shared | 194.73 TPS | 208.66 TPS |
+
+The implication is unchanged but sharper:
+
+- shared expert optimization alone cannot reach 155 TPS,
+- active routed experts remain the critical blocker,
+- the non-MoE path has enough headroom.
+
+Packed shared expert was also rechecked and remains slower:
+
+```text
+LYNN_PACKED_SHARED_EXPERT=1 replay-only: 93.33 TPS
+BF16 shared expert remains the recommended path.
+```
+
+So the next real 155 TPS route remains a new grouped native-FP4 active expert
+kernel or a quality-safe quantization format that can use Blackwell tensor
+cores directly.
