@@ -52,6 +52,31 @@ def _logit_topk(logits: torch.Tensor, k: int) -> dict[str, Any]:
     }
 
 
+def _native_cuda_scalar_can_enter_linear_graph() -> bool:
+    """Return whether cuda_scalar MoE may be captured inside linear block graphs.
+
+    P32 showed that `cuda_scalar` inside reusable linear-block CUDA graphs can
+    silently replay token-0 / `!` loops. A full-attention-only allowlist is safe
+    from that specific graph-capture hazard because full-attention layers are
+    executed eagerly between captured linear blocks.
+    """
+    spec = os.environ.get("LYNN_NATIVE_ACTIVE_MOE_LAYERS")
+    if not spec:
+        return True
+    selected: set[int] = set()
+    for raw in spec.split(","):
+        item = raw.strip().lower()
+        if not item:
+            continue
+        if item in {"full", "full_attention"}:
+            selected.update(i for i, t in enumerate(LAYER_TYPES) if t == "full_attention")
+        elif item in {"linear", "linear_attention"}:
+            selected.update(i for i, t in enumerate(LAYER_TYPES) if t == "linear_attention")
+        else:
+            selected.add(int(item))
+    return any(LAYER_TYPES[i] == "linear_attention" for i in selected)
+
+
 def _runtime_config(model_dir: str) -> tuple[dict[str, Any], int]:
     with open(Path(model_dir) / "config.json", encoding="utf-8") as f:
         full_cfg = json.load(f)
@@ -215,7 +240,7 @@ class LynnIncrementalRunner:
                 dequant_dtype=dtype,
             )
             self.layer_weights.append(w)
-            self.layer_cfgs.append(_with_inferred_layer_config(self.cfg, inferred))
+            self.layer_cfgs.append(_with_inferred_layer_config(self.cfg, inferred, i))
             if verbose and (i % 5 == 4 or i == self.n_layers - 1):
                 print(f"  [resident] L{i:02}: {time.time() - t0:.1f}s", flush=True)
         if impl == "triton":
@@ -946,6 +971,17 @@ class LynnIncrementalRunner:
             and max_new > 1
             and not full_token_graph_slot_enabled
         ):
+            if (
+                os.environ.get("LYNN_NATIVE_ACTIVE_MOE_BACKEND") == "cuda_scalar"
+                and _native_cuda_scalar_can_enter_linear_graph()
+                and os.environ.get("LYNN_ALLOW_UNSAFE_CUDA_SCALAR_GRAPH", "0") != "1"
+            ):
+                raise RuntimeError(
+                    "LYNN_NATIVE_ACTIVE_MOE_BACKEND=cuda_scalar is not graph-safe with "
+                    "LYNN_LINEAR_BLOCK_GRAPH=1 yet. P32 showed this combination can "
+                    "silently replay token-0 / '!' loops. Set "
+                    "LYNN_ALLOW_UNSAFE_CUDA_SCALAR_GRAPH=1 only for explicit diagnostics."
+                )
             new_token_tensor.fill_(next_id)
             h_seed = F.embedding(new_token_tensor, self.outside["model.language_model.embed_tokens.weight"])
             pos_tensor.fill_(state.seq_len)

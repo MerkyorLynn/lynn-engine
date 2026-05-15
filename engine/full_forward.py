@@ -203,7 +203,7 @@ def _layer_forward(h: torch.Tensor, position_ids: torch.Tensor, layer_type: str,
     return residual + moe_out
 
 
-def _with_inferred_layer_config(base_cfg: dict, inferred: dict | None) -> dict:
+def _with_inferred_layer_config(base_cfg: dict, inferred: dict | None, layer_idx: int | None = None) -> dict:
     """Return a per-layer runtime cfg updated from loaded tensor shapes.
 
     Vanilla Qwen3.6 has a scalar `num_experts=256`, but Lynn's 27B variable
@@ -214,6 +214,8 @@ def _with_inferred_layer_config(base_cfg: dict, inferred: dict | None) -> dict:
     layer_cfg = dict(base_cfg)
     if inferred:
         layer_cfg.update(inferred)
+    if layer_idx is not None:
+        layer_cfg["layer_idx"] = int(layer_idx)
     return layer_cfg
 
 
@@ -394,7 +396,7 @@ def generate_incremental(model_dir, prompt, max_new=5, device="cuda",
         w, inferred = load_qwen36_layer(model_dir, i, num_experts=cfg["num_experts"],
                                         device=device, dequant_dtype=dtype)
         layer_weights.append(w)
-        layer_cfgs.append(_with_inferred_layer_config(cfg, inferred))
+        layer_cfgs.append(_with_inferred_layer_config(cfg, inferred, i))
         if verbose and (i % 5 == 4 or i == n_layers - 1):
             print(f"  L{i:2}: cumulative {time.time()-t_start:.1f}s", flush=True)
     if verbose:
@@ -537,7 +539,7 @@ def generate_greedy(model_dir: str, prompt: str, max_new: int = 5,
         w, inferred = load_qwen36_layer(model_dir, i, num_experts=cfg["num_experts"],
                                         device=device, dequant_dtype=dtype)
         weights_per_layer.append(w)
-        layer_cfgs.append(_with_inferred_layer_config(cfg, inferred))
+        layer_cfgs.append(_with_inferred_layer_config(cfg, inferred, i))
         if verbose and (i % 5 == 4 or i == n_layers - 1):
             print(f"  L{i:2}: cumulative {time.time()-t_start:.1f}s", flush=True)
     if verbose:
@@ -628,7 +630,7 @@ def run_forward(model_dir: str, prompt: str, max_new: int = 1, device: str = "cu
         t0 = time.time()
         weights, inferred = load_qwen36_layer(model_dir, i, num_experts=cfg["num_experts"],
                                               device=device, dequant_dtype=dtype)
-        layer_cfg = _with_inferred_layer_config(cfg, inferred)
+        layer_cfg = _with_inferred_layer_config(cfg, inferred, i)
         t_load = time.time() - t0
 
         t0 = time.time()

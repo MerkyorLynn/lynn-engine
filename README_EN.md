@@ -75,6 +75,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P29 native down contract** | CUDA scalar down | 0.030 ms/layer | ✅ cosine=1.0,active-MoE contract complete |
 | **P30 native active-MoE contract** | CUDA scalar gate/up + down | 0.064-0.068 ms/layer | ✅ full active routed expert path exact |
 | **P31 native active-MoE runtime gate** | `LYNN_NATIVE_ACTIVE_MOE_BACKEND=cuda_scalar` | 1.48-1.59x MoE-function speedup | ✅ opt-in exact,default still off |
+| **P32-P34 generate gate** | cuda_scalar full generate / graph / allowlist | 121.7 TPS but `!` loop; graph-off/allowlist still greedy drift | ❌ not promoted,fail-loud guard added |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -252,6 +253,15 @@ the Python/Triton wrapper overhead. It is still opt-in and off by default;
 promotion requires full-token decode parity, full graph/server TPS measurement,
 and tool-call/no-think guard coverage. See
 [`docs/LYNN_ENGINE_P31_NATIVE_ACTIVE_MOE_RUNTIME_GATE_20260516.md`](docs/LYNN_ENGINE_P31_NATIVE_ACTIVE_MOE_RUNTIME_GATE_20260516.md).
+
+P32-P34 note: the full-generate gate explicitly rejects promoting
+`cuda_scalar` as-is. Full-layer `cuda_scalar` with reusable linear-block graphs
+reaches **121.7 tok/s**, but falls into a token-0 / `!` loop from the second
+decode token. Disabling graphs restores coherent text but still fails greedy-id
+parity. A full-attention-only allowlist avoids the graph failure but still
+shows top-1 drift. The runner now fail-louds instead of silently serving the
+unsafe graph combination. See
+[`docs/LYNN_ENGINE_P32_P34_NATIVE_ACTIVE_MOE_GENERATE_NEGATIVE_20260516.md`](docs/LYNN_ENGINE_P32_P34_NATIVE_ACTIVE_MOE_GENERATE_NEGATIVE_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,

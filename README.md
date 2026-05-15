@@ -77,6 +77,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P29 native down contract** | CUDA scalar down | 0.030ms/layer | ✅ cosine=1.0,active MoE 两半契约齐 |
 | **P30 native active-MoE contract** | CUDA scalar gate/up + down | 0.064-0.068ms/layer | ✅ 完整 active routed expert path exact |
 | **P31 native active-MoE runtime gate** | `LYNN_NATIVE_ACTIVE_MOE_BACKEND=cuda_scalar` | 1.48-1.59× MoE function speedup | ✅ opt-in exact,默认仍关 |
+| **P32-P34 generate gate** | cuda_scalar full generate / graph / allowlist | 121.7TPS 但 `!` loop;graph-off/allowlist 仍 greedy drift | ❌ 不 promoted,已加 fail-loud guard |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:
@@ -141,6 +142,8 @@ P29 说明:active MoE 的第二半 down weighted-sum CUDA extension 契约也已
 P30 说明:完整 active routed expert path 已经能由 Lynn 自有 CUDA extension 串起来:CUDA gate/up scalar → CUDA down weighted-sum scalar,四个代表层对 production Triton active path `cosine=1.0 / max_abs≈0`。速度 **0.064-0.068ms/layer** 慢于 Triton **0.058ms/layer**,所以不作为 runtime 默认;但 P27-P30 已经把 native extension build、gate/up、down、完整 active MoE 契约全部打通。接下来真正影响 155TPS 的工作只剩替换 scalar inner loop 为 grouped native-FP4 tensor-core math。详见 [`docs/LYNN_ENGINE_P30_NATIVE_ACTIVE_MOE_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P30_NATIVE_ACTIVE_MOE_CONTRACT_20260516.md)。
 
 P31 说明:把 P30 native active-MoE scalar path 接入 production `moe_forward_decode_packed_nvfp4` 后,在函数边界反而比默认 Triton backend 快 **1.48-1.59×**,且四个代表层 exact/cosine=1.0。这说明 native extension 砍掉了一部分 Python/Triton wrapper 开销。但它仍是 opt-in,默认不开;promotion 前必须跑 full-token decode parity、full graph/server TPS、tool-call/no-think guards。详见 [`docs/LYNN_ENGINE_P31_NATIVE_ACTIVE_MOE_RUNTIME_GATE_20260516.md`](docs/LYNN_ENGINE_P31_NATIVE_ACTIVE_MOE_RUNTIME_GATE_20260516.md)。
+
+P32-P34 说明:full-generate gate 明确否决了直接推广 `cuda_scalar`。全层 `cuda_scalar` + reusable linear-block graph 虽然能看到 **121.7 tok/s**,但从第 2 个 decode token 开始进入 token-0 / `!` loop;关掉 graph 后文本恢复连贯,但 greedy ids 仍不匹配;只替换 full-attention eager 层也仍有 top-1 drift。runner 已加 fail-loud guard,禁止 `cuda_scalar` 与 linear-block graph 的不安全组合静默上线。详见 [`docs/LYNN_ENGINE_P32_P34_NATIVE_ACTIVE_MOE_GENERATE_NEGATIVE_20260516.md`](docs/LYNN_ENGINE_P32_P34_NATIVE_ACTIVE_MOE_GENERATE_NEGATIVE_20260516.md)。
 
 P19 说明:在不改变数值路径的前提下,active MoE kernel block retune 把 R6000 full graph 从 **103.40/107.13 TPS** 提到 **115.41/120.25 TPS**。推荐配置已成为默认:`gate_hidden=256,down_inter=512`,并保留 env override 方便后续设备差异调参。详见 [`docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md`](docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md)。
 

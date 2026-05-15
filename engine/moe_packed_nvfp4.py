@@ -30,6 +30,30 @@ def _env_bool(name: str, default: bool) -> bool:
     return raw.lower() not in {"0", "false", "no", "off"}
 
 
+def _layer_selected_for_native_cuda(cfg: dict) -> bool:
+    spec = os.environ.get("LYNN_NATIVE_ACTIVE_MOE_LAYERS")
+    if not spec:
+        return True
+    layer_idx = cfg.get("layer_idx")
+    if layer_idx is None:
+        return False
+    layer_idx = int(layer_idx)
+    from engine.inference_state import LAYER_TYPES
+
+    selected: set[int] = set()
+    for raw in spec.split(","):
+        item = raw.strip().lower()
+        if not item:
+            continue
+        if item in {"full", "full_attention"}:
+            selected.update(i for i, t in enumerate(LAYER_TYPES) if t == "full_attention")
+        elif item in {"linear", "linear_attention"}:
+            selected.update(i for i, t in enumerate(LAYER_TYPES) if t == "linear_attention")
+        else:
+            selected.add(int(item))
+    return layer_idx in selected
+
+
 def _active_moe_native_cuda_scalar(
     hidden: torch.Tensor,
     expert_ids: torch.Tensor,
@@ -112,9 +136,9 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
         moe_out = torch.zeros_like(h_flat)
     else:
         backend = os.environ.get("LYNN_NATIVE_ACTIVE_MOE_BACKEND", "triton")
-        if backend == "cuda_scalar":
+        if backend == "cuda_scalar" and _layer_selected_for_native_cuda(cfg):
             moe_out = _active_moe_native_cuda_scalar(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
-        elif backend == "triton":
+        elif backend in {"triton", "cuda_scalar"}:
             inter = nvfp4_grouped_gate_up_silu(
                 hidden,
                 expert_ids,
