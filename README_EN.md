@@ -21,7 +21,9 @@ Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent ru
 | **Current R6000 strict full path** | ✅ **103.44 tok/s** with packed NVFP4 MoE + opt-in native FP4 lm_head |
 | **Serving replay ceiling** | ✅ **107.23 tok/s** 40-layer body graph, reproducible |
 | **OpenAI server guard** | ✅ strict tool-call PASS,`<think>` loop fail-pattern guard PASS,stable decode **88-89 tok/s** |
-| **Next target** | production-stable 100+ TPS:full-attn graph-state discipline,native FP4 kernels,and usability |
+| **P10 runner graph-slot gate** | ✅ 6 prompts × 3 prefixes = 18/18 strict PASS,runner graph slot 88.8-103.1 tok/s |
+| **P11 packed-resident memory gate** | ✅ after prefill, releases **56.47 GiB** BF16 shadow; allocated memory **81.06 → 24.59 GiB** with exact greedy-id match |
+| **Next target** | production-stable 100+ TPS + packed-resident serving lifecycle |
 
 Current primary artifact:
 
@@ -47,7 +49,9 @@ Lynn 27B variable-pruned Recovery step5000
 | **P10-M packed NVFP4 MoE** | **10.01 ms** | **99.86** | ✅ strict full path,BF16 lm_head |
 | **P10-P native FP4 lm_head** | **9.67 ms** | **103.44** | ✅ strict full path,opt-in |
 | **serving replay/body graph** | **9.33 ms** | **107.23** | ✅ 40-layer graph ceiling |
+| **P10-U runner graph slot** | **9.69-11.26 ms** | **88.8-103.1** | ✅ 6 prompts × 3 prefixes strict PASS |
 | **OpenAI server stable path** | **~11.2 ms** | **88-89** | ✅ tool-call + no-think guard PASS |
+| **P11 session-scoped packed resident** | — | — | ✅ BF16 shadow 81.06→24.59 GiB,exact decode-id match |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -58,9 +62,10 @@ export LYNN_PREFILL_WARMUP=1
 export LYNN_LINEAR_ATTN_RECURRENT_BACKEND=triton_fused_prepare
 export LYNN_LINEAR_ATTN_RECURRENT_INPLACE=1
 export LYNN_MOE_IMPL=packed_nvfp4
-export LYNN_QK_NORM_ROPE_BACKEND=triton
+export LYNN_QK_NORM_ROPE_BACKEND=triton_pair
 export LYNN_RMSNORM_GATED_BACKEND=triton
 export LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1
+export LYNN_NATIVE_FP4_LM_HEAD=1
 export LYNN_LINEAR_STATE_UPDATE=inplace
 ```
 
@@ -81,6 +86,13 @@ serving path. P10-S records the cross-token drift boundary for full-token graph
 families; the default production path remains the 88-89 TPS stable server until
 multi-prompt,long-generation,and tool-call parity gates pass. See
 [`docs/LYNN_ENGINE_P10S_GRAPH_BOUNDARY_20260515.md`](docs/LYNN_ENGINE_P10S_GRAPH_BOUNDARY_20260515.md).
+
+Packed-resident memory note: the default server still keeps BF16 shadows so it
+can run multi-request prefill. P11 proved that in a session-scoped lifecycle,
+after prefill, Lynn engine can release 56.47 GiB of BF16 shadows, dropping
+allocated memory from 81.06 GiB to 24.59 GiB while preserving exact greedy
+decode ids. See
+[`docs/LYNN_ENGINE_P11_PACKED_RESIDENT_MEMORY_20260515.md`](docs/LYNN_ENGINE_P11_PACKED_RESIDENT_MEMORY_20260515.md).
 
 ## 27B quality and base-model status
 
@@ -115,8 +127,9 @@ Recovery v1.1 targeted longctx/chem/sql was tested but did not replace step5000:
 | **P7** | done | graph reuse / prewarm / RMSNormGated / serving env,66-68 TPS |
 | **P8** | done | 78.8 TPS CUDA graph ceiling + 81 TPS compile spike |
 | **P9** | done | packed NVFP4 active expert path, near-100 TPS |
-| **P10** | current | native FP4 lm_head + 103 TPS full path, production-stable 100+ |
-| **P11** | next | shared expert / grouped expert / larger fused kernels, target 200 TPS |
+| **P10** | done/current | native FP4 lm_head + 103 TPS full path, strict runner graph-slot gate |
+| **P11** | current | packed-resident memory lifecycle, 56 GiB BF16 shadow release proven |
+| **P12** | next | packed prefill / single-session serving mode / production-stable 100+ |
 
 The Spark sm_121 track is split into a separate branch. The current Spark
 quality gate passes on the scalar_bridge backend at roughly 24 TPS; the next
@@ -151,9 +164,10 @@ export LYNN_PREFILL_WARMUP=1
 export LYNN_LINEAR_ATTN_RECURRENT_BACKEND=triton_fused_prepare
 export LYNN_LINEAR_ATTN_RECURRENT_INPLACE=1
 export LYNN_MOE_IMPL=packed_nvfp4
-export LYNN_QK_NORM_ROPE_BACKEND=triton
+export LYNN_QK_NORM_ROPE_BACKEND=triton_pair
 export LYNN_RMSNORM_GATED_BACKEND=triton
 export LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1
+export LYNN_NATIVE_FP4_LM_HEAD=1
 export LYNN_LINEAR_STATE_UPDATE=inplace
 
 # 3. Run resident smoke
