@@ -1,0 +1,130 @@
+{
+  "schema_version": "lynn-engine-p40-moe-forward-fast-candidate-gate-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final",
+  "decode_position": 7,
+  "moe_impl": "packed_nvfp4",
+  "applied_env": {
+    "LYNN_PREFILL_WARMUP": "1",
+    "LYNN_LINEAR_ATTN_RECURRENT_BACKEND": "triton_fused_prepare",
+    "LYNN_LINEAR_ATTN_RECURRENT_INPLACE": "1",
+    "LYNN_MOE_IMPL": "packed_nvfp4",
+    "LYNN_MOE_GATE_BLOCK_INTER": "8",
+    "LYNN_MOE_GATE_BLOCK_HIDDEN": "256",
+    "LYNN_MOE_DOWN_BLOCK_HIDDEN": "8",
+    "LYNN_MOE_DOWN_BLOCK_INTER": "512",
+    "LYNN_MOE_GATE_NUM_WARPS": "4",
+    "LYNN_MOE_DOWN_NUM_WARPS": "8",
+    "LYNN_QK_NORM_ROPE_BACKEND": "triton_pair",
+    "LYNN_RMSNORM_GATED_BACKEND": "triton",
+    "LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4": "1",
+    "LYNN_NATIVE_FP4_LM_HEAD": "1",
+    "LYNN_LINEAR_STATE_UPDATE": "inplace",
+    "LYNN_LINEAR_BLOCK_GRAPH": "1",
+    "LYNN_LINEAR_BLOCK_GRAPH_REUSE": "1",
+    "LYNN_LINEAR_BLOCK_GRAPH_PREWARM": "1",
+    "LYNN_PACKED_DECODE": "0",
+    "LYNN_PACKED_DECODE_PREPARE_NATIVE": "0",
+    "LYNN_PACKED_SHARED_EXPERT": "0",
+    "LYNN_NATIVE_ACTIVE_MOE_BACKEND": "triton"
+  },
+  "summary": {
+    "reference_ms_mean": 0.1998038238949246,
+    "candidate_fixed_ms_mean": 0.18514377541012236,
+    "mean_speedup": 1.079181967918327,
+    "all_exact_or_trivial": true,
+    "sampled_layers": [
+      2,
+      8,
+      14,
+      20,
+      28,
+      36
+    ]
+  },
+  "layers": [
+    {
+      "layer": 2,
+      "layer_type": "linear_attention",
+      "timings_ms": {
+        "reference_ms": 0.19760026931762695,
+        "candidate_fixed_ms": 0.18052345911661785
+      },
+      "speedup": 1.0945960723585377,
+      "diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 8,
+      "layer_type": "linear_attention",
+      "timings_ms": {
+        "reference_ms": 0.19717920621236165,
+        "candidate_fixed_ms": 0.18050212860107423
+      },
+      "speedup": 1.0923926922110998,
+      "diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "cosine": 1.0000001192092896
+      }
+    },
+    {
+      "layer": 14,
+      "layer_type": "linear_attention",
+      "timings_ms": {
+        "reference_ms": 0.21451306343078613,
+        "candidate_fixed_ms": 0.17972745895385742
+      },
+      "speedup": 1.1935464101000808,
+      "diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "cosine": 0.9999998807907104
+      }
+    },
+    {
+      "layer": 20,
+      "layer_type": "linear_attention",
+      "timings_ms": {
+        "reference_ms": 0.19685600598653158,
+        "candidate_fixed_ms": 0.1801149368286133
+      },
+      "speedup": 1.0929465898425077,
+      "diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "cosine": 0.9999998211860657
+      }
+    },
+    {
+      "layer": 28,
+      "layer_type": "linear_attention",
+      "timings_ms": {
+        "reference_ms": 0.19606800079345704,
+        "candidate_fixed_ms": 0.21095706621805826
+      },
+      "speedup": 0.9294213477105765,
+      "diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "cosine": 0.9999998211860657
+      }
+    },
+    {
+      "layer": 36,
+      "layer_type": "linear_attention",
+      "timings_ms": {
+        "reference_ms": 0.19660639762878418,
+        "candidate_fixed_ms": 0.179037602742513
+      },
+      "speedup": 1.098129078010155,
+      "diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "cosine": 1.0
+      }
+    }
+  ]
+}

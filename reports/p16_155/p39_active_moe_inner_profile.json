@@ -1,0 +1,320 @@
+{
+  "schema_version": "lynn-engine-p39-active-moe-inner-profile-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final",
+  "prompt": "用一句话解释 MoE active parameters",
+  "decode_position": 7,
+  "moe_impl": "packed_nvfp4",
+  "applied_env": {
+    "LYNN_PREFILL_WARMUP": "1",
+    "LYNN_LINEAR_ATTN_RECURRENT_BACKEND": "triton_fused_prepare",
+    "LYNN_LINEAR_ATTN_RECURRENT_INPLACE": "1",
+    "LYNN_MOE_IMPL": "packed_nvfp4",
+    "LYNN_MOE_GATE_BLOCK_INTER": "8",
+    "LYNN_MOE_GATE_BLOCK_HIDDEN": "256",
+    "LYNN_MOE_DOWN_BLOCK_HIDDEN": "8",
+    "LYNN_MOE_DOWN_BLOCK_INTER": "512",
+    "LYNN_MOE_GATE_NUM_WARPS": "4",
+    "LYNN_MOE_DOWN_NUM_WARPS": "8",
+    "LYNN_QK_NORM_ROPE_BACKEND": "triton_pair",
+    "LYNN_RMSNORM_GATED_BACKEND": "triton",
+    "LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4": "1",
+    "LYNN_NATIVE_FP4_LM_HEAD": "1",
+    "LYNN_LINEAR_STATE_UPDATE": "inplace",
+    "LYNN_LINEAR_BLOCK_GRAPH": "1",
+    "LYNN_LINEAR_BLOCK_GRAPH_REUSE": "1",
+    "LYNN_LINEAR_BLOCK_GRAPH_PREWARM": "1",
+    "LYNN_PACKED_DECODE": "0",
+    "LYNN_PACKED_DECODE_PREPARE_NATIVE": "0",
+    "LYNN_PACKED_SHARED_EXPERT": "0",
+    "LYNN_NATIVE_ACTIVE_MOE_BACKEND": "triton"
+  },
+  "kernel_config": {
+    "gate_block_inter": 8,
+    "gate_block_hidden": 256,
+    "down_block_hidden": 8,
+    "down_block_inter": 512
+  },
+  "summary": {
+    "router_topk_ms_mean": 0.03763233373562495,
+    "gate_up_ms_mean": 0.033126266797383626,
+    "down_ms_mean": 0.025194600224494934,
+    "active_combined_ms_mean": 0.12035000125567119,
+    "shared_bf16_ms_mean": 0.06101199984550476,
+    "sampled_layers": [
+      2,
+      8,
+      14,
+      20,
+      28,
+      36
+    ],
+    "profiled_layer_count": 6,
+    "skipped_layer_count": 0
+  },
+  "layers": [
+    {
+      "layer": 2,
+      "layer_type": "linear_attention",
+      "expert_ids": [
+        158,
+        40,
+        249,
+        88,
+        109,
+        164,
+        210,
+        17
+      ],
+      "routing_weights": [
+        0.41227322816848755,
+        0.1370195597410202,
+        0.10182429850101471,
+        0.09271208196878433,
+        0.08310656994581223,
+        0.07108481973409653,
+        0.05536091327667236,
+        0.04661856219172478
+      ],
+      "timings_ms": {
+        "router_topk_ms": 0.03774400055408478,
+        "gate_up_ms": 0.033032000064849854,
+        "down_ms": 0.02514840066432953,
+        "active_combined_ms": 0.12067999839782714,
+        "shared_bf16_ms": 0.06112560033798218
+      },
+      "timings_tps_equiv": {
+        "router_topk_tps": 26494.276847179008,
+        "gate_up_tps": 30273.67395364364,
+        "down_tps": 39763.960076331976,
+        "active_combined_tps": 8286.377305901631,
+        "shared_bf16_tps": 16359.757523373079
+      },
+      "split_sum_ms": 0.058180400729179384,
+      "split_vs_combined": {
+        "max_abs": 5.960464477539063e-08,
+        "mean_abs": 2.9103830456733704e-11,
+        "cosine": 0.9999998807907104
+      }
+    },
+    {
+      "layer": 8,
+      "layer_type": "linear_attention",
+      "expert_ids": [
+        99,
+        203,
+        139,
+        176,
+        216,
+        147,
+        166,
+        71
+      ],
+      "routing_weights": [
+        0.20200881361961365,
+        0.1388384848833084,
+        0.12445401400327682,
+        0.12445401400327682,
+        0.11510114371776581,
+        0.11155985295772552,
+        0.09394282847642899,
+        0.08964086323976517
+      ],
+      "timings_ms": {
+        "router_topk_ms": 0.03768680095672607,
+        "gate_up_ms": 0.03313040137290955,
+        "down_ms": 0.02522599995136261,
+        "active_combined_ms": 0.1208840012550354,
+        "shared_bf16_ms": 0.06128000020980835
+      },
+      "timings_tps_equiv": {
+        "router_topk_tps": 26534.488855879583,
+        "gate_up_tps": 30183.757472304325,
+        "down_tps": 39641.63965464465,
+        "active_combined_tps": 8272.393282964276,
+        "shared_bf16_tps": 16318.537803136986
+      },
+      "split_sum_ms": 0.05835640132427215,
+      "split_vs_combined": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 14,
+      "layer_type": "linear_attention",
+      "expert_ids": [
+        114,
+        52,
+        42,
+        109,
+        41,
+        161,
+        143,
+        209
+      ],
+      "routing_weights": [
+        0.21586169302463531,
+        0.17895562946796417,
+        0.14379489421844482,
+        0.10685928165912628,
+        0.1052025854587555,
+        0.09729649126529694,
+        0.08721600472927094,
+        0.06481342762708664
+      ],
+      "timings_ms": {
+        "router_topk_ms": 0.037666800618171695,
+        "gate_up_ms": 0.03317759931087494,
+        "down_ms": 0.02526159882545471,
+        "active_combined_ms": 0.11929880380630493,
+        "shared_bf16_ms": 0.060837197303771975
+      },
+      "timings_tps_equiv": {
+        "router_topk_tps": 26548.57815339823,
+        "gate_up_tps": 30140.81852728327,
+        "down_tps": 39585.7762966434,
+        "active_combined_tps": 8382.31372062718,
+        "shared_bf16_tps": 16437.31211033285
+      },
+      "split_sum_ms": 0.058439198136329654,
+      "split_vs_combined": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 20,
+      "layer_type": "linear_attention",
+      "expert_ids": [
+        103,
+        102,
+        208,
+        162,
+        196,
+        95,
+        57,
+        166
+      ],
+      "routing_weights": [
+        0.27631452679634094,
+        0.1869637668132782,
+        0.16499492526054382,
+        0.09852298349142075,
+        0.07096343487501144,
+        0.07096343487501144,
+        0.06666398048400879,
+        0.06461294740438461
+      ],
+      "timings_ms": {
+        "router_topk_ms": 0.037520399689674376,
+        "gate_up_ms": 0.03313280045986176,
+        "down_ms": 0.02512040138244629,
+        "active_combined_ms": 0.12042000293731689,
+        "shared_bf16_ms": 0.06101599931716919
+      },
+      "timings_tps_equiv": {
+        "router_topk_tps": 26652.168107772057,
+        "gate_up_tps": 30181.571920291957,
+        "down_tps": 39808.281116828926,
+        "active_combined_tps": 8304.26819139456,
+        "shared_bf16_tps": 16389.144014537374
+      },
+      "split_sum_ms": 0.05825320184230805,
+      "split_vs_combined": {
+        "max_abs": 6.103515625e-05,
+        "mean_abs": 2.9802322387695312e-08,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 28,
+      "layer_type": "linear_attention",
+      "expert_ids": [
+        199,
+        38,
+        203,
+        116,
+        134,
+        152,
+        89,
+        101
+      ],
+      "routing_weights": [
+        0.19564932584762573,
+        0.15968433022499084,
+        0.14314009249210358,
+        0.12243422120809555,
+        0.10974932461977005,
+        0.10804781317710876,
+        0.08818606287240982,
+        0.07310881465673447
+      ],
+      "timings_ms": {
+        "router_topk_ms": 0.03763999938964844,
+        "gate_up_ms": 0.033127599954605104,
+        "down_ms": 0.025178000330924988,
+        "active_combined_ms": 0.12058919668197632,
+        "shared_bf16_ms": 0.06079559922218323
+      },
+      "timings_tps_equiv": {
+        "router_topk_tps": 26567.48183356812,
+        "gate_up_tps": 30186.30994609644,
+        "down_tps": 39717.212918285084,
+        "active_combined_tps": 8292.616814068748,
+        "shared_bf16_tps": 16448.55898772222
+      },
+      "split_sum_ms": 0.05830560028553009,
+      "split_vs_combined": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 36,
+      "layer_type": "linear_attention",
+      "expert_ids": [
+        139,
+        155,
+        19,
+        108,
+        26,
+        9,
+        156,
+        46
+      ],
+      "routing_weights": [
+        0.27807095646858215,
+        0.15844005346298218,
+        0.1253364086151123,
+        0.10071063041687012,
+        0.09169808030128479,
+        0.08887682110071182,
+        0.07843351364135742,
+        0.07843351364135742
+      ],
+      "timings_ms": {
+        "router_topk_ms": 0.037536001205444335,
+        "gate_up_ms": 0.03315719962120056,
+        "down_ms": 0.025233200192451476,
+        "active_combined_ms": 0.1202280044555664,
+        "shared_bf16_ms": 0.06101760268211365
+      },
+      "timings_tps_equiv": {
+        "router_topk_tps": 26641.090363534968,
+        "gate_up_tps": 30159.362413724608,
+        "down_tps": 39630.32799538247,
+        "active_combined_tps": 8317.529718041505,
+        "shared_bf16_tps": 16388.713355550008
+      },
+      "split_sum_ms": 0.05839039981365204,
+      "split_vs_combined": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "cosine": 1.0
+      }
+    }
+  ]
+}

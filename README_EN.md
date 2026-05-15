@@ -80,6 +80,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P36 decode dispatch cleanup** | runner-fixed MoE/backend dispatch | 100.53 vs 100.55 TPS | ✅ exact,kept by default;not the 155 breakthrough |
 | **P37 MoE block retune closed** | layer-28 profile + full generate gate | candidate 94.94 TPS and greedy drift | ❌ block-size line closed;move to native grouped FP4 |
 | **P38 multi-layer MoE wall** | layers 2/8/14/20/28/36 | full MoE mean 0.193 ms/layer,active 0.112 ms/shared 0.060 ms | 🔬 no slow layer to harvest;target active expert kernel |
+| **P39-P40 fast fixed MoE** | fixed R6000 best MoE config | layer-level 1.079x,generate exact,100.94 TPS median | ✅ small default speedup,not the 155 breakthrough |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -300,6 +301,15 @@ experts **0.112 ms**, and shared BF16 expert **0.060 ms**. There is no isolated
 slow layer to harvest; the next 155 TPS work should target the active expert
 grouped native-FP4 kernel first, with the shared expert second. See
 [`docs/LYNN_ENGINE_P38_MOE_MULTILAYER_PROFILE_20260516.md`](docs/LYNN_ENGINE_P38_MOE_MULTILAYER_PROFILE_20260516.md).
+
+P39-P40 note: splitting active MoE shows gate/up at **0.033 ms** and down at
+**0.025 ms**, with exact split-vs-combined output. The current R6000 best MoE
+config is then promoted into the fixed `LYNN_MOE_FAST_FIXED` path. The
+layer-level candidate is **1.079x** faster, the full-generate gate keeps exact
+greedy IDs, and the default path reaches **100.94 TPS** median. This is a safe
+small knife, not the 155 TPS breakthrough; the next major step remains a
+fused/grouped native-FP4 active expert kernel. See
+[`docs/LYNN_ENGINE_P39_P40_FAST_FIXED_MOE_20260516.md`](docs/LYNN_ENGINE_P39_P40_FAST_FIXED_MOE_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,

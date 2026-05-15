@@ -86,6 +86,55 @@ def _active_moe_native_cuda_scalar(
     )
 
 
+def _moe_forward_decode_packed_nvfp4_fixed_triton(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
+    """Fixed-config production fast path for the current R6000 best profile."""
+    h_flat = h.reshape(-1, h.shape[-1])
+    router_logits = F.linear(h_flat, w["mlp.gate.weight"])
+    routing_weights, expert_indices = torch.topk(
+        router_logits,
+        int(cfg["num_experts_per_tok"]),
+        dim=-1,
+        sorted=False,
+    )
+    routing_weights = F.softmax(routing_weights, dim=-1, dtype=torch.float32)[0]
+    expert_ids = expert_indices[0].to(torch.int32).contiguous()
+    hidden = h_flat[0]
+    inter = nvfp4_grouped_gate_up_silu(
+        hidden,
+        expert_ids,
+        w["mlp.experts._gate_up_packed"],
+        w["mlp.experts._gate_up_scale"],
+        w["mlp.experts._gate_up_global_scale"],
+        block_inter=8,
+        block_hidden=256,
+        num_warps=4,
+    )
+    moe_out = nvfp4_grouped_down_weighted_sum(
+        inter,
+        expert_ids,
+        routing_weights,
+        w["mlp.experts._down_packed"],
+        w["mlp.experts._down_scale"],
+        w["mlp.experts._down_global_scale"],
+        block_hidden=8,
+        block_inter=512,
+        num_warps=8,
+    ).reshape_as(h_flat)
+
+    if "mlp.shared_expert.gate_proj.weight" in w:
+        if "mlp.shared_expert._gate_up_proj.weight" in w:
+            gate_up_s = F.linear(h_flat, w["mlp.shared_expert._gate_up_proj.weight"])
+            gate_s, up_s = gate_up_s.chunk(2, dim=-1)
+        else:
+            gate_s = F.linear(h_flat, w["mlp.shared_expert.gate_proj.weight"])
+            up_s = F.linear(h_flat, w["mlp.shared_expert.up_proj.weight"])
+        shared = F.linear(F.silu(gate_s) * up_s, w["mlp.shared_expert.down_proj.weight"])
+        if "mlp.shared_expert_gate.weight" in w:
+            shared = shared * torch.sigmoid(F.linear(h_flat, w["mlp.shared_expert_gate.weight"]))
+        moe_out = moe_out + shared
+    return moe_out.to(h.dtype).reshape_as(h)
+
+
 def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
     """Decode-only MoE using packed NVFP4 expert weights.
 
@@ -110,6 +159,27 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
     h_flat = h.reshape(-1, h.shape[-1])
     if h_flat.shape[0] != 1:
         raise NotImplementedError("packed NVFP4 MoE path currently supports batch=1")
+    if _env_bool("LYNN_MOE_FAST_FIXED", True):
+        if _env_bool("LYNN_ROUTER_TOPK_SORTED", False):
+            raise RuntimeError("LYNN_MOE_FAST_FIXED requires LYNN_ROUTER_TOPK_SORTED=0")
+        if os.environ.get("LYNN_MOE_PROFILE_TOPK_LIMIT"):
+            raise RuntimeError("LYNN_MOE_FAST_FIXED does not support LYNN_MOE_PROFILE_TOPK_LIMIT")
+        if os.environ.get("LYNN_MOE_PROFILE_SKIP_ACTIVE", "0") == "1":
+            raise RuntimeError("LYNN_MOE_FAST_FIXED does not support LYNN_MOE_PROFILE_SKIP_ACTIVE")
+        if os.environ.get("LYNN_MOE_PROFILE_SKIP_SHARED", "0") == "1":
+            raise RuntimeError("LYNN_MOE_FAST_FIXED does not support LYNN_MOE_PROFILE_SKIP_SHARED")
+        if os.environ.get("LYNN_NATIVE_ACTIVE_MOE_BACKEND", "triton") != "triton":
+            raise RuntimeError("LYNN_MOE_FAST_FIXED requires LYNN_NATIVE_ACTIVE_MOE_BACKEND=triton")
+        if (
+            _env_int("LYNN_MOE_GATE_BLOCK_INTER", 8),
+            _env_int("LYNN_MOE_GATE_BLOCK_HIDDEN", 256),
+            _env_int("LYNN_MOE_DOWN_BLOCK_HIDDEN", 8),
+            _env_int("LYNN_MOE_DOWN_BLOCK_INTER", 512),
+            _env_int("LYNN_MOE_GATE_NUM_WARPS", 4),
+            _env_int("LYNN_MOE_DOWN_NUM_WARPS", 8),
+        ) != (8, 256, 8, 512, 4, 8):
+            raise RuntimeError("LYNN_MOE_FAST_FIXED only supports the current R6000 best MoE kernel config")
+        return _moe_forward_decode_packed_nvfp4_fixed_triton(h, w, cfg)
 
     router_logits = F.linear(h_flat, w["mlp.gate.weight"])
     routing_weights, expert_indices = torch.topk(
