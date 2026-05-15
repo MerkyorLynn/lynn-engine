@@ -1,46 +1,114 @@
 # Lynn Engine
 
-> **Custom inference engine for Qwen 3.6 35B-A3B on NVIDIA Blackwell.**
-> From-scratch single-model engine — written to (a) understand every layer of the model, (b) eventually beat generic frameworks like vLLM at single-prompt latency for our specific workload.
+> **Custom inference engine for Lynn 27B-A3B NVFP4 on NVIDIA Blackwell.**
+> This is a narrow, vertical engine for Lynn's own variable-pruned MoE + NVFP4 artifact. The goal is not to become another general serving framework; the goal is to make one model family fast, understandable, and production-ownable on R6000 / Spark-class Blackwell hardware.
 
 [阅读中文版](README.md) · [Strategy](docs/STRATEGY.md) · [Architecture](docs/DESIGN.md)
 
 [![commits](https://img.shields.io/github/commit-activity/m/MerkyorLynn/lynn-engine)](https://github.com/MerkyorLynn/lynn-engine/commits/main)
 [![license](https://img.shields.io/badge/license-TBD-orange)](.)
 
-## What's working today
+## Current status (2026-05-15)
 
-✅ **End-to-end correctness validated** — Lynn engine generates **token-for-token identical output** to production vLLM on greedy decode.
+Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent runtime for the **final Lynn 27B NVFP4 base**:
 
+| Item | Status |
+|---|---|
+| **27B final BF16** | ✅ Recovery step5000 final merged; structural validation PASS; greedy sanity PASS |
+| **27B Lynn-native NVFP4** | ✅ 20G artifact produced and transferred to R6000; manifest integrity PASS |
+| **Independent loader** | ✅ No vLLM / SGLang / TRT-LLM / llama.cpp dependency; reads safetensors + Lynn quant manifest directly |
+| **6-prompt coherent smoke** | ✅ Chinese explanation / Python / RoPE-ALiBi / English arithmetic / tool JSON / long-context prompts all pass |
+| **Current R6000 steady decode** | ✅ **66-68 tok/s** on the real generate path |
+| **Stable CUDA graph ceiling** | ✅ **78.8 tok/s** full-token graph probe, reproducible |
+| **Next target** | 100 tok/s via packed-resident NVFP4 + hot-path kernel fusion |
+
+Current primary artifact:
+
+```text
+Lynn 27B variable-pruned Recovery step5000
+├── BF16 final      ~60G  (reference / eval / fallback)
+└── NVFP4 final     ~20G  (Lynn-native runtime artifact)
 ```
-prompt: "The capital of France is"
-vLLM:   ' Paris, a city renowned'
-Lynn:   ' Paris, a city renowned'   ← 5/5 token exact match
-```
 
-✅ **All 40 layers numerically verified**:
-- 30 linear_attention (GatedDeltaNet) layers — bit-exact vs HF reference
-- 10 full_attention layers — verified via end-to-end logits agreement
-- Multi-prompt validation: 8 diverse prompts, 9.8/10 average top-K (10) overlap with vLLM
-
-⚙️ **Phase 3.1 incremental decode shipped** — KV cache for full_attention + recurrent state cache for linear_attention.
-
-⚙️ **OpenAI-compat HTTP server** — Brain can swap one URL to A/B test.
+> Note: this NVFP4 artifact is **Lynn-native variable-expert NVFP4**. It is not the public compressed-tensors v8-RTN variant and not GGUF Q4_K_M. Generic frameworks generally cannot load this variable-pruned artifact directly; that is exactly why Lynn engine exists.
 
 ## Performance status
 
 | Path | Latency / token | t/s | Status |
 |---|---|---|---|
-| Phase 2 brute-force | ~300 ms | 2-3 | shipped |
-| **Phase 3.1 incremental decode** | **~200 ms** | **5** | **shipped (commit `1e2980b`)** |
-| Phase 3.2 (active-experts + bmm + indexed) | target ~100-130 ms | 8-10 | code committed, untested |
-| Phase 3.3 (Triton-fused MoE FFN) | target ~50 ms | 20 | scaffold + design done |
-| Phase 3.4 (CUTLASS NVFP4 grouped) | target ~10-15 ms | 60-100 | future |
-| vLLM SGLang+MTP baseline | ~14 ms | 60-70 | reference |
+| Phase 2 brute-force | ~300 ms | 2-3 | historical baseline |
+| Phase 3.1 incremental decode | ~200 ms | 5 | historical baseline |
+| P5/P6 eager Triton path | ~30-33 ms | 30-33 | P6-K/N/O |
+| **P6-S resident graph smoke** | **~15-16 ms** | **63-66** | ✅ 50 TPS target cleared |
+| **P7 current serving env** | **~14.6-15.0 ms** | **66-68** | ✅ 6-prompt generate PASS |
+| **P7/P8 CUDA graph ceiling** | **12.68 ms** | **78.8** | ✅ stable and reproducible |
+| P8 torch.compile spike | 12.33 ms | 81.1 | signal only, not product path |
+| **P9 target** | **~10 ms** | **100** | packed-resident + kernel fusion |
+| Long target | <5 ms | >200 | native FP4 / larger fused blocks |
+
+Current best R6000 environment:
+
+```bash
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+export LYNN_PREFILL_WARMUP=1
+export LYNN_LINEAR_ATTN_RECURRENT_BACKEND=triton_fused_prepare
+export LYNN_MOE_IMPL=triton
+export LYNN_QK_NORM_ROPE_BACKEND=triton
+export LYNN_RMSNORM_GATED_BACKEND=triton
+export LYNN_LINEAR_ATTN_INPROJ_FUSED=1
+export LYNN_LINEAR_BLOCK_GRAPH=1
+export LYNN_LINEAR_BLOCK_GRAPH_REUSE=1
+export LYNN_LINEAR_BLOCK_GRAPH_PREWARM=1
+export LYNN_LINEAR_STATE_UPDATE=inplace
+```
+
+Measured final step5000 NVFP4 32-token smoke:
+
+```text
+decode TPS per prompt: 66.62 / 68.27 / 68.28 / 68.24 / 68.44 / 67.89
+load time:             10.7s
+graph capture:         0.0s per request after prewarm
+output:                coherent 6/6
+```
+
+## 27B quality and base-model status
+
+27B comes from the Qwen 3.6 35B-A3B BASE variable-expert pruning route:
+
+```text
+BASE 35B-A3B
+  → activation profile
+  → variable-target expert pruning (1010 experts cut, front layers protected)
+  → router fine-tune
+  → Recovery LoRA
+  → step5000 selected as final
+  → BF16 merge
+  → Lynn-native NVFP4 quantization
+```
+
+Known quality status:
+
+| Variant | Status | Result |
+|---|---|---|
+| 27B BF16 step5000 | ✅ full eval | V8 strict 33/34 = 97.06%, V9 adjusted 37/59 = 62.71% |
+| 27B NVFP4 step5000 | ✅ runtime smoke | 6-prompt resident smoke PASS,2-token greedy sanity PASS |
+| 27B Q4_K_M | ⏳ not primary | variable-expert GGUF needs padding/format work; not the current Lynn-native path |
+
+Recovery v1.1 targeted longctx/chem/sql was tested but did not replace step5000: it did not improve longctx and reduced aggregate scores. The selected base is therefore **step5000 final**.
+
+## Roadmap: R6000 first, Spark second
+
+| Stage | Status | Goal |
+|---|---|---|
+| **P6** | done | 50 TPS cleared: resident graph smoke 63-66 TPS |
+| **P7** | done | graph reuse / prewarm / RMSNormGated / serving env,66-68 TPS |
+| **P8** | partial | 78.8 TPS CUDA graph ceiling + 81 TPS compile spike |
+| **P9** | current | packed-resident NVFP4, release 35-40G resident memory, target 100 TPS |
+| **P10** | next | native FP4 / larger fused kernels, target 200 TPS |
 
 ## Tutorials — read these even if you're not writing your own engine
 
-In writing Lynn engine we collected the parts of Qwen 3.6 35B-A3B that **diverge from Llama / Qwen 2 in ways the docs don't tell you**. Six deep tutorials in [`tutorials/`](tutorials/):
+In writing Lynn engine we collected the parts of Qwen 3.6 35B-A3B that **diverge from Llama / Qwen 2 in ways the docs don't tell you**. Seven deep tutorials in [`tutorials/`](tutorials/):
 
 | # | Topic | TL;DR |
 |---|---|---|
@@ -53,43 +121,39 @@ In writing Lynn engine we collected the parts of Qwen 3.6 35B-A3B that **diverge
 
 [`tutorials/posts/zhihu_qwen36_engine_postmortem.md`](tutorials/posts/zhihu_qwen36_engine_postmortem.md) is a single Zhihu-blog-style writeup of the highlights.
 
-## Quick start (DGX Spark)
+## Quick start (R6000 / Blackwell)
 
 ```bash
-# 1. Convert FP8 → BF16 once (avoids HF FP8 deep-gemm metadata blocker)
-docker run --rm --user 1000:1000 \
-  -v /home/merkyor/models:/models \
-  -v /tmp/lynn-engine:/work -w /work \
-  nvcr.io/nvidia/vllm:26.03.post1-py3 \
-  python3 engine/convert_fp8_to_bf16.py \
-    --src /models/Qwen3.6-35B-A3B-FP8 \
-    --dst /models/Qwen3.6-35B-A3B-BF16
+# 1. Prepare the Lynn-native NVFP4 artifact
+MODEL=/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final
 
-# 2. Stop vLLM (Lynn needs ~67 GB resident BF16; fp8 path can co-resident)
-docker stop vllm-qwen35a3b
+# 2. Enable the current R6000 best env
+export PYTHONPATH=/root/autodl-tmp/lynn-engine
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+export LYNN_PREFILL_WARMUP=1
+export LYNN_LINEAR_ATTN_RECURRENT_BACKEND=triton_fused_prepare
+export LYNN_MOE_IMPL=triton
+export LYNN_QK_NORM_ROPE_BACKEND=triton
+export LYNN_RMSNORM_GATED_BACKEND=triton
+export LYNN_LINEAR_ATTN_INPROJ_FUSED=1
+export LYNN_LINEAR_BLOCK_GRAPH=1
+export LYNN_LINEAR_BLOCK_GRAPH_REUSE=1
+export LYNN_LINEAR_BLOCK_GRAPH_PREWARM=1
+export LYNN_LINEAR_STATE_UPDATE=inplace
 
-# 3. Run incremental decode demo
-docker run --rm --gpus all --ipc=host --user 1000:1000 \
-  -v /home/merkyor/models:/models \
-  -v /tmp/lynn-engine:/work -w /work \
-  -e PYTHONPATH=/work \
-  nvcr.io/nvidia/vllm:26.03.post1-py3 \
-  bash -c "pip install -q --user transformers==5.8.0 && \
-           python3 engine/full_forward.py \
-             --prompt 'The capital of France is' \
-             --max-new 5 --mode incremental"
+# 3. Run resident smoke
+python benchmarks/resident_cli.py \
+  --model "$MODEL" \
+  --prompts-jsonl /root/autodl-tmp/reports/lynn-engine-p5/p7i_6prompt.jsonl \
+  --max-new 32 \
+  --chat-template \
+  --out /tmp/lynn_27b_nvfp4_smoke.json
 
-# 4. (Optional) Start the OpenAI-compat HTTP server
-docker run -d --rm --gpus all --ipc=host --user 1000:1000 \
-  -v /home/merkyor/models:/models \
-  -v /tmp/lynn-engine:/work -w /work \
-  -p 127.0.0.1:18099:18099 \
-  -e PYTHONPATH=/work \
-  nvcr.io/nvidia/vllm:26.03.post1-py3 \
-  bash -c "pip install -q --user transformers==5.8.0 fastapi uvicorn && \
-           python3 -m server.openai_http \
-             --model /models/Qwen3.6-35B-A3B-FP8 \
-             --host 0.0.0.0 --port 18099"
+# 4. Optional: OpenAI-compatible server
+python -m server.openai_http \
+  --model "$MODEL" \
+  --host 0.0.0.0 \
+  --port 18099
 ```
 
 ## Repository layout
@@ -115,7 +179,7 @@ docs/
   DESIGN.md                       Architecture + roadmap (long)
   PHASE3_KV_CACHE_DESIGN.md       Phase 3.1 design doc
 tutorials/
-  README.md + 6 markdown tutorials + zhihu post
+  README.md + 7 markdown tutorials + zhihu post
 ```
 
 ## Why this exists

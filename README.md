@@ -1,67 +1,118 @@
 # Lynn Engine
 
-> **为 NVIDIA Blackwell 写的 Qwen 3.6 35B-A3B 单模型推理引擎。**
-> 从零写,锁定 NVFP4 + 单 prompt 场景,目的是 (a) 把模型每一层搞懂 (b) 在 Lynn 自家 27B-A3B 剪枝模型上单流速度超过 vLLM/SGLang 这种通用框架。
+> **为 NVIDIA Blackwell 写的 Lynn 27B-A3B NVFP4 单模型推理引擎。**
+> 从零写,锁定 Lynn 自家的 variable-pruned MoE + NVFP4 格式,目标很窄也很硬:在 R6000 / Spark 这类 Blackwell 机器上,把 Lynn 27B 基座跑成可生产、可优化、可长期接管的推理内核。
 
 [Read in English](README_EN.md) · [📝 知乎工程复盘(2026-05-11)](https://zhuanlan.zhihu.com/p/2036443846322680848) · [战略文档](docs/STRATEGY.md) · [架构设计](docs/DESIGN.md)
 
 [![commits](https://img.shields.io/github/commit-activity/m/MerkyorLynn/lynn-engine)](https://github.com/MerkyorLynn/lynn-engine/commits/main)
 [![license](https://img.shields.io/badge/license-TBD-orange)](.)
 
-## 当前能力
+## 当前状态(2026-05-15)
 
-✅ **端到端数值正确性已验证** — Lynn engine greedy decode 跟生产 vLLM **逐 token 完全一致**。
+Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B final 基座的独立 NVFP4 runtime**:
 
+| 项目 | 状态 |
+|---|---|
+| **27B final BF16** | ✅ Recovery step5000 final 已 merge,structural validation PASS,greedy sanity PASS |
+| **27B Lynn-native NVFP4** | ✅ 20G artifact 已生成并传到 R6000,manifest integrity PASS |
+| **独立加载** | ✅ 不依赖 vLLM / SGLang / TRT-LLM / llama.cpp,直接读 safetensors + Lynn quant manifest |
+| **6-prompt coherent smoke** | ✅ 中文解释 / Python / RoPE-ALiBi / 英文算术 / tool JSON / longctx 全通过 |
+| **当前 R6000 steady decode** | ✅ **66-68 tok/s**(真实 generate path,32-token smoke) |
+| **稳定 CUDA graph ceiling** | ✅ **78.8 tok/s**(full-token graph probe,可复现) |
+| **下一目标** | 100 tok/s:packed-resident NVFP4 + hot path kernel fusion |
+
+当前主力 artifact:
+
+```text
+Lynn 27B variable-pruned Recovery step5000
+├── BF16 final      ~60G  (reference / eval / fallback)
+└── NVFP4 final     ~20G  (Lynn-native runtime artifact)
 ```
-prompt: "The capital of France is"
-vLLM:   ' Paris, a city renowned'
-Lynn:   ' Paris, a city renowned'   ← 5/5 token 完全一致
-```
 
-✅ **40 层全部数值通过**:
-- 30 层 linear_attention(GatedDeltaNet)— 跟 HF 逐 bit 一致
-- 10 层 full_attention — 端到端 logits 比对通过
-- 多 prompt 验证:8 个不同 prompt,top-K(10)平均跟 vLLM 9.8/10 重合
-
-⚙️ **Phase 3.1 incremental decode 已 ship** — full_attention 走 KV cache,linear_attention 走 recurrent state cache。
-
-⚙️ **OpenAI 兼容 HTTP server** — Lynn brain 改一个 URL 就能 A/B 测试。
+> 注意:这里的 NVFP4 是 **Lynn-native variable-expert NVFP4**。它不是公开发布用的 compressed-tensors v8-RTN,也不是 GGUF Q4_K_M。通用框架通常不能直接加载这个 variable-pruned artifact,这正是 Lynn engine 要存在的原因。
 
 ## 性能进度
 
 | 阶段 | 单 token 延迟 | t/s | 状态 |
 |---|---|---|---|
-| Phase 2 brute-force | ~300 ms | 2-3 | shipped |
-| **Phase 3.1 incremental decode** | **~200 ms** | **5** | **shipped(commit `1e2980b`)** |
-| Phase 3.2(active-experts + bmm + indexed)| 目标 ~100-130 ms | 8-10 | 代码已 commit,未实测 |
-| Phase 3.3(Triton-fused MoE FFN)| 目标 ~50 ms | 20 | scaffold + 设计已写 |
-| Phase 3.4(CUTLASS NVFP4 grouped)| 目标 ~10-15 ms | 60-100 | B 阶段(未来)|
-| vLLM SGLang+MTP 基线 | ~14 ms | 60-70 | 参考对照 |
+| Phase 2 brute-force | ~300 ms | 2-3 | 历史基线 |
+| Phase 3.1 incremental decode | ~200 ms | 5 | 历史基线 |
+| P5/P6 eager Triton path | ~30-33 ms | 30-33 | P6-K/N/O |
+| **P6-S resident graph smoke** | **~15-16 ms** | **63-66** | ✅ 50TPS 目标突破 |
+| **P7 current serving env** | **~14.6-15.0 ms** | **66-68** | ✅ 6-prompt generate PASS |
+| **P7/P8 CUDA graph ceiling** | **12.68 ms** | **78.8** | ✅ 稳定可复现 ceiling |
+| P8 torch.compile spike | 12.33 ms | 81.1 | 实验信号,非产品路径 |
+| **P9 target** | **~10 ms** | **100** | packed-resident + kernel fusion |
+| Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
-## 长期路线 — C(36h)→ 验证 → B(6 月)
+当前 R6000 推荐环境:
+
+```bash
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+export LYNN_PREFILL_WARMUP=1
+export LYNN_LINEAR_ATTN_RECURRENT_BACKEND=triton_fused_prepare
+export LYNN_MOE_IMPL=triton
+export LYNN_QK_NORM_ROPE_BACKEND=triton
+export LYNN_RMSNORM_GATED_BACKEND=triton
+export LYNN_LINEAR_ATTN_INPROJ_FUSED=1
+export LYNN_LINEAR_BLOCK_GRAPH=1
+export LYNN_LINEAR_BLOCK_GRAPH_REUSE=1
+export LYNN_LINEAR_BLOCK_GRAPH_PREWARM=1
+export LYNN_LINEAR_STATE_UPDATE=inplace
+```
+
+实测 final step5000 NVFP4 32-token smoke:
+
+```text
+decode TPS per prompt: 66.62 / 68.27 / 68.28 / 68.24 / 68.44 / 67.89
+load time:             10.7s
+graph capture:         0.0s per request after prewarm
+output:                coherent 6/6
+```
+
+## 27B 质量与基座状态
+
+27B 来自 Qwen 3.6 35B-A3B BASE 的 variable-expert 剪枝路线:
+
+```text
+BASE 35B-A3B
+  → activation profile
+  → variable-target expert pruning(1010 experts cut,front layers protected)
+  → router fine-tune
+  → Recovery LoRA
+  → step5000 selected as final
+  → BF16 merge
+  → Lynn-native NVFP4 quantization
+```
+
+已知质量结论:
+
+| Variant | 状态 | 结果 |
+|---|---|---|
+| 27B BF16 step5000 | ✅ full eval | V8 strict 33/34 = 97.06%, V9 adjusted 37/59 = 62.71% |
+| 27B NVFP4 step5000 | ✅ runtime smoke | 6-prompt resident smoke PASS,2-token greedy sanity PASS |
+| 27B Q4_K_M | ⏳ not primary | variable-expert GGUF 需要额外 padding/format work,不是当前 Lynn-native 主线 |
+
+Recovery v1.1 targeted longctx/chem/sql 已试过,但未取代 step5000:它没有改善 longctx,并拉低总分。因此当前基座选择 **step5000 final**。
+
+## 路线 — R6000 first,Spark second
 
 详见 [`docs/STRATEGY.md`](docs/STRATEGY.md)。简版:
 
-| 阶段 | 时间 | 目标 |
+| 阶段 | 状态 | 目标 |
 |---|---|---|
-| **C 阶段(36h 墙钟)** | 2026-05-09 23:30 → 2026-05-15 | A/B ablation:V4 Pro 蒸 vs V4 Flash 蒸 → winner → 剪 30 expert → Recovery LoRA → V9 gate |
-| **验证阶段(2-4 周,B 准备并行)** | 2026-05-15 → 2026-06-15 | brain 接 Lynn-V4-Distill-Qwen-27B-A3B-NVFP4 走 SGLang 生产 + 用户实测 |
-| **过渡决策点** | 2026-06-15 | 用户实测 ≥ 2 周稳定 + ROI 够 = 进 B |
-| **B 阶段** | 2026-06-15 → 2026-12 末(~6 月) | Lynn engine + NVFP4 + agent prefix cache 替 SGLang 当 brain primary |
-
-**⚡ 蒸馏窗口期 — V4 Pro 75% off 截至 2026-05-31**(`$0.435/M in + $0.87/M out`,原价 4x),5/12 前完成所有 V4 Pro 蒸馏踩在促销内。
-
-**A/B Ablation 设计**:
-- **A · Lynn-V4-Pro-Distill**:reasoning / 长文调研强,~$57(promo)
-- **B · Lynn-V4-Flash-Distill**:风格匹配 brain / 速度直接,~$8
-
-总预算 ~$95-100(双 A100 不能并行,顺序训 24h,~36h 墙钟出 35B winner → 5/15 出 27B)。
+| **P6** | done | 50TPS 突破:resident graph smoke 63-66TPS |
+| **P7** | done | graph reuse / prewarm / RMSNormGated / serving env,66-68TPS |
+| **P8** | partial | 78.8TPS CUDA graph ceiling + 81TPS compile spike |
+| **P9** | current | packed-resident NVFP4,释放 35-40G resident memory,奔 100TPS |
+| **P10** | next | native FP4 / larger fused kernels,奔 200TPS |
 
 **已锁定决策**:
 - 推理硬件:**Blackwell sm_12x**(DGX Spark / 5090 / RTX PRO 6000)
-- 推理量化:**NVFP4 唯一**(BF16 仅 reference)— 不做 FP8/INT4/AWQ/GGUF
+- 推理主格式:**Lynn-native NVFP4**(BF16 仅 reference;GGUF/FP8 是兼容/对外测试资产)
 - 推理范围:**单 prompt + batch=1**(不做 PagedAttention)
-- 模型锁定:**Lynn-27B-A3B**(Qwen 3.6 35B-A3B 剪 30 expert + Recovery LoRA + V4-Pro 蒸馏)
+- 模型锁定:**Lynn-27B-A3B variable-pruned family**
 - 定位:**vertical companion** 给 Lynn LoRA + 剪枝训练流水线,**不替 vLLM 当通用引擎**
 
 ## 教程 — 即使你不写自己的引擎也值得读
@@ -80,43 +131,39 @@ Lynn:   ' Paris, a city renowned'   ← 5/5 token 完全一致
 
 [`tutorials/posts/zhihu_qwen36_engine_postmortem.md`](tutorials/posts/zhihu_qwen36_engine_postmortem.md) 是知乎博客风格的合集长文。
 
-## 快速上手(DGX Spark)
+## 快速上手(R6000 / Blackwell)
 
 ```bash
-# 1. 一次性把 FP8 转 BF16(避开 HF FP8 deep-gemm 元数据问题)
-docker run --rm --user 1000:1000 \
-  -v /home/merkyor/models:/models \
-  -v /tmp/lynn-engine:/work -w /work \
-  nvcr.io/nvidia/vllm:26.03.post1-py3 \
-  python3 engine/convert_fp8_to_bf16.py \
-    --src /models/Qwen3.6-35B-A3B-FP8 \
-    --dst /models/Qwen3.6-35B-A3B-BF16
+# 1. 准备 Lynn-native NVFP4 artifact
+MODEL=/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final
 
-# 2. 停 vLLM(Lynn 需要 ~67 GB 内存放权重)
-docker stop vllm-qwen35a3b
+# 2. 启用当前 R6000 best env
+export PYTHONPATH=/root/autodl-tmp/lynn-engine
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+export LYNN_PREFILL_WARMUP=1
+export LYNN_LINEAR_ATTN_RECURRENT_BACKEND=triton_fused_prepare
+export LYNN_MOE_IMPL=triton
+export LYNN_QK_NORM_ROPE_BACKEND=triton
+export LYNN_RMSNORM_GATED_BACKEND=triton
+export LYNN_LINEAR_ATTN_INPROJ_FUSED=1
+export LYNN_LINEAR_BLOCK_GRAPH=1
+export LYNN_LINEAR_BLOCK_GRAPH_REUSE=1
+export LYNN_LINEAR_BLOCK_GRAPH_PREWARM=1
+export LYNN_LINEAR_STATE_UPDATE=inplace
 
-# 3. 跑 incremental decode demo
-docker run --rm --gpus all --ipc=host --user 1000:1000 \
-  -v /home/merkyor/models:/models \
-  -v /tmp/lynn-engine:/work -w /work \
-  -e PYTHONPATH=/work \
-  nvcr.io/nvidia/vllm:26.03.post1-py3 \
-  bash -c "pip install -q --user transformers==5.8.0 && \
-           python3 engine/full_forward.py \
-             --prompt 'The capital of France is' \
-             --max-new 5 --mode incremental"
+# 3. 运行 resident smoke
+python benchmarks/resident_cli.py \
+  --model "$MODEL" \
+  --prompts-jsonl /root/autodl-tmp/reports/lynn-engine-p5/p7i_6prompt.jsonl \
+  --max-new 32 \
+  --chat-template \
+  --out /tmp/lynn_27b_nvfp4_smoke.json
 
-# 4.(可选)启动 OpenAI 兼容 HTTP server
-docker run -d --rm --gpus all --ipc=host --user 1000:1000 \
-  -v /home/merkyor/models:/models \
-  -v /tmp/lynn-engine:/work -w /work \
-  -p 127.0.0.1:18099:18099 \
-  -e PYTHONPATH=/work \
-  nvcr.io/nvidia/vllm:26.03.post1-py3 \
-  bash -c "pip install -q --user transformers==5.8.0 fastapi uvicorn && \
-           python3 -m server.openai_http \
-             --model /models/Qwen3.6-35B-A3B-FP8 \
-             --host 0.0.0.0 --port 18099"
+# 4. 可选:OpenAI-compatible server
+python -m server.openai_http \
+  --model "$MODEL" \
+  --host 0.0.0.0 \
+  --port 18099
 ```
 
 ## 仓库结构
