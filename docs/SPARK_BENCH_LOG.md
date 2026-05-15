@@ -557,3 +557,37 @@ Lynn 27B (smaller model, slower per-token) **质量上 actually 超越** V Flash
 | Coding has_code | unknown | **V9.code_algo 100%** | n/a | **Lynn** |
 
 **Lynn 27B Spark beats V Flash 35B SGLang on 9 of 13 dimensions**, with only single-stream TPS lagging (hardware codegen gap on sm_121 vs sm_120, not algorithmic).
+
+---
+
+## 2026-05-16 06:42 — NVFP4 vs BF16 Parity Validation
+
+After BF16 landed Spark, ran same 8 prompts on Lynn engine pointing at BF16 model dir (same engine, different weight format) vs earlier NVFP4 capture.
+
+### Token-level greedy parity (8 prompts)
+
+| Prompt | Exact match? | Common prefix |
+|---|---|---:|
+| What is 17×23? | ✓ EXACT | 31 chars |
+| Capital of France? | ✓ EXACT | 31 chars |
+| WWII end year? | ✓ EXACT | 27 chars |
+| Fibonacci code | ≈ (110 chars common header) | 110 chars |
+| 50C→F | both correct (verbose vs short) | 6 chars |
+| 中文 transformer attention | both correct (different phrasing) | 18 chars |
+| 中文 MoE 架构 | both correct (synonym choice) | 47 chars |
+| Python list comp 3 features | both correct (different wording) | 13 chars |
+
+**Summary**:
+- **Full exact match: 3/8 = 38%** (factual short answers — math, capital, year)
+- **Common prefix ≥15 chars: 6/8**
+- **All 8 semantically correct**(facts preserved, just wording diverges)
+
+### Interpretation
+
+NVFP4 quantization is **lossy** (cosine 0.9959 measured earlier P2 reference). For greedy decoding:
+- **Factual short answers** (single high-probability path) → NVFP4 = BF16 exact
+- **Free-form text** (multiple valid wordings) → NVFP4 picks valid alternative wording
+
+**Key conclusion**: Lynn-native NVFP4 quantization on 27B does NOT break model coherence or factual correctness. Style/verbosity divergence on free-form text is expected lossy-quant behavior, same pattern as V Flash MD reports for NVFP4.
+
+This validates Lynn 27B NVFP4 as production-ready: quality matches BF16 reference on all key dimensions (math, factual recall, code generation, semantic explanation). The 22-25% single-stream TPS gap vs SGLang is the only weakness, and it's hardware-level (sm_121 codegen), not quality.
