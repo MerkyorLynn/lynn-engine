@@ -322,3 +322,56 @@ Lynn 27B (smaller model, smaller TPS-per-token) achieves **96% of V Flash 35B V8
 | Mem drift | unknown | **-0.04G (zero leak)** ⭐ | rock solid |
 
 **Summary**: Lynn 27B Lynn engine Spark sm_121 wins on long-ctx (16k+), quality (V9, tool-call), and stability. Single-stream TPS gap (-22%) is the only weakness — awaiting Codex P14-B state-refresh wiring for breakthrough.
+
+---
+
+## 2026-05-16 01:23 — 🎯 P15 Config Trap Discovery — `LYNN_PACKED_DECODE=1` is SLOW path
+
+Codex pushed `46af178 docs(engine): record p15 runtime config audit` revealing my entire bench history used **WRONG config**.
+
+### R6000 P15 A/B (same model, group 20 graph gate)
+
+| `LYNN_PACKED_DECODE` | full graph | replay-only |
+|---|---:|---:|
+| **0** ⭐ | **107.11 tok/s** | **107.23 tok/s** |
+| 1 (my config) | 90.91 tok/s | 91.01 tok/s |
+
+The earlier ~91 TPS "ceiling" was a **configuration regression**, not a kernel limit. Q/K/V/O small decode projections are **slower on generic packed-native than on the BF16/native-fused mix**.
+
+### Correct R6000 production config (per P15 doc)
+
+```bash
+LYNN_LINEAR_ATTN_RECURRENT_BACKEND=triton_fused_prepare
+LYNN_LINEAR_ATTN_RECURRENT_INPLACE=1
+LYNN_MOE_IMPL=packed_nvfp4
+LYNN_PACKED_SHARED_EXPERT=0       # ← MUST 0 (not 1)
+LYNN_QK_NORM_ROPE_BACKEND=triton_pair
+LYNN_RMSNORM_GATED_BACKEND=triton
+LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1
+LYNN_NATIVE_FP4_LM_HEAD=1
+LYNN_LINEAR_STATE_UPDATE=inplace
+LYNN_PACKED_DECODE=0              # ← MUST 0 (not 1!)
+LYNN_PACKED_DECODE_PREPARE_NATIVE=0
+```
+
+### Spark sm_121 re-bench with P15 corrected config
+
+Container `4872dbbf9b1b` restarted with P15 corrected config (`PACKED_DECODE=0`, `PACKED_SHARED_EXPERT=0`).
+
+| Bench | TPS mean | TPS median | TTFT |
+|---|---:|---:|---:|
+| Run 1 | 40.63 | 40.95 | 0.612s |
+| Run 2 (warm) | 41.04 | 40.92 | 0.533s |
+
+**~41 TPS** — basically same as `PACKED_DECODE=1` 42.85 (within measurement noise).
+
+### Key finding: P15 fix doesn't transfer to Spark sm_121
+
+| | R6000 sm_120 | Spark sm_121 |
+|---|---:|---:|
+| LYNN_PACKED_DECODE=1 | 91 TPS | 42.85 TPS |
+| LYNN_PACKED_DECODE=0 | **107 TPS (+17%)** | **41 TPS (~no change)** |
+
+On Spark sm_121, packed-decode native_fast_2d path is **as fast as** BF16 path for small projections — different from R6000 sm_120 where BF16 wins by 17%. **Spark's ceiling ~42 TPS is a different bottleneck**, not the config trap.
+
+Need to look elsewhere for the path to 55+ TPS: graph slot capture amortization (P13 hot path issue), state-refresh wiring (Codex P14-B/C probes), or genuine kernel-level work.
