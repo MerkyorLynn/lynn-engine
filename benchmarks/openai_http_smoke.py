@@ -32,6 +32,41 @@ def _nonempty(value: Any) -> bool:
     return isinstance(value, str) and bool(value.strip())
 
 
+def _thinking_loop_detected(value: Any) -> bool:
+    if not isinstance(value, str):
+        return False
+    lower = value.lower()
+    return lower.count("<think>") >= 2 or lower.count("</think>") >= 2
+
+
+def _tool_call_payload(model: str) -> dict[str, Any]:
+    return {
+        "model": model,
+        "messages": [{"role": "user", "content": "东京现在天气怎么样？"}],
+        "tools": [
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_weather",
+                    "description": "Get the current weather for a city.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "city": {
+                                "type": "string",
+                                "description": "City name, e.g. Tokyo",
+                            }
+                        },
+                        "required": ["city"],
+                    },
+                },
+            }
+        ],
+        "max_tokens": 96,
+        "temperature": 0,
+    }
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--url", required=True, help="OpenAI-compatible base URL, e.g. http://127.0.0.1:18200/v1")
@@ -74,11 +109,27 @@ def main() -> int:
     )
     checks.append({
         "name": "chat_completions",
-        "ok": _nonempty(chat_content),
+        "ok": _nonempty(chat_content) and not _thinking_loop_detected(chat_content),
         "elapsed_s": chat_s,
         "content": chat_content,
+        "thinking_loop_detected": _thinking_loop_detected(chat_content),
         "usage": chat.get("usage"),
         "metrics": chat.get("_lynn_engine_metrics"),
+    })
+
+    tool, tool_s = _json_request("POST", f"{base}/chat/completions", _tool_call_payload(args.model))
+    tool_message = tool.get("choices", [{}])[0].get("message", {})
+    tool_calls = tool_message.get("tool_calls") or []
+    tool_content = tool_message.get("content")
+    checks.append({
+        "name": "tool_call_strict",
+        "ok": len(tool_calls) >= 1 and not _thinking_loop_detected(tool_content),
+        "elapsed_s": tool_s,
+        "content": tool_content,
+        "tool_calls": tool_calls,
+        "thinking_loop_detected": _thinking_loop_detected(tool_content),
+        "usage": tool.get("usage"),
+        "metrics": tool.get("_lynn_engine_metrics"),
     })
 
     completion_payload = {
@@ -91,9 +142,10 @@ def main() -> int:
     text = completion.get("choices", [{}])[0].get("text")
     checks.append({
         "name": "completions",
-        "ok": _nonempty(text),
+        "ok": _nonempty(text) and not _thinking_loop_detected(text),
         "elapsed_s": completion_s,
         "text": text,
+        "thinking_loop_detected": _thinking_loop_detected(text),
         "usage": completion.get("usage"),
         "metrics": completion.get("_lynn_engine_metrics"),
     })
