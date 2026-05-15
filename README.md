@@ -21,7 +21,10 @@ Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B final 基�
 | **当前 R6000 strict full path** | ✅ **103.44 tok/s**(packed NVFP4 MoE + opt-in native FP4 lm_head) |
 | **serving replay ceiling** | ✅ **107.23 tok/s**(40-layer body graph,可稳定复现) |
 | **OpenAI server guard** | ✅ strict tool-call PASS,`<think>` loop fail-pattern guard PASS,稳定 decode **88-89 tok/s** |
-| **下一目标** | 生产稳定 100+ TPS:full-attn graph-state discipline / native FP4 kernel 与易用性 |
+| **P10 runner graph-slot gate** | ✅ 6 prompts × 3 prefixes = 18/18 strict PASS,runner graph slot 88.8-103.1 tok/s |
+| **P11 packed-resident memory gate** | ✅ prefill 后释放 **56.47 GiB** BF16 shadow,allocated **81.06 → 24.59 GiB**,greedy ids exact match |
+| **P12 one-shot server gate** | ✅ OpenAI server 首请求释放 **56.47 GiB**,显存落到 **27.2 GiB used**,第二请求 HTTP 409 fail-loud |
+| **下一目标** | 生产稳定 100+ TPS + packed-resident serving lifecycle |
 
 当前主力 artifact:
 
@@ -47,7 +50,10 @@ Lynn 27B variable-pruned Recovery step5000
 | **P10-M packed NVFP4 MoE** | **10.01 ms** | **99.86** | ✅ strict full path,BF16 lm_head |
 | **P10-P native FP4 lm_head** | **9.67 ms** | **103.44** | ✅ strict full path,opt-in |
 | **serving replay/body graph** | **9.33 ms** | **107.23** | ✅ 40-layer graph ceiling |
+| **P10-U runner graph slot** | **9.69-11.26 ms** | **88.8-103.1** | ✅ 6 prompts × 3 prefixes strict PASS |
 | **OpenAI server stable path** | **~11.2 ms** | **88-89** | ✅ tool-call + no-think guard PASS |
+| **P11 session-scoped packed resident** | — | — | ✅ BF16 shadow 81.06→24.59 GiB,decode ids exact match |
+| **P12 one-shot OpenAI server** | — | — | ✅ first request release 56.47GiB,second request HTTP 409 |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:
@@ -61,6 +67,7 @@ export LYNN_MOE_IMPL=packed_nvfp4
 export LYNN_QK_NORM_ROPE_BACKEND=triton_pair
 export LYNN_RMSNORM_GATED_BACKEND=triton
 export LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1
+export LYNN_NATIVE_FP4_LM_HEAD=1
 export LYNN_LINEAR_STATE_UPDATE=inplace
 ```
 
@@ -77,6 +84,8 @@ quality smoke:         6/6 coherent + strict tool-call + no-think loop guard PAS
 Native FP4 lm_head 是当前的 deterministic/greedy opt-in 优化:6/6 prompt top-1 match,top-20 overlap 最低 15/20,logits cosine 最低 0.9924。采样型生产流量默认仍保留 BF16 lm_head fallback,直到更大规模 parity gate 完成。
 
 CUDA graph 说明:107 TPS 是严格 benchmark ceiling,不是默认 HTTP serving 路径。P10-S 已记录 full-token graph family 的跨 token 漂移边界;当前生产默认保留 88-89 TPS 稳定路径,直到 multi-prompt / long generation / tool-call parity 全部通过。详见 [`docs/LYNN_ENGINE_P10S_GRAPH_BOUNDARY_20260515.md`](docs/LYNN_ENGINE_P10S_GRAPH_BOUNDARY_20260515.md)。
+
+Packed-resident memory 说明:当前默认 server 仍保留 BF16 shadow 以支持多请求 prefill。P11 已证明 session-scoped 生命周期中,prefill 后可以释放 56.47 GiB BF16 shadow,显存从 81.06 GiB 降到 24.59 GiB 且 greedy decode ids 完全一致。P12 进一步把这个能力接到 OpenAI server 的 opt-in one-shot 模式:首请求释放 56.47 GiB,第二请求明确 HTTP 409 fail-loud。详见 [`docs/LYNN_ENGINE_P11_PACKED_RESIDENT_MEMORY_20260515.md`](docs/LYNN_ENGINE_P11_PACKED_RESIDENT_MEMORY_20260515.md) 和 [`docs/LYNN_ENGINE_P12_ONESHOT_SERVER_20260515.md`](docs/LYNN_ENGINE_P12_ONESHOT_SERVER_20260515.md)。
 
 ## 27B 质量与基座状态
 
@@ -113,8 +122,9 @@ Recovery v1.1 targeted longctx/chem/sql 已试过,但未取代 step5000:它没�
 | **P7** | done | graph reuse / prewarm / RMSNormGated / serving env,66-68TPS |
 | **P8** | done | 78.8TPS CUDA graph ceiling + 81TPS compile spike |
 | **P9** | done | packed NVFP4 active expert path,逼近 100TPS |
-| **P10** | current | native FP4 lm_head + full-path 103TPS,生产稳定 100+ |
-| **P11** | next | shared expert / grouped expert / larger fused kernels,奔 200TPS |
+| **P10** | done/current | native FP4 lm_head + full-path 103TPS,runner graph-slot strict gate |
+| **P11** | done | packed-resident memory lifecycle,56GiB BF16 shadow release 已证明 |
+| **P12** | current | one-shot server release gate 已过;下一步 packed prefill / 生产稳定 100+ |
 
 Spark sm_121 分支单独推进,当前质量 gate 已通过、scalar_bridge 约 24TPS;目标是在 Spark 上验证同一 native path 并冲 50+TPS。详见 [`docs/SPARK_OPTIMIZATION_BRANCH_PLAN_20260515.md`](docs/SPARK_OPTIMIZATION_BRANCH_PLAN_20260515.md)。
 
@@ -157,6 +167,7 @@ export LYNN_MOE_IMPL=packed_nvfp4
 export LYNN_QK_NORM_ROPE_BACKEND=triton_pair
 export LYNN_RMSNORM_GATED_BACKEND=triton
 export LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1
+export LYNN_NATIVE_FP4_LM_HEAD=1
 export LYNN_LINEAR_STATE_UPDATE=inplace
 
 # 3. 运行 resident smoke

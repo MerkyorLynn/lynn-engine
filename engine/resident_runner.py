@@ -160,6 +160,12 @@ class LynnIncrementalRunner:
         self.dtype = dtype
         self.max_seq_len = max_seq_len
         self.verbose = verbose
+        self.moe_impl = impl
+        self.packed_nvfp4_moe_aliases_attached = 0
+        self.packed_decode_backend = os.environ.get("LYNN_PACKED_DECODE_BACKEND", "scalar_bridge")
+        self.packed_decode_aliases_attached = 0
+        self.packed_decode_native_prepared = 0
+        self.packed_decode_aliases_skipped = 0
         self.cfg, self.n_layers = _runtime_config(self.model_dir)
 
         from transformers import AutoTokenizer
@@ -325,6 +331,7 @@ class LynnIncrementalRunner:
                 except KeyError:
                     pass
             attached += 1
+        self.packed_nvfp4_moe_aliases_attached = attached
         if self.verbose:
             print(f"[resident] packed NVFP4 MoE aliases attached={attached}", flush=True)
 
@@ -547,6 +554,62 @@ class LynnIncrementalRunner:
         self._restore_state(state, snap)
         return FullTokenGraphSlot(seq_len=seq_len, token_buf=token_buf, logits_buf=logits_buf, graph=graph)
 
+    def release_decode_bf16_shadows(
+        self,
+        *,
+        include_moe_experts: bool = True,
+        include_projection_aliases: bool = True,
+    ) -> dict[str, Any]:
+        """Release BF16 tensors covered by packed decode aliases.
+
+        This is a session-scoped / decode-only primitive. Do not call it before
+        prefill in the current runner, and do not use it for multi-request
+        serving unless the server can reload shadows or run packed prefill.
+        """
+        released: list[dict[str, Any]] = []
+        released_bytes = 0
+
+        def drop(layer_idx: int, w: dict[str, Any], key: str, reason: str) -> None:
+            nonlocal released_bytes
+            tensor = w.get(key)
+            if not isinstance(tensor, torch.Tensor):
+                return
+            nbytes = int(tensor.numel() * tensor.element_size())
+            del w[key]
+            released_bytes += nbytes
+            released.append({
+                "layer": layer_idx,
+                "key": key,
+                "bytes": nbytes,
+                "reason": reason,
+            })
+
+        for layer_idx, w in enumerate(self.layer_weights):
+            if include_moe_experts:
+                if "mlp.experts._gate_up_packed" in w:
+                    drop(layer_idx, w, "mlp.experts.gate_up_proj", "packed_grouped_moe_gate_up")
+                if "mlp.experts._down_packed" in w:
+                    drop(layer_idx, w, "mlp.experts.down_proj", "packed_grouped_moe_down")
+
+            if include_projection_aliases:
+                for key in list(w.keys()):
+                    if not key.endswith(".weight"):
+                        continue
+                    if key + ".packed" not in w:
+                        continue
+                    drop(layer_idx, w, key, "packed_linear_alias")
+
+        if self.device.startswith("cuda"):
+            torch.cuda.empty_cache()
+            torch.cuda.synchronize()
+        return {
+            "released_tensors": len(released),
+            "released_bytes": released_bytes,
+            "released_gib": released_bytes / (1024**3),
+            "items": released[:50],
+            "truncated_items": max(0, len(released) - 50),
+        }
+
     def _prepare_packed_decode_aliases(self) -> None:
         """Attach packed NVFP4 decode aliases while keeping BF16 prefill safe.
 
@@ -557,7 +620,7 @@ class LynnIncrementalRunner:
         parity and timing can be measured end-to-end before any memory-saving
         resident layout change.
         """
-        backend = os.environ.get("LYNN_PACKED_DECODE_BACKEND", "scalar_bridge")
+        backend = self.packed_decode_backend
         projections_by_type = {
             "linear_attention": [
                 "linear_attn.in_proj_qkv.weight",
@@ -611,6 +674,9 @@ class LynnIncrementalRunner:
                 f"native_prepared={native_prepared}",
                 flush=True,
             )
+        self.packed_decode_aliases_attached = attached
+        self.packed_decode_native_prepared = native_prepared
+        self.packed_decode_aliases_skipped = skipped
 
     @staticmethod
     def _snapshot_linear_state(state: LynnInferenceState) -> dict[str, Any]:
@@ -771,6 +837,7 @@ class LynnIncrementalRunner:
         max_new: int = 4,
         top_k: int = 0,
         use_chat_template: bool = False,
+        release_decode_shadows_after_prefill: bool = False,
     ) -> dict[str, Any]:
         tok = self.tokenizer
         ids = _encode_prompt(tok, prompt, self.device, use_chat_template=use_chat_template)
@@ -805,6 +872,15 @@ class LynnIncrementalRunner:
                 f"next={next_id} {tok.decode([next_id])!r}",
                 flush=True,
             )
+        release_report = None
+        if release_decode_shadows_after_prefill:
+            release_report = self.release_decode_bf16_shadows()
+            if self.verbose:
+                print(
+                    "  [resident] released decode BF16 shadows "
+                    f"{release_report['released_gib']:.2f} GiB",
+                    flush=True,
+                )
         new_ids = [next_id]
         decode_seconds = []
         stopped_reason = "max_new"
@@ -909,6 +985,7 @@ class LynnIncrementalRunner:
                 "linear_block_graph_prewarm_seconds": self.linear_block_graph_prewarm_seconds,
                 "native_fp4_lm_head_enabled": self.native_fp4_lm_head_enabled,
                 "native_fp4_lm_head_prepare_seconds": self.native_fp4_lm_head_prepare_seconds,
+                "decode_bf16_shadow_release": release_report,
             },
             "stopped_reason": stopped_reason,
             "stop_token_ids": sorted(self.stop_token_ids),

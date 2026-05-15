@@ -67,12 +67,13 @@ def _decode_weight(w: dict, key: str):
     into `key + ".packed"` so we can validate packed NVFP4 kernels end-to-end
     without destabilizing the multi-token prefill path.
     """
+    packed_key = key + ".packed"
     if os.environ.get("LYNN_PACKED_DECODE", "0") == "1":
-        return w.get(key + ".packed", w[key])
+        return w[packed_key] if packed_key in w else w[key]
     if key.startswith("linear_attn.") and os.environ.get("LYNN_PACKED_DECODE_LINEAR_ATTN", "0") == "1":
-        return w.get(key + ".packed", w[key])
+        return w[packed_key] if packed_key in w else w[key]
     if key.startswith("self_attn.") and os.environ.get("LYNN_PACKED_DECODE_FULL_ATTN", "0") == "1":
-        return w.get(key + ".packed", w[key])
+        return w[packed_key] if packed_key in w else w[key]
     return w[key]
 
 

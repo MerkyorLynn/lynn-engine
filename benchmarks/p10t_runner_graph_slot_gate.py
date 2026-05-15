@@ -114,15 +114,45 @@ def main() -> int:
     ap.add_argument("--model", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--prompt", default="用一句话解释 MoE active parameters")
+    ap.add_argument(
+        "--prompts-jsonl",
+        help="Optional JSONL with prompt/input/question/problem fields for multi-prompt graph-slot parity.",
+    )
     ap.add_argument("--prefix-new", type=int, nargs="+", default=[8, 16, 32])
     args = ap.parse_args()
 
     runner = LynnIncrementalRunner(args.model, device="cuda", dtype=torch.bfloat16, verbose=False)
-    rows = [_run_one(runner, args.prompt, prefix_new) for prefix_new in args.prefix_new]
+    prompts: list[dict[str, str]] = [{"id": "prompt_000", "prompt": args.prompt}]
+    if args.prompts_jsonl:
+        prompts = []
+        with open(args.prompts_jsonl, encoding="utf-8") as f:
+            for i, line in enumerate(f):
+                if not line.strip():
+                    continue
+                item = json.loads(line)
+                prompt = (
+                    item.get("prompt")
+                    or item.get("input")
+                    or item.get("question")
+                    or item.get("problem")
+                )
+                if not prompt:
+                    raise ValueError(f"Prompt record {i} missing prompt/input/question/problem")
+                prompts.append({"id": str(item.get("id", f"prompt_{i:03d}")), "prompt": str(prompt)})
+        if not prompts:
+            raise ValueError(f"No prompts found in {args.prompts_jsonl}")
+
+    rows = []
+    for prompt_item in prompts:
+        for prefix_new in args.prefix_new:
+            row = _run_one(runner, prompt_item["prompt"], prefix_new)
+            row["prompt_id"] = prompt_item["id"]
+            row["prompt"] = prompt_item["prompt"]
+            rows.append(row)
     result = {
         "schema_version": "lynn-engine-p10t-runner-graph-slot-gate-v1",
         "model": args.model,
-        "prompt": args.prompt,
+        "prompt_count": len(prompts),
         "native_fp4_lm_head_enabled": runner.native_fp4_lm_head_enabled,
         "rows": rows,
         "pass": all(row["pass"] for row in rows),

@@ -200,3 +200,17 @@ Interpretation:
   artifact.
 - The remaining gap to the 103-107 TPS ceiling is serving integration and graph
   slot lifecycle management, not raw kernel capability.
+
+Multi-prompt extension:
+
+```text
+6 prompts x 3 prefixes = 18 graph/eager comparisons
+verdict = PASS
+diff = max_abs 0.0 for every row
+top10_overlap = 10/10 for every row
+runner_graph_tps range = 88.84 - 103.15
+```
+
+The lower rows are not correctness failures. They show the current graph-slot
+helper is now a strict runner primitive, while end-to-end production speed still
+depends on slot lifecycle, state refresh cost, and prompt/position mix.
