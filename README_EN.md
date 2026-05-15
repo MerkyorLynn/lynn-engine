@@ -60,6 +60,10 @@ Lynn 27B variable-pruned Recovery step5000
 | **P13 graph-slot generate/window** | **12.6-12.8 ms replay / 60-105 ms capture** | **78-79 replay / 8-14 e2e** | ⚠️ current-position strict;future window multi-prompt FAIL |
 | **P14 state refresh** | **0.79 ms roundtrip + 12.6 ms replay** | **~70-80 projected** | ✅ copy-cost green light,implementation pending |
 | **P15 correct runtime config** | **9.66 ms strict / 9.33 ms replay** | **103.48 / 107.23** | ✅ `LYNN_PACKED_DECODE=0`,shared expert stays BF16 |
+| **P16 active-MoE boundary** | **skip-active 5.75 ms replay / non-MoE 4.79 ms replay** | **173.8 / 208.8 upper bound** | 🔬 155 TPS requires a new grouped native-FP4 active expert kernel |
+| **P17 Triton FP4 dot_scaled** | **raw gate/up shape 0.0125 ms; e8m0 neutral byte=127** | compute headroom ✅ | 🔬 layout/scale contract mapped,next step is per-16→group32 bridge |
+| **P18 scale-contract decision** | **dot_scaled raw 0.018 ms vs scalar 0.050 ms** | speed ✅ / quality ❌ | 🔬 simple e8m0 bridge is not shippable; move to custom per-16 kernel |
+| **P19 active block retune** | **8.66 ms strict / 8.32 ms replay** | **115.4 / 120.3** | ✅ quality-safe scheduling gain |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -70,6 +74,10 @@ export LYNN_PREFILL_WARMUP=1
 export LYNN_LINEAR_ATTN_RECURRENT_BACKEND=triton_fused_prepare
 export LYNN_LINEAR_ATTN_RECURRENT_INPLACE=1
 export LYNN_MOE_IMPL=packed_nvfp4
+export LYNN_MOE_GATE_BLOCK_INTER=8
+export LYNN_MOE_GATE_BLOCK_HIDDEN=256
+export LYNN_MOE_DOWN_BLOCK_HIDDEN=8
+export LYNN_MOE_DOWN_BLOCK_INTER=512
 export LYNN_QK_NORM_ROPE_BACKEND=triton_pair
 export LYNN_RMSNORM_GATED_BACKEND=triton
 export LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1
@@ -83,8 +91,8 @@ export LYNN_PACKED_SHARED_EXPERT=0
 Measured final step5000 NVFP4:
 
 ```text
-strict full path:      103.44 tok/s  (native FP4 lm_head opt-in)
-serving replay/body:   107.23 tok/s  (40-layer graph ceiling)
+strict full path:      115.41 tok/s  (P19 active-block retune + native FP4 lm_head)
+serving replay/body:   120.25 tok/s  (40-layer graph ceiling)
 OpenAI stable decode:    88-89 tok/s  (tool-call strict + no-think guard)
 BF16 lm_head path:     99.86 tok/s
 quality smoke:         6/6 coherent + strict tool-call + no-think loop guard PASS
@@ -106,6 +114,37 @@ experts, uses native fused linear-attention in-projection, and optionally uses
 native FP4 lm_head, but keeps **generic packed decode disabled**. The shared
 expert also stays BF16 because packed scalar/native shared paths are slower.
 See [`docs/LYNN_ENGINE_P15_RUNTIME_CONFIG_20260516.md`](docs/LYNN_ENGINE_P15_RUNTIME_CONFIG_20260516.md).
+
+P16 155 TPS note: profiling shows the non-MoE path can replay at
+**208.8 tok/s**, and skipping active routed experts reaches **173.8 tok/s**.
+However, top-k approximation and block-size sweeps do not safely reach 155.
+The conclusion is that 155 TPS is not another environment toggle; it requires a
+new **grouped native-FP4 active expert kernel**. See
+[`docs/LYNN_ENGINE_P16_155TPS_ACTIVE_MOE_20260516.md`](docs/LYNN_ENGINE_P16_155TPS_ACTIVE_MOE_20260516.md).
+
+P17 note: Triton 3.6 `tl.dot_scaled(e2m1)` now passes a raw packed-FP4 layout
+probe on R6000. The real gate/up shape `1x2048 @ 2048x8192` takes only
+**0.0125 ms**. A follow-up scale probe confirms `rhs_scale=[N,K//32]` and a
+synthetic two-sided neutral e8m0 byte of **127**, proving that FP4 tensor-core
+compute is not the bottleneck. The next blocker is wiring Lynn's per-16/e4m3
+scale contract into e8m0/group32 grouped native dot. See
+[`docs/LYNN_ENGINE_P17_TRITON_DOT_SCALED_20260516.md`](docs/LYNN_ENGINE_P17_TRITON_DOT_SCALED_20260516.md).
+
+P18 note: three scale-bridge variants were tested. `dot_scaled` raw gate/up
+reaches **0.018 ms** versus the current scalar bridge at about **0.050 ms**, but
+quality does not pass: per-16→group32 folding reaches only **0.894** best inter
+cosine, BF16→e8m0/group32 re-quant reaches **0.980**, and padded per-16 reaches
+**0.936**. The conclusion: 155 TPS still has hardware headroom, but we should
+not ship a simple e8m0 bridge that sacrifices quality. The next route is a
+**custom per-16 grouped native-FP4 kernel / CUTLASS path** or a stronger
+engine-native quant artifact. See
+[`docs/LYNN_ENGINE_P18_SCALE_CONTRACT_DECISION_20260516.md`](docs/LYNN_ENGINE_P18_SCALE_CONTRACT_DECISION_20260516.md).
+
+P19 note: without changing the numerical path, active MoE kernel block retuning
+moves the R6000 full graph from **103.40/107.13 TPS** to **115.41/120.25 TPS**.
+The recommended config is now the default: `gate_hidden=256,down_inter=512`,
+with env overrides retained for device-specific tuning. See
+[`docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md`](docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,
