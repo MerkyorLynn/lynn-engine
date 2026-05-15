@@ -29,6 +29,32 @@ The large shape requires K-packed tiling. A single program with
 limits. With `BLOCK_K_PACKED=256` and `BLOCK_N=64`, the same raw dot is both
 correct and fast.
 
+## E8M0 Scale Contract Probe
+
+The follow-up scale probe confirms the `tl.dot_scaled` scale layout and the
+neutral e8m0 byte:
+
+| Probe | Result |
+|---|---|
+| `rhs_scale` layout | **`[N, K//32]`** works |
+| transposed `rhs_scale` layout | rejected with shape error |
+| neutral e8m0 byte when both sides use the same byte | **127** |
+| byte +1 on both lhs/rhs scales | output scales by **4x** |
+
+For a raw all-ones `K=64` dot, expected output is 64. The probe measured:
+
+| scale byte | output |
+|---:|---:|
+| 124 | 1 |
+| 126 | 16 |
+| **127** | **64** |
+| 128 | 256 |
+| 129 | 1024 |
+
+This strongly suggests each operand scale behaves like a power-of-two e8m0
+factor around byte 127. When both lhs and rhs use the same byte, incrementing
+the byte by one doubles each operand and therefore quadruples the dot result.
+
 ## Meaning
 
 This is an important positive signal:
@@ -49,6 +75,7 @@ Triton `tl.dot_scaled` is documented around microscaling/e8m0 semantics:
 ```text
 lhs_scale: [M, K//group_size], group_size 32 for e8m0
 rhs_scale: [N, K//group_size], do not transpose rhs_scale
+neutral scale byte: 127 in the two-sided synthetic probe
 ```
 
 That differs from Lynn's current scale contract:
