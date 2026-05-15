@@ -11,11 +11,13 @@ path (Phase 2). This module is the new path used by `generate_incremental` (TBD)
 from __future__ import annotations
 
 import math
+import os
 from typing import Optional
 
 import torch
 import torch.nn.functional as F
 
+from engine.nvfp4_runtime import PackedNVFP4FusedLinear, PackedNVFP4Linear
 from engine.qwen36_linear_attn_block import (
     HIDDEN_SIZE, NUM_K_HEADS, NUM_V_HEADS, HEAD_K_DIM, HEAD_V_DIM, CONV_KERNEL,
     KEY_DIM, VALUE_DIM, V_PER_K, RMS_EPS,
@@ -23,6 +25,98 @@ from engine.qwen36_linear_attn_block import (
     rms_norm_gated,
     l2norm,
 )
+
+try:
+    from triton_kernels.gated_delta import (
+        recurrent_gated_delta_fused_prepare,
+        recurrent_gated_delta_fused_prepare_gqa,
+    )
+except Exception:  # pragma: no cover - optional acceleration path.
+    recurrent_gated_delta_fused_prepare = None
+    recurrent_gated_delta_fused_prepare_gqa = None
+
+try:
+    from triton_kernels.rmsnorm_gated import rms_norm_gated_triton
+except Exception:  # pragma: no cover - optional acceleration path.
+    rms_norm_gated_triton = None
+
+try:
+    from triton_kernels.qk_norm_rope import qk_norm_rope_pair_triton, qk_norm_rope_triton
+except Exception:  # pragma: no cover - optional acceleration path.
+    qk_norm_rope_pair_triton = None
+    qk_norm_rope_triton = None
+
+
+def _linear(x: torch.Tensor, weight) -> torch.Tensor:
+    """Linear dispatch with optional packed NVFP4 decode-path support."""
+    if isinstance(weight, (PackedNVFP4FusedLinear, PackedNVFP4Linear)):
+        if weight.default_backend == "native_fast_2d":
+            flat = x.reshape(-1, x.shape[-1])
+            if flat.shape[0] != 1:
+                raise NotImplementedError("native_fast_2d currently supports one token")
+            out = weight.forward_native_fast_2d(flat)
+            return out.to(x.dtype).reshape(*x.shape[:-1], weight.out_features)
+        return weight(x)
+    return F.linear(x, weight)
+
+
+def _decode_weight(w: dict, key: str):
+    """Return an optional packed decode alias for a linear weight.
+
+    Prefill still uses the BF16/dequantized tensor under `key`; decode may opt
+    into `key + ".packed"` so we can validate packed NVFP4 kernels end-to-end
+    without destabilizing the multi-token prefill path.
+    """
+    packed_key = key + ".packed"
+    if os.environ.get("LYNN_PACKED_DECODE", "0") == "1":
+        return w[packed_key] if packed_key in w else w[key]
+    if key.startswith("linear_attn.") and os.environ.get("LYNN_PACKED_DECODE_LINEAR_ATTN", "0") == "1":
+        return w[packed_key] if packed_key in w else w[key]
+    if key.startswith("self_attn.") and os.environ.get("LYNN_PACKED_DECODE_FULL_ATTN", "0") == "1":
+        return w[packed_key] if packed_key in w else w[key]
+    return w[key]
+
+
+def _rms_norm_gated_decode(x: torch.Tensor, weight: torch.Tensor, gate: torch.Tensor) -> torch.Tensor:
+    backend = os.environ.get("LYNN_RMSNORM_GATED_BACKEND", "torch")
+    if backend == "triton":
+        if rms_norm_gated_triton is None:
+            raise RuntimeError("LYNN_RMSNORM_GATED_BACKEND=triton requested but kernel is unavailable")
+        return rms_norm_gated_triton(x, weight, gate, eps=RMS_EPS)
+    if backend != "torch":
+        raise ValueError(f"unknown LYNN_RMSNORM_GATED_BACKEND={backend!r}")
+    return rms_norm_gated(x, weight, gate, eps=RMS_EPS)
+
+
+def _qk_norm_rope_decode(x: torch.Tensor, weight: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor, rotary_dim: int) -> torch.Tensor:
+    backend = os.environ.get("LYNN_QK_NORM_ROPE_BACKEND", "torch")
+    if backend == "triton":
+        if qk_norm_rope_triton is None:
+            raise RuntimeError("LYNN_QK_NORM_ROPE_BACKEND=triton requested but kernel is unavailable")
+        return qk_norm_rope_triton(x, weight, cos, sin, rotary_dim)
+    if backend != "torch":
+        raise ValueError(f"unknown LYNN_QK_NORM_ROPE_BACKEND={backend!r}")
+    return _apply_partial_rope(_rms_norm(x, weight), cos, sin, rotary_dim)
+
+
+def _qk_norm_rope_pair_decode(
+    q: torch.Tensor,
+    k: torch.Tensor,
+    q_weight: torch.Tensor,
+    k_weight: torch.Tensor,
+    cos: torch.Tensor,
+    sin: torch.Tensor,
+    rotary_dim: int,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    backend = os.environ.get("LYNN_QK_NORM_ROPE_BACKEND", "torch")
+    if backend == "triton_pair":
+        if qk_norm_rope_pair_triton is None:
+            raise RuntimeError("LYNN_QK_NORM_ROPE_BACKEND=triton_pair requested but kernel is unavailable")
+        return qk_norm_rope_pair_triton(q, k, q_weight, k_weight, cos, sin, rotary_dim)
+    return (
+        _qk_norm_rope_decode(q, q_weight, cos, sin, rotary_dim),
+        _qk_norm_rope_decode(k, k_weight, cos, sin, rotary_dim),
+    )
 
 
 # Standard RMSNorm (with the (1.0 + weight) trick — Qwen3 specific).
@@ -41,26 +135,47 @@ def _rms_norm(x, weight, eps=1e-6):
 
 def _build_rope_cos_sin(positions: torch.Tensor, rotary_dim: int, theta: float,
                        device, dtype):
-    """positions: [B, T] long. Returns cos, sin: [B, 1, T, rotary_dim]."""
+    """positions: [B, T] long. Returns cos, sin: [B, 1, T, rotary_dim/2].
+
+    F2.1 cat-free: returns half-width cos/sin (instead of doubled via cat).
+    GPT-NeoX layout: cos[:half] and cos[half:] would be identical in old impl,
+    so storing only half is byte-exact equivalent and saves the cat op.
+    """
     inv_freq = 1.0 / (
         theta ** (torch.arange(0, rotary_dim, 2, device=device, dtype=torch.float32) / rotary_dim)
     )
     freqs = positions.float()[:, :, None] * inv_freq[None, None, :]
-    emb = torch.cat([freqs, freqs], dim=-1)
-    cos = emb.cos()[:, None, :, :].to(dtype)
-    sin = emb.sin()[:, None, :, :].to(dtype)
+    cos = freqs.cos()[:, None, :, :].to(dtype)  # [B, 1, T, half]
+    sin = freqs.sin()[:, None, :, :].to(dtype)
     return cos, sin
 
 
-def _rotate_half(x):
-    half = x.shape[-1] // 2
-    return torch.cat([-x[..., half:], x[..., :half]], dim=-1)
-
-
 def _apply_partial_rope(x, cos, sin, rotary_dim):
-    x_rot, x_pass = x[..., :rotary_dim], x[..., rotary_dim:]
-    x_rotated = (x_rot * cos) + (_rotate_half(x_rot) * sin)
-    return torch.cat([x_rotated, x_pass], dim=-1)
+    """GPT-NeoX style partial RoPE, cat-free implementation.
+
+    x:    [B, H, M, head_dim]
+    cos:  [B, 1, M, rotary_dim/2]  (half-width per F2.1)
+    sin:  [B, 1, M, rotary_dim/2]
+    Returns: rotated x [B, H, M, head_dim]
+
+    Equivalent to:
+      x_rotated = x_rot * cos_full + rotate_half(x_rot) * sin_full
+      out = cat([x_rotated, x_pass], dim=-1)
+    where rotate_half flips first/second halves of rotary_dim. Since cos_full and
+    sin_full are doubled (cos[:half] == cos[half:]), we use half-width cos/sin
+    directly:
+      out[:half]              = x_first * cos - x_second * sin
+      out[half:rotary_dim]    = x_second * cos + x_first * sin
+      out[rotary_dim:]        = x[rotary_dim:]  (pass-through)
+    Eliminates 3 cat ops (rotate_half, x_rotated+x_pass, freq doubling).
+    """
+    half = rotary_dim // 2
+    out = x.clone()  # copy entire x (pass-through region included)
+    x_first = x[..., :half]
+    x_second = x[..., half:rotary_dim]
+    out[..., :half] = x_first * cos - x_second * sin
+    out[..., half:rotary_dim] = x_second * cos + x_first * sin
+    return out
 
 
 # ============================================================================
@@ -156,9 +271,9 @@ def decode_full_attn(h_new, new_position_id, w, cfg, K_cache_full, V_cache_full,
     rotary_dim = int(head_dim * cfg["partial_rotary_factor"])
 
     # 1. Q/K/V projection on the single new token
-    q_full = F.linear(h_new, w["self_attn.q_proj.weight"])
-    k_new = F.linear(h_new, w["self_attn.k_proj.weight"])
-    v_new = F.linear(h_new, w["self_attn.v_proj.weight"])
+    q_full = _linear(h_new, _decode_weight(w, "self_attn.q_proj.weight"))
+    k_new = _linear(h_new, _decode_weight(w, "self_attn.k_proj.weight"))
+    v_new = _linear(h_new, _decode_weight(w, "self_attn.v_proj.weight"))
 
     q_full_view = q_full.view(B, 1, H_Q, head_dim * 2)
     q, gate = q_full_view.chunk(2, dim=-1)
@@ -167,16 +282,24 @@ def decode_full_attn(h_new, new_position_id, w, cfg, K_cache_full, V_cache_full,
     k_new = k_new.view(B, 1, H_KV, head_dim).transpose(1, 2)
     v_new = v_new.view(B, 1, H_KV, head_dim).transpose(1, 2)
 
-    # 2. q_norm, k_norm on the new K
-    q = _rms_norm(q, w["self_attn.q_norm.weight"])
-    k_new = _rms_norm(k_new, w["self_attn.k_norm.weight"])
-
-    # 3. RoPE on q and k_new at the new position
-    pos_tensor = torch.tensor([[new_position_id]], device=h_new.device, dtype=torch.long)
+    # 2+3. q/k norm + RoPE on the new position.
+    # CUDA graph capture cannot include fresh torch.tensor allocations, so
+    # benchmark/serving paths may pass a preallocated [[position]] tensor.
+    if torch.is_tensor(new_position_id):
+        pos_tensor = new_position_id
+    else:
+        pos_tensor = torch.tensor([[new_position_id]], device=h_new.device, dtype=torch.long)
     cos, sin = _build_rope_cos_sin(pos_tensor, rotary_dim, rope_theta,
                                    h_new.device, h_new.dtype)
-    q = _apply_partial_rope(q, cos, sin, rotary_dim)
-    k_new = _apply_partial_rope(k_new, cos, sin, rotary_dim)
+    q, k_new = _qk_norm_rope_pair_decode(
+        q,
+        k_new,
+        w["self_attn.q_norm.weight"],
+        w["self_attn.k_norm.weight"],
+        cos,
+        sin,
+        rotary_dim,
+    )
 
     # 4. Append to cache at position cached_seq_len
     K_cache_full[:, :, cached_seq_len:cached_seq_len + 1, :] = k_new
@@ -187,24 +310,32 @@ def decode_full_attn(h_new, new_position_id, w, cfg, K_cache_full, V_cache_full,
     K_used = K_cache_full[:, :, :new_total, :]
     V_used = V_cache_full[:, :, :new_total, :]
 
-    # 6. GQA repeat
-    if H_KV != H_Q:
-        K_attn = K_used.repeat_interleave(H_Q // H_KV, dim=1)
-        V_attn = V_used.repeat_interleave(H_Q // H_KV, dim=1)
+    full_attn_backend = os.environ.get("LYNN_FULL_ATTN_DECODE_BACKEND", "sdpa")
+    if full_attn_backend == "manual_gqa":
+        # Decode uses a single query token. Avoid SDPA launch/dispatch overhead
+        # by doing grouped-query attention explicitly without materializing
+        # repeated KV heads. This is opt-in until parity + latency are proven.
+        group = H_Q // H_KV
+        q_grouped = q.view(B, H_KV, group, 1, head_dim)
+        scale = 1.0 / math.sqrt(head_dim)
+        scores = torch.einsum("bhgqd,bhkd->bhgqk", q_grouped.float(), K_used.float()) * scale
+        probs = torch.softmax(scores, dim=-1).to(V_used.dtype)
+        attn_out = torch.einsum("bhgqk,bhkd->bhgqd", probs, V_used)
+        attn_out = attn_out.reshape(B, H_Q, 1, head_dim)
+    elif full_attn_backend == "sdpa":
+        # SDPA with enable_gqa=True (PyTorch 2.5+) — internal broadcast,
+        # no memory expansion. Math equivalent to explicit repeat_interleave+SDPA.
+        # Replaces 2× repeat_interleave (8x mem copy on H_Q/H_KV=8) with view-only.
+        attn_out = F.scaled_dot_product_attention(q, K_used, V_used, is_causal=False, enable_gqa=(H_KV != H_Q))
     else:
-        K_attn = K_used
-        V_attn = V_used
-
-    # 7. Attention: q (single-token) attends over all of K/V (length new_total)
-    # is_causal=False because Q is just the last token attending to ALL of K/V.
-    attn_out = F.scaled_dot_product_attention(q, K_attn, V_attn, is_causal=False)
+        raise ValueError(f"Unknown LYNN_FULL_ATTN_DECODE_BACKEND: {full_attn_backend}")
 
     # 8. attn_output_gate
     attn_out = attn_out * torch.sigmoid(gate.float()).to(attn_out.dtype)
 
     # 9. o_proj
     attn_out = attn_out.transpose(1, 2).contiguous().view(B, 1, H_Q * head_dim)
-    return F.linear(attn_out, w["self_attn.o_proj.weight"])
+    return _linear(attn_out, _decode_weight(w, "self_attn.o_proj.weight"))
 
 
 # ============================================================================
@@ -312,11 +443,14 @@ def prefill_linear_attn(h, w, chunk_size: int = 64):
     b = F.linear(h, W("linear_attn.in_proj_b.weight"))
     beta = b.sigmoid()
     a = F.linear(h, W("linear_attn.in_proj_a.weight"))
-    A_log = W("linear_attn.A_log")
     dt_bias = W("linear_attn.dt_bias")
-    g = -A_log.float().exp() * F.softplus(a.float() + dt_bias.float())
+    neg_exp_A_log = w.get("linear_attn._neg_exp_A_log")
+    if neg_exp_A_log is None:
+        neg_exp_A_log = -W("linear_attn.A_log").float().exp()
+    g = neg_exp_A_log * F.softplus(a.float() + dt_bias.float())
 
-    # 5. q, k repeat by V_PER_K
+    # 5. q, k repeat by V_PER_K. Prefill keeps the reference tensor layout; the
+    # P10-D GQA shortcut is decode-only.
     if V_PER_K > 1:
         q = q.repeat_interleave(V_PER_K, dim=2)
         k = k.repeat_interleave(V_PER_K, dim=2)
@@ -331,7 +465,7 @@ def prefill_linear_attn(h, w, chunk_size: int = 64):
     norm_w = W("linear_attn.norm.weight")
     flat_x = core_attn_out.reshape(-1, HEAD_V_DIM)
     flat_z = z.reshape(-1, HEAD_V_DIM)
-    flat_y = rms_norm_gated(flat_x, norm_w, flat_z, eps=RMS_EPS)
+    flat_y = _rms_norm_gated_decode(flat_x, norm_w, flat_z)
     core_attn_out = flat_y.reshape(B, T, NUM_V_HEADS * HEAD_V_DIM)
 
     # 8. out_proj
@@ -340,7 +474,7 @@ def prefill_linear_attn(h, w, chunk_size: int = 64):
     return out, last_state, new_conv_state
 
 
-def decode_linear_attn(h_new, w, recurrent_state, conv_state):
+def decode_linear_attn(h_new, w, recurrent_state, conv_state, *, recurrent_backend: str = "torch"):
     """Decode 1 new token using cached recurrent_state + conv_state.
 
     h_new: [B, 1, HIDDEN] (post input_layernorm)
@@ -355,10 +489,29 @@ def decode_linear_attn(h_new, w, recurrent_state, conv_state):
     B = h_new.shape[0]
 
     def W(k):
-        return w[k]
+        return _decode_weight(w, k)
 
-    # 1. QKV proj on h_new
-    mixed_new = F.linear(h_new, W("linear_attn.in_proj_qkv.weight"))   # [B, 1, conv_dim]
+    # 1. Input projections on h_new.
+    #
+    # P6-O opt-in path: fuse qkv/z/b/a input projections into one GEMM.
+    # Decode is dominated by many tiny launches across 30 linear-attn layers;
+    # one larger matmul is usually better than four independent launches.
+    use_packed_linear = (
+        os.environ.get("LYNN_PACKED_DECODE", "0") == "1"
+        or os.environ.get("LYNN_PACKED_DECODE_LINEAR_ATTN", "0") == "1"
+    )
+    if not use_packed_linear and "linear_attn._in_proj_qkv_z_b_a.weight" in w:
+        proj_all = _linear(h_new, W("linear_attn._in_proj_qkv_z_b_a.weight"))
+        mixed_new, z, b, a = torch.split(
+            proj_all,
+            [KEY_DIM + KEY_DIM + VALUE_DIM, VALUE_DIM, NUM_V_HEADS, NUM_V_HEADS],
+            dim=-1,
+        )
+    else:
+        mixed_new = _linear(h_new, W("linear_attn.in_proj_qkv.weight"))    # [B, 1, conv_dim]
+        z = _linear(h_new, W("linear_attn.in_proj_z.weight")).reshape(B, 1, NUM_V_HEADS, HEAD_V_DIM)
+        b = _linear(h_new, W("linear_attn.in_proj_b.weight"))
+        a = _linear(h_new, W("linear_attn.in_proj_a.weight"))
     mixed_new = mixed_new.transpose(1, 2)                              # [B, conv_dim, 1]
 
     # 2. Causal conv1d update: prepend conv_state to mixed_new, run conv, take last 1 output
@@ -379,33 +532,55 @@ def decode_linear_attn(h_new, w, recurrent_state, conv_state):
     v = v.reshape(B, 1, NUM_V_HEADS, HEAD_V_DIM)
 
     # 4. z, beta, g (using h_new)
-    z = F.linear(h_new, W("linear_attn.in_proj_z.weight")).reshape(B, 1, NUM_V_HEADS, HEAD_V_DIM)
-    b = F.linear(h_new, W("linear_attn.in_proj_b.weight"))
+    z = z.reshape(B, 1, NUM_V_HEADS, HEAD_V_DIM)
     beta = b.sigmoid()
-    a = F.linear(h_new, W("linear_attn.in_proj_a.weight"))
-    A_log = W("linear_attn.A_log")
     dt_bias = W("linear_attn.dt_bias")
-    g = -A_log.float().exp() * F.softplus(a.float() + dt_bias.float())
+    neg_exp_A_log = w.get("linear_attn._neg_exp_A_log")
+    if neg_exp_A_log is None:
+        neg_exp_A_log = -W("linear_attn.A_log").float().exp()
+    g = neg_exp_A_log * F.softplus(a.float() + dt_bias.float())
 
-    # 5. q, k repeat by V_PER_K
-    if V_PER_K > 1:
+    # 5. q, k repeat by V_PER_K. P10-D can avoid this materialization for the
+    # Triton recurrent path by reading q/k as grouped-query heads directly.
+    use_gqa_recurrent = (
+        recurrent_backend == "triton_fused_prepare"
+        and V_PER_K > 1
+        and os.environ.get("LYNN_LINEAR_ATTN_GQA_RECURRENT", "0") == "1"
+    )
+    if V_PER_K > 1 and not use_gqa_recurrent:
         q = q.repeat_interleave(V_PER_K, dim=2)
         k = k.repeat_interleave(V_PER_K, dim=2)
 
     # 6. recurrent gated delta rule (single-step)
-    core_attn_out, new_recurrent_state = _recurrent_gated_delta_rule(
-        q, k, v, g, beta, recurrent_state
-    )
+    if recurrent_backend == "torch":
+        core_attn_out, new_recurrent_state = _recurrent_gated_delta_rule(
+            q, k, v, g, beta, recurrent_state
+        )
+    elif recurrent_backend == "triton_fused_prepare":
+        if recurrent_gated_delta_fused_prepare is None:
+            raise RuntimeError("triton_fused_prepare requested but triton kernel is unavailable")
+        if use_gqa_recurrent:
+            if recurrent_gated_delta_fused_prepare_gqa is None:
+                raise RuntimeError("GQA recurrent requested but triton kernel is unavailable")
+            core_attn_out, new_recurrent_state = recurrent_gated_delta_fused_prepare_gqa(
+                q, k, v, g, beta, recurrent_state
+            )
+        else:
+            core_attn_out, new_recurrent_state = recurrent_gated_delta_fused_prepare(
+                q, k, v, g, beta, recurrent_state
+            )
+    else:
+        raise ValueError(f"unknown recurrent_backend={recurrent_backend!r}")
 
     # 7. RMSNormGated
     norm_w = W("linear_attn.norm.weight")
     flat_x = core_attn_out.reshape(-1, HEAD_V_DIM)
     flat_z = z.reshape(-1, HEAD_V_DIM)
-    flat_y = rms_norm_gated(flat_x, norm_w, flat_z, eps=RMS_EPS)
+    flat_y = _rms_norm_gated_decode(flat_x, norm_w, flat_z)
     core_attn_out = flat_y.reshape(B, 1, NUM_V_HEADS * HEAD_V_DIM)
 
     # 8. out_proj
-    out = F.linear(core_attn_out, W("linear_attn.out_proj.weight"))
+    out = _linear(core_attn_out, W("linear_attn.out_proj.weight"))
     return out, new_recurrent_state, new_conv_state
 
 

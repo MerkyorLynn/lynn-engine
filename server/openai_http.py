@@ -19,21 +19,35 @@ Engine lifecycle:
   - Generations are serialized with an asyncio.Lock.
 
 Run:
-    python3 -m server.openai_http --model /models/Qwen3.6-35B-A3B-FP8 \
-                                   --port 18099 --host 0.0.0.0
+    LYNN_PREFILL_WARMUP=1 \
+    LYNN_LINEAR_ATTN_RECURRENT_BACKEND=triton_fused_prepare \
+    LYNN_LINEAR_ATTN_RECURRENT_INPLACE=1 \
+    LYNN_MOE_IMPL=packed_nvfp4 \
+    LYNN_QK_NORM_ROPE_BACKEND=triton_pair \
+    LYNN_RMSNORM_GATED_BACKEND=triton \
+    LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1 \
+    LYNN_LINEAR_BLOCK_GRAPH=1 \
+    LYNN_LINEAR_BLOCK_GRAPH_REUSE=1 \
+    LYNN_LINEAR_BLOCK_GRAPH_PREWARM=1 \
+    LYNN_NATIVE_FP4_LM_HEAD=1 \
+    LYNN_LINEAR_STATE_UPDATE=inplace \
+    LYNN_PACKED_DECODE=0 \
+    LYNN_PACKED_SHARED_EXPERT=0 \
+      python3 -m server.openai_http --model /models/lynn-27b-variable-recovery-step5000-nvfp4-final \
+                                     --port 18099 --host 0.0.0.0
 """
-from __future__ import annotations
 
 import argparse
 import asyncio
 import json
 import os
+import re
 import sys
 import time
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import AsyncIterator, Optional
+from typing import Any, AsyncIterator, Optional
 
 
 # ----------------------------------------------------------------------------
@@ -56,137 +70,68 @@ class LynnEngineHandle:
     def __init__(self, cfg: EngineConfig):
         self.cfg = cfg
         self.tokenizer = None
-        self.outside = None
-        self.layer_weights: list = []
-        self.state = None
+        self.runner = None
         self.lock = asyncio.Lock()
         self.ready = False
         self.load_started = None
         self.load_finished = None
-        self.runtime_cfg: dict = {}
+        self.release_decode_shadows_after_prefill = (
+            os.environ.get("LYNN_RELEASE_DECODE_SHADOWS_AFTER_PREFILL", "0") == "1"
+        )
+        self.release_decode_shadows_consumed = False
 
     def load(self):
-        """Eagerly load tokenizer + outside weights + 40 layer weights to GPU."""
+        """Eagerly load the resident Lynn engine runner."""
         import torch
-        from engine.loader import load_qwen36_layer
-        from engine.full_forward import load_outside_weights
-        from engine.inference_state import LynnInferenceState, LAYER_TYPES
-        from transformers import AutoTokenizer
+        from engine.resident_runner import LynnIncrementalRunner
 
         self.load_started = time.time()
-        print(f"[engine] Loading tokenizer from {self.cfg.model_dir}", flush=True)
-        self.tokenizer = AutoTokenizer.from_pretrained(self.cfg.model_dir)
-
-        device = self.cfg.device
         dtype = {"bfloat16": torch.bfloat16, "float16": torch.float16}[self.cfg.dtype]
-
-        # Config dict for engine paths
-        cfg_full = json.loads((Path(self.cfg.model_dir) / "config.json").read_text())
-        tc = cfg_full["text_config"]
-        rope_p = tc.get("rope_parameters", {})
-        self.runtime_cfg = {
-            "hidden_size": tc["hidden_size"],
-            "num_attention_heads": tc["num_attention_heads"],
-            "num_key_value_heads": tc["num_key_value_heads"],
-            "head_dim": tc["head_dim"],
-            "num_experts": tc["num_experts"],
-            "num_experts_per_tok": tc["num_experts_per_tok"],
-            "rope_theta": rope_p.get("rope_theta", tc.get("rope_theta", 1e6)),
-            "partial_rotary_factor": rope_p.get("partial_rotary_factor", 1.0),
-            "n_layers": tc["num_hidden_layers"],
-            "layer_types": tc["layer_types"],
-        }
-        assert self.runtime_cfg["layer_types"] == LAYER_TYPES, "layer_types mismatch"
-
-        print(f"[engine] Loading outside weights ...", flush=True)
-        self.outside = load_outside_weights(self.cfg.model_dir, device, dtype)
-
-        print(f"[engine] Loading {self.runtime_cfg['n_layers']} layers (resident) ...",
-              flush=True)
-        self.layer_weights = []
-        t_start = time.time()
-        for i in range(self.runtime_cfg["n_layers"]):
-            w, _ = load_qwen36_layer(self.cfg.model_dir, i,
-                                     num_experts=self.runtime_cfg["num_experts"],
-                                     device=device, dequant_dtype=dtype)
-            self.layer_weights.append(w)
-            if (i + 1) % 5 == 0 or i == self.runtime_cfg["n_layers"] - 1:
-                print(f"[engine]   L{i:2}  cum {time.time()-t_start:.1f}s",
-                      flush=True)
-
-        # Pre-allocate inference state once (will be reset per-request)
-        self.state = LynnInferenceState(
-            batch=1, max_seq_len=self.cfg.max_seq_len,
-            device=device, dtype=dtype,
+        self.runner = LynnIncrementalRunner(
+            self.cfg.model_dir,
+            device=self.cfg.device,
+            dtype=dtype,
+            max_seq_len=self.cfg.max_seq_len,
+            verbose=True,
         )
+        self.tokenizer = self.runner.tokenizer
         self.load_finished = time.time()
         self.ready = True
         print(f"[engine] READY in {self.load_finished - self.load_started:.1f}s",
               flush=True)
 
-    def reset_state(self):
-        if self.state is not None:
-            self.state.reset()
-
     def generate(self, prompt: str, max_new_tokens: int, temperature: float = 0.0,
                  stop: Optional[list[str]] = None) -> dict:
         """Greedy (or temp=0) incremental decode. Returns dict with text + tokens."""
-        import torch
-        import torch.nn.functional as F
-        from engine.full_forward import _prefill_layer, _decode_layer, _rms_norm
-
-        device = self.cfg.device
-        dtype = {"bfloat16": torch.bfloat16, "float16": torch.float16}[self.cfg.dtype]
-
-        ids = self.tokenizer(prompt, return_tensors="pt").input_ids.to(device)
-        T_prompt = ids.shape[1]
-
-        self.reset_state()
-        embed = self.outside["model.language_model.embed_tokens.weight"]
-        lm_head_w = self.outside["lm_head.weight"]
-        final_norm_w = self.outside["model.language_model.norm.weight"]
-
-        # Prefill
-        h = F.embedding(ids, embed)
-        pos = torch.arange(T_prompt, device=device, dtype=torch.long).unsqueeze(0)
-        for i in range(self.runtime_cfg["n_layers"]):
-            layer_type = self.runtime_cfg["layer_types"][i]
-            h = _prefill_layer(h, pos, layer_type, self.layer_weights[i],
-                               self.runtime_cfg, self.state, i)
-        self.state.seq_len = T_prompt
-
-        h_final = _rms_norm(h, final_norm_w)
-        logits = F.linear(h_final[:, -1, :], lm_head_w)
-        next_id = int(logits[0].argmax().item())
-        new_ids = [next_id]
-
-        # Decode loop
-        for step in range(1, max_new_tokens):
-            new_tok_t = torch.tensor([[next_id]], device=device, dtype=torch.long)
-            h = F.embedding(new_tok_t, embed)
-            for i in range(self.runtime_cfg["n_layers"]):
-                layer_type = self.runtime_cfg["layer_types"][i]
-                h = _decode_layer(h, self.state.seq_len, layer_type,
-                                  self.layer_weights[i], self.runtime_cfg,
-                                  self.state, i)
-            self.state.seq_len += 1
-            h_final = _rms_norm(h, final_norm_w)
-            logits = F.linear(h_final[:, -1, :], lm_head_w)
-            next_id = int(logits[0].argmax().item())
-            new_ids.append(next_id)
-
-            # Stop conditions
-            if stop:
-                partial = self.tokenizer.decode(new_ids)
-                if any(s in partial for s in stop):
+        if temperature not in (0, 0.0):
+            raise ValueError("Lynn engine MVP server currently supports greedy temperature=0 only")
+        if self.release_decode_shadows_after_prefill and self.release_decode_shadows_consumed:
+            raise RuntimeError(
+                "LYNN_RELEASE_DECODE_SHADOWS_AFTER_PREFILL=1 is a one-shot/session-scoped mode. "
+                "BF16 shadows were already released; restart the server for another prefill request."
+            )
+        result = self.runner.generate(
+            prompt,
+            max_new=max_new_tokens,
+            release_decode_shadows_after_prefill=self.release_decode_shadows_after_prefill,
+        )
+        if self.release_decode_shadows_after_prefill:
+            self.release_decode_shadows_consumed = True
+        completion = result["completion_text"]
+        if stop:
+            for s in stop:
+                pos = completion.find(s)
+                if pos >= 0:
+                    completion = completion[:pos]
                     break
-
-        completion = self.tokenizer.decode(new_ids)
         return {
             "completion": completion,
-            "new_token_ids": new_ids,
-            "prompt_tokens": T_prompt,
-            "completion_tokens": len(new_ids),
+            "new_token_ids": result["new_ids"],
+            "prompt_tokens": len(self.tokenizer(prompt).input_ids),
+            "completion_tokens": len(result["new_ids"]),
+            "timings": result["timings"],
+            "release_decode_shadows_after_prefill": self.release_decode_shadows_after_prefill,
+            "release_decode_shadows_consumed": self.release_decode_shadows_consumed,
         }
 
 
@@ -195,7 +140,7 @@ class LynnEngineHandle:
 # ----------------------------------------------------------------------------
 
 def make_app(handle: LynnEngineHandle):
-    from fastapi import FastAPI, HTTPException
+    from fastapi import FastAPI, HTTPException, Body
     from fastapi.responses import StreamingResponse
     from pydantic import BaseModel
     import time as time_mod
@@ -222,13 +167,84 @@ def make_app(handle: LynnEngineHandle):
         temperature: float = 0.0
         stream: bool = False
         stop: Optional[list[str]] = None
+        tools: Optional[list[dict[str, Any]]] = None
+        tool_choice: Optional[Any] = None       # accepted for OpenAI compatibility; model decides today
+        chat_template_kwargs: Optional[dict[str, Any]] = None
+
+    def parse_qwen_tool_calls(text: str) -> tuple[str, list[dict[str, Any]]]:
+        """Parse Qwen-style XML tool calls into OpenAI `tool_calls`.
+
+        Qwen chat templates render tool calls as:
+
+          <tool_call>
+          <function=get_weather>
+          <parameter=location>
+          北京
+          </parameter>
+          </function>
+          </tool_call>
+
+        Keep this parser deliberately small and strict-ish: if parsing fails,
+        return the original text as normal assistant content rather than
+        fabricating a tool call.
+        """
+        calls: list[dict[str, Any]] = []
+        for block in re.findall(r"<tool_call>(.*?)</tool_call>", text, flags=re.S):
+            m = re.search(r"<function=([^>]+)>(.*?)</function>", block, flags=re.S)
+            if not m:
+                continue
+            name = m.group(1).strip()
+            body = m.group(2)
+            args: dict[str, str] = {}
+            for pm in re.finditer(r"<parameter=([^>]+)>(.*?)</parameter>", body, flags=re.S):
+                args[pm.group(1).strip()] = pm.group(2).strip()
+            calls.append({
+                "id": f"call_{uuid.uuid4().hex[:16]}",
+                "type": "function",
+                "function": {
+                    "name": name,
+                    "arguments": json.dumps(args, ensure_ascii=False),
+                },
+            })
+        if not calls:
+            return text, []
+        content = re.sub(r"<tool_call>.*?</tool_call>", "", text, flags=re.S).strip()
+        return content, calls
 
     @app.get("/health")
     async def health():
         if not handle.ready:
             return {"status": "loading",
                     "elapsed_s": time_mod.time() - (handle.load_started or time_mod.time())}
-        return {"status": "ok", "model": handle.cfg.served_model_name}
+        runtime = {}
+        if handle.runner is not None:
+            runtime = {
+                "moe_impl": getattr(handle.runner, "moe_impl", None),
+                "packed_nvfp4_moe_aliases_attached": getattr(
+                    handle.runner, "packed_nvfp4_moe_aliases_attached", None
+                ),
+                "packed_decode_backend": getattr(handle.runner, "packed_decode_backend", None),
+                "packed_decode_aliases_attached": getattr(
+                    handle.runner, "packed_decode_aliases_attached", None
+                ),
+                "packed_decode_native_prepared": getattr(
+                    handle.runner, "packed_decode_native_prepared", None
+                ),
+                "packed_decode_aliases_skipped": getattr(
+                    handle.runner, "packed_decode_aliases_skipped", None
+                ),
+                "native_fp4_lm_head_enabled": getattr(
+                    handle.runner, "native_fp4_lm_head_enabled", None
+                ),
+                "runtime_warnings": getattr(handle.runner, "runtime_warnings", []),
+            }
+        return {
+            "status": "ok",
+            "model": handle.cfg.served_model_name,
+            "release_decode_shadows_after_prefill": handle.release_decode_shadows_after_prefill,
+            "release_decode_shadows_consumed": handle.release_decode_shadows_consumed,
+            "runtime": runtime,
+        }
 
     @app.get("/v1/models")
     async def models():
@@ -243,17 +259,20 @@ def make_app(handle: LynnEngineHandle):
         }
 
     @app.post("/v1/completions")
-    async def completions(req: CompletionRequest):
+    async def completions(req: CompletionRequest = Body(...)):
         if not handle.ready:
             raise HTTPException(503, "Engine still loading")
 
         async with handle.lock:
             t0 = time_mod.time()
-            result = await asyncio.get_event_loop().run_in_executor(
-                None,
-                lambda: handle.generate(req.prompt, req.max_tokens,
-                                        req.temperature, req.stop),
-            )
+            try:
+                result = await asyncio.get_event_loop().run_in_executor(
+                    None,
+                    lambda: handle.generate(req.prompt, req.max_tokens,
+                                            req.temperature, req.stop),
+                )
+            except RuntimeError as exc:
+                raise HTTPException(409, str(exc)) from exc
             elapsed = time_mod.time() - t0
 
         return {
@@ -275,28 +294,58 @@ def make_app(handle: LynnEngineHandle):
             "_lynn_engine_metrics": {
                 "elapsed_s": elapsed,
                 "tokens_per_second": result["completion_tokens"] / max(elapsed, 1e-6),
+                "timings": result["timings"],
             },
         }
 
     @app.post("/v1/chat/completions")
-    async def chat_completions(req: ChatCompletionRequest):
+    async def chat_completions(req: ChatCompletionRequest = Body(...)):
         if not handle.ready:
             raise HTTPException(503, "Engine still loading")
 
         # Apply tokenizer chat_template
         messages = [{"role": m.role, "content": m.content} for m in req.messages]
-        prompt = handle.tokenizer.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True,
-        )
+        template_kwargs = {"enable_thinking": False}
+        if req.chat_template_kwargs:
+            template_kwargs.update(req.chat_template_kwargs)
+        try:
+            prompt = handle.tokenizer.apply_chat_template(
+                messages,
+                tokenize=False,
+                add_generation_prompt=True,
+                tools=req.tools,
+                **template_kwargs,
+            )
+        except TypeError:
+            # Older tokenizer versions may not accept enable_thinking. The v8/Q4
+            # released templates are patched to default no-think, so falling back
+            # is safer than refusing to serve.
+            try:
+                prompt = handle.tokenizer.apply_chat_template(
+                    messages, tokenize=False, add_generation_prompt=True, tools=req.tools,
+                )
+            except TypeError:
+                prompt = handle.tokenizer.apply_chat_template(
+                    messages, tokenize=False, add_generation_prompt=True,
+                )
 
         async with handle.lock:
             t0 = time_mod.time()
-            result = await asyncio.get_event_loop().run_in_executor(
-                None,
-                lambda: handle.generate(prompt, req.max_tokens,
-                                        req.temperature, req.stop),
-            )
+            try:
+                result = await asyncio.get_event_loop().run_in_executor(
+                    None,
+                    lambda: handle.generate(prompt, req.max_tokens,
+                                            req.temperature, req.stop),
+                )
+            except RuntimeError as exc:
+                raise HTTPException(409, str(exc)) from exc
             elapsed = time_mod.time() - t0
+
+        content, tool_calls = parse_qwen_tool_calls(result["completion"])
+        message: dict[str, Any] = {"role": "assistant", "content": content}
+        finish_reason = "tool_calls" if tool_calls else ("stop" if req.stop else "length")
+        if tool_calls:
+            message["tool_calls"] = tool_calls
 
         return {
             "id": f"chatcmpl-{uuid.uuid4().hex[:16]}",
@@ -305,8 +354,8 @@ def make_app(handle: LynnEngineHandle):
             "model": req.model,
             "choices": [{
                 "index": 0,
-                "message": {"role": "assistant", "content": result["completion"]},
-                "finish_reason": "stop" if req.stop else "length",
+                "message": message,
+                "finish_reason": finish_reason,
             }],
             "usage": {
                 "prompt_tokens": result["prompt_tokens"],
@@ -316,6 +365,7 @@ def make_app(handle: LynnEngineHandle):
             "_lynn_engine_metrics": {
                 "elapsed_s": elapsed,
                 "tokens_per_second": result["completion_tokens"] / max(elapsed, 1e-6),
+                "timings": result["timings"],
             },
         }
 
@@ -324,7 +374,7 @@ def make_app(handle: LynnEngineHandle):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--model", required=True, help="path to Qwen3.6-35B-A3B-FP8 dir")
+    ap.add_argument("--model", required=True, help="path to Lynn/Qwen model dir")
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--dtype", default="bfloat16", choices=["bfloat16", "float16"])
     ap.add_argument("--max-seq-len", type=int, default=32768)
