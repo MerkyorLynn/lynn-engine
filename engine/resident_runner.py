@@ -890,10 +890,17 @@ class LynnIncrementalRunner:
         linear_block_graph_state = state
         graph_capture_seconds = None
         graph_reused = None
+        full_token_graph_slot_enabled = (
+            os.environ.get("LYNN_FULL_TOKEN_GRAPH_SLOT", "0") == "1"
+            and self.device.startswith("cuda")
+        )
+        full_token_graph_slot_capture_seconds: list[float] = []
+        full_token_graph_slot_replay_seconds: list[float] = []
         if (
             os.environ.get("LYNN_LINEAR_BLOCK_GRAPH", "0") == "1"
             and self.device.startswith("cuda")
             and max_new > 1
+            and not full_token_graph_slot_enabled
         ):
             new_token_tensor.fill_(next_id)
             h_seed = F.embedding(new_token_tensor, self.outside["model.language_model.embed_tokens.weight"])
@@ -925,13 +932,28 @@ class LynnIncrementalRunner:
                 break
             step_t0 = time.time()
             new_token_tensor.fill_(next_id)
-            h = F.embedding(new_token_tensor, self.outside["model.language_model.embed_tokens.weight"])
             pos_id = state.seq_len
             pos_tensor.fill_(pos_id)
-            if linear_block_graphs is None:
+            if full_token_graph_slot_enabled:
+                capture_t0 = time.time()
+                slot = self._capture_full_token_graph_slot(state, next_id)
+                if self.device.startswith("cuda"):
+                    torch.cuda.synchronize()
+                full_token_graph_slot_capture_seconds.append(time.time() - capture_t0)
+                replay_t0 = time.time()
+                logits = slot.replay(next_id).clone()
+                state.seq_len += 1
+                if self.device.startswith("cuda"):
+                    torch.cuda.synchronize()
+                full_token_graph_slot_replay_seconds.append(time.time() - replay_t0)
+            else:
+                h = F.embedding(new_token_tensor, self.outside["model.language_model.embed_tokens.weight"])
+            if full_token_graph_slot_enabled:
+                pass
+            elif linear_block_graphs is None:
                 for i in range(self.n_layers):
                     h = _decode_layer(h, pos_tensor, LAYER_TYPES[i], self.layer_weights[i], self.layer_cfgs[i], state, i)
-            else:
+            elif linear_block_graphs is not None:
                 for bi, block in enumerate(linear_block_graphs):
                     block["input"].copy_(h)
                     block["graph"].replay()
@@ -946,9 +968,10 @@ class LynnIncrementalRunner:
                         state,
                         full_layer,
                     )
-            state.seq_len += 1
-            h_final = _rms_norm(h, self.outside["model.language_model.norm.weight"])
-            logits = self._lm_head_logits(h_final)
+            if not full_token_graph_slot_enabled:
+                state.seq_len += 1
+                h_final = _rms_norm(h, self.outside["model.language_model.norm.weight"])
+                logits = self._lm_head_logits(h_final)
             next_id = int(logits[0].argmax().item())
             if top_k > 0:
                 topk_trace.append(_logit_topk(logits, top_k))
@@ -986,6 +1009,14 @@ class LynnIncrementalRunner:
                 "native_fp4_lm_head_enabled": self.native_fp4_lm_head_enabled,
                 "native_fp4_lm_head_prepare_seconds": self.native_fp4_lm_head_prepare_seconds,
                 "decode_bf16_shadow_release": release_report,
+                "full_token_graph_slot_enabled": full_token_graph_slot_enabled,
+                "full_token_graph_slot_capture_seconds": full_token_graph_slot_capture_seconds,
+                "full_token_graph_slot_replay_seconds": full_token_graph_slot_replay_seconds,
+                "full_token_graph_slot_replay_tps": (
+                    len(full_token_graph_slot_replay_seconds) / sum(full_token_graph_slot_replay_seconds)
+                    if full_token_graph_slot_replay_seconds
+                    else None
+                ),
             },
             "stopped_reason": stopped_reason,
             "stop_token_ids": sorted(self.stop_token_ids),

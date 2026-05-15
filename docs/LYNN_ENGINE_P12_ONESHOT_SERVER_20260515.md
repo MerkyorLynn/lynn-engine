@@ -96,6 +96,37 @@ The low TPS is expected here: this gate is the release/no-graph safety path,
 not the P10 graph-slot 100+ TPS path. Its purpose is memory lifecycle
 correctness and fail-loud serving semantics.
 
+## Graph Slot After Release
+
+P12 also validates that packed-resident memory and the P10 graph-slot path are
+compatible. After prefill, each run releases 56.47 GiB of BF16 shadows, advances
+a short decode prefix, captures a current-position full-token graph slot, and
+compares graph replay against eager decode.
+
+Command:
+
+```bash
+python benchmarks/p12_graph_slot_after_release_gate.py \
+  --model /root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final \
+  --out /tmp/lynn_p12_graph_slot_after_release_gate.json \
+  --prefix-new 8 16 32
+```
+
+Result:
+
+| Prefix new tokens | Position | Graph TPS | Max abs diff | Top-10 overlap | Allocated after release |
+|---:|---:|---:|---:|---:|---:|
+| 8 | 15 | 83.84 | 0.0 | 10/10 | 24.49 GiB |
+| 16 | 23 | 79.52 | 0.0 | 10/10 | 24.50 GiB |
+| 32 | 39 | 83.58 | 0.0 | 10/10 | 24.50 GiB |
+
+Overall verdict: **PASS**.
+
+This is the important composition result: the memory-saving packed-resident
+state does not break the strict current-position graph-slot contract. The next
+step is turning this from a one-token graph-slot gate into a reusable serving
+window without crossing the known future-window graph drift boundary.
+
 ## Why This Matters
 
 Before P11/P12, the runtime could read the 20G packed NVFP4 artifact but still
