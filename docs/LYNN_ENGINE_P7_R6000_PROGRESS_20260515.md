@@ -410,6 +410,45 @@ tweaking; it is either:
 3. introduce packed-resident fused kernels that reduce both memory traffic and
    launch count.
 
+## P9-D Full-Token Graph Replay Parity
+
+Added:
+
+```text
+benchmarks/p9d_full_token_graph_replay_parity.py
+```
+
+P6-M replayed the same static token/state and only established a ceiling. P9-D
+is the first productization gate: capture one full-token CUDA graph, mutate the
+input token buffer before replay, restore the prompt state, and compare logits
+against eager for each token.
+
+Final step5000 result:
+
+```text
+tokens tested: 271 / 272 / 273
+max_abs diff:  0.0 for all three
+cosine:        1.0 for all three
+top1 match:    true for all three
+top10 overlap: 10/10 for all three
+verdict:       PASS
+```
+
+This proves the captured full-token graph can consume dynamic token-buffer
+contents exactly. The next serving obstacle is not graph replay correctness; it
+is position/KV-slot discipline for advancing sequence length safely. P9-E should
+therefore implement a fixed-shape graph slot with mutable:
+
+```text
+token_buf      [1, 1]
+pos_buf        [1, 1]
+kv write slot  fixed per graph or graph-family bucket
+state buffers  restored/advanced under explicit ownership
+```
+
+Once P9-E passes multi-step greedy parity, the 78-79TPS ceiling becomes a real
+serving target rather than a benchmark-only number.
+
 ## P8-A/B/C/D Packed Decode Alias Gate
 
 2026-05-15 late afternoon update: implemented decode-only packed aliases behind
