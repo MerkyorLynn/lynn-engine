@@ -423,9 +423,11 @@ def prefill_linear_attn(h, w, chunk_size: int = 64):
     b = F.linear(h, W("linear_attn.in_proj_b.weight"))
     beta = b.sigmoid()
     a = F.linear(h, W("linear_attn.in_proj_a.weight"))
-    A_log = W("linear_attn.A_log")
     dt_bias = W("linear_attn.dt_bias")
-    g = -A_log.float().exp() * F.softplus(a.float() + dt_bias.float())
+    neg_exp_A_log = w.get("linear_attn._neg_exp_A_log")
+    if neg_exp_A_log is None:
+        neg_exp_A_log = -W("linear_attn.A_log").float().exp()
+    g = neg_exp_A_log * F.softplus(a.float() + dt_bias.float())
 
     # 5. q, k repeat by V_PER_K
     if V_PER_K > 1:
@@ -511,9 +513,11 @@ def decode_linear_attn(h_new, w, recurrent_state, conv_state, *, recurrent_backe
     # 4. z, beta, g (using h_new)
     z = z.reshape(B, 1, NUM_V_HEADS, HEAD_V_DIM)
     beta = b.sigmoid()
-    A_log = W("linear_attn.A_log")
     dt_bias = W("linear_attn.dt_bias")
-    g = -A_log.float().exp() * F.softplus(a.float() + dt_bias.float())
+    neg_exp_A_log = w.get("linear_attn._neg_exp_A_log")
+    if neg_exp_A_log is None:
+        neg_exp_A_log = -W("linear_attn.A_log").float().exp()
+    g = neg_exp_A_log * F.softplus(a.float() + dt_bias.float())
 
     # 5. q, k repeat by V_PER_K
     if V_PER_K > 1:

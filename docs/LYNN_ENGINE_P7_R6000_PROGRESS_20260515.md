@@ -673,3 +673,71 @@ Verdict:
 3. This rules out recurrent state copy-back as the main 68 -> 100 TPS blocker.
    The remaining work is still fused per-layer decode kernels / packed-resident
    native kernels rather than state-copy cleanup.
+
+## P9-F Hot-Path Profiling For 100 TPS
+
+After P9-D/P9-E proved full-token CUDA graph replay is numerically viable but
+not yet a direct 100 TPS serving path, the next step was to profile the remaining
+decode hot path on the final 27B step5000 NVFP4 artifact.
+
+### Full-Attention Layer 35
+
+Initial full-attention segment profiling showed a large `moe.active_expert_loop`
+when using the manual decomposition path. A follow-up MoE kernel probe clarified
+that this was not the production serving path:
+
+```text
+optimized active loop: 1.009 ms
+indexed bmm stacked:  0.205 ms
+triton two-kernel:    0.177 ms
+speedup vs loop:      5.69x
+cosine vs reference:  0.9999987
+```
+
+Interpretation: production Triton MoE is already doing the right thing. MoE is
+still important, but the old manual active-expert loop should not be treated as
+the current 100 TPS blocker.
+
+### Linear-Attention Layer 29
+
+The representative linear-attention layer profile under the current best R6000
+serving env:
+
+```text
+layer.full_recomposed:     0.709 ms
+linear_attn.core_decode:   0.268 ms
+moe.triton_full:           0.184 ms
+input rmsnorm:             0.065 ms
+post-attn rmsnorm:         0.063 ms
+```
+
+Breaking `linear_attn.core_decode` down further:
+
+```text
+full_decode_recomposed: 0.334 ms
+rmsnorm_gated:         0.078 ms
+a_projection_g:        0.056 ms
+recurrent_rule:        0.040 ms
+conv_update:           0.033 ms
+qkv_projection:        0.027 ms
+```
+
+No single segment is a 10 ms monster. The 68 -> 100 TPS gap is now a set of
+small launch and fusion costs repeated across 30 linear-attention layers.
+
+### Static A-log Decode Constant
+
+Implemented a small cleanup that precomputes `-exp(A_log)` once per
+linear-attention layer and reuses it in prefill/decode. This avoids redoing a
+static elementwise op every token. The measured layer29 result stayed within
+noise:
+
+```text
+before: layer.full_recomposed 0.709 ms
+after:  layer.full_recomposed 0.716 ms
+```
+
+Verdict: keep the cleanup because it is safe and removes unnecessary work, but
+do not count it as a performance win. The next real performance work should
+focus on fused linear-attention core pieces and packed-resident/native kernels,
+not constant folding.

@@ -168,6 +168,7 @@ class LynnIncrementalRunner:
             self._prepare_packed_decode_aliases()
         if os.environ.get("LYNN_LINEAR_ATTN_INPROJ_FUSED", "0") == "1":
             self._prepare_linear_attn_inproj_fused()
+        self._prepare_linear_attn_decode_constants()
         self._linear_block_graph_slot: dict[str, Any] | None = None
         self.prefill_warmup_seconds: float | None = None
         self.linear_block_graph_prewarm_seconds: float | None = None
@@ -253,6 +254,15 @@ class LynnIncrementalRunner:
                 ],
                 dim=0,
             ).contiguous()
+
+    def _prepare_linear_attn_decode_constants(self) -> None:
+        """Precompute tiny static decode constants for linear-attention layers."""
+        for layer_type, w in zip(LAYER_TYPES, self.layer_weights):
+            if layer_type != "linear_attention":
+                continue
+            key = "linear_attn._neg_exp_A_log"
+            if key not in w:
+                w[key] = -w["linear_attn.A_log"].float().exp().contiguous()
 
     def _prepare_packed_decode_aliases(self) -> None:
         """Attach packed NVFP4 decode aliases while keeping BF16 prefill safe.
