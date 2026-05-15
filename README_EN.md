@@ -25,6 +25,7 @@ Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent ru
 | **P11 packed-resident memory gate** | ✅ after prefill, releases **56.47 GiB** BF16 shadow; allocated memory **81.06 → 24.59 GiB** with exact greedy-id match |
 | **P12 one-shot + graph-after-release gate** | ✅ OpenAI server first request releases **56.47 GiB**; graph slot after release reaches 79.5-83.8 tok/s with max_abs=0 |
 | **P13 graph-slot generate wiring** | ✅ `generate()` opt-in path uses full-token graph slots;multi-prompt gate proves future-window unsafe,next state-refresh slot |
+| **P14 state-refresh probe** | ✅ full mutable-state roundtrip costs only **0.79 ms**,far below graph capture at 60-105 ms |
 | **Next target** | production-stable 100+ TPS + packed-resident serving lifecycle |
 
 Current primary artifact:
@@ -56,6 +57,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P11 session-scoped packed resident** | — | — | ✅ BF16 shadow 81.06→24.59 GiB,exact decode-id match |
 | **P12 one-shot + graph after release** | — | **79.5-83.8** | ✅ graph/eager exact match after 56.47 GiB release |
 | **P13 graph-slot generate/window** | **12.6-12.8 ms replay / 60-105 ms capture** | **78-79 replay / 8-14 e2e** | ⚠️ current-position strict;future window multi-prompt FAIL |
+| **P14 state refresh** | **0.79 ms roundtrip + 12.6 ms replay** | **~70-80 projected** | ✅ copy-cost green light,implementation pending |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -140,6 +142,7 @@ Recovery v1.1 targeted longctx/chem/sql was tested but did not replace step5000:
 | **P11** | done | packed-resident memory lifecycle, 56 GiB BF16 shadow release proven |
 | **P12** | done/current | one-shot server release gate + graph slot after release passed |
 | **P13** | current | graph-slot generate wiring passed; next remove capture from hot path / production-stable 100+ |
+| **P14** | current | state-refresh slot route copy cost proven at 0.79 ms; next reusable graph-owned-state slot |
 
 The Spark sm_121 track is split into a separate branch. The current Spark
 quality gate passes on the scalar_bridge backend at roughly 24 TPS; the next

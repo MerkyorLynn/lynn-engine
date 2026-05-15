@@ -25,6 +25,7 @@ Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B final 基�
 | **P11 packed-resident memory gate** | ✅ prefill 后释放 **56.47 GiB** BF16 shadow,allocated **81.06 → 24.59 GiB**,greedy ids exact match |
 | **P12 one-shot + graph-after-release gate** | ✅ OpenAI server 首请求释放 **56.47 GiB**;释放后 graph slot 79.5-83.8 tok/s,max_abs=0 |
 | **P13 graph-slot generate wiring** | ✅ `generate()` opt-in 接入 full-token graph slot;多 prompt 证明 future-window 不安全,下一步 state-refresh slot |
+| **P14 state-refresh probe** | ✅ full mutable state roundtrip **0.79ms**,远低于 graph capture 60-105ms |
 | **下一目标** | 生产稳定 100+ TPS + packed-resident serving lifecycle |
 
 当前主力 artifact:
@@ -56,6 +57,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P11 session-scoped packed resident** | — | — | ✅ BF16 shadow 81.06→24.59 GiB,decode ids exact match |
 | **P12 one-shot + graph after release** | — | **79.5-83.8** | ✅ release 56.47GiB 后 graph/eager exact match |
 | **P13 graph-slot generate/window** | **12.6-12.8ms replay / 60-105ms capture** | **78-79 replay / 8-14 e2e** | ⚠️ current-position strict;future window 多 prompt FAIL |
+| **P14 state refresh** | **0.79ms roundtrip + 12.6ms replay** | **~70-80 projected** | ✅ copy cost green-light,implementation pending |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:
@@ -128,6 +130,7 @@ Recovery v1.1 targeted longctx/chem/sql 已试过,但未取代 step5000:它没�
 | **P11** | done | packed-resident memory lifecycle,56GiB BF16 shadow release 已证明 |
 | **P12** | done/current | one-shot server release gate + release 后 graph slot gate 已过 |
 | **P13** | current | graph-slot generate 接线已过;下一步移除 capture hot path / 生产稳定 100+ |
+| **P14** | current | state-refresh slot route 0.79ms copy-cost 已验证;实现 reusable graph-owned-state slot |
 
 Spark sm_121 分支单独推进,当前质量 gate 已通过、scalar_bridge 约 24TPS;目标是在 Spark 上验证同一 native path 并冲 50+TPS。详见 [`docs/SPARK_OPTIMIZATION_BRANCH_PLAN_20260515.md`](docs/SPARK_OPTIMIZATION_BRANCH_PLAN_20260515.md)。
 
