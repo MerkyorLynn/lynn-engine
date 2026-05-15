@@ -26,6 +26,7 @@ Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B final 基�
 | **P12 one-shot + graph-after-release gate** | ✅ OpenAI server 首请求释放 **56.47 GiB**;释放后 graph slot 79.5-83.8 tok/s,max_abs=0 |
 | **P13 graph-slot generate wiring** | ✅ `generate()` opt-in 接入 full-token graph slot;多 prompt 证明 future-window 不安全,下一步 state-refresh slot |
 | **P14 state-refresh probe** | ✅ full mutable state roundtrip **0.79ms**,远低于 graph capture 60-105ms |
+| **P15 runtime config audit** | ✅ 关闭全局 `LYNN_PACKED_DECODE`;恢复 **103.48 strict / 107.23 replay**;shared expert packed 路径证伪 |
 | **下一目标** | 生产稳定 100+ TPS + packed-resident serving lifecycle |
 
 当前主力 artifact:
@@ -58,6 +59,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P12 one-shot + graph after release** | — | **79.5-83.8** | ✅ release 56.47GiB 后 graph/eager exact match |
 | **P13 graph-slot generate/window** | **12.6-12.8ms replay / 60-105ms capture** | **78-79 replay / 8-14 e2e** | ⚠️ current-position strict;future window 多 prompt FAIL |
 | **P14 state refresh** | **0.79ms roundtrip + 12.6ms replay** | **~70-80 projected** | ✅ copy cost green-light,implementation pending |
+| **P15 correct runtime config** | **9.66ms strict / 9.33ms replay** | **103.48 / 107.23** | ✅ `LYNN_PACKED_DECODE=0`,shared BF16 保留 |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:
@@ -73,6 +75,9 @@ export LYNN_RMSNORM_GATED_BACKEND=triton
 export LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1
 export LYNN_NATIVE_FP4_LM_HEAD=1
 export LYNN_LINEAR_STATE_UPDATE=inplace
+export LYNN_PACKED_DECODE=0
+export LYNN_PACKED_DECODE_PREPARE_NATIVE=0
+export LYNN_PACKED_SHARED_EXPERT=0
 ```
 
 实测 final step5000 NVFP4:
@@ -88,6 +93,8 @@ quality smoke:         6/6 coherent + strict tool-call + no-think loop guard PAS
 Native FP4 lm_head 是当前的 deterministic/greedy opt-in 优化:6/6 prompt top-1 match,top-20 overlap 最低 15/20,logits cosine 最低 0.9924。采样型生产流量默认仍保留 BF16 lm_head fallback,直到更大规模 parity gate 完成。
 
 CUDA graph 说明:107 TPS 是严格 benchmark ceiling,不是默认 HTTP serving 路径。P10-S 已记录 full-token graph family 的跨 token 漂移边界;当前生产默认保留 88-89 TPS 稳定路径,直到 multi-prompt / long generation / tool-call parity 全部通过。详见 [`docs/LYNN_ENGINE_P10S_GRAPH_BOUNDARY_20260515.md`](docs/LYNN_ENGINE_P10S_GRAPH_BOUNDARY_20260515.md)。
+
+P15 配置说明:不要把 `LYNN_PACKED_DECODE=1` 当成“更 packed 就更快”。R6000 实测它会把 full graph path 从 **103.48 tok/s** 拉低到 **88.15 tok/s**,因为 Q/K/V/O 等小 decode linear 走 generic packed native path 反而慢。当前正确配置是 MoE active experts packed、linear-attn fused native、lm_head native,但 **generic packed decode 关闭**;shared expert 也保留 BF16,因为 packed scalar/native shared 都更慢。详见 [`docs/LYNN_ENGINE_P15_RUNTIME_CONFIG_20260516.md`](docs/LYNN_ENGINE_P15_RUNTIME_CONFIG_20260516.md)。
 
 Packed-resident memory 说明:当前默认 server 仍保留 BF16 shadow 以支持多请求 prefill。P11 已证明 session-scoped 生命周期中,prefill 后可以释放 56.47 GiB BF16 shadow,显存从 81.06 GiB 降到 24.59 GiB 且 greedy decode ids 完全一致。P12 进一步把这个能力接到 OpenAI server 的 opt-in one-shot 模式:首请求释放 56.47 GiB,第二请求明确 HTTP 409 fail-loud;并验证 release 后 current-position graph slot 仍与 eager decode exact match。详见 [`docs/LYNN_ENGINE_P11_PACKED_RESIDENT_MEMORY_20260515.md`](docs/LYNN_ENGINE_P11_PACKED_RESIDENT_MEMORY_20260515.md) 和 [`docs/LYNN_ENGINE_P12_ONESHOT_SERVER_20260515.md`](docs/LYNN_ENGINE_P12_ONESHOT_SERVER_20260515.md)。
 
@@ -175,6 +182,9 @@ export LYNN_RMSNORM_GATED_BACKEND=triton
 export LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1
 export LYNN_NATIVE_FP4_LM_HEAD=1
 export LYNN_LINEAR_STATE_UPDATE=inplace
+export LYNN_PACKED_DECODE=0
+export LYNN_PACKED_DECODE_PREPARE_NATIVE=0
+export LYNN_PACKED_SHARED_EXPERT=0
 
 # 3. 运行 resident smoke
 python benchmarks/resident_cli.py \
