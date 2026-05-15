@@ -23,6 +23,7 @@ Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent ru
 | **OpenAI server guard** | ✅ strict tool-call PASS,`<think>` loop fail-pattern guard PASS,stable decode **88-89 tok/s** |
 | **P10 runner graph-slot gate** | ✅ 6 prompts × 3 prefixes = 18/18 strict PASS,runner graph slot 88.8-103.1 tok/s |
 | **P11 packed-resident memory gate** | ✅ after prefill, releases **56.47 GiB** BF16 shadow; allocated memory **81.06 → 24.59 GiB** with exact greedy-id match |
+| **P12 one-shot server gate** | ✅ OpenAI server first request releases **56.47 GiB**,GPU memory drops to **27.2 GiB used**,second request fails loudly with HTTP 409 |
 | **Next target** | production-stable 100+ TPS + packed-resident serving lifecycle |
 
 Current primary artifact:
@@ -52,6 +53,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P10-U runner graph slot** | **9.69-11.26 ms** | **88.8-103.1** | ✅ 6 prompts × 3 prefixes strict PASS |
 | **OpenAI server stable path** | **~11.2 ms** | **88-89** | ✅ tool-call + no-think guard PASS |
 | **P11 session-scoped packed resident** | — | — | ✅ BF16 shadow 81.06→24.59 GiB,exact decode-id match |
+| **P12 one-shot OpenAI server** | — | — | ✅ first request releases 56.47 GiB,second request HTTP 409 |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -91,8 +93,12 @@ Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,
 after prefill, Lynn engine can release 56.47 GiB of BF16 shadows, dropping
 allocated memory from 81.06 GiB to 24.59 GiB while preserving exact greedy
-decode ids. See
-[`docs/LYNN_ENGINE_P11_PACKED_RESIDENT_MEMORY_20260515.md`](docs/LYNN_ENGINE_P11_PACKED_RESIDENT_MEMORY_20260515.md).
+decode ids. P12 wires this into an opt-in one-shot OpenAI server mode: the
+first request releases 56.47 GiB, and a second prefill request fails loudly
+with HTTP 409. See
+[`docs/LYNN_ENGINE_P11_PACKED_RESIDENT_MEMORY_20260515.md`](docs/LYNN_ENGINE_P11_PACKED_RESIDENT_MEMORY_20260515.md)
+and
+[`docs/LYNN_ENGINE_P12_ONESHOT_SERVER_20260515.md`](docs/LYNN_ENGINE_P12_ONESHOT_SERVER_20260515.md).
 
 ## 27B quality and base-model status
 
@@ -128,8 +134,8 @@ Recovery v1.1 targeted longctx/chem/sql was tested but did not replace step5000:
 | **P8** | done | 78.8 TPS CUDA graph ceiling + 81 TPS compile spike |
 | **P9** | done | packed NVFP4 active expert path, near-100 TPS |
 | **P10** | done/current | native FP4 lm_head + 103 TPS full path, strict runner graph-slot gate |
-| **P11** | current | packed-resident memory lifecycle, 56 GiB BF16 shadow release proven |
-| **P12** | next | packed prefill / single-session serving mode / production-stable 100+ |
+| **P11** | done | packed-resident memory lifecycle, 56 GiB BF16 shadow release proven |
+| **P12** | current | one-shot server release gate passed; next packed prefill / production-stable 100+ |
 
 The Spark sm_121 track is split into a separate branch. The current Spark
 quality gate passes on the scalar_bridge backend at roughly 24 TPS; the next

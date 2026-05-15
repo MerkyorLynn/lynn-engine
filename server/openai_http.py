@@ -73,6 +73,10 @@ class LynnEngineHandle:
         self.ready = False
         self.load_started = None
         self.load_finished = None
+        self.release_decode_shadows_after_prefill = (
+            os.environ.get("LYNN_RELEASE_DECODE_SHADOWS_AFTER_PREFILL", "0") == "1"
+        )
+        self.release_decode_shadows_consumed = False
 
     def load(self):
         """Eagerly load the resident Lynn engine runner."""
@@ -99,7 +103,18 @@ class LynnEngineHandle:
         """Greedy (or temp=0) incremental decode. Returns dict with text + tokens."""
         if temperature not in (0, 0.0):
             raise ValueError("Lynn engine MVP server currently supports greedy temperature=0 only")
-        result = self.runner.generate(prompt, max_new=max_new_tokens)
+        if self.release_decode_shadows_after_prefill and self.release_decode_shadows_consumed:
+            raise RuntimeError(
+                "LYNN_RELEASE_DECODE_SHADOWS_AFTER_PREFILL=1 is a one-shot/session-scoped mode. "
+                "BF16 shadows were already released; restart the server for another prefill request."
+            )
+        result = self.runner.generate(
+            prompt,
+            max_new=max_new_tokens,
+            release_decode_shadows_after_prefill=self.release_decode_shadows_after_prefill,
+        )
+        if self.release_decode_shadows_after_prefill:
+            self.release_decode_shadows_consumed = True
         completion = result["completion_text"]
         if stop:
             for s in stop:
@@ -113,6 +128,8 @@ class LynnEngineHandle:
             "prompt_tokens": len(self.tokenizer(prompt).input_ids),
             "completion_tokens": len(result["new_ids"]),
             "timings": result["timings"],
+            "release_decode_shadows_after_prefill": self.release_decode_shadows_after_prefill,
+            "release_decode_shadows_consumed": self.release_decode_shadows_consumed,
         }
 
 
@@ -197,7 +214,12 @@ def make_app(handle: LynnEngineHandle):
         if not handle.ready:
             return {"status": "loading",
                     "elapsed_s": time_mod.time() - (handle.load_started or time_mod.time())}
-        return {"status": "ok", "model": handle.cfg.served_model_name}
+        return {
+            "status": "ok",
+            "model": handle.cfg.served_model_name,
+            "release_decode_shadows_after_prefill": handle.release_decode_shadows_after_prefill,
+            "release_decode_shadows_consumed": handle.release_decode_shadows_consumed,
+        }
 
     @app.get("/v1/models")
     async def models():
@@ -218,11 +240,14 @@ def make_app(handle: LynnEngineHandle):
 
         async with handle.lock:
             t0 = time_mod.time()
-            result = await asyncio.get_event_loop().run_in_executor(
-                None,
-                lambda: handle.generate(req.prompt, req.max_tokens,
-                                        req.temperature, req.stop),
-            )
+            try:
+                result = await asyncio.get_event_loop().run_in_executor(
+                    None,
+                    lambda: handle.generate(req.prompt, req.max_tokens,
+                                            req.temperature, req.stop),
+                )
+            except RuntimeError as exc:
+                raise HTTPException(409, str(exc)) from exc
             elapsed = time_mod.time() - t0
 
         return {
@@ -281,11 +306,14 @@ def make_app(handle: LynnEngineHandle):
 
         async with handle.lock:
             t0 = time_mod.time()
-            result = await asyncio.get_event_loop().run_in_executor(
-                None,
-                lambda: handle.generate(prompt, req.max_tokens,
-                                        req.temperature, req.stop),
-            )
+            try:
+                result = await asyncio.get_event_loop().run_in_executor(
+                    None,
+                    lambda: handle.generate(prompt, req.max_tokens,
+                                            req.temperature, req.stop),
+                )
+            except RuntimeError as exc:
+                raise HTTPException(409, str(exc)) from exc
             elapsed = time_mod.time() - t0
 
         content, tool_calls = parse_qwen_tool_calls(result["completion"])
