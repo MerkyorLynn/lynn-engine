@@ -72,6 +72,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P24/P26 Triton dead ends** | `tl.dot` gate/up / merged-topk gate/up | — | ❌ numerically OK but slower;not promoted |
 | **P27 native CUDA extension smoke** | build/load/launch | add-one 0.0047 ms | ✅ R6000 sm_120 CUDA extension foundation passes |
 | **P28 native gate/up contract** | CUDA scalar gate/up | 0.035 ms/layer | ✅ cosine≈1.0 contract pass;not speed-promoted |
+| **P29 native down contract** | CUDA scalar down | 0.030 ms/layer | ✅ cosine=1.0,active-MoE contract complete |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -221,6 +222,15 @@ with `cosine≈1.0 / max_abs≈0`. It is slightly slower (**0.035 ms** vs
 is to keep the same C++/CUDA entrypoint and replace the scalar inner loop with
 true grouped native-FP4 math. See
 [`docs/LYNN_ENGINE_P28_NATIVE_GATEUP_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P28_NATIVE_GATEUP_CONTRACT_20260516.md).
+
+P29 note: the second half of active MoE now has a native CUDA extension contract
+too. `down_weighted_sum_scalar` consumes the `[top_k, 512]` intermediate,
+routing weights, and down packed/scale/global tensors, then emits `[2048]`.
+Across four representative layers it matches the Triton reference with
+`cosine=1.0`. It is slower (**0.030 ms** vs **0.026-0.027 ms**), so it is not a
+speed promotion, but P28+P29 now provide the complete native active-MoE data
+contract. See
+[`docs/LYNN_ENGINE_P29_NATIVE_DOWN_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P29_NATIVE_DOWN_CONTRACT_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,
