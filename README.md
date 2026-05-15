@@ -23,7 +23,7 @@ Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B final 基�
 | **OpenAI server guard** | ✅ strict tool-call PASS,`<think>` loop fail-pattern guard PASS,稳定 decode **88-89 tok/s** |
 | **P10 runner graph-slot gate** | ✅ 6 prompts × 3 prefixes = 18/18 strict PASS,runner graph slot 88.8-103.1 tok/s |
 | **P11 packed-resident memory gate** | ✅ prefill 后释放 **56.47 GiB** BF16 shadow,allocated **81.06 → 24.59 GiB**,greedy ids exact match |
-| **P12 one-shot server gate** | ✅ OpenAI server 首请求释放 **56.47 GiB**,显存落到 **27.2 GiB used**,第二请求 HTTP 409 fail-loud |
+| **P12 one-shot + graph-after-release gate** | ✅ OpenAI server 首请求释放 **56.47 GiB**;释放后 graph slot 79.5-83.8 tok/s,max_abs=0 |
 | **下一目标** | 生产稳定 100+ TPS + packed-resident serving lifecycle |
 
 当前主力 artifact:
@@ -53,7 +53,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P10-U runner graph slot** | **9.69-11.26 ms** | **88.8-103.1** | ✅ 6 prompts × 3 prefixes strict PASS |
 | **OpenAI server stable path** | **~11.2 ms** | **88-89** | ✅ tool-call + no-think guard PASS |
 | **P11 session-scoped packed resident** | — | — | ✅ BF16 shadow 81.06→24.59 GiB,decode ids exact match |
-| **P12 one-shot OpenAI server** | — | — | ✅ first request release 56.47GiB,second request HTTP 409 |
+| **P12 one-shot + graph after release** | — | **79.5-83.8** | ✅ release 56.47GiB 后 graph/eager exact match |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:
@@ -85,7 +85,7 @@ Native FP4 lm_head 是当前的 deterministic/greedy opt-in 优化:6/6 prompt to
 
 CUDA graph 说明:107 TPS 是严格 benchmark ceiling,不是默认 HTTP serving 路径。P10-S 已记录 full-token graph family 的跨 token 漂移边界;当前生产默认保留 88-89 TPS 稳定路径,直到 multi-prompt / long generation / tool-call parity 全部通过。详见 [`docs/LYNN_ENGINE_P10S_GRAPH_BOUNDARY_20260515.md`](docs/LYNN_ENGINE_P10S_GRAPH_BOUNDARY_20260515.md)。
 
-Packed-resident memory 说明:当前默认 server 仍保留 BF16 shadow 以支持多请求 prefill。P11 已证明 session-scoped 生命周期中,prefill 后可以释放 56.47 GiB BF16 shadow,显存从 81.06 GiB 降到 24.59 GiB 且 greedy decode ids 完全一致。P12 进一步把这个能力接到 OpenAI server 的 opt-in one-shot 模式:首请求释放 56.47 GiB,第二请求明确 HTTP 409 fail-loud。详见 [`docs/LYNN_ENGINE_P11_PACKED_RESIDENT_MEMORY_20260515.md`](docs/LYNN_ENGINE_P11_PACKED_RESIDENT_MEMORY_20260515.md) 和 [`docs/LYNN_ENGINE_P12_ONESHOT_SERVER_20260515.md`](docs/LYNN_ENGINE_P12_ONESHOT_SERVER_20260515.md)。
+Packed-resident memory 说明:当前默认 server 仍保留 BF16 shadow 以支持多请求 prefill。P11 已证明 session-scoped 生命周期中,prefill 后可以释放 56.47 GiB BF16 shadow,显存从 81.06 GiB 降到 24.59 GiB 且 greedy decode ids 完全一致。P12 进一步把这个能力接到 OpenAI server 的 opt-in one-shot 模式:首请求释放 56.47 GiB,第二请求明确 HTTP 409 fail-loud;并验证 release 后 current-position graph slot 仍与 eager decode exact match。详见 [`docs/LYNN_ENGINE_P11_PACKED_RESIDENT_MEMORY_20260515.md`](docs/LYNN_ENGINE_P11_PACKED_RESIDENT_MEMORY_20260515.md) 和 [`docs/LYNN_ENGINE_P12_ONESHOT_SERVER_20260515.md`](docs/LYNN_ENGINE_P12_ONESHOT_SERVER_20260515.md)。
 
 ## 27B 质量与基座状态
 
