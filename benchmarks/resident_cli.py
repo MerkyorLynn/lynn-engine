@@ -88,6 +88,7 @@ def main() -> int:
         "max_new": args.max_new,
         "chat_template": args.chat_template,
         "load_seconds": runner.load_seconds,
+        "cuda_memory_after_load": runner.cuda_memory_after_load,
         "items": items,
     }
     text = json.dumps(result, ensure_ascii=False, indent=2) + "\n"

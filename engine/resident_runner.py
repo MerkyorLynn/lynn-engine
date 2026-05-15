@@ -144,6 +144,8 @@ class LynnIncrementalRunner:
             print(f"[resident] loading {self.n_layers} layers", flush=True)
         self.layer_weights = []
         self.layer_cfgs = []
+        if device.startswith("cuda"):
+            torch.cuda.reset_peak_memory_stats()
         for i in range(self.n_layers):
             w, inferred = load_qwen36_layer(
                 self.model_dir,
@@ -199,6 +201,14 @@ class LynnIncrementalRunner:
         if device.startswith("cuda"):
             torch.cuda.synchronize()
         self.load_seconds = time.time() - t0
+        self.cuda_memory_after_load: dict[str, float] = {}
+        if device.startswith("cuda"):
+            self.cuda_memory_after_load = {
+                "allocated_gib": torch.cuda.memory_allocated() / (1024**3),
+                "reserved_gib": torch.cuda.memory_reserved() / (1024**3),
+                "max_allocated_gib": torch.cuda.max_memory_allocated() / (1024**3),
+                "max_reserved_gib": torch.cuda.max_memory_reserved() / (1024**3),
+            }
 
     def _prepare_triton_moe_layout(self) -> None:
         """Attach zero-copy / stacked MoE aliases required by Triton decode.

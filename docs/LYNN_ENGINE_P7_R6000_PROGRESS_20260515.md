@@ -314,6 +314,60 @@ Do not globally enable native_scaled_mm yet. P7-G showed the current native FP4
 single-matmul route is not the main speed lever. Packed resident is the correct
 next structural step.
 
+## P9-B Packed-Resident Coverage And Live Memory Baseline
+
+Added a static manifest coverage probe:
+
+```text
+benchmarks/p9b_packed_resident_coverage.py
+```
+
+It reads `lynn_quant_manifest.json` and classifies every quantized tensor by
+hot path. On the final step5000 27B NVFP4 artifact:
+
+```text
+Current quantized tensors materialized as BF16: 57.54 GiB
+Packed NVFP4 payload for those tensors:         17.98 GiB
+Extra native scale_b if all prepared:            1.80 GiB
+Kept BF16 tensors(embed/lm_head/norms/etc.):     1.93 GiB
+Current total resident model weights:           59.47 GiB
+Packed+kept resident target:                    19.91 GiB
+Releasable without native scale:                39.56 GiB
+Releasable with native scale:                   37.76 GiB
+```
+
+Live runner measurement with the current best serving env:
+
+```text
+CUDA allocated after load:      60.17 GiB
+CUDA reserved after load:       60.48 GiB
+CUDA max allocated during load: 68.21 GiB
+CUDA max reserved during load:  69.69 GiB
+```
+
+The static manifest math and live CUDA allocator numbers agree closely, so the
+packed-resident memory model is trustworthy.
+
+Hot-path split:
+
+```text
+moe.experts.gate_up:        36.05 GiB BF16 -> 11.27 GiB packed
+moe.experts.down:           18.03 GiB BF16 ->  5.63 GiB packed
+linear-attention layers:    42.69 GiB BF16 -> 13.34 GiB packed
+full-attention layers:      14.01 GiB BF16 ->  4.38 GiB packed
+```
+
+Interpretation:
+
+1. The largest memory win is MoE expert ownership, not attention alone.
+2. The packed-resident target should reduce weight residency from ~60 GiB to
+   ~20 GiB before KV/state/cache overhead.
+3. Per-projection packed calls are already proven correct but slower. Do not
+   default-enable them.
+4. The next engineering step is larger fused blocks. For TPS, continue reducing
+   launch structure around linear-attn/full-attn blocks. For memory, the big
+   unlock is MoE active-expert packed resident plus a fused expert kernel.
+
 ## P8-A/B/C/D Packed Decode Alias Gate
 
 2026-05-15 late afternoon update: implemented decode-only packed aliases behind
