@@ -212,6 +212,103 @@ if HAS_TRITON:
 
         tl.store(out_ptr + rows, acc.to(tl.bfloat16), mask=row_mask)
 
+    @triton.jit
+    def _grouped_gate_up_silu_merged_topk_kernel(
+        x_ptr,
+        expert_ids_ptr,
+        gate_up_packed_ptr,
+        gate_up_scale_ptr,
+        global_scale_ptr,
+        inter_ptr,
+        PACKED_STRIDE_E: tl.constexpr,
+        PACKED_STRIDE_M: tl.constexpr,
+        PACKED_STRIDE_N: tl.constexpr,
+        SCALE_STRIDE_E: tl.constexpr,
+        SCALE_STRIDE_M: tl.constexpr,
+        SCALE_STRIDE_G: tl.constexpr,
+        INTER_STRIDE_I: tl.constexpr,
+        HIDDEN: tl.constexpr,
+        INTERMEDIATE: tl.constexpr,
+        TOP_K: tl.constexpr,
+        BLOCK_INTER: tl.constexpr,
+        BLOCK_HIDDEN: tl.constexpr,
+    ):
+        block_i = tl.program_id(0)
+        inter_offsets = block_i * BLOCK_INTER + tl.arange(0, BLOCK_INTER)
+        inter_mask = inter_offsets < INTERMEDIATE
+        h_offsets = tl.arange(0, BLOCK_HIDDEN)
+        global_scale = tl.load(global_scale_ptr).to(tl.float32)
+
+        for slot in range(0, TOP_K):
+            expert = tl.load(expert_ids_ptr + slot)
+            gate_acc = tl.zeros((BLOCK_INTER,), dtype=tl.float32)
+            up_acc = tl.zeros((BLOCK_INTER,), dtype=tl.float32)
+
+            for h0 in range(0, HIDDEN, BLOCK_HIDDEN):
+                cols = h0 + h_offsets
+                col_mask = cols < HIDDEN
+                packed_cols = cols // 2
+                scale_cols = cols // 16
+                x = tl.load(x_ptr + cols, mask=col_mask, other=0.0).to(tl.float32)
+
+                gate_rows = inter_offsets
+                up_rows = INTERMEDIATE + inter_offsets
+                gate_packed_offsets = (
+                    expert * PACKED_STRIDE_E
+                    + gate_rows[:, None] * PACKED_STRIDE_M
+                    + packed_cols[None, :] * PACKED_STRIDE_N
+                )
+                up_packed_offsets = (
+                    expert * PACKED_STRIDE_E
+                    + up_rows[:, None] * PACKED_STRIDE_M
+                    + packed_cols[None, :] * PACKED_STRIDE_N
+                )
+                gate_scale_offsets = (
+                    expert * SCALE_STRIDE_E
+                    + gate_rows[:, None] * SCALE_STRIDE_M
+                    + scale_cols[None, :] * SCALE_STRIDE_G
+                )
+                up_scale_offsets = (
+                    expert * SCALE_STRIDE_E
+                    + up_rows[:, None] * SCALE_STRIDE_M
+                    + scale_cols[None, :] * SCALE_STRIDE_G
+                )
+
+                gate_packed = tl.load(
+                    gate_up_packed_ptr + gate_packed_offsets,
+                    mask=inter_mask[:, None] & col_mask[None, :],
+                    other=0,
+                )
+                up_packed = tl.load(
+                    gate_up_packed_ptr + up_packed_offsets,
+                    mask=inter_mask[:, None] & col_mask[None, :],
+                    other=0,
+                )
+                gate_nibble = tl.where((cols[None, :] & 1) == 0, gate_packed & 0x0F, (gate_packed >> 4) & 0x0F)
+                up_nibble = tl.where((cols[None, :] & 1) == 0, up_packed & 0x0F, (up_packed >> 4) & 0x0F)
+                gate_w = _e2m1_from_nibble(gate_nibble)
+                up_w = _e2m1_from_nibble(up_nibble)
+                gate_scale = tl.load(
+                    gate_up_scale_ptr + gate_scale_offsets,
+                    mask=inter_mask[:, None] & col_mask[None, :],
+                    other=0.0,
+                ).to(tl.float32)
+                up_scale = tl.load(
+                    gate_up_scale_ptr + up_scale_offsets,
+                    mask=inter_mask[:, None] & col_mask[None, :],
+                    other=0.0,
+                ).to(tl.float32)
+                gate_acc += tl.sum(gate_w * (gate_scale / global_scale) * x[None, :], axis=1)
+                up_acc += tl.sum(up_w * (up_scale / global_scale) * x[None, :], axis=1)
+
+            gate_silu = gate_acc * tl.sigmoid(gate_acc)
+            inter = gate_silu * up_acc
+            tl.store(
+                inter_ptr + slot * INTERMEDIATE + inter_offsets * INTER_STRIDE_I,
+                inter.to(tl.bfloat16),
+                mask=inter_mask,
+            )
+
 
 def nvfp4_grouped_gate_up_silu(
     x: torch.Tensor,
@@ -252,6 +349,58 @@ def nvfp4_grouped_gate_up_silu(
         inter.stride(1),
         HIDDEN=HIDDEN_SIZE,
         INTERMEDIATE=INTERMEDIATE_SIZE,
+        BLOCK_INTER=block_inter,
+        BLOCK_HIDDEN=block_hidden,
+        num_warps=num_warps,
+    )
+    return inter
+
+
+def nvfp4_grouped_gate_up_silu_merged_topk(
+    x: torch.Tensor,
+    expert_ids: torch.Tensor,
+    gate_up_packed: torch.Tensor,
+    gate_up_scale: torch.Tensor,
+    gate_up_global_scale: torch.Tensor,
+    *,
+    block_inter: int = 8,
+    block_hidden: int = 256,
+    num_warps: int = 4,
+) -> torch.Tensor:
+    """Gate/up variant with one program per inter block and a top-k inner loop.
+
+    This is an opt-in P26 probe, not the production default. It tests whether
+    reducing kernel program count from `[top_k, inter_blocks]` to
+    `[inter_blocks]` helps launch/scheduling overhead while preserving the
+    current per-16 scalar contract.
+    """
+    _require_triton()
+    if x.ndim != 1 or x.numel() != HIDDEN_SIZE:
+        raise ValueError(f"x must be [2048], got {tuple(x.shape)}")
+    if gate_up_packed.ndim != 3 or gate_up_scale.ndim != 3:
+        raise ValueError(
+            f"expected grouped 3D tensors, got packed={tuple(gate_up_packed.shape)} scale={tuple(gate_up_scale.shape)}"
+        )
+    expert_ids = expert_ids.to(device=x.device, dtype=torch.int32).contiguous()
+    inter = torch.empty((expert_ids.numel(), INTERMEDIATE_SIZE), device=x.device, dtype=torch.bfloat16)
+    grid = (triton.cdiv(INTERMEDIATE_SIZE, block_inter),)
+    _grouped_gate_up_silu_merged_topk_kernel[grid](
+        x.contiguous(),
+        expert_ids,
+        gate_up_packed.contiguous(),
+        gate_up_scale.contiguous(),
+        gate_up_global_scale.to(device=x.device).contiguous(),
+        inter,
+        gate_up_packed.stride(0),
+        gate_up_packed.stride(1),
+        gate_up_packed.stride(2),
+        gate_up_scale.stride(0),
+        gate_up_scale.stride(1),
+        gate_up_scale.stride(2),
+        inter.stride(1),
+        HIDDEN=HIDDEN_SIZE,
+        INTERMEDIATE=INTERMEDIATE_SIZE,
+        TOP_K=expert_ids.numel(),
         BLOCK_INTER=block_inter,
         BLOCK_HIDDEN=block_hidden,
         num_warps=num_warps,
@@ -311,4 +460,9 @@ def nvfp4_grouped_down_weighted_sum(
     return out
 
 
-__all__ = ["HAS_TRITON", "nvfp4_grouped_down_weighted_sum", "nvfp4_grouped_gate_up_silu"]
+__all__ = [
+    "HAS_TRITON",
+    "nvfp4_grouped_down_weighted_sum",
+    "nvfp4_grouped_gate_up_silu",
+    "nvfp4_grouped_gate_up_silu_merged_topk",
+]
