@@ -31,6 +31,8 @@ Run:
     LYNN_LINEAR_BLOCK_GRAPH_PREWARM=1 \
     LYNN_NATIVE_FP4_LM_HEAD=1 \
     LYNN_LINEAR_STATE_UPDATE=inplace \
+    LYNN_PACKED_DECODE=0 \
+    LYNN_PACKED_SHARED_EXPERT=0 \
       python3 -m server.openai_http --model /models/lynn-27b-variable-recovery-step5000-nvfp4-final \
                                      --port 18099 --host 0.0.0.0
 """
@@ -234,6 +236,7 @@ def make_app(handle: LynnEngineHandle):
                 "native_fp4_lm_head_enabled": getattr(
                     handle.runner, "native_fp4_lm_head_enabled", None
                 ),
+                "runtime_warnings": getattr(handle.runner, "runtime_warnings", []),
             }
         return {
             "status": "ok",
