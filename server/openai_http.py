@@ -21,15 +21,17 @@ Engine lifecycle:
 Run:
     LYNN_PREFILL_WARMUP=1 \
     LYNN_LINEAR_ATTN_RECURRENT_BACKEND=triton_fused_prepare \
-    LYNN_MOE_IMPL=triton \
+    LYNN_LINEAR_ATTN_RECURRENT_INPLACE=1 \
+    LYNN_MOE_IMPL=packed_nvfp4 \
     LYNN_QK_NORM_ROPE_BACKEND=triton_pair \
     LYNN_RMSNORM_GATED_BACKEND=triton \
-    LYNN_LINEAR_ATTN_INPROJ_FUSED=1 \
+    LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1 \
     LYNN_LINEAR_BLOCK_GRAPH=1 \
     LYNN_LINEAR_BLOCK_GRAPH_REUSE=1 \
     LYNN_LINEAR_BLOCK_GRAPH_PREWARM=1 \
+    LYNN_NATIVE_FP4_LM_HEAD=1 \
     LYNN_LINEAR_STATE_UPDATE=inplace \
-      python3 -m server.openai_http --model /models/lynn-27b-variable-skeleton-v0-nvfp4 \
+      python3 -m server.openai_http --model /models/lynn-27b-variable-recovery-step5000-nvfp4-final \
                                      --port 18099 --host 0.0.0.0
 """
 

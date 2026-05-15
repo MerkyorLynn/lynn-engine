@@ -29,7 +29,15 @@ from engine.full_forward import (
 )
 from engine.inference_state import LAYER_TYPES, LynnInferenceState
 from engine.loader import load_qwen36_layer
-from engine.nvfp4_runtime import load_grouped_nvfp4_weight, load_packed_nvfp4_linear
+from engine.nvfp4_runtime import (
+    _compact_scale_to_swizzled_fp8,
+    load_grouped_nvfp4_weight,
+    load_packed_nvfp4_linear,
+)
+from triton_kernels.nvfp4_linear import quantize_fp4_m1_native
+
+
+_E2M1_TABLE = torch.tensor([0.0, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0], dtype=torch.float32)
 
 
 def _logit_topk(logits: torch.Tensor, k: int) -> dict[str, Any]:
@@ -176,6 +184,12 @@ class LynnIncrementalRunner:
         self._linear_block_graph_slot: dict[str, Any] | None = None
         self.prefill_warmup_seconds: float | None = None
         self.linear_block_graph_prewarm_seconds: float | None = None
+        self.native_fp4_lm_head_enabled = False
+        self._native_fp4_lm_head_weight: torch.Tensor | None = None
+        self._native_fp4_lm_head_scale_b: torch.Tensor | None = None
+        self.native_fp4_lm_head_prepare_seconds: float | None = None
+        if os.environ.get("LYNN_NATIVE_FP4_LM_HEAD", "0") == "1":
+            self._prepare_native_fp4_lm_head()
         if os.environ.get("LYNN_PREFILL_WARMUP", "0") == "1" and device.startswith("cuda"):
             t_prefill = time.time()
             self._warmup_prefill_kernels()
@@ -340,6 +354,88 @@ class LynnIncrementalRunner:
             key = "linear_attn._neg_exp_A_log"
             if key not in w:
                 w[key] = -w["linear_attn.A_log"].float().exp().contiguous()
+
+    @staticmethod
+    def _quantize_weight_to_native_fp4(
+        weight: torch.Tensor,
+        *,
+        chunk_rows: int = 4096,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Pack a dense BF16/FP16 matrix to torch native E2M1 FP4 layout.
+
+        This is a one-time startup conversion for tensors that are not shipped
+        packed yet. It is intentionally simple and deterministic; the runtime
+        hot path only sees the packed tensor and swizzled scales.
+        """
+        if weight.ndim != 2 or weight.shape[1] % 16 != 0:
+            raise ValueError(f"expected [N, K] with K divisible by 16, got {tuple(weight.shape)}")
+        table = _E2M1_TABLE.to(device=weight.device)
+        out_features, in_features = weight.shape
+        groups = in_features // 16
+        packed = torch.empty((out_features, in_features // 2), device=weight.device, dtype=torch.uint8)
+        scale = torch.empty((out_features, groups), device=weight.device, dtype=torch.float32)
+        for start in range(0, out_features, chunk_rows):
+            end = min(start + chunk_rows, out_features)
+            block = weight[start:end].float().reshape(end - start, groups, 16)
+            scale_chunk = (block.abs().amax(dim=-1) / float(table[-1])).clamp_min(1e-8)
+            normalized = block.abs() / scale_chunk.unsqueeze(-1)
+            magnitude = torch.argmin(
+                (normalized.unsqueeze(-1) - table.view(1, 1, 1, -1)).abs(),
+                dim=-1,
+            )
+            sign = (block < 0).to(torch.uint8) * 8
+            codes = (magnitude.to(torch.uint8) | sign).reshape(end - start, in_features)
+            packed[start:end] = (codes[:, 0::2] | (codes[:, 1::2] << 4)).contiguous()
+            scale[start:end] = scale_chunk
+        return packed, scale.contiguous()
+
+    def _prepare_native_fp4_lm_head(self) -> None:
+        """Prepare opt-in native FP4 lm_head for greedy serving.
+
+        P10-O/P10-P validated this path as greedy-safe on six prompts. It is
+        still opt-in because sampling-heavy production needs a broader parity
+        gate, but exposing it through the resident runner lets the HTTP server
+        measure a real serving-shaped speedup instead of a benchmark-only one.
+        """
+        if not self.device.startswith("cuda"):
+            raise RuntimeError("LYNN_NATIVE_FP4_LM_HEAD requires CUDA")
+        if not hasattr(torch, "float4_e2m1fn_x2") or not hasattr(torch, "_scaled_mm"):
+            raise RuntimeError("native FP4 lm_head requires torch.float4_e2m1fn_x2 and torch._scaled_mm")
+        t0 = time.time()
+        lm_head = self.outside["lm_head.weight"].contiguous()
+        packed, compact_scale = self._quantize_weight_to_native_fp4(lm_head)
+        self._native_fp4_lm_head_weight = packed.view(torch.float4_e2m1fn_x2)
+        self._native_fp4_lm_head_scale_b = _compact_scale_to_swizzled_fp8(
+            compact_scale,
+            outer_dim=lm_head.shape[0],
+            k=lm_head.shape[1],
+        )
+        if self.device.startswith("cuda"):
+            torch.cuda.synchronize()
+        self.native_fp4_lm_head_prepare_seconds = time.time() - t0
+        self.native_fp4_lm_head_enabled = True
+        if self.verbose:
+            print(
+                "[resident] native FP4 lm_head prepared "
+                f"in {self.native_fp4_lm_head_prepare_seconds:.3f}s",
+                flush=True,
+            )
+
+    def _lm_head_logits(self, hidden: torch.Tensor) -> torch.Tensor:
+        """Project final hidden state to logits using BF16 or opt-in native FP4."""
+        h2d = hidden[:, -1, :] if hidden.ndim == 3 else hidden
+        if not self.native_fp4_lm_head_enabled:
+            return F.linear(h2d, self.outside["lm_head.weight"])
+        assert self._native_fp4_lm_head_weight is not None
+        assert self._native_fp4_lm_head_scale_b is not None
+        act_packed, scale_a = quantize_fp4_m1_native(h2d.contiguous())
+        return torch._scaled_mm(
+            act_packed.view(torch.float4_e2m1fn_x2),
+            self._native_fp4_lm_head_weight.t(),
+            scale_a=scale_a,
+            scale_b=self._native_fp4_lm_head_scale_b,
+            out_dtype=torch.float16,
+        )
 
     def _prepare_packed_decode_aliases(self) -> None:
         """Attach packed NVFP4 decode aliases while keeping BF16 prefill safe.
@@ -556,7 +652,7 @@ class LynnIncrementalRunner:
         for i in range(self.n_layers):
             h = _prefill_layer(h, pos, LAYER_TYPES[i], self.layer_weights[i], self.layer_cfgs[i], state, i)
         h_final = _rms_norm(h, self.outside["model.language_model.norm.weight"])
-        _ = F.linear(h_final[:, -1, :], self.outside["lm_head.weight"])
+        _ = self._lm_head_logits(h_final)
 
     def generate(
         self,
@@ -585,7 +681,7 @@ class LynnIncrementalRunner:
             h = _prefill_layer(h, pos, LAYER_TYPES[i], self.layer_weights[i], self.layer_cfgs[i], state, i)
         state.seq_len = T
         h_final = _rms_norm(h, self.outside["model.language_model.norm.weight"])
-        logits = F.linear(h_final[:, -1, :], self.outside["lm_head.weight"])
+        logits = self._lm_head_logits(h_final)
         next_id = int(logits[0].argmax().item())
         topk_trace = []
         if top_k > 0:
@@ -666,7 +762,7 @@ class LynnIncrementalRunner:
                     )
             state.seq_len += 1
             h_final = _rms_norm(h, self.outside["model.language_model.norm.weight"])
-            logits = F.linear(h_final[:, -1, :], self.outside["lm_head.weight"])
+            logits = self._lm_head_logits(h_final)
             next_id = int(logits[0].argmax().item())
             if top_k > 0:
                 topk_trace.append(_logit_topk(logits, top_k))
@@ -701,6 +797,8 @@ class LynnIncrementalRunner:
                 "linear_block_graph_reused": graph_reused,
                 "prefill_warmup_seconds": self.prefill_warmup_seconds,
                 "linear_block_graph_prewarm_seconds": self.linear_block_graph_prewarm_seconds,
+                "native_fp4_lm_head_enabled": self.native_fp4_lm_head_enabled,
+                "native_fp4_lm_head_prepare_seconds": self.native_fp4_lm_head_prepare_seconds,
             },
             "stopped_reason": stopped_reason,
             "stop_token_ids": sorted(self.stop_token_ids),
