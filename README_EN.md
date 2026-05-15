@@ -76,6 +76,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P30 native active-MoE contract** | CUDA scalar gate/up + down | 0.064-0.068 ms/layer | ✅ full active routed expert path exact |
 | **P31 native active-MoE runtime gate** | `LYNN_NATIVE_ACTIVE_MOE_BACKEND=cuda_scalar` | 1.48-1.59x MoE-function speedup | ✅ opt-in exact,default still off |
 | **P32-P34 generate gate** | cuda_scalar full generate / graph / allowlist | 121.7 TPS but `!` loop; graph-off/allowlist still greedy drift | ❌ not promoted,fail-loud guard added |
+| **P35 sorted-router graph slot** | `LYNN_ROUTER_TOPK_SORTED=1` + full-token graph slot | 12/12 strict PASS,97.7-111.5 TPS replay | ✅ graph-slot line regains parity |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -262,6 +263,14 @@ parity. A full-attention-only allowlist avoids the graph failure but still
 shows top-1 drift. The runner now fail-louds instead of silently serving the
 unsafe graph combination. See
 [`docs/LYNN_ENGINE_P32_P34_NATIVE_ACTIVE_MOE_GENERATE_NEGATIVE_20260516.md`](docs/LYNN_ENGINE_P32_P34_NATIVE_ACTIVE_MOE_GENERATE_NEGATIVE_20260516.md).
+
+P35 note: the graph-slot line is not dead, but it needs a stricter router-order
+contract than the eager/full-graph path. With `LYNN_ROUTER_TOPK_SORTED=1`, the
+full-token graph-slot gate passes **12/12** checks across four prompt types and
+three prefix lengths, with `max_abs=0` on every row and **97.7-111.5 tok/s**
+replay. The current stable serving path may keep P20 unsorted top-k, but future
+graph-slot serving modes should force the sorted-router contract. See
+[`docs/LYNN_ENGINE_P35_SORTED_ROUTER_GRAPH_SLOT_20260516.md`](docs/LYNN_ENGINE_P35_SORTED_ROUTER_GRAPH_SLOT_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,
