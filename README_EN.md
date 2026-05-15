@@ -71,6 +71,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P25 OpenAI server graph path** | **~9.95 ms decode / 0.65 s prefill** | **~99-100 decode / 87.7 wall @512 tok** | ✅ service path crosses 100 decode TPS |
 | **P24/P26 Triton dead ends** | `tl.dot` gate/up / merged-topk gate/up | — | ❌ numerically OK but slower;not promoted |
 | **P27 native CUDA extension smoke** | build/load/launch | add-one 0.0047 ms | ✅ R6000 sm_120 CUDA extension foundation passes |
+| **P28 native gate/up contract** | CUDA scalar gate/up | 0.035 ms/layer | ✅ cosine≈1.0 contract pass;not speed-promoted |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -210,6 +211,16 @@ Lynn-owned CUDA extension; the 1M-float `add_one` smoke kernel reports
 itself, but it removes the build-plumbing risk for the next custom per-16
 grouped native-FP4 active expert kernel. See
 [`docs/LYNN_ENGINE_P27_CUDA_EXTENSION_SMOKE_20260516.md`](docs/LYNN_ENGINE_P27_CUDA_EXTENSION_SMOKE_20260516.md).
+
+P28 note: the first real active-MoE CUDA extension contract now passes.
+`gate_up_silu_scalar` consumes the final Lynn 27B grouped packed NVFP4 tensors,
+per-16 scales, and top-k expert ids directly, then emits the `[top_k, 512]`
+intermediate. Across four representative layers it matches the Triton reference
+with `cosine≈1.0 / max_abs≈0`. It is slightly slower (**0.035 ms** vs
+**0.034 ms**), so this is a contract pass, not a speed promotion. The next step
+is to keep the same C++/CUDA entrypoint and replace the scalar inner loop with
+true grouped native-FP4 math. See
+[`docs/LYNN_ENGINE_P28_NATIVE_GATEUP_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P28_NATIVE_GATEUP_CONTRACT_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,
