@@ -161,6 +161,7 @@ class LynnIncrementalRunner:
         self.max_seq_len = max_seq_len
         self.verbose = verbose
         self.moe_impl = impl
+        self.shared_expert_gate_up_fused_attached = 0
         self.packed_nvfp4_moe_aliases_attached = 0
         self.packed_decode_backend = os.environ.get("LYNN_PACKED_DECODE_BACKEND", "scalar_bridge")
         self.packed_decode_aliases_attached = 0
@@ -219,6 +220,8 @@ class LynnIncrementalRunner:
                 print(f"  [resident] L{i:02}: {time.time() - t0:.1f}s", flush=True)
         if impl == "triton":
             self._prepare_triton_moe_layout()
+        if os.environ.get("LYNN_SHARED_EXPERT_GATE_UP_FUSED", "1") != "0":
+            self._prepare_shared_expert_gate_up_fused()
         if impl == "packed_nvfp4":
             self._prepare_packed_nvfp4_moe_layout()
         if (
@@ -349,6 +352,32 @@ class LynnIncrementalRunner:
         self.packed_nvfp4_moe_aliases_attached = attached
         if self.verbose:
             print(f"[resident] packed NVFP4 MoE aliases attached={attached}", flush=True)
+
+    def _prepare_shared_expert_gate_up_fused(self) -> None:
+        """Attach BF16 fused shared-expert gate/up weights.
+
+        The shared expert stays BF16 on R6000 because packed shared paths are
+        slower. Fusing gate/up keeps the same BF16 math while replacing two
+        small GEMM launches with one larger GEMM.
+        """
+        attached = 0
+        for w in self.layer_weights:
+            key = "mlp.shared_expert._gate_up_proj.weight"
+            if key in w:
+                continue
+            if "mlp.shared_expert.gate_proj.weight" not in w or "mlp.shared_expert.up_proj.weight" not in w:
+                continue
+            w[key] = torch.cat(
+                [
+                    w["mlp.shared_expert.gate_proj.weight"],
+                    w["mlp.shared_expert.up_proj.weight"],
+                ],
+                dim=0,
+            ).contiguous()
+            attached += 1
+        self.shared_expert_gate_up_fused_attached = attached
+        if self.verbose:
+            print(f"[resident] shared expert fused gate/up attached={attached}", flush=True)
 
     def _prepare_linear_attn_inproj_fused(self) -> None:
         """Attach fused qkv/z/b/a projection weights for linear-attn decode.

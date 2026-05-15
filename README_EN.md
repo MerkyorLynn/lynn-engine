@@ -65,6 +65,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P18 scale-contract decision** | **dot_scaled raw 0.018 ms vs scalar 0.050 ms** | speed ✅ / quality ❌ | 🔬 simple e8m0 bridge is not shippable; move to custom per-16 kernel |
 | **P19 active block retune** | **8.66 ms strict / 8.32 ms replay** | **115.4 / 120.3** | ✅ quality-safe scheduling gain |
 | **P20 unsorted router top-k** | **8.51 ms strict / 8.17 ms replay** | **117.6 / 122.4** | ✅ same expert set,MoE parity PASS |
+| **P21 shared gate/up fusion** | **8.50 ms strict / 8.15 ms replay** | **117.7 / 122.7** | ✅ exact BF16 shared path,small gain |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -92,8 +93,8 @@ export LYNN_PACKED_SHARED_EXPERT=0
 Measured final step5000 NVFP4:
 
 ```text
-strict full path:      117.55 tok/s  (P20 unsorted router + P19 block retune + native FP4 lm_head)
-serving replay/body:   122.43 tok/s  (40-layer graph ceiling)
+strict full path:      117.71 tok/s  (P21 shared fusion + P20 router + P19 block retune)
+serving replay/body:   122.71 tok/s  (40-layer graph ceiling)
 OpenAI stable decode:    88-89 tok/s  (tool-call strict + no-think guard)
 BF16 lm_head path:     99.86 tok/s
 quality smoke:         6/6 coherent + strict tool-call + no-think loop guard PASS
@@ -151,6 +152,11 @@ P20 note: router `topk(sorted=False)` has been verified to keep the same expert
 set and paired weights. Representative-layer MoE parity has `max_abs=0`, and
 the full graph moves to **117.55/122.43 TPS**. See
 [`docs/LYNN_ENGINE_P20_ROUTER_TOPK_UNSORTED_20260516.md`](docs/LYNN_ENGINE_P20_ROUTER_TOPK_UNSORTED_20260516.md).
+
+P21 note: the shared expert stays BF16, but gate/up are fused into one BF16
+GEMM. Representative-layer parity has `max_abs=0`; the full graph nudges up to
+**117.71/122.71 TPS**. See
+[`docs/LYNN_ENGINE_P21_SHARED_GATEUP_FUSION_20260516.md`](docs/LYNN_ENGINE_P21_SHARED_GATEUP_FUSION_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,

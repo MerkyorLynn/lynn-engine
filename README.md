@@ -67,6 +67,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P18 scale-contract decision** | **dot_scaled raw 0.018ms vs scalar 0.050ms** | speed ✅ / quality ❌ | 🔬 简单 e8m0 bridge 不可 ship,转 custom per-16 kernel |
 | **P19 active block retune** | **8.66ms strict / 8.32ms replay** | **115.4 / 120.3** | ✅ quality-safe scheduling gain |
 | **P20 unsorted router top-k** | **8.51ms strict / 8.17ms replay** | **117.6 / 122.4** | ✅ same expert set,MoE parity PASS |
+| **P21 shared gate/up fusion** | **8.50ms strict / 8.15ms replay** | **117.7 / 122.7** | ✅ BF16 shared exact,small gain |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:
@@ -94,8 +95,8 @@ export LYNN_PACKED_SHARED_EXPERT=0
 实测 final step5000 NVFP4:
 
 ```text
-strict full path:      117.55 tok/s  (P20 unsorted router + P19 block retune + native FP4 lm_head)
-serving replay/body:   122.43 tok/s  (40-layer graph ceiling)
+strict full path:      117.71 tok/s  (P21 shared fusion + P20 router + P19 block retune)
+serving replay/body:   122.71 tok/s  (40-layer graph ceiling)
 OpenAI stable decode:    88-89 tok/s  (tool-call strict + no-think guard)
 BF16 lm_head path:     99.86 tok/s
 quality smoke:         6/6 coherent + strict tool-call + no-think loop guard PASS
@@ -116,6 +117,8 @@ P18 说明:三条 scale bridge 都已实测,`dot_scaled` raw gate/up 可到 **0.
 P19 说明:在不改变数值路径的前提下,active MoE kernel block retune 把 R6000 full graph 从 **103.40/107.13 TPS** 提到 **115.41/120.25 TPS**。推荐配置已成为默认:`gate_hidden=256,down_inter=512`,并保留 env override 方便后续设备差异调参。详见 [`docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md`](docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md)。
 
 P20 说明:router `topk(sorted=False)` 已验证同 expert set、同配对权重,代表层 MoE 输出 max_abs=0,把 full graph 进一步推到 **117.55/122.43 TPS**。详见 [`docs/LYNN_ENGINE_P20_ROUTER_TOPK_UNSORTED_20260516.md`](docs/LYNN_ENGINE_P20_ROUTER_TOPK_UNSORTED_20260516.md)。
+
+P21 说明:shared expert 保持 BF16,只把 gate/up 两个小 GEMM 融成一个 BF16 GEMM,代表层 max_abs=0。full graph 小幅提升到 **117.71/122.71 TPS**。详见 [`docs/LYNN_ENGINE_P21_SHARED_GATEUP_FUSION_20260516.md`](docs/LYNN_ENGINE_P21_SHARED_GATEUP_FUSION_20260516.md)。
 
 Packed-resident memory 说明:当前默认 server 仍保留 BF16 shadow 以支持多请求 prefill。P11 已证明 session-scoped 生命周期中,prefill 后可以释放 56.47 GiB BF16 shadow,显存从 81.06 GiB 降到 24.59 GiB 且 greedy decode ids 完全一致。P12 进一步把这个能力接到 OpenAI server 的 opt-in one-shot 模式:首请求释放 56.47 GiB,第二请求明确 HTTP 409 fail-loud;并验证 release 后 current-position graph slot 仍与 eager decode exact match。详见 [`docs/LYNN_ENGINE_P11_PACKED_RESIDENT_MEMORY_20260515.md`](docs/LYNN_ENGINE_P11_PACKED_RESIDENT_MEMORY_20260515.md) 和 [`docs/LYNN_ENGINE_P12_ONESHOT_SERVER_20260515.md`](docs/LYNN_ENGINE_P12_ONESHOT_SERVER_20260515.md)。
 
