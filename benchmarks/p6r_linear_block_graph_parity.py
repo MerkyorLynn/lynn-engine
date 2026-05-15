@@ -90,7 +90,10 @@ def main() -> int:
             raise ValueError(f"layer {i} is {LAYER_TYPES[i]!r}, expected linear_attention")
 
     requested_moe = os.environ.get("LYNN_MOE_IMPL", "optimized")
-    if requested_moe == "triton":
+    # Keep Triton active during runner construction. The resident runner can
+    # prewarm graph slots in __init__; falling back to Python optimized MoE
+    # there would call torch.unique during CUDA graph capture.
+    if requested_moe == "indexed_bmm":
         os.environ["LYNN_MOE_IMPL"] = "optimized"
     runner = LynnIncrementalRunner(args.model, device="cuda", dtype=torch.bfloat16, verbose=False)
     os.environ["LYNN_MOE_IMPL"] = requested_moe

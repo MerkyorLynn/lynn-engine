@@ -449,6 +449,47 @@ state buffers  restored/advanced under explicit ownership
 Once P9-E passes multi-step greedy parity, the 78-79TPS ceiling becomes a real
 serving target rather than a benchmark-only number.
 
+## P9-E Full-Token Graph Family Greedy Gate
+
+Added:
+
+```text
+benchmarks/p9e_full_token_graph_family_greedy.py
+```
+
+This captures a small family of full-token graphs, one fixed position per
+decode step, then replays them sequentially for greedy generation. Result on
+the final step5000 model:
+
+```text
+max_new:          4
+graph ids:        [248068, 271, 248069, 271]
+eager ids:        [248068, 271, 248069, 271]
+greedy_pass:      true
+strict_logit_pass false
+avg replay:       15.12ms = 66.12 TPS
+```
+
+Interpretation:
+
+1. Multi-step graph-family decode can advance generation and preserve greedy
+   token choices.
+2. Strict logits are not bit-exact under the current graph/eager comparison
+   harness, but top-1 stayed identical for all four steps.
+3. The graph-family path does not yet inherit the static P6-M 78-79TPS ceiling;
+   it lands near the current serving path (~66TPS). This may be because the
+   parity harness restores large state snapshots between replay steps, causing
+   cold-cache behavior, or because the graph family captures more conservative
+   state mutation than the static ceiling probe.
+
+P9-F should therefore split the work:
+
+```text
+P9-F1: graph-family warm replay timing without state snapshot restore;
+P9-F2: serving-style graph bucket with mutable token/position buffers;
+P9-F3: if still ~66TPS, stop graph productization and return to fused kernels.
+```
+
 ## P8-A/B/C/D Packed Decode Alias Gate
 
 2026-05-15 late afternoon update: implemented decode-only packed aliases behind
