@@ -75,6 +75,27 @@ Second request response:
 }
 ```
 
+## Long Decode Follow-Up
+
+We also reran the same one-shot server gate with a chat request capped at 128
+new tokens. This verifies that the release path survives a non-trivial decode,
+not just a short 16-token smoke.
+
+| Metric | Value |
+|---|---:|
+| Completion tokens | 128 |
+| Request elapsed | 8.20 s |
+| Request TPS | 15.61 tok/s |
+| Decode TPS | 20.23 tok/s |
+| Released tensors | 270 |
+| Released GiB | 56.472 |
+| GPU memory after long decode | 27,189 MiB used / 70,065 MiB free |
+| Second request | HTTP 409 fail-loud |
+
+The low TPS is expected here: this gate is the release/no-graph safety path,
+not the P10 graph-slot 100+ TPS path. Its purpose is memory lifecycle
+correctness and fail-loud serving semantics.
+
 ## Why This Matters
 
 Before P11/P12, the runtime could read the 20G packed NVFP4 artifact but still
@@ -97,4 +118,3 @@ P12 does **not** yet solve:
 
 Those are the next engineering steps. The default OpenAI server path remains
 the safer multi-request path until packed prefill is implemented.
-
