@@ -271,6 +271,7 @@ class LynnIncrementalRunner:
             ],
         }
         attached = 0
+        native_prepared = 0
         skipped = 0
         for layer_idx, (layer_type, w) in enumerate(zip(LAYER_TYPES, self.layer_weights)):
             for short_key in projections_by_type.get(layer_type, []):
@@ -286,13 +287,25 @@ class LynnIncrementalRunner:
                         device=self.device,
                         default_backend=backend,
                     )
+                    if (
+                        backend == "native_fast_2d"
+                        and os.environ.get("LYNN_PACKED_DECODE_PREPARE_NATIVE", "0") == "1"
+                    ):
+                        # Move scale swizzle / native tensor view setup out of
+                        # the first user decode token. This is still an opt-in
+                        # P9 bridge path; packed-resident memory ownership is
+                        # handled by a later gate.
+                        w[alias_key]._native_scale_b()
+                        w[alias_key]._native_weight_t()
+                        native_prepared += 1
                     attached += 1
                 except KeyError:
                     skipped += 1
         if self.verbose:
             print(
                 f"[resident] packed decode aliases attached={attached} "
-                f"skipped={skipped} backend={backend}",
+                f"skipped={skipped} backend={backend} "
+                f"native_prepared={native_prepared}",
                 flush=True,
             )
 

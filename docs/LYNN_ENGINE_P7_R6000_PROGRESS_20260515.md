@@ -238,6 +238,75 @@ Immediate:
 1. Let A100 -> R6000 final artifact transfer continue.
 2. Add packed-resident loader path that keeps selected decode matrices as
    `PackedNVFP4Linear` instead of dequantized BF16 tensors.
+
+## P9-A Packed Decode Bridge Check (Final step5000)
+
+After the final step5000 NVFP4 artifact landed on R6000, we reran the main
+serving probes against the final model rather than the earlier skeleton:
+
+```text
+6-prompt 32-token smoke:
+  decode TPS: 66.62 / 68.27 / 68.28 / 68.24 / 68.44 / 67.89
+  output:     coherent 6/6
+
+request amortization:
+  8-token #1:  request 10.70 TPS, decode 62.19 TPS
+  8-token #2:  request 11.36 TPS, decode 68.35 TPS
+  32-token:    request 30.33 TPS, decode 68.18 TPS
+
+manual CUDA graph ceiling:
+  eager:       30.27ms = 33.04 TPS
+  cuda graph:  12.66ms = 79.00 TPS
+```
+
+Then we tested the existing packed decode bridge on the final artifact:
+
+```text
+LYNN_PACKED_DECODE_FULL_ATTN=1
+LYNN_PACKED_DECODE_BACKEND=scalar_bridge
+
+attached packed aliases: 190
+8-token smoke: PASS
+decode TPS: ~55-62 TPS
+```
+
+This proves the full-attention packed alias plumbing is still correct on the
+final 27B artifact, but the scalar bridge is slower than the BF16 resident
+path. It should remain a correctness/integration bridge.
+
+Native packed decode also runs correctly:
+
+```text
+LYNN_PACKED_DECODE_FULL_ATTN=1
+LYNN_PACKED_DECODE_BACKEND=native_fast_2d
+
+32-token smoke: PASS
+decode TPS before native layout prewarm: ~59.5 TPS
+```
+
+We added:
+
+```text
+LYNN_PACKED_DECODE_PREPARE_NATIVE=1
+```
+
+This prepares the native scale swizzle / weight view at load time:
+
+```text
+native_prepared=190
+32-token smoke: PASS
+decode TPS after prewarm: ~63.1 TPS
+```
+
+Takeaway: the native packed bridge is functional, but replacing only
+full-attention decode projections is not enough to beat the BF16 resident path.
+The 100 TPS route remains:
+
+1. keep the current 66-68 TPS BF16-resident serving path as default;
+2. use packed decode as a fail-loud integration bridge;
+3. implement packed-resident memory ownership to stop materializing all
+   quantized decode matrices as BF16;
+4. fuse larger hot-path blocks rather than swapping individual tiny matvecs.
 3. Start with decode-only selected projections, preserving BF16 prefill path.
 4. Re-run 6-prompt smoke and P7 request amortization after every opt-in switch.
 
