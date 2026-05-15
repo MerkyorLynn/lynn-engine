@@ -73,6 +73,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P27 native CUDA extension smoke** | build/load/launch | add-one 0.0047 ms | ✅ R6000 sm_120 CUDA extension foundation passes |
 | **P28 native gate/up contract** | CUDA scalar gate/up | 0.035 ms/layer | ✅ cosine≈1.0 contract pass;not speed-promoted |
 | **P29 native down contract** | CUDA scalar down | 0.030 ms/layer | ✅ cosine=1.0,active-MoE contract complete |
+| **P30 native active-MoE contract** | CUDA scalar gate/up + down | 0.064-0.068 ms/layer | ✅ full active routed expert path exact |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -231,6 +232,16 @@ Across four representative layers it matches the Triton reference with
 speed promotion, but P28+P29 now provide the complete native active-MoE data
 contract. See
 [`docs/LYNN_ENGINE_P29_NATIVE_DOWN_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P29_NATIVE_DOWN_CONTRACT_20260516.md).
+
+P30 note: the complete active routed expert path can now be composed from
+Lynn-owned CUDA extension calls: CUDA gate/up scalar followed by CUDA down
+weighted-sum scalar. Across four representative layers it matches the
+production Triton active path with `cosine=1.0 / max_abs≈0`. It is slower
+(**0.064-0.068 ms/layer** vs **0.058 ms/layer**), so it is not a runtime
+default. But P27-P30 now cover native extension build, gate/up, down, and full
+active-MoE data-contract correctness. The next TPS-relevant work is replacing
+the scalar inner loops with grouped native-FP4 tensor-core math. See
+[`docs/LYNN_ENGINE_P30_NATIVE_ACTIVE_MOE_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P30_NATIVE_ACTIVE_MOE_CONTRACT_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,
