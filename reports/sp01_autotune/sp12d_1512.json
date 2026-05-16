@@ -1,0 +1,35 @@
+{
+  "type": "sp12d_spark_fp8_active_moe_probe",
+  "date": "2026-05-16 07:12:35",
+  "device": "NVIDIA GB10",
+  "compute_capability": [
+    12,
+    1
+  ],
+  "shape": {
+    "hidden": 2048,
+    "intermediate": 512,
+    "num_experts": 256,
+    "top_k": 8
+  },
+  "stage_results": {
+    "gate_up": {
+      "max_abs_err": 1.5497207641601562e-06,
+      "rel_err": 2.5127008029812714e-07,
+      "pass": true,
+      "us": 175.23584365844727
+    },
+    "down": {
+      "max_abs_err": 8.344650268554688e-07,
+      "rel_err": 1.6326630714047496e-07,
+      "pass": true,
+      "us": 88.30592155456543
+    },
+    "end_to_end": {
+      "max_abs_err": 7.152557373046875e-07,
+      "rel_err": 1.4956297889057169e-07
+    }
+  },
+  "total_us": 263.5417652130127,
+  "all_pass": true
+}
