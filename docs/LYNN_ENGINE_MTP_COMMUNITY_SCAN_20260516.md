@@ -73,6 +73,12 @@ reports/a100/a100_mtp_sidecar_shape_audit_readme.json
 Therefore the sidecar is an **architecture oracle**, not a direct initializer.
 Lynn needs its own 2048-hidden MTP predictor weights.
 
+Lynn-owned shape spec:
+
+```text
+docs/LYNN_ENGINE_MTP_LYNN_2048_HEAD_SPEC_20260516.md
+```
+
 ### vLLM Supports `qwen3_next_mtp`
 
 vLLM exposes `qwen3_next_mtp` in speculative decoding configuration, and the
