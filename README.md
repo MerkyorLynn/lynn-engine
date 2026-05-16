@@ -27,7 +27,9 @@ Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B final 基�
 | **P13 graph-slot generate wiring** | ✅ `generate()` opt-in 接入 full-token graph slot;多 prompt 证明 future-window 不安全,下一步 state-refresh slot |
 | **P14 state-refresh probe** | ✅ full mutable state roundtrip **0.79ms**,远低于 graph capture 60-105ms |
 | **P15 runtime config audit** | ✅ 关闭全局 `LYNN_PACKED_DECODE`;恢复 **103.48 strict / 107.23 replay**;shared expert packed 路径证伪 |
-| **下一目标** | P60 grouped per-16 native-FP4 active expert FFN,同时保留 vendor-friendly NVFP4 v2 双 artifact 路线 |
+| **P85-P88 SM120a FP4 contract** | ✅ blockscaled FP4 MMA / E2M1 shift / CuTe tile layout / 真实 gate-up packed-code tile 全部 PASS |
+| **P89 per-16 scale contract** | ✅ 当前 Lynn-native artifact 可直接走 split16 per-16 scale native-FP4 路线;K32 单 scale 折叠不安全 |
+| **下一目标** | P90 real per-16 split16 active gate/up kernel;官方/vendor-friendly NVFP4 v2 放到 MTP/retrain + re-quant 批次 |
 
 当前主力 artifact:
 
@@ -98,6 +100,9 @@ Lynn 27B variable-pruned Recovery step5000
 | **P57 vendor route inventory** | ModelOpt / CT / variable-expert audit | 当前 env 无 ModelOpt/llmcompressor;CT 只有 converter;27B 非 HF-vanilla | 🔬 官方路线可走,但需 BF16→vendor NVFP4 v2 + padding/mask |
 | **P58 graph-off retest** | `cuda_tile_inter` + block graph 全关 | 28.43TPS median,greedy mismatch 仍在 | ❌ 不是 graph-only bug;scalar tile-inter 不做生产桥 |
 | **P59 dual NVFP4 dispatch** | metadata-only layout classifier | Lynn-native / vendor / BF16 / unknown packed FP4 fail-loud | ✅ 一个 engine,两类 NVFP4 artifact 显式分流 |
+| **P85-P87 SM120a FP4 tile contract** | CUTLASS/CuTe blockscaled FP4 MMA | E2M1 `<<2` shift + CuTe fragment layout | ✅ 非均匀 synthetic tile `max_abs=0` |
+| **P88 real gate/up packed-code tile** | real Lynn 27B layer28 expert116 | production activation FP4 codes + real packed weights,neutral scale | ✅ `max_abs=0`,证明当前 packed tensor 可进 SM120 MMA |
+| **P89 per-16 scale tile contract** | split16 neutral-scale MMA + 显式 per-16 scale accumulate | `rel_l2=1.0e-7`,tolerance PASS;K32 fold best rel_l2 0.0227 | ✅ 先消费当前 Lynn-native artifact;不等官方重重量化 |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:
@@ -204,6 +209,8 @@ P57 说明:官方/ModelOpt 路线不丢人,但它需要一份从 BF16 final 重�
 P58 说明:为排除“P56 只是 CUDA extension 与 linear-block graph 交互坏掉”的可能,重跑 `cuda_tile_inter` 并关闭 `LYNN_LINEAR_BLOCK_GRAPH*`。结果候选中位 **28.43TPS**,且 greedy mismatch 仍存在。结论:这不是 graph-only bug,而是 scalar tile-inter 累加/调度顺序本身足以扰动 greedy decode;该 runtime 线正式关闭,只保留 tile 形态信号。详见 [`docs/LYNN_ENGINE_P58_GATEUP_TILE_GRAPH_OFF_REJECTED_20260516.md`](docs/LYNN_ENGINE_P58_GATEUP_TILE_GRAPH_OFF_REJECTED_20260516.md)。
 
 P59 说明:新增 metadata-only NVFP4 layout classifier,在加载 tensor 之前区分 `lynn_native_per16_variable`、`compressed_tensors_nvfp4`、`modelopt_nvfp4`、`bf16_or_unquantized` 和 unknown packed FP4。目标是一个 Lynn engine 同时支持我们的原生 NVFP4 与未来官方/vendor-friendly NVFP4 v2,但任何交叉误加载都 fail-loud。详见 [`docs/LYNN_ENGINE_P59_DUAL_NVFP4_LAYOUT_DISPATCH_20260516.md`](docs/LYNN_ENGINE_P59_DUAL_NVFP4_LAYOUT_DISPATCH_20260516.md)。
+
+P85-P89 说明:官方/ModelOpt 路线继续保留,但 runtime 主线不再等待重重量化。P85-P87 已证明 SM120a blockscaled FP4 MMA、E2M1 `<<2` shift 和 CuTe fragment layout 全部正确;P88 把真实 Lynn 27B gate/up packed-code tile 跑到 `max_abs=0`;P89 进一步证明当前 Lynn-native per-16 scale artifact 可以用 **split16 neutral-scale MMA + 显式 per-group scale accumulate** 直接消费,误差仅 `rel_l2=1.0e-7`。简单把两个 K16 scale 折成一个 K32 scale 会漂移(best rel_l2 仍 0.0227),所以官方/vendor-friendly NVFP4 v2 应放到 MTP/retrain + re-quant 批次,不阻塞 P90 真 active expert kernel。详见 [`docs/LYNN_ENGINE_P85_BLOCKSCALED_FP4_MMA_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P85_BLOCKSCALED_FP4_MMA_CONTRACT_20260516.md)、[`docs/LYNN_ENGINE_P86_FP4_SHIFT_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P86_FP4_SHIFT_CONTRACT_20260516.md)、[`docs/LYNN_ENGINE_P87_FP4_LAYOUT_TILE_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P87_FP4_LAYOUT_TILE_CONTRACT_20260516.md)、[`docs/LYNN_ENGINE_P88_REAL_GATEUP_TILE_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P88_REAL_GATEUP_TILE_CONTRACT_20260516.md) 和 [`docs/LYNN_ENGINE_P89_PER16_SCALE_TILE_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P89_PER16_SCALE_TILE_CONTRACT_20260516.md)。
 
 P19 说明:在不改变数值路径的前提下,active MoE kernel block retune 把 R6000 full graph 从 **103.40/107.13 TPS** 提到 **115.41/120.25 TPS**。推荐配置已成为默认:`gate_hidden=256,down_inter=512`,并保留 env override 方便后续设备差异调参。详见 [`docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md`](docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md)。
 

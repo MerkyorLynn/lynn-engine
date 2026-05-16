@@ -27,7 +27,9 @@ Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent ru
 | **P13 graph-slot generate wiring** | ✅ `generate()` opt-in path uses full-token graph slots;multi-prompt gate proves future-window unsafe,next state-refresh slot |
 | **P14 state-refresh probe** | ✅ full mutable-state roundtrip costs only **0.79 ms**,far below graph capture at 60-105 ms |
 | **P15 runtime config audit** | ✅ disables global `LYNN_PACKED_DECODE`; restores **103.48 strict / 107.23 replay**; disproves packed shared expert path |
-| **Next target** | P60 grouped per-16 native-FP4 active expert FFN, while keeping the vendor-friendly NVFP4 v2 dual-artifact route open |
+| **P85-P88 SM120a FP4 contract** | ✅ blockscaled FP4 MMA / E2M1 shift / CuTe tile layout / real gate-up packed-code tile all pass |
+| **P89 per-16 scale contract** | ✅ the current Lynn-native artifact can go directly through split16 per-16 scale native-FP4; single K32 scale folding is unsafe |
+| **Next target** | P90 real per-16 split16 active gate/up kernel; defer official/vendor-friendly NVFP4 v2 to the MTP/retrain + re-quant cycle |
 
 Current primary artifact:
 
@@ -95,6 +97,9 @@ Lynn 27B variable-pruned Recovery step5000
 | **P56 gate/up tile runtime** | `LYNN_NATIVE_GATEUP_BACKEND=cuda_tile_inter` | 114.43 TPS median(+15.4%) but `!` loop / greedy mismatch | ❌ runtime not promoted; keep tile-shape signal |
 | **P58 graph-off retest** | `cuda_tile_inter` + block graph disabled | 28.43 TPS median,greedy mismatch remains | ❌ not a graph-only bug;scalar tile-inter is not a production bridge |
 | **P59 dual NVFP4 dispatch** | metadata-only layout classifier | Lynn-native / vendor / BF16 / unknown packed FP4 fail-loud | ✅ one engine,two explicit NVFP4 artifact families |
+| **P85-P87 SM120a FP4 tile contract** | CUTLASS/CuTe blockscaled FP4 MMA | E2M1 `<<2` shift + CuTe fragment layout | ✅ non-uniform synthetic tile `max_abs=0` |
+| **P88 real gate/up packed-code tile** | real Lynn 27B layer28 expert116 | production activation FP4 codes + real packed weights,neutral scale | ✅ `max_abs=0`;current packed tensors can feed SM120 MMA |
+| **P89 per-16 scale tile contract** | split16 neutral-scale MMA + explicit per-16 scale accumulation | `rel_l2=1.0e-7`,tolerance PASS;best K32 fold rel_l2 0.0227 | ✅ consume the current Lynn-native artifact first;do not wait for official re-quant |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -467,6 +472,22 @@ Lynn engine with two explicit NVFP4 artifact families: current Lynn-native
 per-16 variable experts and a future vendor-friendly NVFP4 v2. Cross-loading
 must fail loudly. See
 [`docs/LYNN_ENGINE_P59_DUAL_NVFP4_LAYOUT_DISPATCH_20260516.md`](docs/LYNN_ENGINE_P59_DUAL_NVFP4_LAYOUT_DISPATCH_20260516.md).
+
+P85-P89 note: the official/ModelOpt route remains open, but the runtime
+mainline no longer waits for re-quantization. P85-P87 prove the SM120a
+blockscaled FP4 MMA, E2M1 `<<2` shift, and CuTe fragment layout. P88 feeds a
+real Lynn 27B gate/up packed-code tile into that contract with `max_abs=0`. P89
+then proves that the current Lynn-native per-16 scale artifact can be consumed
+directly through **split16 neutral-scale MMA plus explicit per-group scale
+accumulation**, with only `rel_l2=1.0e-7` FP32-order tolerance. Folding two K16
+scales into one K32 scale drifts too much(best rel_l2 is still 0.0227), so the
+official/vendor-friendly NVFP4 v2 artifact should move with the MTP/retrain +
+re-quant cycle instead of blocking P90. See
+[`docs/LYNN_ENGINE_P85_BLOCKSCALED_FP4_MMA_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P85_BLOCKSCALED_FP4_MMA_CONTRACT_20260516.md),
+[`docs/LYNN_ENGINE_P86_FP4_SHIFT_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P86_FP4_SHIFT_CONTRACT_20260516.md),
+[`docs/LYNN_ENGINE_P87_FP4_LAYOUT_TILE_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P87_FP4_LAYOUT_TILE_CONTRACT_20260516.md),
+[`docs/LYNN_ENGINE_P88_REAL_GATEUP_TILE_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P88_REAL_GATEUP_TILE_CONTRACT_20260516.md), and
+[`docs/LYNN_ENGINE_P89_PER16_SCALE_TILE_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P89_PER16_SCALE_TILE_CONTRACT_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,
