@@ -1,0 +1,319 @@
+{
+  "schema_version": "lynn-engine-p84-sm120a-fp4-mma-register-mapping-v1",
+  "torch": "2.10.0+cu128",
+  "cuda_capability": [
+    12,
+    0
+  ],
+  "include_paths": [
+    "/root/miniconda3/lib/python3.12/site-packages/deep_gemm/include"
+  ],
+  "cuda_cflags": [
+    "-O3",
+    "--use_fast_math",
+    "-arch=sm_120a"
+  ],
+  "build_seconds": 53.23231363296509,
+  "num_cases": 1538,
+  "baseline_all_one": [
+    [
+      2.0,
+      2.0,
+      2.0,
+      2.0
+    ],
+    [
+      2.0,
+      2.0,
+      2.0,
+      2.0
+    ],
+    [
+      2.0,
+      2.0,
+      2.0,
+      2.0
+    ],
+    [
+      2.0,
+      2.0,
+      2.0,
+      2.0
+    ]
+  ],
+  "kind_summary": {
+    "baseline_zero": {
+      "count": 1,
+      "nonzero_cases": 0,
+      "nonzero_count_min": 0,
+      "nonzero_count_max": 0,
+      "sum_min": 0.0,
+      "sum_max": 0.0
+    },
+    "baseline_all_one": {
+      "count": 1,
+      "nonzero_cases": 1,
+      "nonzero_count_min": 128,
+      "nonzero_count_max": 128,
+      "sum_min": 256.0,
+      "sum_max": 256.0
+    },
+    "a_onehot": {
+      "count": 1024,
+      "nonzero_cases": 512,
+      "nonzero_count_min": 0,
+      "nonzero_count_max": 8,
+      "sum_min": -0.5,
+      "sum_max": 0.0
+    },
+    "b_onehot": {
+      "count": 512,
+      "nonzero_cases": 256,
+      "nonzero_count_min": 0,
+      "nonzero_count_max": 16,
+      "sum_min": -1.0,
+      "sum_max": 0.0
+    }
+  },
+  "representative_records": [
+    {
+      "kind": "baseline_zero",
+      "row": 0,
+      "sample_lanes": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "nonzero_count": 0,
+      "sum": 0.0
+    },
+    {
+      "kind": "baseline_all_one",
+      "row": 1,
+      "sample_lanes": [
+        [
+          2.0,
+          2.0,
+          2.0,
+          2.0
+        ],
+        [
+          2.0,
+          2.0,
+          2.0,
+          2.0
+        ],
+        [
+          2.0,
+          2.0,
+          2.0,
+          2.0
+        ],
+        [
+          2.0,
+          2.0,
+          2.0,
+          2.0
+        ]
+      ],
+      "nonzero_count": 128,
+      "sum": 256.0,
+      "first_nonzero": {
+        "lane": 0,
+        "acc": 0,
+        "value": 2.0
+      },
+      "last_nonzero": {
+        "lane": 31,
+        "acc": 3,
+        "value": 2.0
+      }
+    },
+    {
+      "kind": "a_onehot",
+      "selected_lane": 0,
+      "reg": 0,
+      "nibble": 0,
+      "row": 2,
+      "sample_lanes": [
+        [
+          -0.0625,
+          -0.0625,
+          0.0,
+          0.0
+        ],
+        [
+          -0.0625,
+          -0.0625,
+          0.0,
+          0.0
+        ],
+        [
+          -0.0625,
+          -0.0625,
+          0.0,
+          0.0
+        ],
+        [
+          -0.0625,
+          -0.0625,
+          0.0,
+          0.0
+        ]
+      ],
+      "nonzero_count": 8,
+      "sum": -0.5,
+      "first_nonzero": {
+        "lane": 0,
+        "acc": 0,
+        "value": -0.0625
+      },
+      "last_nonzero": {
+        "lane": 3,
+        "acc": 1,
+        "value": -0.0625
+      }
+    },
+    {
+      "kind": "a_onehot",
+      "selected_lane": 0,
+      "reg": 0,
+      "nibble": 1,
+      "row": 3,
+      "sample_lanes": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "nonzero_count": 0,
+      "sum": 0.0
+    },
+    {
+      "kind": "b_onehot",
+      "selected_lane": 31,
+      "reg": 1,
+      "nibble": 6,
+      "row": 1536,
+      "sample_lanes": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -0.0625,
+          0.0,
+          -0.0625
+        ]
+      ],
+      "nonzero_count": 16,
+      "sum": -1.0,
+      "first_nonzero": {
+        "lane": 3,
+        "acc": 1,
+        "value": -0.0625
+      },
+      "last_nonzero": {
+        "lane": 31,
+        "acc": 3,
+        "value": -0.0625
+      }
+    },
+    {
+      "kind": "b_onehot",
+      "selected_lane": 31,
+      "reg": 1,
+      "nibble": 7,
+      "row": 1537,
+      "sample_lanes": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "nonzero_count": 0,
+      "sum": 0.0
+    }
+  ],
+  "records": null,
+  "records_included": false,
+  "records_are_compact": false,
+  "ok": true,
+  "decision": "Sparse E2M1 register mapping captured; use records to derive packed-row layout."
+}
