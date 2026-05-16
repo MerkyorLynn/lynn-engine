@@ -35,6 +35,49 @@ import torch.nn.functional as F
 _EXTENSION = None
 _BUILD_DIR_DEFAULT = "/tmp/lynn_spark_fp8_build"
 
+# E2M1 representable magnitudes (for batched quantization helper)
+_E2M1_TABLE_CACHE: dict[torch.device, torch.Tensor] = {}
+
+
+def _get_e2m1_table(device: torch.device) -> torch.Tensor:
+    if device not in _E2M1_TABLE_CACHE:
+        _E2M1_TABLE_CACHE[device] = torch.tensor(
+            [0.0, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0],
+            dtype=torch.float32, device=device,
+        )
+    return _E2M1_TABLE_CACHE[device]
+
+
+def _quantize_e2m1_batched(x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    """Quantize [N, K] (or [K]) tensor to packed E2M1 + per-16 FP32 scale.
+
+    Lynn's `quantize_fp4_m1_native` only accepts [K] or [1,K]. The inter
+    tensor after SiLU(gate)*up has shape [top_k, intermediate] which needs
+    a batched quantizer.
+
+    Returns: (packed [N, K/2] uint8, scale [N, K/16] float32)
+    """
+    flat = x.dim() == 1
+    if flat:
+        x = x.unsqueeze(0)
+    N, K = x.shape
+    assert K % 16 == 0, f"K={K} must be multiple of 16"
+
+    table = _get_e2m1_table(x.device)
+    xg = x.float().reshape(N, K // 16, 16)
+    abs_max = xg.abs().amax(dim=-1)
+    scale = (abs_max / 6.0).clamp_min(1e-8)
+    normalized = (xg.abs() / scale.unsqueeze(-1)).clamp(0, 6.0)
+    mag = torch.argmin((normalized.unsqueeze(-1) - table.view(1, 1, 1, -1)).abs(), dim=-1)
+    sign = (xg < 0).to(torch.uint8) * 8
+    codes = (mag.to(torch.uint8) | sign).reshape(N, K)
+    packed = (codes[:, 0::2] | (codes[:, 1::2] << 4)).contiguous()
+    scale = scale.contiguous()
+    if flat:
+        packed = packed.squeeze(0)
+        scale = scale.squeeze(0)
+    return packed, scale
+
 
 _CPP_SOURCE = r"""
 #include <torch/extension.h>
@@ -451,10 +494,11 @@ def active_moe_spark_fp8(
     up = gate_up_out[:, intermediate:]
     inter = F.silu(gate) * up  # [top_k, intermediate] FP32
 
-    # Stage 3: quantize inter to E2M1 for down kernel (same defensive conversion)
-    inter_packed_fp4, inter_scale_fp = quantize_fp4_m1_native(inter.contiguous())
-    inter_packed = inter_packed_fp4.view(torch.uint8).contiguous()
-    inter_scale = inter_scale_fp.to(torch.float32).contiguous()
+    # Stage 3: quantize inter [top_k, INTER] to E2M1 packed + per-16 scale.
+    # Use our batched helper since Lynn's quantize_fp4_m1_native only handles [K]/[1,K].
+    inter_packed, inter_scale = _quantize_e2m1_batched(inter.contiguous())
+    inter_packed = inter_packed.contiguous()
+    inter_scale = inter_scale.contiguous()
 
     hidden_dim = hidden_bf16.shape[-1]
     down_out = ext.down(
