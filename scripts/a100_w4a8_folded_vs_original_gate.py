@@ -110,15 +110,19 @@ def main() -> int:
     parser.add_argument("--out", required=True)
     parser.add_argument("--layers", type=int, nargs="+", required=True)
     parser.add_argument("--prompts", nargs="*", default=PROMPTS)
+    parser.add_argument("--prompts-file")
     parser.add_argument("--fmt", default="e4m3", choices=["e4m3", "e5m2"])
     parser.add_argument("--device", default="cuda")
     args = parser.parse_args()
+    prompts = args.prompts
+    if args.prompts_file:
+        prompts = json.loads(Path(args.prompts_file).read_text(encoding="utf-8"))
 
     start = time.time()
     refs, load_info = _collect_refs(
         args.original_model,
         layers=args.layers,
-        prompts=args.prompts,
+        prompts=prompts,
         fmt=args.fmt,
         device=args.device,
     )
@@ -175,7 +179,8 @@ def main() -> int:
         "folded_model": args.folded_model,
         "format": args.fmt,
         "layers": args.layers,
-        "prompt_count": len(args.prompts),
+        "prompt_count": len(prompts),
+        "prompts_file": args.prompts_file,
         "cases": cases,
         "summary_by_layer": by_layer,
         "aggregate": {
