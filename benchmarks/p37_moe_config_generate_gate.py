@@ -129,6 +129,7 @@ def main() -> int:
     ap.add_argument("--model", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--max-new", type=int, default=128)
+    ap.add_argument("--baseline", action="append", default=[], help="Baseline env override KEY=VALUE")
     ap.add_argument("--candidate", action="append", default=[], help="Candidate env override KEY=VALUE")
     ap.add_argument("--prompts-jsonl")
     args = ap.parse_args()
@@ -147,8 +148,15 @@ def main() -> int:
         if not prompts:
             raise ValueError(f"No prompts found in {args.prompts_jsonl}")
 
+    baseline_overrides = _parse_overrides(args.baseline)
     candidate_overrides = _parse_overrides(args.candidate)
-    baseline_rows = _run_mode(args.model, label="baseline", overrides={}, max_new=args.max_new, prompts=prompts)
+    baseline_rows = _run_mode(
+        args.model,
+        label="baseline",
+        overrides=baseline_overrides,
+        max_new=args.max_new,
+        prompts=prompts,
+    )
     candidate_rows = _run_mode(
         args.model,
         label="candidate",
@@ -170,6 +178,7 @@ def main() -> int:
     result = {
         "schema_version": "lynn-engine-p37-moe-config-generate-gate-v1",
         "model": args.model,
+        "baseline_overrides": baseline_overrides,
         "candidate_overrides": candidate_overrides,
         "max_new": args.max_new,
         "prompt_count": len(prompts),
