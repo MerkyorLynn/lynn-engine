@@ -1,0 +1,680 @@
+[
+  {
+    "path": "reports/a100/a100_w4a8_generation_gate_structured_v10_top6_12prompt_48tok.json",
+    "candidate": "structured_v10_top6_12prompt_48tok",
+    "decision": "RED: W4A8 changes greedy decode early; train/adapt before runtime promotion.",
+    "exact": 8,
+    "total": 12,
+    "min_prefix": 13.0,
+    "mean_prefix": 33.333333333333336,
+    "risk_counts": {
+      "high": 4,
+      "medium": 0,
+      "low": 0
+    },
+    "worst_rows": [
+      {
+        "prompt_id": 11,
+        "risk": "high",
+        "same_prefix_tokens": 13,
+        "prompt": "解释 linear attention 的优势,要求用三条 bullet,不要出现 <think> 标签。"
+      },
+      {
+        "prompt_id": 3,
+        "risk": "high",
+        "same_prefix_tokens": 17,
+        "prompt": "请给出一个 JSON: {\"city\":\"Tokyo\",\"unit\":\"celsius\"}"
+      },
+      {
+        "prompt_id": 8,
+        "risk": "high",
+        "same_prefix_tokens": 24,
+        "prompt": "写一个 Python 函数 normalize_city(payload),输入 dict,返回 city 小写和 unit 默认 celsius。"
+      },
+      {
+        "prompt_id": 0,
+        "risk": "high",
+        "same_prefix_tokens": 42,
+        "prompt": "用一句话解释 W4A8 为什么可能比 W4A4 更稳。"
+      }
+    ]
+  },
+  {
+    "path": "reports/a100/a100_w4a8_generation_gate_structured_v9_top5_12prompt_48tok.json",
+    "candidate": "structured_v9_top5_12prompt_48tok",
+    "decision": "RED: W4A8 changes greedy decode early; train/adapt before runtime promotion.",
+    "exact": 8,
+    "total": 12,
+    "min_prefix": 7.0,
+    "mean_prefix": 34.25,
+    "risk_counts": {
+      "high": 4,
+      "medium": 0,
+      "low": 0
+    },
+    "worst_rows": [
+      {
+        "prompt_id": 11,
+        "risk": "high",
+        "same_prefix_tokens": 7,
+        "prompt": "解释 linear attention 的优势,要求用三条 bullet,不要出现 <think> 标签。"
+      },
+      {
+        "prompt_id": 3,
+        "risk": "high",
+        "same_prefix_tokens": 17,
+        "prompt": "请给出一个 JSON: {\"city\":\"Tokyo\",\"unit\":\"celsius\"}"
+      },
+      {
+        "prompt_id": 5,
+        "risk": "high",
+        "same_prefix_tokens": 41,
+        "prompt": "解释长上下文推理里 linear attention 的优势。"
+      },
+      {
+        "prompt_id": 0,
+        "risk": "high",
+        "same_prefix_tokens": 42,
+        "prompt": "用一句话解释 W4A8 为什么可能比 W4A4 更稳。"
+      }
+    ]
+  },
+  {
+    "path": "reports/a100/a100_w4a8_generation_gate_structured_v11_top4_alt30_12prompt_48tok.json",
+    "candidate": "structured_v11_top4_alt30_12prompt_48tok",
+    "decision": "RED: W4A8 changes greedy decode early; train/adapt before runtime promotion.",
+    "exact": 7,
+    "total": 12,
+    "min_prefix": 12.0,
+    "mean_prefix": 32.416666666666664,
+    "risk_counts": {
+      "high": 5,
+      "medium": 0,
+      "low": 0
+    },
+    "worst_rows": [
+      {
+        "prompt_id": 11,
+        "risk": "high",
+        "same_prefix_tokens": 12,
+        "prompt": "解释 linear attention 的优势,要求用三条 bullet,不要出现 <think> 标签。"
+      },
+      {
+        "prompt_id": 3,
+        "risk": "high",
+        "same_prefix_tokens": 17,
+        "prompt": "请给出一个 JSON: {\"city\":\"Tokyo\",\"unit\":\"celsius\"}"
+      },
+      {
+        "prompt_id": 1,
+        "risk": "high",
+        "same_prefix_tokens": 22,
+        "prompt": "请写一个 Python 函数,判断字符串是否是回文。"
+      },
+      {
+        "prompt_id": 5,
+        "risk": "high",
+        "same_prefix_tokens": 40,
+        "prompt": "解释长上下文推理里 linear attention 的优势。"
+      },
+      {
+        "prompt_id": 0,
+        "risk": "high",
+        "same_prefix_tokens": 42,
+        "prompt": "用一句话解释 W4A8 为什么可能比 W4A4 更稳。"
+      }
+    ]
+  },
+  {
+    "path": "reports/a100/a100_w4a8_generation_gate_structured_v13_top7_add17_12prompt_48tok.json",
+    "candidate": "structured_v13_top7_add17_12prompt_48tok",
+    "decision": "RED: W4A8 changes greedy decode early; train/adapt before runtime promotion.",
+    "exact": 7,
+    "total": 12,
+    "min_prefix": 7.0,
+    "mean_prefix": 36.083333333333336,
+    "risk_counts": {
+      "high": 5,
+      "medium": 0,
+      "low": 0
+    },
+    "worst_rows": [
+      {
+        "prompt_id": 9,
+        "risk": "high",
+        "same_prefix_tokens": 7,
+        "prompt": "请修复这个 JSON 并只输出修复后的 JSON: {'city':'Tokyo','unit':'celsius',}"
+      },
+      {
+        "prompt_id": 3,
+        "risk": "high",
+        "same_prefix_tokens": 17,
+        "prompt": "请给出一个 JSON: {\"city\":\"Tokyo\",\"unit\":\"celsius\"}"
+      },
+      {
+        "prompt_id": 5,
+        "risk": "high",
+        "same_prefix_tokens": 41,
+        "prompt": "解释长上下文推理里 linear attention 的优势。"
+      },
+      {
+        "prompt_id": 8,
+        "risk": "high",
+        "same_prefix_tokens": 41,
+        "prompt": "写一个 Python 函数 normalize_city(payload),输入 dict,返回 city 小写和 unit 默认 celsius。"
+      },
+      {
+        "prompt_id": 0,
+        "risk": "high",
+        "same_prefix_tokens": 43,
+        "prompt": "用一句话解释 W4A8 为什么可能比 W4A4 更稳。"
+      }
+    ]
+  },
+  {
+    "path": "reports/a100/a100_w4a8_generation_gate_structured_v7_top4_12prompt_48tok.json",
+    "candidate": "structured_v7_top4_12prompt_48tok",
+    "decision": "RED: W4A8 changes greedy decode early; train/adapt before runtime promotion.",
+    "exact": 7,
+    "total": 12,
+    "min_prefix": 7.0,
+    "mean_prefix": 33.583333333333336,
+    "risk_counts": {
+      "high": 5,
+      "medium": 0,
+      "low": 0
+    },
+    "worst_rows": [
+      {
+        "prompt_id": 11,
+        "risk": "high",
+        "same_prefix_tokens": 7,
+        "prompt": "解释 linear attention 的优势,要求用三条 bullet,不要出现 <think> 标签。"
+      },
+      {
+        "prompt_id": 3,
+        "risk": "high",
+        "same_prefix_tokens": 17,
+        "prompt": "请给出一个 JSON: {\"city\":\"Tokyo\",\"unit\":\"celsius\"}"
+      },
+      {
+        "prompt_id": 1,
+        "risk": "high",
+        "same_prefix_tokens": 40,
+        "prompt": "请写一个 Python 函数,判断字符串是否是回文。"
+      },
+      {
+        "prompt_id": 5,
+        "risk": "high",
+        "same_prefix_tokens": 41,
+        "prompt": "解释长上下文推理里 linear attention 的优势。"
+      },
+      {
+        "prompt_id": 0,
+        "risk": "high",
+        "same_prefix_tokens": 42,
+        "prompt": "用一句话解释 W4A8 为什么可能比 W4A4 更稳。"
+      }
+    ]
+  },
+  {
+    "path": "reports/a100/a100_w4a8_generation_gate_structured_v14_top6_add17_no26_12prompt_48tok.json",
+    "candidate": "structured_v14_top6_add17_no26_12prompt_48tok",
+    "decision": "RED: W4A8 changes greedy decode early; train/adapt before runtime promotion.",
+    "exact": 7,
+    "total": 12,
+    "min_prefix": 7.0,
+    "mean_prefix": 31.833333333333332,
+    "risk_counts": {
+      "high": 5,
+      "medium": 0,
+      "low": 0
+    },
+    "worst_rows": [
+      {
+        "prompt_id": 11,
+        "risk": "high",
+        "same_prefix_tokens": 7,
+        "prompt": "解释 linear attention 的优势,要求用三条 bullet,不要出现 <think> 标签。"
+      },
+      {
+        "prompt_id": 3,
+        "risk": "high",
+        "same_prefix_tokens": 17,
+        "prompt": "请给出一个 JSON: {\"city\":\"Tokyo\",\"unit\":\"celsius\"}"
+      },
+      {
+        "prompt_id": 8,
+        "risk": "high",
+        "same_prefix_tokens": 24,
+        "prompt": "写一个 Python 函数 normalize_city(payload),输入 dict,返回 city 小写和 unit 默认 celsius。"
+      },
+      {
+        "prompt_id": 0,
+        "risk": "high",
+        "same_prefix_tokens": 38,
+        "prompt": "用一句话解释 W4A8 为什么可能比 W4A4 更稳。"
+      },
+      {
+        "prompt_id": 5,
+        "risk": "high",
+        "same_prefix_tokens": 40,
+        "prompt": "解释长上下文推理里 linear attention 的优势。"
+      }
+    ]
+  },
+  {
+    "path": "reports/a100/a100_w4a8_generation_gate_structured_v8_top3_12prompt_48tok.json",
+    "candidate": "structured_v8_top3_12prompt_48tok",
+    "decision": "RED: W4A8 changes greedy decode early; train/adapt before runtime promotion.",
+    "exact": 7,
+    "total": 12,
+    "min_prefix": 7.0,
+    "mean_prefix": 30.583333333333332,
+    "risk_counts": {
+      "high": 5,
+      "medium": 0,
+      "low": 0
+    },
+    "worst_rows": [
+      {
+        "prompt_id": 9,
+        "risk": "high",
+        "same_prefix_tokens": 7,
+        "prompt": "请修复这个 JSON 并只输出修复后的 JSON: {'city':'Tokyo','unit':'celsius',}"
+      },
+      {
+        "prompt_id": 11,
+        "risk": "high",
+        "same_prefix_tokens": 7,
+        "prompt": "解释 linear attention 的优势,要求用三条 bullet,不要出现 <think> 标签。"
+      },
+      {
+        "prompt_id": 5,
+        "risk": "high",
+        "same_prefix_tokens": 11,
+        "prompt": "解释长上下文推理里 linear attention 的优势。"
+      },
+      {
+        "prompt_id": 3,
+        "risk": "high",
+        "same_prefix_tokens": 16,
+        "prompt": "请给出一个 JSON: {\"city\":\"Tokyo\",\"unit\":\"celsius\"}"
+      },
+      {
+        "prompt_id": 0,
+        "risk": "high",
+        "same_prefix_tokens": 42,
+        "prompt": "用一句话解释 W4A8 为什么可能比 W4A4 更稳。"
+      }
+    ]
+  },
+  {
+    "path": "reports/a100/a100_w4a8_generation_gate_structured_v12_top7_add23_12prompt_48tok.json",
+    "candidate": "structured_v12_top7_add23_12prompt_48tok",
+    "decision": "RED: W4A8 changes greedy decode early; train/adapt before runtime promotion.",
+    "exact": 6,
+    "total": 12,
+    "min_prefix": 1.0,
+    "mean_prefix": 28.916666666666668,
+    "risk_counts": {
+      "high": 6,
+      "medium": 0,
+      "low": 0
+    },
+    "worst_rows": [
+      {
+        "prompt_id": 7,
+        "risk": "high",
+        "same_prefix_tokens": 1,
+        "prompt": "把 {\"city\":\"Tokyo\",\"unit\":\"celsius\"} 转成 OpenAPI 3.0 requestBody schema,只输出 yaml。"
+      },
+      {
+        "prompt_id": 9,
+        "risk": "high",
+        "same_prefix_tokens": 7,
+        "prompt": "请修复这个 JSON 并只输出修复后的 JSON: {'city':'Tokyo','unit':'celsius',}"
+      },
+      {
+        "prompt_id": 11,
+        "risk": "high",
+        "same_prefix_tokens": 7,
+        "prompt": "解释 linear attention 的优势,要求用三条 bullet,不要出现 <think> 标签。"
+      },
+      {
+        "prompt_id": 3,
+        "risk": "high",
+        "same_prefix_tokens": 17,
+        "prompt": "请给出一个 JSON: {\"city\":\"Tokyo\",\"unit\":\"celsius\"}"
+      },
+      {
+        "prompt_id": 0,
+        "risk": "high",
+        "same_prefix_tokens": 38,
+        "prompt": "用一句话解释 W4A8 为什么可能比 W4A4 更稳。"
+      }
+    ]
+  },
+  {
+    "path": "reports/a100/a100_w4a8_generation_gate_structured_v3_minimal_12prompt_48tok.json",
+    "candidate": "structured_v3_minimal_12prompt_48tok",
+    "decision": "RED: W4A8 changes greedy decode early; train/adapt before runtime promotion.",
+    "exact": 6,
+    "total": 12,
+    "min_prefix": 1.0,
+    "mean_prefix": 28.666666666666668,
+    "risk_counts": {
+      "high": 6,
+      "medium": 0,
+      "low": 0
+    },
+    "worst_rows": [
+      {
+        "prompt_id": 7,
+        "risk": "high",
+        "same_prefix_tokens": 1,
+        "prompt": "把 {\"city\":\"Tokyo\",\"unit\":\"celsius\"} 转成 OpenAPI 3.0 requestBody schema,只输出 yaml。"
+      },
+      {
+        "prompt_id": 9,
+        "risk": "high",
+        "same_prefix_tokens": 7,
+        "prompt": "请修复这个 JSON 并只输出修复后的 JSON: {'city':'Tokyo','unit':'celsius',}"
+      },
+      {
+        "prompt_id": 11,
+        "risk": "high",
+        "same_prefix_tokens": 12,
+        "prompt": "解释 linear attention 的优势,要求用三条 bullet,不要出现 <think> 标签。"
+      },
+      {
+        "prompt_id": 3,
+        "risk": "high",
+        "same_prefix_tokens": 17,
+        "prompt": "请给出一个 JSON: {\"city\":\"Tokyo\",\"unit\":\"celsius\"}"
+      },
+      {
+        "prompt_id": 5,
+        "risk": "high",
+        "same_prefix_tokens": 29,
+        "prompt": "解释长上下文推理里 linear attention 的优势。"
+      }
+    ]
+  },
+  {
+    "path": "reports/a100/a100_w4a8_generation_gate_structured_v6_top8_12prompt_48tok.json",
+    "candidate": "structured_v6_top8_12prompt_48tok",
+    "decision": "RED: W4A8 changes greedy decode early; train/adapt before runtime promotion.",
+    "exact": 6,
+    "total": 12,
+    "min_prefix": 1.0,
+    "mean_prefix": 26.916666666666668,
+    "risk_counts": {
+      "high": 6,
+      "medium": 0,
+      "low": 0
+    },
+    "worst_rows": [
+      {
+        "prompt_id": 7,
+        "risk": "high",
+        "same_prefix_tokens": 1,
+        "prompt": "把 {\"city\":\"Tokyo\",\"unit\":\"celsius\"} 转成 OpenAPI 3.0 requestBody schema,只输出 yaml。"
+      },
+      {
+        "prompt_id": 11,
+        "risk": "high",
+        "same_prefix_tokens": 7,
+        "prompt": "解释 linear attention 的优势,要求用三条 bullet,不要出现 <think> 标签。"
+      },
+      {
+        "prompt_id": 5,
+        "risk": "high",
+        "same_prefix_tokens": 11,
+        "prompt": "解释长上下文推理里 linear attention 的优势。"
+      },
+      {
+        "prompt_id": 3,
+        "risk": "high",
+        "same_prefix_tokens": 17,
+        "prompt": "请给出一个 JSON: {\"city\":\"Tokyo\",\"unit\":\"celsius\"}"
+      },
+      {
+        "prompt_id": 0,
+        "risk": "high",
+        "same_prefix_tokens": 38,
+        "prompt": "用一句话解释 W4A8 为什么可能比 W4A4 更稳。"
+      }
+    ]
+  },
+  {
+    "path": "reports/a100/a100_w4a8_generation_gate_structured_v2_12prompt_48tok.json",
+    "candidate": "structured_v2_12prompt_48tok",
+    "decision": "RED: W4A8 changes greedy decode early; train/adapt before runtime promotion.",
+    "exact": 5,
+    "total": 12,
+    "min_prefix": 1.0,
+    "mean_prefix": 28.0,
+    "risk_counts": {
+      "high": 6,
+      "medium": 0,
+      "low": 1
+    },
+    "worst_rows": [
+      {
+        "prompt_id": 7,
+        "risk": "high",
+        "same_prefix_tokens": 1,
+        "prompt": "把 {\"city\":\"Tokyo\",\"unit\":\"celsius\"} 转成 OpenAPI 3.0 requestBody schema,只输出 yaml。"
+      },
+      {
+        "prompt_id": 9,
+        "risk": "high",
+        "same_prefix_tokens": 7,
+        "prompt": "请修复这个 JSON 并只输出修复后的 JSON: {'city':'Tokyo','unit':'celsius',}"
+      },
+      {
+        "prompt_id": 11,
+        "risk": "high",
+        "same_prefix_tokens": 13,
+        "prompt": "解释 linear attention 的优势,要求用三条 bullet,不要出现 <think> 标签。"
+      },
+      {
+        "prompt_id": 3,
+        "risk": "high",
+        "same_prefix_tokens": 17,
+        "prompt": "请给出一个 JSON: {\"city\":\"Tokyo\",\"unit\":\"celsius\"}"
+      },
+      {
+        "prompt_id": 5,
+        "risk": "high",
+        "same_prefix_tokens": 29,
+        "prompt": "解释长上下文推理里 linear attention 的优势。"
+      }
+    ]
+  },
+  {
+    "path": "reports/a100/a100_w4a8_generation_gate_structured_v15_top6_add18_no26_12prompt_48tok.json",
+    "candidate": "structured_v15_top6_add18_no26_12prompt_48tok",
+    "decision": "RED: W4A8 changes greedy decode early; train/adapt before runtime promotion.",
+    "exact": 5,
+    "total": 12,
+    "min_prefix": 1.0,
+    "mean_prefix": 27.25,
+    "risk_counts": {
+      "high": 7,
+      "medium": 0,
+      "low": 0
+    },
+    "worst_rows": [
+      {
+        "prompt_id": 7,
+        "risk": "high",
+        "same_prefix_tokens": 1,
+        "prompt": "把 {\"city\":\"Tokyo\",\"unit\":\"celsius\"} 转成 OpenAPI 3.0 requestBody schema,只输出 yaml。"
+      },
+      {
+        "prompt_id": 9,
+        "risk": "high",
+        "same_prefix_tokens": 7,
+        "prompt": "请修复这个 JSON 并只输出修复后的 JSON: {'city':'Tokyo','unit':'celsius',}"
+      },
+      {
+        "prompt_id": 11,
+        "risk": "high",
+        "same_prefix_tokens": 7,
+        "prompt": "解释 linear attention 的优势,要求用三条 bullet,不要出现 <think> 标签。"
+      },
+      {
+        "prompt_id": 3,
+        "risk": "high",
+        "same_prefix_tokens": 17,
+        "prompt": "请给出一个 JSON: {\"city\":\"Tokyo\",\"unit\":\"celsius\"}"
+      },
+      {
+        "prompt_id": 8,
+        "risk": "high",
+        "same_prefix_tokens": 24,
+        "prompt": "写一个 Python 函数 normalize_city(payload),输入 dict,返回 city 小写和 unit 默认 celsius。"
+      }
+    ]
+  },
+  {
+    "path": "reports/a100/a100_w4a8_generation_gate_structured_v5_ultramin_12prompt_48tok.json",
+    "candidate": "structured_v5_ultramin_12prompt_48tok",
+    "decision": "RED: W4A8 changes greedy decode early; train/adapt before runtime promotion.",
+    "exact": 4,
+    "total": 12,
+    "min_prefix": 1.0,
+    "mean_prefix": 23.666666666666668,
+    "risk_counts": {
+      "high": 8,
+      "medium": 0,
+      "low": 0
+    },
+    "worst_rows": [
+      {
+        "prompt_id": 7,
+        "risk": "high",
+        "same_prefix_tokens": 1,
+        "prompt": "把 {\"city\":\"Tokyo\",\"unit\":\"celsius\"} 转成 OpenAPI 3.0 requestBody schema,只输出 yaml。"
+      },
+      {
+        "prompt_id": 9,
+        "risk": "high",
+        "same_prefix_tokens": 7,
+        "prompt": "请修复这个 JSON 并只输出修复后的 JSON: {'city':'Tokyo','unit':'celsius',}"
+      },
+      {
+        "prompt_id": 8,
+        "risk": "high",
+        "same_prefix_tokens": 12,
+        "prompt": "写一个 Python 函数 normalize_city(payload),输入 dict,返回 city 小写和 unit 默认 celsius。"
+      },
+      {
+        "prompt_id": 11,
+        "risk": "high",
+        "same_prefix_tokens": 13,
+        "prompt": "解释 linear attention 的优势,要求用三条 bullet,不要出现 <think> 标签。"
+      },
+      {
+        "prompt_id": 0,
+        "risk": "high",
+        "same_prefix_tokens": 14,
+        "prompt": "用一句话解释 W4A8 为什么可能比 W4A4 更稳。"
+      }
+    ]
+  },
+  {
+    "path": "reports/a100/a100_w4a8_generation_gate_structured_v1_12prompt_48tok.json",
+    "candidate": "structured_v1_12prompt_48tok",
+    "decision": "RED: W4A8 changes greedy decode early; train/adapt before runtime promotion.",
+    "exact": 4,
+    "total": 12,
+    "min_prefix": 1.0,
+    "mean_prefix": 21.25,
+    "risk_counts": {
+      "high": 7,
+      "medium": 0,
+      "low": 1
+    },
+    "worst_rows": [
+      {
+        "prompt_id": 7,
+        "risk": "high",
+        "same_prefix_tokens": 1,
+        "prompt": "把 {\"city\":\"Tokyo\",\"unit\":\"celsius\"} 转成 OpenAPI 3.0 requestBody schema,只输出 yaml。"
+      },
+      {
+        "prompt_id": 11,
+        "risk": "high",
+        "same_prefix_tokens": 3,
+        "prompt": "解释 linear attention 的优势,要求用三条 bullet,不要出现 <think> 标签。"
+      },
+      {
+        "prompt_id": 8,
+        "risk": "high",
+        "same_prefix_tokens": 5,
+        "prompt": "写一个 Python 函数 normalize_city(payload),输入 dict,返回 city 小写和 unit 默认 celsius。"
+      },
+      {
+        "prompt_id": 9,
+        "risk": "high",
+        "same_prefix_tokens": 7,
+        "prompt": "请修复这个 JSON 并只输出修复后的 JSON: {'city':'Tokyo','unit':'celsius',}"
+      },
+      {
+        "prompt_id": 3,
+        "risk": "high",
+        "same_prefix_tokens": 10,
+        "prompt": "请给出一个 JSON: {\"city\":\"Tokyo\",\"unit\":\"celsius\"}"
+      }
+    ]
+  },
+  {
+    "path": "reports/a100/a100_w4a8_generation_gate_structured_v4_wide_12prompt_48tok.json",
+    "candidate": "structured_v4_wide_12prompt_48tok",
+    "decision": "RED: W4A8 changes greedy decode early; train/adapt before runtime promotion.",
+    "exact": 3,
+    "total": 12,
+    "min_prefix": 1.0,
+    "mean_prefix": 24.166666666666668,
+    "risk_counts": {
+      "high": 8,
+      "medium": 0,
+      "low": 1
+    },
+    "worst_rows": [
+      {
+        "prompt_id": 7,
+        "risk": "high",
+        "same_prefix_tokens": 1,
+        "prompt": "把 {\"city\":\"Tokyo\",\"unit\":\"celsius\"} 转成 OpenAPI 3.0 requestBody schema,只输出 yaml。"
+      },
+      {
+        "prompt_id": 9,
+        "risk": "high",
+        "same_prefix_tokens": 7,
+        "prompt": "请修复这个 JSON 并只输出修复后的 JSON: {'city':'Tokyo','unit':'celsius',}"
+      },
+      {
+        "prompt_id": 3,
+        "risk": "high",
+        "same_prefix_tokens": 10,
+        "prompt": "请给出一个 JSON: {\"city\":\"Tokyo\",\"unit\":\"celsius\"}"
+      },
+      {
+        "prompt_id": 11,
+        "risk": "high",
+        "same_prefix_tokens": 13,
+        "prompt": "解释 linear attention 的优势,要求用三条 bullet,不要出现 <think> 标签。"
+      },
+      {
+        "prompt_id": 1,
+        "risk": "high",
+        "same_prefix_tokens": 22,
+        "prompt": "请写一个 Python 函数,判断字符串是否是回文。"
+      }
+    ]
+  }
+]

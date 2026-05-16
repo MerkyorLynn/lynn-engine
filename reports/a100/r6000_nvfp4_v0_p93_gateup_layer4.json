@@ -1,0 +1,100 @@
+{
+  "schema_version": "lynn-engine-p93-sm120a-split16-gateup-topk-backend-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-w4a8-nvfp4-v0",
+  "layer": 4,
+  "prompt": "用一句话解释 MoE active parameters",
+  "top_k": 8,
+  "expert_ids": [
+    73,
+    106,
+    119,
+    139,
+    146,
+    200,
+    213,
+    59
+  ],
+  "scale_byte": 127,
+  "torch": "2.10.0+cu128",
+  "cuda_capability": [
+    12,
+    0
+  ],
+  "include_paths": [
+    "/root/miniconda3/lib/python3.12/site-packages/deep_gemm/include"
+  ],
+  "cuda_cflags": [
+    "-O3",
+    "--use_fast_math",
+    "-arch=sm_120a",
+    "-DLYNN_ENABLE_SM120A_FP4_MMA=1"
+  ],
+  "build_seconds": 62.14011764526367,
+  "reference_seconds": 0.8200907707214355,
+  "repeats": 20,
+  "warmup": 4,
+  "native_times_ms": [
+    0.0663679987192154,
+    0.05862399935722351,
+    0.05830400064587593,
+    0.057440001517534256,
+    0.05772799998521805,
+    0.058079998940229416,
+    0.05587200075387955,
+    0.05766399949789047,
+    0.05587200075387955,
+    0.05827200040221214,
+    0.057760000228881836,
+    0.057792000472545624,
+    0.05718399956822395,
+    0.05689600110054016,
+    0.05737600103020668,
+    0.05721599981188774,
+    0.057023998349905014,
+    0.057792000472545624,
+    0.0570559985935688,
+    0.05641600117087364
+  ],
+  "native_mean_ms": 0.05783680006861687,
+  "native_median_ms": 0.057552000507712364,
+  "triton_times_ms": [
+    0.07046400010585785,
+    0.06710399687290192,
+    0.058848001062870026,
+    0.058368001133203506,
+    0.055424001067876816,
+    0.055296000093221664,
+    0.05692800134420395,
+    0.06015999987721443,
+    0.05571199953556061,
+    0.0562559999525547,
+    0.05644800141453743,
+    0.056384000927209854,
+    0.05478399991989136,
+    0.056671999394893646,
+    0.0562559999525547,
+    0.055296000093221664,
+    0.05443200096487999,
+    0.05536000058054924,
+    0.0549440011382103,
+    0.05344000086188316
+  ],
+  "triton_mean_ms": 0.05742880031466484,
+  "triton_median_ms": 0.0562559999525547,
+  "native_vs_triton_speedup_median": 0.9774812249144321,
+  "diff_native_vs_quantized_activation_reference": {
+    "max_abs": 0.0018903613090515137,
+    "mean_abs": 7.997432840056717e-05,
+    "rel_l2": 0.0016350732184946537,
+    "cosine": 0.9999987483024597
+  },
+  "diff_native_vs_current_triton_bf16_activation": {
+    "max_abs": 0.091796875,
+    "mean_abs": 0.0073954882100224495,
+    "rel_l2": 0.11911430954933167,
+    "cosine": 0.9928878545761108
+  },
+  "contract_pass": true,
+  "runtime_promote": false,
+  "decision": "PASS: top-k split16 gate/up backend matches the quantized-activation reference; next gate is active MoE composition."
+}
