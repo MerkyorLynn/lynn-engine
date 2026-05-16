@@ -1,0 +1,21 @@
+{
+  "type": "sp12e_v1_multiwarp_sharedmem",
+  "date": "2026-05-16 07:19:57",
+  "gate_up": {
+    "us": 185.12639999389648,
+    "max_abs_err": 1.5497207641601562e-06,
+    "pass": true
+  },
+  "down": {
+    "us": 96.0153579711914,
+    "max_abs_err": 8.344650268554688e-07,
+    "pass": true
+  },
+  "speedup_vs_sp12d": {
+    "gate_up": 0.9465964876202291,
+    "down": 0.9197486929798946,
+    "total": 0.937427445526351
+  },
+  "total_us": 281.1417579650879,
+  "all_pass": true
+}
