@@ -246,6 +246,35 @@ The folded artifact should therefore be treated as a **W4A8/FP8-activation
 artifact**, not as a BF16 fallback artifact. The original BF16 final remains
 the BF16 reference/fallback.
 
+The folded artifact manifest must carry a hard runtime contract:
+
+```json
+{
+  "inference_path_required": "w4a8",
+  "fallback_path_allowed": false,
+  "bf16_fallback_drift_estimate": 0.0355,
+  "w4a8_drift_vs_bf16_reference": 0.017836
+}
+```
+
+Loader behavior:
+
+```text
+If inference_path_required == w4a8 and the active backend is not a
+W4A8/FP8-active backend, refuse to launch. Do not silently run the folded
+artifact through the BF16 fallback path.
+```
+
+Implementation helper:
+
+```text
+engine/w4a8_contract.py
+```
+
+This helper is intentionally not wired into the default BF16 loader yet. It is
+for W4A8-capable runtime paths and artifact publishing gates, where fail-loud is
+safer than a hidden 3.55% BF16-path drift.
+
 ## Renewal Signal
 
 This probe is a strong positive renewal signal.

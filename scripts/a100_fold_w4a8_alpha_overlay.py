@@ -163,6 +163,19 @@ def main() -> int:
         "source_model": str(src),
         "alpha_dir": str(alpha_dir),
         "out_model": str(out),
+        "inference_path_required": "w4a8",
+        "fallback_path_allowed": False,
+        "bf16_fallback_drift_estimate": 0.0355,
+        "w4a8_drift_vs_bf16_reference": 0.017836,
+        "runtime_contract": {
+            "activation_contract": "fp8_e4m3_per16_active_moe",
+            "weights_adjusted_for": "full_w4a8_active_moe",
+            "loader_requirement": (
+                "Loader MUST refuse BF16 fallback for this folded artifact. "
+                "The folded down_proj weights are quantization-aware corrections "
+                "for FP8 activation and silently degrade the BF16 path."
+            ),
+        },
         "folding_rule": "down_proj[expert, :, channel] *= alpha[layer, expert, channel]",
         "folded_layers": [x["layer"] for x in folded],
         "folded": folded,

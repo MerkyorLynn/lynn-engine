@@ -90,6 +90,49 @@ missing checkpoint tensors. It needs either:
 This makes MTP a real engineering stream. It remains valuable, but W4A8
 Recovery is the faster first training target.
 
+## MTP Contract Amendment: Qwen3.6-Style Head Is The Mainline
+
+The earlier "single Linear NEXTN" contract is now demoted to a fallback probe.
+It is too thin for the target accept-rate band and does not match the Qwen3.6
+serving ecosystem.
+
+Mainline MTP head shape:
+
+```text
+qwen3_next_mtp style
+one transformer predictor layer
+shared token embeddings
+shared lm_head
+num_speculative_tokens = 2 for first smoke
+single-stream verification first
+```
+
+Why:
+
+- Qwen3.6 is the closest upstream architectural relative to Lynn 27B.
+- vLLM already exposes `qwen3_next_mtp` as a speculative decoding method.
+- Community measurements on GB10/Spark-class hardware show MTP helps most in
+  concurrent decode workloads, while single-stream gains are modest.
+- A one-layer predictor is a better use of A100 time than training a weak
+  linear draft head that we would likely replace.
+
+New A100 order:
+
+```text
+1. finish W4A8 Recovery base gate
+2. inspect/import Qwen3.6-style MTP sidecar shapes
+3. initialize Lynn-owned qwen3_next_mtp-style head
+4. train head with frozen or mostly frozen body
+5. evaluate accept rate before combining with W4A8 runtime promotion
+```
+
+Scope guard:
+
+```text
+Do not start with batched MTP / continuous batching. Lynn-engine is currently
+single-stream. Batched MTP is a separate serving-engine project.
+```
+
 Priority:
 
 ```text

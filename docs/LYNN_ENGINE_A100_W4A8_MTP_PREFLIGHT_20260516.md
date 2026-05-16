@@ -189,9 +189,18 @@ Recommended first MTP shape:
 
 ```text
 base model: frozen or mostly frozen after W4A8 Recovery stabilizes
-draft head: shallow NEXTN block
-lm_head: tie/reuse existing lm_head first
-avoid: duplicating full lm_head unless accept-rate justifies ~0.95 GiB BF16
+draft head: qwen3_next_mtp-style one transformer predictor layer
+embedding/lm_head: share with the base model
+first target: num_speculative_tokens=2, single-stream smoke
+fallback only: simple Linear NEXTN head
+```
+
+Reason:
+
+```text
+Community Qwen3.6 MTP implementations and vLLM support point to a transformer
+predictor layer as the practical contract. A single Linear head is useful only
+as a cheap wiring smoke; it should not be the quality target.
 ```
 
 ## Next Actions
