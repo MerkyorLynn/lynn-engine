@@ -902,3 +902,59 @@ torch::Tensor lynn_native_active_moe_fused_atomic_scalar(
   TORCH_CHECK(err == cudaSuccess, "active_moe_fused_atomic_scalar_kernel launch failed: ", cudaGetErrorString(err));
   return out;
 }
+
+torch::Tensor lynn_native_active_moe_grouped_per16_contract(
+    torch::Tensor x,
+    torch::Tensor expert_ids,
+    torch::Tensor routing_weights,
+    torch::Tensor gate_up_packed,
+    torch::Tensor gate_up_scale,
+    torch::Tensor gate_up_global_scale,
+    torch::Tensor down_packed,
+    torch::Tensor down_scale,
+    torch::Tensor down_global_scale) {
+  TORCH_CHECK(x.is_cuda(), "x must be a CUDA tensor");
+  TORCH_CHECK(expert_ids.is_cuda(), "expert_ids must be a CUDA tensor");
+  TORCH_CHECK(routing_weights.is_cuda(), "routing_weights must be a CUDA tensor");
+  TORCH_CHECK(gate_up_packed.is_cuda(), "gate_up_packed must be a CUDA tensor");
+  TORCH_CHECK(gate_up_scale.is_cuda(), "gate_up_scale must be a CUDA tensor");
+  TORCH_CHECK(gate_up_global_scale.is_cuda(), "gate_up_global_scale must be a CUDA tensor");
+  TORCH_CHECK(down_packed.is_cuda(), "down_packed must be a CUDA tensor");
+  TORCH_CHECK(down_scale.is_cuda(), "down_scale must be a CUDA tensor");
+  TORCH_CHECK(down_global_scale.is_cuda(), "down_global_scale must be a CUDA tensor");
+  TORCH_CHECK(x.scalar_type() == torch::kBFloat16, "x must be bfloat16");
+  TORCH_CHECK(expert_ids.scalar_type() == torch::kInt32, "expert_ids must be int32");
+  TORCH_CHECK(routing_weights.scalar_type() == torch::kFloat32, "routing_weights must be float32");
+  TORCH_CHECK(gate_up_packed.scalar_type() == torch::kUInt8, "gate_up_packed must be uint8");
+  TORCH_CHECK(gate_up_scale.scalar_type() == torch::kFloat32, "gate_up_scale must be float32");
+  TORCH_CHECK(gate_up_global_scale.scalar_type() == torch::kFloat32, "gate_up_global_scale must be float32");
+  TORCH_CHECK(down_packed.scalar_type() == torch::kUInt8, "down_packed must be uint8");
+  TORCH_CHECK(down_scale.scalar_type() == torch::kFloat32, "down_scale must be float32");
+  TORCH_CHECK(down_global_scale.scalar_type() == torch::kFloat32, "down_global_scale must be float32");
+  TORCH_CHECK(x.dim() == 1 && x.numel() == kHidden, "x must be [2048]");
+  TORCH_CHECK(expert_ids.dim() == 1, "expert_ids must be [top_k]");
+  TORCH_CHECK(
+      routing_weights.dim() == 1 && routing_weights.size(0) == expert_ids.size(0),
+      "routing_weights must match expert_ids");
+  TORCH_CHECK(gate_up_packed.dim() == 3, "gate_up_packed must be [experts, 1024, 1024]");
+  TORCH_CHECK(gate_up_scale.dim() == 3, "gate_up_scale must be [experts, 1024, 128]");
+  TORCH_CHECK(down_packed.dim() == 3, "down_packed must be [experts, 2048, 256]");
+  TORCH_CHECK(down_scale.dim() == 3, "down_scale must be [experts, 2048, 32]");
+  TORCH_CHECK(gate_up_packed.size(1) == kGateUpRows, "gate_up_packed row dim must be 1024");
+  TORCH_CHECK(gate_up_packed.size(2) == kHidden / 2, "gate_up_packed packed hidden dim must be 1024");
+  TORCH_CHECK(gate_up_scale.size(1) == kGateUpRows, "gate_up_scale row dim must be 1024");
+  TORCH_CHECK(gate_up_scale.size(2) == kHidden / 16, "gate_up_scale group dim must be 128");
+  TORCH_CHECK(down_packed.size(1) == kHidden, "down_packed row dim must be 2048");
+  TORCH_CHECK(down_packed.size(2) == kIntermediate / 2, "down_packed packed inter dim must be 256");
+  TORCH_CHECK(down_scale.size(1) == kHidden, "down_scale row dim must be 2048");
+  TORCH_CHECK(down_scale.size(2) == kIntermediate / 16, "down_scale group dim must be 32");
+  TORCH_CHECK(gate_up_global_scale.numel() == 1, "gate_up_global_scale must be scalar");
+  TORCH_CHECK(down_global_scale.numel() == 1, "down_global_scale must be scalar");
+
+  TORCH_CHECK(
+      false,
+      "active_moe_grouped_per16_contract passed shape/layout checks, but the "
+      "grouped per-16 native-FP4 active expert FFN kernel is not implemented "
+      "yet. This guarded ABI exists so the future CUTLASS/custom CUDA kernel "
+      "can replace only the inner math without changing Python/runtime layout.");
+}

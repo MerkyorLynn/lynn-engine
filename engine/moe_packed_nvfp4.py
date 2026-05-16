@@ -193,13 +193,19 @@ def _active_moe_native_grouped_per16(
     implementation so experiments fail loudly instead of accidentally falling
     back to a rejected scalar path.
     """
-    _ = (hidden, expert_ids, routing_weights, w)
-    raise NotImplementedError(
-        "LYNN_NATIVE_ACTIVE_MOE_BACKEND=grouped_per16 is reserved for the true "
-        "grouped per-16 native-FP4 active expert kernel. Current scalar/tile "
-        "bridges are intentionally rejected by P56/P58; use 'triton' for "
-        "production or add the real grouped_per16 CUDA/CUTLASS implementation "
-        "behind this ABI."
+    from engine.native_cuda import load_lynn_native_extension
+
+    ext = load_lynn_native_extension(verbose=_env_bool("LYNN_NATIVE_CUDA_VERBOSE", False))
+    return ext.active_moe_grouped_per16_contract(
+        hidden,
+        expert_ids,
+        routing_weights,
+        w["mlp.experts._gate_up_packed"],
+        w["mlp.experts._gate_up_scale"],
+        w["mlp.experts._gate_up_global_scale"],
+        w["mlp.experts._down_packed"],
+        w["mlp.experts._down_scale"],
+        w["mlp.experts._down_global_scale"],
     )
 
 

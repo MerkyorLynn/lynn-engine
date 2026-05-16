@@ -49,6 +49,16 @@ torch::Tensor lynn_native_active_moe_fused_atomic_scalar(
     torch::Tensor down_packed,
     torch::Tensor down_scale,
     torch::Tensor down_global_scale);
+torch::Tensor lynn_native_active_moe_grouped_per16_contract(
+    torch::Tensor x,
+    torch::Tensor expert_ids,
+    torch::Tensor routing_weights,
+    torch::Tensor gate_up_packed,
+    torch::Tensor gate_up_scale,
+    torch::Tensor gate_up_global_scale,
+    torch::Tensor down_packed,
+    torch::Tensor down_scale,
+    torch::Tensor down_global_scale);
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
   m.def("add_one", &lynn_native_add_one, "Lynn native CUDA extension smoke kernel");
@@ -76,4 +86,8 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
       "active_moe_fused_atomic_scalar",
       &lynn_native_active_moe_fused_atomic_scalar,
       "P46 fused atomic scalar active MoE probe for packed NVFP4 experts");
+  m.def(
+      "active_moe_grouped_per16_contract",
+      &lynn_native_active_moe_grouped_per16_contract,
+      "P65 guarded ABI for the future grouped per-16 native-FP4 active expert FFN");
 }
