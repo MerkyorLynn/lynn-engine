@@ -177,6 +177,8 @@ P48-P50 说明:第一版非 atomic 路线选择了 down projection 子段,新增
 
 P51 说明:为了排除“少算专家就能到 155TPS”的捷径,新增 opt-in `LYNN_MOE_TOPK_LIMIT` / `LYNN_MOE_SKIP_SHARED` 预算阶梯。结果很明确:top6+shared 仍 coherent 但只提升 **1.6%**,top4+shared 提升 **4.5%** 已出现 `<think>` 污染;skip shared 最快 **124.39TPS** 但输出崩坏。结论:不能靠裁专家到 155,必须继续 grouped native-FP4 active expert FFN 或 exact graph-owned route。详见 [`docs/LYNN_ENGINE_P51_ACTIVE_MOE_BUDGET_LADDER_20260516.md`](docs/LYNN_ENGINE_P51_ACTIVE_MOE_BUDGET_LADDER_20260516.md)。
 
+P52 说明:路线正式分叉为两条:一条是 exact-owned serving,保持当前 Triton active MoE 数学不变,继续压 orchestration / graph overhead;另一条是真 grouped native-FP4 active expert FFN,用 CUTLASS/CuTe 或 custom CUDA 表达 block-diagonal selected experts,不再用 `_scaled_mm` 包装或 top-k 近似。MTP/spec decode 不是近期主线,它是之后的 serving multiplier,不是底座 kernel。详见 [`docs/LYNN_ENGINE_P52_GROUPED_NATIVE_FP4_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P52_GROUPED_NATIVE_FP4_CONTRACT_20260516.md)。
+
 P19 说明:在不改变数值路径的前提下,active MoE kernel block retune 把 R6000 full graph 从 **103.40/107.13 TPS** 提到 **115.41/120.25 TPS**。推荐配置已成为默认:`gate_hidden=256,down_inter=512`,并保留 env override 方便后续设备差异调参。详见 [`docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md`](docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md)。
 
 P20 说明:router `topk(sorted=False)` 已验证同 expert set、同配对权重,代表层 MoE 输出 max_abs=0,把 full graph 进一步推到 **117.55/122.43 TPS**。详见 [`docs/LYNN_ENGINE_P20_ROUTER_TOPK_UNSORTED_20260516.md`](docs/LYNN_ENGINE_P20_ROUTER_TOPK_UNSORTED_20260516.md)。

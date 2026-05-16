@@ -365,6 +365,15 @@ grouped native-FP4 active expert FFN or an exact graph-owned route, not expert
 budget trimming. See
 [`docs/LYNN_ENGINE_P51_ACTIVE_MOE_BUDGET_LADDER_20260516.md`](docs/LYNN_ENGINE_P51_ACTIVE_MOE_BUDGET_LADDER_20260516.md).
 
+P52 note: the route now splits into two serious tracks. Track A keeps the
+current Triton active-MoE math and attacks orchestration / graph overhead for
+exact serving gains. Track B builds the real grouped native-FP4 active expert
+FFN with CUTLASS/CuTe or custom CUDA, expressing block-diagonal selected experts
+directly instead of `_scaled_mm` wrappers or top-k approximations. MTP/spec
+decode is not the immediate main line; it is a later serving multiplier, not the
+base kernel fix. See
+[`docs/LYNN_ENGINE_P52_GROUPED_NATIVE_FP4_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P52_GROUPED_NATIVE_FP4_CONTRACT_20260516.md).
+
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,
 after prefill, Lynn engine can release 56.47 GiB of BF16 shadows, dropping
