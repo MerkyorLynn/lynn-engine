@@ -1,0 +1,94 @@
+{
+  "schema_version": "lynn-engine-p57-vendor-route-inventory-v1",
+  "python": "3.12.13 | packaged by Anaconda, Inc. | (main, Mar 19 2026, 20:20:58) [GCC 14.3.0]",
+  "model": "/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-bf16-final",
+  "model_type": "qwen3_5_moe_text",
+  "architectures": [
+    "Qwen3_5MoeForConditionalGeneration"
+  ],
+  "num_hidden_layers": 40,
+  "num_experts_config": 256,
+  "num_experts_per_tok": 8,
+  "variable_expert": true,
+  "remaining_expert_counts": [
+    222,
+    228,
+    231,
+    232,
+    233,
+    235,
+    236,
+    242,
+    248,
+    252,
+    254,
+    256
+  ],
+  "modules": {
+    "modelopt": {
+      "available": false
+    },
+    "llmcompressor": {
+      "available": false
+    },
+    "compressed_tensors": {
+      "available": true,
+      "file": "/root/autodl-tmp/conda-envs/r6000-eval/lib/python3.12/site-packages/compressed_tensors/__init__.py",
+      "version": "0.15.0.1"
+    },
+    "transformers": {
+      "available": true,
+      "file": "/root/autodl-tmp/conda-envs/r6000-eval/lib/python3.12/site-packages/transformers/__init__.py",
+      "version": "5.6.0"
+    },
+    "accelerate": {
+      "available": true,
+      "file": "/root/autodl-tmp/conda-envs/r6000-eval/lib/python3.12/site-packages/accelerate/__init__.py",
+      "version": "1.11.0"
+    },
+    "triton": {
+      "available": true,
+      "file": "/root/autodl-tmp/conda-envs/r6000-eval/lib/python3.12/site-packages/triton/__init__.py",
+      "version": "3.6.0"
+    },
+    "torch": {
+      "available": true,
+      "file": "/root/autodl-tmp/conda-envs/r6000-eval/lib/python3.12/site-packages/torch/__init__.py",
+      "version": "2.10.0+cu128"
+    },
+    "compressed_tensors.modelopt_nvfp4_converter": {
+      "available": true,
+      "file": "/root/autodl-tmp/conda-envs/r6000-eval/lib/python3.12/site-packages/compressed_tensors/__init__.py",
+      "version": "0.15.0.1"
+    }
+  },
+  "blockers": [
+    "model is physically variable-expert and HF-vanilla-incompatible",
+    "current environment lacks ModelOpt/llmcompressor BF16->NVFP4 quantizer",
+    "compressed-tensors modelopt_nvfp4 is a converter for already-quantized ModelOpt artifacts"
+  ],
+  "can_quantize_bf16_with_vendor_here": false,
+  "has_converter_only": true,
+  "recommended_routes": [
+    {
+      "route": "lynn_native_per16_engine",
+      "status": "current_mainline",
+      "why": "works with physical variable-expert 27B and existing per-16 FP32 scale artifact"
+    },
+    {
+      "route": "vendor_friendly_nvfp4_v2_from_bf16",
+      "status": "possible_but_requires_new_artifact",
+      "requirements": [
+        "separate ModelOpt/llmcompressor environment",
+        "BF16 final input",
+        "either pad/mask variable experts back to HF-vanilla 256 experts or add variable-expert support",
+        "full V8/V9/tool/no-think/longctx retention gates"
+      ]
+    },
+    {
+      "route": "posthoc_convert_current_lynn_native_to_vendor_layout",
+      "status": "rejected_by_p54",
+      "why": "e8m0/group32 scale-search upper bound failed 0.995 inter-cosine safety gate"
+    }
+  ]
+}

@@ -95,6 +95,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P54 vendor-layout feasibility** | e8m0/group32 scale search | best upper-bound inter cosine 0.9869-0.9918,all fail | ❌ 直接转 ModelOpt-like scale contract 不够,主线锁 per-16 grouped kernel |
 | **P55 gate/up tile-inter** | CUDA scalar `tile_inter=2` | 1.09-1.14× vs Triton gate/up,max_abs=0 | 🔬 正向 tile 形态信号,作为 P56 grouped kernel 设计点 |
 | **P56 gate/up tile runtime** | `LYNN_NATIVE_GATEUP_BACKEND=cuda_tile_inter` | 114.43TPS median(+15.4%)但 `!` loop / greedy mismatch | ❌ runtime 不 promote,保留 tile shape 信号 |
+| **P57 vendor route inventory** | ModelOpt / CT / variable-expert audit | 当前 env 无 ModelOpt/llmcompressor;CT 只有 converter;27B 非 HF-vanilla | 🔬 官方路线可走,但需 BF16→vendor NVFP4 v2 + padding/mask |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:
@@ -193,6 +194,10 @@ P54 说明:为了回应“能否直接做一份 NVIDIA/ModelOpt 友好的 e8m0/g
 P55 说明:新增 gate/up 侧 `tile_inter` CUDA scalar probe,让一个 block 同时计算多个 intermediate row 并复用 hidden 读取。四个代表层上 `tile_inter=2` 全部 max_abs=0,局部比 Triton gate/up 快 **1.09-1.14×**;`tile_inter=4/8` 反而慢。结论:这是 P56 grouped per-16 kernel 的正向 tile 形态信号,但仍只是局部 scalar probe,不会单独进默认生产。详见 [`docs/LYNN_ENGINE_P55_GATEUP_TILE_INTER_20260516.md`](docs/LYNN_ENGINE_P55_GATEUP_TILE_INTER_20260516.md)。
 
 P56 说明:把 P55 `tile_inter=2` 接进 runtime opt-in gate 后,中位 decode TPS 从约 **99.15** 提到 **114.43**(+15.4%),但 full-generate greedy 不匹配并出现 `!` loop。结论:tile shape 有真实速度信号,但 scalar tile-inter runtime 不安全,不 promote;下一步直接把 `tile_inter=2` 作为 P57/P58 真 grouped per-16 native-FP4 kernel 的形态提示。详见 [`docs/LYNN_ENGINE_P56_GATEUP_TILE_RUNTIME_REJECTED_20260516.md`](docs/LYNN_ENGINE_P56_GATEUP_TILE_RUNTIME_REJECTED_20260516.md)。
+
+P57 说明:官方/ModelOpt 路线不丢人,但它需要一份从 BF16 final 重新量化的 **vendor-friendly NVFP4 v2 artifact**,而不是把当前 Lynn-native per-16 artifact 硬转过去。R6000 当前 env 无 `modelopt/llmcompressor`,只有 `compressed_tensors` 的 `modelopt_nvfp4` converter,且 27B 是物理 variable-expert、`hf_vanilla_compatible=false`,所以官方路线还需要 padding/mask 回固定 256 experts 或 vendor 侧 variable-expert 支持。详见 [`docs/LYNN_ENGINE_P57_VENDOR_ROUTE_INVENTORY_20260516.md`](docs/LYNN_ENGINE_P57_VENDOR_ROUTE_INVENTORY_20260516.md)。
+
+双 artifact 策略:允许同时保留 **Lynn-native NVFP4 final** 和 **vendor-friendly NVFP4 v2**。前者继续服务 Lynn engine / per-16 grouped kernel;后者从 BF16 final 重新量化,用于官方生态兼容。两份产物必须不同目录、不同 manifest、不同验证门,不得互相覆盖。详见 [`docs/LYNN_ENGINE_DUAL_NVFP4_ARTIFACT_POLICY_20260516.md`](docs/LYNN_ENGINE_DUAL_NVFP4_ARTIFACT_POLICY_20260516.md) 和 [`docs/LYNN_ENGINE_VENDOR_VS_LYNN_NATIVE_TRADEOFF_20260516.md`](docs/LYNN_ENGINE_VENDOR_VS_LYNN_NATIVE_TRADEOFF_20260516.md)。
 
 P19 说明:在不改变数值路径的前提下,active MoE kernel block retune 把 R6000 full graph 从 **103.40/107.13 TPS** 提到 **115.41/120.25 TPS**。推荐配置已成为默认:`gate_hidden=256,down_inter=512`,并保留 env override 方便后续设备差异调参。详见 [`docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md`](docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md)。
 

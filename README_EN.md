@@ -431,6 +431,25 @@ reject runtime promotion while preserving the positive tile-shape signal:
 not become a scalar production shortcut. See
 [`docs/LYNN_ENGINE_P56_GATEUP_TILE_RUNTIME_REJECTED_20260516.md`](docs/LYNN_ENGINE_P56_GATEUP_TILE_RUNTIME_REJECTED_20260516.md).
 
+P57/vendor-route note: the official ModelOpt route is valid, but it needs a
+separate **vendor-friendly NVFP4 v2** artifact quantized from BF16 final rather
+than a post-hoc conversion of the current Lynn-native per-16 artifact. The
+current R6000 env lacks `modelopt/llmcompressor`; `compressed_tensors` only has
+a ModelOpt-NVFP4 converter for already-quantized artifacts. The 27B checkpoint
+is also physical variable-expert and `hf_vanilla_compatible=false`, so the
+vendor route needs padding/masking back to fixed 256 experts or vendor-side
+variable-expert support. See
+[`docs/LYNN_ENGINE_P57_VENDOR_ROUTE_INVENTORY_20260516.md`](docs/LYNN_ENGINE_P57_VENDOR_ROUTE_INVENTORY_20260516.md).
+
+Dual-artifact policy: Lynn may keep both **Lynn-native NVFP4 final** and
+**vendor-friendly NVFP4 v2**. The former remains the Lynn engine / per-16
+grouped-kernel mainline; the latter is a BF16-derived compatibility artifact
+for official ecosystems. They must use different directories, manifests, and
+validation gates, and must never overwrite each other. See
+[`docs/LYNN_ENGINE_DUAL_NVFP4_ARTIFACT_POLICY_20260516.md`](docs/LYNN_ENGINE_DUAL_NVFP4_ARTIFACT_POLICY_20260516.md)
+and
+[`docs/LYNN_ENGINE_VENDOR_VS_LYNN_NATIVE_TRADEOFF_20260516.md`](docs/LYNN_ENGINE_VENDOR_VS_LYNN_NATIVE_TRADEOFF_20260516.md).
+
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,
 after prefill, Lynn engine can release 56.47 GiB of BF16 shadows, dropping
