@@ -1,0 +1,965 @@
+{
+  "schema_version": "lynn-a100-w4a8-real-prompt-gate-v1",
+  "model": "/mnt/data/lynn-a100/models/lynn-27b-variable-recovery-step5000-bf16-final",
+  "torch": {
+    "version": "2.6.0+cu124",
+    "device": "cuda",
+    "device_name": "NVIDIA A100-SXM4-80GB",
+    "peak_memory_gib": 59.10026454925537
+  },
+  "load_elapsed_seconds": 14.819547176361084,
+  "format": "e4m3",
+  "layers": [
+    4,
+    16,
+    28,
+    36
+  ],
+  "prompt_count": 6,
+  "cases": [
+    {
+      "layer": 4,
+      "prompt_id": 0,
+      "prompt": "用一句话解释 W4A8 为什么可能比 W4A4 更稳。",
+      "top_k": 8,
+      "expert_ids": [
+        13,
+        33,
+        140,
+        152,
+        158,
+        165,
+        214,
+        107
+      ],
+      "gateup_same_experts": true,
+      "full_same_experts": true,
+      "hidden_quant_diff": {
+        "max_abs": 0.0703125,
+        "mean_abs": 0.009876757860183716,
+        "rel_l2": 0.019201524555683136,
+        "cosine": 0.9998161196708679
+      },
+      "gateup_diff": {
+        "max_abs": 0.0006597908213734627,
+        "mean_abs": 0.00013657416275236756,
+        "rel_l2": 0.025404710322618484,
+        "cosine": 0.9996777176856995
+      },
+      "full_diff": {
+        "max_abs": 0.0006851372309029102,
+        "mean_abs": 0.0001610704930499196,
+        "rel_l2": 0.029880667105317116,
+        "cosine": 0.9995535612106323
+      },
+      "max_inter_rel_l2": 0.019926441833376884
+    },
+    {
+      "layer": 4,
+      "prompt_id": 1,
+      "prompt": "请写一个 Python 函数,判断字符串是否是回文。",
+      "top_k": 8,
+      "expert_ids": [
+        13,
+        102,
+        107,
+        140,
+        158,
+        165,
+        214,
+        152
+      ],
+      "gateup_same_experts": true,
+      "full_same_experts": true,
+      "hidden_quant_diff": {
+        "max_abs": 0.078125,
+        "mean_abs": 0.010323381051421165,
+        "rel_l2": 0.020266395062208176,
+        "cosine": 0.999794602394104
+      },
+      "gateup_diff": {
+        "max_abs": 0.0007348330691456795,
+        "mean_abs": 0.0001368363737128675,
+        "rel_l2": 0.024539215490221977,
+        "cosine": 0.9997131824493408
+      },
+      "full_diff": {
+        "max_abs": 0.0007002209313213825,
+        "mean_abs": 0.00015569818788208067,
+        "rel_l2": 0.02758478745818138,
+        "cosine": 0.9996374249458313
+      },
+      "max_inter_rel_l2": 0.01982254348695278
+    },
+    {
+      "layer": 4,
+      "prompt_id": 2,
+      "prompt": "If a train travels 60 mph for 2.5 hours, how far does it go?",
+      "top_k": 8,
+      "expert_ids": [
+        13,
+        15,
+        102,
+        140,
+        152,
+        165,
+        237,
+        193
+      ],
+      "gateup_same_experts": true,
+      "full_same_experts": true,
+      "hidden_quant_diff": {
+        "max_abs": 0.0703125,
+        "mean_abs": 0.009347351267933846,
+        "rel_l2": 0.019043711945414543,
+        "cosine": 0.9998186826705933
+      },
+      "gateup_diff": {
+        "max_abs": 0.0005614764522761106,
+        "mean_abs": 0.00011194570834049955,
+        "rel_l2": 0.02238522469997406,
+        "cosine": 0.9997549057006836
+      },
+      "full_diff": {
+        "max_abs": 0.0007648153696209192,
+        "mean_abs": 0.00013868932728655636,
+        "rel_l2": 0.027558445930480957,
+        "cosine": 0.9996263384819031
+      },
+      "max_inter_rel_l2": 0.02160116285085678
+    },
+    {
+      "layer": 4,
+      "prompt_id": 3,
+      "prompt": "请给出一个 JSON: {\"city\":\"Tokyo\",\"unit\":\"celsius\"}",
+      "top_k": 8,
+      "expert_ids": [
+        15,
+        107,
+        127,
+        129,
+        149,
+        222,
+        233,
+        95
+      ],
+      "gateup_same_experts": true,
+      "full_same_experts": true,
+      "hidden_quant_diff": {
+        "max_abs": 0.15625,
+        "mean_abs": 0.01113857887685299,
+        "rel_l2": 0.0210279431194067,
+        "cosine": 0.9997788667678833
+      },
+      "gateup_diff": {
+        "max_abs": 0.0008680052123963833,
+        "mean_abs": 0.00019969753338955343,
+        "rel_l2": 0.021846363320946693,
+        "cosine": 0.9997643828392029
+      },
+      "full_diff": {
+        "max_abs": 0.0010393280535936356,
+        "mean_abs": 0.00024173298152163625,
+        "rel_l2": 0.026219291612505913,
+        "cosine": 0.9996573328971863
+      },
+      "max_inter_rel_l2": 0.01954646222293377
+    },
+    {
+      "layer": 4,
+      "prompt_id": 4,
+      "prompt": "总结一下 MoE 模型里 router 和 expert 的分工。",
+      "top_k": 8,
+      "expert_ids": [
+        13,
+        107,
+        108,
+        140,
+        152,
+        165,
+        214,
+        102
+      ],
+      "gateup_same_experts": true,
+      "full_same_experts": true,
+      "hidden_quant_diff": {
+        "max_abs": 0.078125,
+        "mean_abs": 0.009965892881155014,
+        "rel_l2": 0.019253484904766083,
+        "cosine": 0.9998146891593933
+      },
+      "gateup_diff": {
+        "max_abs": 0.0007279608398675919,
+        "mean_abs": 0.00013663139543496072,
+        "rel_l2": 0.02216571569442749,
+        "cosine": 0.9997583031654358
+      },
+      "full_diff": {
+        "max_abs": 0.0008557834662497044,
+        "mean_abs": 0.00016531761502847075,
+        "rel_l2": 0.02737397700548172,
+        "cosine": 0.9996256828308105
+      },
+      "max_inter_rel_l2": 0.019856391474604607
+    },
+    {
+      "layer": 4,
+      "prompt_id": 5,
+      "prompt": "解释长上下文推理里 linear attention 的优势。",
+      "top_k": 8,
+      "expert_ids": [
+        15,
+        107,
+        108,
+        140,
+        152,
+        165,
+        214,
+        33
+      ],
+      "gateup_same_experts": true,
+      "full_same_experts": true,
+      "hidden_quant_diff": {
+        "max_abs": 0.0703125,
+        "mean_abs": 0.010219482704997063,
+        "rel_l2": 0.0195511095225811,
+        "cosine": 0.9998090267181396
+      },
+      "gateup_diff": {
+        "max_abs": 0.000622049905359745,
+        "mean_abs": 0.00011626250488916412,
+        "rel_l2": 0.02057299017906189,
+        "cosine": 0.9997908473014832
+      },
+      "full_diff": {
+        "max_abs": 0.0005794536555185914,
+        "mean_abs": 0.00014535663649439812,
+        "rel_l2": 0.025469593703746796,
+        "cosine": 0.9996775984764099
+      },
+      "max_inter_rel_l2": 0.020681779831647873
+    },
+    {
+      "layer": 16,
+      "prompt_id": 0,
+      "prompt": "用一句话解释 W4A8 为什么可能比 W4A4 更稳。",
+      "top_k": 8,
+      "expert_ids": [
+        5,
+        24,
+        39,
+        62,
+        113,
+        173,
+        202,
+        148
+      ],
+      "gateup_same_experts": true,
+      "full_same_experts": true,
+      "hidden_quant_diff": {
+        "max_abs": 0.125,
+        "mean_abs": 0.01318330317735672,
+        "rel_l2": 0.020463693886995316,
+        "cosine": 0.9997906684875488
+      },
+      "gateup_diff": {
+        "max_abs": 0.0011596307158470154,
+        "mean_abs": 0.00024063776072580367,
+        "rel_l2": 0.02237861044704914,
+        "cosine": 0.9997504949569702
+      },
+      "full_diff": {
+        "max_abs": 0.0014912448823451996,
+        "mean_abs": 0.0002971500507555902,
+        "rel_l2": 0.027342254295945168,
+        "cosine": 0.9996278285980225
+      },
+      "max_inter_rel_l2": 0.022521594539284706
+    },
+    {
+      "layer": 16,
+      "prompt_id": 1,
+      "prompt": "请写一个 Python 函数,判断字符串是否是回文。",
+      "top_k": 8,
+      "expert_ids": [
+        5,
+        24,
+        43,
+        100,
+        113,
+        150,
+        218,
+        202
+      ],
+      "gateup_same_experts": true,
+      "full_same_experts": true,
+      "hidden_quant_diff": {
+        "max_abs": 0.09375,
+        "mean_abs": 0.01270601898431778,
+        "rel_l2": 0.02058490179479122,
+        "cosine": 0.9997881650924683
+      },
+      "gateup_diff": {
+        "max_abs": 0.0011730976402759552,
+        "mean_abs": 0.0002187365898862481,
+        "rel_l2": 0.023341281339526176,
+        "cosine": 0.9997308254241943
+      },
+      "full_diff": {
+        "max_abs": 0.0014538392424583435,
+        "mean_abs": 0.0002706569794099778,
+        "rel_l2": 0.028978588059544563,
+        "cosine": 0.9995831251144409
+      },
+      "max_inter_rel_l2": 0.01922869309782982
+    },
+    {
+      "layer": 16,
+      "prompt_id": 2,
+      "prompt": "If a train travels 60 mph for 2.5 hours, how far does it go?",
+      "top_k": 8,
+      "expert_ids": [
+        5,
+        7,
+        43,
+        98,
+        113,
+        123,
+        202,
+        186
+      ],
+      "gateup_same_experts": true,
+      "full_same_experts": true,
+      "hidden_quant_diff": {
+        "max_abs": 0.1875,
+        "mean_abs": 0.013523001223802567,
+        "rel_l2": 0.02096523530781269,
+        "cosine": 0.9997804164886475
+      },
+      "gateup_diff": {
+        "max_abs": 0.0010849479585886002,
+        "mean_abs": 0.00024323142133653164,
+        "rel_l2": 0.022941190749406815,
+        "cosine": 0.9997411966323853
+      },
+      "full_diff": {
+        "max_abs": 0.0013841204345226288,
+        "mean_abs": 0.0002953180519398302,
+        "rel_l2": 0.02781541272997856,
+        "cosine": 0.9996170997619629
+      },
+      "max_inter_rel_l2": 0.021390028297901154
+    },
+    {
+      "layer": 16,
+      "prompt_id": 3,
+      "prompt": "请给出一个 JSON: {\"city\":\"Tokyo\",\"unit\":\"celsius\"}",
+      "top_k": 8,
+      "expert_ids": [
+        39,
+        101,
+        113,
+        132,
+        135,
+        164,
+        182,
+        202
+      ],
+      "gateup_same_experts": true,
+      "full_same_experts": true,
+      "hidden_quant_diff": {
+        "max_abs": 0.109375,
+        "mean_abs": 0.013814665377140045,
+        "rel_l2": 0.020523199811577797,
+        "cosine": 0.9997894167900085
+      },
+      "gateup_diff": {
+        "max_abs": 0.0012024175375699997,
+        "mean_abs": 0.00023986537416931242,
+        "rel_l2": 0.02386988326907158,
+        "cosine": 0.9997228980064392
+      },
+      "full_diff": {
+        "max_abs": 0.0014146342873573303,
+        "mean_abs": 0.0002967191394418478,
+        "rel_l2": 0.029367223381996155,
+        "cosine": 0.9995834827423096
+      },
+      "max_inter_rel_l2": 0.02102733962237835
+    },
+    {
+      "layer": 16,
+      "prompt_id": 4,
+      "prompt": "总结一下 MoE 模型里 router 和 expert 的分工。",
+      "top_k": 8,
+      "expert_ids": [
+        5,
+        23,
+        39,
+        113,
+        148,
+        202,
+        218,
+        24
+      ],
+      "gateup_same_experts": true,
+      "full_same_experts": true,
+      "hidden_quant_diff": {
+        "max_abs": 0.09375,
+        "mean_abs": 0.01228003203868866,
+        "rel_l2": 0.01948733814060688,
+        "cosine": 0.9998106360435486
+      },
+      "gateup_diff": {
+        "max_abs": 0.0014424193650484085,
+        "mean_abs": 0.00024243825464509428,
+        "rel_l2": 0.02361721359193325,
+        "cosine": 0.9997210502624512
+      },
+      "full_diff": {
+        "max_abs": 0.0015741102397441864,
+        "mean_abs": 0.000296853540930897,
+        "rel_l2": 0.02904198318719864,
+        "cosine": 0.9995787143707275
+      },
+      "max_inter_rel_l2": 0.02140774205327034
+    },
+    {
+      "layer": 16,
+      "prompt_id": 5,
+      "prompt": "解释长上下文推理里 linear attention 的优势。",
+      "top_k": 8,
+      "expert_ids": [
+        5,
+        24,
+        39,
+        113,
+        148,
+        198,
+        202,
+        43
+      ],
+      "gateup_same_experts": true,
+      "full_same_experts": true,
+      "hidden_quant_diff": {
+        "max_abs": 0.09375,
+        "mean_abs": 0.012205060571432114,
+        "rel_l2": 0.019279401749372482,
+        "cosine": 0.9998141527175903
+      },
+      "gateup_diff": {
+        "max_abs": 0.00095331110060215,
+        "mean_abs": 0.00020230465452186763,
+        "rel_l2": 0.023339517414569855,
+        "cosine": 0.999730110168457
+      },
+      "full_diff": {
+        "max_abs": 0.0011062324047088623,
+        "mean_abs": 0.00024613423738628626,
+        "rel_l2": 0.028384435921907425,
+        "cosine": 0.9995982646942139
+      },
+      "max_inter_rel_l2": 0.021263685077428818
+    },
+    {
+      "layer": 28,
+      "prompt_id": 0,
+      "prompt": "用一句话解释 W4A8 为什么可能比 W4A4 更稳。",
+      "top_k": 8,
+      "expert_ids": [
+        27,
+        38,
+        101,
+        116,
+        118,
+        152,
+        199,
+        134
+      ],
+      "gateup_same_experts": true,
+      "full_same_experts": true,
+      "hidden_quant_diff": {
+        "max_abs": 0.109375,
+        "mean_abs": 0.015633204951882362,
+        "rel_l2": 0.020875653252005577,
+        "cosine": 0.9997822046279907
+      },
+      "gateup_diff": {
+        "max_abs": 0.0017029698938131332,
+        "mean_abs": 0.0003599413903430104,
+        "rel_l2": 0.024147773161530495,
+        "cosine": 0.9997086524963379
+      },
+      "full_diff": {
+        "max_abs": 0.0021743737161159515,
+        "mean_abs": 0.0004214224754832685,
+        "rel_l2": 0.02880500815808773,
+        "cosine": 0.9995852708816528
+      },
+      "max_inter_rel_l2": 0.01921614445745945
+    },
+    {
+      "layer": 28,
+      "prompt_id": 1,
+      "prompt": "请写一个 Python 函数,判断字符串是否是回文。",
+      "top_k": 8,
+      "expert_ids": [
+        5,
+        27,
+        38,
+        116,
+        118,
+        136,
+        218,
+        41
+      ],
+      "gateup_same_experts": true,
+      "full_same_experts": true,
+      "hidden_quant_diff": {
+        "max_abs": 0.140625,
+        "mean_abs": 0.016922704875469208,
+        "rel_l2": 0.021690059453248978,
+        "cosine": 0.9997650384902954
+      },
+      "gateup_diff": {
+        "max_abs": 0.0020287337247282267,
+        "mean_abs": 0.00048794696340337396,
+        "rel_l2": 0.024205366149544716,
+        "cosine": 0.9997231364250183
+      },
+      "full_diff": {
+        "max_abs": 0.002503916621208191,
+        "mean_abs": 0.0005803229287266731,
+        "rel_l2": 0.02869660221040249,
+        "cosine": 0.9996026754379272
+      },
+      "max_inter_rel_l2": 0.01838470809161663
+    },
+    {
+      "layer": 28,
+      "prompt_id": 2,
+      "prompt": "If a train travels 60 mph for 2.5 hours, how far does it go?",
+      "top_k": 8,
+      "expert_ids": [
+        7,
+        27,
+        44,
+        102,
+        116,
+        118,
+        199,
+        5
+      ],
+      "gateup_same_experts": true,
+      "full_same_experts": true,
+      "hidden_quant_diff": {
+        "max_abs": 0.125,
+        "mean_abs": 0.014351284131407738,
+        "rel_l2": 0.020460763946175575,
+        "cosine": 0.999790608882904
+      },
+      "gateup_diff": {
+        "max_abs": 0.001475246623158455,
+        "mean_abs": 0.0003356355591677129,
+        "rel_l2": 0.02130945771932602,
+        "cosine": 0.9997742176055908
+      },
+      "full_diff": {
+        "max_abs": 0.002278593834489584,
+        "mean_abs": 0.00041441922076046467,
+        "rel_l2": 0.026196029037237167,
+        "cosine": 0.9996577501296997
+      },
+      "max_inter_rel_l2": 0.018852155655622482
+    },
+    {
+      "layer": 28,
+      "prompt_id": 3,
+      "prompt": "请给出一个 JSON: {\"city\":\"Tokyo\",\"unit\":\"celsius\"}",
+      "top_k": 8,
+      "expert_ids": [
+        61,
+        83,
+        102,
+        105,
+        116,
+        136,
+        213,
+        41
+      ],
+      "gateup_same_experts": true,
+      "full_same_experts": true,
+      "hidden_quant_diff": {
+        "max_abs": 0.140625,
+        "mean_abs": 0.01693747192621231,
+        "rel_l2": 0.021454675123095512,
+        "cosine": 0.9997698068618774
+      },
+      "gateup_diff": {
+        "max_abs": 0.0023356033489108086,
+        "mean_abs": 0.0005216561839915812,
+        "rel_l2": 0.024136453866958618,
+        "cosine": 0.9997124671936035
+      },
+      "full_diff": {
+        "max_abs": 0.0028705894947052,
+        "mean_abs": 0.0006258993525989354,
+        "rel_l2": 0.028863823041319847,
+        "cosine": 0.9995887279510498
+      },
+      "max_inter_rel_l2": 0.019614972174167633
+    },
+    {
+      "layer": 28,
+      "prompt_id": 4,
+      "prompt": "总结一下 MoE 模型里 router 和 expert 的分工。",
+      "top_k": 8,
+      "expert_ids": [
+        5,
+        38,
+        116,
+        118,
+        152,
+        199,
+        218,
+        134
+      ],
+      "gateup_same_experts": true,
+      "full_same_experts": true,
+      "hidden_quant_diff": {
+        "max_abs": 0.109375,
+        "mean_abs": 0.014141354709863663,
+        "rel_l2": 0.020190494135022163,
+        "cosine": 0.9997961521148682
+      },
+      "gateup_diff": {
+        "max_abs": 0.0018494632095098495,
+        "mean_abs": 0.00035937424399890006,
+        "rel_l2": 0.02162078395485878,
+        "cosine": 0.9997673034667969
+      },
+      "full_diff": {
+        "max_abs": 0.0018121942412108183,
+        "mean_abs": 0.00044985953718423843,
+        "rel_l2": 0.027284903451800346,
+        "cosine": 0.9996322393417358
+      },
+      "max_inter_rel_l2": 0.02115350216627121
+    },
+    {
+      "layer": 28,
+      "prompt_id": 5,
+      "prompt": "解释长上下文推理里 linear attention 的优势。",
+      "top_k": 8,
+      "expert_ids": [
+        5,
+        27,
+        116,
+        118,
+        136,
+        152,
+        199,
+        38
+      ],
+      "gateup_same_experts": true,
+      "full_same_experts": true,
+      "hidden_quant_diff": {
+        "max_abs": 0.09375,
+        "mean_abs": 0.014040419831871986,
+        "rel_l2": 0.01969130150973797,
+        "cosine": 0.9998066425323486
+      },
+      "gateup_diff": {
+        "max_abs": 0.0017201099544763565,
+        "mean_abs": 0.00034872902324423194,
+        "rel_l2": 0.022851455956697464,
+        "cosine": 0.9997462630271912
+      },
+      "full_diff": {
+        "max_abs": 0.001994139514863491,
+        "mean_abs": 0.00042965222382918,
+        "rel_l2": 0.028359845280647278,
+        "cosine": 0.9996060132980347
+      },
+      "max_inter_rel_l2": 0.01864311471581459
+    },
+    {
+      "layer": 36,
+      "prompt_id": 0,
+      "prompt": "用一句话解释 W4A8 为什么可能比 W4A4 更稳。",
+      "top_k": 8,
+      "expert_ids": [
+        19,
+        139,
+        155,
+        160,
+        164,
+        181,
+        196,
+        2
+      ],
+      "gateup_same_experts": true,
+      "full_same_experts": true,
+      "hidden_quant_diff": {
+        "max_abs": 0.140625,
+        "mean_abs": 0.016931887716054916,
+        "rel_l2": 0.019239511340856552,
+        "cosine": 0.9998149871826172
+      },
+      "gateup_diff": {
+        "max_abs": 0.0030446574091911316,
+        "mean_abs": 0.0006444950122386217,
+        "rel_l2": 0.02167636714875698,
+        "cosine": 0.9998018741607666
+      },
+      "full_diff": {
+        "max_abs": 0.003258727490901947,
+        "mean_abs": 0.0007531511364504695,
+        "rel_l2": 0.025328703224658966,
+        "cosine": 0.9997146129608154
+      },
+      "max_inter_rel_l2": 0.020695403218269348
+    },
+    {
+      "layer": 36,
+      "prompt_id": 1,
+      "prompt": "请写一个 Python 函数,判断字符串是否是回文。",
+      "top_k": 8,
+      "expert_ids": [
+        19,
+        124,
+        155,
+        160,
+        164,
+        168,
+        193,
+        154
+      ],
+      "gateup_same_experts": true,
+      "full_same_experts": true,
+      "hidden_quant_diff": {
+        "max_abs": 0.171875,
+        "mean_abs": 0.02013159543275833,
+        "rel_l2": 0.020681370049715042,
+        "cosine": 0.9997867345809937
+      },
+      "gateup_diff": {
+        "max_abs": 0.0029796436429023743,
+        "mean_abs": 0.0006901639862917364,
+        "rel_l2": 0.023705391213297844,
+        "cosine": 0.999731183052063
+      },
+      "full_diff": {
+        "max_abs": 0.0034605972468852997,
+        "mean_abs": 0.0008125952444970608,
+        "rel_l2": 0.027669096365571022,
+        "cosine": 0.9996392726898193
+      },
+      "max_inter_rel_l2": 0.020312687382102013
+    },
+    {
+      "layer": 36,
+      "prompt_id": 2,
+      "prompt": "If a train travels 60 mph for 2.5 hours, how far does it go?",
+      "top_k": 8,
+      "expert_ids": [
+        13,
+        65,
+        72,
+        107,
+        161,
+        193,
+        209,
+        22
+      ],
+      "gateup_same_experts": true,
+      "full_same_experts": true,
+      "hidden_quant_diff": {
+        "max_abs": 0.171875,
+        "mean_abs": 0.0192844420671463,
+        "rel_l2": 0.02089771442115307,
+        "cosine": 0.9997818470001221
+      },
+      "gateup_diff": {
+        "max_abs": 0.002427399158477783,
+        "mean_abs": 0.0004829136887565255,
+        "rel_l2": 0.023210611194372177,
+        "cosine": 0.9997336864471436
+      },
+      "full_diff": {
+        "max_abs": 0.0035844743251800537,
+        "mean_abs": 0.0005957740941084921,
+        "rel_l2": 0.02884223498404026,
+        "cosine": 0.9995872974395752
+      },
+      "max_inter_rel_l2": 0.021543428301811218
+    },
+    {
+      "layer": 36,
+      "prompt_id": 3,
+      "prompt": "请给出一个 JSON: {\"city\":\"Tokyo\",\"unit\":\"celsius\"}",
+      "top_k": 8,
+      "expert_ids": [
+        1,
+        2,
+        19,
+        81,
+        171,
+        221,
+        86,
+        164
+      ],
+      "gateup_same_experts": true,
+      "full_same_experts": true,
+      "hidden_quant_diff": {
+        "max_abs": 0.140625,
+        "mean_abs": 0.02087865024805069,
+        "rel_l2": 0.020934006199240685,
+        "cosine": 0.9997810125350952
+      },
+      "gateup_diff": {
+        "max_abs": 0.003180619329214096,
+        "mean_abs": 0.0006838507251814008,
+        "rel_l2": 0.020994434133172035,
+        "cosine": 0.9997808337211609
+      },
+      "full_diff": {
+        "max_abs": 0.0041344985365867615,
+        "mean_abs": 0.0008183640311472118,
+        "rel_l2": 0.0248514786362648,
+        "cosine": 0.9996920228004456
+      },
+      "max_inter_rel_l2": 0.020581960678100586
+    },
+    {
+      "layer": 36,
+      "prompt_id": 4,
+      "prompt": "总结一下 MoE 模型里 router 和 expert 的分工。",
+      "top_k": 8,
+      "expert_ids": [
+        19,
+        139,
+        155,
+        160,
+        164,
+        196,
+        6,
+        13
+      ],
+      "gateup_same_experts": true,
+      "full_same_experts": true,
+      "hidden_quant_diff": {
+        "max_abs": 0.1875,
+        "mean_abs": 0.01807970181107521,
+        "rel_l2": 0.020896151661872864,
+        "cosine": 0.9997816681861877
+      },
+      "gateup_diff": {
+        "max_abs": 0.002384323626756668,
+        "mean_abs": 0.0004941344959661365,
+        "rel_l2": 0.022767307236790657,
+        "cosine": 0.999740719795227
+      },
+      "full_diff": {
+        "max_abs": 0.0030854009091854095,
+        "mean_abs": 0.0005884903366677463,
+        "rel_l2": 0.02717195823788643,
+        "cosine": 0.9996311068534851
+      },
+      "max_inter_rel_l2": 0.02110997773706913
+    },
+    {
+      "layer": 36,
+      "prompt_id": 5,
+      "prompt": "解释长上下文推理里 linear attention 的优势。",
+      "top_k": 8,
+      "expert_ids": [
+        19,
+        34,
+        139,
+        155,
+        160,
+        164,
+        181,
+        196
+      ],
+      "gateup_same_experts": true,
+      "full_same_experts": true,
+      "hidden_quant_diff": {
+        "max_abs": 0.171875,
+        "mean_abs": 0.017732497304677963,
+        "rel_l2": 0.01991899497807026,
+        "cosine": 0.9998019933700562
+      },
+      "gateup_diff": {
+        "max_abs": 0.002555862069129944,
+        "mean_abs": 0.0005389314028434455,
+        "rel_l2": 0.01969798281788826,
+        "cosine": 0.9998077154159546
+      },
+      "full_diff": {
+        "max_abs": 0.002754349261522293,
+        "mean_abs": 0.0006551870610564947,
+        "rel_l2": 0.023988043889403343,
+        "cosine": 0.9997147917747498
+      },
+      "max_inter_rel_l2": 0.01782519370317459
+    }
+  ],
+  "summary_by_layer": {
+    "4": {
+      "case_count": 6,
+      "all_gateup_relaxed": true,
+      "all_full_relaxed": true,
+      "min_gateup_cosine": 0.9996777176856995,
+      "max_gateup_rel_l2": 0.025404710322618484,
+      "min_full_cosine": 0.9995535612106323,
+      "max_full_rel_l2": 0.029880667105317116,
+      "max_hidden_rel_l2": 0.0210279431194067,
+      "max_inter_rel_l2": 0.02160116285085678
+    },
+    "16": {
+      "case_count": 6,
+      "all_gateup_relaxed": true,
+      "all_full_relaxed": true,
+      "min_gateup_cosine": 0.9997210502624512,
+      "max_gateup_rel_l2": 0.02386988326907158,
+      "min_full_cosine": 0.9995787143707275,
+      "max_full_rel_l2": 0.029367223381996155,
+      "max_hidden_rel_l2": 0.02096523530781269,
+      "max_inter_rel_l2": 0.022521594539284706
+    },
+    "28": {
+      "case_count": 6,
+      "all_gateup_relaxed": true,
+      "all_full_relaxed": true,
+      "min_gateup_cosine": 0.9997086524963379,
+      "max_gateup_rel_l2": 0.024205366149544716,
+      "min_full_cosine": 0.9995852708816528,
+      "max_full_rel_l2": 0.028863823041319847,
+      "max_hidden_rel_l2": 0.021690059453248978,
+      "max_inter_rel_l2": 0.02115350216627121
+    },
+    "36": {
+      "case_count": 6,
+      "all_gateup_relaxed": true,
+      "all_full_relaxed": true,
+      "min_gateup_cosine": 0.999731183052063,
+      "max_gateup_rel_l2": 0.023705391213297844,
+      "min_full_cosine": 0.9995872974395752,
+      "max_full_rel_l2": 0.02884223498404026,
+      "max_hidden_rel_l2": 0.020934006199240685,
+      "max_inter_rel_l2": 0.021543428301811218
+    }
+  },
+  "aggregate": {
+    "all_gateup_relaxed": true,
+    "all_full_relaxed": true,
+    "max_gateup_rel_l2": 0.025404710322618484,
+    "max_full_rel_l2": 0.029880667105317116,
+    "min_gateup_cosine": 0.9996777176856995,
+    "min_full_cosine": 0.9995535612106323
+  },
+  "decision": "GREEN: real-prompt W4A8 active-MoE drift is within relaxed gate; start Recovery and generation gates.",
+  "elapsed_seconds": 28.01224708557129
+}
