@@ -1,14 +1,21 @@
 """Packed NVFP4 MoE decode path."""
 from __future__ import annotations
 
+import os
+
 import torch
 import torch.nn.functional as F
 
 from engine.nvfp4_runtime import dual_scalar_bridge
 from triton_kernels.nvfp4_moe import (
     nvfp4_grouped_down_weighted_sum,
+    nvfp4_grouped_down_weighted_sum_sp01_autotuned,
     nvfp4_grouped_gate_up_silu,
+    nvfp4_grouped_gate_up_silu_sp01_autotuned,
 )
+
+
+_SP01_TRITON_AUTOTUNE = os.environ.get("LYNN_SP_TRITON_AUTOTUNE", "0") == "1"
 
 
 def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
@@ -46,25 +53,42 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
     expert_ids = expert_indices[0].to(torch.long)
     hidden = h_flat[0]
 
-    inter = nvfp4_grouped_gate_up_silu(
-        hidden,
-        expert_ids,
-        w["mlp.experts._gate_up_packed"],
-        w["mlp.experts._gate_up_scale"],
-        w["mlp.experts._gate_up_global_scale"],
-        block_inter=8,
-        block_hidden=64,
-    )
-    moe_out = nvfp4_grouped_down_weighted_sum(
-        inter,
-        expert_ids,
-        routing_weights,
-        w["mlp.experts._down_packed"],
-        w["mlp.experts._down_scale"],
-        w["mlp.experts._down_global_scale"],
-        block_hidden=8,
-        block_inter=256,
-    ).reshape_as(h_flat)
+    if _SP01_TRITON_AUTOTUNE:
+        inter = nvfp4_grouped_gate_up_silu_sp01_autotuned(
+            hidden,
+            expert_ids,
+            w["mlp.experts._gate_up_packed"],
+            w["mlp.experts._gate_up_scale"],
+            w["mlp.experts._gate_up_global_scale"],
+        )
+        moe_out = nvfp4_grouped_down_weighted_sum_sp01_autotuned(
+            inter,
+            expert_ids,
+            routing_weights,
+            w["mlp.experts._down_packed"],
+            w["mlp.experts._down_scale"],
+            w["mlp.experts._down_global_scale"],
+        ).reshape_as(h_flat)
+    else:
+        inter = nvfp4_grouped_gate_up_silu(
+            hidden,
+            expert_ids,
+            w["mlp.experts._gate_up_packed"],
+            w["mlp.experts._gate_up_scale"],
+            w["mlp.experts._gate_up_global_scale"],
+            block_inter=8,
+            block_hidden=64,
+        )
+        moe_out = nvfp4_grouped_down_weighted_sum(
+            inter,
+            expert_ids,
+            routing_weights,
+            w["mlp.experts._down_packed"],
+            w["mlp.experts._down_scale"],
+            w["mlp.experts._down_global_scale"],
+            block_hidden=8,
+            block_inter=256,
+        ).reshape_as(h_flat)
 
     if "mlp.shared_expert.gate_proj.weight" in w:
         if (
