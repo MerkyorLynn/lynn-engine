@@ -35,7 +35,8 @@ Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent ru
 | **P93 top-k gate/up backend** | ✅ top-k=8 single-launch backend PASS,quantized-reference cosine `0.9999986`;slightly slower than Triton today,not promoted |
 | **P94 active MoE composition** | ✅ P93 gate/up + packed down end-to-end PASS,cosine `0.9999986`;almost tied with Triton,not promoted yet |
 | **P95 down backend sweep** | ✅ native_down_tile1 is **2.14×** faster than Triton down;all variants pass the contract |
-| **Next target** | P96 = P93 gate/up + native_down_tile1 full composition; defer official/vendor-friendly NVFP4 v2 to the MTP/retrain + re-quant cycle |
+| **P96 native-down composition** | ✅ numeric PASS,but `0.0830ms` vs Triton `0.0810ms`;not promoted because two-stage scheduling eats the down win |
+| **Next target** | P97 gate/up overhead / fused active expert scheduling; defer official/vendor-friendly NVFP4 v2 to the MTP/retrain + re-quant cycle |
 
 Current primary artifact:
 
@@ -112,6 +113,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P93 top-k gate/up backend** | top-k=8,one CUDA launch,output `[8,512]` | median `0.0602ms`,quantized-ref cosine `0.9999986`,rel_l2 `0.00167` | ✅ production-shaped gate/up backend contract PASS;slightly slower than Triton so not promoted |
 | **P94 active MoE composition** | P93 gate/up + packed down weighted-sum | median `0.0823ms` vs Triton `0.0818ms`,quantized-ref cosine `0.9999986` | ✅ full active-MoE end-to-end contract PASS;speed now needs fused/non-atomic scheduling |
 | **P95 down backend sweep** | fixed P93 inter + down variants | native_down_tile1 median `0.0243ms` vs Triton `0.0521ms` | ✅ down half has real 2.14× headroom;P96 should compose native gate/up + native down |
+| **P96 native-down composition** | P93 gate/up + native_down_tile1 | median `0.0830ms` vs Triton active `0.0810ms`,quantized-ref cosine `0.9999986` | ✅ numeric PASS / ❌ no speed win;next work must reduce gate/up or fuse scheduling |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
