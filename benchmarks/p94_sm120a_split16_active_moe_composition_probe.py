@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 import statistics
 import sys
@@ -106,6 +107,7 @@ def main() -> int:
 
     if not torch.cuda.is_available():
         raise RuntimeError("P94 requires CUDA")
+    os.environ.setdefault("LYNN_NATIVE_CUDA_ARCH", "sm_120a")
     _prepare_path()
 
     model_dir = Path(args.model)
@@ -258,4 +260,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

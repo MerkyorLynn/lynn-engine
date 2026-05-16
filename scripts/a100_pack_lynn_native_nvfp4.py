@@ -35,6 +35,13 @@ def _copy_metadata(src: Path, out: Path) -> None:
     for child in src.iterdir():
         if child.name.endswith(".safetensors") or child.name == "model.safetensors.index.json":
             continue
+        # Folded BF16 artifacts may carry a legacy `tensors/` side directory
+        # with copy-on-write shards and many symlinks. Lynn-native NVFP4 runtime
+        # consumes only the top-level model shard index produced below; copying
+        # `tensors/` bloats v0/v1 packages by ~11 GiB and can introduce broken
+        # symlinks when the source overlay moves.
+        if child.name == "tensors":
+            continue
         dst = out / child.name
         if child.is_dir():
             if not dst.exists():
@@ -91,7 +98,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--src-model", required=True)
     parser.add_argument("--out-model", required=True)
-    parser.add_argument("--keep-regex", default=r"(embed_tokens|lm_head|visual|rotary|norm|mlp\.gate\.weight)")
+    parser.add_argument("--keep-regex", default=r"(embed_tokens|lm_head|rotary|norm|mlp\.gate\.weight)")
     parser.add_argument("--max-shard-bytes", type=int, default=3_500_000_000)
     parser.add_argument("--overwrite", action="store_true")
     args = parser.parse_args()

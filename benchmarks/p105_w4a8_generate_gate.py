@@ -92,8 +92,16 @@ def main() -> int:
     ap.add_argument("--max-new", type=int, default=24)
     ap.add_argument("--top-k", type=int, default=5)
     ap.add_argument("--prompts", nargs="*", default=PROMPTS)
+    ap.add_argument("--prompts-file", default=None, help="Optional JSON list or {'prompts': [...]} file.")
     ap.add_argument("--modes", nargs="+", default=["gateup", "full"], choices=["gateup", "full"])
     args = ap.parse_args()
+
+    prompts = args.prompts
+    if args.prompts_file:
+        payload = json.loads(Path(args.prompts_file).read_text(encoding="utf-8"))
+        prompts = payload["prompts"] if isinstance(payload, dict) else payload
+        if not isinstance(prompts, list) or not all(isinstance(x, str) for x in prompts):
+            raise TypeError("--prompts-file must contain a JSON list of strings or {'prompts': [...]}")
 
     os.environ.setdefault("LYNN_MOE_IMPL", "packed_nvfp4")
     os.environ.setdefault("LYNN_MOE_FAST_FIXED", "1")
@@ -106,7 +114,7 @@ def main() -> int:
 
     runner = LynnIncrementalRunner(args.model, device="cuda", verbose=False)
     cases = []
-    for idx, prompt in enumerate(args.prompts):
+    for idx, prompt in enumerate(prompts):
         baseline = _run_mode(runner, prompt, mode="off", max_new=args.max_new, top_k=args.top_k)
         variants = []
         for mode in args.modes:
@@ -172,6 +180,8 @@ def main() -> int:
         "model": args.model,
         "max_new": args.max_new,
         "top_k": args.top_k,
+        "prompt_count": len(prompts),
+        "prompts_file": args.prompts_file,
         "fake_quant_format": os.environ.get("LYNN_W4A8_FAKE_QUANT_FORMAT"),
         "fake_quant_granularity": os.environ.get("LYNN_W4A8_FAKE_QUANT_GRANULARITY"),
         "cases": cases,

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 import statistics
 import sys
@@ -129,6 +130,7 @@ def main() -> int:
 
     if not torch.cuda.is_available():
         raise RuntimeError("P97 requires CUDA")
+    os.environ.setdefault("LYNN_NATIVE_CUDA_ARCH", "sm_120a")
     _prepare_path()
 
     model_dir = Path(args.model)
@@ -257,11 +259,14 @@ def main() -> int:
         variants.append(_summarize(name, out, timings, quantized_active_ref, baseline_total))
 
     best = min(variants, key=lambda item: item["total_median_ms"])
+    quantized_activation_variants = [
+        item for item in variants if item["name"] != "triton_gateup_triton_down"
+    ]
     contract_pass = all(
         item["diff_vs_quantized_activation_active_reference"]["rel_l2"] <= 0.02
         and item["diff_vs_quantized_activation_active_reference"]["cosine"] >= 0.999
         and item["diff_vs_quantized_activation_active_reference"]["max_abs"] <= 0.20
-        for item in variants
+        for item in quantized_activation_variants
     )
     result = {
         "schema_version": "lynn-engine-p97-sm120a-active-moe-interval-decomposition-v1",
@@ -279,6 +284,8 @@ def main() -> int:
         "repeats": args.repeats,
         "warmup": args.warmup,
         "variants": variants,
+        "contract_scope": "quantized_activation_variants_only",
+        "baseline_triton_bf16_activation_is_timing_reference_only": True,
         "best_variant": best["name"],
         "best_total_median_ms": best["total_median_ms"],
         "contract_pass": contract_pass,
@@ -298,4 +305,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
