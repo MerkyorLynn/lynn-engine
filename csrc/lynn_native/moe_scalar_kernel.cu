@@ -842,6 +842,24 @@ torch::Tensor lynn_native_down_grouped_per16_reference(
       down_global_scale);
 }
 
+torch::Tensor lynn_native_down_grouped_per16_tile_reference(
+    torch::Tensor inter,
+    torch::Tensor expert_ids,
+    torch::Tensor routing_weights,
+    torch::Tensor down_packed,
+    torch::Tensor down_scale,
+    torch::Tensor down_global_scale,
+    int64_t tile_hidden) {
+  return lynn_native_down_weighted_sum_tile_scalar(
+      inter,
+      expert_ids,
+      routing_weights,
+      down_packed,
+      down_scale,
+      down_global_scale,
+      tile_hidden);
+}
+
 torch::Tensor lynn_native_active_moe_scalar_contract(
     torch::Tensor x,
     torch::Tensor expert_ids,
