@@ -1,0 +1,12 @@
+{
+  "schema_version": "lynn-engine-p60-grouped-per16-backend-guard-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final",
+  "layer": 28,
+  "baseline_triton_norm": 1.1852200031280518,
+  "grouped_per16_error": {
+    "type": "NotImplementedError",
+    "message": "LYNN_NATIVE_ACTIVE_MOE_BACKEND=grouped_per16 is reserved for the true grouped per-16 native-FP4 active expert kernel. Current scalar/tile bridges are intentionally rejected by P56/P58; use 'triton' for production or add the real grouped_per16 CUDA/CUTLASS implementation behind this ABI."
+  },
+  "pass": true,
+  "decision": "The grouped_per16 backend name is now reserved and fail-loud. The next implementation must replace this guard with the real grouped per-16 CUDA/CUTLASS kernel, not a scalar bridge."
+}
