@@ -33,7 +33,8 @@ Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B final 基�
 | **P91 row-tile sweep** | ✅ 8/16/32/64 行全部 PASS;64 行 median `0.0443ms`,rows/ms 比 8 行提升 **8.3×** |
 | **P92 full gate/up expert** | ✅ 完整 512 gate + 512 up rows PASS,median `0.0502ms`,max_abs `4.77e-7` |
 | **P93 top-k gate/up backend** | ✅ top-k=8 single-launch backend PASS,quantized-reference cosine `0.9999986`;当前略慢于 Triton,不 promote |
-| **下一目标** | P94 active MoE composition / down-fused path;官方/vendor-friendly NVFP4 v2 放到 MTP/retrain + re-quant 批次 |
+| **P94 active MoE composition** | ✅ P93 gate/up + packed down 端到端 PASS,cosine `0.9999986`;性能几乎打平 Triton,暂不 promote |
+| **下一目标** | P95 fused/non-atomic active expert scheduling;官方/vendor-friendly NVFP4 v2 放到 MTP/retrain + re-quant 批次 |
 
 当前主力 artifact:
 
@@ -111,6 +112,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P91 split16 row-tile sweep** | row_count 8/16/32/64 | 64 rows median `0.0443ms`,rows/ms `2892`,all tolerance PASS | ✅ 下一个设计点锁定 64-row tile |
 | **P92 full gate/up expert** | 512 gate + 512 up rows,K=2048 | median `0.0502ms`,rows/ms `20401.7`,max_abs `4.77e-7` | ✅ 完整 active expert gate/up 子算子 PASS |
 | **P93 top-k gate/up backend** | top-k=8,one CUDA launch,output `[8,512]` | median `0.0602ms`,quantized-ref cosine `0.9999986`,rel_l2 `0.00167` | ✅ production-shaped gate/up backend contract PASS;slightly slower than Triton so not promoted |
+| **P94 active MoE composition** | P93 gate/up + packed down weighted-sum | median `0.0823ms` vs Triton `0.0818ms`,quantized-ref cosine `0.9999986` | ✅ full active-MoE end-to-end contract PASS;speed now needs fused/non-atomic scheduling |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:

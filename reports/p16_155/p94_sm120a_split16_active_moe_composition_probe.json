@@ -1,0 +1,99 @@
+{
+  "schema_version": "lynn-engine-p94-sm120a-split16-active-moe-composition-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final",
+  "layer": 28,
+  "prompt": "用一句话解释 MoE active parameters",
+  "top_k": 8,
+  "expert_ids": [
+    12,
+    49,
+    63,
+    116,
+    159,
+    192,
+    204,
+    155
+  ],
+  "scale_byte": 127,
+  "torch": "2.10.0+cu128",
+  "cuda_capability": [
+    12,
+    0
+  ],
+  "include_paths": [
+    "/root/miniconda3/lib/python3.12/site-packages/deep_gemm/include"
+  ],
+  "cuda_cflags": [
+    "-O3",
+    "--use_fast_math",
+    "-arch=sm_120a"
+  ],
+  "build_seconds": 53.9792115688324,
+  "reference_seconds": 1.8976483345031738,
+  "repeats": 20,
+  "warmup": 5,
+  "native_composed_times_ms": [
+    0.08908800035715103,
+    0.08409599959850311,
+    0.08310399949550629,
+    0.08195199817419052,
+    0.08198399841785431,
+    0.08246400207281113,
+    0.08268799632787704,
+    0.08217599987983704,
+    0.08169600367546082,
+    0.08313599973917007,
+    0.0825280025601387,
+    0.08115199953317642,
+    0.08249600231647491,
+    0.081216000020504,
+    0.08316799998283386,
+    0.08134400099515915,
+    0.08265600353479385,
+    0.08220800012350082,
+    0.08150400221347809,
+    0.08124800026416779
+  ],
+  "native_composed_mean_ms": 0.08259520046412945,
+  "native_composed_median_ms": 0.08233600109815598,
+  "current_triton_times_ms": [
+    0.0865280032157898,
+    0.09136000275611877,
+    0.08473599702119827,
+    0.08425600081682205,
+    0.08310399949550629,
+    0.08300799876451492,
+    0.0846719965338707,
+    0.08144000172615051,
+    0.08211199939250946,
+    0.08287999778985977,
+    0.08425600081682205,
+    0.08153600245714188,
+    0.08156800270080566,
+    0.07859200239181519,
+    0.08057600259780884,
+    0.08038400113582611,
+    0.08115199953317642,
+    0.08102399855852127,
+    0.08086399734020233,
+    0.07894399762153625
+  ],
+  "current_triton_mean_ms": 0.08264960013329983,
+  "current_triton_median_ms": 0.08184000104665756,
+  "native_vs_triton_speedup_median": 0.9939759030693377,
+  "diff_native_vs_quantized_activation_active_reference": {
+    "max_abs": 0.000243358314037323,
+    "mean_abs": 2.0254617993487045e-05,
+    "rel_l2": 0.0017139008268713951,
+    "cosine": 0.9999985694885254
+  },
+  "diff_native_vs_current_triton_bf16_activation_active": {
+    "max_abs": 0.0069580078125,
+    "mean_abs": 0.0015761000104248524,
+    "rel_l2": 0.1111275926232338,
+    "cosine": 0.9938234090805054
+  },
+  "contract_pass": true,
+  "runtime_promote": false,
+  "decision": "PASS: P93 native gate/up composes with down into a full active-MoE contract; next gate is fused/non-atomic scheduling."
+}
