@@ -1,0 +1,63 @@
+{
+  "schema_version": "lynn-engine-p82-sm120a-fp4-mma-loop-microbench-v1",
+  "torch": "2.10.0+cu128",
+  "cuda_capability": [
+    12,
+    0
+  ],
+  "include_paths": [
+    "/root/miniconda3/lib/python3.12/site-packages/deep_gemm/include"
+  ],
+  "cuda_cflags": [
+    "-O3",
+    "--use_fast_math",
+    "-arch=sm_120a"
+  ],
+  "build_seconds": 55.50015068054199,
+  "timing": {
+    "blocks": 4096,
+    "iters": 512,
+    "repeats": 10,
+    "warmup": 3,
+    "times_ms": [
+      0.09459199756383896,
+      0.04275200143456459,
+      0.0318400003015995,
+      0.03299200162291527,
+      0.03062400035560131,
+      0.032896000891923904,
+      0.03174399957060814,
+      0.03215999901294708,
+      0.03244800120592117,
+      0.03171199932694435
+    ],
+    "mean_ms": 0.03937600012868643,
+    "median_ms": 0.03230400010943413,
+    "min_ms": 0.03062400035560131,
+    "max_ms": 0.09459199756383896,
+    "warp_mma_instructions": 2097152,
+    "warp_mma_per_ms": 53259650.3744973,
+    "output_sample": [
+      1505.0,
+      1506.0,
+      1539.0,
+      1540.0,
+      1506.0,
+      1507.0,
+      1540.0,
+      1541.0,
+      1507.0,
+      1508.0,
+      1541.0,
+      1542.0,
+      1508.0,
+      1509.0,
+      1542.0,
+      1543.0
+    ],
+    "output_sum": 1126170624.0,
+    "output_all_finite": true
+  },
+  "ok": true,
+  "decision": "Raw sm_120a E2M1 MMA loop runs under the shared Lynn native CUDA policy."
+}
