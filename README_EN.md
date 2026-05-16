@@ -27,7 +27,7 @@ Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent ru
 | **P13 graph-slot generate wiring** | ✅ `generate()` opt-in path uses full-token graph slots;multi-prompt gate proves future-window unsafe,next state-refresh slot |
 | **P14 state-refresh probe** | ✅ full mutable-state roundtrip costs only **0.79 ms**,far below graph capture at 60-105 ms |
 | **P15 runtime config audit** | ✅ disables global `LYNN_PACKED_DECODE`; restores **103.48 strict / 107.23 replay**; disproves packed shared expert path |
-| **Next target** | P52 grouped native-FP4 active expert FFN / graph-owned exact route, continuing toward 155 TPS |
+| **Next target** | P60 grouped per-16 native-FP4 active expert FFN, while keeping the vendor-friendly NVFP4 v2 dual-artifact route open |
 
 Current primary artifact:
 
@@ -93,6 +93,8 @@ Lynn 27B variable-pruned Recovery step5000
 | **P54 vendor-layout feasibility** | e8m0/group32 scale search | best upper-bound inter cosine 0.9869-0.9918,all fail | ❌ direct ModelOpt-like scale contract is not enough;mainline stays per-16 grouped kernel |
 | **P55 gate/up tile-inter** | CUDA scalar `tile_inter=2` | 1.09-1.14x vs Triton gate/up,max_abs=0 | 🔬 positive tile-shape signal for P56 grouped kernel |
 | **P56 gate/up tile runtime** | `LYNN_NATIVE_GATEUP_BACKEND=cuda_tile_inter` | 114.43 TPS median(+15.4%) but `!` loop / greedy mismatch | ❌ runtime not promoted; keep tile-shape signal |
+| **P58 graph-off retest** | `cuda_tile_inter` + block graph disabled | 28.43 TPS median,greedy mismatch remains | ❌ not a graph-only bug;scalar tile-inter is not a production bridge |
+| **P59 dual NVFP4 dispatch** | metadata-only layout classifier | Lynn-native / vendor / BF16 / unknown packed FP4 fail-loud | ✅ one engine,two explicit NVFP4 artifact families |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -449,6 +451,22 @@ validation gates, and must never overwrite each other. See
 [`docs/LYNN_ENGINE_DUAL_NVFP4_ARTIFACT_POLICY_20260516.md`](docs/LYNN_ENGINE_DUAL_NVFP4_ARTIFACT_POLICY_20260516.md)
 and
 [`docs/LYNN_ENGINE_VENDOR_VS_LYNN_NATIVE_TRADEOFF_20260516.md`](docs/LYNN_ENGINE_VENDOR_VS_LYNN_NATIVE_TRADEOFF_20260516.md).
+
+P58 note: to rule out the possibility that P56 only failed because the CUDA
+extension interacted badly with linear-block graph capture, P58 reruns
+`cuda_tile_inter` with `LYNN_LINEAR_BLOCK_GRAPH*` disabled. The candidate drops
+to **28.43 TPS** median and greedy mismatch remains. Conclusion: this is not a
+graph-only bug; scalar tile-inter accumulation/scheduling is itself unsafe for
+full greedy decode. Keep the shape hint, close the runtime bridge. See
+[`docs/LYNN_ENGINE_P58_GATEUP_TILE_GRAPH_OFF_REJECTED_20260516.md`](docs/LYNN_ENGINE_P58_GATEUP_TILE_GRAPH_OFF_REJECTED_20260516.md).
+
+P59 note: adds a metadata-only NVFP4 layout classifier before tensor loading.
+It distinguishes `lynn_native_per16_variable`, `compressed_tensors_nvfp4`,
+`modelopt_nvfp4`, `bf16_or_unquantized`, and unknown packed FP4. The goal is one
+Lynn engine with two explicit NVFP4 artifact families: current Lynn-native
+per-16 variable experts and a future vendor-friendly NVFP4 v2. Cross-loading
+must fail loudly. See
+[`docs/LYNN_ENGINE_P59_DUAL_NVFP4_LAYOUT_DISPATCH_20260516.md`](docs/LYNN_ENGINE_P59_DUAL_NVFP4_LAYOUT_DISPATCH_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,

@@ -1,0 +1,60 @@
+{
+  "schema_version": "lynn-engine-p59-nvfp4-layout-dispatch-probe-v1",
+  "reports": [
+    {
+      "schema_version": "lynn-engine-nvfp4-layout-report-v1",
+      "model_dir": "/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final",
+      "layout_kind": "lynn_native_per16_variable",
+      "recommended_loader": "engine.loader:_load_qwen36_layer_lynn_variable_nvfp4",
+      "recommended_backend_family": "lynn_native_per16",
+      "quant_method": null,
+      "quant_format": null,
+      "has_lynn_manifest": true,
+      "has_variable_expert_spec": true,
+      "hf_vanilla_compatible": false,
+      "weight_key_count": 2110,
+      "suffix_counts": {
+        ".weight": 258,
+        ".weight_packed": 542,
+        ".weight_scale": 542,
+        ".weight_global_scale": 542,
+        ".input_global_scale": 0,
+        ".weight_scale_inv": 0,
+        ".bias": 166,
+        "other": 60
+      },
+      "warnings": [],
+      "blockers": []
+    },
+    {
+      "schema_version": "lynn-engine-nvfp4-layout-report-v1",
+      "model_dir": "/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-bf16-final",
+      "layout_kind": "bf16_or_unquantized",
+      "recommended_loader": "engine.loader:load_qwen36_layer",
+      "recommended_backend_family": "bf16_reference",
+      "quant_method": null,
+      "quant_format": null,
+      "has_lynn_manifest": false,
+      "has_variable_expert_spec": true,
+      "hf_vanilla_compatible": false,
+      "weight_key_count": 1026,
+      "suffix_counts": {
+        ".weight": 720,
+        ".weight_packed": 0,
+        ".weight_scale": 0,
+        ".weight_global_scale": 0,
+        ".input_global_scale": 0,
+        ".weight_scale_inv": 0,
+        ".bias": 166,
+        "other": 140
+      },
+      "warnings": [],
+      "blockers": []
+    }
+  ],
+  "fail_loud_ok": true,
+  "layout_kinds": [
+    "lynn_native_per16_variable",
+    "bf16_or_unquantized"
+  ]
+}
