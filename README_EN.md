@@ -92,6 +92,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P53 Triton retune review** | E2M1 decode simplification / scale hoist | LUT variant exact but avg 0.936x; scale-hoist JIT too heavy | 🔬 local signal only,no free 15 TPS;not promoted |
 | **P54 vendor-layout feasibility** | e8m0/group32 scale search | best upper-bound inter cosine 0.9869-0.9918,all fail | ❌ direct ModelOpt-like scale contract is not enough;mainline stays per-16 grouped kernel |
 | **P55 gate/up tile-inter** | CUDA scalar `tile_inter=2` | 1.09-1.14x vs Triton gate/up,max_abs=0 | 🔬 positive tile-shape signal for P56 grouped kernel |
+| **P56 gate/up tile runtime** | `LYNN_NATIVE_GATEUP_BACKEND=cuda_tile_inter` | 114.43 TPS median(+15.4%) but `!` loop / greedy mismatch | ❌ runtime not promoted; keep tile-shape signal |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -421,6 +422,14 @@ are slower. This is a positive tile-shape signal for the P56 grouped per-16
 kernel, but it is still a local scalar probe and is not promoted to the default
 runtime by itself. See
 [`docs/LYNN_ENGINE_P55_GATEUP_TILE_INTER_20260516.md`](docs/LYNN_ENGINE_P55_GATEUP_TILE_INTER_20260516.md).
+
+P56 note: wiring P55 `tile_inter=2` into an opt-in runtime gate raises median
+decode TPS from about **99.15** to **114.43**(+15.4%), but full-generate greedy
+IDs do not match and the candidate falls into a `!` loop. The decision is to
+reject runtime promotion while preserving the positive tile-shape signal:
+`tile_inter=2` should inform the P57/P58 real grouped per-16 native-FP4 kernel,
+not become a scalar production shortcut. See
+[`docs/LYNN_ENGINE_P56_GATEUP_TILE_RUNTIME_REJECTED_20260516.md`](docs/LYNN_ENGINE_P56_GATEUP_TILE_RUNTIME_REJECTED_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,

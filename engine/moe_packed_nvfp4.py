@@ -111,6 +111,25 @@ def _active_moe_native_cuda_scalar(
     )
 
 
+def _gate_up_native_cuda_tile_inter(
+    hidden: torch.Tensor,
+    expert_ids: torch.Tensor,
+    w: dict,
+) -> torch.Tensor:
+    """P55 opt-in tile-inter CUDA scalar gate/up projection."""
+    from engine.native_cuda import load_lynn_native_extension
+
+    ext = load_lynn_native_extension(verbose=_env_bool("LYNN_NATIVE_CUDA_VERBOSE", False))
+    return ext.gate_up_silu_tile_inter_scalar(
+        hidden,
+        expert_ids,
+        w["mlp.experts._gate_up_packed"],
+        w["mlp.experts._gate_up_scale"],
+        w["mlp.experts._gate_up_global_scale"],
+        _env_int("LYNN_NATIVE_GATEUP_TILE_INTER", 2),
+    )
+
+
 def _down_weighted_sum_native_cuda_tile(
     inter: torch.Tensor,
     expert_ids: torch.Tensor,
@@ -180,16 +199,36 @@ def _moe_forward_decode_packed_nvfp4_fixed_triton(h: torch.Tensor, w: dict, cfg:
         if _env_bool("LYNN_MOE_TOPK_RENORMALIZE", True):
             routing_weights = routing_weights / routing_weights.sum().clamp_min(1e-20)
     hidden = h_flat[0]
-    inter = nvfp4_grouped_gate_up_silu(
-        hidden,
-        expert_ids,
-        w["mlp.experts._gate_up_packed"],
-        w["mlp.experts._gate_up_scale"],
-        w["mlp.experts._gate_up_global_scale"],
-        block_inter=8,
-        block_hidden=256,
-        num_warps=4,
-    )
+    gateup_backend = os.environ.get("LYNN_NATIVE_GATEUP_BACKEND", "triton")
+    if gateup_backend == "cuda_tile_inter" and _layer_selected_for_native_cuda(cfg):
+        inter = _gate_up_native_cuda_tile_inter(hidden, expert_ids, w)
+    elif gateup_backend == "triton":
+        inter = nvfp4_grouped_gate_up_silu(
+            hidden,
+            expert_ids,
+            w["mlp.experts._gate_up_packed"],
+            w["mlp.experts._gate_up_scale"],
+            w["mlp.experts._gate_up_global_scale"],
+            block_inter=8,
+            block_hidden=256,
+            num_warps=4,
+        )
+    elif gateup_backend == "cuda_tile_inter":
+        inter = nvfp4_grouped_gate_up_silu(
+            hidden,
+            expert_ids,
+            w["mlp.experts._gate_up_packed"],
+            w["mlp.experts._gate_up_scale"],
+            w["mlp.experts._gate_up_global_scale"],
+            block_inter=8,
+            block_hidden=256,
+            num_warps=4,
+        )
+    else:
+        raise ValueError(
+            "LYNN_NATIVE_GATEUP_BACKEND must be 'triton' or 'cuda_tile_inter', got "
+            f"{gateup_backend!r}"
+        )
     down_backend = os.environ.get("LYNN_NATIVE_DOWN_BACKEND", "triton")
     if down_backend == "cuda_tile" and _layer_selected_for_native_cuda(cfg):
         moe_out = _down_weighted_sum_native_cuda_tile(inter, expert_ids, routing_weights, w).reshape_as(h_flat)
@@ -268,6 +307,8 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
             raise RuntimeError("LYNN_MOE_FAST_FIXED does not support LYNN_MOE_PROFILE_SKIP_ACTIVE")
         if os.environ.get("LYNN_NATIVE_ACTIVE_MOE_BACKEND", "triton") != "triton":
             raise RuntimeError("LYNN_MOE_FAST_FIXED requires LYNN_NATIVE_ACTIVE_MOE_BACKEND=triton")
+        if os.environ.get("LYNN_NATIVE_GATEUP_BACKEND", "triton") not in {"triton", "cuda_tile_inter"}:
+            raise RuntimeError("LYNN_MOE_FAST_FIXED requires LYNN_NATIVE_GATEUP_BACKEND=triton or cuda_tile_inter")
         if os.environ.get("LYNN_NATIVE_DOWN_BACKEND", "triton") not in {"triton", "cuda_tile"}:
             raise RuntimeError("LYNN_MOE_FAST_FIXED requires LYNN_NATIVE_DOWN_BACKEND=triton or cuda_tile")
         if (
@@ -312,16 +353,36 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
         elif backend == "cuda_scalar" and _layer_selected_for_native_cuda(cfg):
             moe_out = _active_moe_native_cuda_scalar(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
         elif backend in {"triton", "cuda_scalar", "cuda_scalar_contract"}:
-            inter = nvfp4_grouped_gate_up_silu(
-                hidden,
-                expert_ids,
-                w["mlp.experts._gate_up_packed"],
-                w["mlp.experts._gate_up_scale"],
-                w["mlp.experts._gate_up_global_scale"],
-                block_inter=_env_int("LYNN_MOE_GATE_BLOCK_INTER", 8),
-                block_hidden=_env_int("LYNN_MOE_GATE_BLOCK_HIDDEN", 256),
-                num_warps=_env_int("LYNN_MOE_GATE_NUM_WARPS", 4),
-            )
+            gateup_backend = os.environ.get("LYNN_NATIVE_GATEUP_BACKEND", "triton")
+            if gateup_backend == "cuda_tile_inter" and _layer_selected_for_native_cuda(cfg):
+                inter = _gate_up_native_cuda_tile_inter(hidden, expert_ids, w)
+            elif gateup_backend == "triton":
+                inter = nvfp4_grouped_gate_up_silu(
+                    hidden,
+                    expert_ids,
+                    w["mlp.experts._gate_up_packed"],
+                    w["mlp.experts._gate_up_scale"],
+                    w["mlp.experts._gate_up_global_scale"],
+                    block_inter=_env_int("LYNN_MOE_GATE_BLOCK_INTER", 8),
+                    block_hidden=_env_int("LYNN_MOE_GATE_BLOCK_HIDDEN", 256),
+                    num_warps=_env_int("LYNN_MOE_GATE_NUM_WARPS", 4),
+                )
+            elif gateup_backend == "cuda_tile_inter":
+                inter = nvfp4_grouped_gate_up_silu(
+                    hidden,
+                    expert_ids,
+                    w["mlp.experts._gate_up_packed"],
+                    w["mlp.experts._gate_up_scale"],
+                    w["mlp.experts._gate_up_global_scale"],
+                    block_inter=_env_int("LYNN_MOE_GATE_BLOCK_INTER", 8),
+                    block_hidden=_env_int("LYNN_MOE_GATE_BLOCK_HIDDEN", 256),
+                    num_warps=_env_int("LYNN_MOE_GATE_NUM_WARPS", 4),
+                )
+            else:
+                raise ValueError(
+                    "LYNN_NATIVE_GATEUP_BACKEND must be 'triton' or 'cuda_tile_inter', got "
+                    f"{gateup_backend!r}"
+                )
             if down_backend == "cuda_tile" and _layer_selected_for_native_cuda(cfg):
                 moe_out = _down_weighted_sum_native_cuda_tile(inter, expert_ids, routing_weights, w).reshape_as(h_flat)
             elif down_backend == "triton":
