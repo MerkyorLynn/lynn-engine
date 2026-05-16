@@ -199,13 +199,32 @@ W4A8 helps Spark because E2M1 weights can be losslessly expanded to FP8 E4M3
 and consumed by Spark's FP8 MMA path. It does **not** make Spark run the same
 FP4 MMA kernels as R6000.
 
+Important correction from Spark SP-13:
+
+```text
+existing SP-12 spark_fp8 path:
+  activation: E2M1
+  weight:     E2M1 expanded through FP8 machinery
+  meaning:    W4A4 mirror, not true W4A8
+
+true Spark W4A8 mirror needed:
+  activation: FP8 E4M3
+  weight:     E2M1 losslessly LUT-expanded to FP8 E4M3
+  MMA:        FP8 x FP8 on sm_121
+```
+
+So Spark is artifact-compatible with W4A8, but the current SP-12 kernel should
+not be described as the W4A8 production mirror. It is a useful W4A4/W4A4-like
+probe and a kernel scaffold. A true W4A8 Spark kernel remains a separate
+research task.
+
 Expected role:
 
 - long-context and multi-service host;
 - Spark FP8 mirror validation;
 - cross-framework oracle if a vendor-friendly artifact exists.
 
-Expected performance:
+Expected performance if a true W4A8 FP8 x FP8 mirror is implemented:
 
 ```text
 current Spark SP-08:        ~49 TPS
@@ -222,7 +241,8 @@ target**.
    same FP8 x E2M1 MMA support. R6000 work should transfer well to desktop 5090,
    and probably to laptop 5090 after a low-memory profile.
 2. **Spark is compatible at the artifact level but not kernel-identical**.
-   It needs the FP8 mirror path, not the R6000 native FP4 path.
+   It needs a true FP8-activation x FP8-expanded-weight mirror path, not the
+   current SP-12 E2M1-activation probe and not the R6000 native FP4 path.
 3. **Vendor-friendly artifacts are additive**. They are useful for ecosystem
    compatibility, but the first W4A8 win should target Lynn-native packed
    runtime because it preserves variable-expert memory savings.
