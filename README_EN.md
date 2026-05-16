@@ -41,7 +41,8 @@ Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent ru
 | **P99 activation quant strategy** | ✅ no hidden runtime activation quantization in production; W4A4 moves into the A100 MTP/retrain + re-quant cycle |
 | **P100 native-down runtime gate** | ❌ graph-off retest still has `new_ids_all_match=false`;median only `1.049×`;native-down-only stays off by default |
 | **P101 graph-owned state gate** | ❌ P14-C/P35/P101 are all `pass=false`;replay TPS is attractive but the sequence drifts,so it is not a production graph path |
-| **Next target** | R6000 keeps BF16 activation semantics for server/dispatch optimization;A100 receives BF16 final and prepares MTP/NEXTN + vendor NVFP4 v2 |
+| **P102 mixed-MMA probe** | ❌ sm_120a has no BF16/FP16 × E2M1 MMA;E2M1×E2M1 controls PASS;155+ now requires a W4A4 / activation-aware artifact |
+| **Next target** | R6000 keeps BF16 activation semantics for server/dispatch optimization;A100 receives BF16 final and prepares MTP/NEXTN + W4A4/NVFP4-v2 repackaging |
 
 Current primary artifact:
 
@@ -124,6 +125,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P99 activation quant strategy** | after P98 redirect | production keeps BF16 activation semantics;activation quant moves to A100 MTP/requant path | ✅ closes the wrong shortcut early,keeps W4A4 as an explicit model contract |
 | **P100 native-down runtime gate** | graph-off native-down-only retest | median `1.049×`,but `new_ids_all_match=false` on all prompts | ❌ not graph-only;native-down-only runtime replacement rejected |
 | **P101 graph-owned state gate** | P14-C/P35/P101 authoritative state sequence | replay-only 75-85 TPS class,but `same_ids=false`,min cosine `0.6536` | ❌ graph-owned mutable state drifts;do not promote |
+| **P102 mixed-MMA probe** | SM120a CuTe atom compile matrix | E2M1×E2M1 controls PASS;BF16/FP16×E2M1 raw/blockscaled all FAIL | ❌ no BF16-activation + FP4-weight shortcut;W4A4 model adaptation is required for 155+ |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
