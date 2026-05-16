@@ -30,6 +30,31 @@ def _env_bool(name: str, default: bool) -> bool:
     return raw.lower() not in {"0", "false", "no", "off"}
 
 
+def _env_first(names: tuple[str, ...]) -> str | None:
+    for name in names:
+        raw = os.environ.get(name)
+        if raw is not None and raw != "":
+            return raw
+    return None
+
+
+def _topk_limit_from_env(top_k: int) -> int:
+    raw = _env_first(("LYNN_MOE_TOPK_LIMIT", "LYNN_MOE_PROFILE_TOPK_LIMIT"))
+    if raw is None:
+        return top_k
+    limit = int(raw)
+    if not (1 <= limit <= top_k):
+        raise ValueError(f"MoE top-k limit must be in [1, {top_k}], got {limit}")
+    return limit
+
+
+def _skip_shared_from_env() -> bool:
+    raw = _env_first(("LYNN_MOE_SKIP_SHARED", "LYNN_MOE_PROFILE_SKIP_SHARED"))
+    if raw is None:
+        return False
+    return raw.lower() not in {"0", "false", "no", "off"}
+
+
 def _layer_selected_for_native_cuda(cfg: dict) -> bool:
     spec = os.environ.get("LYNN_NATIVE_ACTIVE_MOE_LAYERS")
     if not spec:
@@ -139,14 +164,21 @@ def _moe_forward_decode_packed_nvfp4_fixed_triton(h: torch.Tensor, w: dict, cfg:
     """Fixed-config production fast path for the current R6000 best profile."""
     h_flat = h.reshape(-1, h.shape[-1])
     router_logits = F.linear(h_flat, w["mlp.gate.weight"])
+    top_k = int(cfg["num_experts_per_tok"])
     routing_weights, expert_indices = torch.topk(
         router_logits,
-        int(cfg["num_experts_per_tok"]),
+        top_k,
         dim=-1,
         sorted=False,
     )
-    routing_weights = F.softmax(routing_weights, dim=-1, dtype=torch.float32)[0]
+    routing_weights = F.softmax(routing_weights, dim=-1, dtype=torch.float32)[0].contiguous()
     expert_ids = expert_indices[0].to(torch.int32).contiguous()
+    limit = _topk_limit_from_env(top_k)
+    if limit != top_k:
+        expert_ids = expert_ids[:limit].contiguous()
+        routing_weights = routing_weights[:limit].contiguous()
+        if _env_bool("LYNN_MOE_TOPK_RENORMALIZE", True):
+            routing_weights = routing_weights / routing_weights.sum().clamp_min(1e-20)
     hidden = h_flat[0]
     inter = nvfp4_grouped_gate_up_silu(
         hidden,
@@ -187,6 +219,9 @@ def _moe_forward_decode_packed_nvfp4_fixed_triton(h: torch.Tensor, w: dict, cfg:
         ).reshape_as(h_flat)
     else:
         raise ValueError("LYNN_NATIVE_DOWN_BACKEND must be 'triton' or 'cuda_tile', got " f"{down_backend!r}")
+
+    if _skip_shared_from_env():
+        return moe_out.to(h.dtype).reshape_as(h)
 
     if "mlp.shared_expert.gate_proj.weight" in w:
         if "mlp.shared_expert._gate_up_proj.weight" in w:
@@ -229,12 +264,8 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
     if _env_bool("LYNN_MOE_FAST_FIXED", True):
         if _env_bool("LYNN_ROUTER_TOPK_SORTED", False):
             raise RuntimeError("LYNN_MOE_FAST_FIXED requires LYNN_ROUTER_TOPK_SORTED=0")
-        if os.environ.get("LYNN_MOE_PROFILE_TOPK_LIMIT"):
-            raise RuntimeError("LYNN_MOE_FAST_FIXED does not support LYNN_MOE_PROFILE_TOPK_LIMIT")
         if os.environ.get("LYNN_MOE_PROFILE_SKIP_ACTIVE", "0") == "1":
             raise RuntimeError("LYNN_MOE_FAST_FIXED does not support LYNN_MOE_PROFILE_SKIP_ACTIVE")
-        if os.environ.get("LYNN_MOE_PROFILE_SKIP_SHARED", "0") == "1":
-            raise RuntimeError("LYNN_MOE_FAST_FIXED does not support LYNN_MOE_PROFILE_SKIP_SHARED")
         if os.environ.get("LYNN_NATIVE_ACTIVE_MOE_BACKEND", "triton") != "triton":
             raise RuntimeError("LYNN_MOE_FAST_FIXED requires LYNN_NATIVE_ACTIVE_MOE_BACKEND=triton")
         if os.environ.get("LYNN_NATIVE_DOWN_BACKEND", "triton") not in {"triton", "cuda_tile"}:

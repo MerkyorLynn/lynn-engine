@@ -27,7 +27,7 @@ Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent ru
 | **P13 graph-slot generate wiring** | ✅ `generate()` opt-in path uses full-token graph slots;multi-prompt gate proves future-window unsafe,next state-refresh slot |
 | **P14 state-refresh probe** | ✅ full mutable-state roundtrip costs only **0.79 ms**,far below graph capture at 60-105 ms |
 | **P15 runtime config audit** | ✅ disables global `LYNN_PACKED_DECODE`; restores **103.48 strict / 107.23 replay**; disproves packed shared expert path |
-| **Next target** | P51 exact-match active-MoE route / grouped native-FP4 route split, continuing toward 155 TPS |
+| **Next target** | P52 grouped native-FP4 active expert FFN / graph-owned exact route, continuing toward 155 TPS |
 
 Current primary artifact:
 
@@ -87,6 +87,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P45 native active-MoE ABI** | one-call CUDA contract | 0.0658 ms vs Triton 0.0583 ms,cosine≥0.99999988 | ✅ ABI foundation complete,not promoted |
 | **P46 fused atomic probe** | one-kernel atomic accumulation | 0.1768 ms vs Triton 0.0592 ms | ❌ atomics are too slow and drift slightly;P47 moves to non-atomic grouped kernel |
 | **P48-P50 tile-hidden down** | non-atomic CUDA down projection | isolated/decode-state 1.25-1.27x; full decode flips top-1 at step 5 | 🔬 kernel-level win confirmed,but tiny accumulation drift can flip greedy; not promoted |
+| **P51 MoE budget ladder** | top-k limit / skip shared expert | best 124.39 TPS but output breaks; coherent top6 only +1.6% | ❌ fewer experts do not reach 155; quality fails first |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -354,6 +355,15 @@ first visible drift appears at step 1 / layer 27 and top-1 flips by step 5. So
 P48 is a real kernel-level signal, but tiny accumulation drift can affect greedy
 decode; it is not a default runtime path. See
 [`docs/LYNN_ENGINE_P48_DOWN_TILE_NONATOMIC_20260516.md`](docs/LYNN_ENGINE_P48_DOWN_TILE_NONATOMIC_20260516.md).
+
+P51 note: to close the "just compute fewer experts" shortcut, P51 adds opt-in
+`LYNN_MOE_TOPK_LIMIT` / `LYNN_MOE_SKIP_SHARED` budget profiles. The result is
+clear: top6+shared stays coherent but only gains **1.6%**; top4+shared gains
+**4.5%** but already shows `<think>` pollution; skipping the shared expert can
+reach **124.39 TPS** but breaks output quality. Conclusion: 155 TPS requires a
+grouped native-FP4 active expert FFN or an exact graph-owned route, not expert
+budget trimming. See
+[`docs/LYNN_ENGINE_P51_ACTIVE_MOE_BUDGET_LADDER_20260516.md`](docs/LYNN_ENGINE_P51_ACTIVE_MOE_BUDGET_LADDER_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,

@@ -1,0 +1,893 @@
+{
+  "schema_version": "lynn-engine-p51-active-moe-budget-ladder-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final",
+  "max_new": 96,
+  "prompt_count": 3,
+  "cases": [
+    {
+      "label": "baseline_top8_shared",
+      "topk_limit": null,
+      "skip_shared": false,
+      "summary": {
+        "count": 3,
+        "decode_tps_mean": 100.23656486272036,
+        "decode_tps_median": 100.52053567712045,
+        "decode_tps_min": 99.11587562830834,
+        "decode_tps_max": 101.07328328273229,
+        "stop_reasons": {
+          "max_new": 2,
+          "stop_token": 1
+        }
+      },
+      "samples": [
+        {
+          "prompt_id": "prompt_000",
+          "new_ids_head": [
+            271,
+            248068,
+            271,
+            248069,
+            271,
+            24797,
+            36,
+            9616,
+            44,
+            12370,
+            314,
+            49051,
+            7313,
+            96580,
+            99142,
+            104916
+          ],
+          "completion_text": "\n\n<think>\n\n</think>\n\nMoE（Mixture of Experts）通过动态路由机制，在推理时仅激活网络中一小部分参数（即 active parameters），而其余参数保持冻结，从而在保持模型整体容量的同时大幅降低计算开销。",
+          "stopped_reason": "stop_token",
+          "decode_tps": 99.11587562830834
+        },
+        {
+          "prompt_id": "prompt_001",
+          "new_ids_head": [
+            3709,
+            97273,
+            95779,
+            96089,
+            3709,
+            95826,
+            1380,
+            9884,
+            1430,
+            220,
+            96961,
+            100016,
+            3709,
+            101679,
+            220,
+            16
+          ],
+          "completion_text": "，支持大数，用 try-except 处理异常，打印 10 的阶乘。\n\n<think>\n\n</think>\n\n以下是满足要求的 Python 代码：\n\n```python\ndef factorial(n):\n    \"\"\"递归计算 n 的阶乘，支持大数。\"\"\"\n    try:\n        if n < 0:\n            raise ValueError(\"阶乘不支持负数\")\n        if n == 0:\n            return 1\n  ",
+          "stopped_reason": "max_new",
+          "decode_tps": 100.52053567712045
+        },
+        {
+          "prompt_id": "prompt_002",
+          "new_ids_head": [
+            271,
+            248068,
+            271,
+            248069,
+            271,
+            109455,
+            96762,
+            100208,
+            96304,
+            3709,
+            98677,
+            99927,
+            95779,
+            98277,
+            103725,
+            9616
+          ],
+          "completion_text": "\n\n<think>\n\n</think>\n\n这是一个非常核心的问题，涉及当前大语言模型（LLM）中两种主流的位置编码方案。\n\n简单来说：\n- **RoPE (Rotary Position Embedding)** 是**绝对位置编码**，它将位置信息融入每个token的向量中，通过旋转操作实现。\n- **ALiBi (Attention with Linear Bias)** 是**相对位置编码**，它在注意力分数上添加一个与距离相关的线性偏置",
+          "stopped_reason": "max_new",
+          "decode_tps": 101.07328328273229
+        }
+      ],
+      "median_speedup_vs_baseline": 1.0
+    },
+    {
+      "label": "top6_shared",
+      "topk_limit": 6,
+      "skip_shared": false,
+      "summary": {
+        "count": 3,
+        "decode_tps_mean": 102.19126938222122,
+        "decode_tps_median": 102.16553807180786,
+        "decode_tps_min": 101.93334687468503,
+        "decode_tps_max": 102.47492320017076,
+        "stop_reasons": {
+          "max_new": 1,
+          "stop_token": 2
+        }
+      },
+      "samples": [
+        {
+          "prompt_id": "prompt_000",
+          "new_ids_head": [
+            271,
+            248068,
+            271,
+            248069,
+            271,
+            24797,
+            36,
+            220,
+            96580,
+            96141,
+            96327,
+            97034,
+            99142,
+            96931,
+            98138,
+            3709
+          ],
+          "completion_text": "\n\n<think>\n\n</think>\n\nMoE 通过门控网络动态选择专家，使得模型在训练时只有被选中的专家参数参与梯度更新，从而大幅降低激活参数总量。",
+          "stopped_reason": "stop_token",
+          "decode_tps": 102.47492320017076
+        },
+        {
+          "prompt_id": "prompt_001",
+          "new_ids_head": [
+            3709,
+            97273,
+            95779,
+            96089,
+            248046
+          ],
+          "completion_text": "，支持大数",
+          "stopped_reason": "stop_token",
+          "decode_tps": 102.16553807180786
+        },
+        {
+          "prompt_id": "prompt_002",
+          "new_ids_head": [
+            271,
+            248068,
+            271,
+            248069,
+            271,
+            109455,
+            96762,
+            100208,
+            96304,
+            3709,
+            98677,
+            99927,
+            95779,
+            98277,
+            103725,
+            9616
+          ],
+          "completion_text": "\n\n<think>\n\n</think>\n\n这是一个非常核心的问题，涉及当前大语言模型（LLM）中两种主流的位置编码（Position Encoding）方案。简单来说，**RoPE（旋转位置编码）** 是绝对主流，而 **ALiBi（带偏置的线性注意力）** 是其在特定场景下的一个有力竞争者。\n\n下面从多个维度进行对比分析：\n\n### 核心思想对比\n\n-   **RoPE (Rotary Position Embedding",
+          "stopped_reason": "max_new",
+          "decode_tps": 101.93334687468503
+        }
+      ],
+      "median_speedup_vs_baseline": 1.0163648391207472
+    },
+    {
+      "label": "top4_shared",
+      "topk_limit": 4,
+      "skip_shared": false,
+      "summary": {
+        "count": 3,
+        "decode_tps_mean": 105.39204861938931,
+        "decode_tps_median": 105.0027801597261,
+        "decode_tps_min": 104.6894907178,
+        "decode_tps_max": 106.48387498064186,
+        "stop_reasons": {
+          "max_new": 2,
+          "stop_token": 1
+        }
+      },
+      "samples": [
+        {
+          "prompt_id": "prompt_000",
+          "new_ids_head": [
+            271,
+            248068,
+            198,
+            16,
+            24,
+            25,
+            17,
+            16,
+            9306,
+            220,
+            17,
+            15,
+            17,
+            21,
+            12,
+            15
+          ],
+          "completion_text": "\n\n<think>\n19:21 · 2026-06-09 · 100% 已加载 · 1 个已编辑 · 0 个已提交\n\n<think>\n\n<think>\n\n</think>\n\n**MoE 模型中，active 参数就是模型在每次推理时实际计算的那部分参数（通常指 MoE 架构下，被门控网络选出的那几路专家参数），而 total 参数",
+          "stopped_reason": "max_new",
+          "decode_tps": 104.6894907178
+        },
+        {
+          "prompt_id": "prompt_001",
+          "new_ids_head": [
+            3709,
+            96172,
+            99449,
+            220,
+            20,
+            220,
+            95726,
+            97138,
+            97595,
+            1710,
+            248046
+          ],
+          "completion_text": "，并测试 5 的阶乘。",
+          "stopped_reason": "stop_token",
+          "decode_tps": 106.48387498064186
+        },
+        {
+          "prompt_id": "prompt_002",
+          "new_ids_head": [
+            271,
+            248068,
+            271,
+            248069,
+            271,
+            37586,
+            1679,
+            9616,
+            109061,
+            96468,
+            96464,
+            96102,
+            97795,
+            102112,
+            7313,
+            95999
+          ],
+          "completion_text": "\n\n<think>\n\n</think>\n\nRoPE（旋转预置式位置编码）与 ALiBi（Attention Linear Bias）是两种用于在 Transformer 模型（如 GPT、GNN、Transformer 等）中添加位置信息的方案。它们的核心目标都是让模型在自注意力机制中能够理解“token 在序列中的位置”。\n\n下面从几个关键维度进行对比分析：\n\n---\n\n### 1. 核心原理\n\n- **RoPE**：",
+          "stopped_reason": "max_new",
+          "decode_tps": 105.0027801597261
+        }
+      ],
+      "median_speedup_vs_baseline": 1.0445903362174964
+    },
+    {
+      "label": "top2_shared",
+      "topk_limit": 2,
+      "skip_shared": false,
+      "summary": {
+        "count": 3,
+        "decode_tps_mean": 109.35196190832335,
+        "decode_tps_median": 109.39748027622076,
+        "decode_tps_min": 109.14743903000235,
+        "decode_tps_max": 109.51096641874695,
+        "stop_reasons": {
+          "max_new": 2,
+          "stop_token": 1
+        }
+      },
+      "samples": [
+        {
+          "prompt_id": "prompt_000",
+          "new_ids_head": [
+            271,
+            248068,
+            198,
+            248068,
+            248068,
+            101695,
+            97913,
+            9616,
+            17,
+            15,
+            14,
+            17,
+            20,
+            220,
+            110831,
+            96729
+          ],
+          "completion_text": "\n\n<think>\n<think><think>本人回答（20/25 年内差）\n\n<think> 作者：270 90/240/200 左右，其中 200 是 active 的，加上 20/20 是 14 的，还有 20/20 是 14 的，还有 20/20 是 14 的，还有",
+          "stopped_reason": "max_new",
+          "decode_tps": 109.39748027622076
+        },
+        {
+          "prompt_id": "prompt_001",
+          "new_ids_head": [
+            3709,
+            96961,
+            95779,
+            96089,
+            3709,
+            96100,
+            95858,
+            96089,
+            3709,
+            96100,
+            96089,
+            11,
+            96500,
+            96089,
+            96089,
+            11
+          ],
+          "completion_text": "，处理大数，质心数，质数,素数数, 质方, 质二连, 质连, 质, 质方, 质, 质,  质方,  2018  1 个质点,  2018  1 个质点, 质点,  2018  1 个质数,  2",
+          "stopped_reason": "max_new",
+          "decode_tps": 109.14743903000235
+        },
+        {
+          "prompt_id": "prompt_002",
+          "new_ids_head": [
+            271,
+            248068,
+            271,
+            11491,
+            96102,
+            95999,
+            939,
+            72,
+            33,
+            220,
+            95726,
+            121894,
+            271,
+            248068,
+            220,
+            95840
+          ],
+          "completion_text": "\n\n<think>\n\n Ro式与ALiB 的优缺点\n\n<think> 个次元化问题，涉及的是个代化问题。\n\n",
+          "stopped_reason": "stop_token",
+          "decode_tps": 109.51096641874695
+        }
+      ],
+      "median_speedup_vs_baseline": 1.088309762172515
+    },
+    {
+      "label": "top1_shared",
+      "topk_limit": 1,
+      "skip_shared": false,
+      "summary": {
+        "count": 3,
+        "decode_tps_mean": 110.61984253762135,
+        "decode_tps_median": 111.36612968771225,
+        "decode_tps_min": 108.58918994888637,
+        "decode_tps_max": 111.90420797626544,
+        "stop_reasons": {
+          "max_new": 2,
+          "stop_token": 1
+        }
+      },
+      "samples": [
+        {
+          "prompt_id": "prompt_000",
+          "new_ids_head": [
+            271,
+            248068,
+            256,
+            3709,
+            96434,
+            97015,
+            220,
+            248046
+          ],
+          "completion_text": "\n\n<think>  ，话上的 ",
+          "stopped_reason": "stop_token",
+          "decode_tps": 108.58918994888637
+        },
+        {
+          "prompt_id": "prompt_001",
+          "new_ids_head": [
+            3709,
+            103733,
+            103733,
+            95909,
+            103733,
+            95793,
+            103733,
+            103733,
+            95909,
+            95952,
+            271,
+            248068,
+            16,
+            20,
+            15,
+            15
+          ],
+          "completion_text": "，函数函数化函数和函数函数化点\n\n<think>1500 -（ \n   定义\n或m.�$（（1\n\n​ 只 三   5（changespuvz _l )  # 99# .mh 10IJ#I 040000  等 [       3] 11107 . 0x0 00",
+          "stopped_reason": "max_new",
+          "decode_tps": 111.90420797626544
+        },
+        {
+          "prompt_id": "prompt_002",
+          "new_ids_head": [
+            271,
+            271,
+            198,
+            220,
+            17,
+            220,
+            11491,
+            11261,
+            417,
+            220,
+            17,
+            15,
+            220,
+            220,
+            96053,
+            220
+          ],
+          "completion_text": "\n\n\n\n\n 2  RoBE B 20  二 正     与 53 ，0 _e 2 0.4  【1:）】** ,【*（小）项一）、【（52/22005】， 5.76/【?0；［63 9865 3.5//]/【5】\n\n2009 ",
+          "stopped_reason": "max_new",
+          "decode_tps": 111.36612968771225
+        }
+      ],
+      "median_speedup_vs_baseline": 1.1078943117198328
+    },
+    {
+      "label": "top8_skip_shared",
+      "topk_limit": null,
+      "skip_shared": true,
+      "summary": {
+        "count": 3,
+        "decode_tps_mean": 115.04291077754506,
+        "decode_tps_median": 115.26046346141052,
+        "decode_tps_min": 114.46990940574362,
+        "decode_tps_max": 115.39835946548104,
+        "stop_reasons": {
+          "max_new": 3
+        }
+      },
+      "samples": [
+        {
+          "prompt_id": "prompt_000",
+          "new_ids_head": [
+            271,
+            248068,
+            271,
+            96747,
+            11,
+            220,
+            96220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220
+          ],
+          "completion_text": "\n\n<think>\n\n好的, 请                                                                                         ",
+          "stopped_reason": "max_new",
+          "decode_tps": 114.46990940574362
+        },
+        {
+          "prompt_id": "prompt_001",
+          "new_ids_head": [
+            3709,
+            96172,
+            101679,
+            220,
+            20,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220
+          ],
+          "completion_text": "，并打印 5                                                                                           ",
+          "stopped_reason": "max_new",
+          "decode_tps": 115.26046346141052
+        },
+        {
+          "prompt_id": "prompt_002",
+          "new_ids_head": [
+            271,
+            220,
+            220,
+            220,
+            16,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220
+          ],
+          "completion_text": "\n\n   1                                                                                           ",
+          "stopped_reason": "max_new",
+          "decode_tps": 115.39835946548104
+        }
+      ],
+      "median_speedup_vs_baseline": 1.146635985224311
+    },
+    {
+      "label": "top6_skip_shared",
+      "topk_limit": 6,
+      "skip_shared": true,
+      "summary": {
+        "count": 3,
+        "decode_tps_mean": 116.21057831161427,
+        "decode_tps_median": 116.20014032943004,
+        "decode_tps_min": 116.08301039407039,
+        "decode_tps_max": 116.34858421134237,
+        "stop_reasons": {
+          "max_new": 3
+        }
+      },
+      "samples": [
+        {
+          "prompt_id": "prompt_000",
+          "new_ids_head": [
+            271,
+            248068,
+            198,
+            97237,
+            198,
+            220,
+            220,
+            16,
+            198,
+            220,
+            220,
+            16,
+            220,
+            220,
+            16,
+            220
+          ],
+          "completion_text": "\n\n<think>\n用户\n  1\n  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1",
+          "stopped_reason": "max_new",
+          "decode_tps": 116.20014032943004
+        },
+        {
+          "prompt_id": "prompt_001",
+          "new_ids_head": [
+            3709,
+            96172,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220
+          ],
+          "completion_text": "，并                                                                                              ",
+          "stopped_reason": "max_new",
+          "decode_tps": 116.08301039407039
+        },
+        {
+          "prompt_id": "prompt_002",
+          "new_ids_head": [
+            271,
+            220,
+            220,
+            220,
+            248068,
+            198,
+            220,
+            220,
+            96747,
+            3709,
+            109455,
+            96065,
+            99166,
+            97447,
+            96065,
+            97707
+          ],
+          "completion_text": "\n\n   <think>\n  好的，这是一个很常见且很关键的问题。我会从**核心机制、适用场景、模型设计、上下文窗口、位置信息、模型设计**等多个维度来详细对比两者的优缺点。\n\n---\n\n## 1. 核心机制\n\n- **Ro (                                  ",
+          "stopped_reason": "max_new",
+          "decode_tps": 116.34858421134237
+        }
+      ],
+      "median_speedup_vs_baseline": 1.155984093664937
+    },
+    {
+      "label": "top4_skip_shared",
+      "topk_limit": 4,
+      "skip_shared": true,
+      "summary": {
+        "count": 3,
+        "decode_tps_mean": 121.43592943532173,
+        "decode_tps_median": 121.61039151294666,
+        "decode_tps_min": 120.51751964169483,
+        "decode_tps_max": 122.17987715132367,
+        "stop_reasons": {
+          "max_new": 3
+        }
+      },
+      "samples": [
+        {
+          "prompt_id": "prompt_000",
+          "new_ids_head": [
+            271,
+            248068,
+            198,
+            12,
+            220,
+            220,
+            12,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220
+          ],
+          "completion_text": "\n\n<think>\n-  -                                �                                                        ",
+          "stopped_reason": "max_new",
+          "decode_tps": 120.51751964169483
+        },
+        {
+          "prompt_id": "prompt_001",
+          "new_ids_head": [
+            3709,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220
+          ],
+          "completion_text": "，                                                                                               ",
+          "stopped_reason": "max_new",
+          "decode_tps": 121.61039151294666
+        },
+        {
+          "prompt_id": "prompt_002",
+          "new_ids_head": [
+            271,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220
+          ],
+          "completion_text": "\n\n                                                                                               ",
+          "stopped_reason": "max_new",
+          "decode_tps": 122.17987715132367
+        }
+      ],
+      "median_speedup_vs_baseline": 1.2098064409800642
+    },
+    {
+      "label": "top2_skip_shared",
+      "topk_limit": 2,
+      "skip_shared": true,
+      "summary": {
+        "count": 3,
+        "decode_tps_mean": 123.86089704437494,
+        "decode_tps_median": 124.39210314277784,
+        "decode_tps_min": 122.46865738984829,
+        "decode_tps_max": 124.7219306004987,
+        "stop_reasons": {
+          "max_new": 3
+        }
+      },
+      "samples": [
+        {
+          "prompt_id": "prompt_000",
+          "new_ids_head": [
+            271,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220
+          ],
+          "completion_text": "\n\n                � �                   -    -    -   -   -   -    -   -   -   -   -   -   -   -  -    -   -   -   -",
+          "stopped_reason": "max_new",
+          "decode_tps": 122.46865738984829
+        },
+        {
+          "prompt_id": "prompt_001",
+          "new_ids_head": [
+            3709,
+            220,
+            471,
+            220,
+            220,
+            224,
+            198,
+            239,
+            198,
+            220,
+            1440,
+            198,
+            198,
+            220,
+            220,
+            220
+          ],
+          "completion_text": "，  -  �\n�\n  pass\n\n        \n  -  1    \n      \n \n \n \n     \n    \"  \"    1    2  \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \" \"",
+          "stopped_reason": "max_new",
+          "decode_tps": 124.39210314277784
+        },
+        {
+          "prompt_id": "prompt_002",
+          "new_ids_head": [
+            271,
+            248068,
+            198,
+            220,
+            220,
+            220,
+            220,
+            16,
+            220,
+            220,
+            220,
+            20,
+            220,
+            220,
+            220,
+            220
+          ],
+          "completion_text": "\n\n<think>\n    1   5                                               -   -       -      -    -         -        -",
+          "stopped_reason": "max_new",
+          "decode_tps": 124.7219306004987
+        }
+      ],
+      "median_speedup_vs_baseline": 1.2374795090859312
+    },
+    {
+      "label": "top1_skip_shared",
+      "topk_limit": 1,
+      "skip_shared": true,
+      "summary": {
+        "count": 3,
+        "decode_tps_mean": 122.54485285628449,
+        "decode_tps_median": 122.68800991212045,
+        "decode_tps_min": 121.60070508221331,
+        "decode_tps_max": 123.34584357451972,
+        "stop_reasons": {
+          "max_new": 3
+        }
+      },
+      "samples": [
+        {
+          "prompt_id": "prompt_000",
+          "new_ids_head": [
+            271,
+            220,
+            198,
+            220,
+            220,
+            198,
+            220,
+            220,
+            198,
+            198,
+            220,
+            198,
+            220,
+            220,
+            220,
+            20
+          ],
+          "completion_text": "\n\n \n  \n  \n\n \n   5       \"  bf)  '    - -  跟� \"  \" _  \"  \" \n  ( ) \"   \"    \"  s  只  \n  -  -  ,    -  \" 觉得  \"  一    -   -",
+          "stopped_reason": "max_new",
+          "decode_tps": 121.60070508221331
+        },
+        {
+          "prompt_id": "prompt_001",
+          "new_ids_head": [
+            3709,
+            271,
+            198,
+            220,
+            220,
+            220,
+            220,
+            220,
+            471,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220,
+            220
+          ],
+          "completion_text": "，\n\n\n      -           -     }  ,       \" 开始   觉得      -      ' it '    bf25     一 一    � 0        -       -   - ",
+          "stopped_reason": "max_new",
+          "decode_tps": 123.34584357451972
+        },
+        {
+          "prompt_id": "prompt_002",
+          "new_ids_head": [
+            271,
+            220,
+            220,
+            220,
+            198,
+            220,
+            220,
+            318,
+            220,
+            220,
+            220,
+            220,
+            220,
+            8,
+            220,
+            333
+          ],
+          "completion_text": "\n\n   \n   (     )  }    -    觉得\n ��     -  \nbrven\n         _ -     }\n    -    - 6\n  � _  }     ''     一 ,       \n  ",
+          "stopped_reason": "max_new",
+          "decode_tps": 122.68800991212045
+        }
+      ],
+      "median_speedup_vs_baseline": 1.2205268215661285
+    }
+  ],
+  "notes": [
+    "This is not an exact-greedy promotion gate.",
+    "Candidates are opt-in quality-gated profiles for speed/quality tradeoff exploration."
+  ]
+}
