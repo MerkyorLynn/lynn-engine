@@ -10,6 +10,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 import sys
+import sysconfig
 
 import torch
 from torch.utils.cpp_extension import load
@@ -17,6 +18,59 @@ from torch.utils.cpp_extension import load
 
 ROOT = Path(__file__).resolve().parents[1]
 _EXTENSION = None
+
+
+def discover_native_include_paths() -> list[str]:
+    """Find optional CUDA/CuTe/CUTLASS include roots for native kernels.
+
+    The scalar bridge does not need these headers, but the grouped per-16 FP4
+    kernel line does. Keep discovery opt-in/fail-soft so machines without
+    deep_gemm/CUTLASS still build the existing extension.
+    """
+    candidates: list[Path] = []
+    for env_name in (
+        "LYNN_NATIVE_EXTRA_INCLUDE_DIRS",
+        "LYNN_CUTLASS_INCLUDE_DIR",
+        "LYNN_DEEP_GEMM_INCLUDE_DIR",
+    ):
+        raw = os.environ.get(env_name, "")
+        for part in raw.split(os.pathsep):
+            if part:
+                candidates.append(Path(part).expanduser())
+
+    site_roots = [
+        Path(sys.prefix) / "lib" / f"python{sys.version_info.major}.{sys.version_info.minor}" / "site-packages",
+        Path(sysconfig.get_paths().get("purelib", "")),
+        Path(sysconfig.get_paths().get("platlib", "")),
+    ]
+    for site_root in site_roots:
+        if site_root:
+            candidates.append(site_root / "deep_gemm" / "include")
+
+    # R6000 keeps the eval environment separate from the base miniconda env
+    # where deep_gemm is installed. Search the common conda roots explicitly so
+    # CUTLASS/CuTe can be discovered without forcing the runtime env to import
+    # deep_gemm as a Python package.
+    for root in (
+        Path.home() / "miniconda3",
+        Path("/root/miniconda3"),
+        Path("/root/autodl-tmp/conda-envs"),
+    ):
+        for path in root.glob("lib/python*/site-packages/deep_gemm/include"):
+            candidates.append(path)
+        for path in root.glob("*/lib/python*/site-packages/deep_gemm/include"):
+            candidates.append(path)
+
+    out: list[str] = []
+    seen: set[str] = set()
+    for path in candidates:
+        if not path.exists():
+            continue
+        resolved = str(path.resolve())
+        if resolved not in seen:
+            out.append(resolved)
+            seen.add(resolved)
+    return out
 
 
 def load_lynn_native_extension(*, build_dir: str | None = None, verbose: bool = False):
@@ -30,6 +84,9 @@ def load_lynn_native_extension(*, build_dir: str | None = None, verbose: bool = 
     os.environ.setdefault("TORCH_CUDA_ARCH_LIST", ".".join(map(str, torch.cuda.get_device_capability(0))))
     python_bin = Path(sys.executable).resolve().parent
     os.environ["PATH"] = f"{python_bin}:{os.environ.get('PATH', '')}"
+    for extra_bin in (Path.home() / "miniconda3" / "bin", Path("/root/miniconda3/bin")):
+        if extra_bin.exists():
+            os.environ["PATH"] = f"{extra_bin}:{os.environ.get('PATH', '')}"
     cuda_home = os.environ.get("CUDA_HOME") or "/usr/local/cuda"
     nvcc_bin = Path(cuda_home) / "bin"
     if (nvcc_bin / "nvcc").exists():
@@ -47,9 +104,10 @@ def load_lynn_native_extension(*, build_dir: str | None = None, verbose: bool = 
         build_directory=str(build_root),
         extra_cflags=["-O3"],
         extra_cuda_cflags=["-O3", "--use_fast_math"],
+        extra_include_paths=discover_native_include_paths(),
         verbose=verbose,
     )
     return _EXTENSION
 
 
-__all__ = ["load_lynn_native_extension"]
+__all__ = ["discover_native_include_paths", "load_lynn_native_extension"]
