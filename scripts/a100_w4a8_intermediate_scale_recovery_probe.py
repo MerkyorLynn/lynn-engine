@@ -122,6 +122,8 @@ def _train_layer_alpha(
     lr: float,
     reg: float,
     alpha_mode: str,
+    alpha_min: float,
+    alpha_max: float,
     save_alpha_dir: Path | None,
 ) -> dict[str, Any]:
     w = runner.layer_weights[layer]
@@ -142,7 +144,7 @@ def _train_layer_alpha(
     history = []
     for step in range(steps):
         opt.zero_grad(set_to_none=True)
-        alpha = torch.exp(log_alpha).clamp(0.75, 1.25)
+        alpha = torch.exp(log_alpha).clamp(alpha_min, alpha_max)
         losses = []
         for c in cases:
             out, _ = _active_moe_with_alpha(
@@ -162,7 +164,7 @@ def _train_layer_alpha(
         if step in {0, steps - 1} or (step + 1) % max(1, steps // 5) == 0:
             history.append({"step": step + 1, "loss": float(loss.detach().item())})
 
-    alpha = torch.exp(log_alpha.detach()).clamp(0.75, 1.25)
+    alpha = torch.exp(log_alpha.detach()).clamp(alpha_min, alpha_max)
     alpha_path = None
     if save_alpha_dir is not None:
         save_alpha_dir.mkdir(parents=True, exist_ok=True)
@@ -173,6 +175,8 @@ def _train_layer_alpha(
                 "layer": layer,
                 "alpha_mode": alpha_mode,
                 "shape": list(alpha.shape),
+                "alpha_min": alpha_min,
+                "alpha_max": alpha_max,
                 "alpha": alpha.detach().cpu(),
                 "folding_rule": "down_proj[expert, :, channel] *= alpha[expert, channel] for expert mode; down_proj[:, :, channel] *= alpha[channel] for shared mode",
             },
@@ -234,6 +238,8 @@ def main() -> int:
     parser.add_argument("--lr", type=float, default=0.03)
     parser.add_argument("--reg", type=float, default=1e-4)
     parser.add_argument("--alpha-mode", default="shared", choices=["shared", "expert"])
+    parser.add_argument("--alpha-min", type=float, default=0.75)
+    parser.add_argument("--alpha-max", type=float, default=1.25)
     parser.add_argument("--save-alpha-dir")
     parser.add_argument("--device", default="cuda")
     args = parser.parse_args()
@@ -260,6 +266,8 @@ def main() -> int:
             lr=args.lr,
             reg=args.reg,
             alpha_mode=args.alpha_mode,
+            alpha_min=args.alpha_min,
+            alpha_max=args.alpha_max,
             save_alpha_dir=save_alpha_dir,
         )
         for layer in args.layers
@@ -287,6 +295,8 @@ def main() -> int:
         "lr": args.lr,
         "reg": args.reg,
         "alpha_mode": args.alpha_mode,
+        "alpha_min": args.alpha_min,
+        "alpha_max": args.alpha_max,
         "save_alpha_dir": args.save_alpha_dir,
         "layer_results": layer_results,
         "aggregate": {

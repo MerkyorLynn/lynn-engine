@@ -1,0 +1,42 @@
+{
+  "schema_version": "lynn-a100-qwen36-a3b-mtp-index-audit-v1",
+  "source_repo": "Qwen/Qwen3.6-35B-A3B",
+  "source_config": {
+    "hidden_size": 2048,
+    "vocab_size": 248320,
+    "num_experts": 256,
+    "moe_intermediate_size": 512,
+    "mtp_num_hidden_layers": 1,
+    "mtp_use_dedicated_embeddings": false
+  },
+  "mtp": {
+    "tensor_count": 19,
+    "keys": [
+      "mtp.fc.weight",
+      "mtp.layers.0.input_layernorm.weight",
+      "mtp.layers.0.mlp.experts.down_proj",
+      "mtp.layers.0.mlp.experts.gate_up_proj",
+      "mtp.layers.0.mlp.gate.weight",
+      "mtp.layers.0.mlp.shared_expert.down_proj.weight",
+      "mtp.layers.0.mlp.shared_expert.gate_proj.weight",
+      "mtp.layers.0.mlp.shared_expert.up_proj.weight",
+      "mtp.layers.0.mlp.shared_expert_gate.weight",
+      "mtp.layers.0.post_attention_layernorm.weight",
+      "mtp.layers.0.self_attn.k_norm.weight",
+      "mtp.layers.0.self_attn.k_proj.weight",
+      "mtp.layers.0.self_attn.o_proj.weight",
+      "mtp.layers.0.self_attn.q_norm.weight",
+      "mtp.layers.0.self_attn.q_proj.weight",
+      "mtp.layers.0.self_attn.v_proj.weight",
+      "mtp.norm.weight",
+      "mtp.pre_fc_norm_embedding.weight",
+      "mtp.pre_fc_norm_hidden.weight"
+    ],
+    "shard_files": [
+      "model-00025-of-00026.safetensors",
+      "model-00026-of-00026.safetensors"
+    ]
+  },
+  "decision": "GREEN",
+  "reason": "official Qwen3.6-35B-A3B MTP index matches Lynn hidden size"
+}

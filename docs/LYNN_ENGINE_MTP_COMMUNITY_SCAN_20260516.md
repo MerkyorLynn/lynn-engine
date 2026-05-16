@@ -133,6 +133,35 @@ architecture template + possible initializer
 For the current Qwen3.6-27B sidecar, keep the architecture and initialize a
 Lynn-owned head from scratch.
 
+### Step 1b: Official Qwen3.6-35B-A3B MTP Warm-Start
+
+The official Qwen3.6-35B-A3B checkpoint is more directly useful than the
+community 27B sidecar:
+
+```text
+hidden_size: 2048
+mtp_num_hidden_layers: 1
+mtp_use_dedicated_embeddings: false
+mtp key count: 19
+mtp shard files:
+  model-00025-of-00026.safetensors
+  model-00026-of-00026.safetensors
+```
+
+Its `mtp.*` tensor names match the Qwen3.6 `qwen3_next_mtp` contract and the
+base hidden size matches Lynn. This makes it the preferred warm-start source for
+the A100 MTP stream:
+
+```text
+download only the two MTP shards if possible;
+extract mtp.* tensors;
+load all shape-compatible tensors into the Lynn-owned 2048-hidden MTP module;
+fine-tune on Lynn W4A8 calibration prompts with the body frozen or mostly frozen.
+```
+
+This does not change the ordering: W4A8 Recovery remains the first promotion
+gate, while MTP is prepared in parallel as the serving multiplier.
+
 ### Step 2: Lynn MTP Smoke
 
 Minimum smoke:

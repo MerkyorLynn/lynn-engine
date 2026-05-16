@@ -417,3 +417,159 @@ push min same-prefix above 36/48 on structured prompts;
 turn folded self gate from 4/6 exact to 6/6 exact;
 then rerun strict tool-call and no-think guards.
 ```
+
+## P109 Structured Recovery Race
+
+The next A100 loop tested structured-prompt Recovery variants instead of only
+the original six smoke prompts.
+
+Prompt set:
+
+```text
+reports/a100/w4a8_structured_recovery_prompts_v1.json
+12 prompts: JSON/tool-call/OpenAPI/code/math/W4A8/long-context/MoE questions
+```
+
+Variants:
+
+```text
+structured_v1:
+  23 fail layers, expert alpha, 12 prompts, lr=0.02, reg=0.0002
+
+structured_v2:
+  23 fail layers, expert alpha, 12 prompts, lr=0.012, reg=0.0005,
+  alpha clamp 0.85..1.15
+
+structured_v3_minimal:
+  23 fail layers, expert alpha, 12 prompts, lr=0.006, reg=0.001,
+  alpha clamp 0.93..1.07
+```
+
+Local folded W4A8 active-MoE gate:
+
+| Variant | Recovery after max rel-L2 | Folded W4A8 max rel-L2 | Decision |
+|---|---:|---:|---|
+| structured_v1 | 2.18% | 2.19% | GREEN |
+| structured_v2 | 2.23% | 2.24% | GREEN |
+| structured_v3_minimal | 2.39% | 2.38% | GREEN |
+
+Generation gate, 12 prompts x 48 tokens:
+
+| Variant | Cross exact | Cross min/mean prefix | Folded self exact | Folded self min/mean prefix | Read |
+|---|---:|---:|---:|---:|---|
+| structured_v1 | 4/12 | 1 / 21.25 | 6/12 | 3 / 26.83 | too aggressive |
+| structured_v2 | 5/12 | 1 / 28.00 | **10/12** | **14 / 36.33** | best W4A8 self-stability |
+| structured_v3_minimal | **6/12** | 1 / 28.67 | 7/12 | 12 / 34.33 | closer to BF16, less self-stable |
+
+Decision:
+
+```text
+structured_v2 is the current best candidate for an NVFP4 v0 artifact.
+It is not strict-promotion GREEN, but it is the most self-stable W4A8 folded
+artifact so far. Most remaining cross-model diffs are formatting or
+near-equivalent phrasing, while the hardest OpenAPI/YAML prompt is a low-margin
+structured-output case.
+```
+
+Important distinction:
+
+```text
+cross exact = original BF16 baseline vs folded W4A8 path
+folded self = folded BF16 path vs folded W4A8 path
+```
+
+For runtime work, folded self-stability is the stronger signal that the W4A8
+contract is internally coherent. For model-quality release, cross-model exact
+remains a conservative regression alarm and still requires V8/V9/tool-call
+validation before promotion.
+
+## P110 Lynn-Native NVFP4 v0 Export
+
+Because ModelOpt is importable but llmcompressor is blocked by the current
+Transformers API, the fastest same-night output path is a Lynn-native packer:
+
+```text
+scripts/a100_pack_lynn_native_nvfp4.py
+```
+
+The packer consumes a folded W4A8 artifact and writes:
+
+```text
+lynn_quant_manifest.json
+model.safetensors.index.json
+model-*.safetensors
+```
+
+Format:
+
+```text
+schema_version: lynn-variable-nvfp4-pack-v1
+weight format:  E2M1 row-wise per-16
+global scale:   unit
+kept tensors:   embed_tokens, lm_head, visual, norms, router gate
+quantized:      attention/linear weights, shared expert weights,
+                fused mlp.experts.gate_up_proj/down_proj tensors
+```
+
+Current export target:
+
+```text
+/root/lynn-a100-outputs/lynn-27b-w4a8-structured-v2-nvfp4-native
+```
+
+This is a candidate artifact for R6000/Spark engine validation, not yet a
+model-quality release. Required post-export gates:
+
+```text
+1. manifest/index integrity
+2. Lynn slow-dequant load smoke
+3. 6-prompt coherent smoke
+4. structured JSON/tool-call smoke
+5. R6000 packed_nvfp4 runtime bench
+6. Spark loader compatibility check
+```
+
+Export result:
+
+```text
+schema_version: lynn-variable-nvfp4-pack-v1
+output size:    33.15 GB
+output shards:  7
+weight_map:     1886 entries
+quantized:      430 tensors
+kept:           596 tensors
+missing shards: 0
+runtime:        inference_path_required=w4a8, fallback_path_allowed=false
+```
+
+The first Lynn slow-dequant smoke consumed the artifact successfully:
+
+```text
+report: reports/a100/a100_nvfp4_native_v2_smoke_2prompt_32tok.json
+decision: GREEN
+prompt count: 2
+self exact: 2/2
+min/mean prefix: 17 / 24.5
+```
+
+The 12-prompt structured smoke is stricter and remains RED, but the artifact is
+loadable and coherent:
+
+```text
+report: reports/a100/a100_nvfp4_native_v2_structured_12prompt_48tok.json
+decision: RED
+self exact: 8/12
+min/mean prefix: 2 / 30.42
+```
+
+The four non-exact prompts are the same hard structured-output / no-think style
+prompts that were already low-margin in the folded W4A8 gate. This marks the
+artifact as **NVFP4 v0 engine-validation ready**, not as a strict quality
+release. Next promotion work should focus on:
+
+```text
+1. no-think/tool-call guard cleanup;
+2. R6000 packed runtime load and TPS bench;
+3. Spark loader compatibility check;
+4. V8/V9 quality retention after runtime path is stable.
+```

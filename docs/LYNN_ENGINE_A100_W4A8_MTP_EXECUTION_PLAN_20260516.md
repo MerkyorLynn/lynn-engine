@@ -134,6 +134,44 @@ Qwen3.6 hidden size = 5120, Lynn text hidden size = 2048.
 Use it as an architecture oracle only.
 ```
 
+Official Qwen3.6-35B-A3B MTP result:
+
+```text
+source: Qwen/Qwen3.6-35B-A3B
+config hidden_size: 2048
+mtp_num_hidden_layers: 1
+mtp_use_dedicated_embeddings: false
+mtp tensor count in index: 19
+mtp shards: model-00025-of-00026.safetensors, model-00026-of-00026.safetensors
+```
+
+This is a better warm-start target than the 5120-hidden community 27B sidecar.
+It matches Lynn's 2048 hidden dimension and exposes the complete Qwen3.6
+`qwen3_next_mtp` module:
+
+```text
+mtp.fc.weight
+mtp.pre_fc_norm_embedding.weight
+mtp.pre_fc_norm_hidden.weight
+mtp.layers.0.self_attn.{q,k,v,o}_proj.weight
+mtp.layers.0.self_attn.{q,k}_norm.weight
+mtp.layers.0.mlp.gate.weight
+mtp.layers.0.mlp.experts.gate_up_proj
+mtp.layers.0.mlp.experts.down_proj
+mtp.layers.0.mlp.shared_expert.*
+mtp.norm.weight
+```
+
+Training decision:
+
+```text
+Path B-1 becomes the main MTP path:
+initialize from official Qwen3.6-35B-A3B MTP tensors where shapes match,
+freeze or mostly freeze the Lynn W4A8 base,
+fine-tune the MTP predictor on Lynn calibration / structured prompts,
+then evaluate accept rate before serving promotion.
+```
+
 Scope guard:
 
 ```text
