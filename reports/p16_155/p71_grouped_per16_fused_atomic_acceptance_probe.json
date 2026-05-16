@@ -1,0 +1,163 @@
+{
+  "schema_version": "lynn-engine-p71-grouped-per16-fused-atomic-acceptance-probe-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final",
+  "layers": [
+    2,
+    8,
+    14,
+    20,
+    28,
+    36
+  ],
+  "prompt": "用一句话解释 MoE active parameters",
+  "cases": [
+    {
+      "layer": 2,
+      "expert_ids": [
+        3,
+        40,
+        57,
+        71,
+        158,
+        207,
+        235,
+        17
+      ],
+      "top_k": 8,
+      "diff_candidate_vs_triton": {
+        "max_abs": 0.0001462996006011963,
+        "mean_abs": 1.7085822037188336e-05,
+        "rel_l2": 0.0021116482093930244,
+        "cosine": 0.9999980926513672
+      },
+      "triton_active_ms": 0.056910401582717894,
+      "candidate_active_ms": 0.17675039768218995,
+      "candidate_vs_triton_speedup": 0.32198174560855547
+    },
+    {
+      "layer": 8,
+      "expert_ids": [
+        38,
+        51,
+        69,
+        113,
+        139,
+        153,
+        203,
+        158
+      ],
+      "top_k": 8,
+      "diff_candidate_vs_triton": {
+        "max_abs": 0.00015384331345558167,
+        "mean_abs": 2.4431803467450663e-05,
+        "rel_l2": 0.002380465157330036,
+        "cosine": 0.9999971985816956
+      },
+      "triton_active_ms": 0.05711519718170166,
+      "candidate_active_ms": 0.1773983955383301,
+      "candidate_vs_triton_speedup": 0.3219600549846061
+    },
+    {
+      "layer": 14,
+      "expert_ids": [
+        13,
+        47,
+        97,
+        110,
+        161,
+        165,
+        172,
+        60
+      ],
+      "top_k": 8,
+      "diff_candidate_vs_triton": {
+        "max_abs": 0.0004899650812149048,
+        "mean_abs": 4.240648922859691e-05,
+        "rel_l2": 0.0022447118535637856,
+        "cosine": 0.9999974966049194
+      },
+      "triton_active_ms": 0.05694079995155334,
+      "candidate_active_ms": 0.17711520195007324,
+      "candidate_vs_triton_speedup": 0.32149019013966007
+    },
+    {
+      "layer": 20,
+      "expert_ids": [
+        36,
+        48,
+        95,
+        108,
+        131,
+        149,
+        196,
+        55
+      ],
+      "top_k": 8,
+      "diff_candidate_vs_triton": {
+        "max_abs": 0.0008681416511535645,
+        "mean_abs": 0.00012105317000532523,
+        "rel_l2": 0.0026128399185836315,
+        "cosine": 0.9999983310699463
+      },
+      "triton_active_ms": 0.05691519975662231,
+      "candidate_active_ms": 0.17706079483032228,
+      "candidate_vs_triton_speedup": 0.3214443932162637
+    },
+    {
+      "layer": 28,
+      "expert_ids": [
+        12,
+        49,
+        116,
+        155,
+        159,
+        192,
+        204,
+        63
+      ],
+      "top_k": 8,
+      "diff_candidate_vs_triton": {
+        "max_abs": 0.00016417726874351501,
+        "mean_abs": 3.175640449626371e-05,
+        "rel_l2": 0.002312073018401861,
+        "cosine": 0.9999973773956299
+      },
+      "triton_active_ms": 0.056908798217773435,
+      "candidate_active_ms": 0.1773311972618103,
+      "candidate_vs_triton_speedup": 0.32091814128877594
+    },
+    {
+      "layer": 36,
+      "expert_ids": [
+        24,
+        43,
+        100,
+        139,
+        201,
+        221,
+        222,
+        35
+      ],
+      "top_k": 8,
+      "diff_candidate_vs_triton": {
+        "max_abs": 0.0007957965135574341,
+        "mean_abs": 0.00010428775567561388,
+        "rel_l2": 0.0026884691324084997,
+        "cosine": 0.9999972581863403
+      },
+      "triton_active_ms": 0.057468801736831665,
+      "candidate_active_ms": 0.17655999660491944,
+      "candidate_vs_triton_speedup": 0.32549163367638184
+    }
+  ],
+  "summary": {
+    "mean_triton_active_ms": 0.057043199737866715,
+    "mean_candidate_active_ms": 0.17703599731127423,
+    "mean_candidate_vs_triton_speedup": 0.3222143598190405,
+    "min_cosine_vs_triton": 0.9999971985816956,
+    "max_rel_l2_vs_triton": 0.0026884691324084997
+  },
+  "subkernel_contract_pass": false,
+  "runtime_promote": false,
+  "decision": "The fused atomic one-boundary candidate is measured under the P69 schema. It is expected to remain a negative/closure result, not a runtime default."
+}

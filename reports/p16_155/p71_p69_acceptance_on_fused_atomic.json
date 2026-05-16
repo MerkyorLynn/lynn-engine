@@ -1,0 +1,23 @@
+{
+  "schema_version": "lynn-engine-p69-grouped-kernel-acceptance-gate-v1",
+  "candidate_report": "reports/p16_155/p71_grouped_per16_fused_atomic_acceptance_probe.json",
+  "thresholds": {
+    "min_speedup": 1.25,
+    "min_cosine": 0.999999,
+    "max_rel_l2": 0.01
+  },
+  "observed": {
+    "mean_speedup": 0.3222143598190405,
+    "min_cosine_vs_triton": 0.9999971985816956,
+    "max_rel_l2_vs_triton": 0.0026884691324084997,
+    "runtime_promote_in_candidate": false
+  },
+  "checks": {
+    "subkernel_contract_pass": false,
+    "speedup_ge_threshold": false,
+    "cosine_ge_threshold": false,
+    "rel_l2_le_threshold": true
+  },
+  "pass": false,
+  "decision": "Candidate is not strong enough for promotion work; keep it as kernel signal only."
+}
