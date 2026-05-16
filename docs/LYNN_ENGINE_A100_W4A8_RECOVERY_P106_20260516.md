@@ -371,6 +371,7 @@ Report:
 
 ```text
 reports/a100/a100_w4a8_generation_gate_6prompt_48tok.json
+reports/a100/a100_w4a8_generation_gate_6prompt_48tok_triage.json
 ```
 
 Result:
@@ -395,6 +396,19 @@ Still RED for direct promotion, but much stronger than the earlier 2-prompt
 near-equivalent phrasing. The worst prompt remains the structured JSON/OpenAPI
 case, which should be overweighted in the next Recovery batch.
 ```
+
+First-diff triage:
+
+```text
+prompt 0 first diff margin: ref 0.125 / candidate 0.0625
+prompt 1 first diff margin: ref 0.125 / candidate 0.125
+prompt 3 first diff margin: ref 0.0   / candidate 1.0625
+prompt 5 first diff margin: ref 0.125 / candidate 0.0
+```
+
+This means the generation RED is mostly **margin-fragile greedy tie breaking**,
+not output collapse. The JSON/OpenAPI first diff is especially informative:
+the BF16 reference has a zero-margin top-1 tie at the divergence point.
 
 Next Recovery objective:
 

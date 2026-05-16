@@ -1,0 +1,178 @@
+{
+  "schema_version": "lynn-a100-w4a8-generation-first-diff-triage-v1",
+  "source": "reports/a100/a100_w4a8_generation_gate_6prompt_48tok.json",
+  "cross_exact": 2,
+  "prompt_count": 6,
+  "min_same_prefix_tokens": 17,
+  "mean_same_prefix_tokens": 38.666666666666664,
+  "first_diff_rows": [
+    {
+      "prompt_id": 0,
+      "prompt": "用一句话解释 W4A8 为什么可能比 W4A4 更稳。",
+      "same_prefix_tokens": 38,
+      "exact": false,
+      "first_diff_index": 38,
+      "reference_token": 124267,
+      "candidate_token": 102227,
+      "reference_top1_margin_at_diff": 0.125,
+      "reference_top5_ids_at_diff": [
+        124267,
+        109719,
+        102227,
+        110745,
+        2005
+      ],
+      "reference_top5_values_at_diff": [
+        15.9375,
+        15.8125,
+        15.8125,
+        15.5625,
+        15.25
+      ],
+      "candidate_top1_margin_at_diff": 0.0625,
+      "candidate_top5_ids_at_diff": [
+        102227,
+        124267,
+        109719,
+        110745,
+        2005
+      ],
+      "candidate_top5_values_at_diff": [
+        15.9375,
+        15.875,
+        15.75,
+        15.5,
+        15.375
+      ]
+    },
+    {
+      "prompt_id": 1,
+      "prompt": "请写一个 Python 函数,判断字符串是否是回文。",
+      "same_prefix_tokens": 40,
+      "exact": false,
+      "first_diff_index": 40,
+      "reference_token": 6763,
+      "candidate_token": 17534,
+      "reference_top1_margin_at_diff": 0.125,
+      "reference_top5_ids_at_diff": [
+        6763,
+        17534,
+        16674,
+        32550,
+        5121
+      ],
+      "reference_top5_values_at_diff": [
+        22.75,
+        22.625,
+        18.5,
+        16.25,
+        15.0
+      ],
+      "candidate_top1_margin_at_diff": 0.125,
+      "candidate_top5_ids_at_diff": [
+        17534,
+        6763,
+        16674,
+        32550,
+        25081
+      ],
+      "candidate_top5_values_at_diff": [
+        23.0,
+        22.875,
+        18.625,
+        16.375,
+        14.8125
+      ]
+    },
+    {
+      "prompt_id": 2,
+      "prompt": "If a train travels 60 mph for 2.5 hours, how far does it go?",
+      "same_prefix_tokens": 48,
+      "exact": true
+    },
+    {
+      "prompt_id": 3,
+      "prompt": "请给出一个 JSON: {\"city\":\"Tokyo\",\"unit\":\"celsius\"}",
+      "same_prefix_tokens": 17,
+      "exact": false,
+      "first_diff_index": 17,
+      "reference_token": 96382,
+      "candidate_token": 98427,
+      "reference_top1_margin_at_diff": 0.0,
+      "reference_top5_ids_at_diff": [
+        96382,
+        98427,
+        96347,
+        98642,
+        1510
+      ],
+      "reference_top5_values_at_diff": [
+        16.0,
+        16.0,
+        15.375,
+        15.0,
+        15.0
+      ],
+      "candidate_top1_margin_at_diff": 1.0625,
+      "candidate_top5_ids_at_diff": [
+        98427,
+        96382,
+        98642,
+        96347,
+        1510
+      ],
+      "candidate_top5_values_at_diff": [
+        17.0,
+        15.9375,
+        14.9375,
+        14.9375,
+        14.8125
+      ]
+    },
+    {
+      "prompt_id": 4,
+      "prompt": "总结一下 MoE 模型里 router 和 expert 的分工。",
+      "same_prefix_tokens": 48,
+      "exact": true
+    },
+    {
+      "prompt_id": 5,
+      "prompt": "解释长上下文推理里 linear attention 的优势。",
+      "same_prefix_tokens": 41,
+      "exact": false,
+      "first_diff_index": 41,
+      "reference_token": 99133,
+      "candidate_token": 271,
+      "reference_top1_margin_at_diff": 0.125,
+      "reference_top5_ids_at_diff": [
+        99133,
+        271,
+        105090,
+        142647,
+        97990
+      ],
+      "reference_top5_values_at_diff": [
+        17.75,
+        17.625,
+        16.25,
+        16.0,
+        15.75
+      ],
+      "candidate_top1_margin_at_diff": 0.0,
+      "candidate_top5_ids_at_diff": [
+        99133,
+        271,
+        105090,
+        142647,
+        97990
+      ],
+      "candidate_top5_values_at_diff": [
+        17.625,
+        17.625,
+        16.25,
+        15.9375,
+        15.75
+      ]
+    }
+  ]
+}
