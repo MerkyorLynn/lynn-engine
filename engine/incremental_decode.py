@@ -46,6 +46,13 @@ except Exception:  # pragma: no cover - optional acceleration path.
     qk_norm_rope_pair_triton = None
     qk_norm_rope_triton = None
 
+try:
+    from triton_kernels.qk_norm_rope import qk_norm_rope_pair_triton_sp08_autotuned
+except Exception:  # pragma: no cover
+    qk_norm_rope_pair_triton_sp08_autotuned = None
+
+_SP08_QK_NORM_ROPE_AUTOTUNE = os.environ.get("LYNN_SP_TRITON_AUTOTUNE", "0") == "1"
+
 
 def _linear(x: torch.Tensor, weight) -> torch.Tensor:
     """Linear dispatch with optional packed NVFP4 decode-path support."""
@@ -110,6 +117,8 @@ def _qk_norm_rope_pair_decode(
 ) -> tuple[torch.Tensor, torch.Tensor]:
     backend = os.environ.get("LYNN_QK_NORM_ROPE_BACKEND", "torch")
     if backend == "triton_pair":
+        if _SP08_QK_NORM_ROPE_AUTOTUNE and qk_norm_rope_pair_triton_sp08_autotuned is not None:
+            return qk_norm_rope_pair_triton_sp08_autotuned(q, k, q_weight, k_weight, cos, sin, rotary_dim)
         if qk_norm_rope_pair_triton is None:
             raise RuntimeError("LYNN_QK_NORM_ROPE_BACKEND=triton_pair requested but kernel is unavailable")
         return qk_norm_rope_pair_triton(q, k, q_weight, k_weight, cos, sin, rotary_dim)
