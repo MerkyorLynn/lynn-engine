@@ -1,0 +1,247 @@
+{
+  "label": "sp01_5_expand_block_inter",
+  "endpoint": "http://127.0.0.1:18099/v1/chat/completions",
+  "model": "Lynn-V4-Distill-Qwen-27B-A3B-NVFP4",
+  "single": {
+    "label": "sp01_5_expand_block_inter_single",
+    "n": 3,
+    "mean": 47.30682397986529,
+    "median": 47.324341008567046,
+    "max": 47.33004076560351,
+    "min": 47.26609016542532,
+    "stddev": 0.03539144722516154
+  },
+  "mixed": {
+    "label": "sp01_5_expand_block_inter_mixed",
+    "n": 20,
+    "mean": 47.04256449408889,
+    "median": 47.09038488427129,
+    "max": 47.328811389582505,
+    "min": 46.38321419291079,
+    "stddev": 0.22517198656235712
+  },
+  "single_runs": [
+    {
+      "prompt": "用三句话解释为什么神经网络可以做语言建模",
+      "elapsed_s": 1.841308832168579,
+      "prefill_s": 0.44297099113464355,
+      "decode_total_s": 1.3946311473846436,
+      "completion_tokens": 67,
+      "decode_tps": 47.324341008567046,
+      "tps_wall": 36.387160496640625
+    },
+    {
+      "prompt": "请写一个Python函数,实现快速排序,要求注释清晰",
+      "elapsed_s": 6.786589860916138,
+      "prefill_s": 0.4533367156982422,
+      "decode_total_s": 6.325888156890869,
+      "completion_tokens": 300,
+      "decode_tps": 47.26609016542532,
+      "tps_wall": 44.204822473168036
+    },
+    {
+      "prompt": "对比 transformer 和 RNN 在长序列建模上的优劣",
+      "elapsed_s": 6.778548002243042,
+      "prefill_s": 0.453777551651001,
+      "decode_total_s": 6.317340850830078,
+      "completion_tokens": 300,
+      "decode_tps": 47.33004076560351,
+      "tps_wall": 44.25726570066762
+    }
+  ],
+  "mixed_runs": [
+    {
+      "prompt": "用三句话解释为什么神经网络可以做语言建模",
+      "elapsed_s": 1.8461813926696777,
+      "prefill_s": 0.4437081813812256,
+      "decode_total_s": 1.398528814315796,
+      "completion_tokens": 67,
+      "decode_tps": 47.19244918259998,
+      "tps_wall": 36.29112516572079
+    },
+    {
+      "prompt": "请写一个Python函数,实现快速排序,要求注释清晰",
+      "elapsed_s": 4.663621664047241,
+      "prefill_s": 0.45261335372924805,
+      "decode_total_s": 4.20462703704834,
+      "completion_tokens": 200,
+      "decode_tps": 47.328811389582505,
+      "tps_wall": 42.88512542555468
+    },
+    {
+      "prompt": "对比 transformer 和 RNN 在长序列建模上的优劣",
+      "elapsed_s": 4.667411804199219,
+      "prefill_s": 0.45171594619750977,
+      "decode_total_s": 4.209517955780029,
+      "completion_tokens": 200,
+      "decode_tps": 47.273821394859695,
+      "tps_wall": 42.85030084983335
+    },
+    {
+      "prompt": "假如你是一名医生,患者主诉腹痛三天,请按问诊流程提问",
+      "elapsed_s": 4.684774398803711,
+      "prefill_s": 0.46151232719421387,
+      "decode_total_s": 4.2169859409332275,
+      "completion_tokens": 200,
+      "decode_tps": 47.19010278605788,
+      "tps_wall": 42.691490128333896
+    },
+    {
+      "prompt": "请给出一段简短的散文,描写北京秋天的胡同晨景",
+      "elapsed_s": 4.662589073181152,
+      "prefill_s": 0.4515869617462158,
+      "decode_total_s": 4.204885959625244,
+      "completion_tokens": 200,
+      "decode_tps": 47.32589704233873,
+      "tps_wall": 42.89462289318704
+    },
+    {
+      "prompt": "解释金融领域中 alpha 和 beta 的区别",
+      "elapsed_s": 4.655725479125977,
+      "prefill_s": 0.4294867515563965,
+      "decode_total_s": 4.220253944396973,
+      "completion_tokens": 200,
+      "decode_tps": 47.15356057286616,
+      "tps_wall": 42.95785928459557
+    },
+    {
+      "prompt": "如何用一句话向小学生解释 GPS 的工作原理",
+      "elapsed_s": 0.95279860496521,
+      "prefill_s": 0.4349186420440674,
+      "decode_total_s": 0.5147464275360107,
+      "completion_tokens": 25,
+      "decode_tps": 46.62489862218811,
+      "tps_wall": 26.2384934966533
+    },
+    {
+      "prompt": "写一段代码:给定整数列表 nums,返回所有偶数的平方和",
+      "elapsed_s": 1.2653088569641113,
+      "prefill_s": 0.4732472896575928,
+      "decode_total_s": 0.788731575012207,
+      "completion_tokens": 38,
+      "decode_tps": 46.9107630177318,
+      "tps_wall": 30.03219316047024
+    },
+    {
+      "prompt": "请总结相对论的核心思想,不超过 200 字",
+      "elapsed_s": 2.683598518371582,
+      "prefill_s": 0.47035694122314453,
+      "decode_total_s": 2.208869457244873,
+      "completion_tokens": 105,
+      "decode_tps": 47.08290915920373,
+      "tps_wall": 39.12656803213411
+    },
+    {
+      "prompt": "如何区分中医的虚证和实证",
+      "elapsed_s": 4.65058159828186,
+      "prefill_s": 0.4257822036743164,
+      "decode_total_s": 4.218914747238159,
+      "completion_tokens": 200,
+      "decode_tps": 47.16852838286717,
+      "tps_wall": 43.00537379537416
+    },
+    {
+      "prompt": "在 SQL 中如何处理 NULL 值进行聚合统计",
+      "elapsed_s": 4.663518190383911,
+      "prefill_s": 0.4340507984161377,
+      "decode_total_s": 4.223574638366699,
+      "completion_tokens": 200,
+      "decode_tps": 47.116487108407156,
+      "tps_wall": 42.88607695631944
+    },
+    {
+      "prompt": "用古文风格写一封给好友的问候信",
+      "elapsed_s": 3.5638980865478516,
+      "prefill_s": 0.4197201728820801,
+      "decode_total_s": 3.139019250869751,
+      "completion_tokens": 149,
+      "decode_tps": 47.1484843423603,
+      "tps_wall": 41.80815398801933
+    },
+    {
+      "prompt": "解释什么是 P=NP 问题,以及它为什么重要",
+      "elapsed_s": 4.701512336730957,
+      "prefill_s": 0.4586179256439209,
+      "decode_total_s": 4.236945390701294,
+      "completion_tokens": 200,
+      "decode_tps": 46.96779912168322,
+      "tps_wall": 42.539503392872824
+    },
+    {
+      "prompt": "写一首关于人工智能与诗的现代短诗",
+      "elapsed_s": 4.661059141159058,
+      "prefill_s": 0.42980480194091797,
+      "decode_total_s": 4.225244998931885,
+      "completion_tokens": 200,
+      "decode_tps": 47.09786060933885,
+      "tps_wall": 42.908702495087056
+    },
+    {
+      "prompt": "给出一个简单的烹饪菜谱:番茄炒蛋",
+      "elapsed_s": 4.72178316116333,
+      "prefill_s": 0.4250500202178955,
+      "decode_total_s": 4.290345191955566,
+      "completion_tokens": 200,
+      "decode_tps": 46.38321419291079,
+      "tps_wall": 42.35687941898733
+    },
+    {
+      "prompt": "在企业财务中,EBITDA 怎么计算,为什么投资人喜欢用它",
+      "elapsed_s": 4.711484670639038,
+      "prefill_s": 0.46882033348083496,
+      "decode_total_s": 4.237116813659668,
+      "completion_tokens": 200,
+      "decode_tps": 46.96589892411307,
+      "tps_wall": 42.44946423074601
+    },
+    {
+      "prompt": "请解释什么是博弈论中的纳什均衡,并举一个例子",
+      "elapsed_s": 4.696305274963379,
+      "prefill_s": 0.455521821975708,
+      "decode_total_s": 4.235100030899048,
+      "completion_tokens": 200,
+      "decode_tps": 46.988264397087995,
+      "tps_wall": 42.58666936883901
+    },
+    {
+      "prompt": "如何向不懂技术的客户解释 RAG 系统的优势",
+      "elapsed_s": 4.6890645027160645,
+      "prefill_s": 0.4473428726196289,
+      "decode_total_s": 4.235939979553223,
+      "completion_tokens": 200,
+      "decode_tps": 46.97894704848701,
+      "tps_wall": 42.652430966593286
+    },
+    {
+      "prompt": "请帮我写一封简短的辞职信,语气平和专业",
+      "elapsed_s": 2.4710023403167725,
+      "prefill_s": 0.444286584854126,
+      "decode_total_s": 2.0225272178649902,
+      "completion_tokens": 96,
+      "decode_tps": 46.97093772625884,
+      "tps_wall": 38.850630949905614
+    },
+    {
+      "prompt": "讨论一下 React 和 Vue 在状态管理上的设计差异",
+      "elapsed_s": 4.687368154525757,
+      "prefill_s": 0.4461967945098877,
+      "decode_total_s": 4.235695838928223,
+      "completion_tokens": 200,
+      "decode_tps": 46.98165486083483,
+      "tps_wall": 42.66786678722806
+    }
+  ],
+  "sglang_baseline": {
+    "single_mean": 43.44,
+    "single_median": 46.39,
+    "single_peak": 47.3,
+    "mixed_mean": 49.97,
+    "mixed_max": 62.51,
+    "mixed_stddev": 6.22
+  },
+  "beats_sglang": {
+    "mean": false,
+    "peak": false,
+    "single_peak": true
+  }
+}
