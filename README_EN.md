@@ -90,6 +90,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P51 MoE budget ladder** | top-k limit / skip shared expert | best 124.39 TPS but output breaks; coherent top6 only +1.6% | ❌ fewer experts do not reach 155; quality fails first |
 | **P52-A/B native FP4 sensitivity** | selected gate/up `_scaled_mm` + scale decomposition | active cosine 0.976; FP8 scale contract min cosine 0.972 | ❌ plain PyTorch `_scaled_mm` composition is not shippable; blocker is the per-16 scale contract |
 | **P53 Triton retune review** | E2M1 decode simplification / scale hoist | LUT variant exact but avg 0.936x; scale-hoist JIT too heavy | 🔬 local signal only,no free 15 TPS;not promoted |
+| **P54 vendor-layout feasibility** | e8m0/group32 scale search | best upper-bound inter cosine 0.9869-0.9918,all fail | ❌ direct ModelOpt-like scale contract is not enough;mainline stays per-16 grouped kernel |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -388,6 +389,28 @@ wins **6-8%** on three representative layers, but loses badly on layer36
 (**0.536x**) and averages **0.936x**. Keep it as an allowlist/variant research
 line, not a default replacement. See
 [`docs/LYNN_ENGINE_P53_TRITON_RETUNE_REVIEW_20260516.md`](docs/LYNN_ENGINE_P53_TRITON_RETUNE_REVIEW_20260516.md).
+
+P54 note: to answer whether Lynn can simply produce an NVIDIA/ModelOpt-friendly
+e8m0/group32 NVFP4 side artifact and use vendor-style kernels, P54 adds an
+offline scale-search upper-bound probe. `search_recon_mse` represents a
+deployable-style static reconstruction search; `search_dot_upper_bound` is an
+activation-aware optimistic dot-preservation upper bound. Across four
+representative layers, the best upper-bound inter cosine is still only
+**0.9869-0.9918**, below the 0.995 safety gate. The conclusion is that the
+public NVIDIA NVFP4/Blackwell path validates the destination, but Lynn's
+current per-16 FP32-scale artifact cannot be converted into that vendor scale
+contract by simple offline exponent search. The mainline stays
+**Lynn-native per-16 grouped active expert kernels**. See
+[`docs/LYNN_ENGINE_P54_VENDOR_LAYOUT_FEASIBILITY_20260516.md`](docs/LYNN_ENGINE_P54_VENDOR_LAYOUT_FEASIBILITY_20260516.md).
+
+Quantization v2 note: imatrix, layer strategy, and activation-aware scale
+search are valuable for Lynn, but they are a **quantization-quality track**,
+not a replacement for the current 100→155 TPS runtime blocker. The near-term
+target is public GGUF/Q4_K_M quality: lower PPL/KLD and stronger
+V8/V9/tool/long-context retention. The later target is a BF16-derived
+vendor-compatible NVFP4 v2 artifact, not a direct conversion of the current
+Lynn-native per-16 artifact. See
+[`docs/LYNN_ENGINE_QUANTIZATION_V2_ROADMAP_20260516.md`](docs/LYNN_ENGINE_QUANTIZATION_V2_ROADMAP_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,

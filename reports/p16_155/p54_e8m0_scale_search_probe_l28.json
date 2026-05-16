@@ -1,0 +1,109 @@
+{
+  "schema_version": "lynn-engine-p54-e8m0-scale-search-probe-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final",
+  "layers": [
+    28
+  ],
+  "prompt": "用一句话解释 MoE active parameters",
+  "layer_results": [
+    {
+      "layer": 28,
+      "expert_ids": [
+        116,
+        159,
+        49,
+        204,
+        12,
+        192,
+        63,
+        155
+      ],
+      "shape": {
+        "top_k": 8,
+        "hidden": 2048,
+        "selected_weight": [
+          8192,
+          2048
+        ]
+      },
+      "offsets": [
+        -4,
+        -3,
+        -2,
+        -1,
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "methods": {
+        "naive_maxabs": {
+          "raw": {
+            "max_abs": 0.5587009191513062,
+            "mean_abs": 0.08409266918897629,
+            "rel_l2": 0.14744442582230496,
+            "cosine": 0.9906291961669922
+          },
+          "inter": {
+            "max_abs": 0.453125,
+            "mean_abs": 0.02840816229581833,
+            "rel_l2": 0.22216519339169535,
+            "cosine": 0.9782535433769226
+          },
+          "timing_ms": 0.02476000040769577,
+          "pass": false
+        },
+        "search_recon_mse": {
+          "raw": {
+            "max_abs": 0.46397435665130615,
+            "mean_abs": 0.07354001700878143,
+            "rel_l2": 0.1277583995587213,
+            "cosine": 0.9919643402099609
+          },
+          "inter": {
+            "max_abs": 0.4296875,
+            "mean_abs": 0.025647010654211044,
+            "rel_l2": 0.2035517770498041,
+            "cosine": 0.9792419075965881
+          },
+          "timing_ms": 0.022011199593544008,
+          "pass": false
+        },
+        "search_dot_upper_bound": {
+          "raw": {
+            "max_abs": 0.303555965423584,
+            "mean_abs": 0.05832432210445404,
+            "rel_l2": 0.10179564141772432,
+            "cosine": 0.9949101805686951
+          },
+          "inter": {
+            "max_abs": 0.33203125,
+            "mean_abs": 0.020585039630532265,
+            "rel_l2": 0.16273592488868388,
+            "cosine": 0.9869207143783569
+          },
+          "timing_ms": 0.022068800032138826,
+          "pass": false
+        }
+      }
+    }
+  ],
+  "summary": {
+    "all_layers_pass_best": false,
+    "best_methods": [
+      {
+        "layer": 28,
+        "best_method": "search_dot_upper_bound",
+        "best_inter_cosine": 0.9869207143783569,
+        "best_inter_rel_l2": 0.16273592488868388,
+        "best_pass": false
+      }
+    ]
+  },
+  "notes": [
+    "search_recon_mse is a deployable-style static reconstruction search.",
+    "search_dot_upper_bound is activation-aware and should be treated as an optimistic upper bound, not a production artifact.",
+    "If search_dot_upper_bound fails, e8m0/group32 is unlikely to be enough for Lynn's current 27B artifact without retraining or a custom per-16 kernel."
+  ]
+}

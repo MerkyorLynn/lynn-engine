@@ -92,6 +92,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P51 MoE budget ladder** | top-k limit / skip shared expert | best 124.39TPS 但输出崩;top6 coherent only +1.6% | ❌ 少算专家不到 155,质量先坏,关闭捷径 |
 | **P52-A/B native FP4 sensitivity** | selected gate/up `_scaled_mm` + scale decomposition | active cosine 0.976;FP8 scale contract min cosine 0.972 | ❌ PyTorch `_scaled_mm` 组合不可 ship;瓶颈锁到 per-16 scale contract |
 | **P53 Triton retune review** | E2M1 decode simplification / scale hoist | LUT variant exact but avg 0.936×;scale-hoist JIT 过重 | 🔬 有局部信号,无免费 15TPS;不 promote |
+| **P54 vendor-layout feasibility** | e8m0/group32 scale search | best upper-bound inter cosine 0.9869-0.9918,all fail | ❌ 直接转 ModelOpt-like scale contract 不够,主线锁 per-16 grouped kernel |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:
@@ -182,6 +183,10 @@ P51 说明:为了排除“少算专家就能到 155TPS”的捷径,新增 opt-in
 P52 说明:路线正式分叉为两条:一条是 exact-owned serving,保持当前 Triton active MoE 数学不变,继续压 orchestration / graph overhead;另一条是真 grouped native-FP4 active expert FFN,用 CUTLASS/CuTe 或 custom CUDA 表达 block-diagonal selected experts,不再用 `_scaled_mm` 包装或 top-k 近似。P52-A/B 进一步证明:只把 selected gate/up 换成 `torch._scaled_mm` 会更慢且 active cosine 只有 **0.976**,主要误差来自把 Lynn 的 FP32 per-16 scale 压进 FP8 `scale_b` contract(min cosine **0.972**),不是神秘 tensor-core 累加问题。MTP/spec decode 不是近期主线,它是之后的 serving multiplier,不是底座 kernel。详见 [`docs/LYNN_ENGINE_P52_GROUPED_NATIVE_FP4_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P52_GROUPED_NATIVE_FP4_CONTRACT_20260516.md)。
 
 P53 说明:针对外部 review 提出的 Triton 免费优化假设,新增 scale-hoist 与 E2M1 decode 简化两个 opt-in probe。scale-hoist 朴素版 JIT/body 过重,不构成免费收益;轻量 LUT 表达式数值 exact,前三个代表层快 **6-8%**,但 layer36 慢到 **0.536×**,平均 **0.936×**。结论:这个方向保留为 allowlist/变体研究,不替换默认 Triton active MoE。详见 [`docs/LYNN_ENGINE_P53_TRITON_RETUNE_REVIEW_20260516.md`](docs/LYNN_ENGINE_P53_TRITON_RETUNE_REVIEW_20260516.md)。
+
+P54 说明:为了回应“能否直接做一份 NVIDIA/ModelOpt 友好的 e8m0/group32 NVFP4 artifact 然后吃官方 kernel”,新增离线 scale-search 上界 probe。`search_recon_mse` 代表可部署式静态重构搜索,`search_dot_upper_bound` 是激活感知点积上界;四个代表层 best upper-bound inter cosine 仍只有 **0.9869-0.9918**,全部低于 0.995 safety gate。结论:官方 NVFP4/Blackwell 路线证明方向正确,但 Lynn 当前 per-16 FP32 scale artifact 不能靠简单离线 exponent search 转成 vendor scale contract;主线继续写 **Lynn-native per-16 grouped active expert kernel**。详见 [`docs/LYNN_ENGINE_P54_VENDOR_LAYOUT_FEASIBILITY_20260516.md`](docs/LYNN_ENGINE_P54_VENDOR_LAYOUT_FEASIBILITY_20260516.md)。
+
+量化 v2 说明:imatrix / 层策略 / activation-aware scale search 对 Lynn 有价值,但它是**量化质量线**,不是当前 100→155TPS runtime blocker 的替代品。近期最适合先用于 GGUF/Q4_K_M 公开版,降低 PPL/KLD 并提升 V8/V9/tool/longctx retention;下一阶段再从 BF16 final 重新探索 vendor-compatible NVFP4 v2 artifact。详见 [`docs/LYNN_ENGINE_QUANTIZATION_V2_ROADMAP_20260516.md`](docs/LYNN_ENGINE_QUANTIZATION_V2_ROADMAP_20260516.md)。
 
 P19 说明:在不改变数值路径的前提下,active MoE kernel block retune 把 R6000 full graph 从 **103.40/107.13 TPS** 提到 **115.41/120.25 TPS**。推荐配置已成为默认:`gate_hidden=256,down_inter=512`,并保留 env override 方便后续设备差异调参。详见 [`docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md`](docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md)。
 
