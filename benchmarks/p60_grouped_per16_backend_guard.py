@@ -20,7 +20,6 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from benchmarks.p10e_packed_active_expert_probe import _prefill_to_layer_input  # noqa: E402
-from benchmarks.p38_moe_multilayer_profile import BEST_R6000_ENV  # noqa: E402
 from engine.full_forward import _rms_norm  # noqa: E402
 from engine.moe_packed_nvfp4 import moe_forward_decode_packed_nvfp4  # noqa: E402
 from engine.resident_runner import LynnIncrementalRunner  # noqa: E402
@@ -48,7 +47,16 @@ def main() -> int:
     ap.add_argument("--prompt", default="用一句话解释 MoE active parameters")
     args = ap.parse_args()
 
-    for key, value in BEST_R6000_ENV.items():
+    best_env = {
+        "LYNN_MOE_IMPL": "packed_nvfp4",
+        "LYNN_MOE_GATE_BLOCK_INTER": "8",
+        "LYNN_MOE_GATE_BLOCK_HIDDEN": "256",
+        "LYNN_MOE_DOWN_BLOCK_HIDDEN": "8",
+        "LYNN_MOE_DOWN_BLOCK_INTER": "512",
+        "LYNN_MOE_GATE_NUM_WARPS": "4",
+        "LYNN_MOE_DOWN_NUM_WARPS": "8",
+    }
+    for key, value in best_env.items():
         os.environ.setdefault(key, value)
     os.environ["LYNN_MOE_FAST_FIXED"] = "0"
 
