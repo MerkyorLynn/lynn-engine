@@ -11,11 +11,13 @@
     "runtime_contract": {
       "inference_path_required": "w4a8",
       "fallback_path_allowed": false
-    }
+    },
+    "stable_alias": "/root/lynn-a100-outputs/lynn-27b-w4a8-nvfp4-v0"
   },
   "integrity": {
     "weight_map_entries": 1886,
-    "missing_shards": 0
+    "missing_shards": 0,
+    "checksum_file": "reports/a100/a100_nvfp4_native_v2_checksums.sha256"
   },
   "gates": {
     "nvfp4_2prompt_smoke": {
@@ -31,10 +33,20 @@
       "prompt_count": 12,
       "min_same_prefix_tokens": 2,
       "mean_same_prefix_tokens": 30.416666666666668
+    },
+    "packed_tensor_runtime_probe": {
+      "decision": "GREEN",
+      "note": "load_grouped_nvfp4_weight and load_packed_nvfp4_linear parse v0 manifest/tensors"
+    },
+    "packed_moe_full_smoke_a100_80gb": {
+      "decision": "OOM_EXPECTED_ON_A100_80GB",
+      "note": "BF16 resident shadows plus packed aliases exceed 80GB; run full packed runtime on R6000/Spark"
     }
   },
   "known_status": "engine-validation v0: loadable/coherent, not strict quality promotion",
   "next_steps": [
+    "Pull stable alias to R6000/Spark with resume",
+    "Verify checksum file after transfer",
     "R6000 packed_nvfp4 runtime load",
     "Spark loader compatibility check",
     "strict tool-call/no-think guard cleanup",
