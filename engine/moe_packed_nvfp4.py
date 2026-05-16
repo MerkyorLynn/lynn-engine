@@ -16,6 +16,7 @@ from triton_kernels.nvfp4_moe import (
 
 
 _SP01_TRITON_AUTOTUNE = os.environ.get("LYNN_SP_TRITON_AUTOTUNE", "0") == "1"
+_SPARK_FP8_BACKEND = os.environ.get("LYNN_NATIVE_ACTIVE_MOE_BACKEND", "") == "spark_fp8"
 
 
 def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
@@ -53,7 +54,24 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
     expert_ids = expert_indices[0].to(torch.long)
     hidden = h_flat[0]
 
-    if _SP01_TRITON_AUTOTUNE:
+    if _SPARK_FP8_BACKEND:
+        # Spark sm_121 FP8 native active-MoE — fused gate_up + SiLU + down + routing
+        # in one Python call (3 GPU stages: gate_up kernel, SiLU+quantize, down kernel,
+        # routing sum). Numerically equivalent to scalar reference within ~1e-6
+        # max_abs_err. See engine/spark_fp8.py + benchmarks/sp12d/e probes.
+        from engine.spark_fp8 import active_moe_spark_fp8
+        moe_out = active_moe_spark_fp8(
+            hidden,
+            expert_ids,
+            routing_weights,
+            w["mlp.experts._gate_up_packed"],
+            w["mlp.experts._gate_up_scale"],
+            w["mlp.experts._gate_up_global_scale"],
+            w["mlp.experts._down_packed"],
+            w["mlp.experts._down_scale"],
+            w["mlp.experts._down_global_scale"],
+        ).reshape_as(h_flat)
+    elif _SP01_TRITON_AUTOTUNE:
         inter = nvfp4_grouped_gate_up_silu_sp01_autotuned(
             hidden,
             expert_ids,
