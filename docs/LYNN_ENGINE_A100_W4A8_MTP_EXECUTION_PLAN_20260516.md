@@ -1,4 +1,4 @@
-# A100 Execution Plan: W4A8 Recovery + MTP/NEXTN
+# A100 Execution Plan: Lynn 27B A3B W4A8 Recovery + MTP/NEXTN
 
 Date: 2026-05-16
 
@@ -27,6 +27,13 @@ trl:          no
 Implication: start with lightweight PEFT / custom probes. Do not block on
 installing a large training framework until the first W4A8 gates prove the
 artifact is trainable.
+
+## Naming Contract
+
+All new A100/R6000/Spark handoff artifacts should use **Lynn 27B A3B** in
+their display names and `lynn-27b-a3b-*` in canonical aliases.  The suffix is
+important because this is a MoE A3B-active checkpoint, not a dense Qwen3.6 27B
+checkpoint.
 
 ## Workstreams
 
@@ -130,7 +137,7 @@ Sidecar audit result:
 
 ```text
 guru87/Qwen3.6-27B-MTP is RED for direct transplant:
-Qwen3.6 hidden size = 5120, Lynn text hidden size = 2048.
+Qwen3.6 hidden size = 5120, Lynn 27B A3B text hidden size = 2048.
 Use it as an architecture oracle only.
 ```
 

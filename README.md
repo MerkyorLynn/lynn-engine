@@ -1,7 +1,7 @@
 # Lynn Engine
 
 > **为 NVIDIA Blackwell 写的 Lynn 27B-A3B NVFP4 单模型推理引擎。**
-> 从零写,锁定 Lynn 自家的 variable-pruned MoE + NVFP4 格式,目标很窄也很硬:在 R6000 / Spark 这类 Blackwell 机器上,把 Lynn 27B 基座跑成可生产、可优化、可长期接管的推理内核。
+> 从零写,锁定 Lynn 自家的 variable-pruned MoE + NVFP4 格式,目标很窄也很硬:在 R6000 / Spark 这类 Blackwell 机器上,把 Lynn 27B A3B MoE 基座跑成可生产、可优化、可长期接管的推理内核。
 
 [Read in English](README_EN.md) · [📝 知乎工程复盘(2026-05-11)](https://zhuanlan.zhihu.com/p/2036443846322680848) · [战略文档](docs/STRATEGY.md) · [架构设计](docs/DESIGN.md)
 
@@ -10,12 +10,12 @@
 
 ## 当前状态(2026-05-16)
 
-Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B final 基座的独立 NVFP4 runtime**:
+Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B A3B final MoE 基座的独立 NVFP4 runtime**:
 
 | 项目 | 状态 |
 |---|---|
-| **27B final BF16** | ✅ Recovery step5000 final 已 merge,structural validation PASS,greedy sanity PASS |
-| **27B Lynn-native NVFP4** | ✅ 20G artifact 已生成并传到 R6000,manifest integrity PASS |
+| **27B A3B final BF16** | ✅ Recovery step5000 final 已 merge,structural validation PASS,greedy sanity PASS |
+| **27B A3B Lynn-native NVFP4** | ✅ 20G artifact 已生成并传到 R6000,manifest integrity PASS |
 | **独立加载** | ✅ 不依赖 vLLM / SGLang / TRT-LLM / llama.cpp,直接读 safetensors + Lynn quant manifest |
 | **6-prompt coherent smoke** | ✅ 中文解释 / Python / RoPE-ALiBi / 英文算术 / tool JSON / longctx 全通过 |
 | **当前 R6000 strict full path** | ✅ **118.73 tok/s**(P23:packed NVFP4 MoE + native FP4 lm_head + active MoE retune) |
@@ -52,10 +52,15 @@ Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B final 基�
 当前主力 artifact:
 
 ```text
-Lynn 27B variable-pruned Recovery step5000
+Lynn 27B A3B variable-pruned MoE Recovery step5000
 ├── BF16 final      ~60G  (reference / eval / fallback)
 └── NVFP4 final     ~20G  (Lynn-native runtime artifact)
 ```
+
+Naming rule: all new public docs, handoff notes, aliases, and release package
+names should use **Lynn 27B A3B**.  The `A3B` suffix is intentional: this is a
+MoE active-parameter model, and omitting it makes the artifact easy to confuse
+with dense Qwen3.6 27B-family checkpoints.
 
 > 注意:这里的 NVFP4 是 **Lynn-native variable-expert NVFP4**。它不是公开发布用的 compressed-tensors v8-RTN,也不是 GGUF Q4_K_M。通用框架通常不能直接加载这个 variable-pruned artifact,这正是 Lynn engine 要存在的原因。
 

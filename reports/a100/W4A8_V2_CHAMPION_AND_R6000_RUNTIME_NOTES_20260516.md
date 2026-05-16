@@ -1,4 +1,7 @@
-# W4A8 v2 Champion and R6000 Runtime Notes - 2026-05-16
+# Lynn 27B A3B W4A8 v2 Champion and R6000 Runtime Notes - 2026-05-16
+
+Naming note: new handoff/package aliases should use **Lynn 27B A3B** so this
+MoE artifact is not confused with dense Qwen3.6 27B-family checkpoints.
 
 ## Current Champion
 
@@ -37,6 +40,7 @@ Symlink:
 
 ```text
 /mnt/data2/lynn-a100/nvfp4/lynn-27b-w4a8-nvfp4-v2
+/mnt/data2/lynn-a100/nvfp4/lynn-27b-a3b-w4a8-nvfp4-v2
 ```
 
 Package properties:
@@ -53,6 +57,7 @@ Transfer target:
 
 ```text
 /root/autodl-tmp/models/lynn-27b-w4a8-nvfp4-v2
+/root/autodl-tmp/models/lynn-27b-a3b-w4a8-nvfp4-v2
 ```
 
 `v1` partial on R6000 is intentionally left in place as a resumable fallback,
