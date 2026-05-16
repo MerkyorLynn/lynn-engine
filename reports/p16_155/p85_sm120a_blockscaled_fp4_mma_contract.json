@@ -1,0 +1,179 @@
+{
+  "schema_version": "lynn-engine-p85-sm120a-blockscaled-fp4-mma-contract-v1",
+  "torch": "2.10.0+cu128",
+  "cuda_capability": [
+    12,
+    0
+  ],
+  "include_paths": [
+    "/root/miniconda3/lib/python3.12/site-packages/deep_gemm/include"
+  ],
+  "cuda_cflags": [
+    "-O3",
+    "--use_fast_math",
+    "-arch=sm_120a"
+  ],
+  "build_seconds": 53.184394121170044,
+  "blocks": 4096,
+  "repeats": 10,
+  "warmup": 3,
+  "scale_bytes": [
+    126,
+    127,
+    128
+  ],
+  "rows": [
+    {
+      "scale_a": 126,
+      "scale_b": 126,
+      "times_ms": [
+        0.022943999618291855,
+        0.019840000197291374,
+        0.01990400068461895,
+        0.01913600042462349,
+        0.02054399996995926,
+        0.01852799952030182,
+        0.019711999222636223,
+        0.017952000722289085,
+        0.017952000722289085,
+        0.019039999693632126
+      ],
+      "mean_ms": 0.019555200077593326,
+      "median_ms": 0.019423999823629856,
+      "min_ms": 0.017952000722289085,
+      "max_ms": 0.022943999618291855,
+      "finite": true,
+      "smoke_passthrough_max_abs_err": 0.0,
+      "smoke_sample_lane0": [
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "positive_min": 0.5,
+      "positive_max": 0.5,
+      "positive_mean": 0.5,
+      "positive_nonzero_count": 524288,
+      "negative_min": 2.5,
+      "negative_max": 2.5,
+      "negative_mean": 2.5,
+      "negative_nonzero_count": 524288,
+      "sample_lane0": {
+        "positive": [
+          0.5,
+          0.5,
+          0.5,
+          0.5
+        ],
+        "negative": [
+          2.5,
+          2.5,
+          2.5,
+          2.5
+        ]
+      }
+    },
+    {
+      "scale_a": 127,
+      "scale_b": 127,
+      "times_ms": [
+        0.023360000923275948,
+        0.022175999358296394,
+        0.021856000646948814,
+        0.020255999639630318,
+        0.021568000316619873,
+        0.020864000543951988,
+        0.04198399931192398,
+        0.01974399946630001,
+        0.021088000386953354,
+        0.020576000213623047
+      ],
+      "mean_ms": 0.023347200080752372,
+      "median_ms": 0.021328000351786613,
+      "min_ms": 0.01974399946630001,
+      "max_ms": 0.04198399931192398,
+      "finite": true,
+      "smoke_passthrough_max_abs_err": 0.0,
+      "smoke_sample_lane0": [
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "positive_min": 2.0,
+      "positive_max": 2.0,
+      "positive_mean": 2.0,
+      "positive_nonzero_count": 524288,
+      "negative_min": 10.0,
+      "negative_max": 10.0,
+      "negative_mean": 10.0,
+      "negative_nonzero_count": 524288,
+      "sample_lane0": {
+        "positive": [
+          2.0,
+          2.0,
+          2.0,
+          2.0
+        ],
+        "negative": [
+          10.0,
+          10.0,
+          10.0,
+          10.0
+        ]
+      }
+    },
+    {
+      "scale_a": 128,
+      "scale_b": 128,
+      "times_ms": [
+        0.021983999758958817,
+        0.021727999672293663,
+        0.020640000700950623,
+        0.021695999428629875,
+        0.020864000543951988,
+        0.019840000197291374,
+        0.020640000700950623,
+        0.021503999829292297,
+        0.019711999222636223,
+        0.02131200022995472
+      ],
+      "mean_ms": 0.02099200002849102,
+      "median_ms": 0.021088000386953354,
+      "min_ms": 0.019711999222636223,
+      "max_ms": 0.021983999758958817,
+      "finite": true,
+      "smoke_passthrough_max_abs_err": 0.0,
+      "smoke_sample_lane0": [
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "positive_min": 8.0,
+      "positive_max": 8.0,
+      "positive_mean": 8.0,
+      "positive_nonzero_count": 524288,
+      "negative_min": 40.0,
+      "negative_max": 40.0,
+      "negative_mean": 40.0,
+      "negative_nonzero_count": 524288,
+      "sample_lane0": {
+        "positive": [
+          8.0,
+          8.0,
+          8.0,
+          8.0
+        ],
+        "negative": [
+          40.0,
+          40.0,
+          40.0,
+          40.0
+        ]
+      }
+    }
+  ],
+  "zero_operand_smoke_ok": true,
+  "decision": "BLOCKSCALED FP4 MMA compile/runtime smoke PASS. Inspect all-ones contract rows to decide whether manual register layout is usable."
+}
