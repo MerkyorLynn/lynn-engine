@@ -1,0 +1,101 @@
+{
+  "schema_version": "lynn-a100-model-inventory-v1",
+  "model": "/mnt/data/lynn-a100/models/lynn-27b-variable-recovery-step5000-bf16-w4a8-alpha-overlay-v0",
+  "exists": true,
+  "index_source": "model.safetensors.index.json",
+  "config": {
+    "architectures": [
+      "Qwen3_5MoeForConditionalGeneration"
+    ],
+    "model_type": "qwen3_5_moe"
+  },
+  "generation_config_keys": [
+    "bos_token_id",
+    "do_sample",
+    "eos_token_id",
+    "pad_token_id",
+    "temperature",
+    "top_k",
+    "top_p",
+    "transformers_version"
+  ],
+  "tokenizer_chat_template_present": false,
+  "weight_key_count": 1026,
+  "shard_count": 1026,
+  "present_shard_count": 1026,
+  "missing_shard_count": 0,
+  "missing_shards": [],
+  "present_shard_bytes": 63855989904,
+  "largest_present_shards": [
+    [
+      "tensors/model-000221-expert.safetensors",
+      1073741968
+    ],
+    [
+      "tensors/model-000014-expert.safetensors",
+      1065353360
+    ],
+    [
+      "tensors/model-000032-expert.safetensors",
+      1056964752
+    ],
+    [
+      "tensors/model-000379-expert.safetensors",
+      1040187536
+    ],
+    [
+      "tensors/model-000403-expert.safetensors",
+      1040187536
+    ],
+    [
+      "tensors/model-000421-expert.safetensors",
+      1040187536
+    ],
+    [
+      "tensors/model-000002-tensor.safetensors",
+      1017118848
+    ],
+    [
+      "tensors/model-000001-tensor.safetensors",
+      1017118816
+    ],
+    [
+      "tensors/model-000083-expert.safetensors",
+      1015021712
+    ],
+    [
+      "tensors/model-000059-expert.safetensors",
+      989855888
+    ]
+  ],
+  "non_shard_files": [
+    "LYNN_27B_RECOVERY_MERGE_REPORT.json",
+    "README.md",
+    "VERDICT.md",
+    "chat_template.jinja",
+    "config.json",
+    "generation_config.json",
+    "lynn_engine_variable_expert_spec.json",
+    "lynn_w4a8_alpha_fold_manifest.json",
+    "model.safetensors.index.json",
+    "pack_manifest.json",
+    "router_mask_variable_target.json",
+    "tokenizer.json",
+    "tokenizer_config.json",
+    "validation_report.json"
+  ],
+  "key_classification": {
+    "mtp_nextn_like_key_count": 0,
+    "mtp_nextn_like_key_sample": [],
+    "lm_head_key_count": 1,
+    "lm_head_key_sample": [
+      "lm_head.weight"
+    ],
+    "router_key_count": 40,
+    "expert_layer_count": 40,
+    "expert_counts_by_layer_sample": {},
+    "expert_counts_by_layer_tail": {}
+  },
+  "ready_for_config_only_checks": true,
+  "ready_for_tensor_load": true
+}

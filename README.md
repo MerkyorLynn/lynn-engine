@@ -45,7 +45,7 @@ Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B final 基�
 | **P103 W4A8 hardware route** | ✅ FP8(E4M3/E5M2) activation × E2M1 weight raw/blockscaled atoms 全部 PASS;W4A8+MTP 升为近期主线 |
 | **P104/P105 W4A8 quality gates** | ✅/⚠️ active-MoE 局部门控 AMBER,生成门控 AMBER;不直接 promote 当前 artifact,转 A100 Recovery |
 | **A100 BF16 transfer/inventory** | ✅ 1026/1026 shards,missing 0;resident BF16 load peak **59.10 GiB** on A100-80G |
-| **P106 A100 W4A8 Recovery milestone** | ✅ expert-wise foldable alpha overlay 把 40-layer real-prompt worst active-MoE drift **3.67% → 1.79%**,all repaired layers <3%;强续租/继续训练信号 |
+| **P106 A100 W4A8 Recovery milestone** | ✅ expert-wise foldable alpha overlay 把 40-layer real-prompt worst active-MoE drift **3.67% → 1.79%**;folded overlay artifact 回测 **1.7836%** vs 原 BF16,all repaired layers <3% |
 | **W4A4 MoE fallback policy** | ✅ 坚持 MoE-first;fallback 顺序是 calibration → layer mask → expert rescue → mixed W4A4/W4A8 → QAT-lite → vendor branch → dense last resort |
 | **下一目标** | 折叠 P106 alpha overlay → 回测 40-layer gate / P105 generation / V8-V9;同时实现 Lynn-owned MTP/NEXTN head prototype |
 
@@ -137,7 +137,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P103 W4A8 probe** | SM120a FP8 activation × E2M1 weight compile matrix | E4M3/E5M2 × E2M1 raw/blockscaled all PASS | ✅ W4A8 is a viable hardware route;near-term mainline is W4A8+MTP |
 | **P104 W4A8 sensitivity** | active-MoE fake-quant E4M3/per16 | gate/up clean;full-active near gate,max rel_l2 ~3.30% on R6000 sample | ⚠️ W4A8 is trainable,not direct-promote |
 | **P105 W4A8 generate gate** | 6-prompt generation fake-quant | 64-token gate: gateup 4/6 exact,full 5/6 exact,late/local drift | ⚠️ A100 Recovery required before runtime promotion |
-| **P106 A100 Recovery** | expert-wise foldable intermediate alpha overlay | real-prompt 40-layer worst active-MoE rel_l2 **3.67% → 1.79%**,all repaired layers <3% | ✅ first strong W4A8 adaptation milestone;fold into down weights then revalidate |
+| **P106 A100 Recovery** | expert-wise foldable intermediate alpha overlay | real-prompt 40-layer worst active-MoE rel_l2 **3.67% → 1.79%**;folded artifact W4A8-vs-original BF16 **1.7836%** | ✅ folded overlay artifact GREEN;W4A8 artifact contract,not BF16 fallback |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:

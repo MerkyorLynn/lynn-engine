@@ -193,6 +193,59 @@ Turn this probe into an artifact-producing Recovery stage:
 4. Re-run P105 generation gate.
 5. If P105 improves, extend calibration prompts and begin MTP/NEXTN head prototype.
 
+## Folded Overlay Artifact Validation
+
+Follow-up scripts:
+
+```text
+scripts/a100_fold_w4a8_alpha_overlay.py
+scripts/a100_w4a8_folded_vs_original_gate.py
+```
+
+Folded artifact:
+
+```text
+/mnt/data/lynn-a100/models/lynn-27b-variable-recovery-step5000-bf16-w4a8-alpha-overlay-v0
+copy-on-write size: 11 GiB
+source BF16 untouched: 60 GiB
+inventory: 1026 / 1026 shards, missing 0
+```
+
+Validation report:
+
+```text
+reports/a100/a100_w4a8_folded_vs_original_fail23.json
+```
+
+Correct validation口径:
+
+```text
+reference = original BF16 artifact active-MoE output
+candidate = folded artifact + full W4A8 fake-quant active-MoE output
+```
+
+Result:
+
+```text
+decision: GREEN
+max_folded_w4a8_rel_l2: 1.7836%
+min_folded_w4a8_cosine: 0.999841
+```
+
+This proves the improvement is not just a temporary in-script multiply. The
+folded artifact itself, under the W4A8 activation contract, stays under the 3%
+local active-MoE drift gate versus the original BF16 reference.
+
+Important caveat:
+
+```text
+max_folded_bf16_rel_l2: 3.554%
+```
+
+The folded artifact should therefore be treated as a **W4A8/FP8-activation
+artifact**, not as a BF16 fallback artifact. The original BF16 final remains
+the BF16 reference/fallback.
+
 ## Renewal Signal
 
 This probe is a strong positive renewal signal.
