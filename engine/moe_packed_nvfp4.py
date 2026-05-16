@@ -39,6 +39,54 @@ def _env_first(names: tuple[str, ...]) -> str | None:
     return None
 
 
+def _w4a8_fake_quant_mode() -> str:
+    mode = os.environ.get("LYNN_W4A8_FAKE_QUANT_ACTIVE", "off").lower()
+    if mode in {"0", "false", "no", "off", ""}:
+        return "off"
+    if mode not in {"gateup", "full"}:
+        raise ValueError("LYNN_W4A8_FAKE_QUANT_ACTIVE must be off, gateup, or full")
+    return mode
+
+
+def _fake_quant_fp8_activation(x: torch.Tensor) -> torch.Tensor:
+    """Research-only FP8 activation round-trip for W4A8 quality gates.
+
+    This is intentionally controlled by `LYNN_W4A8_FAKE_QUANT_ACTIVE` and never
+    used by default. It mirrors P104's best variant: E4M3, per-16 scaling.
+    """
+    fmt = os.environ.get("LYNN_W4A8_FAKE_QUANT_FORMAT", "e4m3").lower()
+    granularity = os.environ.get("LYNN_W4A8_FAKE_QUANT_GRANULARITY", "per16").lower()
+    if fmt == "e4m3":
+        if not hasattr(torch, "float8_e4m3fn"):
+            raise RuntimeError("torch.float8_e4m3fn is required for W4A8 fake quant")
+        fp8_dtype = torch.float8_e4m3fn
+    elif fmt == "e5m2":
+        if not hasattr(torch, "float8_e5m2"):
+            raise RuntimeError("torch.float8_e5m2 is required for W4A8 fake quant")
+        fp8_dtype = torch.float8_e5m2
+    else:
+        raise ValueError("LYNN_W4A8_FAKE_QUANT_FORMAT must be e4m3 or e5m2")
+
+    max_fp8 = float(torch.finfo(fp8_dtype).max)
+    x32 = x.float()
+    if granularity == "tensor":
+        scale = (x32.abs().amax() / max_fp8).clamp_min(1e-8)
+        return ((x32 / scale).to(fp8_dtype).float() * scale).to(x.dtype)
+    if granularity == "row":
+        x2 = x32.view(1, -1) if x32.ndim == 1 else x32
+        scale = (x2.abs().amax(dim=-1, keepdim=True) / max_fp8).clamp_min(1e-8)
+        y = ((x2 / scale).to(fp8_dtype).float() * scale).to(x.dtype)
+        return y.view_as(x) if x32.ndim == 1 else y
+    if granularity == "per16":
+        if x32.shape[-1] % 16 != 0:
+            raise ValueError(f"W4A8 per16 fake quant requires last dim divisible by 16, got {tuple(x.shape)}")
+        shape = x32.shape
+        grouped = x32.reshape(-1, shape[-1] // 16, 16)
+        scale = (grouped.abs().amax(dim=-1, keepdim=True) / max_fp8).clamp_min(1e-8)
+        return ((grouped / scale).to(fp8_dtype).float() * scale).reshape(shape).to(x.dtype)
+    raise ValueError("LYNN_W4A8_FAKE_QUANT_GRANULARITY must be tensor, row, or per16")
+
+
 def _topk_limit_from_env(top_k: int) -> int:
     raw = _env_first(("LYNN_MOE_TOPK_LIMIT", "LYNN_MOE_PROFILE_TOPK_LIMIT"))
     if raw is None:
@@ -315,6 +363,9 @@ def _moe_forward_decode_packed_nvfp4_fixed_triton(h: torch.Tensor, w: dict, cfg:
         if _env_bool("LYNN_MOE_TOPK_RENORMALIZE", True):
             routing_weights = routing_weights / routing_weights.sum().clamp_min(1e-20)
     hidden = h_flat[0]
+    w4a8_mode = _w4a8_fake_quant_mode()
+    if w4a8_mode in {"gateup", "full"}:
+        hidden = _fake_quant_fp8_activation(hidden)
     gateup_backend = os.environ.get("LYNN_NATIVE_GATEUP_BACKEND", "triton")
     if gateup_backend == "split16_fp4" and _layer_selected_for_native_cuda(cfg):
         inter = _gate_up_native_split16_fp4(hidden, expert_ids, w)
@@ -359,6 +410,8 @@ def _moe_forward_decode_packed_nvfp4_fixed_triton(h: torch.Tensor, w: dict, cfg:
             "or 'split16_fp4', got "
             f"{gateup_backend!r}"
         )
+    if w4a8_mode == "full":
+        inter = _fake_quant_fp8_activation(inter)
     down_backend = os.environ.get("LYNN_NATIVE_DOWN_BACKEND", "triton")
     if down_backend == "cuda_tile" and _layer_selected_for_native_cuda(cfg):
         moe_out = _down_weighted_sum_native_cuda_tile(inter, expert_ids, routing_weights, w).reshape_as(h_flat)
@@ -480,6 +533,9 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
         routing_weights = routing_weights[:limit].contiguous()
         routing_weights = routing_weights / routing_weights.sum().clamp_min(1e-20)
     hidden = h_flat[0]
+    w4a8_mode = _w4a8_fake_quant_mode()
+    if w4a8_mode in {"gateup", "full"}:
+        hidden = _fake_quant_fp8_activation(hidden)
 
     if os.environ.get("LYNN_MOE_PROFILE_SKIP_ACTIVE", "0") == "1":
         moe_out = torch.zeros_like(h_flat)
@@ -548,6 +604,8 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
                     "or 'split16_fp4', got "
                     f"{gateup_backend!r}"
                 )
+            if w4a8_mode == "full":
+                inter = _fake_quant_fp8_activation(inter)
             if down_backend == "cuda_tile" and _layer_selected_for_native_cuda(cfg):
                 moe_out = _down_weighted_sum_native_cuda_tile(inter, expert_ids, routing_weights, w).reshape_as(h_flat)
             elif down_backend == "triton":
