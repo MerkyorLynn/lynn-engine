@@ -1,0 +1,71 @@
+{
+  "schema_version": "lynn-engine-p83-sm120a-fp4-mma-allones-contract-v1",
+  "torch": "2.10.0+cu128",
+  "cuda_capability": [
+    12,
+    0
+  ],
+  "include_paths": [
+    "/root/miniconda3/lib/python3.12/site-packages/deep_gemm/include"
+  ],
+  "cuda_cflags": [
+    "-O3",
+    "--use_fast_math",
+    "-arch=sm_120a"
+  ],
+  "build_seconds": 54.43793749809265,
+  "blocks": 4096,
+  "repeats": 10,
+  "warmup": 3,
+  "times_ms": [
+    0.07737600058317184,
+    0.016767999157309532,
+    0.015776000916957855,
+    0.013439999893307686,
+    0.01321600005030632,
+    0.013407999649643898,
+    0.02582399919629097,
+    0.01244799979031086,
+    0.012640000320971012,
+    0.012128000147640705
+  ],
+  "mean_ms": 0.02130239997059107,
+  "median_ms": 0.013423999771475792,
+  "min_ms": 0.012128000147640705,
+  "max_ms": 0.07737600058317184,
+  "positive_expected": 32.0,
+  "negative_expected": -32.0,
+  "positive_min": 2.0,
+  "positive_max": 2.0,
+  "negative_min": 10.0,
+  "negative_max": 10.0,
+  "max_abs_err": 42.0,
+  "output_sample": [
+    2.0,
+    2.0,
+    2.0,
+    2.0,
+    10.0,
+    10.0,
+    10.0,
+    10.0,
+    2.0,
+    2.0,
+    2.0,
+    2.0,
+    10.0,
+    10.0,
+    10.0,
+    10.0,
+    2.0,
+    2.0,
+    2.0,
+    2.0,
+    10.0,
+    10.0,
+    10.0,
+    10.0
+  ],
+  "ok": false,
+  "decision": "All-ones E2M1 MMA contract mismatch; inspect register or nibble layout before real packed expert rows."
+}
