@@ -1,0 +1,177 @@
+{
+  "schema_version": "lynn-engine-p73-grouped-per16-nonatomic-reference-probe-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final",
+  "layers": [
+    2,
+    8,
+    14,
+    20,
+    28,
+    36
+  ],
+  "prompt": "用一句话解释 MoE active parameters",
+  "tile_inter": 2,
+  "tile_hidden": 2,
+  "cases": [
+    {
+      "layer": 2,
+      "expert_ids": [
+        3,
+        40,
+        57,
+        71,
+        158,
+        207,
+        235,
+        17
+      ],
+      "top_k": 8,
+      "tile_inter": 2,
+      "tile_hidden": 2,
+      "diff_candidate_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104
+      },
+      "triton_active_ms": 0.056713600953420006,
+      "candidate_active_ms": 0.05056533416112264,
+      "candidate_vs_triton_speedup": 1.1215905500140941
+    },
+    {
+      "layer": 8,
+      "expert_ids": [
+        38,
+        51,
+        69,
+        113,
+        139,
+        153,
+        203,
+        158
+      ],
+      "top_k": 8,
+      "tile_inter": 2,
+      "tile_hidden": 2,
+      "diff_candidate_vs_triton": {
+        "max_abs": 0.0001220703125,
+        "mean_abs": 7.283324521267787e-07,
+        "rel_l2": 0.0004984224797226489,
+        "cosine": 0.9999998807907104
+      },
+      "triton_active_ms": 0.05667519966761271,
+      "candidate_active_ms": 0.050818133354187014,
+      "candidate_vs_triton_speedup": 1.115255439876229
+    },
+    {
+      "layer": 14,
+      "expert_ids": [
+        13,
+        47,
+        97,
+        110,
+        161,
+        165,
+        172,
+        60
+      ],
+      "top_k": 8,
+      "tile_inter": 2,
+      "tile_hidden": 2,
+      "diff_candidate_vs_triton": {
+        "max_abs": 6.103515625e-05,
+        "mean_abs": 3.7325662560760975e-08,
+        "rel_l2": 5.4435498896054924e-05,
+        "cosine": 1.0
+      },
+      "triton_active_ms": 0.056483201185862225,
+      "candidate_active_ms": 0.05121386845906575,
+      "candidate_vs_triton_speedup": 1.102888785505593
+    },
+    {
+      "layer": 20,
+      "expert_ids": [
+        36,
+        48,
+        95,
+        108,
+        131,
+        149,
+        196,
+        55
+      ],
+      "top_k": 8,
+      "tile_inter": 2,
+      "tile_hidden": 2,
+      "diff_candidate_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      },
+      "triton_active_ms": 0.05673280159632365,
+      "candidate_active_ms": 0.051090133190155027,
+      "candidate_vs_triton_speedup": 1.1104453649624846
+    },
+    {
+      "layer": 28,
+      "expert_ids": [
+        12,
+        49,
+        116,
+        155,
+        159,
+        192,
+        204,
+        63
+      ],
+      "top_k": 8,
+      "tile_inter": 2,
+      "tile_hidden": 2,
+      "diff_candidate_vs_triton": {
+        "max_abs": 3.814697265625e-06,
+        "mean_abs": 2.3283064365386963e-09,
+        "rel_l2": 4.845829153055092e-06,
+        "cosine": 1.0
+      },
+      "triton_active_ms": 0.05666666825612386,
+      "candidate_active_ms": 0.051447467009226484,
+      "candidate_vs_triton_speedup": 1.1014471955628327
+    },
+    {
+      "layer": 36,
+      "expert_ids": [
+        24,
+        43,
+        100,
+        139,
+        201,
+        221,
+        222,
+        35
+      ],
+      "top_k": 8,
+      "tile_inter": 2,
+      "tile_hidden": 2,
+      "diff_candidate_vs_triton": {
+        "max_abs": 0.00048828125,
+        "mean_abs": 7.512280717492104e-07,
+        "rel_l2": 0.0002538194530643523,
+        "cosine": 1.0
+      },
+      "triton_active_ms": 0.056230398019154866,
+      "candidate_active_ms": 0.05076479911804199,
+      "candidate_vs_triton_speedup": 1.1076651340312382
+    }
+  ],
+  "summary": {
+    "mean_triton_active_ms": 0.05658364494641622,
+    "mean_candidate_active_ms": 0.05098328921529982,
+    "mean_candidate_vs_triton_speedup": 1.109882078325412,
+    "min_cosine_vs_triton": 0.9999998807907104,
+    "max_rel_l2_vs_triton": 0.0004984224797226489
+  },
+  "subkernel_contract_pass": true,
+  "runtime_promote": false,
+  "decision": "This is the first grouped_per16_nonatomic native-owned scratch candidate. It is a scaffold for replacing inner kernels, not a runtime default unless P69 accepts it."
+}

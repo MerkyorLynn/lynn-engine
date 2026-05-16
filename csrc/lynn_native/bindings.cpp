@@ -96,6 +96,18 @@ torch::Tensor lynn_native_active_moe_grouped_per16_fused_contract(
     torch::Tensor down_packed,
     torch::Tensor down_scale,
     torch::Tensor down_global_scale);
+torch::Tensor lynn_native_active_moe_grouped_per16_nonatomic_reference(
+    torch::Tensor x,
+    torch::Tensor expert_ids,
+    torch::Tensor routing_weights,
+    torch::Tensor gate_up_packed,
+    torch::Tensor gate_up_scale,
+    torch::Tensor gate_up_global_scale,
+    torch::Tensor down_packed,
+    torch::Tensor down_scale,
+    torch::Tensor down_global_scale,
+    int64_t tile_inter,
+    int64_t tile_hidden);
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
   m.def("add_one", &lynn_native_add_one, "Lynn native CUDA extension smoke kernel");
@@ -143,4 +155,8 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
       "active_moe_grouped_per16_fused_contract",
       &lynn_native_active_moe_grouped_per16_fused_contract,
       "P70 fail-loud ABI for the true fused grouped per-16 native-FP4 active expert FFN");
+  m.def(
+      "active_moe_grouped_per16_nonatomic_reference",
+      &lynn_native_active_moe_grouped_per16_nonatomic_reference,
+      "P73 non-atomic native-owned scratch reference for grouped per-16 active expert FFN");
 }
