@@ -1017,3 +1017,32 @@ torch::Tensor lynn_native_active_moe_grouped_per16_contract(
       "yet. This guarded ABI exists so the future CUTLASS/custom CUDA kernel "
       "can replace only the inner math without changing Python/runtime layout.");
 }
+
+torch::Tensor lynn_native_active_moe_grouped_per16_tile_reference(
+    torch::Tensor x,
+    torch::Tensor expert_ids,
+    torch::Tensor routing_weights,
+    torch::Tensor gate_up_packed,
+    torch::Tensor gate_up_scale,
+    torch::Tensor gate_up_global_scale,
+    torch::Tensor down_packed,
+    torch::Tensor down_scale,
+    torch::Tensor down_global_scale,
+    int64_t tile_inter,
+    int64_t tile_hidden) {
+  auto inter = lynn_native_gate_up_silu_tile_inter_scalar(
+      x,
+      expert_ids,
+      gate_up_packed,
+      gate_up_scale,
+      gate_up_global_scale,
+      tile_inter);
+  return lynn_native_down_grouped_per16_tile_reference(
+      inter,
+      expert_ids,
+      routing_weights,
+      down_packed,
+      down_scale,
+      down_global_scale,
+      tile_hidden);
+}
