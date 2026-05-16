@@ -216,6 +216,16 @@ if HAS_TRITON:
 if HAS_TRITON:
 
     _SP01_GATEUP_CONFIGS = [
+        # SP-01.7: extreme parallelism BLOCK_INTER=1 (one inter row per CTA)
+        # plus extra num_warps variants near the SP-01.5 winning shape.
+        triton.Config({"BLOCK_INTER": 1, "BLOCK_HIDDEN": 64}, num_warps=1, num_stages=2),
+        triton.Config({"BLOCK_INTER": 1, "BLOCK_HIDDEN": 128}, num_warps=1, num_stages=2),
+        triton.Config({"BLOCK_INTER": 1, "BLOCK_HIDDEN": 256}, num_warps=2, num_stages=2),
+        triton.Config({"BLOCK_INTER": 1, "BLOCK_HIDDEN": 512}, num_warps=4, num_stages=2),
+        triton.Config({"BLOCK_INTER": 2, "BLOCK_HIDDEN": 32}, num_warps=1, num_stages=2),
+        triton.Config({"BLOCK_INTER": 2, "BLOCK_HIDDEN": 32}, num_warps=2, num_stages=2),
+        triton.Config({"BLOCK_INTER": 2, "BLOCK_HIDDEN": 512}, num_warps=4, num_stages=3),
+        triton.Config({"BLOCK_INTER": 4, "BLOCK_HIDDEN": 32}, num_warps=1, num_stages=2),
         # SP-01.5: add BLOCK_INTER ∈ {2, 4} candidates (Codex R6000 P55 tile_inter=2
         # won 1.086-1.141x with max_abs=0 on the analogous CUDA path; let Triton
         # autotune decide whether the same shape wins on Spark sm_121).
@@ -340,6 +350,14 @@ if HAS_TRITON:
         tl.store(inter_ptr + slot * INTER_STRIDE_K + inter_offsets * INTER_STRIDE_I, inter.to(tl.bfloat16), mask=inter_mask)
 
     _SP01_DOWN_CONFIGS = [
+        # SP-01.7: extreme parallelism BLOCK_HIDDEN=1 + more num_warps variants
+        triton.Config({"BLOCK_HIDDEN": 1, "BLOCK_INTER": 128}, num_warps=1, num_stages=2),
+        triton.Config({"BLOCK_HIDDEN": 1, "BLOCK_INTER": 256}, num_warps=1, num_stages=2),
+        triton.Config({"BLOCK_HIDDEN": 1, "BLOCK_INTER": 512}, num_warps=2, num_stages=2),
+        triton.Config({"BLOCK_HIDDEN": 2, "BLOCK_INTER": 64}, num_warps=1, num_stages=2),
+        triton.Config({"BLOCK_HIDDEN": 2, "BLOCK_INTER": 128}, num_warps=1, num_stages=2),
+        triton.Config({"BLOCK_HIDDEN": 2, "BLOCK_INTER": 512}, num_warps=2, num_stages=3),
+        triton.Config({"BLOCK_HIDDEN": 4, "BLOCK_INTER": 64}, num_warps=1, num_stages=2),
         # SP-01.6: add BLOCK_HIDDEN ∈ {2, 4} candidates analogous to the gate_up
         # SP-01.5 win. Down kernel grid scales as HIDDEN/BLOCK_HIDDEN — at
         # BLOCK_HIDDEN=2 the grid is 1024 programs (huge parallelism on the
