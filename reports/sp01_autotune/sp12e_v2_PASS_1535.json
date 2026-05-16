@@ -1,0 +1,11 @@
+{
+  "type": "sp12e_v2_vectorized_register_lut",
+  "date": "2026-05-16 07:35:42",
+  "gate_up_us": 63.546881675720215,
+  "down_us": 35.187199115753174,
+  "total_us": 98.73408079147339,
+  "gate_up_max_abs_err": 1.5497207641601562e-06,
+  "down_max_abs_err": 8.344650268554688e-07,
+  "all_pass": true,
+  "speedup_vs_sp12d": 2.6692910683659297
+}
