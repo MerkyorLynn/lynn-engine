@@ -38,7 +38,8 @@ Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent ru
 | **P96 native-down composition** | ✅ numeric PASS,but `0.0830ms` vs Triton `0.0810ms`;not promoted because two-stage scheduling eats the down win |
 | **P97 interval decomposition** | ✅ P93 gate/up + native_down_tile1 gives a full active-MoE **1.113×** speedup vs baseline,candidate contract PASS |
 | **P98 split16 runtime gate** | ❌ backend build PASS,but graph-on capture FAIL;graph-off `new_ids_all_match=false`,median `0.80×`;not promoted |
-| **Next target** | P99 choose a safer path: preserve BF16 activation semantics or move activation quantization into the MTP/retrain + re-quant cycle |
+| **P99 activation quant strategy** | ✅ no hidden runtime activation quantization in production; W4A4 moves into the A100 MTP/retrain + re-quant cycle |
+| **Next target** | R6000 keeps BF16 activation semantics for runtime optimization;A100 receives BF16 final and prepares MTP/NEXTN + vendor NVFP4 v2 |
 
 Current primary artifact:
 
@@ -118,6 +119,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P96 native-down composition** | P93 gate/up + native_down_tile1 | median `0.0830ms` vs Triton active `0.0810ms`,quantized-ref cosine `0.9999986` | ✅ numeric PASS / ❌ no speed win;next work must reduce gate/up or fuse scheduling |
 | **P97 interval decomposition** | CUDA-event gate/down intervals | best `0.0800ms` vs baseline `0.0891ms`,speedup `1.113×` | ✅ first full active-MoE composition speed win;next gate is full-generate parity |
 | **P98 split16 runtime gate** | runtime `split16_fp4 + native_down_tile1` | graph-on capture fails;graph-off greedy mismatch and `0.80×` median TPS | ❌ P93/P97 quantized-activation contract is not production BF16-activation semantics |
+| **P99 activation quant strategy** | after P98 redirect | production keeps BF16 activation semantics;activation quant moves to A100 MTP/requant path | ✅ closes the wrong shortcut early,keeps W4A4 as an explicit model contract |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:

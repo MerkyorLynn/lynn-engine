@@ -38,7 +38,8 @@ Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B final 基�
 | **P96 native-down composition** | ✅ 数值 PASS,但 `0.0830ms` vs Triton `0.0810ms`,不 promote;down 局部胜利被两段调度吃掉 |
 | **P97 interval decomposition** | ✅ P93 gate/up + native_down_tile1 完整 active-MoE **1.113×** vs baseline,候选数值 PASS |
 | **P98 split16 runtime gate** | ❌ backend build PASS,但 graph-on capture FAIL;graph-off `new_ids_all_match=false`,median `0.80×`;不 promote |
-| **下一目标** | P99 重新选安全路径:保 BF16 activation semantics 或把 activation quant 纳入 MTP/retrain + re-quant 批次 |
+| **P99 activation quant strategy** | ✅ runtime activation quant 不再偷渡进生产;W4A4 归入 A100 MTP/retrain + re-quant 批次 |
+| **下一目标** | R6000 保 BF16 activation semantics 做 runtime 优化;A100 接 BF16 final,准备 MTP/NEXTN + vendor NVFP4 v2 |
 
 当前主力 artifact:
 
@@ -121,6 +122,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P96 native-down composition** | P93 gate/up + native_down_tile1 | median `0.0830ms` vs Triton active `0.0810ms`,quantized-ref cosine `0.9999986` | ✅ numeric PASS / ❌ no speed win;next work must reduce gate/up or fuse scheduling |
 | **P97 interval decomposition** | CUDA-event gate/down intervals | best `0.0800ms` vs baseline `0.0891ms`,speedup `1.113×` | ✅ first full active-MoE composition speed win;next gate is full-generate parity |
 | **P98 split16 runtime gate** | runtime `split16_fp4 + native_down_tile1` | graph-on capture fails;graph-off greedy mismatch and `0.80×` median TPS | ❌ P93/P97 quantized-activation contract is not production BF16-activation semantics |
+| **P99 activation quant strategy** | after P98 redirect | production keeps BF16 activation semantics;activation quant moves to A100 MTP/requant path | ✅ stops the wrong shortcut early,keeps W4A4 as explicit model contract |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:
