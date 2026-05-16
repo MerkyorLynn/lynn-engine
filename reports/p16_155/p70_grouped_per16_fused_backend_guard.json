@@ -1,0 +1,12 @@
+{
+  "schema_version": "lynn-engine-p70-grouped-per16-fused-backend-guard-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final",
+  "layer": 28,
+  "baseline_triton_norm": 1.1852200031280518,
+  "grouped_per16_fused_error": {
+    "type": "RuntimeError",
+    "message": "active_moe_grouped_per16_fused_contract passed shape/layout checks, but the fused grouped per-16 native-FP4 active expert kernel is not implemented yet. This is the P70 replacement point for a one-boundary kernel that avoids P68's two-stage intermediate tensor."
+  },
+  "pass": true,
+  "decision": "The grouped_per16_fused backend name is now reserved for the true one-boundary active expert kernel. It must not fall back to P68's two-stage tile reference path."
+}
