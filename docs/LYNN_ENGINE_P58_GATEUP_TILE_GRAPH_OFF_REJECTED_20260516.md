@@ -34,6 +34,7 @@ Report:
 
 ```text
 reports/p16_155/p58_gateup_tile_graph_off_generate_gate.json
+reports/p16_155/p61_graph_off_triton_control_generate_gate.json
 ```
 
 Summary:
@@ -50,9 +51,22 @@ The candidate no longer shows the P56 high-TPS signal because disabling the
 graph path returns decode to a much slower eager cadence. More importantly,
 greedy IDs still do not match baseline.
 
+Control:
+
+```text
+Triton + graph disabled:
+  new_ids_all_match: true
+  candidate median:  28.22 tok/s
+```
+
+So "graph disabled" alone is exact. The P58 mismatch is caused by the
+`cuda_tile_inter` gate/up scalar implementation, not by the absence of the
+linear-block graph path.
+
 ## Decision
 
-P56 was **not** merely a graph/extension interaction bug.
+P56 was **not** merely a graph/extension interaction bug, and P58 proves the
+graph-off control itself is exact.
 
 The scalar `tile_inter=2` implementation changes enough decode numerics/order
 to perturb greedy generation even when graph capture is removed. Therefore:
