@@ -1,0 +1,87 @@
+{
+  "schema_version": "lynn-engine-p86-sm120a-fp4-shift-contract-v1",
+  "torch": "2.10.0+cu128",
+  "cuda_capability": [
+    12,
+    0
+  ],
+  "include_paths": [
+    "/root/miniconda3/lib/python3.12/site-packages/deep_gemm/include"
+  ],
+  "cuda_cflags": [
+    "-O3",
+    "--use_fast_math",
+    "-arch=sm_120a"
+  ],
+  "build_seconds": 52.968181133270264,
+  "blocks": 4096,
+  "scale_byte": 127,
+  "repeats": 10,
+  "warmup": 3,
+  "shift_transform": "(word << 2) & 0x3C3C3C3C",
+  "times_ms": [
+    0.06675200164318085,
+    0.026367999613285065,
+    0.024512000381946564,
+    0.023264000192284584,
+    0.025280000641942024,
+    0.022495999932289124,
+    0.02271999977529049,
+    0.022431999444961548,
+    0.023104000836610794,
+    0.023391999304294586
+  ],
+  "mean_ms": 0.028032000176608562,
+  "median_ms": 0.023327999748289585,
+  "summaries": [
+    {
+      "label": "raw_shifted",
+      "finite": true,
+      "positive_min": 32.0,
+      "positive_max": 32.0,
+      "positive_mean": 32.0,
+      "negative_min": -32.0,
+      "negative_max": -32.0,
+      "negative_mean": -32.0,
+      "sample_lane0": {
+        "positive": [
+          32.0,
+          32.0,
+          32.0,
+          32.0
+        ],
+        "negative": [
+          -32.0,
+          -32.0,
+          -32.0,
+          -32.0
+        ]
+      }
+    },
+    {
+      "label": "blockscaled_shifted",
+      "finite": true,
+      "positive_min": 32.0,
+      "positive_max": 32.0,
+      "positive_mean": 32.0,
+      "negative_min": -32.0,
+      "negative_max": -32.0,
+      "negative_mean": -32.0,
+      "sample_lane0": {
+        "positive": [
+          32.0,
+          32.0,
+          32.0,
+          32.0
+        ],
+        "negative": [
+          -32.0,
+          -32.0,
+          -32.0,
+          -32.0
+        ]
+      }
+    }
+  ],
+  "decision": "Shifted E2M1 register fill ran. Compare with P83/P85 to see whether CuTe's required left-shift fixes the all-ones contract."
+}
