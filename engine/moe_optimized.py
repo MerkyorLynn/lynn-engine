@@ -11,20 +11,59 @@ Step 3 (future): CUTLASS NVFP4 grouped GEMM — exploits NVFP4 tensor cores.
 """
 from __future__ import annotations
 
+import os
 import torch
 import torch.nn.functional as F
 
 
-def _expert_ffn(x: torch.Tensor, w: dict, expert_id: int) -> torch.Tensor:
+def _w4a8_fake_quant_mode() -> str:
+    mode = os.environ.get("LYNN_W4A8_FAKE_QUANT_ACTIVE", "off").lower()
+    if mode not in {"off", "gateup", "full"}:
+        raise ValueError("LYNN_W4A8_FAKE_QUANT_ACTIVE must be off, gateup, or full")
+    return mode
+
+
+def _fake_quant_fp8_activation(x: torch.Tensor) -> torch.Tensor:
+    """Research-only FP8 activation round-trip for W4A8 decode gates."""
+    fmt = os.environ.get("LYNN_W4A8_FAKE_QUANT_FORMAT", "e4m3").lower()
+    granularity = os.environ.get("LYNN_W4A8_FAKE_QUANT_GRANULARITY", "per16").lower()
+    fp8_dtype = torch.float8_e4m3fn if fmt == "e4m3" else torch.float8_e5m2
+    x_float = x.float()
+
+    if granularity == "tensor":
+        scale = x_float.abs().amax().clamp_min(1.0e-6) / 448.0
+        return (x_float / scale).to(fp8_dtype).to(torch.float32).mul(scale).to(x.dtype)
+    if granularity == "row":
+        scale = x_float.abs().amax(dim=-1, keepdim=True).clamp_min(1.0e-6) / 448.0
+        return (x_float / scale).to(fp8_dtype).to(torch.float32).mul(scale).to(x.dtype)
+    if granularity == "per16":
+        if x.shape[-1] % 16 != 0:
+            raise ValueError(f"W4A8 per16 fake quant requires last dim divisible by 16, got {tuple(x.shape)}")
+        groups = x_float.reshape(*x_float.shape[:-1], x_float.shape[-1] // 16, 16)
+        scale = groups.abs().amax(dim=-1, keepdim=True).clamp_min(1.0e-6) / 448.0
+        rounded = (groups / scale).to(fp8_dtype).to(torch.float32).mul(scale)
+        return rounded.reshape_as(x_float).to(x.dtype)
+    raise ValueError("LYNN_W4A8_FAKE_QUANT_GRANULARITY must be tensor, row, or per16")
+
+
+def _expert_ffn(x: torch.Tensor, w: dict, expert_id: int, *, w4a8_mode: str = "off") -> torch.Tensor:
     """Run one expert FFN for either legacy per-expert or fused expert layout."""
+    if w4a8_mode in {"gateup", "full"}:
+        x = _fake_quant_fp8_activation(x)
     if "mlp.experts.gate_up_proj" in w and "mlp.experts.down_proj" in w:
         gate_up = F.linear(x, w["mlp.experts.gate_up_proj"][expert_id])
         gate, up = gate_up.chunk(2, dim=-1)
-        return F.linear(F.silu(gate) * up, w["mlp.experts.down_proj"][expert_id])
+        inter = F.silu(gate) * up
+        if w4a8_mode == "full":
+            inter = _fake_quant_fp8_activation(inter)
+        return F.linear(inter, w["mlp.experts.down_proj"][expert_id])
 
     gate = F.linear(x, w[f"mlp.experts.{expert_id}.gate_proj.weight"])
     up = F.linear(x, w[f"mlp.experts.{expert_id}.up_proj.weight"])
-    return F.linear(F.silu(gate) * up, w[f"mlp.experts.{expert_id}.down_proj.weight"])
+    inter = F.silu(gate) * up
+    if w4a8_mode == "full":
+        inter = _fake_quant_fp8_activation(inter)
+    return F.linear(inter, w[f"mlp.experts.{expert_id}.down_proj.weight"])
 
 
 def moe_forward_decode_optimized(h, w, cfg):
@@ -49,6 +88,7 @@ def moe_forward_decode_optimized(h, w, cfg):
 
     # Which experts actually got hit (up to K unique entries for B=T=1)
     active_experts = torch.unique(expert_indices).tolist()
+    w4a8_mode = _w4a8_fake_quant_mode()
 
     moe_out = torch.zeros_like(h_flat)
     for e in active_experts:
@@ -56,7 +96,7 @@ def moe_forward_decode_optimized(h, w, cfg):
         mask = (expert_indices == e)
         token_idx, slot_idx = mask.nonzero(as_tuple=True)
         x_e = h_flat[token_idx]
-        ffn_e = _expert_ffn(x_e, w, e)
+        ffn_e = _expert_ffn(x_e, w, e, w4a8_mode=w4a8_mode)
         weight_e = routing_weights[token_idx, slot_idx].unsqueeze(-1)
         moe_out.index_add_(0, token_idx, ffn_e * weight_e)
 
@@ -146,6 +186,7 @@ def moe_forward_decode_bmm(h, w, cfg):
 
     expert_ids = expert_indices[0].tolist()   # length K, may have dups
     weights_per_slot = routing_weights[0]     # [K]
+    w4a8_mode = _w4a8_fake_quant_mode()
 
     # Stack weights for selected experts. CRITICAL: maintain slot order so
     # we can apply per-slot routing_weights directly.
@@ -161,10 +202,13 @@ def moe_forward_decode_bmm(h, w, cfg):
     #             [K, hidden=2048, intermediate=512] for down
 
     # bmm: h_flat [1, hidden] → [K, 1, hidden] → bmm with [K, hidden, intermediate]
-    h_broadcast = h_flat.unsqueeze(0).expand(K, -1, -1)   # [K, 1, hidden]
+    active_h = _fake_quant_fp8_activation(h_flat) if w4a8_mode in {"gateup", "full"} else h_flat
+    h_broadcast = active_h.unsqueeze(0).expand(K, -1, -1)   # [K, 1, hidden]
     gate_out = torch.bmm(h_broadcast, gate_stack.transpose(-1, -2))   # [K, 1, intermediate]
     up_out = torch.bmm(h_broadcast, up_stack.transpose(-1, -2))       # [K, 1, intermediate]
     inter = F.silu(gate_out) * up_out                                 # [K, 1, intermediate]
+    if w4a8_mode == "full":
+        inter = _fake_quant_fp8_activation(inter)
     ffn_out = torch.bmm(inter, down_stack.transpose(-1, -2))          # [K, 1, hidden]
 
     # Weighted sum across slots

@@ -26,6 +26,7 @@ Correctness reference: moe_forward_decode_indexed_bmm in this same file.
 """
 from __future__ import annotations
 
+import os
 from typing import Optional
 
 import torch
@@ -43,6 +44,36 @@ HIDDEN_SIZE = 2048
 INTERMEDIATE_SIZE = 512
 NUM_EXPERTS = 256
 TOP_K = 8
+
+
+def _w4a8_fake_quant_mode() -> str:
+    mode = os.environ.get("LYNN_W4A8_FAKE_QUANT_ACTIVE", "off").lower()
+    if mode not in {"off", "gateup", "full"}:
+        raise ValueError("LYNN_W4A8_FAKE_QUANT_ACTIVE must be off, gateup, or full")
+    return mode
+
+
+def _fake_quant_fp8_activation(x: torch.Tensor) -> torch.Tensor:
+    """Research-only FP8 activation round-trip for BF16/Triton W4A8 gates."""
+    fmt = os.environ.get("LYNN_W4A8_FAKE_QUANT_FORMAT", "e4m3").lower()
+    granularity = os.environ.get("LYNN_W4A8_FAKE_QUANT_GRANULARITY", "per16").lower()
+    fp8_dtype = torch.float8_e4m3fn if fmt == "e4m3" else torch.float8_e5m2
+    x_float = x.float()
+
+    if granularity == "tensor":
+        scale = x_float.abs().amax().clamp_min(1.0e-6) / 448.0
+        return (x_float / scale).to(fp8_dtype).to(torch.float32).mul(scale).to(x.dtype)
+    if granularity == "row":
+        scale = x_float.abs().amax(dim=-1, keepdim=True).clamp_min(1.0e-6) / 448.0
+        return (x_float / scale).to(fp8_dtype).to(torch.float32).mul(scale).to(x.dtype)
+    if granularity == "per16":
+        if x.shape[-1] % 16 != 0:
+            raise ValueError(f"W4A8 per16 fake quant requires last dim divisible by 16, got {tuple(x.shape)}")
+        groups = x_float.reshape(*x_float.shape[:-1], x_float.shape[-1] // 16, 16)
+        scale = groups.abs().amax(dim=-1, keepdim=True).clamp_min(1.0e-6) / 448.0
+        rounded = (groups / scale).to(fp8_dtype).to(torch.float32).mul(scale)
+        return rounded.reshape_as(x_float).to(x.dtype)
+    raise ValueError("LYNN_W4A8_FAKE_QUANT_GRANULARITY must be tensor, row, or per16")
 
 
 # ----------------------------------------------------------------------------
@@ -94,15 +125,19 @@ def moe_forward_decode_indexed_bmm(h, w, cfg):
 
     expert_ids = expert_indices[0]
     weights_per_slot = routing_weights[0]
+    w4a8_mode = _w4a8_fake_quant_mode()
 
     gate_w_active = w["mlp.experts._gate_stacked"][expert_ids]
     up_w_active = w["mlp.experts._up_stacked"][expert_ids]
     down_w_active = w["mlp.experts._down_stacked"][expert_ids]
 
-    h_b = h_flat.unsqueeze(0).expand(K, -1, -1)
+    active_h = _fake_quant_fp8_activation(h_flat) if w4a8_mode in {"gateup", "full"} else h_flat
+    h_b = active_h.unsqueeze(0).expand(K, -1, -1)
     gate_out = torch.bmm(h_b, gate_w_active.transpose(-1, -2))
     up_out = torch.bmm(h_b, up_w_active.transpose(-1, -2))
     inter = F.silu(gate_out) * up_out
+    if w4a8_mode == "full":
+        inter = _fake_quant_fp8_activation(inter)
     ffn_out = torch.bmm(inter, down_w_active.transpose(-1, -2))
 
     moe_out = (ffn_out.squeeze(1) * weights_per_slot.unsqueeze(-1)).sum(dim=0, keepdim=True)
@@ -293,6 +328,7 @@ def moe_forward_decode_triton(h, w, cfg):
     HIDDEN = HIDDEN_SIZE               # 2048
 
     h_flat = h.view(D)
+    w4a8_mode = _w4a8_fake_quant_mode()
 
     # Router (still in PyTorch — small + uses cuBLAS)
     router_logits = F.linear(h_flat.unsqueeze(0), w["mlp.gate.weight"])
@@ -313,8 +349,9 @@ def moe_forward_decode_triton(h, w, cfg):
     BLOCK_INTER_A = 64
     BLOCK_HIDDEN_A = 64
     grid_a = (K, INTERMEDIATE // BLOCK_INTER_A)
+    active_h = _fake_quant_fp8_activation(h_flat) if w4a8_mode in {"gateup", "full"} else h_flat
     gate_up_silu_kernel[grid_a](
-        h_flat, expert_ids, gate_w, up_w, inter,
+        active_h, expert_ids, gate_w, up_w, inter,
         gate_w.stride(0), gate_w.stride(1), gate_w.stride(2),
         up_w.stride(0), up_w.stride(1), up_w.stride(2),
         inter.stride(0), inter.stride(1),
@@ -323,6 +360,9 @@ def moe_forward_decode_triton(h, w, cfg):
         BLOCK_INTER=BLOCK_INTER_A,
         BLOCK_HIDDEN=BLOCK_HIDDEN_A,
     )
+
+    if w4a8_mode == "full":
+        inter = _fake_quant_fp8_activation(inter)
 
     # Allocate output
     out = torch.empty((HIDDEN,), device=h.device, dtype=torch.bfloat16)

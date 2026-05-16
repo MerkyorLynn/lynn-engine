@@ -253,3 +253,79 @@ This probe is a strong positive renewal signal.
 A100 is now producing actionable W4A8 adaptation evidence, not just loading
 the model. Unless the folded-artifact generation gate regresses badly, keeping
 the A100 through the next checkpoint is justified.
+
+## P107 Early Generation Gate
+
+Follow-up reports:
+
+```text
+reports/a100/a100_p105_original_bf16bmm_2prompt_24tok.json
+reports/a100/a100_p105_folded_overlay_bf16bmm_2prompt_24tok.json
+```
+
+Why this gate exists:
+
+```text
+The original P105 script was written for the packed NVFP4 runtime and requires
+packed MoE aliases. BF16 and folded-BF16 artifacts do not carry those aliases,
+so a BF16/Torch MoE fake-quant path was added for generation-level triage.
+```
+
+Implementation note:
+
+```text
+LYNN_W4A8_FAKE_QUANT_ACTIVE now also works for the BF16 optimized / bmm /
+Triton MoE research paths. Default behavior remains unchanged when the env var
+is off.
+```
+
+Result:
+
+```text
+2 prompts, 24 new tokens, BF16 bmm decode path
+
+original BF16 self W4A8 gate:
+  exact: 1 / 2
+  min_same_prefix_tokens: 9
+  mean_same_prefix_tokens: 13.0
+  decision: RED
+
+folded W4A8-contract artifact self gate:
+  exact: 1 / 2
+  min_same_prefix_tokens: 8
+  mean_same_prefix_tokens: 12.5
+  decision: RED
+
+cross-model compare:
+  reference = original BF16 baseline
+  candidate = folded artifact + full W4A8 fake-quant
+  exact: 1 / 2
+  min_same_prefix_tokens: 8
+  mean_same_prefix_tokens: 12.5
+```
+
+Interpretation:
+
+```text
+This is a generation-level RED for direct runtime promotion, not a route-level
+RED for W4A8.
+```
+
+The local active-MoE correction is real (`3.67% -> 1.79%`), but greedy decode
+still diverges early on at least one explanatory prompt. Therefore:
+
+- Do not publish a W4A8/NVFP4 production artifact from the current overlay.
+- Do start W4A8 Recovery training / adaptation from this overlay signal.
+- Keep MTP/NEXTN as a parallel engineering stream, but do not combine it with
+  W4A8 until the base W4A8 generation gate turns AMBER/GREEN.
+
+Working time estimate from this point:
+
+```text
+W4A8 Recovery first checkpoint: hours, not weeks.
+W4A8 generation-gated NVFP4 v0: same day if the next checkpoint moves the
+  divergence later or exact; otherwise 1-2 days of Recovery iteration.
+MTP/NEXTN smoke: 1-3 days because the current artifact has no draft-head
+  tensors and the installed Qwen3.5-MoE class does not expose a ready MTP head.
+MTP/NEXTN quality candidate: 3-7 days after the head implementation is stable.
+```
