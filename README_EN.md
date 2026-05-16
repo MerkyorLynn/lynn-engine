@@ -32,7 +32,8 @@ Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent ru
 | **P90 real split16 gate/up kernel** | ✅ real expert116,8 gate + 8 up rows,K=2048 full dimension PASS,max_abs `2.38e-7` |
 | **P91 row-tile sweep** | ✅ 8/16/32/64 rows all PASS;64-row median `0.0443ms`,rows/ms is **8.3×** above the 8-row tile |
 | **P92 full gate/up expert** | ✅ full 512 gate + 512 up rows PASS,median `0.0502ms`,max_abs `4.77e-7` |
-| **Next target** | P93 production-shaped gate/up backend / down-fused path; defer official/vendor-friendly NVFP4 v2 to the MTP/retrain + re-quant cycle |
+| **P93 top-k gate/up backend** | ✅ top-k=8 single-launch backend PASS,quantized-reference cosine `0.9999986`;slightly slower than Triton today,not promoted |
+| **Next target** | P94 active MoE composition / down-fused path; defer official/vendor-friendly NVFP4 v2 to the MTP/retrain + re-quant cycle |
 
 Current primary artifact:
 
@@ -106,6 +107,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P90 split16 gate/up kernel** | real expert116,8 gate + 8 up rows,K=2048 | median 0.0621ms,max_abs `2.38e-7`,rel_l2 `1.53e-7` | ✅ first real full-K native FP4 gate/up row tile PASS |
 | **P91 split16 row-tile sweep** | row_count 8/16/32/64 | 64 rows median `0.0443ms`,rows/ms `2892`,all tolerance PASS | ✅ next design point is the 64-row tile |
 | **P92 full gate/up expert** | 512 gate + 512 up rows,K=2048 | median `0.0502ms`,rows/ms `20401.7`,max_abs `4.77e-7` | ✅ full active expert gate/up sub-operator PASS |
+| **P93 top-k gate/up backend** | top-k=8,one CUDA launch,output `[8,512]` | median `0.0602ms`,quantized-ref cosine `0.9999986`,rel_l2 `0.00167` | ✅ production-shaped gate/up backend contract PASS;slightly slower than Triton so not promoted |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
