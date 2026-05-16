@@ -1,0 +1,52 @@
+{
+  "schema_version": "lynn-engine-p81-native-cuda-arch-policy-probe-v1",
+  "torch": "2.10.0+cu128",
+  "cuda_available": true,
+  "cuda_capability": [
+    12,
+    0
+  ],
+  "cases": [
+    {
+      "env": {
+        "LYNN_NATIVE_CUDA_ARCH": null,
+        "LYNN_NATIVE_CUDA_ARCH_AUTO": null
+      },
+      "arch_flags": [],
+      "cuda_cflags": [
+        "-O3",
+        "--use_fast_math"
+      ]
+    },
+    {
+      "env": {
+        "LYNN_NATIVE_CUDA_ARCH": "sm_120a",
+        "LYNN_NATIVE_CUDA_ARCH_AUTO": null
+      },
+      "arch_flags": [
+        "-arch=sm_120a"
+      ],
+      "cuda_cflags": [
+        "-O3",
+        "--use_fast_math",
+        "-arch=sm_120a"
+      ]
+    },
+    {
+      "env": {
+        "LYNN_NATIVE_CUDA_ARCH": null,
+        "LYNN_NATIVE_CUDA_ARCH_AUTO": "1"
+      },
+      "arch_flags": [
+        "-arch=sm_120a"
+      ],
+      "cuda_cflags": [
+        "-O3",
+        "--use_fast_math",
+        "-arch=sm_120a"
+      ]
+    }
+  ],
+  "ok": true,
+  "decision": "Native CUDA arch policy is ready for opt-in sm_120a FP4 MMA kernels."
+}

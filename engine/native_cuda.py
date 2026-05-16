@@ -73,6 +73,36 @@ def discover_native_include_paths() -> list[str]:
     return out
 
 
+def native_cuda_arch_flags() -> list[str]:
+    """Return optional architecture flags for Lynn native CUDA extensions.
+
+    PyTorch's default extension path targets the visible device capability. On
+    Blackwell R6000 this means `sm_120`, but P78-P80 proved that E2M1 FP4 MMA
+    requires the feature target `sm_120a`. Keep this explicit and opt-in so the
+    existing scalar kernels remain portable on machines where `sm_120a` is not
+    supported by the installed CUDA stack.
+    """
+    raw = os.environ.get("LYNN_NATIVE_CUDA_ARCH", "").strip()
+    if raw:
+        return [f"-arch={raw}"]
+
+    if os.environ.get("LYNN_NATIVE_CUDA_ARCH_AUTO", "0") != "1":
+        return []
+
+    if not torch.cuda.is_available():
+        return []
+
+    capability = torch.cuda.get_device_capability(0)
+    if capability == (12, 0):
+        return ["-arch=sm_120a"]
+    return []
+
+
+def native_cuda_extra_cuda_cflags() -> list[str]:
+    """Common CUDA compiler flags for Lynn native extensions."""
+    return ["-O3", "--use_fast_math", *native_cuda_arch_flags()]
+
+
 def load_lynn_native_extension(*, build_dir: str | None = None, verbose: bool = False):
     """Build/load the Lynn native CUDA extension once per Python process."""
     global _EXTENSION
@@ -103,11 +133,16 @@ def load_lynn_native_extension(*, build_dir: str | None = None, verbose: bool = 
         ],
         build_directory=str(build_root),
         extra_cflags=["-O3"],
-        extra_cuda_cflags=["-O3", "--use_fast_math"],
+        extra_cuda_cflags=native_cuda_extra_cuda_cflags(),
         extra_include_paths=discover_native_include_paths(),
         verbose=verbose,
     )
     return _EXTENSION
 
 
-__all__ = ["discover_native_include_paths", "load_lynn_native_extension"]
+__all__ = [
+    "discover_native_include_paths",
+    "load_lynn_native_extension",
+    "native_cuda_arch_flags",
+    "native_cuda_extra_cuda_cflags",
+]
