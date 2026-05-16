@@ -45,7 +45,7 @@ Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B final 基�
 | **P103 W4A8 hardware route** | ✅ FP8(E4M3/E5M2) activation × E2M1 weight raw/blockscaled atoms 全部 PASS;W4A8+MTP 升为近期主线 |
 | **P104/P105 W4A8 quality gates** | ✅/⚠️ active-MoE 局部门控 AMBER,生成门控 AMBER;不直接 promote 当前 artifact,转 A100 Recovery |
 | **A100 BF16 transfer/inventory** | ✅ 1026/1026 shards,missing 0;resident BF16 load peak **59.10 GiB** on A100-80G |
-| **P106 A100 W4A8 Recovery milestone** | ✅ expert-wise foldable alpha overlay 把 40-layer real-prompt worst active-MoE drift **3.67% → 1.79%**;folded overlay artifact 回测 **1.7836%** vs 原 BF16,all repaired layers <3% |
+| **P106/P108 A100 W4A8 Recovery milestone** | ✅ expert-wise foldable alpha overlay 把 40-layer real-prompt worst active-MoE drift **3.67% → 1.79%**;folded overlay artifact 回测 **1.7836%** vs 原 BF16;6-prompt/48tok generation gate mean prefix **38.67/48**,仍 RED 但明显可训 |
 | **W4A4 MoE fallback policy** | ✅ 坚持 MoE-first;fallback 顺序是 calibration → layer mask → expert rescue → mixed W4A4/W4A8 → QAT-lite → vendor branch → dense last resort |
 | **下一目标** | W4A8 Recovery 继续推进到 generation AMBER/GREEN;MTP 主线改为 Lynn-owned 2048-hidden `qwen3_next_mtp` 一层 predictor + shared lm_head(Qwen3.6 sidecar 5120 hidden,只作结构参考) |
 

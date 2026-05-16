@@ -358,3 +358,48 @@ MTP/NEXTN smoke: 1-3 days because the current artifact has no draft-head
   tensors and the installed Qwen3.5-MoE class does not expose a ready MTP head.
 MTP/NEXTN quality candidate: 3-7 days after the head implementation is stable.
 ```
+
+## P108 6-Prompt Generation Gate
+
+Follow-up script:
+
+```text
+scripts/a100_w4a8_generation_gate.py
+```
+
+Report:
+
+```text
+reports/a100/a100_w4a8_generation_gate_6prompt_48tok.json
+```
+
+Result:
+
+```text
+max_new: 48
+original self W4A8: exact 2/6, min prefix 17, mean prefix 36.17
+folded self W4A8:   exact 4/6, min prefix 13, mean prefix 37.83
+cross compare:
+  reference = original BF16 baseline
+  candidate = folded artifact + full W4A8 fake-quant
+  exact: 2/6
+  min prefix: 17/48
+  mean prefix: 38.67/48
+```
+
+Interpretation:
+
+```text
+Still RED for direct promotion, but much stronger than the earlier 2-prompt
+24-token gate. The folded artifact now mostly diverges late or with semantically
+near-equivalent phrasing. The worst prompt remains the structured JSON/OpenAPI
+case, which should be overweighted in the next Recovery batch.
+```
+
+Next Recovery objective:
+
+```text
+push min same-prefix above 36/48 on structured prompts;
+turn folded self gate from 4/6 exact to 6/6 exact;
+then rerun strict tool-call and no-think guards.
+```
