@@ -340,6 +340,17 @@ if HAS_TRITON:
         tl.store(inter_ptr + slot * INTER_STRIDE_K + inter_offsets * INTER_STRIDE_I, inter.to(tl.bfloat16), mask=inter_mask)
 
     _SP01_DOWN_CONFIGS = [
+        # SP-01.6: add BLOCK_HIDDEN ∈ {2, 4} candidates analogous to the gate_up
+        # SP-01.5 win. Down kernel grid scales as HIDDEN/BLOCK_HIDDEN — at
+        # BLOCK_HIDDEN=2 the grid is 1024 programs (huge parallelism on the
+        # 80-128 SM Spark GB10).
+        triton.Config({"BLOCK_HIDDEN": 2, "BLOCK_INTER": 128}, num_warps=2, num_stages=2),
+        triton.Config({"BLOCK_HIDDEN": 2, "BLOCK_INTER": 256}, num_warps=2, num_stages=2),
+        triton.Config({"BLOCK_HIDDEN": 2, "BLOCK_INTER": 512}, num_warps=4, num_stages=2),
+        triton.Config({"BLOCK_HIDDEN": 4, "BLOCK_INTER": 128}, num_warps=2, num_stages=2),
+        triton.Config({"BLOCK_HIDDEN": 4, "BLOCK_INTER": 256}, num_warps=2, num_stages=2),
+        triton.Config({"BLOCK_HIDDEN": 4, "BLOCK_INTER": 256}, num_warps=4, num_stages=2),
+        triton.Config({"BLOCK_HIDDEN": 4, "BLOCK_INTER": 512}, num_warps=4, num_stages=2),
         triton.Config({"BLOCK_HIDDEN": 8, "BLOCK_INTER": 64}, num_warps=2, num_stages=2),
         triton.Config({"BLOCK_HIDDEN": 8, "BLOCK_INTER": 128}, num_warps=2, num_stages=2),
         triton.Config({"BLOCK_HIDDEN": 8, "BLOCK_INTER": 256}, num_warps=4, num_stages=2),
