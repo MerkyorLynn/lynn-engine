@@ -6,6 +6,26 @@
 
 ---
 
+## 🏁 最新战报 — SP-01...SP-08 Triton autotune 完成(2026-05-16)
+
+**Lynn 27B NVFP4 vs SGLang FP8+MTP @ Spark sm_121,一个模型一个设备**
+
+| Metric | Lynn 27B NVFP4 (SP-08) | SGLang FP8+MTP 35B | Verdict |
+|---|---:|---:|---|
+| single mean | **49.37** | 43.44 | **Lynn +13.7%** ⭐ |
+| single peak | **49.38** | 47.30 | **Lynn +4.4%** ⭐ |
+| mixed mean | 49.11 | 49.97 | ≈ TIED(0.86 TPS within SGLang 1.4 SE)|
+| mixed peak | 49.39 | 62.51 | SGLang +27%(架构红利:NEXTN MTP head)|
+| stddev | **0.17** | 6.22 | **Lynn 37× steadier** ⭐ |
+
+**3 胜 / 1 平 / 1 负** — autotune-only 路线天花板。8 步累计 **+13.9% / +13.5%**(43.33 → 49.37 single,43.26 → 49.11 mixed),**kernel 数学全程不变**,纯 `(BLOCK_INTER, BLOCK_HIDDEN, num_warps, num_stages)` launch-config sweep。
+
+**完整方法论 + 8 步 trajectory + 剩余 3 瓶颈 + llama.cpp 70 TPS 解释 + production promotion gate**:[`reports/sp01_autotune/SPARK_VS_SGLANG_FINAL_20260516.md`](../reports/sp01_autotune/SPARK_VS_SGLANG_FINAL_20260516.md)
+
+**Production 启用方法**:`scripts/spark/run_27b_nvfp4_server.sh` 加 `LYNN_SP_TRITON_AUTOTUNE=1` env(其他 env 全部保持 production canonical 不动)。完全 reversible,kernel 数学等价。
+
+---
+
 ## 硬件 canonical
 
 | 项 | DGX Spark |
