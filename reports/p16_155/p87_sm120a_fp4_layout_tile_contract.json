@@ -1,0 +1,75 @@
+{
+  "schema_version": "lynn-engine-p87-sm120a-fp4-layout-tile-contract-v1",
+  "torch": "2.10.0+cu128",
+  "cuda_capability": [
+    12,
+    0
+  ],
+  "include_paths": [
+    "/root/miniconda3/lib/python3.12/site-packages/deep_gemm/include"
+  ],
+  "cuda_cflags": [
+    "-O3",
+    "--use_fast_math",
+    "-arch=sm_120a"
+  ],
+  "build_seconds": 53.41099238395691,
+  "blocks": 4096,
+  "scale_byte": 127,
+  "repeats": 10,
+  "warmup": 3,
+  "times_ms": [
+    0.08684799820184708,
+    0.034304000437259674,
+    0.031072000041604042,
+    0.030400000512599945,
+    0.030271999537944794,
+    0.029888000339269638,
+    0.02924799919128418,
+    0.02860799990594387,
+    0.028672000393271446,
+    0.029823999851942062
+  ],
+  "mean_ms": 0.035913599841296676,
+  "median_ms": 0.030079999938607216,
+  "max_abs_err": 0.0,
+  "mean_abs_err": 0.0,
+  "all_exact": true,
+  "observed_min": -2.0,
+  "observed_max": 4.0,
+  "expected_min": -2.0,
+  "expected_max": 4.0,
+  "worst": {
+    "observed": 4.0,
+    "expected": 4.0,
+    "m": 0,
+    "n": 0
+  },
+  "sample_block0_lane0": [
+    {
+      "observed": 4.0,
+      "expected": 4.0,
+      "m": 0,
+      "n": 0
+    },
+    {
+      "observed": -2.0,
+      "expected": -2.0,
+      "m": 0,
+      "n": 1
+    },
+    {
+      "observed": 0.0,
+      "expected": 0.0,
+      "m": 8,
+      "n": 0
+    },
+    {
+      "observed": 2.0,
+      "expected": 2.0,
+      "m": 8,
+      "n": 1
+    }
+  ],
+  "decision": "SM120 blockscaled FP4 layout contract PASS: shifted register packing matches scalar logical tile."
+}
