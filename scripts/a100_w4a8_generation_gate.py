@@ -130,8 +130,12 @@ def main() -> int:
     parser.add_argument("--max-new", type=int, default=48)
     parser.add_argument("--top-k", type=int, default=5)
     parser.add_argument("--prompts", nargs="*", default=PROMPTS)
+    parser.add_argument("--prompts-file")
     parser.add_argument("--device", default="cuda")
     args = parser.parse_args()
+    prompts = args.prompts
+    if args.prompts_file:
+        prompts = json.loads(Path(args.prompts_file).read_text(encoding="utf-8"))
 
     os.environ.setdefault("LYNN_MOE_IMPL", "bmm")
     os.environ.setdefault("LYNN_W4A8_FAKE_QUANT_FORMAT", "e4m3")
@@ -140,7 +144,7 @@ def main() -> int:
     dtype = torch.bfloat16
     original = _run_model(
         args.model,
-        prompts=args.prompts,
+        prompts=prompts,
         max_new=args.max_new,
         top_k=args.top_k,
         label="original",
@@ -152,7 +156,7 @@ def main() -> int:
     if args.folded_model:
         folded = _run_model(
             args.folded_model,
-            prompts=args.prompts,
+            prompts=prompts,
             max_new=args.max_new,
             top_k=args.top_k,
             label="folded",

@@ -1,0 +1,14 @@
+[
+  "用一句话解释 W4A8 为什么可能比 W4A4 更稳。",
+  "请写一个 Python 函数,判断字符串是否是回文。",
+  "If a train travels 60 mph for 2.5 hours, how far does it go?",
+  "请给出一个 JSON: {\"city\":\"Tokyo\",\"unit\":\"celsius\"}",
+  "总结一下 MoE 模型里 router 和 expert 的分工。",
+  "解释长上下文推理里 linear attention 的优势。",
+  "请只输出 JSON,不要解释: {\"tool\":\"get_weather\",\"arguments\":{\"city\":\"Tokyo\",\"unit\":\"celsius\"}}",
+  "把 {\"city\":\"Tokyo\",\"unit\":\"celsius\"} 转成 OpenAPI 3.0 requestBody schema,只输出 yaml。",
+  "写一个 Python 函数 normalize_city(payload),输入 dict,返回 city 小写和 unit 默认 celsius。",
+  "请修复这个 JSON 并只输出修复后的 JSON: {'city':'Tokyo','unit':'celsius',}",
+  "给出一个 function call: get_weather(city=\"Tokyo\", unit=\"celsius\"),只输出 JSON arguments。",
+  "解释 linear attention 的优势,要求用三条 bullet,不要出现 <think> 标签。"
+]

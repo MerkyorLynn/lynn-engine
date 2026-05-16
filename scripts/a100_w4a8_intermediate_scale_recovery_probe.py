@@ -228,6 +228,7 @@ def main() -> int:
     parser.add_argument("--out", required=True)
     parser.add_argument("--layers", type=int, nargs="+", default=[20, 26, 24, 12, 23, 32])
     parser.add_argument("--prompts", nargs="*", default=PROMPTS)
+    parser.add_argument("--prompts-file")
     parser.add_argument("--fmt", default="e4m3", choices=["e4m3", "e5m2"])
     parser.add_argument("--steps", type=int, default=80)
     parser.add_argument("--lr", type=float, default=0.03)
@@ -236,6 +237,9 @@ def main() -> int:
     parser.add_argument("--save-alpha-dir")
     parser.add_argument("--device", default="cuda")
     args = parser.parse_args()
+    prompts = args.prompts
+    if args.prompts_file:
+        prompts = json.loads(Path(args.prompts_file).read_text(encoding="utf-8"))
 
     start = time.time()
     runner = LynnIncrementalRunner(
@@ -250,7 +254,7 @@ def main() -> int:
         _train_layer_alpha(
             runner,
             layer=layer,
-            prompts=args.prompts,
+            prompts=prompts,
             fmt=args.fmt,
             steps=args.steps,
             lr=args.lr,
@@ -277,7 +281,8 @@ def main() -> int:
         "model": args.model,
         "format": args.fmt,
         "layers": args.layers,
-        "prompt_count": len(args.prompts),
+        "prompt_count": len(prompts),
+        "prompts_file": args.prompts_file,
         "steps": args.steps,
         "lr": args.lr,
         "reg": args.reg,
