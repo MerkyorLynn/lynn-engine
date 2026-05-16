@@ -1,0 +1,201 @@
+{
+  "schema_version": "lynn-engine-p52b-native-fp4-error-decomposition-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final",
+  "layers": [
+    4,
+    16,
+    28,
+    36
+  ],
+  "cases": [
+    {
+      "layer": 4,
+      "expert_ids": [
+        73,
+        106,
+        119,
+        139,
+        146,
+        200,
+        213,
+        59
+      ],
+      "diff_activation_qdq_vs_ref": {
+        "max_abs": 0.1171875,
+        "mean_abs": 0.007563370279967785,
+        "rel_l2": 0.12319953739643097,
+        "cosine": 0.9924803972244263
+      },
+      "diff_activation_qdq_weight_fp8_vs_ref": {
+        "max_abs": 0.2890625,
+        "mean_abs": 0.014970343559980392,
+        "rel_l2": 0.24279047548770905,
+        "cosine": 0.9720246195793152
+      },
+      "diff_native_scaled_mm_vs_ref": {
+        "max_abs": 0.25390625,
+        "mean_abs": 0.014884920790791512,
+        "rel_l2": 0.23957036435604095,
+        "cosine": 0.9720270037651062
+      },
+      "diff_native_scaled_mm_vs_activation_qdq_weight_fp8": {
+        "max_abs": 0.0859375,
+        "mean_abs": 0.006162638776004314,
+        "rel_l2": 0.09399344772100449,
+        "cosine": 0.9956172108650208
+      },
+      "timings_ms": {
+        "triton_ref_ms": 0.03397013346354167,
+        "triton_activation_qdq_ms": 0.03356800079345703,
+        "triton_activation_qdq_weight_fp8_ms": 0.03360746701558431,
+        "native_scaled_mm_ms": 0.08219733238220214,
+        "activation_qdq_build_ms": 0.15220266977945965
+      }
+    },
+    {
+      "layer": 16,
+      "expert_ids": [
+        4,
+        12,
+        48,
+        105,
+        151,
+        155,
+        172,
+        119
+      ],
+      "diff_activation_qdq_vs_ref": {
+        "max_abs": 0.203125,
+        "mean_abs": 0.011637158691883087,
+        "rel_l2": 0.09835904091596603,
+        "cosine": 0.9952395558357239
+      },
+      "diff_activation_qdq_weight_fp8_vs_ref": {
+        "max_abs": 0.40234375,
+        "mean_abs": 0.02354361303150654,
+        "rel_l2": 0.20349591970443726,
+        "cosine": 0.9800451397895813
+      },
+      "diff_native_scaled_mm_vs_ref": {
+        "max_abs": 0.3671875,
+        "mean_abs": 0.02387920767068863,
+        "rel_l2": 0.20811045169830322,
+        "cosine": 0.979069173336029
+      },
+      "diff_native_scaled_mm_vs_activation_qdq_weight_fp8": {
+        "max_abs": 0.15625,
+        "mean_abs": 0.009716402739286423,
+        "rel_l2": 0.07964830100536346,
+        "cosine": 0.9968252182006836
+      },
+      "timings_ms": {
+        "triton_ref_ms": 0.03390293518702189,
+        "triton_activation_qdq_ms": 0.03301013310750325,
+        "triton_activation_qdq_weight_fp8_ms": 0.03290560046831767,
+        "native_scaled_mm_ms": 0.07975893020629883,
+        "activation_qdq_build_ms": 0.15093332926432293
+      }
+    },
+    {
+      "layer": 28,
+      "expert_ids": [
+        12,
+        49,
+        63,
+        116,
+        159,
+        192,
+        204,
+        155
+      ],
+      "diff_activation_qdq_vs_ref": {
+        "max_abs": 0.21875,
+        "mean_abs": 0.014524796977639198,
+        "rel_l2": 0.11113515496253967,
+        "cosine": 0.9938234090805054
+      },
+      "diff_activation_qdq_weight_fp8_vs_ref": {
+        "max_abs": 0.34375,
+        "mean_abs": 0.027387818321585655,
+        "rel_l2": 0.21076664328575134,
+        "cosine": 0.9788050651550293
+      },
+      "diff_native_scaled_mm_vs_ref": {
+        "max_abs": 0.4296875,
+        "mean_abs": 0.027969757094979286,
+        "rel_l2": 0.21804356575012207,
+        "cosine": 0.9769793748855591
+      },
+      "diff_native_scaled_mm_vs_activation_qdq_weight_fp8": {
+        "max_abs": 0.421875,
+        "mean_abs": 0.011816957034170628,
+        "rel_l2": 0.09172578901052475,
+        "cosine": 0.9957866668701172
+      },
+      "timings_ms": {
+        "triton_ref_ms": 0.033768534660339355,
+        "triton_activation_qdq_ms": 0.03360639810562134,
+        "triton_activation_qdq_weight_fp8_ms": 0.033508265018463136,
+        "native_scaled_mm_ms": 0.07837759653727214,
+        "activation_qdq_build_ms": 0.14983146985371906
+      }
+    },
+    {
+      "layer": 36,
+      "expert_ids": [
+        24,
+        43,
+        139,
+        201,
+        221,
+        222,
+        80,
+        100
+      ],
+      "diff_activation_qdq_vs_ref": {
+        "max_abs": 0.3125,
+        "mean_abs": 0.018952783197164536,
+        "rel_l2": 0.08973965048789978,
+        "cosine": 0.9959980249404907
+      },
+      "diff_activation_qdq_weight_fp8_vs_ref": {
+        "max_abs": 1.3125,
+        "mean_abs": 0.03651827573776245,
+        "rel_l2": 0.1834295392036438,
+        "cosine": 0.9850101470947266
+      },
+      "diff_native_scaled_mm_vs_ref": {
+        "max_abs": 1.3125,
+        "mean_abs": 0.0365009531378746,
+        "rel_l2": 0.18704642355442047,
+        "cosine": 0.984298825263977
+      },
+      "diff_native_scaled_mm_vs_activation_qdq_weight_fp8": {
+        "max_abs": 0.3125,
+        "mean_abs": 0.016811063513159752,
+        "rel_l2": 0.07583839446306229,
+        "cosine": 0.9971216320991516
+      },
+      "timings_ms": {
+        "triton_ref_ms": 0.0338645339012146,
+        "triton_activation_qdq_ms": 0.033668267726898196,
+        "triton_activation_qdq_weight_fp8_ms": 0.03359359900156657,
+        "native_scaled_mm_ms": 0.080404265721639,
+        "activation_qdq_build_ms": 0.15166719754536948
+      }
+    }
+  ],
+  "summary": {
+    "min_activation_qdq_cosine": 0.9924803972244263,
+    "min_activation_qdq_weight_fp8_cosine": 0.9720246195793152,
+    "min_native_cosine": 0.9720270037651062,
+    "min_native_vs_qdq_weight_fp8_cosine": 0.9956172108650208,
+    "mean_triton_ref_ms": 0.03387653430302938,
+    "mean_native_scaled_mm_ms": 0.08018453121185302
+  },
+  "interpretation": [
+    "If activation_qdq already matches native drift, activation FP4 is the primary error source.",
+    "If native differs strongly from activation_qdq_weight_fp8, the remaining issue is scale layout or accumulation contract.",
+    "This is a diagnostic for P52 kernel design, not a production backend."
+  ]
+}

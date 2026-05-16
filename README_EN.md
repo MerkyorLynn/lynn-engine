@@ -88,6 +88,8 @@ Lynn 27B variable-pruned Recovery step5000
 | **P46 fused atomic probe** | one-kernel atomic accumulation | 0.1768 ms vs Triton 0.0592 ms | ❌ atomics are too slow and drift slightly;P47 moves to non-atomic grouped kernel |
 | **P48-P50 tile-hidden down** | non-atomic CUDA down projection | isolated/decode-state 1.25-1.27x; full decode flips top-1 at step 5 | 🔬 kernel-level win confirmed,but tiny accumulation drift can flip greedy; not promoted |
 | **P51 MoE budget ladder** | top-k limit / skip shared expert | best 124.39 TPS but output breaks; coherent top6 only +1.6% | ❌ fewer experts do not reach 155; quality fails first |
+| **P52-A/B native FP4 sensitivity** | selected gate/up `_scaled_mm` + scale decomposition | active cosine 0.976; FP8 scale contract min cosine 0.972 | ❌ plain PyTorch `_scaled_mm` composition is not shippable; blocker is the per-16 scale contract |
+| **P53 Triton retune review** | E2M1 decode simplification / scale hoist | LUT variant exact but avg 0.936x; scale-hoist JIT too heavy | 🔬 local signal only,no free 15 TPS;not promoted |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -369,10 +371,23 @@ P52 note: the route now splits into two serious tracks. Track A keeps the
 current Triton active-MoE math and attacks orchestration / graph overhead for
 exact serving gains. Track B builds the real grouped native-FP4 active expert
 FFN with CUTLASS/CuTe or custom CUDA, expressing block-diagonal selected experts
-directly instead of `_scaled_mm` wrappers or top-k approximations. MTP/spec
-decode is not the immediate main line; it is a later serving multiplier, not the
-base kernel fix. See
+directly instead of `_scaled_mm` wrappers or top-k approximations. P52-A/B
+further prove that replacing only selected gate/up with `torch._scaled_mm` is
+slower and looser: active cosine bottoms at **0.976**, and the dominant loss
+appears when Lynn's FP32 per-16 weight scales are compressed into the FP8
+`scale_b` contract(min cosine **0.972**). The issue is the scale contract, not
+mysterious tensor-core accumulation. MTP/spec decode is not the immediate main
+line; it is a later serving multiplier, not the base kernel fix. See
 [`docs/LYNN_ENGINE_P52_GROUPED_NATIVE_FP4_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P52_GROUPED_NATIVE_FP4_CONTRACT_20260516.md).
+
+P53 note: an external review proposed two "free" Triton improvements: hoisting
+per-16 scale loads and simplifying the E2M1 decode expression. P53 tests both
+as opt-in probes. The naive scale-hoist rewrite is too heavy to JIT/execute as
+a practical probe. The lightweight E2M1 expression is numerically exact and
+wins **6-8%** on three representative layers, but loses badly on layer36
+(**0.536x**) and averages **0.936x**. Keep it as an allowlist/variant research
+line, not a default replacement. See
+[`docs/LYNN_ENGINE_P53_TRITON_RETUNE_REVIEW_20260516.md`](docs/LYNN_ENGINE_P53_TRITON_RETUNE_REVIEW_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,

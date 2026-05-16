@@ -1,0 +1,289 @@
+{
+  "schema_version": "lynn-engine-p52-native-gateup-active-moe-sensitivity-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final",
+  "layers": [
+    4,
+    16,
+    28,
+    36
+  ],
+  "cases": [
+    {
+      "layer": 4,
+      "expert_ids": [
+        73,
+        106,
+        119,
+        139,
+        146,
+        200,
+        213,
+        59
+      ],
+      "routing_weights": [
+        0.10697156190872192,
+        0.10368040204048157,
+        0.222947895526886,
+        0.12703187763690948,
+        0.10865612328052521,
+        0.10865612328052521,
+        0.12312351167201996,
+        0.09893252700567245
+      ],
+      "matrix_shapes": {
+        "hidden_2d": [
+          1,
+          2048
+        ],
+        "selected_packed": [
+          8192,
+          1024
+        ],
+        "scale_b": [
+          1048576
+        ],
+        "top_k": 8
+      },
+      "diff_native_gateup_vs_triton_gateup": {
+        "max_abs": 0.25390625,
+        "mean_abs": 0.014884920790791512,
+        "rel_l2": 0.23957036435604095,
+        "cosine": 0.9720270037651062
+      },
+      "diff_native_active_vs_triton_active": {
+        "max_abs": 0.0067958831787109375,
+        "mean_abs": 0.001604829216375947,
+        "rel_l2": 0.21029765903949738,
+        "cosine": 0.9777972102165222
+      },
+      "timings_ms": {
+        "triton_gateup_ms": 0.03413120110829671,
+        "triton_down_from_ref_inter_ms": 0.026247467597325644,
+        "triton_active_ms": 0.05806080102920532,
+        "native_gateup_hot_ms": 0.0851914644241333,
+        "native_gateup_cold_ms": 0.15500799417495728,
+        "native_active_hot_ms": 0.11890026728312174,
+        "native_active_cold_ms": 0.1945088028907776,
+        "activation_quant_m1_ms": 0.022936532894770306,
+        "selected_weight_scale_build_ms": 0.05411520004272461,
+        "native_gateup_hot_vs_triton_speedup": 0.40064108932758197,
+        "native_active_hot_vs_triton_speedup": 0.4883151430682043,
+        "native_active_cold_vs_triton_speedup": 0.29849960601427467
+      },
+      "quality_pass_relaxed": false,
+      "quality_pass_strict": false
+    },
+    {
+      "layer": 16,
+      "expert_ids": [
+        4,
+        12,
+        48,
+        105,
+        151,
+        155,
+        172,
+        119
+      ],
+      "routing_weights": [
+        0.12252160161733627,
+        0.2939140498638153,
+        0.10479828715324402,
+        0.09541992098093033,
+        0.12252160161733627,
+        0.1410215049982071,
+        0.06872839480638504,
+        0.05107459798455238
+      ],
+      "matrix_shapes": {
+        "hidden_2d": [
+          1,
+          2048
+        ],
+        "selected_packed": [
+          8192,
+          1024
+        ],
+        "scale_b": [
+          1048576
+        ],
+        "top_k": 8
+      },
+      "diff_native_gateup_vs_triton_gateup": {
+        "max_abs": 0.3671875,
+        "mean_abs": 0.02387920767068863,
+        "rel_l2": 0.20811045169830322,
+        "cosine": 0.979069173336029
+      },
+      "diff_native_active_vs_triton_active": {
+        "max_abs": 0.01544189453125,
+        "mean_abs": 0.0031121070496737957,
+        "rel_l2": 0.2075132429599762,
+        "cosine": 0.9807966351509094
+      },
+      "timings_ms": {
+        "triton_gateup_ms": 0.03379199902216593,
+        "triton_down_from_ref_inter_ms": 0.025899734099706015,
+        "triton_active_ms": 0.05843199888865153,
+        "native_gateup_hot_ms": 0.08410560290018718,
+        "native_gateup_cold_ms": 0.155622398853302,
+        "native_active_hot_ms": 0.11740053494771321,
+        "native_active_cold_ms": 0.19614399671554567,
+        "activation_quant_m1_ms": 0.023284266392389934,
+        "selected_weight_scale_build_ms": 0.05416319966316223,
+        "native_gateup_hot_vs_triton_speedup": 0.4017805931700982,
+        "native_active_hot_vs_triton_speedup": 0.4977149287665124,
+        "native_active_cold_vs_triton_speedup": 0.2979035803649474
+      },
+      "quality_pass_relaxed": false,
+      "quality_pass_strict": false
+    },
+    {
+      "layer": 28,
+      "expert_ids": [
+        12,
+        49,
+        63,
+        116,
+        159,
+        192,
+        204,
+        155
+      ],
+      "routing_weights": [
+        0.11158257722854614,
+        0.12254948168992996,
+        0.08163555711507797,
+        0.25541505217552185,
+        0.14553110301494598,
+        0.08965912461280823,
+        0.1169375404715538,
+        0.07668950408697128
+      ],
+      "matrix_shapes": {
+        "hidden_2d": [
+          1,
+          2048
+        ],
+        "selected_packed": [
+          8192,
+          1024
+        ],
+        "scale_b": [
+          1048576
+        ],
+        "top_k": 8
+      },
+      "diff_native_gateup_vs_triton_gateup": {
+        "max_abs": 0.4296875,
+        "mean_abs": 0.027969757094979286,
+        "rel_l2": 0.21804356575012207,
+        "cosine": 0.9769793748855591
+      },
+      "diff_native_active_vs_triton_active": {
+        "max_abs": 0.013427734375,
+        "mean_abs": 0.003117672400549054,
+        "rel_l2": 0.22083741426467896,
+        "cosine": 0.9763347506523132
+      },
+      "timings_ms": {
+        "triton_gateup_ms": 0.03385066588719686,
+        "triton_down_from_ref_inter_ms": 0.025947733720143636,
+        "triton_active_ms": 0.057937065760294594,
+        "native_gateup_hot_ms": 0.08375893433888754,
+        "native_gateup_cold_ms": 0.15578880310058593,
+        "native_active_hot_ms": 0.11763947010040283,
+        "native_active_cold_ms": 0.19759999513626098,
+        "activation_quant_m1_ms": 0.022823466857274374,
+        "selected_weight_scale_build_ms": 0.054124802350997925,
+        "native_gateup_hot_vs_triton_speedup": 0.40414394182998453,
+        "native_active_hot_vs_triton_speedup": 0.49249682705002423,
+        "native_active_cold_vs_triton_speedup": 0.2932037813074963
+      },
+      "quality_pass_relaxed": false,
+      "quality_pass_strict": false
+    },
+    {
+      "layer": 36,
+      "expert_ids": [
+        24,
+        43,
+        139,
+        201,
+        221,
+        222,
+        80,
+        100
+      ],
+      "routing_weights": [
+        0.13995754718780518,
+        0.09178639948368073,
+        0.2962901294231415,
+        0.09470001608133316,
+        0.10080764442682266,
+        0.10400761663913727,
+        0.08622533828020096,
+        0.08622533828020096
+      ],
+      "matrix_shapes": {
+        "hidden_2d": [
+          1,
+          2048
+        ],
+        "selected_packed": [
+          8192,
+          1024
+        ],
+        "scale_b": [
+          1048576
+        ],
+        "top_k": 8
+      },
+      "diff_native_gateup_vs_triton_gateup": {
+        "max_abs": 1.3125,
+        "mean_abs": 0.0365009531378746,
+        "rel_l2": 0.18704642355442047,
+        "cosine": 0.984298825263977
+      },
+      "diff_native_active_vs_triton_active": {
+        "max_abs": 0.03750801086425781,
+        "mean_abs": 0.006981946062296629,
+        "rel_l2": 0.17246869206428528,
+        "cosine": 0.9887363910675049
+      },
+      "timings_ms": {
+        "triton_gateup_ms": 0.033369600772857666,
+        "triton_down_from_ref_inter_ms": 0.02601813276608785,
+        "triton_active_ms": 0.05778026580810547,
+        "native_gateup_hot_ms": 0.08330667018890381,
+        "native_gateup_cold_ms": 0.15551359653472902,
+        "native_active_hot_ms": 0.11652159690856934,
+        "native_active_cold_ms": 0.19453120231628418,
+        "activation_quant_m1_ms": 0.02304960091908773,
+        "selected_weight_scale_build_ms": 0.05712959766387939,
+        "native_gateup_hot_vs_triton_speedup": 0.4005633726229811,
+        "native_active_hot_vs_triton_speedup": 0.4958760207641485,
+        "native_active_cold_vs_triton_speedup": 0.2970231259567386
+      },
+      "quality_pass_relaxed": false,
+      "quality_pass_strict": false
+    }
+  ],
+  "summary": {
+    "mean_triton_active_ms": 0.05805253287156423,
+    "mean_native_active_hot_ms": 0.11761546730995179,
+    "mean_native_active_cold_ms": 0.1956959992647171,
+    "mean_native_active_hot_speedup": 0.49360072991222237,
+    "mean_native_active_cold_speedup": 0.29665752341086427,
+    "min_gateup_cosine": 0.9720270037651062,
+    "min_active_cosine": 0.9763347506523132,
+    "max_active_rel_l2": 0.22083741426467896,
+    "all_relaxed_quality_pass": false,
+    "all_strict_quality_pass": false
+  },
+  "interpretation": [
+    "This is not a production backend: it isolates native FP4 selected gate/up while keeping router and down identical.",
+    "Hot timings assume selected rows/scale_b are prebuilt; cold timings include dynamic top-k gather and scale layout construction.",
+    "If quality fails here, the grouped kernel must preserve a stricter per-16 scale contract or pair with targeted retune/QAT."
+  ]
+}

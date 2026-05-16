@@ -1,0 +1,107 @@
+{
+  "schema_version": "lynn-engine-p53-lut-fast-decode-probe-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final",
+  "layers": [
+    4,
+    16,
+    28,
+    36
+  ],
+  "cases": [
+    {
+      "layer": 4,
+      "expert_ids": [
+        73,
+        106,
+        119,
+        139,
+        146,
+        200,
+        213,
+        59
+      ],
+      "diff_fast_vs_ref": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "ref_ms": 0.03335040012995402,
+      "fast_ms": 0.030974932511647544,
+      "speedup": 1.0766900014201235
+    },
+    {
+      "layer": 16,
+      "expert_ids": [
+        4,
+        12,
+        48,
+        105,
+        151,
+        155,
+        172,
+        119
+      ],
+      "diff_fast_vs_ref": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      },
+      "ref_ms": 0.033539199829101564,
+      "fast_ms": 0.0315829336643219,
+      "speedup": 1.0619406096207455
+    },
+    {
+      "layer": 28,
+      "expert_ids": [
+        12,
+        49,
+        63,
+        116,
+        159,
+        192,
+        204,
+        155
+      ],
+      "diff_fast_vs_ref": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      },
+      "ref_ms": 0.03294826745986938,
+      "fast_ms": 0.030822400252024332,
+      "speedup": 1.068971500936415
+    },
+    {
+      "layer": 36,
+      "expert_ids": [
+        24,
+        43,
+        139,
+        201,
+        221,
+        222,
+        80,
+        100
+      ],
+      "diff_fast_vs_ref": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896
+      },
+      "ref_ms": 0.03271680076917013,
+      "fast_ms": 0.061093334356943765,
+      "speedup": 0.5355216099029565
+    }
+  ],
+  "summary": {
+    "mean_ref_ms": 0.03313866704702377,
+    "mean_fast_ms": 0.03861840019623439,
+    "mean_speedup": 0.9357809304700602,
+    "min_cosine": 0.9999999403953552,
+    "max_rel_l2": 0.0
+  }
+}

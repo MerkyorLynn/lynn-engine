@@ -90,6 +90,8 @@ Lynn 27B variable-pruned Recovery step5000
 | **P46 fused atomic probe** | one-kernel atomic accumulation | 0.1768ms vs Triton 0.0592ms | ❌ atomics 太慢且有轻微 drift,P47 转非 atomic grouped kernel |
 | **P48-P50 tile-hidden down** | non-atomic CUDA down projection | isolated/decode-state 1.25-1.27×;完整 decode step 5 top1 漂移 | 🔬 kernel-level win confirmed,但 tiny accumulation drift 会翻 greedy,不 promote |
 | **P51 MoE budget ladder** | top-k limit / skip shared expert | best 124.39TPS 但输出崩;top6 coherent only +1.6% | ❌ 少算专家不到 155,质量先坏,关闭捷径 |
+| **P52-A/B native FP4 sensitivity** | selected gate/up `_scaled_mm` + scale decomposition | active cosine 0.976;FP8 scale contract min cosine 0.972 | ❌ PyTorch `_scaled_mm` 组合不可 ship;瓶颈锁到 per-16 scale contract |
+| **P53 Triton retune review** | E2M1 decode simplification / scale hoist | LUT variant exact but avg 0.936×;scale-hoist JIT 过重 | 🔬 有局部信号,无免费 15TPS;不 promote |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:
@@ -177,7 +179,9 @@ P48-P50 说明:第一版非 atomic 路线选择了 down projection 子段,新增
 
 P51 说明:为了排除“少算专家就能到 155TPS”的捷径,新增 opt-in `LYNN_MOE_TOPK_LIMIT` / `LYNN_MOE_SKIP_SHARED` 预算阶梯。结果很明确:top6+shared 仍 coherent 但只提升 **1.6%**,top4+shared 提升 **4.5%** 已出现 `<think>` 污染;skip shared 最快 **124.39TPS** 但输出崩坏。结论:不能靠裁专家到 155,必须继续 grouped native-FP4 active expert FFN 或 exact graph-owned route。详见 [`docs/LYNN_ENGINE_P51_ACTIVE_MOE_BUDGET_LADDER_20260516.md`](docs/LYNN_ENGINE_P51_ACTIVE_MOE_BUDGET_LADDER_20260516.md)。
 
-P52 说明:路线正式分叉为两条:一条是 exact-owned serving,保持当前 Triton active MoE 数学不变,继续压 orchestration / graph overhead;另一条是真 grouped native-FP4 active expert FFN,用 CUTLASS/CuTe 或 custom CUDA 表达 block-diagonal selected experts,不再用 `_scaled_mm` 包装或 top-k 近似。MTP/spec decode 不是近期主线,它是之后的 serving multiplier,不是底座 kernel。详见 [`docs/LYNN_ENGINE_P52_GROUPED_NATIVE_FP4_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P52_GROUPED_NATIVE_FP4_CONTRACT_20260516.md)。
+P52 说明:路线正式分叉为两条:一条是 exact-owned serving,保持当前 Triton active MoE 数学不变,继续压 orchestration / graph overhead;另一条是真 grouped native-FP4 active expert FFN,用 CUTLASS/CuTe 或 custom CUDA 表达 block-diagonal selected experts,不再用 `_scaled_mm` 包装或 top-k 近似。P52-A/B 进一步证明:只把 selected gate/up 换成 `torch._scaled_mm` 会更慢且 active cosine 只有 **0.976**,主要误差来自把 Lynn 的 FP32 per-16 scale 压进 FP8 `scale_b` contract(min cosine **0.972**),不是神秘 tensor-core 累加问题。MTP/spec decode 不是近期主线,它是之后的 serving multiplier,不是底座 kernel。详见 [`docs/LYNN_ENGINE_P52_GROUPED_NATIVE_FP4_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P52_GROUPED_NATIVE_FP4_CONTRACT_20260516.md)。
+
+P53 说明:针对外部 review 提出的 Triton 免费优化假设,新增 scale-hoist 与 E2M1 decode 简化两个 opt-in probe。scale-hoist 朴素版 JIT/body 过重,不构成免费收益;轻量 LUT 表达式数值 exact,前三个代表层快 **6-8%**,但 layer36 慢到 **0.536×**,平均 **0.936×**。结论:这个方向保留为 allowlist/变体研究,不替换默认 Triton active MoE。详见 [`docs/LYNN_ENGINE_P53_TRITON_RETUNE_REVIEW_20260516.md`](docs/LYNN_ENGINE_P53_TRITON_RETUNE_REVIEW_20260516.md)。
 
 P19 说明:在不改变数值路径的前提下,active MoE kernel block retune 把 R6000 full graph 从 **103.40/107.13 TPS** 提到 **115.41/120.25 TPS**。推荐配置已成为默认:`gate_hidden=256,down_inter=512`,并保留 env override 方便后续设备差异调参。详见 [`docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md`](docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md)。
 
