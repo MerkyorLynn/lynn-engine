@@ -421,18 +421,28 @@ def active_moe_spark_fp8(
     if h_flat.shape[0] != 1:
         raise NotImplementedError("spark_fp8 active MoE currently supports batch=1 decode")
 
-    # quantize_fp4_m1_native returns (packed [1, K/2], scale [1, K/16])
-    act_packed, act_scale = quantize_fp4_m1_native(h_flat.contiguous())
-    act_packed = act_packed.view(torch.uint8).reshape(-1).contiguous()
-    act_scale = act_scale.reshape(-1).contiguous()
+    # Defensive dtype conversion — Lynn's quantize_fp4_m1_native may return
+    # tensors with float8_e4m3fn / float4_e2m1fn_x2 storage; kernel needs raw
+    # uint8 + float32. Also packed weight tensors stored on the runner may be
+    # float8 views; convert with .view(torch.uint8) (NOT .to which changes data).
+    act_packed_fp4, act_scale_fp = quantize_fp4_m1_native(h_flat.contiguous())
+    act_packed = act_packed_fp4.view(torch.uint8).reshape(-1).contiguous()
+    act_scale = act_scale_fp.to(torch.float32).reshape(-1).contiguous()
 
     expert_ids_i32 = expert_ids.to(torch.int32).contiguous()
     intermediate = gate_up_packed.shape[1] // 2
 
+    gate_up_packed_u8 = gate_up_packed if gate_up_packed.dtype == torch.uint8 else gate_up_packed.view(torch.uint8)
+    gate_up_scale_f32 = gate_up_scale.to(torch.float32) if gate_up_scale.dtype != torch.float32 else gate_up_scale
+    gate_up_global_f32 = gate_up_global_scale.to(torch.float32) if gate_up_global_scale.dtype != torch.float32 else gate_up_global_scale
+    down_packed_u8 = down_packed if down_packed.dtype == torch.uint8 else down_packed.view(torch.uint8)
+    down_scale_f32 = down_scale.to(torch.float32) if down_scale.dtype != torch.float32 else down_scale
+    down_global_f32 = down_global_scale.to(torch.float32) if down_global_scale.dtype != torch.float32 else down_global_scale
+
     # Stage 1: gate_up
     gate_up_out = ext.gate_up(
         act_packed, act_scale, expert_ids_i32,
-        gate_up_packed, gate_up_scale, gate_up_global_scale,
+        gate_up_packed_u8, gate_up_scale_f32, gate_up_global_f32,
         intermediate,
     )
 
@@ -441,15 +451,15 @@ def active_moe_spark_fp8(
     up = gate_up_out[:, intermediate:]
     inter = F.silu(gate) * up  # [top_k, intermediate] FP32
 
-    # Stage 3: quantize inter to E2M1 for down kernel
-    inter_packed, inter_scale = quantize_fp4_m1_native(inter.contiguous())
-    inter_packed = inter_packed.view(torch.uint8).contiguous()
-    inter_scale = inter_scale.contiguous()
+    # Stage 3: quantize inter to E2M1 for down kernel (same defensive conversion)
+    inter_packed_fp4, inter_scale_fp = quantize_fp4_m1_native(inter.contiguous())
+    inter_packed = inter_packed_fp4.view(torch.uint8).contiguous()
+    inter_scale = inter_scale_fp.to(torch.float32).contiguous()
 
     hidden_dim = hidden_bf16.shape[-1]
     down_out = ext.down(
         inter_packed, inter_scale, expert_ids_i32,
-        down_packed, down_scale, down_global_scale,
+        down_packed_u8, down_scale_f32, down_global_f32,
         hidden_dim,
     )
 
