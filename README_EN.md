@@ -30,7 +30,8 @@ Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent ru
 | **P85-P88 SM120a FP4 contract** | ✅ blockscaled FP4 MMA / E2M1 shift / CuTe tile layout / real gate-up packed-code tile all pass |
 | **P89 per-16 scale contract** | ✅ the current Lynn-native artifact can go directly through split16 per-16 scale native-FP4; single K32 scale folding is unsafe |
 | **P90 real split16 gate/up kernel** | ✅ real expert116,8 gate + 8 up rows,K=2048 full dimension PASS,max_abs `2.38e-7` |
-| **Next target** | P91 expand the split16 active gate/up row tile and reduce atomic/launch overhead; defer official/vendor-friendly NVFP4 v2 to the MTP/retrain + re-quant cycle |
+| **P91 row-tile sweep** | ✅ 8/16/32/64 rows all PASS;64-row median `0.0443ms`,rows/ms is **8.3×** above the 8-row tile |
+| **Next target** | P92 full 512-row gate/up expert shape; defer official/vendor-friendly NVFP4 v2 to the MTP/retrain + re-quant cycle |
 
 Current primary artifact:
 
@@ -102,6 +103,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P88 real gate/up packed-code tile** | real Lynn 27B layer28 expert116 | production activation FP4 codes + real packed weights,neutral scale | ✅ `max_abs=0`;current packed tensors can feed SM120 MMA |
 | **P89 per-16 scale tile contract** | split16 neutral-scale MMA + explicit per-16 scale accumulation | `rel_l2=1.0e-7`,tolerance PASS;best K32 fold rel_l2 0.0227 | ✅ consume the current Lynn-native artifact first;do not wait for official re-quant |
 | **P90 split16 gate/up kernel** | real expert116,8 gate + 8 up rows,K=2048 | median 0.0621ms,max_abs `2.38e-7`,rel_l2 `1.53e-7` | ✅ first real full-K native FP4 gate/up row tile PASS |
+| **P91 split16 row-tile sweep** | row_count 8/16/32/64 | 64 rows median `0.0443ms`,rows/ms `2892`,all tolerance PASS | ✅ next design point is the 64-row tile |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -498,6 +500,13 @@ K=2048. Result: `max_abs=2.38e-7`, `rel_l2=1.53e-7`, tolerance PASS. Decision:
 the current Lynn-native artifact can feed the native FP4 gate/up kernel
 directly; do not wait for official/vendor re-quantization before P91. See
 [`docs/LYNN_ENGINE_P90_SPLIT16_GATEUP_KERNEL_20260516.md`](docs/LYNN_ENGINE_P90_SPLIT16_GATEUP_KERNEL_20260516.md).
+
+P91 note: the row-tile sweep gives the next shape. 8/16/32/64 rows all pass the
+`1e-5` tolerance gate. The 64-row variant has median **0.0443 ms**, and rows/ms
+rises from **350** at 8 rows to **2892**. Widening the tile preserves the P90
+math and amortizes launch/atomic overhead. P92 should attempt a full 512-row
+gate/up expert shape. See
+[`docs/LYNN_ENGINE_P91_SPLIT16_ROWTILE_SWEEP_20260516.md`](docs/LYNN_ENGINE_P91_SPLIT16_ROWTILE_SWEEP_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,
