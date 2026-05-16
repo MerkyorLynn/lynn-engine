@@ -1,0 +1,17 @@
+{
+  "type": "sp12b_sm121_fp8_per16_scale_probe",
+  "date": "2026-05-16 06:59:16",
+  "device": "NVIDIA GB10",
+  "compute_capability": [
+    12,
+    1
+  ],
+  "K": 2048,
+  "build_seconds": 26.000535249710083,
+  "cuda_result": -0.11343353986740112,
+  "scalar_reference": -0.11343344844414313,
+  "max_abs_err": 9.142325799182949e-08,
+  "rel_err": 8.059638355337867e-07,
+  "per_call_us": 27.58336067199707,
+  "pass": true
+}

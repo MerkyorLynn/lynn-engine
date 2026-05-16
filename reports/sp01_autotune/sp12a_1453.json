@@ -1,0 +1,32 @@
+{
+  "type": "sp12a_sm121_fp8_e2m1_tile_probe",
+  "date": "2026-05-16 06:54:11",
+  "device": "NVIDIA GB10",
+  "compute_capability": [
+    12,
+    1
+  ],
+  "build_seconds": 25.9158673286438,
+  "tests": [
+    {
+      "name": "positive_const_act_ramp_weight",
+      "max_abs_err": 0.0,
+      "rel_l2": 0.0,
+      "pass": true
+    },
+    {
+      "name": "mixed_signs",
+      "max_abs_err": 0.0,
+      "rel_l2": 0.0,
+      "pass": true
+    },
+    {
+      "name": "random_nibbles",
+      "max_abs_err": 0.0,
+      "rel_l2": 0.0,
+      "pass": true
+    }
+  ],
+  "per_call_us": 5.1534881591796875,
+  "all_pass": true
+}
