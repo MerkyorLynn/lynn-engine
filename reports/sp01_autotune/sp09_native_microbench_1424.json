@@ -1,0 +1,68 @@
+{
+  "type": "sp09_native_active_moe_microbench",
+  "date": "2026-05-16 06:28:14",
+  "device": "NVIDIA GB10",
+  "compute_capability": [
+    12,
+    1
+  ],
+  "arch_flag": "sm_121a",
+  "tile_inter": 2,
+  "tile_hidden": 2,
+  "warmup": 5,
+  "iters": 100,
+  "model": "/models/lynn-27b-variable-recovery-step5000-nvfp4-final",
+  "layers": [
+    {
+      "layer": 2,
+      "cosine_vs_triton": 0.9999999403953552,
+      "rel_l2_vs_triton": 3.912050942744827e-06,
+      "triton_ms": 0.1202729606628418,
+      "native_ms": 0.15820544242858886,
+      "speedup_native_vs_triton": 0.7602327632763385
+    },
+    {
+      "layer": 8,
+      "cosine_vs_triton": 1.0,
+      "rel_l2_vs_triton": 0.0,
+      "triton_ms": 0.12110239982604981,
+      "native_ms": 0.17621824264526367,
+      "speedup_native_vs_triton": 0.6872296421082529
+    },
+    {
+      "layer": 14,
+      "cosine_vs_triton": 1.0,
+      "rel_l2_vs_triton": 0.0,
+      "triton_ms": 0.1203110408782959,
+      "native_ms": 0.16139520645141603,
+      "speedup_native_vs_triton": 0.7454437063130033
+    },
+    {
+      "layer": 20,
+      "cosine_vs_triton": 1.0000001192092896,
+      "rel_l2_vs_triton": 6.066105470381444e-06,
+      "triton_ms": 0.12121824264526367,
+      "native_ms": 0.1733478355407715,
+      "speedup_native_vs_triton": 0.6992775091025182
+    },
+    {
+      "layer": 28,
+      "cosine_vs_triton": 1.0,
+      "rel_l2_vs_triton": 0.0,
+      "triton_ms": 0.12039584159851074,
+      "native_ms": 0.16018463134765626,
+      "speedup_native_vs_triton": 0.7516066965076692
+    },
+    {
+      "layer": 36,
+      "cosine_vs_triton": 0.9999997615814209,
+      "rel_l2_vs_triton": 9.388773491991742e-07,
+      "triton_ms": 0.12044672012329101,
+      "native_ms": 0.16138528823852538,
+      "speedup_native_vs_triton": 0.7463302351653783
+    }
+  ],
+  "mean_speedup": 0.7316867587455267,
+  "min_cosine": 0.9999997615814209,
+  "max_rel_l2": 6.066105470381444e-06
+}
