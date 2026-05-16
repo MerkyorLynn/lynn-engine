@@ -29,7 +29,8 @@ Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B final 基�
 | **P15 runtime config audit** | ✅ 关闭全局 `LYNN_PACKED_DECODE`;恢复 **103.48 strict / 107.23 replay**;shared expert packed 路径证伪 |
 | **P85-P88 SM120a FP4 contract** | ✅ blockscaled FP4 MMA / E2M1 shift / CuTe tile layout / 真实 gate-up packed-code tile 全部 PASS |
 | **P89 per-16 scale contract** | ✅ 当前 Lynn-native artifact 可直接走 split16 per-16 scale native-FP4 路线;K32 单 scale 折叠不安全 |
-| **下一目标** | P90 real per-16 split16 active gate/up kernel;官方/vendor-friendly NVFP4 v2 放到 MTP/retrain + re-quant 批次 |
+| **P90 real split16 gate/up kernel** | ✅ 真实 expert116、8 gate + 8 up rows、K=2048 全维度 PASS,max_abs `2.38e-7` |
+| **下一目标** | P91 扩大 split16 active gate/up row tile 并减少 atomic/launch overhead;官方/vendor-friendly NVFP4 v2 放到 MTP/retrain + re-quant 批次 |
 
 当前主力 artifact:
 
@@ -103,6 +104,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P85-P87 SM120a FP4 tile contract** | CUTLASS/CuTe blockscaled FP4 MMA | E2M1 `<<2` shift + CuTe fragment layout | ✅ 非均匀 synthetic tile `max_abs=0` |
 | **P88 real gate/up packed-code tile** | real Lynn 27B layer28 expert116 | production activation FP4 codes + real packed weights,neutral scale | ✅ `max_abs=0`,证明当前 packed tensor 可进 SM120 MMA |
 | **P89 per-16 scale tile contract** | split16 neutral-scale MMA + 显式 per-16 scale accumulate | `rel_l2=1.0e-7`,tolerance PASS;K32 fold best rel_l2 0.0227 | ✅ 先消费当前 Lynn-native artifact;不等官方重重量化 |
+| **P90 split16 gate/up kernel** | real expert116,8 gate + 8 up rows,K=2048 | median 0.0621ms,max_abs `2.38e-7`,rel_l2 `1.53e-7` | ✅ 第一版真实 full-K native FP4 gate/up row tile PASS |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:
@@ -211,6 +213,8 @@ P58 说明:为排除“P56 只是 CUDA extension 与 linear-block graph 交互�
 P59 说明:新增 metadata-only NVFP4 layout classifier,在加载 tensor 之前区分 `lynn_native_per16_variable`、`compressed_tensors_nvfp4`、`modelopt_nvfp4`、`bf16_or_unquantized` 和 unknown packed FP4。目标是一个 Lynn engine 同时支持我们的原生 NVFP4 与未来官方/vendor-friendly NVFP4 v2,但任何交叉误加载都 fail-loud。详见 [`docs/LYNN_ENGINE_P59_DUAL_NVFP4_LAYOUT_DISPATCH_20260516.md`](docs/LYNN_ENGINE_P59_DUAL_NVFP4_LAYOUT_DISPATCH_20260516.md)。
 
 P85-P89 说明:官方/ModelOpt 路线继续保留,但 runtime 主线不再等待重重量化。P85-P87 已证明 SM120a blockscaled FP4 MMA、E2M1 `<<2` shift 和 CuTe fragment layout 全部正确;P88 把真实 Lynn 27B gate/up packed-code tile 跑到 `max_abs=0`;P89 进一步证明当前 Lynn-native per-16 scale artifact 可以用 **split16 neutral-scale MMA + 显式 per-group scale accumulate** 直接消费,误差仅 `rel_l2=1.0e-7`。简单把两个 K16 scale 折成一个 K32 scale 会漂移(best rel_l2 仍 0.0227),所以官方/vendor-friendly NVFP4 v2 应放到 MTP/retrain + re-quant 批次,不阻塞 P90 真 active expert kernel。详见 [`docs/LYNN_ENGINE_P85_BLOCKSCALED_FP4_MMA_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P85_BLOCKSCALED_FP4_MMA_CONTRACT_20260516.md)、[`docs/LYNN_ENGINE_P86_FP4_SHIFT_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P86_FP4_SHIFT_CONTRACT_20260516.md)、[`docs/LYNN_ENGINE_P87_FP4_LAYOUT_TILE_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P87_FP4_LAYOUT_TILE_CONTRACT_20260516.md)、[`docs/LYNN_ENGINE_P88_REAL_GATEUP_TILE_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P88_REAL_GATEUP_TILE_CONTRACT_20260516.md) 和 [`docs/LYNN_ENGINE_P89_PER16_SCALE_TILE_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P89_PER16_SCALE_TILE_CONTRACT_20260516.md)。
+
+P90 说明:第一版真实 split16 gate/up kernel 已经把 P89 从 tile proof 推到 full-K row tile。输入是真实 Lynn 27B layer28 expert116、真实 activation、真实 packed gate/up weight,输出 8 个 gate rows + 8 个 up rows,K=2048 全维度。结果 `max_abs=2.38e-7`, `rel_l2=1.53e-7`,tolerance PASS。结论:当前 Lynn-native artifact 可以直接喂 native FP4 gate/up kernel,无需等待官方/vendor re-quant;P91 开始扩大 row tile 并减少 atomic/launch overhead。详见 [`docs/LYNN_ENGINE_P90_SPLIT16_GATEUP_KERNEL_20260516.md`](docs/LYNN_ENGINE_P90_SPLIT16_GATEUP_KERNEL_20260516.md)。
 
 P19 说明:在不改变数值路径的前提下,active MoE kernel block retune 把 R6000 full graph 从 **103.40/107.13 TPS** 提到 **115.41/120.25 TPS**。推荐配置已成为默认:`gate_hidden=256,down_inter=512`,并保留 env override 方便后续设备差异调参。详见 [`docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md`](docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md)。
 

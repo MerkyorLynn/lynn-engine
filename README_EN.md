@@ -29,7 +29,8 @@ Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent ru
 | **P15 runtime config audit** | ✅ disables global `LYNN_PACKED_DECODE`; restores **103.48 strict / 107.23 replay**; disproves packed shared expert path |
 | **P85-P88 SM120a FP4 contract** | ✅ blockscaled FP4 MMA / E2M1 shift / CuTe tile layout / real gate-up packed-code tile all pass |
 | **P89 per-16 scale contract** | ✅ the current Lynn-native artifact can go directly through split16 per-16 scale native-FP4; single K32 scale folding is unsafe |
-| **Next target** | P90 real per-16 split16 active gate/up kernel; defer official/vendor-friendly NVFP4 v2 to the MTP/retrain + re-quant cycle |
+| **P90 real split16 gate/up kernel** | ✅ real expert116,8 gate + 8 up rows,K=2048 full dimension PASS,max_abs `2.38e-7` |
+| **Next target** | P91 expand the split16 active gate/up row tile and reduce atomic/launch overhead; defer official/vendor-friendly NVFP4 v2 to the MTP/retrain + re-quant cycle |
 
 Current primary artifact:
 
@@ -100,6 +101,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P85-P87 SM120a FP4 tile contract** | CUTLASS/CuTe blockscaled FP4 MMA | E2M1 `<<2` shift + CuTe fragment layout | ✅ non-uniform synthetic tile `max_abs=0` |
 | **P88 real gate/up packed-code tile** | real Lynn 27B layer28 expert116 | production activation FP4 codes + real packed weights,neutral scale | ✅ `max_abs=0`;current packed tensors can feed SM120 MMA |
 | **P89 per-16 scale tile contract** | split16 neutral-scale MMA + explicit per-16 scale accumulation | `rel_l2=1.0e-7`,tolerance PASS;best K32 fold rel_l2 0.0227 | ✅ consume the current Lynn-native artifact first;do not wait for official re-quant |
+| **P90 split16 gate/up kernel** | real expert116,8 gate + 8 up rows,K=2048 | median 0.0621ms,max_abs `2.38e-7`,rel_l2 `1.53e-7` | ✅ first real full-K native FP4 gate/up row tile PASS |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -488,6 +490,14 @@ re-quant cycle instead of blocking P90. See
 [`docs/LYNN_ENGINE_P87_FP4_LAYOUT_TILE_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P87_FP4_LAYOUT_TILE_CONTRACT_20260516.md),
 [`docs/LYNN_ENGINE_P88_REAL_GATEUP_TILE_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P88_REAL_GATEUP_TILE_CONTRACT_20260516.md), and
 [`docs/LYNN_ENGINE_P89_PER16_SCALE_TILE_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P89_PER16_SCALE_TILE_CONTRACT_20260516.md).
+
+P90 note: the first real split16 gate/up kernel moves P89 from tile proof to a
+full-K row tile. It uses real Lynn 27B layer28 expert116, real activation, and
+real packed gate/up weights, and computes 8 gate rows plus 8 up rows over
+K=2048. Result: `max_abs=2.38e-7`, `rel_l2=1.53e-7`, tolerance PASS. Decision:
+the current Lynn-native artifact can feed the native FP4 gate/up kernel
+directly; do not wait for official/vendor re-quantization before P91. See
+[`docs/LYNN_ENGINE_P90_SPLIT16_GATEUP_KERNEL_20260516.md`](docs/LYNN_ENGINE_P90_SPLIT16_GATEUP_KERNEL_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,
