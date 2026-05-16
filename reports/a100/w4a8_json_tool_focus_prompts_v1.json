@@ -1,0 +1,10 @@
+[
+  "请给出一个 JSON: {\"city\":\"Tokyo\",\"unit\":\"celsius\"}",
+  "请只输出 JSON,不要解释: {\"tool\":\"get_weather\",\"arguments\":{\"city\":\"Tokyo\",\"unit\":\"celsius\"}}",
+  "把 {\"city\":\"Tokyo\",\"unit\":\"celsius\"} 转成 OpenAPI 3.0 requestBody schema,只输出 yaml。",
+  "请修复这个 JSON 并只输出修复后的 JSON: {'city':'Tokyo','unit':'celsius',}",
+  "给出一个 function call: get_weather(city=\"Tokyo\", unit=\"celsius\"),只输出 JSON arguments。",
+  "写一个 Python 函数 normalize_city(payload),输入 dict,返回 city 小写和 unit 默认 celsius。",
+  "请写一个 Python 函数,判断字符串是否是回文。",
+  "解释 long context linear attention,只输出三条 JSON array 字符串。"
+]
