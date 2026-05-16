@@ -114,6 +114,109 @@ __global__ void gate_up_silu_scalar_kernel(
   }
 }
 
+template <int TILE_INTER, int THREADS>
+__global__ void gate_up_silu_tile_inter_scalar_kernel(
+    const __nv_bfloat16* __restrict__ x,
+    const int32_t* __restrict__ expert_ids,
+    const uint8_t* __restrict__ gate_up_packed,
+    const float* __restrict__ gate_up_scale,
+    const float* __restrict__ gate_up_global_scale,
+    __nv_bfloat16* __restrict__ out,
+    int64_t packed_stride_e,
+    int64_t packed_stride_m,
+    int64_t packed_stride_n,
+    int64_t scale_stride_e,
+    int64_t scale_stride_m,
+    int64_t scale_stride_g,
+    int64_t out_stride_k,
+    int64_t out_stride_i) {
+  const int slot = blockIdx.x;
+  const int inter_start = blockIdx.y * TILE_INTER;
+  const int tid = threadIdx.x;
+  const int expert = expert_ids[slot];
+  const float inv_global = 1.0f / gate_up_global_scale[0];
+
+  float gate_acc[TILE_INTER];
+  float up_acc[TILE_INTER];
+#pragma unroll
+  for (int r = 0; r < TILE_INTER; ++r) {
+    gate_acc[r] = 0.0f;
+    up_acc[r] = 0.0f;
+  }
+
+  for (int h = tid; h < kHidden; h += THREADS) {
+    const int packed_col = h >> 1;
+    const int scale_col = h >> 4;
+    const bool low = (h & 1) == 0;
+    const float x_h = __bfloat162float(x[h]);
+
+#pragma unroll
+    for (int r = 0; r < TILE_INTER; ++r) {
+      const int inter = inter_start + r;
+      if (inter < kIntermediate) {
+        const int gate_row = inter;
+        const int up_row = kIntermediate + inter;
+        const uint8_t gate_byte = gate_up_packed[
+            static_cast<int64_t>(expert) * packed_stride_e +
+            static_cast<int64_t>(gate_row) * packed_stride_m +
+            static_cast<int64_t>(packed_col) * packed_stride_n];
+        const uint8_t up_byte = gate_up_packed[
+            static_cast<int64_t>(expert) * packed_stride_e +
+            static_cast<int64_t>(up_row) * packed_stride_m +
+            static_cast<int64_t>(packed_col) * packed_stride_n];
+        const unsigned char gate_nibble = low ? (gate_byte & 0x0F) : ((gate_byte >> 4) & 0x0F);
+        const unsigned char up_nibble = low ? (up_byte & 0x0F) : ((up_byte >> 4) & 0x0F);
+        const float gate_scale = gate_up_scale[
+            static_cast<int64_t>(expert) * scale_stride_e +
+            static_cast<int64_t>(gate_row) * scale_stride_m +
+            static_cast<int64_t>(scale_col) * scale_stride_g];
+        const float up_scale = gate_up_scale[
+            static_cast<int64_t>(expert) * scale_stride_e +
+            static_cast<int64_t>(up_row) * scale_stride_m +
+            static_cast<int64_t>(scale_col) * scale_stride_g];
+        gate_acc[r] += e2m1_from_nibble(gate_nibble) * gate_scale * inv_global * x_h;
+        up_acc[r] += e2m1_from_nibble(up_nibble) * up_scale * inv_global * x_h;
+      }
+    }
+  }
+
+  extern __shared__ float smem[];
+  float* gate_s = smem;
+  float* up_s = smem + TILE_INTER * THREADS;
+
+#pragma unroll
+  for (int r = 0; r < TILE_INTER; ++r) {
+    gate_s[r * THREADS + tid] = gate_acc[r];
+    up_s[r * THREADS + tid] = up_acc[r];
+  }
+  __syncthreads();
+
+  for (int stride = THREADS >> 1; stride > 0; stride >>= 1) {
+    if (tid < stride) {
+#pragma unroll
+      for (int r = 0; r < TILE_INTER; ++r) {
+        gate_s[r * THREADS + tid] += gate_s[r * THREADS + tid + stride];
+        up_s[r * THREADS + tid] += up_s[r * THREADS + tid + stride];
+      }
+    }
+    __syncthreads();
+  }
+
+  if (tid == 0) {
+#pragma unroll
+    for (int r = 0; r < TILE_INTER; ++r) {
+      const int inter = inter_start + r;
+      if (inter < kIntermediate) {
+        const float gate = gate_s[r * THREADS];
+        const float up = up_s[r * THREADS];
+        const float silu = gate / (1.0f + expf(-gate));
+        out[static_cast<int64_t>(slot) * out_stride_k + static_cast<int64_t>(inter) * out_stride_i] =
+            __float2bfloat16(silu * up);
+      }
+    }
+  }
+}
+
 __global__ void down_weighted_sum_scalar_kernel(
     const __nv_bfloat16* __restrict__ inter,
     const int32_t* __restrict__ expert_ids,
@@ -396,6 +499,118 @@ torch::Tensor lynn_native_gate_up_silu_scalar(
       out.stride(1));
   const cudaError_t err = cudaGetLastError();
   TORCH_CHECK(err == cudaSuccess, "gate_up_silu_scalar_kernel launch failed: ", cudaGetErrorString(err));
+  return out;
+}
+
+torch::Tensor lynn_native_gate_up_silu_tile_inter_scalar(
+    torch::Tensor x,
+    torch::Tensor expert_ids,
+    torch::Tensor gate_up_packed,
+    torch::Tensor gate_up_scale,
+    torch::Tensor gate_up_global_scale,
+    int64_t tile_inter) {
+  TORCH_CHECK(x.is_cuda(), "x must be a CUDA tensor");
+  TORCH_CHECK(expert_ids.is_cuda(), "expert_ids must be a CUDA tensor");
+  TORCH_CHECK(gate_up_packed.is_cuda(), "gate_up_packed must be a CUDA tensor");
+  TORCH_CHECK(gate_up_scale.is_cuda(), "gate_up_scale must be a CUDA tensor");
+  TORCH_CHECK(gate_up_global_scale.is_cuda(), "gate_up_global_scale must be a CUDA tensor");
+  TORCH_CHECK(x.scalar_type() == torch::kBFloat16, "x must be bfloat16");
+  TORCH_CHECK(expert_ids.scalar_type() == torch::kInt32, "expert_ids must be int32");
+  TORCH_CHECK(gate_up_packed.scalar_type() == torch::kUInt8, "gate_up_packed must be uint8");
+  TORCH_CHECK(gate_up_scale.scalar_type() == torch::kFloat32, "gate_up_scale must be float32");
+  TORCH_CHECK(gate_up_global_scale.scalar_type() == torch::kFloat32, "gate_up_global_scale must be float32");
+  TORCH_CHECK(x.dim() == 1 && x.numel() == kHidden, "x must be [2048]");
+  TORCH_CHECK(gate_up_packed.dim() == 3, "gate_up_packed must be [experts, 1024, 1024]");
+  TORCH_CHECK(gate_up_scale.dim() == 3, "gate_up_scale must be [experts, 1024, 128]");
+  TORCH_CHECK(gate_up_packed.size(1) == kGateUpRows, "gate_up_packed row dim must be 1024");
+  TORCH_CHECK(gate_up_packed.size(2) == kHidden / 2, "gate_up_packed packed hidden dim must be 1024");
+  TORCH_CHECK(gate_up_scale.size(1) == kGateUpRows, "gate_up_scale row dim must be 1024");
+  TORCH_CHECK(gate_up_scale.size(2) == kHidden / 16, "gate_up_scale group dim must be 128");
+  TORCH_CHECK(gate_up_global_scale.numel() == 1, "gate_up_global_scale must be scalar");
+  TORCH_CHECK(
+      tile_inter == 1 || tile_inter == 2 || tile_inter == 4 || tile_inter == 8,
+      "tile_inter must be one of {1, 2, 4, 8}");
+
+  auto xc = x.contiguous();
+  auto expert_ids_c = expert_ids.contiguous();
+  auto packed_c = gate_up_packed.contiguous();
+  auto scale_c = gate_up_scale.contiguous();
+  auto global_c = gate_up_global_scale.contiguous();
+  const int64_t top_k = expert_ids_c.numel();
+  auto out = torch::empty({top_k, kIntermediate}, x.options());
+
+  constexpr int kTileThreads = 128;
+  const unsigned int grid_y = static_cast<unsigned int>((kIntermediate + tile_inter - 1) / tile_inter);
+  const dim3 grid(static_cast<unsigned int>(top_k), grid_y);
+  const size_t shared_bytes = static_cast<size_t>(tile_inter) * kTileThreads * 2 * sizeof(float);
+
+  if (tile_inter == 1) {
+    gate_up_silu_tile_inter_scalar_kernel<1, kTileThreads><<<grid, kTileThreads, shared_bytes>>>(
+        reinterpret_cast<const __nv_bfloat16*>(xc.data_ptr<at::BFloat16>()),
+        expert_ids_c.data_ptr<int32_t>(),
+        packed_c.data_ptr<uint8_t>(),
+        scale_c.data_ptr<float>(),
+        global_c.data_ptr<float>(),
+        reinterpret_cast<__nv_bfloat16*>(out.data_ptr<at::BFloat16>()),
+        packed_c.stride(0),
+        packed_c.stride(1),
+        packed_c.stride(2),
+        scale_c.stride(0),
+        scale_c.stride(1),
+        scale_c.stride(2),
+        out.stride(0),
+        out.stride(1));
+  } else if (tile_inter == 2) {
+    gate_up_silu_tile_inter_scalar_kernel<2, kTileThreads><<<grid, kTileThreads, shared_bytes>>>(
+        reinterpret_cast<const __nv_bfloat16*>(xc.data_ptr<at::BFloat16>()),
+        expert_ids_c.data_ptr<int32_t>(),
+        packed_c.data_ptr<uint8_t>(),
+        scale_c.data_ptr<float>(),
+        global_c.data_ptr<float>(),
+        reinterpret_cast<__nv_bfloat16*>(out.data_ptr<at::BFloat16>()),
+        packed_c.stride(0),
+        packed_c.stride(1),
+        packed_c.stride(2),
+        scale_c.stride(0),
+        scale_c.stride(1),
+        scale_c.stride(2),
+        out.stride(0),
+        out.stride(1));
+  } else if (tile_inter == 4) {
+    gate_up_silu_tile_inter_scalar_kernel<4, kTileThreads><<<grid, kTileThreads, shared_bytes>>>(
+        reinterpret_cast<const __nv_bfloat16*>(xc.data_ptr<at::BFloat16>()),
+        expert_ids_c.data_ptr<int32_t>(),
+        packed_c.data_ptr<uint8_t>(),
+        scale_c.data_ptr<float>(),
+        global_c.data_ptr<float>(),
+        reinterpret_cast<__nv_bfloat16*>(out.data_ptr<at::BFloat16>()),
+        packed_c.stride(0),
+        packed_c.stride(1),
+        packed_c.stride(2),
+        scale_c.stride(0),
+        scale_c.stride(1),
+        scale_c.stride(2),
+        out.stride(0),
+        out.stride(1));
+  } else {
+    gate_up_silu_tile_inter_scalar_kernel<8, kTileThreads><<<grid, kTileThreads, shared_bytes>>>(
+        reinterpret_cast<const __nv_bfloat16*>(xc.data_ptr<at::BFloat16>()),
+        expert_ids_c.data_ptr<int32_t>(),
+        packed_c.data_ptr<uint8_t>(),
+        scale_c.data_ptr<float>(),
+        global_c.data_ptr<float>(),
+        reinterpret_cast<__nv_bfloat16*>(out.data_ptr<at::BFloat16>()),
+        packed_c.stride(0),
+        packed_c.stride(1),
+        packed_c.stride(2),
+        scale_c.stride(0),
+        scale_c.stride(1),
+        scale_c.stride(2),
+        out.stride(0),
+        out.stride(1));
+  }
+  const cudaError_t err = cudaGetLastError();
+  TORCH_CHECK(err == cudaSuccess, "gate_up_silu_tile_inter_scalar_kernel launch failed: ", cudaGetErrorString(err));
   return out;
 }
 

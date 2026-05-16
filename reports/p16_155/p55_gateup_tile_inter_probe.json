@@ -1,0 +1,355 @@
+{
+  "schema_version": "lynn-engine-p55-gateup-tile-inter-probe-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final",
+  "layers": [
+    4,
+    16,
+    28,
+    36
+  ],
+  "tile_inters": [
+    1,
+    2,
+    4,
+    8
+  ],
+  "build_seconds": 42.59785032272339,
+  "torch_version": "2.10.0+cu128",
+  "torch_cuda": "12.8",
+  "device_name": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+  "device_capability": [
+    12,
+    0
+  ],
+  "torch_cuda_arch_list": "12.0",
+  "nvcc_version": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Fri_Feb_21_20:23:50_PST_2025\nCuda compilation tools, release 12.8, V12.8.93\nBuild cuda_12.8.r12.8/compiler.35583870_0",
+  "cases": [
+    {
+      "layer": 4,
+      "expert_ids": [
+        73,
+        106,
+        119,
+        139,
+        146,
+        200,
+        213,
+        59
+      ],
+      "triton_ref_ms": 0.03472639918327332,
+      "variants": {
+        "cuda_scalar": {
+          "diff_vs_triton_ref": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 1.0
+          },
+          "ms": 0.035390400886535646,
+          "speedup_vs_triton": 0.9812378021545681
+        },
+        "tile_inter_1": {
+          "diff_vs_triton_ref": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 1.0
+          },
+          "ms": 0.03129599988460541,
+          "speedup_vs_triton": 1.1096114299372597,
+          "speedup_vs_cuda_scalar": 1.1308282533559277
+        },
+        "tile_inter_2": {
+          "diff_vs_triton_ref": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 1.0
+          },
+          "ms": 0.030976000428199767,
+          "speedup_vs_triton": 1.1210743383015738,
+          "speedup_vs_cuda_scalar": 1.1425103434049904
+        },
+        "tile_inter_4": {
+          "diff_vs_triton_ref": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 1.0
+          },
+          "ms": 0.047393599152565004,
+          "speedup_vs_triton": 0.7327234015607333,
+          "speedup_vs_cuda_scalar": 0.7467337682586673
+        },
+        "tile_inter_8": {
+          "diff_vs_triton_ref": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 1.0
+          },
+          "ms": 0.08425440192222595,
+          "speedup_vs_triton": 0.41216124488461464,
+          "speedup_vs_cuda_scalar": 0.4200421589747207
+        }
+      },
+      "best_variant": "tile_inter_2",
+      "best_ms": 0.030976000428199767,
+      "best_speedup_vs_triton": 1.1210743383015738
+    },
+    {
+      "layer": 16,
+      "expert_ids": [
+        4,
+        12,
+        48,
+        105,
+        151,
+        155,
+        172,
+        119
+      ],
+      "triton_ref_ms": 0.03365919888019562,
+      "variants": {
+        "cuda_scalar": {
+          "diff_vs_triton_ref": {
+            "max_abs": 2.9802322387695312e-08,
+            "mean_abs": 7.275957614183426e-12,
+            "rel_l2": 2.542631178207283e-09,
+            "cosine": 0.9999999403953552
+          },
+          "ms": 0.03519040048122406,
+          "speedup_vs_triton": 0.9564880882260657
+        },
+        "tile_inter_1": {
+          "diff_vs_triton_ref": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 0.9999999403953552
+          },
+          "ms": 0.03135200142860413,
+          "speedup_vs_triton": 1.0735901169450226,
+          "speedup_vs_cuda_scalar": 1.1224291553239707
+        },
+        "tile_inter_2": {
+          "diff_vs_triton_ref": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 0.9999999403953552
+          },
+          "ms": 0.031006398797035217,
+          "speedup_vs_triton": 1.0855565362661226,
+          "speedup_vs_cuda_scalar": 1.13493994293168
+        },
+        "tile_inter_4": {
+          "diff_vs_triton_ref": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 0.9999999403953552
+          },
+          "ms": 0.04688000082969666,
+          "speedup_vs_triton": 0.7179863115291122,
+          "speedup_vs_cuda_scalar": 0.7506484611436335
+        },
+        "tile_inter_8": {
+          "diff_vs_triton_ref": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 0.9999999403953552
+          },
+          "ms": 0.08423039913177491,
+          "speedup_vs_triton": 0.39960868317312875,
+          "speedup_vs_cuda_scalar": 0.4177874121927187
+        }
+      },
+      "best_variant": "tile_inter_2",
+      "best_ms": 0.031006398797035217,
+      "best_speedup_vs_triton": 1.0855565362661226
+    },
+    {
+      "layer": 28,
+      "expert_ids": [
+        12,
+        49,
+        63,
+        116,
+        159,
+        192,
+        204,
+        155
+      ],
+      "triton_ref_ms": 0.034160000085830686,
+      "variants": {
+        "cuda_scalar": {
+          "diff_vs_triton_ref": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 0.9999999403953552
+          },
+          "ms": 0.03519999980926514,
+          "speedup_vs_triton": 0.9704545531514261
+        },
+        "tile_inter_1": {
+          "diff_vs_triton_ref": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 0.9999999403953552
+          },
+          "ms": 0.03134399950504303,
+          "speedup_vs_triton": 1.089841775946129,
+          "speedup_vs_cuda_scalar": 1.1230219616230437
+        },
+        "tile_inter_2": {
+          "diff_vs_triton_ref": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 0.9999999403953552
+          },
+          "ms": 0.03092319965362549,
+          "speedup_vs_triton": 1.1046722353592446,
+          "speedup_vs_cuda_scalar": 1.1383039337308107
+        },
+        "tile_inter_4": {
+          "diff_vs_triton_ref": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 0.9999999403953552
+          },
+          "ms": 0.04736160039901734,
+          "speedup_vs_triton": 0.7212594126472854,
+          "speedup_vs_cuda_scalar": 0.7432181242337299
+        },
+        "tile_inter_8": {
+          "diff_vs_triton_ref": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 0.9999999403953552
+          },
+          "ms": 0.08425120115280152,
+          "speedup_vs_triton": 0.4054541611089517,
+          "speedup_vs_cuda_scalar": 0.41779819548714725
+        }
+      },
+      "best_variant": "tile_inter_2",
+      "best_ms": 0.03092319965362549,
+      "best_speedup_vs_triton": 1.1046722353592446
+    },
+    {
+      "layer": 36,
+      "expert_ids": [
+        24,
+        43,
+        139,
+        201,
+        221,
+        222,
+        80,
+        100
+      ],
+      "triton_ref_ms": 0.03407360017299652,
+      "variants": {
+        "cuda_scalar": {
+          "diff_vs_triton_ref": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 1.0000001192092896
+          },
+          "ms": 0.03580319881439209,
+          "speedup_vs_triton": 0.9516915052657164
+        },
+        "tile_inter_1": {
+          "diff_vs_triton_ref": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 1.0000001192092896
+          },
+          "ms": 0.03130559921264649,
+          "speedup_vs_triton": 1.0884187183752052,
+          "speedup_vs_cuda_scalar": 1.1436675775216822
+        },
+        "tile_inter_2": {
+          "diff_vs_triton_ref": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 1.0000001192092896
+          },
+          "ms": 0.029865598678588866,
+          "speedup_vs_triton": 1.1408979454821524,
+          "speedup_vs_cuda_scalar": 1.1988106851532827
+        },
+        "tile_inter_4": {
+          "diff_vs_triton_ref": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 1.0000001192092896
+          },
+          "ms": 0.04671359956264496,
+          "speedup_vs_triton": 0.7294149988870446,
+          "speedup_vs_cuda_scalar": 0.7664405900979318
+        },
+        "tile_inter_8": {
+          "diff_vs_triton_ref": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 1.0000001192092896
+          },
+          "ms": 0.08422880172729492,
+          "speedup_vs_triton": 0.40453620939919815,
+          "speedup_vs_cuda_scalar": 0.42507073685211666
+        }
+      },
+      "best_variant": "tile_inter_2",
+      "best_ms": 0.029865598678588866,
+      "best_speedup_vs_triton": 1.1408979454821524
+    }
+  ],
+  "summary": {
+    "all_variants_exactish": true,
+    "best_rows": [
+      {
+        "layer": 4,
+        "best_variant": "tile_inter_2",
+        "best_ms": 0.030976000428199767,
+        "best_speedup_vs_triton": 1.1210743383015738
+      },
+      {
+        "layer": 16,
+        "best_variant": "tile_inter_2",
+        "best_ms": 0.031006398797035217,
+        "best_speedup_vs_triton": 1.0855565362661226
+      },
+      {
+        "layer": 28,
+        "best_variant": "tile_inter_2",
+        "best_ms": 0.03092319965362549,
+        "best_speedup_vs_triton": 1.1046722353592446
+      },
+      {
+        "layer": 36,
+        "best_variant": "tile_inter_2",
+        "best_ms": 0.029865598678588866,
+        "best_speedup_vs_triton": 1.1408979454821524
+      }
+    ],
+    "best_speedup_vs_triton_max": 1.1408979454821524,
+    "best_speedup_vs_triton_min": 1.0855565362661226
+  },
+  "notes": [
+    "Tile-inter scalar kernels test ABI/tile shape only; they are not native FP4 tensor-core kernels.",
+    "A speedup here would guide grouped kernel tiling; a slowdown closes this scalar shortcut."
+  ]
+}

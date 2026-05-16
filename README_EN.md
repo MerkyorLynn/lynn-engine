@@ -91,6 +91,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P52-A/B native FP4 sensitivity** | selected gate/up `_scaled_mm` + scale decomposition | active cosine 0.976; FP8 scale contract min cosine 0.972 | ❌ plain PyTorch `_scaled_mm` composition is not shippable; blocker is the per-16 scale contract |
 | **P53 Triton retune review** | E2M1 decode simplification / scale hoist | LUT variant exact but avg 0.936x; scale-hoist JIT too heavy | 🔬 local signal only,no free 15 TPS;not promoted |
 | **P54 vendor-layout feasibility** | e8m0/group32 scale search | best upper-bound inter cosine 0.9869-0.9918,all fail | ❌ direct ModelOpt-like scale contract is not enough;mainline stays per-16 grouped kernel |
+| **P55 gate/up tile-inter** | CUDA scalar `tile_inter=2` | 1.09-1.14x vs Triton gate/up,max_abs=0 | 🔬 positive tile-shape signal for P56 grouped kernel |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -411,6 +412,15 @@ V8/V9/tool/long-context retention. The later target is a BF16-derived
 vendor-compatible NVFP4 v2 artifact, not a direct conversion of the current
 Lynn-native per-16 artifact. See
 [`docs/LYNN_ENGINE_QUANTIZATION_V2_ROADMAP_20260516.md`](docs/LYNN_ENGINE_QUANTIZATION_V2_ROADMAP_20260516.md).
+
+P55 note: a new gate/up-side `tile_inter` CUDA scalar probe lets one block
+compute multiple intermediate rows while reusing the hidden-vector load. Across
+four representative layers, `tile_inter=2` is exact against the Triton gate/up
+reference (`max_abs=0`) and is **1.09-1.14x** faster locally; `tile_inter=4/8`
+are slower. This is a positive tile-shape signal for the P56 grouped per-16
+kernel, but it is still a local scalar probe and is not promoted to the default
+runtime by itself. See
+[`docs/LYNN_ENGINE_P55_GATEUP_TILE_INTER_20260516.md`](docs/LYNN_ENGINE_P55_GATEUP_TILE_INTER_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,

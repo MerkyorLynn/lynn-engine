@@ -7,6 +7,13 @@ torch::Tensor lynn_native_gate_up_silu_scalar(
     torch::Tensor gate_up_packed,
     torch::Tensor gate_up_scale,
     torch::Tensor gate_up_global_scale);
+torch::Tensor lynn_native_gate_up_silu_tile_inter_scalar(
+    torch::Tensor x,
+    torch::Tensor expert_ids,
+    torch::Tensor gate_up_packed,
+    torch::Tensor gate_up_scale,
+    torch::Tensor gate_up_global_scale,
+    int64_t tile_inter);
 torch::Tensor lynn_native_down_weighted_sum_scalar(
     torch::Tensor inter,
     torch::Tensor expert_ids,
@@ -49,6 +56,10 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
       "gate_up_silu_scalar",
       &lynn_native_gate_up_silu_scalar,
       "Reference CUDA scalar gate/up kernel for packed NVFP4 active experts");
+  m.def(
+      "gate_up_silu_tile_inter_scalar",
+      &lynn_native_gate_up_silu_tile_inter_scalar,
+      "P55 tile-inter CUDA scalar gate/up probe for packed NVFP4 active experts");
   m.def(
       "down_weighted_sum_scalar",
       &lynn_native_down_weighted_sum_scalar,
