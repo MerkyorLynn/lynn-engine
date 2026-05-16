@@ -36,7 +36,8 @@ Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent ru
 | **P94 active MoE composition** | ✅ P93 gate/up + packed down end-to-end PASS,cosine `0.9999986`;almost tied with Triton,not promoted yet |
 | **P95 down backend sweep** | ✅ native_down_tile1 is **2.14×** faster than Triton down;all variants pass the contract |
 | **P96 native-down composition** | ✅ numeric PASS,but `0.0830ms` vs Triton `0.0810ms`;not promoted because two-stage scheduling eats the down win |
-| **Next target** | P97 gate/up overhead / fused active expert scheduling; defer official/vendor-friendly NVFP4 v2 to the MTP/retrain + re-quant cycle |
+| **P97 interval decomposition** | ✅ P93 gate/up + native_down_tile1 gives a full active-MoE **1.113×** speedup vs baseline,candidate contract PASS |
+| **Next target** | P98 opt-in runtime backend + full-generate parity; defer official/vendor-friendly NVFP4 v2 to the MTP/retrain + re-quant cycle |
 
 Current primary artifact:
 
@@ -114,6 +115,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P94 active MoE composition** | P93 gate/up + packed down weighted-sum | median `0.0823ms` vs Triton `0.0818ms`,quantized-ref cosine `0.9999986` | ✅ full active-MoE end-to-end contract PASS;speed now needs fused/non-atomic scheduling |
 | **P95 down backend sweep** | fixed P93 inter + down variants | native_down_tile1 median `0.0243ms` vs Triton `0.0521ms` | ✅ down half has real 2.14× headroom;P96 should compose native gate/up + native down |
 | **P96 native-down composition** | P93 gate/up + native_down_tile1 | median `0.0830ms` vs Triton active `0.0810ms`,quantized-ref cosine `0.9999986` | ✅ numeric PASS / ❌ no speed win;next work must reduce gate/up or fuse scheduling |
+| **P97 interval decomposition** | CUDA-event gate/down intervals | best `0.0800ms` vs baseline `0.0891ms`,speedup `1.113×` | ✅ first full active-MoE composition speed win;next gate is full-generate parity |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
