@@ -39,6 +39,8 @@ docker run -d --name lynn-27b-nvfp4-server \
   -e LYNN_PACKED_DECODE_LINEAR_ATTN=1 \
   -e LYNN_PACKED_DECODE_PREPARE_NATIVE=1 \
   -e LYNN_PACKED_SHARED_EXPERT=1 \
+  ${LYNN_SP_TRITON_AUTOTUNE:+-e LYNN_SP_TRITON_AUTOTUNE=$LYNN_SP_TRITON_AUTOTUNE} \
+  ${LYNN_SP_NGRAM_SPEC:+-e LYNN_SP_NGRAM_SPEC=$LYNN_SP_NGRAM_SPEC} \
   lmsysorg/sglang:dev-cu13 \
   python3 -m server.openai_http \
     --model ${MODEL} \
