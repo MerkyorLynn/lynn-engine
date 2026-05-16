@@ -79,6 +79,17 @@ but the current BF16 artifact inventory found no MTP/NEXTN/draft tensors. This
 means the architecture has a slot but the artifact still needs head weights and
 training.
 
+A100 environment preflight adds one more constraint: the installed
+`transformers.models.qwen3_5_moe` implementation ignores `mtp.*` weights as
+unexpected and does not expose a draft/NEXTN head class. So MTP is **not** just
+missing checkpoint tensors. It needs either:
+
+1. a Lynn-owned MTP head implementation in engine/training code; or
+2. a compatible NVIDIA/Qwen MTP implementation ported into this model class.
+
+This makes MTP a real engineering stream. It remains valuable, but W4A8
+Recovery is the faster first training target.
+
 Priority:
 
 ```text
@@ -138,9 +149,11 @@ tool-call and no-think guard prompts
 Do not start with a full expensive MTP run. First answer:
 
 ```text
-where the model class expects MTP weights
+which implementation will own the MTP head
+what hidden states feed the draft head
 what missing keys need initialization
-whether the head can be trained/frozen separately
+whether the base model can stay frozen
+how serving verifies/rejects draft tokens
 how to evaluate accept rate and quality drift
 ```
 
