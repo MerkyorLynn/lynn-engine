@@ -1,0 +1,292 @@
+{
+  "decision": "RED",
+  "reason": "no tensor shape contains base hidden_size",
+  "base_config": {
+    "hidden_size": 2048,
+    "intermediate_size": null,
+    "num_hidden_layers": 40,
+    "vocab_size": 248320,
+    "mtp_num_hidden_layers": 1,
+    "mtp_use_dedicated_embeddings": false
+  },
+  "sidecar": {
+    "tensor_count": 15,
+    "key_prefixes": [
+      "mtp"
+    ],
+    "dtypes": [
+      "bf16"
+    ],
+    "all_keys_start_mtp": true,
+    "tensors_with_hidden_size": 0,
+    "tensors_with_vocab_size": 0,
+    "likely_shared_lm_head": true,
+    "suspicious_shape_count": 15
+  },
+  "suspicious_shapes": [
+    {
+      "key": "mtp.fc.weight",
+      "shape": [
+        5120,
+        10240
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.norm.weight",
+      "shape": [
+        5120
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.pre_fc_norm_embedding.weight",
+      "shape": [
+        5120
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.pre_fc_norm_hidden.weight",
+      "shape": [
+        5120
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.layers.0.input_layernorm.weight",
+      "shape": [
+        5120
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.layers.0.post_attention_layernorm.weight",
+      "shape": [
+        5120
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.layers.0.self_attn.q_norm.weight",
+      "shape": [
+        256
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.layers.0.self_attn.k_norm.weight",
+      "shape": [
+        256
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.layers.0.self_attn.q_proj.weight",
+      "shape": [
+        12288,
+        5120
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.layers.0.self_attn.k_proj.weight",
+      "shape": [
+        1024,
+        5120
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.layers.0.self_attn.v_proj.weight",
+      "shape": [
+        1024,
+        5120
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.layers.0.self_attn.o_proj.weight",
+      "shape": [
+        5120,
+        6144
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.layers.0.mlp.gate_proj.weight",
+      "shape": [
+        17408,
+        5120
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.layers.0.mlp.up_proj.weight",
+      "shape": [
+        17408,
+        5120
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.layers.0.mlp.down_proj.weight",
+      "shape": [
+        5120,
+        17408
+      ],
+      "dtype": "bf16",
+      "numel": null
+    }
+  ],
+  "tensors": [
+    {
+      "key": "mtp.fc.weight",
+      "shape": [
+        5120,
+        10240
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.norm.weight",
+      "shape": [
+        5120
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.pre_fc_norm_embedding.weight",
+      "shape": [
+        5120
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.pre_fc_norm_hidden.weight",
+      "shape": [
+        5120
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.layers.0.input_layernorm.weight",
+      "shape": [
+        5120
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.layers.0.post_attention_layernorm.weight",
+      "shape": [
+        5120
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.layers.0.self_attn.q_norm.weight",
+      "shape": [
+        256
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.layers.0.self_attn.k_norm.weight",
+      "shape": [
+        256
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.layers.0.self_attn.q_proj.weight",
+      "shape": [
+        12288,
+        5120
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.layers.0.self_attn.k_proj.weight",
+      "shape": [
+        1024,
+        5120
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.layers.0.self_attn.v_proj.weight",
+      "shape": [
+        1024,
+        5120
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.layers.0.self_attn.o_proj.weight",
+      "shape": [
+        5120,
+        6144
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.layers.0.mlp.gate_proj.weight",
+      "shape": [
+        17408,
+        5120
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.layers.0.mlp.up_proj.weight",
+      "shape": [
+        17408,
+        5120
+      ],
+      "dtype": "bf16",
+      "numel": null
+    },
+    {
+      "key": "mtp.layers.0.mlp.down_proj.weight",
+      "shape": [
+        5120,
+        17408
+      ],
+      "dtype": "bf16",
+      "numel": null
+    }
+  ],
+  "schema_version": "lynn-a100-mtp-sidecar-shape-audit-v1",
+  "source": "README.md tensor manifest",
+  "complete_safetensors": false,
+  "sidecar_file": "/mnt/data/lynn-a100/models/mtp_sidecars/guru87-qwen36-27b-mtp/mtp.safetensors",
+  "sidecar_bytes": 0,
+  "base_model": "/mnt/data/lynn-a100/models/lynn-27b-variable-recovery-step5000-bf16-final"
+}

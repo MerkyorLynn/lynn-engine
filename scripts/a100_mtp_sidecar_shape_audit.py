@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -36,44 +37,43 @@ def _tensor_inventory(path: Path) -> list[dict[str, Any]]:
     return rows
 
 
+def _read_readme_tensor_manifest(sidecar_dir: Path) -> list[dict[str, Any]]:
+    readme = sidecar_dir / "README.md"
+    if not readme.exists():
+        return []
+    rows: list[dict[str, Any]] = []
+    pattern = re.compile(r"^(mtp\.\S+)\s+shape=\[([^\]]*)\]\s+(\S+)\s*$")
+    for line in readme.read_text(encoding="utf-8").splitlines():
+        match = pattern.match(line.strip())
+        if not match:
+            continue
+        shape = [int(x.strip()) for x in match.group(2).split(",") if x.strip()]
+        rows.append(
+            {
+                "key": match.group(1),
+                "shape": shape,
+                "dtype": match.group(3),
+                "numel": None,
+            }
+        )
+    return rows
+
+
 def _contains_dim(shape: list[int], dim: int | None) -> bool:
     return dim is not None and dim in shape
 
 
-def _audit(sidecar_dir: Path, base_model: Path) -> dict[str, Any]:
-    sidecar_file = sidecar_dir / "mtp.safetensors"
-    base_config_path = base_model / "config.json"
-    if not sidecar_file.exists():
-        return {
-            "decision": "WAIT",
-            "reason": f"missing sidecar file: {sidecar_file}",
-            "sidecar_dir": str(sidecar_dir),
-            "base_model": str(base_model),
-        }
-    if not base_config_path.exists():
-        return {
-            "decision": "RED",
-            "reason": f"missing base config: {base_config_path}",
-            "sidecar_file": str(sidecar_file),
-        }
+def _text_config(cfg: dict[str, Any]) -> dict[str, Any]:
+    return cfg.get("text_config") or cfg
 
-    cfg = _read_json(base_config_path)
+
+def _classify(rows: list[dict[str, Any]], cfg: dict[str, Any]) -> dict[str, Any]:
     hidden_size = cfg.get("hidden_size")
     intermediate_size = cfg.get("intermediate_size")
     num_layers = cfg.get("num_hidden_layers")
     vocab_size = cfg.get("vocab_size")
     mtp_layers = cfg.get("mtp_num_hidden_layers")
     mtp_dedicated_embed = cfg.get("mtp_use_dedicated_embeddings")
-    try:
-        rows = _tensor_inventory(sidecar_file)
-    except Exception as exc:
-        return {
-            "decision": "WAIT",
-            "reason": f"sidecar exists but is not a complete safetensors file yet: {exc}",
-            "sidecar_file": str(sidecar_file),
-            "sidecar_bytes": sidecar_file.stat().st_size,
-            "base_model": str(base_model),
-        }
 
     key_prefixes = sorted({row["key"].split(".", 1)[0] for row in rows})
     dtypes = sorted({row["dtype"] for row in rows})
@@ -105,12 +105,8 @@ def _audit(sidecar_dir: Path, base_model: Path) -> dict[str, Any]:
         reason = "sidecar shapes are plausible for qwen3_next_mtp-style audit"
 
     return {
-        "schema_version": "lynn-a100-mtp-sidecar-shape-audit-v1",
         "decision": decision,
         "reason": reason,
-        "sidecar_file": str(sidecar_file),
-        "sidecar_bytes": sidecar_file.stat().st_size,
-        "base_model": str(base_model),
         "base_config": {
             "hidden_size": hidden_size,
             "intermediate_size": intermediate_size,
@@ -132,6 +128,78 @@ def _audit(sidecar_dir: Path, base_model: Path) -> dict[str, Any]:
         "suspicious_shapes": suspicious[:20],
         "tensors": rows,
     }
+
+
+def _audit(sidecar_dir: Path, base_model: Path) -> dict[str, Any]:
+    sidecar_file = sidecar_dir / "mtp.safetensors"
+    base_config_path = base_model / "config.json"
+    if not base_config_path.exists():
+        return {
+            "decision": "RED",
+            "reason": f"missing base config: {base_config_path}",
+            "sidecar_file": str(sidecar_file),
+        }
+
+    cfg = _text_config(_read_json(base_config_path))
+    if not sidecar_file.exists():
+        readme_rows = _read_readme_tensor_manifest(sidecar_dir)
+        if readme_rows:
+            result = _classify(readme_rows, cfg)
+            result.update(
+                {
+                    "schema_version": "lynn-a100-mtp-sidecar-shape-audit-v1",
+                    "source": "README.md tensor manifest",
+                    "complete_safetensors": False,
+                    "sidecar_file": str(sidecar_file),
+                    "sidecar_bytes": 0,
+                    "base_model": str(base_model),
+                }
+            )
+            return result
+        return {
+            "decision": "WAIT",
+            "reason": f"missing sidecar file: {sidecar_file}",
+            "sidecar_dir": str(sidecar_dir),
+            "base_model": str(base_model),
+        }
+    try:
+        rows = _tensor_inventory(sidecar_file)
+    except Exception as exc:
+        readme_rows = _read_readme_tensor_manifest(sidecar_dir)
+        if readme_rows:
+            result = _classify(readme_rows, cfg)
+            result.update(
+                {
+                    "schema_version": "lynn-a100-mtp-sidecar-shape-audit-v1",
+                    "source": "README.md tensor manifest",
+                    "complete_safetensors": False,
+                    "safetensors_error": str(exc),
+                    "sidecar_file": str(sidecar_file),
+                    "sidecar_bytes": sidecar_file.stat().st_size,
+                    "base_model": str(base_model),
+                }
+            )
+            return result
+        return {
+            "decision": "WAIT",
+            "reason": f"sidecar exists but is not a complete safetensors file yet: {exc}",
+            "sidecar_file": str(sidecar_file),
+            "sidecar_bytes": sidecar_file.stat().st_size,
+            "base_model": str(base_model),
+        }
+
+    result = _classify(rows, cfg)
+    result.update(
+        {
+        "schema_version": "lynn-a100-mtp-sidecar-shape-audit-v1",
+        "source": "safetensors",
+        "complete_safetensors": True,
+        "sidecar_file": str(sidecar_file),
+        "sidecar_bytes": sidecar_file.stat().st_size,
+        "base_model": str(base_model),
+        },
+    )
+    return result
 
 
 def main() -> int:

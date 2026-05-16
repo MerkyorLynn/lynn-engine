@@ -47,7 +47,7 @@ Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B final 基�
 | **A100 BF16 transfer/inventory** | ✅ 1026/1026 shards,missing 0;resident BF16 load peak **59.10 GiB** on A100-80G |
 | **P106 A100 W4A8 Recovery milestone** | ✅ expert-wise foldable alpha overlay 把 40-layer real-prompt worst active-MoE drift **3.67% → 1.79%**;folded overlay artifact 回测 **1.7836%** vs 原 BF16,all repaired layers <3% |
 | **W4A4 MoE fallback policy** | ✅ 坚持 MoE-first;fallback 顺序是 calibration → layer mask → expert rescue → mixed W4A4/W4A8 → QAT-lite → vendor branch → dense last resort |
-| **下一目标** | W4A8 Recovery 继续推进到 generation AMBER/GREEN;MTP 主线改为 Qwen3.6-style `qwen3_next_mtp` 一层 predictor + shared lm_head,先做 sidecar shape-check/smoke |
+| **下一目标** | W4A8 Recovery 继续推进到 generation AMBER/GREEN;MTP 主线改为 Lynn-owned 2048-hidden `qwen3_next_mtp` 一层 predictor + shared lm_head(Qwen3.6 sidecar 5120 hidden,只作结构参考) |
 
 当前主力 artifact:
 

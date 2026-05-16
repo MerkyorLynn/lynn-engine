@@ -120,10 +120,18 @@ New A100 order:
 
 ```text
 1. finish W4A8 Recovery base gate
-2. inspect/import Qwen3.6-style MTP sidecar shapes
-3. initialize Lynn-owned qwen3_next_mtp-style head
+2. inspect Qwen3.6-style MTP sidecar shapes
+3. initialize Lynn-owned 2048-hidden qwen3_next_mtp-style head
 4. train head with frozen or mostly frozen body
 5. evaluate accept rate before combining with W4A8 runtime promotion
+```
+
+Sidecar audit result:
+
+```text
+guru87/Qwen3.6-27B-MTP is RED for direct transplant:
+Qwen3.6 hidden size = 5120, Lynn text hidden size = 2048.
+Use it as an architecture oracle only.
 ```
 
 Scope guard:

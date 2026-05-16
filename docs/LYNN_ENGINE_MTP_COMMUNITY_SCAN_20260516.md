@@ -54,9 +54,24 @@ provenance: Qwen/Qwen3.6-27B MTP shards
 intended use: re-attach MTP weights to quantized Qwen3.6 checkpoints missing mtp.* tensors
 ```
 
-This does **not** automatically make it compatible with Lynn 27B. It gives us a
-strong initializer / architecture oracle to inspect before training from
-scratch.
+This does **not** automatically make it compatible with Lynn 27B. The README
+tensor manifest is already enough to reject direct weight transplant:
+
+```text
+Qwen3.6 sidecar hidden size: 5120
+Lynn 27B text hidden size:  2048
+sidecar tensors containing 2048: 0 / 15
+decision: RED for direct initializer
+```
+
+Report:
+
+```text
+reports/a100/a100_mtp_sidecar_shape_audit_readme.json
+```
+
+Therefore the sidecar is an **architecture oracle**, not a direct initializer.
+Lynn needs its own 2048-hidden MTP predictor weights.
 
 ### vLLM Supports `qwen3_next_mtp`
 
@@ -103,14 +118,14 @@ shared lm_head contract is plausible
 no variable-expert pruning conflict in predictor layer
 ```
 
-If the sidecar matches, use it as:
+If a future sidecar matches, use it as:
 
 ```text
 architecture template + possible initializer
 ```
 
-If it does not match, keep the architecture and initialize a Lynn-owned head
-from scratch.
+For the current Qwen3.6-27B sidecar, keep the architecture and initialize a
+Lynn-owned head from scratch.
 
 ### Step 2: Lynn MTP Smoke
 
@@ -158,7 +173,7 @@ combined W4A8 + MTP eval
 Mainline:
 
 ```text
-W4A8 Recovery first, qwen3_next_mtp-style predictor second.
+W4A8 Recovery first, Lynn-owned 2048-hidden qwen3_next_mtp-style predictor second.
 ```
 
 Fallback:
