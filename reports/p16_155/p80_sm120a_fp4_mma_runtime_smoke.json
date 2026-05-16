@@ -1,0 +1,102 @@
+{
+  "schema_version": "lynn-engine-p80-sm120a-fp4-mma-runtime-smoke-v1",
+  "torch": "2.10.0+cu128",
+  "cuda_capability": [
+    12,
+    0
+  ],
+  "include_paths": [
+    "/root/miniconda3/lib/python3.12/site-packages/deep_gemm/include"
+  ],
+  "variants": [
+    {
+      "name": "arch_sm120a",
+      "extra_cuda_cflags": [
+        "-O3",
+        "--use_fast_math",
+        "-arch=sm_120a"
+      ],
+      "ok": true,
+      "seconds": 54.064804553985596,
+      "values": [
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "expected_values": [
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "error": null
+    },
+    {
+      "name": "gencode_sm120a",
+      "extra_cuda_cflags": [
+        "-O3",
+        "--use_fast_math",
+        "-gencode=arch=compute_120a,code=sm_120a"
+      ],
+      "ok": true,
+      "seconds": 39.94000697135925,
+      "values": [
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "expected_values": [
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "error": null
+    },
+    {
+      "name": "arch_compute120a",
+      "extra_cuda_cflags": [
+        "-O3",
+        "--use_fast_math",
+        "-arch=compute_120a"
+      ],
+      "ok": true,
+      "seconds": 53.71622109413147,
+      "values": [
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "expected_values": [
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "error": null
+    },
+    {
+      "name": "arch_compute120",
+      "extra_cuda_cflags": [
+        "-O3",
+        "--use_fast_math",
+        "-arch=compute_120"
+      ],
+      "ok": false,
+      "seconds": 39.73090696334839,
+      "values": null,
+      "expected_values": [
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "error": "RuntimeError('p80_mma_kernel launch failed: a PTX JIT compilation failed')"
+    }
+  ],
+  "any_runtime_ok": true,
+  "decision": "FP4 MMA runtime smoke PASS via arch_sm120a."
+}
