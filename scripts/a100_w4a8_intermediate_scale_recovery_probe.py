@@ -122,6 +122,7 @@ def _train_layer_alpha(
     lr: float,
     reg: float,
     alpha_mode: str,
+    save_alpha_dir: Path | None,
 ) -> dict[str, Any]:
     w = runner.layer_weights[layer]
     cfg = runner.layer_cfgs[layer]
@@ -162,6 +163,21 @@ def _train_layer_alpha(
             history.append({"step": step + 1, "loss": float(loss.detach().item())})
 
     alpha = torch.exp(log_alpha.detach()).clamp(0.75, 1.25)
+    alpha_path = None
+    if save_alpha_dir is not None:
+        save_alpha_dir.mkdir(parents=True, exist_ok=True)
+        alpha_path = save_alpha_dir / f"layer_{layer:02d}_{alpha_mode}_alpha.pt"
+        torch.save(
+            {
+                "schema_version": "lynn-a100-w4a8-alpha-overlay-v1",
+                "layer": layer,
+                "alpha_mode": alpha_mode,
+                "shape": list(alpha.shape),
+                "alpha": alpha.detach().cpu(),
+                "folding_rule": "down_proj[expert, :, channel] *= alpha[expert, channel] for expert mode; down_proj[:, :, channel] *= alpha[channel] for shared mode",
+            },
+            alpha_path,
+        )
     eval_cases = []
     for c in cases:
         out, _ = _active_moe_with_alpha(c["hidden"], w, top_k=top_k, alpha=alpha, mode="full", fmt=fmt)
@@ -198,6 +214,7 @@ def _train_layer_alpha(
             "mean": float(alpha.mean().item()),
             "std": float(alpha.std().item()),
         },
+        "alpha_path": None if alpha_path is None else str(alpha_path),
         "cases": eval_cases,
     }
     del cases, log_alpha, alpha
@@ -216,6 +233,7 @@ def main() -> int:
     parser.add_argument("--lr", type=float, default=0.03)
     parser.add_argument("--reg", type=float, default=1e-4)
     parser.add_argument("--alpha-mode", default="shared", choices=["shared", "expert"])
+    parser.add_argument("--save-alpha-dir")
     parser.add_argument("--device", default="cuda")
     args = parser.parse_args()
 
@@ -227,6 +245,7 @@ def main() -> int:
         max_seq_len=4096,
         verbose=True,
     )
+    save_alpha_dir = Path(args.save_alpha_dir) if args.save_alpha_dir else None
     layer_results = [
         _train_layer_alpha(
             runner,
@@ -237,6 +256,7 @@ def main() -> int:
             lr=args.lr,
             reg=args.reg,
             alpha_mode=args.alpha_mode,
+            save_alpha_dir=save_alpha_dir,
         )
         for layer in args.layers
     ]
@@ -262,6 +282,7 @@ def main() -> int:
         "lr": args.lr,
         "reg": args.reg,
         "alpha_mode": args.alpha_mode,
+        "save_alpha_dir": args.save_alpha_dir,
         "layer_results": layer_results,
         "aggregate": {
             "before_max_rel_l2": before_max,

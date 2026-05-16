@@ -134,6 +134,15 @@ ratio: 0.488
 all_after_under_3pct: true
 ```
 
+Overlay artifact:
+
+```text
+/mnt/data/lynn-a100/artifacts/w4a8_alpha_overlay_fail23
+files: 23 x layer_*_expert_alpha.pt
+size: 11 MiB
+checksum manifest: reports/a100/w4a8_alpha_overlay_fail23_SHA256SUMS
+```
+
 Worst repaired layers:
 
 ```text
@@ -162,6 +171,17 @@ This is materially better than a blind QAT run:
 - It preserves router semantics.
 - It does not add runtime operations after folding.
 - It gives the A100 run an immediate quantitative objective.
+
+Important metric framing:
+
+```text
+1.79% is local active-MoE output relative-L2 drift after correction.
+It is not yet V8/V9 score loss, final-logit loss, or end-to-end generation loss.
+```
+
+Still, reducing the worst local active-MoE drift from 3.67% to 1.79% puts the
+W4A8 route in the same engineering comfort band as many FP8 activation paths:
+small enough to justify artifact folding and generation-level revalidation.
 
 ## Next Step
 
