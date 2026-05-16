@@ -43,7 +43,10 @@ Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent ru
 | **P101 graph-owned state gate** | ❌ P14-C/P35/P101 are all `pass=false`;replay TPS is attractive but the sequence drifts,so it is not a production graph path |
 | **P102 mixed-MMA probe** | ❌ sm_120a has no BF16/FP16 × E2M1 MMA;E2M1×E2M1 controls PASS;155+ now requires a W4A4 / activation-aware artifact |
 | **P103 W4A8 hardware route** | ✅ FP8(E4M3/E5M2) activation × E2M1 weight raw/blockscaled atoms all PASS;W4A8+MTP is now the near-term mainline |
-| **Next target** | A100 first produces a W4A8/FP8-activation + MTP/NEXTN package for 155-200 TPS;W4A4 remains the higher-ceiling parallel line |
+| **P104/P105 W4A8 quality gates** | ✅/⚠️ active-MoE local gate AMBER and generation gate AMBER;do not promote the current artifact directly;move to A100 Recovery |
+| **A100 BF16 transfer/inventory** | ✅ 1026/1026 shards,missing 0;resident BF16 load peaks at **59.10 GiB** on A100-80G |
+| **P106 A100 W4A8 Recovery milestone** | ✅ expert-wise foldable alpha overlay reduces 40-layer real-prompt worst active-MoE drift from **3.67% to 1.79%**,all repaired layers <3%;strong renewal/training signal |
+| **Next target** | Fold the P106 alpha overlay into down weights,then rerun the 40-layer gate / P105 generation / V8-V9;implement a Lynn-owned MTP/NEXTN head prototype in parallel |
 
 Current primary artifact:
 
@@ -128,6 +131,9 @@ Lynn 27B variable-pruned Recovery step5000
 | **P101 graph-owned state gate** | P14-C/P35/P101 authoritative state sequence | replay-only 75-85 TPS class,but `same_ids=false`,min cosine `0.6536` | ❌ graph-owned mutable state drifts;do not promote |
 | **P102 mixed-MMA probe** | SM120a CuTe atom compile matrix | E2M1×E2M1 controls PASS;BF16/FP16×E2M1 raw/blockscaled all FAIL | ❌ no BF16-activation + FP4-weight shortcut;W4A4 model adaptation is required for 155+ |
 | **P103 W4A8 probe** | SM120a FP8 activation × E2M1 weight compile matrix | E4M3/E5M2 × E2M1 raw/blockscaled all PASS | ✅ W4A8 is a viable hardware route;near-term mainline is W4A8+MTP |
+| **P104 W4A8 sensitivity** | active-MoE fake-quant E4M3/per16 | gate/up clean;full-active near gate,max rel_l2 ~3.30% on the R6000 sample | ⚠️ W4A8 is trainable,not direct-promotable |
+| **P105 W4A8 generation gate** | 6-prompt generation fake-quant | 64-token gate: gateup 4/6 exact,full 5/6 exact,late/local drift | ⚠️ A100 Recovery required before runtime promotion |
+| **P106 A100 Recovery** | expert-wise foldable intermediate alpha overlay | real-prompt 40-layer worst active-MoE rel_l2 **3.67% → 1.79%**,all repaired layers <3% | ✅ first strong W4A8 adaptation milestone;fold into down weights then revalidate |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
