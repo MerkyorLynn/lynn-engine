@@ -40,7 +40,8 @@ Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B final 基�
 | **P98 split16 runtime gate** | ❌ backend build PASS,但 graph-on capture FAIL;graph-off `new_ids_all_match=false`,median `0.80×`;不 promote |
 | **P99 activation quant strategy** | ✅ runtime activation quant 不再偷渡进生产;W4A4 归入 A100 MTP/retrain + re-quant 批次 |
 | **P100 native-down runtime gate** | ❌ graph-off retest 仍 `new_ids_all_match=false`;median 仅 `1.049×`;native-down-only 不进默认 |
-| **下一目标** | R6000 保 BF16 activation semantics 做 runtime 优化;A100 接 BF16 final,准备 MTP/NEXTN + vendor NVFP4 v2 |
+| **P101 graph-owned state gate** | ❌ P14-C/P35/P101 均 `pass=false`;replay TPS 好看但 sequence drift,不作为生产 graph 路线 |
+| **下一目标** | R6000 保 BF16 activation semantics 做 server/dispatch 优化;A100 接 BF16 final,准备 MTP/NEXTN + vendor NVFP4 v2 |
 
 当前主力 artifact:
 
@@ -125,6 +126,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P98 split16 runtime gate** | runtime `split16_fp4 + native_down_tile1` | graph-on capture fails;graph-off greedy mismatch and `0.80×` median TPS | ❌ P93/P97 quantized-activation contract is not production BF16-activation semantics |
 | **P99 activation quant strategy** | after P98 redirect | production keeps BF16 activation semantics;activation quant moves to A100 MTP/requant path | ✅ stops the wrong shortcut early,keeps W4A4 as explicit model contract |
 | **P100 native-down runtime gate** | graph-off native-down-only retest | median `1.049×`,but `new_ids_all_match=false` on all prompts | ❌ not graph-only;native-down-only runtime replacement rejected |
+| **P101 graph-owned state gate** | P14-C/P35/P101 authoritative state sequence | replay-only 75-85TPS class,but `same_ids=false`,min cosine `0.6536` | ❌ graph-owned mutable state drifts;do not promote |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:
