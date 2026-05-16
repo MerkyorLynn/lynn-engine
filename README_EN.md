@@ -27,7 +27,7 @@ Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent ru
 | **P13 graph-slot generate wiring** | ✅ `generate()` opt-in path uses full-token graph slots;multi-prompt gate proves future-window unsafe,next state-refresh slot |
 | **P14 state-refresh probe** | ✅ full mutable-state roundtrip costs only **0.79 ms**,far below graph capture at 60-105 ms |
 | **P15 runtime config audit** | ✅ disables global `LYNN_PACKED_DECODE`; restores **103.48 strict / 107.23 replay**; disproves packed shared expert path |
-| **Next target** | P47 non-atomic grouped/block-diagonal native-FP4 active expert kernel,continuing toward 155 TPS |
+| **Next target** | P51 exact-match active-MoE route / grouped native-FP4 route split, continuing toward 155 TPS |
 
 Current primary artifact:
 
@@ -86,6 +86,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P44 shortcut triage** | merged-topk / cross-expert `_scaled_mm` | 0.48x / 0.39x vs Triton | ❌ wrapper-level shortcuts closed;PyTorch `_scaled_mm` composition is not enough |
 | **P45 native active-MoE ABI** | one-call CUDA contract | 0.0658 ms vs Triton 0.0583 ms,cosine≥0.99999988 | ✅ ABI foundation complete,not promoted |
 | **P46 fused atomic probe** | one-kernel atomic accumulation | 0.1768 ms vs Triton 0.0592 ms | ❌ atomics are too slow and drift slightly;P47 moves to non-atomic grouped kernel |
+| **P48-P50 tile-hidden down** | non-atomic CUDA down projection | isolated/decode-state 1.25-1.27x; full decode flips top-1 at step 5 | 🔬 kernel-level win confirmed,but tiny accumulation drift can flip greedy; not promoted |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -343,6 +344,16 @@ foundation only. P46 tests a one-kernel fused-atomic bridge; it is much slower
 Conclusion: P47 must be a non-atomic grouped/block-diagonal kernel. See
 [`docs/LYNN_ENGINE_P45_NATIVE_ACTIVE_MOE_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P45_NATIVE_ACTIVE_MOE_CONTRACT_20260516.md)
 and [`docs/LYNN_ENGINE_P46_FUSED_ATOMIC_NEGATIVE_20260516.md`](docs/LYNN_ENGINE_P46_FUSED_ATOMIC_NEGATIVE_20260516.md).
+
+P48-P50 note: the first non-atomic route targets the down-projection subsegment
+with a tile-hidden CUDA kernel. Isolated six-layer microbenchmarks improve
+Triton down from **0.02586 ms** to **0.02067 ms** (**1.25x**), and P49 confirms
+the same signal on true decode-state MoE inputs (**1.27x**, max rel_l2
+**8.74e-05**). But P50 shows complete graph-free decoding still diverges: the
+first visible drift appears at step 1 / layer 27 and top-1 flips by step 5. So
+P48 is a real kernel-level signal, but tiny accumulation drift can affect greedy
+decode; it is not a default runtime path. See
+[`docs/LYNN_ENGINE_P48_DOWN_TILE_NONATOMIC_20260516.md`](docs/LYNN_ENGINE_P48_DOWN_TILE_NONATOMIC_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,

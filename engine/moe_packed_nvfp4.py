@@ -86,6 +86,27 @@ def _active_moe_native_cuda_scalar(
     )
 
 
+def _down_weighted_sum_native_cuda_tile(
+    inter: torch.Tensor,
+    expert_ids: torch.Tensor,
+    routing_weights: torch.Tensor,
+    w: dict,
+) -> torch.Tensor:
+    """P48 opt-in tile-hidden non-atomic down projection."""
+    from engine.native_cuda import load_lynn_native_extension
+
+    ext = load_lynn_native_extension(verbose=_env_bool("LYNN_NATIVE_CUDA_VERBOSE", False))
+    return ext.down_weighted_sum_tile_scalar(
+        inter,
+        expert_ids,
+        routing_weights,
+        w["mlp.experts._down_packed"],
+        w["mlp.experts._down_scale"],
+        w["mlp.experts._down_global_scale"],
+        _env_int("LYNN_NATIVE_DOWN_TILE_HIDDEN", 2),
+    )
+
+
 def _active_moe_native_cuda_scalar_contract(
     hidden: torch.Tensor,
     expert_ids: torch.Tensor,
@@ -137,17 +158,35 @@ def _moe_forward_decode_packed_nvfp4_fixed_triton(h: torch.Tensor, w: dict, cfg:
         block_hidden=256,
         num_warps=4,
     )
-    moe_out = nvfp4_grouped_down_weighted_sum(
-        inter,
-        expert_ids,
-        routing_weights,
-        w["mlp.experts._down_packed"],
-        w["mlp.experts._down_scale"],
-        w["mlp.experts._down_global_scale"],
-        block_hidden=8,
-        block_inter=512,
-        num_warps=8,
-    ).reshape_as(h_flat)
+    down_backend = os.environ.get("LYNN_NATIVE_DOWN_BACKEND", "triton")
+    if down_backend == "cuda_tile" and _layer_selected_for_native_cuda(cfg):
+        moe_out = _down_weighted_sum_native_cuda_tile(inter, expert_ids, routing_weights, w).reshape_as(h_flat)
+    elif down_backend == "triton":
+        moe_out = nvfp4_grouped_down_weighted_sum(
+            inter,
+            expert_ids,
+            routing_weights,
+            w["mlp.experts._down_packed"],
+            w["mlp.experts._down_scale"],
+            w["mlp.experts._down_global_scale"],
+            block_hidden=8,
+            block_inter=512,
+            num_warps=8,
+        ).reshape_as(h_flat)
+    elif down_backend == "cuda_tile":
+        moe_out = nvfp4_grouped_down_weighted_sum(
+            inter,
+            expert_ids,
+            routing_weights,
+            w["mlp.experts._down_packed"],
+            w["mlp.experts._down_scale"],
+            w["mlp.experts._down_global_scale"],
+            block_hidden=8,
+            block_inter=512,
+            num_warps=8,
+        ).reshape_as(h_flat)
+    else:
+        raise ValueError("LYNN_NATIVE_DOWN_BACKEND must be 'triton' or 'cuda_tile', got " f"{down_backend!r}")
 
     if "mlp.shared_expert.gate_proj.weight" in w:
         if "mlp.shared_expert._gate_up_proj.weight" in w:
@@ -198,6 +237,8 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
             raise RuntimeError("LYNN_MOE_FAST_FIXED does not support LYNN_MOE_PROFILE_SKIP_SHARED")
         if os.environ.get("LYNN_NATIVE_ACTIVE_MOE_BACKEND", "triton") != "triton":
             raise RuntimeError("LYNN_MOE_FAST_FIXED requires LYNN_NATIVE_ACTIVE_MOE_BACKEND=triton")
+        if os.environ.get("LYNN_NATIVE_DOWN_BACKEND", "triton") not in {"triton", "cuda_tile"}:
+            raise RuntimeError("LYNN_MOE_FAST_FIXED requires LYNN_NATIVE_DOWN_BACKEND=triton or cuda_tile")
         if (
             _env_int("LYNN_MOE_GATE_BLOCK_INTER", 8),
             _env_int("LYNN_MOE_GATE_BLOCK_HIDDEN", 256),
@@ -234,6 +275,7 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
         moe_out = torch.zeros_like(h_flat)
     else:
         backend = os.environ.get("LYNN_NATIVE_ACTIVE_MOE_BACKEND", "triton")
+        down_backend = os.environ.get("LYNN_NATIVE_DOWN_BACKEND", "triton")
         if backend == "cuda_scalar_contract" and _layer_selected_for_native_cuda(cfg):
             moe_out = _active_moe_native_cuda_scalar_contract(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
         elif backend == "cuda_scalar" and _layer_selected_for_native_cuda(cfg):
@@ -249,17 +291,22 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
                 block_hidden=_env_int("LYNN_MOE_GATE_BLOCK_HIDDEN", 256),
                 num_warps=_env_int("LYNN_MOE_GATE_NUM_WARPS", 4),
             )
-            moe_out = nvfp4_grouped_down_weighted_sum(
-                inter,
-                expert_ids,
-                routing_weights,
-                w["mlp.experts._down_packed"],
-                w["mlp.experts._down_scale"],
-                w["mlp.experts._down_global_scale"],
-                block_hidden=_env_int("LYNN_MOE_DOWN_BLOCK_HIDDEN", 8),
-                block_inter=_env_int("LYNN_MOE_DOWN_BLOCK_INTER", 512),
-                num_warps=_env_int("LYNN_MOE_DOWN_NUM_WARPS", 8),
-            ).reshape_as(h_flat)
+            if down_backend == "cuda_tile" and _layer_selected_for_native_cuda(cfg):
+                moe_out = _down_weighted_sum_native_cuda_tile(inter, expert_ids, routing_weights, w).reshape_as(h_flat)
+            elif down_backend == "triton":
+                moe_out = nvfp4_grouped_down_weighted_sum(
+                    inter,
+                    expert_ids,
+                    routing_weights,
+                    w["mlp.experts._down_packed"],
+                    w["mlp.experts._down_scale"],
+                    w["mlp.experts._down_global_scale"],
+                    block_hidden=_env_int("LYNN_MOE_DOWN_BLOCK_HIDDEN", 8),
+                    block_inter=_env_int("LYNN_MOE_DOWN_BLOCK_INTER", 512),
+                    num_warps=_env_int("LYNN_MOE_DOWN_NUM_WARPS", 8),
+                ).reshape_as(h_flat)
+            else:
+                raise ValueError("LYNN_NATIVE_DOWN_BACKEND must be 'triton' or 'cuda_tile', got " f"{down_backend!r}")
         else:
             raise ValueError(
                 "LYNN_NATIVE_ACTIVE_MOE_BACKEND must be 'triton', 'cuda_scalar', or 'cuda_scalar_contract', "

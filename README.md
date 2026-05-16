@@ -27,7 +27,7 @@ Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B final 基�
 | **P13 graph-slot generate wiring** | ✅ `generate()` opt-in 接入 full-token graph slot;多 prompt 证明 future-window 不安全,下一步 state-refresh slot |
 | **P14 state-refresh probe** | ✅ full mutable state roundtrip **0.79ms**,远低于 graph capture 60-105ms |
 | **P15 runtime config audit** | ✅ 关闭全局 `LYNN_PACKED_DECODE`;恢复 **103.48 strict / 107.23 replay**;shared expert packed 路径证伪 |
-| **下一目标** | P47 非 atomic grouped/block-diagonal native-FP4 active expert kernel,继续冲 155TPS |
+| **下一目标** | P51 exact-match active-MoE route / grouped native-FP4 route 分叉推进,继续冲 155TPS |
 
 当前主力 artifact:
 
@@ -88,6 +88,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P44 shortcut triage** | merged-topk / cross-expert `_scaled_mm` | 0.48× / 0.39× vs Triton | ❌ 包装级捷径关闭,不能偷 PyTorch `_scaled_mm` |
 | **P45 native active-MoE ABI** | one-call CUDA contract | 0.0658ms vs Triton 0.0583ms,cosine≥0.99999988 | ✅ ABI 地基完成,不 promote |
 | **P46 fused atomic probe** | one-kernel atomic accumulation | 0.1768ms vs Triton 0.0592ms | ❌ atomics 太慢且有轻微 drift,P47 转非 atomic grouped kernel |
+| **P48-P50 tile-hidden down** | non-atomic CUDA down projection | isolated/decode-state 1.25-1.27×;完整 decode step 5 top1 漂移 | 🔬 kernel-level win confirmed,但 tiny accumulation drift 会翻 greedy,不 promote |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:
@@ -170,6 +171,8 @@ P42 说明:重新测试 `cuda_scalar` native active-MoE backend,即使只 allowl
 P43-P44 说明:155TPS 路线继续收窄。P43 证明 shared expert fused path 只从 **0.0609ms** 降到 **0.0556ms/layer**,绝对收益太小;P44 重新关掉 merged-topk 调度(最快约 production 的 **0.48×**)和 cross-expert `torch._scaled_mm` 拼接(mm-only 约 **0.39×**,quant+mm 约 **0.15×**,且 min cosine **0.97698**)。结论:不能靠包装/调度偷过 155,必须写真 grouped/block-diagonal FP4 active expert kernel。详见 [`docs/LYNN_ENGINE_P43_P44_ACTIVE_MOE_NATIVE_FP4_TRIAGE_20260516.md`](docs/LYNN_ENGINE_P43_P44_ACTIVE_MOE_NATIVE_FP4_TRIAGE_20260516.md)。
 
 P45-P46 说明:P45 把 native active-MoE 固定成 one-call CUDA ABI:`active_moe(hidden,expert_ids,routing_weights,gate_up*,down*) -> out[2048]`,数值与 two-call scalar reference 对齐(min cosine **0.99999988**),但仍慢于 Triton(**0.0658ms vs 0.0583ms**)所以只作为 kernel 地基。P46 试了单 kernel fused-atomic bridge,速度 **0.1768ms** 远慢于 Triton **0.0592ms**,并有轻微 accumulation drift。结论:P47 必须做非 atomic grouped/block-diagonal kernel,不是继续叠 wrapper。详见 [`docs/LYNN_ENGINE_P45_NATIVE_ACTIVE_MOE_CONTRACT_20260516.md`](docs/LYNN_ENGINE_P45_NATIVE_ACTIVE_MOE_CONTRACT_20260516.md) 和 [`docs/LYNN_ENGINE_P46_FUSED_ATOMIC_NEGATIVE_20260516.md`](docs/LYNN_ENGINE_P46_FUSED_ATOMIC_NEGATIVE_20260516.md)。
+
+P48-P50 说明:第一版非 atomic 路线选择了 down projection 子段,新增 tile-hidden CUDA kernel。isolated microbench 在 6 个代表层上从 Triton down **0.02586ms** 降到 **0.02067ms**(**1.25×**),P49 进一步证明真实 decode-state 下仍有 **1.27×** 局部收益(max rel_l2 **8.74e-05**)。但 P50 关闭 CUDA graph 后跑完整 decode,仍在 step 1/layer 27 出现微小漂移,step 5 翻 top1。结论:P48 是 kernel 级正信号,但 tiny accumulation drift 足以影响 greedy,不能进默认路径。详见 [`docs/LYNN_ENGINE_P48_DOWN_TILE_NONATOMIC_20260516.md`](docs/LYNN_ENGINE_P48_DOWN_TILE_NONATOMIC_20260516.md)。
 
 P19 说明:在不改变数值路径的前提下,active MoE kernel block retune 把 R6000 full graph 从 **103.40/107.13 TPS** 提到 **115.41/120.25 TPS**。推荐配置已成为默认:`gate_hidden=256,down_inter=512`,并保留 env override 方便后续设备差异调参。详见 [`docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md`](docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md)。
 

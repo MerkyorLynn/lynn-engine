@@ -1,0 +1,177 @@
+{
+  "schema_version": "lynn-engine-p49-decode-state-down-tile-probe-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final",
+  "prompt": "用一句话解释 MoE active parameters",
+  "decode_position": 7,
+  "first_decode_token_id": 271,
+  "tile": 2,
+  "layers": [
+    2,
+    8,
+    14,
+    20,
+    28,
+    36
+  ],
+  "cases": [
+    {
+      "layer": 2,
+      "layer_type": "linear_attention",
+      "expert_ids": [
+        40,
+        88,
+        109,
+        158,
+        164,
+        210,
+        249,
+        17
+      ],
+      "timings_ms": {
+        "triton_down_ms": 0.02585279941558838,
+        "cuda_tile_down_ms": 0.020656800270080565,
+        "tile_vs_triton_speedup": 1.251539399983149
+      },
+      "diff_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104
+      }
+    },
+    {
+      "layer": 8,
+      "layer_type": "linear_attention",
+      "expert_ids": [
+        99,
+        139,
+        147,
+        166,
+        176,
+        203,
+        216,
+        71
+      ],
+      "timings_ms": {
+        "triton_down_ms": 0.02629919946193695,
+        "cuda_tile_down_ms": 0.020734399557113647,
+        "tile_vs_triton_speedup": 1.2683849073851818
+      },
+      "diff_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 14,
+      "layer_type": "linear_attention",
+      "expert_ids": [
+        41,
+        42,
+        52,
+        109,
+        114,
+        143,
+        161,
+        209
+      ],
+      "timings_ms": {
+        "triton_down_ms": 0.02601520121097565,
+        "cuda_tile_down_ms": 0.02064639925956726,
+        "tile_vs_triton_speedup": 1.2600357517023488
+      },
+      "diff_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 20,
+      "layer_type": "linear_attention",
+      "expert_ids": [
+        57,
+        95,
+        102,
+        103,
+        162,
+        196,
+        208,
+        166
+      ],
+      "timings_ms": {
+        "triton_down_ms": 0.026610401272773743,
+        "cuda_tile_down_ms": 0.02067440003156662,
+        "tile_vs_triton_speedup": 1.287118428208014
+      },
+      "diff_vs_triton": {
+        "max_abs": 6.103515625e-05,
+        "mean_abs": 2.9802322387695312e-08,
+        "rel_l2": 8.740327029954642e-05,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 28,
+      "layer_type": "linear_attention",
+      "expert_ids": [
+        38,
+        89,
+        116,
+        134,
+        152,
+        199,
+        203,
+        101
+      ],
+      "timings_ms": {
+        "triton_down_ms": 0.02634960114955902,
+        "cuda_tile_down_ms": 0.02067119926214218,
+        "tile_vs_triton_speedup": 1.274701134433764
+      },
+      "diff_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 36,
+      "layer_type": "linear_attention",
+      "expert_ids": [
+        9,
+        19,
+        26,
+        108,
+        139,
+        155,
+        46,
+        156
+      ],
+      "timings_ms": {
+        "triton_down_ms": 0.02611919939517975,
+        "cuda_tile_down_ms": 0.02064560055732727,
+        "tile_vs_triton_speedup": 1.2651218027130655
+      },
+      "diff_vs_triton": {
+        "max_abs": 1.9073486328125e-06,
+        "mean_abs": 9.313225746154785e-10,
+        "rel_l2": 6.215734060788236e-07,
+        "cosine": 1.0
+      }
+    }
+  ],
+  "summary": {
+    "mean_triton_down_ms": 0.02620773365100225,
+    "mean_cuda_tile_down_ms": 0.020671466489632924,
+    "mean_tile_vs_triton_speedup": 1.2678216934510114,
+    "max_rel_l2_vs_triton": 8.740327029954642e-05,
+    "min_cosine_vs_triton": 0.9999998807907104,
+    "decode_state_parity_pass": true,
+    "interpretation": "down_tile_matches_true_decode_state; runtime drift likely graph/state or greedy-sensitivity"
+  }
+}
