@@ -22,6 +22,14 @@ torch::Tensor lynn_native_gate_up_silu_tile_inter_threads_scalar(
     torch::Tensor gate_up_global_scale,
     int64_t tile_inter,
     int64_t threads);
+torch::Tensor lynn_native_gate_up_silu_split16_topk_fp4(
+    torch::Tensor act_packed,
+    torch::Tensor act_scale,
+    torch::Tensor expert_ids,
+    torch::Tensor gate_up_packed,
+    torch::Tensor gate_up_scale,
+    torch::Tensor gate_up_global_scale,
+    int64_t scale_byte);
 torch::Tensor lynn_native_down_weighted_sum_scalar(
     torch::Tensor inter,
     torch::Tensor expert_ids,
@@ -131,6 +139,10 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
       "gate_up_silu_tile_inter_threads_scalar",
       &lynn_native_gate_up_silu_tile_inter_threads_scalar,
       "P75 tile-inter/thread sweep CUDA scalar gate/up probe for packed NVFP4 active experts");
+  m.def(
+      "gate_up_silu_split16_topk_fp4",
+      &lynn_native_gate_up_silu_split16_topk_fp4,
+      "P98 opt-in SM120a split16 FP4 MMA gate/up backend for packed NVFP4 active experts");
   m.def(
       "down_weighted_sum_scalar",
       &lynn_native_down_weighted_sum_scalar,

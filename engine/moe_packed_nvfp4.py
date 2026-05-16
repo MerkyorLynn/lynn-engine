@@ -6,7 +6,7 @@ import os
 import torch
 import torch.nn.functional as F
 
-from engine.nvfp4_runtime import dual_scalar_bridge
+from engine.nvfp4_runtime import _quantize_activation_to_fp4, dual_scalar_bridge
 from triton_kernels.nvfp4_moe import (
     nvfp4_grouped_down_weighted_sum,
     nvfp4_grouped_gate_up_silu,
@@ -128,6 +128,44 @@ def _gate_up_native_cuda_tile_inter(
         w["mlp.experts._gate_up_scale"],
         w["mlp.experts._gate_up_global_scale"],
         _env_int("LYNN_NATIVE_GATEUP_TILE_INTER", 2),
+    )
+
+
+def _gate_up_native_split16_fp4(
+    hidden: torch.Tensor,
+    expert_ids: torch.Tensor,
+    w: dict,
+) -> torch.Tensor:
+    """P98 experimental SM120a split16 FP4 MMA gate/up projection.
+
+    This backend quantizes the current decode activation to Lynn-native E2M1
+    per-16 format, then consumes the existing packed NVFP4 expert weights
+    directly. P98 proved this is not production-promotable yet: the activation
+    quantization is not CUDA-graph-capture-safe and changes greedy generations.
+    """
+    from engine.native_cuda import load_lynn_native_extension
+
+    if (
+        _env_bool("LYNN_LINEAR_BLOCK_GRAPH", False)
+        or _env_bool("LYNN_LINEAR_BLOCK_GRAPH_REUSE", False)
+        or _env_bool("LYNN_LINEAR_BLOCK_GRAPH_PREWARM", False)
+    ):
+        raise RuntimeError(
+            "LYNN_NATIVE_GATEUP_BACKEND=split16_fp4 is an experimental P98 research backend and is not "
+            "CUDA-graph-capture-safe. Set LYNN_LINEAR_BLOCK_GRAPH=0, LYNN_LINEAR_BLOCK_GRAPH_REUSE=0, "
+            "and LYNN_LINEAR_BLOCK_GRAPH_PREWARM=0 for isolated probes; do not use it in production."
+        )
+
+    ext = load_lynn_native_extension(verbose=_env_bool("LYNN_NATIVE_CUDA_VERBOSE", False))
+    act_packed, act_scale = _quantize_activation_to_fp4(hidden.view(1, -1))
+    return ext.gate_up_silu_split16_topk_fp4(
+        act_packed[0].contiguous(),
+        act_scale[0].float().contiguous(),
+        expert_ids,
+        w["mlp.experts._gate_up_packed"],
+        w["mlp.experts._gate_up_scale"],
+        w["mlp.experts._gate_up_global_scale"].float(),
+        _env_int("LYNN_NATIVE_FP4_MMA_SCALE_BYTE", 127),
     )
 
 
@@ -278,7 +316,9 @@ def _moe_forward_decode_packed_nvfp4_fixed_triton(h: torch.Tensor, w: dict, cfg:
             routing_weights = routing_weights / routing_weights.sum().clamp_min(1e-20)
     hidden = h_flat[0]
     gateup_backend = os.environ.get("LYNN_NATIVE_GATEUP_BACKEND", "triton")
-    if gateup_backend == "cuda_tile_inter" and _layer_selected_for_native_cuda(cfg):
+    if gateup_backend == "split16_fp4" and _layer_selected_for_native_cuda(cfg):
+        inter = _gate_up_native_split16_fp4(hidden, expert_ids, w)
+    elif gateup_backend == "cuda_tile_inter" and _layer_selected_for_native_cuda(cfg):
         inter = _gate_up_native_cuda_tile_inter(hidden, expert_ids, w)
     elif gateup_backend == "triton_fast_decode":
         inter = nvfp4_grouped_gate_up_silu_fast_decode(
@@ -302,7 +342,7 @@ def _moe_forward_decode_packed_nvfp4_fixed_triton(h: torch.Tensor, w: dict, cfg:
             block_hidden=256,
             num_warps=4,
         )
-    elif gateup_backend == "cuda_tile_inter":
+    elif gateup_backend in {"cuda_tile_inter", "split16_fp4"}:
         inter = nvfp4_grouped_gate_up_silu(
             hidden,
             expert_ids,
@@ -315,7 +355,8 @@ def _moe_forward_decode_packed_nvfp4_fixed_triton(h: torch.Tensor, w: dict, cfg:
         )
     else:
         raise ValueError(
-            "LYNN_NATIVE_GATEUP_BACKEND must be 'triton', 'triton_fast_decode', or 'cuda_tile_inter', got "
+            "LYNN_NATIVE_GATEUP_BACKEND must be 'triton', 'triton_fast_decode', 'cuda_tile_inter', "
+            "or 'split16_fp4', got "
             f"{gateup_backend!r}"
         )
     down_backend = os.environ.get("LYNN_NATIVE_DOWN_BACKEND", "triton")
@@ -400,10 +441,11 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
             "triton",
             "triton_fast_decode",
             "cuda_tile_inter",
+            "split16_fp4",
         }:
             raise RuntimeError(
                 "LYNN_MOE_FAST_FIXED requires LYNN_NATIVE_GATEUP_BACKEND=triton, "
-                "triton_fast_decode, or cuda_tile_inter"
+                "triton_fast_decode, cuda_tile_inter, or split16_fp4"
             )
         if os.environ.get("LYNN_NATIVE_DOWN_BACKEND", "triton") not in {"triton", "cuda_tile"}:
             raise RuntimeError("LYNN_MOE_FAST_FIXED requires LYNN_NATIVE_DOWN_BACKEND=triton or cuda_tile")
@@ -463,7 +505,9 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
             "grouped_per16_nonatomic",
         }:
             gateup_backend = os.environ.get("LYNN_NATIVE_GATEUP_BACKEND", "triton")
-            if gateup_backend == "cuda_tile_inter" and _layer_selected_for_native_cuda(cfg):
+            if gateup_backend == "split16_fp4" and _layer_selected_for_native_cuda(cfg):
+                inter = _gate_up_native_split16_fp4(hidden, expert_ids, w)
+            elif gateup_backend == "cuda_tile_inter" and _layer_selected_for_native_cuda(cfg):
                 inter = _gate_up_native_cuda_tile_inter(hidden, expert_ids, w)
             elif gateup_backend == "triton_fast_decode":
                 inter = nvfp4_grouped_gate_up_silu_fast_decode(
@@ -487,7 +531,7 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
                     block_hidden=_env_int("LYNN_MOE_GATE_BLOCK_HIDDEN", 256),
                     num_warps=_env_int("LYNN_MOE_GATE_NUM_WARPS", 4),
                 )
-            elif gateup_backend == "cuda_tile_inter":
+            elif gateup_backend in {"cuda_tile_inter", "split16_fp4"}:
                 inter = nvfp4_grouped_gate_up_silu(
                     hidden,
                     expert_ids,
@@ -500,7 +544,8 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
                 )
             else:
                 raise ValueError(
-                    "LYNN_NATIVE_GATEUP_BACKEND must be 'triton', 'triton_fast_decode', or 'cuda_tile_inter', got "
+                    "LYNN_NATIVE_GATEUP_BACKEND must be 'triton', 'triton_fast_decode', 'cuda_tile_inter', "
+                    "or 'split16_fp4', got "
                     f"{gateup_backend!r}"
                 )
             if down_backend == "cuda_tile" and _layer_selected_for_native_cuda(cfg):

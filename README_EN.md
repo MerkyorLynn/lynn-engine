@@ -37,7 +37,8 @@ Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent ru
 | **P95 down backend sweep** | ✅ native_down_tile1 is **2.14×** faster than Triton down;all variants pass the contract |
 | **P96 native-down composition** | ✅ numeric PASS,but `0.0830ms` vs Triton `0.0810ms`;not promoted because two-stage scheduling eats the down win |
 | **P97 interval decomposition** | ✅ P93 gate/up + native_down_tile1 gives a full active-MoE **1.113×** speedup vs baseline,candidate contract PASS |
-| **Next target** | P98 opt-in runtime backend + full-generate parity; defer official/vendor-friendly NVFP4 v2 to the MTP/retrain + re-quant cycle |
+| **P98 split16 runtime gate** | ❌ backend build PASS,but graph-on capture FAIL;graph-off `new_ids_all_match=false`,median `0.80×`;not promoted |
+| **Next target** | P99 choose a safer path: preserve BF16 activation semantics or move activation quantization into the MTP/retrain + re-quant cycle |
 
 Current primary artifact:
 
@@ -116,6 +117,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P95 down backend sweep** | fixed P93 inter + down variants | native_down_tile1 median `0.0243ms` vs Triton `0.0521ms` | ✅ down half has real 2.14× headroom;P96 should compose native gate/up + native down |
 | **P96 native-down composition** | P93 gate/up + native_down_tile1 | median `0.0830ms` vs Triton active `0.0810ms`,quantized-ref cosine `0.9999986` | ✅ numeric PASS / ❌ no speed win;next work must reduce gate/up or fuse scheduling |
 | **P97 interval decomposition** | CUDA-event gate/down intervals | best `0.0800ms` vs baseline `0.0891ms`,speedup `1.113×` | ✅ first full active-MoE composition speed win;next gate is full-generate parity |
+| **P98 split16 runtime gate** | runtime `split16_fp4 + native_down_tile1` | graph-on capture fails;graph-off greedy mismatch and `0.80×` median TPS | ❌ P93/P97 quantized-activation contract is not production BF16-activation semantics |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:

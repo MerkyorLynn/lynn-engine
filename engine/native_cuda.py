@@ -100,7 +100,11 @@ def native_cuda_arch_flags() -> list[str]:
 
 def native_cuda_extra_cuda_cflags() -> list[str]:
     """Common CUDA compiler flags for Lynn native extensions."""
-    return ["-O3", "--use_fast_math", *native_cuda_arch_flags()]
+    arch_flags = native_cuda_arch_flags()
+    flags = ["-O3", "--use_fast_math", *arch_flags]
+    if os.environ.get("LYNN_ENABLE_SM120A_FP4_MMA", "0") == "1" or any("sm_120a" in flag for flag in arch_flags):
+        flags.append("-DLYNN_ENABLE_SM120A_FP4_MMA=1")
+    return flags
 
 
 def load_lynn_native_extension(*, build_dir: str | None = None, verbose: bool = False):
