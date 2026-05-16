@@ -216,6 +216,16 @@ if HAS_TRITON:
 if HAS_TRITON:
 
     _SP01_GATEUP_CONFIGS = [
+        # SP-01.5: add BLOCK_INTER ∈ {2, 4} candidates (Codex R6000 P55 tile_inter=2
+        # won 1.086-1.141x with max_abs=0 on the analogous CUDA path; let Triton
+        # autotune decide whether the same shape wins on Spark sm_121).
+        triton.Config({"BLOCK_INTER": 2, "BLOCK_HIDDEN": 64}, num_warps=2, num_stages=2),
+        triton.Config({"BLOCK_INTER": 2, "BLOCK_HIDDEN": 128}, num_warps=2, num_stages=2),
+        triton.Config({"BLOCK_INTER": 2, "BLOCK_HIDDEN": 256}, num_warps=4, num_stages=2),
+        triton.Config({"BLOCK_INTER": 4, "BLOCK_HIDDEN": 64}, num_warps=2, num_stages=2),
+        triton.Config({"BLOCK_INTER": 4, "BLOCK_HIDDEN": 128}, num_warps=2, num_stages=2),
+        triton.Config({"BLOCK_INTER": 4, "BLOCK_HIDDEN": 128}, num_warps=4, num_stages=2),
+        triton.Config({"BLOCK_INTER": 4, "BLOCK_HIDDEN": 256}, num_warps=4, num_stages=2),
         triton.Config({"BLOCK_INTER": 8, "BLOCK_HIDDEN": 64}, num_warps=2, num_stages=2),
         triton.Config({"BLOCK_INTER": 8, "BLOCK_HIDDEN": 64}, num_warps=4, num_stages=2),
         triton.Config({"BLOCK_INTER": 8, "BLOCK_HIDDEN": 128}, num_warps=2, num_stages=2),
