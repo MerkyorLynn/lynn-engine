@@ -614,6 +614,104 @@ torch::Tensor lynn_native_gate_up_silu_tile_inter_scalar(
   return out;
 }
 
+torch::Tensor lynn_native_gate_up_silu_tile_inter_threads_scalar(
+    torch::Tensor x,
+    torch::Tensor expert_ids,
+    torch::Tensor gate_up_packed,
+    torch::Tensor gate_up_scale,
+    torch::Tensor gate_up_global_scale,
+    int64_t tile_inter,
+    int64_t threads) {
+  TORCH_CHECK(x.is_cuda(), "x must be a CUDA tensor");
+  TORCH_CHECK(expert_ids.is_cuda(), "expert_ids must be a CUDA tensor");
+  TORCH_CHECK(gate_up_packed.is_cuda(), "gate_up_packed must be a CUDA tensor");
+  TORCH_CHECK(gate_up_scale.is_cuda(), "gate_up_scale must be a CUDA tensor");
+  TORCH_CHECK(gate_up_global_scale.is_cuda(), "gate_up_global_scale must be a CUDA tensor");
+  TORCH_CHECK(x.scalar_type() == torch::kBFloat16, "x must be bfloat16");
+  TORCH_CHECK(expert_ids.scalar_type() == torch::kInt32, "expert_ids must be int32");
+  TORCH_CHECK(gate_up_packed.scalar_type() == torch::kUInt8, "gate_up_packed must be uint8");
+  TORCH_CHECK(gate_up_scale.scalar_type() == torch::kFloat32, "gate_up_scale must be float32");
+  TORCH_CHECK(gate_up_global_scale.scalar_type() == torch::kFloat32, "gate_up_global_scale must be float32");
+  TORCH_CHECK(x.dim() == 1 && x.numel() == kHidden, "x must be [2048]");
+  TORCH_CHECK(gate_up_packed.dim() == 3, "gate_up_packed must be [experts, 1024, 1024]");
+  TORCH_CHECK(gate_up_scale.dim() == 3, "gate_up_scale must be [experts, 1024, 128]");
+  TORCH_CHECK(gate_up_packed.size(1) == kGateUpRows, "gate_up_packed row dim must be 1024");
+  TORCH_CHECK(gate_up_packed.size(2) == kHidden / 2, "gate_up_packed packed hidden dim must be 1024");
+  TORCH_CHECK(gate_up_scale.size(1) == kGateUpRows, "gate_up_scale row dim must be 1024");
+  TORCH_CHECK(gate_up_scale.size(2) == kHidden / 16, "gate_up_scale group dim must be 128");
+  TORCH_CHECK(gate_up_global_scale.numel() == 1, "gate_up_global_scale must be scalar");
+  TORCH_CHECK(
+      tile_inter == 1 || tile_inter == 2 || tile_inter == 4 || tile_inter == 8,
+      "tile_inter must be one of {1, 2, 4, 8}");
+  TORCH_CHECK(threads == 64 || threads == 128 || threads == 256, "threads must be one of {64, 128, 256}");
+
+  auto xc = x.contiguous();
+  auto expert_ids_c = expert_ids.contiguous();
+  auto packed_c = gate_up_packed.contiguous();
+  auto scale_c = gate_up_scale.contiguous();
+  auto global_c = gate_up_global_scale.contiguous();
+  const int64_t top_k = expert_ids_c.numel();
+  auto out = torch::empty({top_k, kIntermediate}, x.options());
+
+  const unsigned int grid_y = static_cast<unsigned int>((kIntermediate + tile_inter - 1) / tile_inter);
+  const dim3 grid(static_cast<unsigned int>(top_k), grid_y);
+
+#define LYNN_LAUNCH_GATEUP_TILE_THREADS(TILE, THREAD_COUNT)                                                     \
+  do {                                                                                                          \
+    const size_t shared_bytes = static_cast<size_t>(TILE) * (THREAD_COUNT) * 2 * sizeof(float);                 \
+    gate_up_silu_tile_inter_scalar_kernel<TILE, THREAD_COUNT><<<grid, THREAD_COUNT, shared_bytes>>>(            \
+        reinterpret_cast<const __nv_bfloat16*>(xc.data_ptr<at::BFloat16>()),                                    \
+        expert_ids_c.data_ptr<int32_t>(),                                                                       \
+        packed_c.data_ptr<uint8_t>(),                                                                           \
+        scale_c.data_ptr<float>(),                                                                              \
+        global_c.data_ptr<float>(),                                                                             \
+        reinterpret_cast<__nv_bfloat16*>(out.data_ptr<at::BFloat16>()),                                         \
+        packed_c.stride(0),                                                                                     \
+        packed_c.stride(1),                                                                                     \
+        packed_c.stride(2),                                                                                     \
+        scale_c.stride(0),                                                                                      \
+        scale_c.stride(1),                                                                                      \
+        scale_c.stride(2),                                                                                      \
+        out.stride(0),                                                                                          \
+        out.stride(1));                                                                                         \
+  } while (false)
+
+  if (tile_inter == 1 && threads == 64) {
+    LYNN_LAUNCH_GATEUP_TILE_THREADS(1, 64);
+  } else if (tile_inter == 1 && threads == 128) {
+    LYNN_LAUNCH_GATEUP_TILE_THREADS(1, 128);
+  } else if (tile_inter == 1 && threads == 256) {
+    LYNN_LAUNCH_GATEUP_TILE_THREADS(1, 256);
+  } else if (tile_inter == 2 && threads == 64) {
+    LYNN_LAUNCH_GATEUP_TILE_THREADS(2, 64);
+  } else if (tile_inter == 2 && threads == 128) {
+    LYNN_LAUNCH_GATEUP_TILE_THREADS(2, 128);
+  } else if (tile_inter == 2 && threads == 256) {
+    LYNN_LAUNCH_GATEUP_TILE_THREADS(2, 256);
+  } else if (tile_inter == 4 && threads == 64) {
+    LYNN_LAUNCH_GATEUP_TILE_THREADS(4, 64);
+  } else if (tile_inter == 4 && threads == 128) {
+    LYNN_LAUNCH_GATEUP_TILE_THREADS(4, 128);
+  } else if (tile_inter == 4 && threads == 256) {
+    LYNN_LAUNCH_GATEUP_TILE_THREADS(4, 256);
+  } else if (tile_inter == 8 && threads == 64) {
+    LYNN_LAUNCH_GATEUP_TILE_THREADS(8, 64);
+  } else if (tile_inter == 8 && threads == 128) {
+    LYNN_LAUNCH_GATEUP_TILE_THREADS(8, 128);
+  } else {
+    LYNN_LAUNCH_GATEUP_TILE_THREADS(8, 256);
+  }
+
+#undef LYNN_LAUNCH_GATEUP_TILE_THREADS
+
+  const cudaError_t err = cudaGetLastError();
+  TORCH_CHECK(
+      err == cudaSuccess,
+      "gate_up_silu_tile_inter_threads_scalar kernel launch failed: ",
+      cudaGetErrorString(err));
+  return out;
+}
+
 torch::Tensor lynn_native_down_weighted_sum_scalar(
     torch::Tensor inter,
     torch::Tensor expert_ids,
