@@ -801,6 +801,47 @@ torch::Tensor lynn_native_down_weighted_sum_tile_scalar(
   return out;
 }
 
+torch::Tensor lynn_native_down_grouped_per16_reference(
+    torch::Tensor inter,
+    torch::Tensor expert_ids,
+    torch::Tensor routing_weights,
+    torch::Tensor down_packed,
+    torch::Tensor down_scale,
+    torch::Tensor down_global_scale) {
+  TORCH_CHECK(inter.is_cuda(), "inter must be a CUDA tensor");
+  TORCH_CHECK(expert_ids.is_cuda(), "expert_ids must be a CUDA tensor");
+  TORCH_CHECK(routing_weights.is_cuda(), "routing_weights must be a CUDA tensor");
+  TORCH_CHECK(down_packed.is_cuda(), "down_packed must be a CUDA tensor");
+  TORCH_CHECK(down_scale.is_cuda(), "down_scale must be a CUDA tensor");
+  TORCH_CHECK(down_global_scale.is_cuda(), "down_global_scale must be a CUDA tensor");
+  TORCH_CHECK(inter.scalar_type() == torch::kBFloat16, "inter must be bfloat16");
+  TORCH_CHECK(expert_ids.scalar_type() == torch::kInt32, "expert_ids must be int32");
+  TORCH_CHECK(routing_weights.scalar_type() == torch::kFloat32, "routing_weights must be float32");
+  TORCH_CHECK(down_packed.scalar_type() == torch::kUInt8, "down_packed must be uint8");
+  TORCH_CHECK(down_scale.scalar_type() == torch::kFloat32, "down_scale must be float32");
+  TORCH_CHECK(down_global_scale.scalar_type() == torch::kFloat32, "down_global_scale must be float32");
+  TORCH_CHECK(inter.dim() == 2 && inter.size(1) == kIntermediate, "inter must be [top_k, 512]");
+  TORCH_CHECK(expert_ids.dim() == 1 && expert_ids.size(0) == inter.size(0), "expert_ids must match top_k");
+  TORCH_CHECK(
+      routing_weights.dim() == 1 && routing_weights.size(0) == inter.size(0),
+      "routing_weights must match top_k");
+  TORCH_CHECK(down_packed.dim() == 3, "down_packed must be [experts, 2048, 256]");
+  TORCH_CHECK(down_scale.dim() == 3, "down_scale must be [experts, 2048, 32]");
+  TORCH_CHECK(down_packed.size(1) == kHidden, "down_packed row dim must be 2048");
+  TORCH_CHECK(down_packed.size(2) == kIntermediate / 2, "down_packed packed inter dim must be 256");
+  TORCH_CHECK(down_scale.size(1) == kHidden, "down_scale row dim must be 2048");
+  TORCH_CHECK(down_scale.size(2) == kIntermediate / 16, "down_scale group dim must be 32");
+  TORCH_CHECK(down_global_scale.numel() == 1, "down_global_scale must be scalar");
+
+  return lynn_native_down_weighted_sum_scalar(
+      inter,
+      expert_ids,
+      routing_weights,
+      down_packed,
+      down_scale,
+      down_global_scale);
+}
+
 torch::Tensor lynn_native_active_moe_scalar_contract(
     torch::Tensor x,
     torch::Tensor expert_ids,

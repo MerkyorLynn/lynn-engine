@@ -29,6 +29,13 @@ torch::Tensor lynn_native_down_weighted_sum_tile_scalar(
     torch::Tensor down_scale,
     torch::Tensor down_global_scale,
     int64_t tile_hidden);
+torch::Tensor lynn_native_down_grouped_per16_reference(
+    torch::Tensor inter,
+    torch::Tensor expert_ids,
+    torch::Tensor routing_weights,
+    torch::Tensor down_packed,
+    torch::Tensor down_scale,
+    torch::Tensor down_global_scale);
 torch::Tensor lynn_native_active_moe_scalar_contract(
     torch::Tensor x,
     torch::Tensor expert_ids,
@@ -78,6 +85,10 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
       "down_weighted_sum_tile_scalar",
       &lynn_native_down_weighted_sum_tile_scalar,
       "P48 tile-hidden non-atomic CUDA scalar down weighted-sum probe for packed NVFP4 active experts");
+  m.def(
+      "down_grouped_per16_reference",
+      &lynn_native_down_grouped_per16_reference,
+      "P66 reference ABI for future grouped per-16 native-FP4 down projection");
   m.def(
       "active_moe_scalar_contract",
       &lynn_native_active_moe_scalar_contract,

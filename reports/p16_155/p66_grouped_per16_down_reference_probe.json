@@ -1,0 +1,163 @@
+{
+  "schema_version": "lynn-engine-p66-grouped-per16-down-reference-probe-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final",
+  "layers": [
+    2,
+    8,
+    14,
+    20,
+    28,
+    36
+  ],
+  "prompt": "用一句话解释 MoE active parameters",
+  "cases": [
+    {
+      "layer": 2,
+      "expert_ids": [
+        3,
+        40,
+        57,
+        71,
+        158,
+        207,
+        235,
+        17
+      ],
+      "top_k": 8,
+      "diff_vs_triton_down": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104
+      },
+      "triton_down_ms": 0.02658453385035197,
+      "native_reference_ms": 0.030869332949320476,
+      "native_vs_triton_speedup": 0.8611956045178221
+    },
+    {
+      "layer": 8,
+      "expert_ids": [
+        38,
+        51,
+        69,
+        113,
+        139,
+        153,
+        203,
+        158
+      ],
+      "top_k": 8,
+      "diff_vs_triton_down": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "triton_down_ms": 0.026146133740743,
+      "native_reference_ms": 0.030874667565027873,
+      "native_vs_triton_speedup": 0.8468474578932489
+    },
+    {
+      "layer": 14,
+      "expert_ids": [
+        13,
+        47,
+        97,
+        110,
+        161,
+        165,
+        172,
+        60
+      ],
+      "top_k": 8,
+      "diff_vs_triton_down": {
+        "max_abs": 3.0517578125e-05,
+        "mean_abs": 1.4901161193847656e-08,
+        "rel_l2": 2.6802148568094708e-05,
+        "cosine": 1.0
+      },
+      "triton_down_ms": 0.026678399244944254,
+      "native_reference_ms": 0.030934399366378783,
+      "native_vs_triton_speedup": 0.8624185305482225
+    },
+    {
+      "layer": 20,
+      "expert_ids": [
+        36,
+        48,
+        95,
+        108,
+        131,
+        149,
+        196,
+        55
+      ],
+      "top_k": 8,
+      "diff_vs_triton_down": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      },
+      "triton_down_ms": 0.026135466496149697,
+      "native_reference_ms": 0.03087786634763082,
+      "native_vs_triton_speedup": 0.8464142632755131
+    },
+    {
+      "layer": 28,
+      "expert_ids": [
+        12,
+        49,
+        116,
+        155,
+        159,
+        192,
+        204,
+        63
+      ],
+      "top_k": 8,
+      "diff_vs_triton_down": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "triton_down_ms": 0.02649493416150411,
+      "native_reference_ms": 0.03088000019391378,
+      "native_vs_triton_speedup": 0.8579965671997005
+    },
+    {
+      "layer": 36,
+      "expert_ids": [
+        24,
+        43,
+        100,
+        139,
+        201,
+        221,
+        222,
+        35
+      ],
+      "top_k": 8,
+      "diff_vs_triton_down": {
+        "max_abs": 3.814697265625e-06,
+        "mean_abs": 1.862645149230957e-09,
+        "rel_l2": 1.6214884226428694e-06,
+        "cosine": 1.0000001192092896
+      },
+      "triton_down_ms": 0.026522666215896606,
+      "native_reference_ms": 0.030882134040196737,
+      "native_vs_triton_speedup": 0.8588352793681366
+    }
+  ],
+  "summary": {
+    "mean_triton_down_ms": 0.026427022284931607,
+    "mean_native_reference_ms": 0.030886400077078078,
+    "mean_native_vs_triton_speedup": 0.8556179504671073,
+    "min_cosine_vs_triton": 0.9999998807907104,
+    "max_rel_l2_vs_triton": 2.6802148568094708e-05
+  },
+  "contract_pass": true,
+  "promote_speed": false,
+  "decision": "This is a reference ABI for the future grouped per-16 down kernel. It should not be promoted for speed; replace its scalar inner loop with CUTLASS/custom CUDA math only after this report stays green."
+}
