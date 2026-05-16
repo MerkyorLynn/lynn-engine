@@ -31,7 +31,8 @@ Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B final 基�
 | **P89 per-16 scale contract** | ✅ 当前 Lynn-native artifact 可直接走 split16 per-16 scale native-FP4 路线;K32 单 scale 折叠不安全 |
 | **P90 real split16 gate/up kernel** | ✅ 真实 expert116、8 gate + 8 up rows、K=2048 全维度 PASS,max_abs `2.38e-7` |
 | **P91 row-tile sweep** | ✅ 8/16/32/64 行全部 PASS;64 行 median `0.0443ms`,rows/ms 比 8 行提升 **8.3×** |
-| **下一目标** | P92 full 512-row gate/up expert shape;官方/vendor-friendly NVFP4 v2 放到 MTP/retrain + re-quant 批次 |
+| **P92 full gate/up expert** | ✅ 完整 512 gate + 512 up rows PASS,median `0.0502ms`,max_abs `4.77e-7` |
+| **下一目标** | P93 production-shaped gate/up backend / down-fused path;官方/vendor-friendly NVFP4 v2 放到 MTP/retrain + re-quant 批次 |
 
 当前主力 artifact:
 
@@ -107,6 +108,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P89 per-16 scale tile contract** | split16 neutral-scale MMA + 显式 per-16 scale accumulate | `rel_l2=1.0e-7`,tolerance PASS;K32 fold best rel_l2 0.0227 | ✅ 先消费当前 Lynn-native artifact;不等官方重重量化 |
 | **P90 split16 gate/up kernel** | real expert116,8 gate + 8 up rows,K=2048 | median 0.0621ms,max_abs `2.38e-7`,rel_l2 `1.53e-7` | ✅ 第一版真实 full-K native FP4 gate/up row tile PASS |
 | **P91 split16 row-tile sweep** | row_count 8/16/32/64 | 64 rows median `0.0443ms`,rows/ms `2892`,all tolerance PASS | ✅ 下一个设计点锁定 64-row tile |
+| **P92 full gate/up expert** | 512 gate + 512 up rows,K=2048 | median `0.0502ms`,rows/ms `20401.7`,max_abs `4.77e-7` | ✅ 完整 active expert gate/up 子算子 PASS |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 当前 R6000 推荐环境:
@@ -219,6 +221,8 @@ P85-P89 说明:官方/ModelOpt 路线继续保留,但 runtime 主线不再等待
 P90 说明:第一版真实 split16 gate/up kernel 已经把 P89 从 tile proof 推到 full-K row tile。输入是真实 Lynn 27B layer28 expert116、真实 activation、真实 packed gate/up weight,输出 8 个 gate rows + 8 个 up rows,K=2048 全维度。结果 `max_abs=2.38e-7`, `rel_l2=1.53e-7`,tolerance PASS。结论:当前 Lynn-native artifact 可以直接喂 native FP4 gate/up kernel,无需等待官方/vendor re-quant;P91 开始扩大 row tile 并减少 atomic/launch overhead。详见 [`docs/LYNN_ENGINE_P90_SPLIT16_GATEUP_KERNEL_20260516.md`](docs/LYNN_ENGINE_P90_SPLIT16_GATEUP_KERNEL_20260516.md)。
 
 P91 说明:row-tile sweep 直接给出下一步形态。8/16/32/64 行全部在 `1e-5` tolerance 下 PASS;64 行 median **0.0443ms**,rows/ms 从 8 行的 **350** 提到 **2892**。这说明扩大 row tile 没有破坏 P90 数学,还显著摊薄 launch/atomic overhead。P92 应直接尝试 full 512-row gate/up expert shape。详见 [`docs/LYNN_ENGINE_P91_SPLIT16_ROWTILE_SWEEP_20260516.md`](docs/LYNN_ENGINE_P91_SPLIT16_ROWTILE_SWEEP_20260516.md)。
+
+P92 说明:完整 gate/up expert 子算子已经通过。真实 Lynn 27B layer28 expert116,512 个 gate rows + 512 个 up rows,K=2048 全维度,median **0.0502ms**,`max_abs=4.77e-7`,`rel_l2=1.53e-7`。这回答了核心路线问题:当前 Lynn-native artifact 可以直接驱动完整 native-FP4 gate/up expert 子算子。后续工作从“能不能吃当前 artifact”转为“怎么把 launch/atomic/row ownership 做成生产 backend”。详见 [`docs/LYNN_ENGINE_P92_FULL_GATEUP_EXPERT_20260516.md`](docs/LYNN_ENGINE_P92_FULL_GATEUP_EXPERT_20260516.md)。
 
 P19 说明:在不改变数值路径的前提下,active MoE kernel block retune 把 R6000 full graph 从 **103.40/107.13 TPS** 提到 **115.41/120.25 TPS**。推荐配置已成为默认:`gate_hidden=256,down_inter=512`,并保留 env override 方便后续设备差异调参。详见 [`docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md`](docs/LYNN_ENGINE_P19_ACTIVE_BLOCK_RETUNE_20260516.md)。
 

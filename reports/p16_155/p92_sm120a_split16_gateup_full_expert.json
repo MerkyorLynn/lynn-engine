@@ -1,0 +1,82 @@
+{
+  "schema_version": "lynn-engine-p92-sm120a-split16-gateup-full-expert-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final",
+  "layer": 28,
+  "expert_slot": 0,
+  "expert_id": 116,
+  "top_k_expert_ids": [
+    116,
+    159,
+    49,
+    204,
+    12,
+    192,
+    63,
+    155
+  ],
+  "inter_offset": 0,
+  "row_count": 512,
+  "rows_per_block": 8,
+  "blocks": 64,
+  "scale_byte": 127,
+  "torch": "2.10.0+cu128",
+  "cuda_capability": [
+    12,
+    0
+  ],
+  "include_paths": [
+    "/root/miniconda3/lib/python3.12/site-packages/deep_gemm/include"
+  ],
+  "cuda_cflags": [
+    "-O3",
+    "--use_fast_math",
+    "-arch=sm_120a"
+  ],
+  "build_seconds": 53.801265716552734,
+  "reference_seconds": 0.14203429222106934,
+  "repeats": 20,
+  "warmup": 5,
+  "times_ms": [
+    0.06054399907588959,
+    0.05222399905323982,
+    0.05196800082921982,
+    0.05020799860358238,
+    0.05104000121355057,
+    0.05027199909090996,
+    0.05049600079655647,
+    0.049375999718904495,
+    0.04975999891757965,
+    0.04982399940490723,
+    0.05020799860358238,
+    0.05081599950790405,
+    0.05004800111055374,
+    0.050175998359918594,
+    0.04966399818658829,
+    0.050335999578237534,
+    0.05004800111055374,
+    0.04940799996256828,
+    0.049056001007556915,
+    0.04873599857091904
+  ],
+  "mean_ms": 0.05071039963513613,
+  "median_ms": 0.05019199848175049,
+  "rows_per_ms_median": 20401.658251809207,
+  "contract": {
+    "max_abs_err": 4.76837158203125e-07,
+    "mean_abs_err": 8.024107955861837e-08,
+    "rel_l2": 1.5342848817061294e-07,
+    "pass_with_tolerance": true,
+    "tolerance": 1e-05,
+    "observed_min": -3.0306341648101807,
+    "observed_max": 2.105393409729004,
+    "expected_min": -3.0306341648101807,
+    "expected_max": 2.1053929328918457,
+    "worst": {
+      "half": "gate",
+      "row": 225,
+      "observed": -1.1408960819244385,
+      "expected": -1.1408956050872803
+    }
+  },
+  "decision": "PASS: full 512-row gate/up expert split16 kernel preserves the current Lynn-native artifact contract."
+}

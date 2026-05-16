@@ -31,7 +31,8 @@ Lynn engine has moved from "Qwen 35B architecture bring-up" to an independent ru
 | **P89 per-16 scale contract** | ✅ the current Lynn-native artifact can go directly through split16 per-16 scale native-FP4; single K32 scale folding is unsafe |
 | **P90 real split16 gate/up kernel** | ✅ real expert116,8 gate + 8 up rows,K=2048 full dimension PASS,max_abs `2.38e-7` |
 | **P91 row-tile sweep** | ✅ 8/16/32/64 rows all PASS;64-row median `0.0443ms`,rows/ms is **8.3×** above the 8-row tile |
-| **Next target** | P92 full 512-row gate/up expert shape; defer official/vendor-friendly NVFP4 v2 to the MTP/retrain + re-quant cycle |
+| **P92 full gate/up expert** | ✅ full 512 gate + 512 up rows PASS,median `0.0502ms`,max_abs `4.77e-7` |
+| **Next target** | P93 production-shaped gate/up backend / down-fused path; defer official/vendor-friendly NVFP4 v2 to the MTP/retrain + re-quant cycle |
 
 Current primary artifact:
 
@@ -104,6 +105,7 @@ Lynn 27B variable-pruned Recovery step5000
 | **P89 per-16 scale tile contract** | split16 neutral-scale MMA + explicit per-16 scale accumulation | `rel_l2=1.0e-7`,tolerance PASS;best K32 fold rel_l2 0.0227 | ✅ consume the current Lynn-native artifact first;do not wait for official re-quant |
 | **P90 split16 gate/up kernel** | real expert116,8 gate + 8 up rows,K=2048 | median 0.0621ms,max_abs `2.38e-7`,rel_l2 `1.53e-7` | ✅ first real full-K native FP4 gate/up row tile PASS |
 | **P91 split16 row-tile sweep** | row_count 8/16/32/64 | 64 rows median `0.0443ms`,rows/ms `2892`,all tolerance PASS | ✅ next design point is the 64-row tile |
+| **P92 full gate/up expert** | 512 gate + 512 up rows,K=2048 | median `0.0502ms`,rows/ms `20401.7`,max_abs `4.77e-7` | ✅ full active expert gate/up sub-operator PASS |
 | Long target | <5 ms | >200 | native FP4 / larger fused blocks |
 
 Current best R6000 environment:
@@ -507,6 +509,14 @@ rises from **350** at 8 rows to **2892**. Widening the tile preserves the P90
 math and amortizes launch/atomic overhead. P92 should attempt a full 512-row
 gate/up expert shape. See
 [`docs/LYNN_ENGINE_P91_SPLIT16_ROWTILE_SWEEP_20260516.md`](docs/LYNN_ENGINE_P91_SPLIT16_ROWTILE_SWEEP_20260516.md).
+
+P92 note: the full gate/up expert sub-operator passes. The probe uses real Lynn
+27B layer28 expert116, 512 gate rows plus 512 up rows, and K=2048. Median is
+**0.0502 ms**, with `max_abs=4.77e-7` and `rel_l2=1.53e-7`. This answers the
+route question: the current Lynn-native artifact can directly drive a complete
+native-FP4 gate/up expert sub-operator. The remaining work is production kernel
+engineering around launch overhead, atomics, and row ownership. See
+[`docs/LYNN_ENGINE_P92_FULL_GATEUP_EXPERT_20260516.md`](docs/LYNN_ENGINE_P92_FULL_GATEUP_EXPERT_20260516.md).
 
 Packed-resident memory note: the default server still keeps BF16 shadows so it
 can run multi-request prefill. P11 proved that in a session-scoped lifecycle,
