@@ -27,8 +27,16 @@ points, it may still dominate the 27B line on factual coverage.
 
 ## Runner
 
+R6000 Lynn-native pivot runner:
+
 ```bash
 scripts/r6000_v4pro_nvfp4_pivot_probe.sh
+```
+
+Spark/SGLang-compatible v8-RTN batch quantization runner:
+
+```bash
+scripts/spark_v4_35b_v8_rtn_quant_batch.sh
 ```
 
 Default source/target:
@@ -90,3 +98,18 @@ Promote this line from curiosity to mainline if all hold:
 | TPS | not a 155 replacement yet; measure after quality/size pass. |
 
 Until this gate lands, keep 27B A3B W4A8+MTP as the active R6000 155 TPS line.
+
+## Parallel Work Policy
+
+Do not pause the active 27B A3B work while V4-Pro/Flash quality numbers are
+running.
+
+| Machine | Continue Now | Why |
+|---|---|---|
+| R6000 | P118 verify/commit state parity, native K=2/K=3 verifier prep, 27B serving speed probes | This is the path to cashing out MTP and 155 TPS. V4 download/quant is mostly I/O. |
+| A100 | 27B W4A8 quality/MTP label construction and sidecar training | These labels remain useful even if 35B becomes the quality default; they also keep the 27B speed route alive. |
+| Spark | V4-Pro/Flash BF16 and v8-RTN MMLU/GPQA | This decides whether 35B NVFP4 should become the quality-first route. |
+
+Only start a 35B W4A8/MTP conversion line if the four-way Spark matrix says
+35B NVFP4 keeps a decisive quality lead after quantization. Until then, 35B
+NVFP4 is a measured pivot candidate, not a blocker.
