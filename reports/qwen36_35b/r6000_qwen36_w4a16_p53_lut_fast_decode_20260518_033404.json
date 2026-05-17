@@ -1,0 +1,107 @@
+{
+  "schema_version": "lynn-engine-p53-lut-fast-decode-probe-v1",
+  "model": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0",
+  "layers": [
+    4,
+    16,
+    28,
+    36
+  ],
+  "cases": [
+    {
+      "layer": 4,
+      "expert_ids": [
+        44,
+        107,
+        121,
+        141,
+        148,
+        206,
+        221,
+        73
+      ],
+      "diff_fast_vs_ref": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104
+      },
+      "ref_ms": 0.03312279880046844,
+      "fast_ms": 0.03089759945869446,
+      "speedup": 1.0720185186149735
+    },
+    {
+      "layer": 16,
+      "expert_ids": [
+        4,
+        12,
+        56,
+        121,
+        173,
+        178,
+        195,
+        130
+      ],
+      "diff_fast_vs_ref": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "ref_ms": 0.032978400588035583,
+      "fast_ms": 0.030938801169395447,
+      "speedup": 1.0659236732371422
+    },
+    {
+      "layer": 28,
+      "expert_ids": [
+        12,
+        56,
+        67,
+        130,
+        173,
+        178,
+        234,
+        105
+      ],
+      "diff_fast_vs_ref": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "ref_ms": 0.03306719958782196,
+      "fast_ms": 0.030893200635910036,
+      "speedup": 1.070371437959228
+    },
+    {
+      "layer": 36,
+      "expert_ids": [
+        26,
+        47,
+        108,
+        158,
+        225,
+        240,
+        250,
+        124
+      ],
+      "diff_fast_vs_ref": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "ref_ms": 0.03280600011348724,
+      "fast_ms": 0.03074280023574829,
+      "speedup": 1.067111644414871
+    }
+  ],
+  "summary": {
+    "mean_ref_ms": 0.03299359977245331,
+    "mean_fast_ms": 0.030868100374937056,
+    "mean_speedup": 1.0688563185565536,
+    "min_cosine": 0.9999998807907104,
+    "max_rel_l2": 0.0
+  }
+}

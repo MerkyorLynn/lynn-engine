@@ -28,6 +28,14 @@ W4A16 is the stable native counterpart to Q4_K_M:
 - BF16 activations preserve margin on structured/code/tool-call prompts;
 - native Lynn packaging keeps the MTP and runtime optimization path open.
 
+The key distinction from W4A8 is activation precision. Q4_K_M stays stable
+because it is a weight-only 4-bit route: activations remain FP16/BF16. Lynn
+W4A16 should follow that contract. Its CUDA path is not "FP8 activation x FP4
+weight"; it is fused 4-bit weight load/dequant plus BF16/FP16 GEMV/GEMM or
+grouped-MoE kernels. W4A8 has a real R6000 tensor-core atom path, but it changes
+the activation contract and remains a separate acceleration experiment until
+structured/code/tool-call quality proves it safe.
+
 W4A8 should still be measured in the matrix, but only as a later acceleration
 branch. If W4A16 lands close to the Q4_K_M/FP8 quality band, do not trade that
 stability away for W4A8.
@@ -74,6 +82,23 @@ skip-shared at 82.67 TPS, skip-active at 91.65 TPS, and skip-all-MoE at
 fusion, and/or a locally accepted speculation path. Also keep
 `LYNN_PACKED_SHARED_EXPERT=0`: on 35B, packed shared scalar/native paths are
 slower than BF16 shared expert and native fast 2D has worse local cosine.
+
+The first Qwen3.6-specific speed win is now validated. `triton_fast_decode`
+keeps the W4A16/BF16-activation contract and only simplifies the E2M1 decode
+expression inside the existing Triton gate/up shape. On 2026-05-18 it passed the
+P37 greedy parity gate on official 35B W4A16 with 3/3 exact prompts and improved
+median runner TPS from 100.43 to 102.57. The service gate then passed 14/14
+structured OpenAI requests with mean decode TPS 87.71, min 86.99, and P25
+512-token wall/decode TPS of 76.58 / 86.60. This is now part of the promoted
+fast W4A16 profile.
+
+Several tempting small fusions are closed for now. A Triton router top-k softmax
+kernel is faster only after logits are already computed, but the full router path
+regresses from 0.046 ms to 0.052 ms on sampled layers. A `tl.dot` gate/up rewrite
+also regresses badly on official 35B layer 28: 0.080 ms versus the current 0.033
+ms reference. Tile-only MoE sweeps did not beat the default gate/down shape.
+The next real kernel island remains Lynn-owned W4A16 grouped active/shared MoE
+and attention fusion, not more router micro-kernels.
 
 Full-attention graph slots are not yet a reusable cross-request solution. P9-V
 passed strict parity when captured on the same prompt state, but P9-W failed

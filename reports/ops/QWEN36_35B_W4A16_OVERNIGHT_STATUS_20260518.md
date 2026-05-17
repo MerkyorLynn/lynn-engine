@@ -109,6 +109,34 @@ Copied reports:
 - `reports/qwen36_35b/r6000_qwen36_w4a16_graph_structured_p25_20260518_013525.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_graph_structured_rerun_gate_20260518_013742.json`
 
+Fast gate/up decode was then revalidated on the official 35B W4A16 package.
+`LYNN_NATIVE_GATEUP_BACKEND=triton_fast_decode` keeps the same W4A16 quality
+contract and changes only the E2M1 decode expression in the existing Triton
+gate/up kernel.
+
+| Probe | Result |
+|---|---:|
+| P53 gate/up micro, sampled layers | 1.069x mean speedup, max rel L2 0 |
+| P37 generate parity | 3/3 exact, promote_default true |
+| P37 median TPS | 100.43 -> 102.57 |
+| P25 512-token wall / decode TPS | 76.58 / 86.60 |
+| Structured OpenAI gate | GREEN, 14/14 format-clean |
+| Structured gate decode TPS | mean 87.71, min 86.99 |
+
+Copied reports:
+
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p53_lut_fast_decode_20260518_033404.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p37_fast_decode_gate_20260518_033502.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_fastdecode_graph_p25_20260518_033637.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_fastdecode_graph_structured_gate_20260518_033637.json`
+
+Negative probes from the same loop:
+
+- Router Triton top-k is not a full-path win: sampled full router regressed from
+  0.046 ms to 0.052 ms.
+- `tl.dot` gate/up is not a win on layer 28: 0.080 ms versus 0.033 ms current.
+- Active MoE tile sweep did not beat the current default enough to promote.
+
 ## Speed Profile
 
 R6000 P26 phase profile on graph+in-place narrows the 155 TPS gap:
