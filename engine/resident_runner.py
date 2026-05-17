@@ -1126,6 +1126,14 @@ class LynnIncrementalRunner:
         mtp_shadow_trace: list[dict[str, Any]] = []
         mtp_shadow_step_seconds: list[float] = []
         mtp_shadow_active = self.mtp_sidecar_loaded and self.mtp_shadow_verify_enabled
+        mtp_shadow_disabled_reason = None
+        if (
+            mtp_shadow_active
+            and forced_prefix_ids
+            and os.environ.get("LYNN_MTP_DISABLE_FOR_FORMAT_GUARD", "0") == "1"
+        ):
+            mtp_shadow_active = False
+            mtp_shadow_disabled_reason = "format_guard_forced_prefix"
 
         def record_mtp_shadow(
             *,
@@ -1373,6 +1381,7 @@ class LynnIncrementalRunner:
         mtp_shadow_summary = {
             "loaded": self.mtp_sidecar_loaded,
             "enabled": mtp_shadow_active,
+            "disabled_reason": mtp_shadow_disabled_reason,
             "sidecar_file": self.mtp_sidecar_path,
             "load_seconds": self.mtp_load_seconds,
             "events": len(mtp_shadow_trace),

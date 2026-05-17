@@ -1,0 +1,62 @@
+[
+  {
+    "id": "python_slug_import_def_hardmiss_v9",
+    "prompt": "Only output a Python code block defining slugify(text: str) -> str. It must import re, lowercase text, replace every run of non alphanumeric characters with one hyphen, strip leading/trailing hyphens, and return the result. No explanation.",
+    "weight": 7.0
+  },
+  {
+    "id": "python_slug_plain_import_re_v9",
+    "prompt": "Only output Python code, no markdown. Import re and define slugify(text: str) -> str that lowercases, replaces non alphanumeric runs with hyphens, strips hyphens at both ends, and returns the slug.",
+    "weight": 6.0
+  },
+  {
+    "id": "moe_router_chinese_expert_dispatch_v9",
+    "prompt": "用一句中文短句说明 MoE router 的作用。必须以 router 开头,必须包含 动态分配、不同的专家,不要 bullet,不要英文。",
+    "weight": 7.0
+  },
+  {
+    "id": "moe_router_expert_network_v9",
+    "prompt": "用一句中文短句回答: MoE router 如何让输入进入专家网络。必须包含 输入、分配、专家网络,不要 bullet。",
+    "weight": 6.0
+  },
+  {
+    "id": "linear_attention_complexity_v9",
+    "prompt": "用一句中文短句说明 linear attention 适合长上下文的原因。必须以 linear attention 开头,必须包含 计算复杂度、线性,不要 bullet。",
+    "weight": 7.0
+  },
+  {
+    "id": "linear_attention_kv_cache_v9",
+    "prompt": "用一句中文短句说明 linear attention 如何节省长上下文开销。必须包含 KV cache、计算、线性增长,不要 bullet。",
+    "weight": 6.0
+  },
+  {
+    "id": "json_berlin_metric_no_think_v9",
+    "prompt": "Return exactly one compact JSON object with keys city and unit for Berlin in metric units. No markdown, no explanation, no thinking text.",
+    "weight": 5.0
+  },
+  {
+    "id": "json_status_ready_no_think_v9",
+    "prompt": "Return exactly one compact JSON object with key status and value ready. No markdown, no explanation, no thinking text.",
+    "weight": 5.0
+  },
+  {
+    "id": "repair_json_berlin_metric_no_think_v9",
+    "prompt": "Repair this invalid JSON and output exactly one compact valid JSON object: {'city':'Berlin','unit':'metric',}. No markdown, no explanation, no thinking text.",
+    "weight": 5.0
+  },
+  {
+    "id": "math_distance_stop_exact_v9",
+    "prompt": "Answer only with the distance and unit, then stop: a car travels 45 mph for 3 hours.",
+    "weight": 4.0
+  },
+  {
+    "id": "json_translate_text_key_v9",
+    "prompt": "Output exactly one compact JSON arguments object for translate_text with keys text and target_language, using text hello and target_language Japanese. No markdown.",
+    "weight": 5.0
+  },
+  {
+    "id": "json_status_colon_punctuation_v9",
+    "prompt": "Return exactly this JSON shape with double quotes and no spaces: {\"status\":\"ready\"}. No markdown.",
+    "weight": 4.0
+  }
+]

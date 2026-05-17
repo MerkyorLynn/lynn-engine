@@ -697,6 +697,49 @@ So P113's cost cut transfers to structured traces, but quality/coverage still
 does not. Structured/template serving should keep MTP disabled until a
 guard-aware sidecar or route-specific policy is trained.
 
+P117 is that first route-specific policy artifact, still in AMBER:
+
+```text
+reports/mtp/r6000_p117_mtp_serving_policy_v34_route_allowlist_20260517_2018.json
+decision: AMBER-POLICY
+runtime env:
+  LYNN_MTP_LAYER_MOE=decode_slot_sorted
+  LYNN_MTP_SPEC_POLICY=route_allowlist_v1
+  LYNN_MTP_DISABLE_FOR_FORMAT_GUARD=1
+raw top1-depth2 allowlist:
+  heldout_json_berlin_metric
+  heldout_repair_json
+  heldout_tool_translate
+structured_guarded default: disabled
+```
+
+The corresponding runtime guard is now wired into `resident_runner.generate()`:
+if `LYNN_MTP_DISABLE_FOR_FORMAT_GUARD=1` and a forced format prefix is present,
+MTP shadow verification is disabled for that request and the response metadata
+records `disabled_reason: format_guard_forced_prefix`. This avoids paying MTP
+draft cost on the structured path that P116 says is not ready.
+
+A100 v42/v43 tests whether the v27 hard-miss set can be fixed with direct
+continuation:
+
+```text
+reports/mtp/mtp_fc_calibration_prompts_v9_v27_hardmiss_semantic_code.json
+reports/mtp/a100_mtp_iterative_train_v27_v9_hardmiss_fcnorms_v42_20260517_2020.json
+reports/mtp/a100_mtp_saved_sidecar_eval_v27_v42_hardmiss_20260517_2023.json
+reports/mtp/a100_mtp_iterative_train_v27_v9_hardmiss_fcmtplayer_v43_20260517_2032.json
+reports/mtp/a100_mtp_saved_sidecar_eval_v27_v43_hardmiss_20260517_2035.json
+v42 train hard cases: 0/59 -> 0/59
+v43 train hard cases: 0/59 -> 0/59
+saved eval: v27 70/116, v42 70/116, v43 70/116
+v42 mean eval loss: 3.4300 -> 3.4246
+v43 mean eval loss: 3.4300 -> 3.4308
+```
+
+This is a useful negative. v27 remains the best A100 sidecar; v42 only lowers
+loss, and v43's wider `fc_mtp_layer` surface does not add accept. The remaining
+semantic/code hard misses need new case construction before they are likely to
+add accepted tokens.
+
 Report:
 
 ```text

@@ -1,0 +1,279 @@
+{
+  "schema_version": "lynn-p117-mtp-serving-policy-v1",
+  "decision": "AMBER-POLICY: route allowlist is ready for a prototype, but global MTP remains disabled.",
+  "note": "Policy is derived from upper-bound P107/P116 traces; it does not enable speculative decode by itself.",
+  "raw": {
+    "name": "raw_v34_slotsorted",
+    "source_report": "reports/mtp/r6000_p107_mtp_shadow_v34_rankflip_w4a8_v2_slotsorted_20260517_183146.json",
+    "decision": "TOP1_DEPTH2_NEEDS_OVERLAP: top1 continuity is enough, but draft cost must be hidden or cut.",
+    "draft_ms": 2.2359189908366557,
+    "target_tps": 155.0,
+    "groups": {
+      "ENABLE_TOP1_DEPTH2": [
+        "heldout_json_berlin_metric",
+        "heldout_repair_json",
+        "heldout_tool_translate"
+      ],
+      "TOP1_DEPTH2_NEEDS_OVERLAP": [
+        "heldout_json_status_ready",
+        "heldout_math_distance",
+        "heldout_python_slug"
+      ],
+      "TOP8_DEPTH2_RERANK_CANDIDATE": [
+        "heldout_moe_short"
+      ],
+      "TOP8_DEPTH4_ONLY": [
+        "heldout_linear_short"
+      ]
+    },
+    "route_metrics": {
+      "heldout_json_berlin_metric": {
+        "recommendation": "ENABLE_TOP1_DEPTH2",
+        "events": 16,
+        "top1_depth2_same_cost_tps": 217.93758757831787,
+        "top8_depth2_same_cost_tps": 217.93758757831787
+      },
+      "heldout_json_status_ready": {
+        "recommendation": "TOP1_DEPTH2_NEEDS_OVERLAP",
+        "events": 16,
+        "top1_depth2_same_cost_tps": 145.29172505221192,
+        "top8_depth2_same_cost_tps": 186.80364649570106
+      },
+      "heldout_tool_translate": {
+        "recommendation": "ENABLE_TOP1_DEPTH2",
+        "events": 16,
+        "top1_depth2_same_cost_tps": 186.80364649570106,
+        "top8_depth2_same_cost_tps": 186.80364649570106
+      },
+      "heldout_math_distance": {
+        "recommendation": "TOP1_DEPTH2_NEEDS_OVERLAP",
+        "events": 10,
+        "top1_depth2_same_cost_tps": 136.21099223644867,
+        "top8_depth2_same_cost_tps": 204.31648835467303
+      },
+      "heldout_python_slug": {
+        "recommendation": "TOP1_DEPTH2_NEEDS_OVERLAP",
+        "events": 16,
+        "top1_depth2_same_cost_tps": 130.76255254699075,
+        "top8_depth2_same_cost_tps": 145.29172505221192
+      },
+      "heldout_moe_short": {
+        "recommendation": "TOP8_DEPTH2_RERANK_CANDIDATE",
+        "events": 16,
+        "top1_depth2_same_cost_tps": 100.58657888230056,
+        "top8_depth2_same_cost_tps": 163.4531906837384
+      },
+      "heldout_linear_short": {
+        "recommendation": "TOP8_DEPTH4_ONLY",
+        "events": 16,
+        "top1_depth2_same_cost_tps": 118.87504776999158,
+        "top8_depth2_same_cost_tps": 145.29172505221192
+      },
+      "heldout_repair_json": {
+        "recommendation": "ENABLE_TOP1_DEPTH2",
+        "events": 15,
+        "top1_depth2_same_cost_tps": 245.17978602560763,
+        "top8_depth2_same_cost_tps": 245.17978602560763
+      }
+    },
+    "aggregate_top1_depth2": {
+      "zero_overhead_tps": 180.59701492537314,
+      "optimistic_same_draft_cost_tps": 147.59579158755483,
+      "serial_per_draft_token_tps": 124.7920375795221,
+      "max_draft_ms_per_iteration_for_target": 1.6514203177660085,
+      "same_cost_meets_target": false,
+      "serial_per_draft_token_meets_target": false,
+      "required_same_cost_cut_ms": 0.5844986730706472,
+      "required_same_cost_cut_fraction": 0.26141317081077897,
+      "required_serial_cost_cut_ms": 2.820417663907303,
+      "required_serial_cost_cut_fraction": 0.6307065854053895
+    },
+    "aggregate_top8_depth2": {
+      "zero_overhead_tps": 220.00000000000003,
+      "optimistic_same_draft_cost_tps": 179.79850975211227,
+      "serial_per_draft_token_tps": 152.01939123323604,
+      "max_draft_ms_per_iteration_for_target": 4.193548387096773,
+      "same_cost_meets_target": true,
+      "serial_per_draft_token_meets_target": false,
+      "required_same_cost_cut_ms": 0.0,
+      "required_same_cost_cut_fraction": 0.0,
+      "required_serial_cost_cut_ms": 0.27828959457653824,
+      "required_serial_cost_cut_fraction": 0.06223159151047897
+    }
+  },
+  "structured_guarded": {
+    "name": "structured_v4_forced_skip_slotsorted",
+    "source_report": "reports/mtp/r6000_p107_mtp_shadow_v34_structured_v4_forced_skip_slotsorted_20260517_1955.json",
+    "decision": "TOP8_DEPTH4_ONLY: top-k has theoretical credit, but runtime/rerank burden is high.",
+    "draft_ms": 2.344014396804208,
+    "target_tps": 155.0,
+    "groups": {
+      "DISABLE_OR_RETRAIN": [
+        "linear_attention_bullets_v3",
+        "linear_attention_explain_v3",
+        "moe_router_expert_v4",
+        "openapi_yaml_v3",
+        "palindrome_code_v3",
+        "w4a8_explain_v3"
+      ],
+      "TOP1_DEPTH2_NEEDS_OVERLAP": [
+        "function_args_v3",
+        "json_city_v3",
+        "normalize_city_code_v3",
+        "repair_json_v3",
+        "train_math_v3"
+      ],
+      "TOP8_DEPTH2_RERANK_CANDIDATE": [
+        "tool_json_v3"
+      ]
+    },
+    "route_metrics": {
+      "w4a8_explain_v3": {
+        "recommendation": "DISABLE_OR_RETRAIN",
+        "events": 10,
+        "top1_depth2_same_cost_tps": 101.26365376919988,
+        "top8_depth2_same_cost_tps": 101.26365376919988
+      },
+      "palindrome_code_v3": {
+        "recommendation": "DISABLE_OR_RETRAIN",
+        "events": 27,
+        "top1_depth2_same_cost_tps": 84.1267277467199,
+        "top8_depth2_same_cost_tps": 99.42249642794171
+      },
+      "train_math_v3": {
+        "recommendation": "TOP1_DEPTH2_NEEDS_OVERLAP",
+        "events": 22,
+        "top1_depth2_same_cost_tps": 127.302879024137,
+        "top8_depth2_same_cost_tps": 178.22403063379178
+      },
+      "json_city_v3": {
+        "recommendation": "TOP1_DEPTH2_NEEDS_OVERLAP",
+        "events": 18,
+        "top1_depth2_same_cost_tps": 132.56332857058894,
+        "top8_depth2_same_cost_tps": 162.0218460307198
+      },
+      "moe_router_expert_v4": {
+        "recommendation": "DISABLE_OR_RETRAIN",
+        "events": 1,
+        "top1_depth2_same_cost_tps": 81.01092301535991,
+        "top8_depth2_same_cost_tps": 81.01092301535991
+      },
+      "linear_attention_explain_v3": {
+        "recommendation": "DISABLE_OR_RETRAIN",
+        "events": 45,
+        "top1_depth2_same_cost_tps": 88.91442769978526,
+        "top8_depth2_same_cost_tps": 95.93398778134726
+      },
+      "tool_json_v3": {
+        "recommendation": "TOP8_DEPTH2_RERANK_CANDIDATE",
+        "events": 36,
+        "top1_depth2_same_cost_tps": 121.51638452303986,
+        "top8_depth2_same_cost_tps": 162.0218460307198
+      },
+      "openapi_yaml_v3": {
+        "recommendation": "DISABLE_OR_RETRAIN",
+        "events": 30,
+        "top1_depth2_same_cost_tps": 86.79741751645705,
+        "top8_depth2_same_cost_tps": 121.51638452303986
+      },
+      "normalize_city_code_v3": {
+        "recommendation": "TOP1_DEPTH2_NEEDS_OVERLAP",
+        "events": 8,
+        "top1_depth2_same_cost_tps": 129.61747682457585,
+        "top8_depth2_same_cost_tps": 129.61747682457585
+      },
+      "repair_json_v3": {
+        "recommendation": "TOP1_DEPTH2_NEEDS_OVERLAP",
+        "events": 18,
+        "top1_depth2_same_cost_tps": 132.56332857058894,
+        "top8_depth2_same_cost_tps": 162.0218460307198
+      },
+      "function_args_v3": {
+        "recommendation": "TOP1_DEPTH2_NEEDS_OVERLAP",
+        "events": 18,
+        "top1_depth2_same_cost_tps": 132.56332857058894,
+        "top8_depth2_same_cost_tps": 162.0218460307198
+      },
+      "linear_attention_bullets_v3": {
+        "recommendation": "DISABLE_OR_RETRAIN",
+        "events": 46,
+        "top1_depth2_same_cost_tps": 84.69323769787627,
+        "top8_depth2_same_cost_tps": 98.0658541764883
+      }
+    },
+    "aggregate_top1_depth2": {
+      "zero_overhead_tps": 125.67567567567568,
+      "optimistic_same_draft_cost_tps": 101.81102487065502,
+      "serial_per_draft_token_tps": 85.56333694713629,
+      "max_draft_ms_per_iteration_for_target": null,
+      "same_cost_meets_target": false,
+      "serial_per_draft_token_meets_target": false,
+      "required_same_cost_cut_ms": null,
+      "required_same_cost_cut_fraction": null,
+      "required_serial_cost_cut_ms": null,
+      "required_serial_cost_cut_fraction": null
+    },
+    "aggregate_top8_depth2": {
+      "zero_overhead_tps": 153.2967032967033,
+      "optimistic_same_draft_cost_tps": 124.18707429277698,
+      "serial_per_draft_token_tps": 104.3684659465069,
+      "max_draft_ms_per_iteration_for_target": null,
+      "same_cost_meets_target": false,
+      "serial_per_draft_token_meets_target": false,
+      "required_same_cost_cut_ms": null,
+      "required_same_cost_cut_fraction": null,
+      "required_serial_cost_cut_ms": null,
+      "required_serial_cost_cut_fraction": null
+    }
+  },
+  "runtime_plan": {
+    "default": "disabled_until_route_classified",
+    "env": {
+      "LYNN_MTP_LAYER_MOE": "decode_slot_sorted",
+      "LYNN_MTP_SPEC_POLICY": "route_allowlist_v1",
+      "LYNN_MTP_DISABLE_FOR_FORMAT_GUARD": "1"
+    },
+    "raw_routes": {
+      "enable_top1_depth2_first": [
+        "heldout_json_berlin_metric",
+        "heldout_repair_json",
+        "heldout_tool_translate"
+      ],
+      "requires_overlap_before_enable": [
+        "heldout_json_status_ready",
+        "heldout_math_distance",
+        "heldout_python_slug"
+      ],
+      "top8_rerank_research": [
+        "heldout_moe_short"
+      ],
+      "disabled_or_retrain": [
+        "heldout_linear_short"
+      ]
+    },
+    "structured_guarded_routes": {
+      "default": "disabled",
+      "disabled_or_retrain": [
+        "linear_attention_bullets_v3",
+        "linear_attention_explain_v3",
+        "moe_router_expert_v4",
+        "openapi_yaml_v3",
+        "palindrome_code_v3",
+        "w4a8_explain_v3"
+      ],
+      "research_only": [
+        "function_args_v3",
+        "json_city_v3",
+        "normalize_city_code_v3",
+        "repair_json_v3",
+        "tool_json_v3",
+        "train_math_v3"
+      ]
+    },
+    "promotion_gates": {
+      "top1_depth2_route": "same-cost projected TPS >= 155 and route exact/format gate GREEN",
+      "top8_depth2_route": "reranker/verifier must improve accept without changing greedy text",
+      "structured_guarded": "top8 depth2 zero-overhead > 155 and route policy no longer dominated by DISABLE_OR_RETRAIN"
+    }
+  }
+}

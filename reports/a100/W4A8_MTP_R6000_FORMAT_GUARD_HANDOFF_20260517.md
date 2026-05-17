@@ -503,10 +503,41 @@ The fresh structured rerun uses the current exact slot-sorted path:
 and `2.34 ms` mean draft. P113's runtime cut applies, but the structured
 sidecar distribution is still too weak for default MTP.
 
+P117 converts that route-policy result into a compact serving policy:
+
+```text
+reports/mtp/r6000_p117_mtp_serving_policy_v34_route_allowlist_20260517_2018.json
+decision: AMBER-POLICY
+raw enable_top1_depth2_first:
+  heldout_json_berlin_metric
+  heldout_repair_json
+  heldout_tool_translate
+structured_guarded default: disabled
+```
+
+The matching runtime safety knob is now implemented:
+
+```text
+LYNN_MTP_DISABLE_FOR_FORMAT_GUARD=1
+```
+
+With that env set, a forced-prefix format-guard request disables MTP shadow
+verification and records `format_guard_forced_prefix` in the MTP metadata. This
+keeps JSON/tool serving from paying a known-bad MTP draft tax while the
+guard-forced sidecar distribution is still below target.
+
 v41 tried one last narrow v34 continuation on steps `7/10/14` from the
 semantic/code-tail set. It is a negative: train stays `0/4 -> 0/4`, heldout
 proxy regresses `63/121 -> 62/121`, and eval loss slightly worsens. Keep v34
 as the native serving-credit sidecar; do not promote v41.
+
+A100 v42/v43 test the next hard-miss hypothesis from v27. The new v9 prompt set
+targets semantic/code hard misses, but direct continuation does not add accept:
+v42 `fc_norms` keeps hard cases `0/59 -> 0/59`, saved eval ties v27 at
+`70/116 = 60.34%`, and only mean loss improves (`3.4300 -> 3.4246`). v43 widens
+to `fc_mtp_layer`, but saved reload again ties v27 at `70/116` and mean loss is
+slightly worse (`3.4308`). Keep v27 as the A100 best; continue hard-miss work
+with new labels/case construction, not another direct v9 continuation.
 
 The fc-only train smoke confirms gradient wiring:
 

@@ -1,0 +1,33 @@
+{
+  "schema_version": "lynn-p109-mtp-topk-reranker-probe-v1",
+  "source_report": "reports/mtp/r6000_p107_mtp_shadow_v34_rankflip_w4a8_v2_slotsorted_20260517_183146.json",
+  "decision": "RED: margin-only top2 reranker does not beat top1.",
+  "events": 121,
+  "top1": {
+    "accepted": 65,
+    "rate": 0.5371900826446281
+  },
+  "coverage": {
+    "top2": {
+      "events": 121,
+      "covered": 73,
+      "rate": 0.6033057851239669
+    },
+    "top4": {
+      "events": 121,
+      "covered": 80,
+      "rate": 0.6611570247933884
+    },
+    "top8": {
+      "events": 121,
+      "covered": 87,
+      "rate": 0.71900826446281
+    }
+  },
+  "best_margin_top2_switch": {
+    "threshold": 0.0,
+    "accepted": 65,
+    "rate": 0.5371900826446281,
+    "switches": 0
+  }
+}

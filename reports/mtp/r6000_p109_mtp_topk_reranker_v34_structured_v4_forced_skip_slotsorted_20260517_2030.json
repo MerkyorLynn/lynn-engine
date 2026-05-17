@@ -1,0 +1,33 @@
+{
+  "schema_version": "lynn-p109-mtp-topk-reranker-probe-v1",
+  "source_report": "reports/mtp/r6000_p107_mtp_shadow_v34_structured_v4_forced_skip_slotsorted_20260517_1955.json",
+  "decision": "AMBER: margin-only top2 reranker beats top1.",
+  "events": 279,
+  "top1": {
+    "accepted": 62,
+    "rate": 0.2222222222222222
+  },
+  "coverage": {
+    "top2": {
+      "events": 279,
+      "covered": 74,
+      "rate": 0.26523297491039427
+    },
+    "top4": {
+      "events": 279,
+      "covered": 101,
+      "rate": 0.36200716845878134
+    },
+    "top8": {
+      "events": 279,
+      "covered": 117,
+      "rate": 0.41935483870967744
+    }
+  },
+  "best_margin_top2_switch": {
+    "threshold": 0.19,
+    "accepted": 64,
+    "rate": 0.22939068100358423,
+    "switches": 65
+  }
+}

@@ -592,6 +592,39 @@ semantic routes. The updated structured slot-sorted rerun is not ready:
 `62/279` top1 and `117/279` top8 after forced-prefix skipping, with top8 depth2
 zero-overhead only `153.30 tok/s`.
 
+P117 distills P116 into a first runtime policy artifact:
+
+```text
+reports/mtp/r6000_p117_mtp_serving_policy_v34_route_allowlist_20260517_2018.json
+decision: AMBER-POLICY
+default: disabled_until_route_classified
+raw enable_top1_depth2_first:
+  heldout_json_berlin_metric, heldout_repair_json, heldout_tool_translate
+structured_guarded default: disabled
+```
+
+This is not speculative decode yet, but it closes the policy ambiguity:
+structured/template routes stay MTP-disabled by default, while raw
+JSON/tool/repair routes are the first top1-depth2 prototype target. The server
+runtime now honors the matching safety knob:
+
+```text
+LYNN_MTP_DISABLE_FOR_FORMAT_GUARD=1
+```
+
+When a request uses a forced format prefix, MTP shadow verification is disabled
+instead of adding draft cost to the guarded path. That keeps v16 structured
+serving clean while the MTP sidecar distribution is still weak on forced-prefix
+states.
+
+The v27 hard-miss A100 follow-up is also bounded. v42 trains `fc_norms` on a
+new semantic/code hard-miss v9 set and lowers mean eval loss
+`3.4300 -> 3.4246`, but saved reload stays tied with v27 at
+`70/116 = 60.34%`. v43 widens that same v9 set to `fc_mtp_layer`; it also
+reloads at `70/116` and slightly worsens mean eval loss (`3.4308`). Therefore
+v27 remains the A100 best sidecar and hard-miss semantic/code repair needs a
+new target construction, not more direct continuation on the same v9 cases.
+
 If fc-only cannot clear 55-70%, unfreeze in this order:
 
 1. `mtp.fc.weight`
@@ -621,8 +654,11 @@ Initial serving knob:
 
 ```text
 LYNN_MTP_SIDECAR=/path/to/mtp.safetensors
+LYNN_MTP_LAYER_MOE=decode_slot_sorted
 LYNN_MTP_DRAFT_STEPS=1
 LYNN_MTP_ACCEPT_GATE=exact_argmax
+LYNN_MTP_SPEC_POLICY=route_allowlist_v1
+LYNN_MTP_DISABLE_FOR_FORMAT_GUARD=1
 ```
 
 Then extend to 2-token draft only after 1-token exact verification is stable.
