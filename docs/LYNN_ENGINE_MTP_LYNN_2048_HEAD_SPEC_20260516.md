@@ -29,8 +29,22 @@ Aligned sidecar:
 /mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-warm-start-aligned/mtp.safetensors
 ```
 
-This changes the initialization path, not the serving state: MTP still needs
-head wiring, training, and accept-rate evaluation before it can contribute TPS.
+Forward-smoke report:
+
+```text
+reports/mtp/a100_mtp_forward_smoke_20260517_110159.json
+decision: GREEN
+mtp_logits_finite: true
+mtp_logits_shape: [1, 248320]
+argmax_match: false
+base_next_argmax: {"token_id": 4754, "text": "{\""}
+mtp_draft_argmax: {"token_id": 98175, "text": "十二"}
+```
+
+This changes the initialization and wiring path, not the serving state: MTP can
+now run a real draft forward pass, but the warm-start head is not yet an
+acceptable draft predictor. It still needs head-only training and accept-rate
+evaluation before it can contribute TPS.
 
 Report:
 
@@ -123,6 +137,10 @@ initialize dense FFN from shared-expert projections where possible
 freeze base model
 num_speculative_tokens = 2
 ```
+
+2026-05-17 status: Stage 0 shape mapping and forward smoke are complete for
+the official 2048-hidden Qwen3.6-35B-A3B sidecar. The forward path is finite
+but not token-aligned, so Stage 1 training is now the blocker.
 
 Stage 1: short head-only training
 

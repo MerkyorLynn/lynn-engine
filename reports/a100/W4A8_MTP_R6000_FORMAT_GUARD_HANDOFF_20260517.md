@@ -163,6 +163,23 @@ This validates the low-risk serving escape hatch for JSON/tool-call style
 outputs, but also draws the boundary: format guard fixes entry-domain and
 service-facing trimming, not semantic parity for prose or code.
 
+Teacher-cleanup check with `use_chat_template=True` did not improve the v16
+serving gate:
+
+```text
+reports/a100/a100_w4a8_serving_guard12_gate_structured_v16_chat_template_12prompt_48tok.json
+```
+
+| Gate | Served Exact | Min Prefix | Mean Prefix | Ref Format | Cand Format | Raw Prefix | Decision |
+|---|---:|---:|---:|---:|---:|---:|---|
+| serving guard12 v16, raw prompts | 8/12 | 12 | 34.75 | 12/12 | 12/12 | 4/12 | RED, format-clean |
+| serving guard12 v16, chat template | 5/12 | 8 | 28.42 | 12/12 | 12/12 | 7/12 | RED, regression |
+
+The chat template makes the teacher format clean, but shifts the teacher token
+path and worsens parity on this prompt set. Keep raw structured prompts as the
+current gate baseline; teacher cleanup needs prompt rewrites, not just wrapping
+the same prompts in chat format.
+
 ## Full-Token Graph Slot Trigger
 
 The existing whole-decode graph-slot path is opt-in:
@@ -218,6 +235,12 @@ Warm-start sidecar on A100:
 /mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-warm-start-aligned/mtp.safetensors
 ```
 
+Forward-smoke report:
+
+```text
+reports/mtp/a100_mtp_forward_smoke_20260517_110159.json
+```
+
 Mapping result:
 
 | Field | Value |
@@ -232,9 +255,23 @@ Mapping result:
 
 The 3 adapted tensors are the MoE expert tensors, where official sidecar uses
 256 experts and the Lynn folded base has 254 stored experts. The aligned
-sidecar slices the first dimension and writes a new safetensors file. This is
-a warm-start asset only; it is not decode integration and gives no TPS gain
-until MTP training and accept-rate evaluation exist.
+sidecar slices the first dimension and writes a new safetensors file.
+
+Forward smoke now runs the aligned sidecar through the MTP `fc -> decoder layer
+-> norm -> lm_head` path and produces finite logits:
+
+| Field | Value |
+|---|---:|
+| mtp logits finite | true |
+| mtp hidden shape | [1, 1, 2048] |
+| mtp logits shape | [1, 248320] |
+| base next argmax | token 4754 (`{"`) |
+| mtp draft argmax | token 98175 (`十二`) |
+| argmax match | false |
+
+This upgrades MTP from a shape-only asset to a real forward-wired draft head,
+but it is not useful for speculative decode yet. Head-only training and
+accept-rate evaluation remain mandatory before any TPS claim.
 
 ## Next Work
 
