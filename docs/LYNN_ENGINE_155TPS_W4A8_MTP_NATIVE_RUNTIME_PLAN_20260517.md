@@ -38,6 +38,10 @@ MTP: aligned sidecar forward works; best native R6000 sidecar is v34 at
      and reranking are now justified. Guarded structured routes are a separate
      MTP distribution: v39 guard-forced calibration improves train accept but
      leaves v6 heldout flat at 22/172.
+P111 budget: with a 100 tok/s production baseline, raw v34 top1 is only
+     153.72 tok/s even with zero draft overhead; top2/top4/top8 can clear 155
+     only if draft overhead is <=0.34/0.72/1.09 ms, while the current draft head
+     costs about 7.6 ms in the P107 path.
 ```
 
 155 requires a compound win. There is no single safe env flag left.
@@ -56,6 +60,15 @@ The practical route is:
 This means MTP cannot be a cosmetic sidecar. It must reach useful accept rate,
 and the runtime must make draft verification cheap enough that accepted tokens
 actually reduce wall time.
+
+2026-05-17 P111 budget update: the accepted-token multiplier alone is not
+enough. With the current measured draft head cost (`~7.6 ms`), one-token serial
+MTP is slower than a 100 tok/s production baseline even if a perfect top8
+reranker existed. To make 155 real, the runtime needs one of:
+
+- draft work hidden under base decode or reduced to about 1 ms;
+- multi-token credit, not just one-token MTP;
+- a higher native baseline before MTP is counted.
 
 ## Workstream A: Quality Floor
 

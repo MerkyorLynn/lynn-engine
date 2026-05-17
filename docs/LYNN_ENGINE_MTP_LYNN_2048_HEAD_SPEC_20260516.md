@@ -481,6 +481,17 @@ trace, the best threshold is `0.0`, i.e. never switch, and accept remains
 useful multi-candidate path needs a trained reranker or a new sidecar that
 changes the top1 ordering directly.
 
+P111 converts those accept rates into a throughput budget. On the measured P107
+path, raw v34 top1 moves decode only from `55.97` to `60.29` tok/s after paying
+the `7.63 ms` draft cost. Projected onto a 100 tok/s production baseline, raw
+v34 top1 cannot reach 155 even with zero draft overhead (`153.72` tok/s).
+The raw top2/top4/top8 ceilings can cross 155 only if draft overhead is
+`<=0.34/0.72/1.09 ms`; the current draft path is about `7.6 ms`. Guarded
+structured routes are lower still: even zero-overhead top8 reaches only
+`140.22` tok/s. Therefore the MTP target needs hidden or much cheaper draft
+execution, multi-token acceptance, or a higher native baseline before it can
+close the 155 TPS target.
+
 Report:
 
 ```text

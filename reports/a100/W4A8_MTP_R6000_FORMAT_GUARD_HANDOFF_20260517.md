@@ -380,6 +380,14 @@ stays `65/121`; on the guarded v4 trace, the best switch only reaches
 `55/271`. If we invest in multi-candidate decode, it needs a trained reranker
 or a refreshed guard-aware sidecar, not a hand-tuned margin rule.
 
+P111 adds the throughput budget that matters for 155 TPS. Raw v34 top1 gives a
+zero-overhead production projection of `153.72` tok/s from a 100 tok/s
+baseline, just below target. Raw top2/top4/top8 could clear 155 only with draft
+overhead under `0.34/0.72/1.09 ms`, but the measured draft head is `~7.6 ms`.
+Guarded structured top8 is only `140.22` tok/s even at zero overhead. So MTP
+must either become hidden/near-free, move to multi-token credit, or wait for a
+higher native serving baseline; one-token serial sidecar MTP is not enough.
+
 The fc-only train smoke confirms gradient wiring:
 
 | Field | Value |
