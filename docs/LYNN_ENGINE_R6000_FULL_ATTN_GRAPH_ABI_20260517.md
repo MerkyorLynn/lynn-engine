@@ -32,6 +32,7 @@ P9H/P9I/P9J changed the full-attention decision:
 | P9Q layer3 capture-mode probe | layer3 alone is exact for real-capture and pre-capture |
 | P9R graph-pool/order probe | fresh full slot after linear capture is exact; stale slot drifts |
 | P9S capture-order token probe | linear-first capture stays greedy-safe but not strict-exact |
+| P9T separate-state token probe | separate linear/full graph states stay greedy-safe but not strict-exact |
 
 This makes full-attention reusable graphing the strongest non-MTP R6000 speed
 lever found today.
@@ -187,6 +188,22 @@ logit_diff.max_abs: 3.53125
 Current read: full-attn slots are individually viable, but the mixed graph
 family needs explicit graph-pool/state ownership rather than ad hoc capture
 ordering.
+
+P9T then separates the linear graph state from the full-attention KV graph
+state. It does not fix strict drift:
+
+```text
+reports/p16_155/p9t_r6000_hybrid_graph_separate_state_configd_20260517_151417.json
+one_shot_graph_ms: 9.5324
+greedy_pass: true
+strict_logit_pass: false
+logit_diff.max_abs: 3.53125
+```
+
+So simple state separation is not enough. The next proof should isolate CUDA
+graph memory-pool ownership or capture full-attn slots in a fresh graph pool per
+family; if that still drifts, the production path should move toward a native
+static full-attn layer boundary instead of composing PyTorch CUDAGraph objects.
 
 ## Graph Key
 

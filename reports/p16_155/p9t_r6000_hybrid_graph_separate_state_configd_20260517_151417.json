@@ -1,0 +1,25 @@
+{
+  "schema_version": "lynn-engine-p9t-hybrid-graph-separate-state-probe-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-a3b-w4a8-nvfp4-v2",
+  "decode_position": 7,
+  "state_mode": "separate_linear_and_full_kv_graph_states",
+  "full_attn_graph_slots": 10,
+  "linear_block_graphs": 10,
+  "linear_capture_s": 0.07323837280273438,
+  "eager_ms": 37.299798583984376,
+  "graph_ms": 10.052513427734375,
+  "speedup": 3.710494778457706,
+  "one_shot_graph_ms": 9.532416343688965,
+  "one_shot_graph_tps": 104.90519548719254,
+  "logit_diff": {
+    "max_abs": 3.53125,
+    "mean_abs": 0.5222031474113464,
+    "rel_l2": 0.26092935636875053,
+    "cosine": 0.9692370295524597
+  },
+  "graph_next_id": 248068,
+  "eager_next_id": 248068,
+  "greedy_pass": true,
+  "strict_logit_pass": false,
+  "pass": true
+}

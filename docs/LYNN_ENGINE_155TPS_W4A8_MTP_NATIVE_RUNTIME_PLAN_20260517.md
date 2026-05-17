@@ -470,6 +470,12 @@ get worse (`max_abs=3.53125`). The actionable runtime conclusion is now graph
 pool/state ownership: mixed linear/full-attn graph families need explicit
 capture isolation, not just reordered ad hoc capture.
 
+2026-05-17 P9T tests a separate-state version with one linear graph state and
+one full-attn KV graph state. It is still greedy-safe (`104.91 one-shot tok/s`)
+but does not fix strict logits (`max_abs=3.53125`). The next R6000 proof should
+isolate CUDA graph memory pools explicitly, or switch from composed PyTorch
+CUDAGraphs to a native/static full-attn layer boundary.
+
 2026-05-17 down-backend service sweep: switching only
 `LYNN_NATIVE_DOWN_BACKEND` from `triton` to `cuda_tile` gives real raw speed
 (`108.17 / 108.84 tok/s` at `256 / 512`, about `1.08-1.10x`), but both previews

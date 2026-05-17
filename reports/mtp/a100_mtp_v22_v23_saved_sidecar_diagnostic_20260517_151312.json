@@ -1,0 +1,7278 @@
+{
+  "schema_version": "lynn-a100-mtp-saved-sidecar-diagnostic-v1",
+  "base_model": "/mnt/data/lynn-a100/models/lynn-27b-variable-recovery-step5000-bf16-final",
+  "eval_prompts_file": "reports/mtp/mtp_fc_calibration_heldout_prompts_v1.json",
+  "max_new_eval": 16,
+  "case_count": 116,
+  "rows": [
+    {
+      "label": "v22",
+      "sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v19-margin-v5-fcnorms-v22-20260517_145317/mtp.safetensors",
+      "inventory": {
+        "metadata": {
+          "eval_accept_rate_after": "0.5517241379310345",
+          "source_sidecar": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v18-targeted-v4-fcnorms-v19-20260517_135834/mtp.safetensors",
+          "train_accept_rate_after": "0.441747572815534",
+          "lynn_mtp_iterative_train": "true"
+        },
+        "tensors": {
+          "mtp.fc.weight": {
+            "shape": [
+              2048,
+              4096
+            ],
+            "dtype": "bfloat16",
+            "numel": 8388608
+          },
+          "mtp.layers.0.input_layernorm.weight": {
+            "shape": [
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 2048
+          },
+          "mtp.layers.0.mlp.experts.down_proj": {
+            "shape": [
+              254,
+              2048,
+              512
+            ],
+            "dtype": "bfloat16",
+            "numel": 266338304
+          },
+          "mtp.layers.0.mlp.experts.gate_up_proj": {
+            "shape": [
+              254,
+              1024,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 532676608
+          },
+          "mtp.layers.0.mlp.gate.weight": {
+            "shape": [
+              254,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 520192
+          },
+          "mtp.layers.0.mlp.shared_expert.down_proj.weight": {
+            "shape": [
+              2048,
+              512
+            ],
+            "dtype": "bfloat16",
+            "numel": 1048576
+          },
+          "mtp.layers.0.mlp.shared_expert.gate_proj.weight": {
+            "shape": [
+              512,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 1048576
+          },
+          "mtp.layers.0.mlp.shared_expert.up_proj.weight": {
+            "shape": [
+              512,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 1048576
+          },
+          "mtp.layers.0.mlp.shared_expert_gate.weight": {
+            "shape": [
+              1,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 2048
+          },
+          "mtp.layers.0.post_attention_layernorm.weight": {
+            "shape": [
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 2048
+          },
+          "mtp.layers.0.self_attn.k_norm.weight": {
+            "shape": [
+              256
+            ],
+            "dtype": "bfloat16",
+            "numel": 256
+          },
+          "mtp.layers.0.self_attn.k_proj.weight": {
+            "shape": [
+              512,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 1048576
+          },
+          "mtp.layers.0.self_attn.o_proj.weight": {
+            "shape": [
+              2048,
+              4096
+            ],
+            "dtype": "bfloat16",
+            "numel": 8388608
+          },
+          "mtp.layers.0.self_attn.q_norm.weight": {
+            "shape": [
+              256
+            ],
+            "dtype": "bfloat16",
+            "numel": 256
+          },
+          "mtp.layers.0.self_attn.q_proj.weight": {
+            "shape": [
+              8192,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 16777216
+          },
+          "mtp.layers.0.self_attn.v_proj.weight": {
+            "shape": [
+              512,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 1048576
+          },
+          "mtp.norm.weight": {
+            "shape": [
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 2048
+          },
+          "mtp.pre_fc_norm_embedding.weight": {
+            "shape": [
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 2048
+          },
+          "mtp.pre_fc_norm_hidden.weight": {
+            "shape": [
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 2048
+          }
+        }
+      },
+      "case_count": 116,
+      "accepted": 64,
+      "accept_rate": 0.5517241379310345,
+      "miss_count": 52,
+      "near_miss_count_label_rank_le_5": 16,
+      "hard_miss_count_label_rank_gt_20": 32,
+      "by_step": {
+        "0": {
+          "events": 8,
+          "accepted": 6,
+          "misses": 2,
+          "mean_label_rank": 1.5,
+          "mean_draft_minus_label": 0.25,
+          "miss_buckets": {
+            "special_token": 2
+          },
+          "accept_rate": 0.75
+        },
+        "1": {
+          "events": 8,
+          "accepted": 2,
+          "misses": 6,
+          "mean_label_rank": 2.125,
+          "mean_draft_minus_label": 1.015625,
+          "miss_buckets": {
+            "json_punctuation": 2,
+            "semantic_token": 3,
+            "generic_structured_key": 1
+          },
+          "accept_rate": 0.25
+        },
+        "2": {
+          "events": 8,
+          "accepted": 8,
+          "misses": 0,
+          "mean_label_rank": 1.0,
+          "mean_draft_minus_label": 0.0,
+          "miss_buckets": {},
+          "accept_rate": 1.0
+        },
+        "3": {
+          "events": 8,
+          "accepted": 8,
+          "misses": 0,
+          "mean_label_rank": 1.0,
+          "mean_draft_minus_label": 0.0,
+          "miss_buckets": {},
+          "accept_rate": 1.0
+        },
+        "4": {
+          "events": 8,
+          "accepted": 8,
+          "misses": 0,
+          "mean_label_rank": 1.0,
+          "mean_draft_minus_label": 0.0,
+          "miss_buckets": {},
+          "accept_rate": 1.0
+        },
+        "5": {
+          "events": 8,
+          "accepted": 8,
+          "misses": 0,
+          "mean_label_rank": 1.0,
+          "mean_draft_minus_label": 0.0,
+          "miss_buckets": {},
+          "accept_rate": 1.0
+        },
+        "6": {
+          "events": 8,
+          "accepted": 3,
+          "misses": 5,
+          "mean_label_rank": 141.25,
+          "mean_draft_minus_label": 2.25,
+          "miss_buckets": {
+            "generic_structured_key": 2,
+            "semantic_token": 2,
+            "stop_token": 1
+          },
+          "accept_rate": 0.375
+        },
+        "7": {
+          "events": 8,
+          "accepted": 4,
+          "misses": 4,
+          "mean_label_rank": 18.5,
+          "mean_draft_minus_label": 0.90625,
+          "miss_buckets": {
+            "json_punctuation": 2,
+            "semantic_token": 1,
+            "whitespace": 1
+          },
+          "accept_rate": 0.5
+        },
+        "8": {
+          "events": 8,
+          "accepted": 2,
+          "misses": 6,
+          "mean_label_rank": 18341.375,
+          "mean_draft_minus_label": 5.746673583984375,
+          "miss_buckets": {
+            "special_token": 2,
+            "semantic_token": 4
+          },
+          "accept_rate": 0.25
+        },
+        "9": {
+          "events": 8,
+          "accepted": 2,
+          "misses": 6,
+          "mean_label_rank": 4149.625,
+          "mean_draft_minus_label": 3.712890625,
+          "miss_buckets": {
+            "special_token": 1,
+            "stop_token": 2,
+            "generic_structured_key": 1,
+            "semantic_token": 2
+          },
+          "accept_rate": 0.25
+        },
+        "10": {
+          "events": 7,
+          "accepted": 2,
+          "misses": 5,
+          "mean_label_rank": 23.714285714285715,
+          "mean_draft_minus_label": 1.6964285714285714,
+          "miss_buckets": {
+            "json_punctuation": 2,
+            "stop_token": 2,
+            "whitespace": 1
+          },
+          "accept_rate": 0.2857142857142857
+        },
+        "11": {
+          "events": 6,
+          "accepted": 3,
+          "misses": 3,
+          "mean_label_rank": 3638.5,
+          "mean_draft_minus_label": 3.9765625,
+          "miss_buckets": {
+            "semantic_token": 3
+          },
+          "accept_rate": 0.5
+        },
+        "12": {
+          "events": 6,
+          "accepted": 2,
+          "misses": 4,
+          "mean_label_rank": 602.3333333333334,
+          "mean_draft_minus_label": 3.4166666666666665,
+          "miss_buckets": {
+            "generic_structured_key": 1,
+            "semantic_token": 2,
+            "whitespace": 1
+          },
+          "accept_rate": 0.3333333333333333
+        },
+        "13": {
+          "events": 6,
+          "accepted": 2,
+          "misses": 4,
+          "mean_label_rank": 34823.666666666664,
+          "mean_draft_minus_label": 4.6328125,
+          "miss_buckets": {
+            "semantic_token": 2,
+            "stop_token": 1,
+            "whitespace": 1
+          },
+          "accept_rate": 0.3333333333333333
+        },
+        "14": {
+          "events": 6,
+          "accepted": 2,
+          "misses": 4,
+          "mean_label_rank": 5379.166666666667,
+          "mean_draft_minus_label": 4.697916666666667,
+          "miss_buckets": {
+            "json_punctuation": 1,
+            "generic_structured_key": 1,
+            "semantic_token": 1,
+            "stop_token": 1
+          },
+          "accept_rate": 0.3333333333333333
+        },
+        "15": {
+          "events": 5,
+          "accepted": 2,
+          "misses": 3,
+          "mean_label_rank": 2459.0,
+          "mean_draft_minus_label": 2.925,
+          "miss_buckets": {
+            "generic_structured_key": 1,
+            "semantic_token": 2
+          },
+          "accept_rate": 0.4
+        }
+      },
+      "miss_buckets": {
+        "semantic_token": {
+          "count": 22,
+          "mean_label_rank": 6401.409090909091,
+          "mean_draft_minus_label": 4.959017666903409
+        },
+        "generic_structured_key": {
+          "count": 7,
+          "mean_label_rank": 1508.2857142857142,
+          "mean_draft_minus_label": 4.680803571428571
+        },
+        "json_punctuation": {
+          "count": 7,
+          "mean_label_rank": 4000.4285714285716,
+          "mean_draft_minus_label": 1.4464285714285714
+        },
+        "stop_token": {
+          "count": 7,
+          "mean_label_rank": 29140.14285714286,
+          "mean_draft_minus_label": 6.238839285714286
+        },
+        "special_token": {
+          "count": 5,
+          "mean_label_rank": 14826.6,
+          "mean_draft_minus_label": 5.278125
+        },
+        "whitespace": {
+          "count": 4,
+          "mean_label_rank": 705.0,
+          "mean_draft_minus_label": 3.9609375
+        }
+      },
+      "worst_misses": [
+        {
+          "case_idx": 61,
+          "prompt_idx": 4,
+          "id": "heldout_python_slug",
+          "step": 8,
+          "current_pos": 37,
+          "current_token_id": 198,
+          "current_token_text": "\n",
+          "label_id": 464,
+          "label_text": "import",
+          "draft_id": 71093,
+          "draft_text": "```",
+          "accepted": false,
+          "loss": 15.387186050415039,
+          "label_rank": 99289,
+          "label_score": -0.020263671875,
+          "draft_score": 14.625,
+          "draft_minus_label": 14.645263671875,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 71093,
+              "score": 14.625,
+              "text": "```"
+            },
+            {
+              "rank": 2,
+              "token_id": 248068,
+              "score": 11.75,
+              "text": "<think>"
+            },
+            {
+              "rank": 3,
+              "token_id": 1,
+              "score": 11.5625,
+              "text": "\""
+            },
+            {
+              "rank": 4,
+              "token_id": 248046,
+              "score": 11.5,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 5,
+              "token_id": 9,
+              "score": 11.1875,
+              "text": "*"
+            },
+            {
+              "rank": 6,
+              "token_id": 5513,
+              "score": 11.125,
+              "text": "�"
+            },
+            {
+              "rank": 7,
+              "token_id": 9678,
+              "score": 10.6875,
+              "text": "��"
+            },
+            {
+              "rank": 8,
+              "token_id": 52451,
+              "score": 10.5625,
+              "text": " ```"
+            },
+            {
+              "rank": 9,
+              "token_id": 2005,
+              "score": 10.3125,
+              "text": "“"
+            },
+            {
+              "rank": 10,
+              "token_id": 4277,
+              "score": 9.8125,
+              "text": "---"
+            }
+          ]
+        },
+        {
+          "case_idx": 64,
+          "prompt_idx": 4,
+          "id": "heldout_python_slug",
+          "step": 11,
+          "current_pos": 40,
+          "current_token_id": 271,
+          "current_token_text": "\n\n",
+          "label_id": 727,
+          "label_text": "def",
+          "draft_id": 71093,
+          "draft_text": "```",
+          "accepted": false,
+          "loss": 13.84833812713623,
+          "label_rank": 21337,
+          "label_score": 2.265625,
+          "draft_score": 15.75,
+          "draft_minus_label": 13.484375,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 71093,
+              "score": 15.75,
+              "text": "```"
+            },
+            {
+              "rank": 2,
+              "token_id": 1,
+              "score": 12.5625,
+              "text": "\""
+            },
+            {
+              "rank": 3,
+              "token_id": 248068,
+              "score": 12.25,
+              "text": "<think>"
+            },
+            {
+              "rank": 4,
+              "token_id": 9,
+              "score": 12.0,
+              "text": "*"
+            },
+            {
+              "rank": 5,
+              "token_id": 5513,
+              "score": 11.6875,
+              "text": "�"
+            },
+            {
+              "rank": 6,
+              "token_id": 248046,
+              "score": 11.1875,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 7,
+              "token_id": 2005,
+              "score": 11.125,
+              "text": "“"
+            },
+            {
+              "rank": 8,
+              "token_id": 9678,
+              "score": 10.9375,
+              "text": "��"
+            },
+            {
+              "rank": 9,
+              "token_id": 52451,
+              "score": 10.875,
+              "text": " ```"
+            },
+            {
+              "rank": 10,
+              "token_id": 12,
+              "score": 10.1875,
+              "text": "-"
+            }
+          ]
+        },
+        {
+          "case_idx": 66,
+          "prompt_idx": 4,
+          "id": "heldout_python_slug",
+          "step": 13,
+          "current_pos": 42,
+          "current_token_id": 23695,
+          "current_token_text": " slug",
+          "label_id": 1386,
+          "label_text": "ify",
+          "draft_id": 248046,
+          "draft_text": "<|im_end|>",
+          "accepted": false,
+          "loss": 16.463417053222656,
+          "label_rank": 203280,
+          "label_score": -1.671875,
+          "draft_score": 11.125,
+          "draft_minus_label": 12.796875,
+          "miss_bucket": "stop_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 248046,
+              "score": 11.125,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 2,
+              "token_id": 513,
+              "score": 10.25,
+              "text": " are"
+            },
+            {
+              "rank": 3,
+              "token_id": 1809,
+              "score": 9.6875,
+              "text": " group"
+            },
+            {
+              "rank": 4,
+              "token_id": 248068,
+              "score": 9.5625,
+              "text": "<think>"
+            },
+            {
+              "rank": 5,
+              "token_id": 3065,
+              "score": 9.5625,
+              "text": " thing"
+            },
+            {
+              "rank": 6,
+              "token_id": 9678,
+              "score": 9.4375,
+              "text": "��"
+            },
+            {
+              "rank": 7,
+              "token_id": 369,
+              "score": 9.1875,
+              "text": " is"
+            },
+            {
+              "rank": 8,
+              "token_id": 2005,
+              "score": 8.875,
+              "text": "“"
+            },
+            {
+              "rank": 9,
+              "token_id": 9616,
+              "score": 8.875,
+              "text": "（"
+            },
+            {
+              "rank": 10,
+              "token_id": 271,
+              "score": 8.8125,
+              "text": "\n\n"
+            }
+          ]
+        },
+        {
+          "case_idx": 52,
+          "prompt_idx": 3,
+          "id": "heldout_math_distance",
+          "step": 9,
+          "current_pos": 28,
+          "current_token_id": 8491,
+          "current_token_text": " miles",
+          "label_id": 248044,
+          "label_text": "<|endoftext|>",
+          "draft_id": 248046,
+          "draft_text": "<|im_end|>",
+          "accepted": false,
+          "loss": 10.398533821105957,
+          "label_rank": 317,
+          "label_score": 6.25,
+          "draft_score": 16.5,
+          "draft_minus_label": 10.25,
+          "miss_bucket": "stop_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 248046,
+              "score": 16.5,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 2,
+              "token_id": 271,
+              "score": 12.8125,
+              "text": "\n\n"
+            },
+            {
+              "rank": 3,
+              "token_id": 198,
+              "score": 11.75,
+              "text": "\n"
+            },
+            {
+              "rank": 4,
+              "token_id": 6987,
+              "score": 10.75,
+              "text": "\n    \n"
+            },
+            {
+              "rank": 5,
+              "token_id": 513,
+              "score": 10.625,
+              "text": " are"
+            },
+            {
+              "rank": 6,
+              "token_id": 248068,
+              "score": 10.3125,
+              "text": "<think>"
+            },
+            {
+              "rank": 7,
+              "token_id": 279,
+              "score": 10.1875,
+              "text": " the"
+            },
+            {
+              "rank": 8,
+              "token_id": 2228,
+              "score": 10.0625,
+              "text": "  \n"
+            },
+            {
+              "rank": 9,
+              "token_id": 13,
+              "score": 10.0625,
+              "text": "."
+            },
+            {
+              "rank": 10,
+              "token_id": 11,
+              "score": 10.0625,
+              "text": ","
+            }
+          ]
+        },
+        {
+          "case_idx": 83,
+          "prompt_idx": 5,
+          "id": "heldout_moe_short",
+          "step": 14,
+          "current_pos": 29,
+          "current_token_id": 98274,
+          "current_token_text": "不同的",
+          "label_id": 98138,
+          "label_text": "专家",
+          "draft_id": 9643,
+          "draft_text": "router",
+          "accepted": false,
+          "loss": 11.198589324951172,
+          "label_rank": 3996,
+          "label_score": 4.25,
+          "draft_score": 13.5,
+          "draft_minus_label": 9.25,
+          "miss_bucket": "generic_structured_key",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 9643,
+              "score": 13.5,
+              "text": "router"
+            },
+            {
+              "rank": 2,
+              "token_id": 95726,
+              "score": 13.25,
+              "text": "的"
+            },
+            {
+              "rank": 3,
+              "token_id": 12,
+              "score": 12.4375,
+              "text": "-"
+            },
+            {
+              "rank": 4,
+              "token_id": 9616,
+              "score": 12.375,
+              "text": "（"
+            },
+            {
+              "rank": 5,
+              "token_id": 8997,
+              "score": 11.75,
+              "text": " router"
+            },
+            {
+              "rank": 6,
+              "token_id": 220,
+              "score": 11.5,
+              "text": " "
+            },
+            {
+              "rank": 7,
+              "token_id": 3709,
+              "score": 11.375,
+              "text": "，"
+            },
+            {
+              "rank": 8,
+              "token_id": 95999,
+              "score": 11.375,
+              "text": "与"
+            },
+            {
+              "rank": 9,
+              "token_id": 1710,
+              "score": 11.1875,
+              "text": "。"
+            },
+            {
+              "rank": 10,
+              "token_id": 95871,
+              "score": 11.1875,
+              "text": "国"
+            }
+          ]
+        },
+        {
+          "case_idx": 82,
+          "prompt_idx": 5,
+          "id": "heldout_moe_short",
+          "step": 13,
+          "current_pos": 28,
+          "current_token_id": 96237,
+          "current_token_text": "给",
+          "label_id": 98274,
+          "label_text": "不同的",
+          "draft_id": 95726,
+          "draft_text": "的",
+          "accepted": false,
+          "loss": 10.7990140914917,
+          "label_rank": 2837,
+          "label_score": 4.65625,
+          "draft_score": 13.8125,
+          "draft_minus_label": 9.15625,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 95726,
+              "score": 13.8125,
+              "text": "的"
+            },
+            {
+              "rank": 2,
+              "token_id": 9643,
+              "score": 13.3125,
+              "text": "router"
+            },
+            {
+              "rank": 3,
+              "token_id": 9616,
+              "score": 11.8125,
+              "text": "（"
+            },
+            {
+              "rank": 4,
+              "token_id": 95871,
+              "score": 11.75,
+              "text": "国"
+            },
+            {
+              "rank": 5,
+              "token_id": 95999,
+              "score": 11.5,
+              "text": "与"
+            },
+            {
+              "rank": 6,
+              "token_id": 12,
+              "score": 11.4375,
+              "text": "-"
+            },
+            {
+              "rank": 7,
+              "token_id": 8997,
+              "score": 11.0625,
+              "text": " router"
+            },
+            {
+              "rank": 8,
+              "token_id": 99142,
+              "score": 10.9375,
+              "text": "动态"
+            },
+            {
+              "rank": 9,
+              "token_id": 3709,
+              "score": 10.875,
+              "text": "，"
+            },
+            {
+              "rank": 10,
+              "token_id": 220,
+              "score": 10.6875,
+              "text": " "
+            }
+          ]
+        },
+        {
+          "case_idx": 109,
+          "prompt_idx": 7,
+          "id": "heldout_repair_json",
+          "step": 8,
+          "current_pos": 32,
+          "current_token_id": 3147,
+          "current_token_text": "\":\"",
+          "label_id": 91149,
+          "label_text": "Berlin",
+          "draft_id": 248068,
+          "draft_text": "<think>",
+          "accepted": false,
+          "loss": 13.014847755432129,
+          "label_rank": 42983,
+          "label_score": 1.515625,
+          "draft_score": 10.5,
+          "draft_minus_label": 8.984375,
+          "miss_bucket": "special_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 248068,
+              "score": 10.5,
+              "text": "<think>"
+            },
+            {
+              "rank": 2,
+              "token_id": 1265,
+              "score": 10.4375,
+              "text": "action"
+            },
+            {
+              "rank": 3,
+              "token_id": 15435,
+              "score": 10.3125,
+              "text": "metric"
+            },
+            {
+              "rank": 4,
+              "token_id": 248046,
+              "score": 9.8125,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 5,
+              "token_id": 1267,
+              "score": 9.6875,
+              "text": "type"
+            },
+            {
+              "rank": 6,
+              "token_id": 1,
+              "score": 9.5,
+              "text": "\""
+            },
+            {
+              "rank": 7,
+              "token_id": 13766,
+              "score": 9.5,
+              "text": "tool"
+            },
+            {
+              "rank": 8,
+              "token_id": 9643,
+              "score": 9.4375,
+              "text": "router"
+            },
+            {
+              "rank": 9,
+              "token_id": 3715,
+              "score": 9.25,
+              "text": "unit"
+            },
+            {
+              "rank": 10,
+              "token_id": 8656,
+              "score": 9.25,
+              "text": "city"
+            }
+          ]
+        },
+        {
+          "case_idx": 9,
+          "prompt_idx": 0,
+          "id": "heldout_json_berlin_metric",
+          "step": 9,
+          "current_pos": 26,
+          "current_token_id": 328,
+          "current_token_text": " \"",
+          "label_id": 91149,
+          "label_text": "Berlin",
+          "draft_id": 248068,
+          "draft_text": "<think>",
+          "accepted": false,
+          "loss": 12.303140640258789,
+          "label_rank": 27288,
+          "label_score": 2.1875,
+          "draft_score": 10.6875,
+          "draft_minus_label": 8.5,
+          "miss_bucket": "special_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 248068,
+              "score": 10.6875,
+              "text": "<think>"
+            },
+            {
+              "rank": 2,
+              "token_id": 1265,
+              "score": 10.5,
+              "text": "action"
+            },
+            {
+              "rank": 3,
+              "token_id": 248046,
+              "score": 9.9375,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 4,
+              "token_id": 13766,
+              "score": 9.5,
+              "text": "tool"
+            },
+            {
+              "rank": 5,
+              "token_id": 19,
+              "score": 9.375,
+              "text": "4"
+            },
+            {
+              "rank": 6,
+              "token_id": 15435,
+              "score": 9.3125,
+              "text": "metric"
+            },
+            {
+              "rank": 7,
+              "token_id": 1,
+              "score": 9.25,
+              "text": "\""
+            },
+            {
+              "rank": 8,
+              "token_id": 1267,
+              "score": 9.1875,
+              "text": "type"
+            },
+            {
+              "rank": 9,
+              "token_id": 3715,
+              "score": 9.0625,
+              "text": "unit"
+            },
+            {
+              "rank": 10,
+              "token_id": 16,
+              "score": 9.0,
+              "text": "1"
+            }
+          ]
+        },
+        {
+          "case_idx": 115,
+          "prompt_idx": 7,
+          "id": "heldout_repair_json",
+          "step": 14,
+          "current_pos": 38,
+          "current_token_id": 8934,
+          "current_token_text": "\"}",
+          "label_id": 248044,
+          "label_text": "<|endoftext|>",
+          "draft_id": 248046,
+          "draft_text": "<|im_end|>",
+          "accepted": false,
+          "loss": 8.422252655029297,
+          "label_rank": 119,
+          "label_score": 7.46875,
+          "draft_score": 15.4375,
+          "draft_minus_label": 7.96875,
+          "miss_bucket": "stop_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 248046,
+              "score": 15.4375,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 2,
+              "token_id": 271,
+              "score": 13.0,
+              "text": "\n\n"
+            },
+            {
+              "rank": 3,
+              "token_id": 248068,
+              "score": 12.4375,
+              "text": "<think>"
+            },
+            {
+              "rank": 4,
+              "token_id": 198,
+              "score": 12.25,
+              "text": "\n"
+            },
+            {
+              "rank": 5,
+              "token_id": 1,
+              "score": 11.5625,
+              "text": "\""
+            },
+            {
+              "rank": 6,
+              "token_id": 328,
+              "score": 11.4375,
+              "text": " \""
+            },
+            {
+              "rank": 7,
+              "token_id": 2005,
+              "score": 10.5,
+              "text": "“"
+            },
+            {
+              "rank": 8,
+              "token_id": 9,
+              "score": 10.4375,
+              "text": "*"
+            },
+            {
+              "rank": 9,
+              "token_id": 220,
+              "score": 10.375,
+              "text": " "
+            },
+            {
+              "rank": 10,
+              "token_id": 13,
+              "score": 10.25,
+              "text": "."
+            }
+          ]
+        },
+        {
+          "case_idx": 26,
+          "prompt_idx": 1,
+          "id": "heldout_json_status_ready",
+          "step": 10,
+          "current_pos": 23,
+          "current_token_id": 8934,
+          "current_token_text": "\"}",
+          "label_id": 248044,
+          "label_text": "<|endoftext|>",
+          "draft_id": 248046,
+          "draft_text": "<|im_end|>",
+          "accepted": false,
+          "loss": 8.202801704406738,
+          "label_rank": 103,
+          "label_score": 7.40625,
+          "draft_score": 15.0625,
+          "draft_minus_label": 7.65625,
+          "miss_bucket": "stop_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 248046,
+              "score": 15.0625,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 2,
+              "token_id": 248068,
+              "score": 12.75,
+              "text": "<think>"
+            },
+            {
+              "rank": 3,
+              "token_id": 271,
+              "score": 12.4375,
+              "text": "\n\n"
+            },
+            {
+              "rank": 4,
+              "token_id": 198,
+              "score": 11.6875,
+              "text": "\n"
+            },
+            {
+              "rank": 5,
+              "token_id": 1,
+              "score": 11.5625,
+              "text": "\""
+            },
+            {
+              "rank": 6,
+              "token_id": 328,
+              "score": 10.6875,
+              "text": " \""
+            },
+            {
+              "rank": 7,
+              "token_id": 2005,
+              "score": 10.375,
+              "text": "“"
+            },
+            {
+              "rank": 8,
+              "token_id": 9,
+              "score": 10.3125,
+              "text": "*"
+            },
+            {
+              "rank": 9,
+              "token_id": 1265,
+              "score": 9.875,
+              "text": "action"
+            },
+            {
+              "rank": 10,
+              "token_id": 220,
+              "score": 9.8125,
+              "text": " "
+            }
+          ]
+        },
+        {
+          "case_idx": 100,
+          "prompt_idx": 6,
+          "id": "heldout_linear_short",
+          "step": 15,
+          "current_pos": 33,
+          "current_token_id": 96123,
+          "current_token_text": "将",
+          "label_id": 130859,
+          "label_text": "复杂度",
+          "draft_id": 96133,
+          "draft_text": "线",
+          "accepted": false,
+          "loss": 11.332931518554688,
+          "label_rank": 11100,
+          "label_score": 3.375,
+          "draft_score": 10.8125,
+          "draft_minus_label": 7.4375,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 96133,
+              "score": 10.8125,
+              "text": "线"
+            },
+            {
+              "rank": 2,
+              "token_id": 22054,
+              "score": 10.6875,
+              "text": "linear"
+            },
+            {
+              "rank": 3,
+              "token_id": 105094,
+              "score": 10.25,
+              "text": "线性"
+            },
+            {
+              "rank": 4,
+              "token_id": 99142,
+              "score": 10.125,
+              "text": "动态"
+            },
+            {
+              "rank": 5,
+              "token_id": 457,
+              "score": 9.875,
+              "text": " W"
+            },
+            {
+              "rank": 6,
+              "token_id": 248046,
+              "score": 9.875,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 7,
+              "token_id": 95856,
+              "score": 9.6875,
+              "text": "理"
+            },
+            {
+              "rank": 8,
+              "token_id": 9616,
+              "score": 9.6875,
+              "text": "（"
+            },
+            {
+              "rank": 9,
+              "token_id": 95726,
+              "score": 9.625,
+              "text": "的"
+            },
+            {
+              "rank": 10,
+              "token_id": 95999,
+              "score": 9.5625,
+              "text": "与"
+            }
+          ]
+        },
+        {
+          "case_idx": 65,
+          "prompt_idx": 4,
+          "id": "heldout_python_slug",
+          "step": 12,
+          "current_pos": 41,
+          "current_token_id": 727,
+          "current_token_text": "def",
+          "label_id": 23695,
+          "label_text": " slug",
+          "draft_id": 513,
+          "draft_text": " are",
+          "accepted": false,
+          "loss": 9.249967575073242,
+          "label_rank": 889,
+          "label_score": 6.25,
+          "draft_score": 13.375,
+          "draft_minus_label": 7.125,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 513,
+              "score": 13.375,
+              "text": " are"
+            },
+            {
+              "rank": 2,
+              "token_id": 248046,
+              "score": 12.4375,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 3,
+              "token_id": 271,
+              "score": 12.375,
+              "text": "\n\n"
+            },
+            {
+              "rank": 4,
+              "token_id": 198,
+              "score": 12.125,
+              "text": "\n"
+            },
+            {
+              "rank": 5,
+              "token_id": 364,
+              "score": 11.6875,
+              "text": " for"
+            },
+            {
+              "rank": 6,
+              "token_id": 328,
+              "score": 11.625,
+              "text": " \""
+            },
+            {
+              "rank": 7,
+              "token_id": 369,
+              "score": 11.375,
+              "text": " is"
+            },
+            {
+              "rank": 8,
+              "token_id": 220,
+              "score": 11.25,
+              "text": " "
+            },
+            {
+              "rank": 9,
+              "token_id": 421,
+              "score": 10.9375,
+              "text": " that"
+            },
+            {
+              "rank": 10,
+              "token_id": 279,
+              "score": 10.8125,
+              "text": " the"
+            }
+          ]
+        },
+        {
+          "case_idx": 97,
+          "prompt_idx": 6,
+          "id": "heldout_linear_short",
+          "step": 12,
+          "current_pos": 30,
+          "current_token_id": 110321,
+          "current_token_text": "注意力",
+          "label_id": 97792,
+          "label_text": "计算",
+          "draft_id": 220,
+          "draft_text": " ",
+          "accepted": false,
+          "loss": 10.091048240661621,
+          "label_rank": 2618,
+          "label_score": 4.625,
+          "draft_score": 11.625,
+          "draft_minus_label": 7.0,
+          "miss_bucket": "whitespace",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 220,
+              "score": 11.625,
+              "text": " "
+            },
+            {
+              "rank": 2,
+              "token_id": 9616,
+              "score": 11.0625,
+              "text": "（"
+            },
+            {
+              "rank": 3,
+              "token_id": 95999,
+              "score": 10.875,
+              "text": "与"
+            },
+            {
+              "rank": 4,
+              "token_id": 96133,
+              "score": 10.6875,
+              "text": "线"
+            },
+            {
+              "rank": 5,
+              "token_id": 95726,
+              "score": 10.6875,
+              "text": "的"
+            },
+            {
+              "rank": 6,
+              "token_id": 12,
+              "score": 10.3125,
+              "text": "-"
+            },
+            {
+              "rank": 7,
+              "token_id": 99142,
+              "score": 10.1875,
+              "text": "动态"
+            },
+            {
+              "rank": 8,
+              "token_id": 95856,
+              "score": 9.875,
+              "text": "理"
+            },
+            {
+              "rank": 9,
+              "token_id": 248046,
+              "score": 9.75,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 10,
+              "token_id": 457,
+              "score": 9.625,
+              "text": " W"
+            }
+          ]
+        },
+        {
+          "case_idx": 24,
+          "prompt_idx": 1,
+          "id": "heldout_json_status_ready",
+          "step": 8,
+          "current_pos": 21,
+          "current_token_id": 3147,
+          "current_token_text": "\":\"",
+          "label_id": 2232,
+          "label_text": "ready",
+          "draft_id": 248068,
+          "draft_text": "<think>",
+          "accepted": false,
+          "loss": 10.323140144348145,
+          "label_rank": 3856,
+          "label_score": 4.21875,
+          "draft_score": 11.125,
+          "draft_minus_label": 6.90625,
+          "miss_bucket": "special_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 248068,
+              "score": 11.125,
+              "text": "<think>"
+            },
+            {
+              "rank": 2,
+              "token_id": 248046,
+              "score": 10.5625,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 3,
+              "token_id": 1265,
+              "score": 10.4375,
+              "text": "action"
+            },
+            {
+              "rank": 4,
+              "token_id": 1,
+              "score": 10.25,
+              "text": "\""
+            },
+            {
+              "rank": 5,
+              "token_id": 15435,
+              "score": 9.9375,
+              "text": "metric"
+            },
+            {
+              "rank": 6,
+              "token_id": 2005,
+              "score": 9.5,
+              "text": "“"
+            },
+            {
+              "rank": 7,
+              "token_id": 27,
+              "score": 9.1875,
+              "text": "<"
+            },
+            {
+              "rank": 8,
+              "token_id": 19,
+              "score": 9.1875,
+              "text": "4"
+            },
+            {
+              "rank": 9,
+              "token_id": 513,
+              "score": 9.0625,
+              "text": " are"
+            },
+            {
+              "rank": 10,
+              "token_id": 13766,
+              "score": 9.0625,
+              "text": "tool"
+            }
+          ]
+        },
+        {
+          "case_idx": 36,
+          "prompt_idx": 2,
+          "id": "heldout_tool_translate",
+          "step": 9,
+          "current_pos": 28,
+          "current_token_id": 328,
+          "current_token_text": " \"",
+          "label_id": 14556,
+          "label_text": "hello",
+          "draft_id": 9643,
+          "draft_text": "router",
+          "accepted": false,
+          "loss": 10.650102615356445,
+          "label_rank": 5533,
+          "label_score": 3.984375,
+          "draft_score": 10.875,
+          "draft_minus_label": 6.890625,
+          "miss_bucket": "generic_structured_key",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 9643,
+              "score": 10.875,
+              "text": "router"
+            },
+            {
+              "rank": 2,
+              "token_id": 1265,
+              "score": 10.6875,
+              "text": "action"
+            },
+            {
+              "rank": 3,
+              "token_id": 248068,
+              "score": 10.1875,
+              "text": "<think>"
+            },
+            {
+              "rank": 4,
+              "token_id": 13766,
+              "score": 9.5625,
+              "text": "tool"
+            },
+            {
+              "rank": 5,
+              "token_id": 5658,
+              "score": 9.375,
+              "text": "token"
+            },
+            {
+              "rank": 6,
+              "token_id": 248046,
+              "score": 9.25,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 7,
+              "token_id": 1267,
+              "score": 9.25,
+              "text": "type"
+            },
+            {
+              "rank": 8,
+              "token_id": 8656,
+              "score": 9.1875,
+              "text": "city"
+            },
+            {
+              "rank": 9,
+              "token_id": 15435,
+              "score": 9.1875,
+              "text": "metric"
+            },
+            {
+              "rank": 10,
+              "token_id": 3715,
+              "score": 9.125,
+              "text": "unit"
+            }
+          ]
+        },
+        {
+          "case_idx": 67,
+          "prompt_idx": 4,
+          "id": "heldout_python_slug",
+          "step": 14,
+          "current_pos": 43,
+          "current_token_id": 1386,
+          "current_token_text": "ify",
+          "label_id": 7008,
+          "label_text": "(text",
+          "draft_id": 1,
+          "draft_text": "\"",
+          "accepted": false,
+          "loss": 12.072151184082031,
+          "label_rank": 27991,
+          "label_score": 2.125,
+          "draft_score": 9.0,
+          "draft_minus_label": 6.875,
+          "miss_bucket": "json_punctuation",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 1,
+              "score": 9.0,
+              "text": "\""
+            },
+            {
+              "rank": 2,
+              "token_id": 369,
+              "score": 8.75,
+              "text": " is"
+            },
+            {
+              "rank": 3,
+              "token_id": 1691,
+              "score": 8.625,
+              "text": " much"
+            },
+            {
+              "rank": 4,
+              "token_id": 248046,
+              "score": 8.5,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 5,
+              "token_id": 2005,
+              "score": 8.375,
+              "text": "“"
+            },
+            {
+              "rank": 6,
+              "token_id": 97765,
+              "score": 8.25,
+              "text": "腾"
+            },
+            {
+              "rank": 7,
+              "token_id": 35463,
+              "score": 8.25,
+              "text": " stripped"
+            },
+            {
+              "rank": 8,
+              "token_id": 9,
+              "score": 8.1875,
+              "text": "*"
+            },
+            {
+              "rank": 9,
+              "token_id": 513,
+              "score": 8.0,
+              "text": " are"
+            },
+            {
+              "rank": 10,
+              "token_id": 52888,
+              "score": 7.9375,
+              "text": ",{\""
+            }
+          ]
+        },
+        {
+          "case_idx": 84,
+          "prompt_idx": 5,
+          "id": "heldout_moe_short",
+          "step": 15,
+          "current_pos": 30,
+          "current_token_id": 98138,
+          "current_token_text": "专家",
+          "label_id": 97034,
+          "label_text": "网络",
+          "draft_id": 9616,
+          "draft_text": "（",
+          "accepted": false,
+          "loss": 9.615875244140625,
+          "label_rank": 1190,
+          "label_score": 5.3125,
+          "draft_score": 12.0625,
+          "draft_minus_label": 6.75,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 9616,
+              "score": 12.0625,
+              "text": "（"
+            },
+            {
+              "rank": 2,
+              "token_id": 12,
+              "score": 12.0,
+              "text": "-"
+            },
+            {
+              "rank": 3,
+              "token_id": 95726,
+              "score": 11.9375,
+              "text": "的"
+            },
+            {
+              "rank": 4,
+              "token_id": 220,
+              "score": 11.75,
+              "text": " "
+            },
+            {
+              "rank": 5,
+              "token_id": 248046,
+              "score": 11.625,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 6,
+              "token_id": 1710,
+              "score": 11.0,
+              "text": "。"
+            },
+            {
+              "rank": 7,
+              "token_id": 95999,
+              "score": 10.9375,
+              "text": "与"
+            },
+            {
+              "rank": 8,
+              "token_id": 95761,
+              "score": 10.8125,
+              "text": "是"
+            },
+            {
+              "rank": 9,
+              "token_id": 3709,
+              "score": 10.5625,
+              "text": "，"
+            },
+            {
+              "rank": 10,
+              "token_id": 96133,
+              "score": 10.5,
+              "text": "线"
+            }
+          ]
+        },
+        {
+          "case_idx": 22,
+          "prompt_idx": 1,
+          "id": "heldout_json_status_ready",
+          "step": 6,
+          "current_pos": 19,
+          "current_token_id": 4754,
+          "current_token_text": "{\"",
+          "label_id": 2738,
+          "label_text": "status",
+          "draft_id": 8656,
+          "draft_text": "city",
+          "accepted": false,
+          "loss": 9.092889785766602,
+          "label_rank": 865,
+          "label_score": 5.875,
+          "draft_score": 12.375,
+          "draft_minus_label": 6.5,
+          "miss_bucket": "generic_structured_key",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 8656,
+              "score": 12.375,
+              "text": "city"
+            },
+            {
+              "rank": 2,
+              "token_id": 1265,
+              "score": 11.9375,
+              "text": "action"
+            },
+            {
+              "rank": 3,
+              "token_id": 1267,
+              "score": 11.125,
+              "text": "type"
+            },
+            {
+              "rank": 4,
+              "token_id": 2513,
+              "score": 11.0,
+              "text": "body"
+            },
+            {
+              "rank": 5,
+              "token_id": 248068,
+              "score": 10.625,
+              "text": "<think>"
+            },
+            {
+              "rank": 6,
+              "token_id": 3177,
+              "score": 10.5625,
+              "text": " city"
+            },
+            {
+              "rank": 7,
+              "token_id": 13766,
+              "score": 10.25,
+              "text": "tool"
+            },
+            {
+              "rank": 8,
+              "token_id": 248046,
+              "score": 9.9375,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 9,
+              "token_id": 2005,
+              "score": 9.875,
+              "text": "“"
+            },
+            {
+              "rank": 10,
+              "token_id": 96833,
+              "score": 9.6875,
+              "text": "域"
+            }
+          ]
+        },
+        {
+          "case_idx": 80,
+          "prompt_idx": 5,
+          "id": "heldout_moe_short",
+          "step": 11,
+          "current_pos": 26,
+          "current_token_id": 99142,
+          "current_token_text": "动态",
+          "label_id": 100679,
+          "label_text": "分配",
+          "draft_id": 99142,
+          "draft_text": "动态",
+          "accepted": false,
+          "loss": 7.954794883728027,
+          "label_rank": 196,
+          "label_score": 7.40625,
+          "draft_score": 12.9375,
+          "draft_minus_label": 5.53125,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 99142,
+              "score": 12.9375,
+              "text": "动态"
+            },
+            {
+              "rank": 2,
+              "token_id": 95999,
+              "score": 12.75,
+              "text": "与"
+            },
+            {
+              "rank": 3,
+              "token_id": 9616,
+              "score": 12.6875,
+              "text": "（"
+            },
+            {
+              "rank": 4,
+              "token_id": 95726,
+              "score": 12.6875,
+              "text": "的"
+            },
+            {
+              "rank": 5,
+              "token_id": 97149,
+              "score": 12.125,
+              "text": "根据"
+            },
+            {
+              "rank": 6,
+              "token_id": 95772,
+              "score": 12.0625,
+              "text": "在"
+            },
+            {
+              "rank": 7,
+              "token_id": 5205,
+              "score": 11.5,
+              "text": "、"
+            },
+            {
+              "rank": 8,
+              "token_id": 3709,
+              "score": 11.375,
+              "text": "，"
+            },
+            {
+              "rank": 9,
+              "token_id": 12,
+              "score": 11.375,
+              "text": "-"
+            },
+            {
+              "rank": 10,
+              "token_id": 220,
+              "score": 11.3125,
+              "text": " "
+            }
+          ]
+        },
+        {
+          "case_idx": 77,
+          "prompt_idx": 5,
+          "id": "heldout_moe_short",
+          "step": 8,
+          "current_pos": 23,
+          "current_token_id": 97279,
+          "current_token_text": "负责",
+          "label_id": 96123,
+          "label_text": "将",
+          "draft_id": 12,
+          "draft_text": "-",
+          "accepted": false,
+          "loss": 8.33384895324707,
+          "label_rank": 339,
+          "label_score": 6.6875,
+          "draft_score": 12.1875,
+          "draft_minus_label": 5.5,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 12,
+              "score": 12.1875,
+              "text": "-"
+            },
+            {
+              "rank": 2,
+              "token_id": 9616,
+              "score": 12.1875,
+              "text": "（"
+            },
+            {
+              "rank": 3,
+              "token_id": 97149,
+              "score": 12.0625,
+              "text": "根据"
+            },
+            {
+              "rank": 4,
+              "token_id": 95726,
+              "score": 11.8125,
+              "text": "的"
+            },
+            {
+              "rank": 5,
+              "token_id": 95999,
+              "score": 11.6875,
+              "text": "与"
+            },
+            {
+              "rank": 6,
+              "token_id": 220,
+              "score": 11.3125,
+              "text": " "
+            },
+            {
+              "rank": 7,
+              "token_id": 95772,
+              "score": 11.0625,
+              "text": "在"
+            },
+            {
+              "rank": 8,
+              "token_id": 99142,
+              "score": 11.0625,
+              "text": "动态"
+            },
+            {
+              "rank": 9,
+              "token_id": 3709,
+              "score": 10.8125,
+              "text": "，"
+            },
+            {
+              "rank": 10,
+              "token_id": 95871,
+              "score": 10.8125,
+              "text": "国"
+            }
+          ]
+        },
+        {
+          "case_idx": 93,
+          "prompt_idx": 6,
+          "id": "heldout_linear_short",
+          "step": 8,
+          "current_pos": 26,
+          "current_token_id": 220,
+          "current_token_text": " ",
+          "label_id": 96580,
+          "label_text": "通过",
+          "draft_id": 22054,
+          "draft_text": "linear",
+          "accepted": false,
+          "loss": 7.143624305725098,
+          "label_rank": 54,
+          "label_score": 7.5625,
+          "draft_score": 12.75,
+          "draft_minus_label": 5.1875,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 22054,
+              "score": 12.75,
+              "text": "linear"
+            },
+            {
+              "rank": 2,
+              "token_id": 27345,
+              "score": 11.4375,
+              "text": " Linear"
+            },
+            {
+              "rank": 3,
+              "token_id": 105094,
+              "score": 11.375,
+              "text": "线性"
+            },
+            {
+              "rank": 4,
+              "token_id": 13094,
+              "score": 11.125,
+              "text": " linear"
+            },
+            {
+              "rank": 5,
+              "token_id": 96133,
+              "score": 10.5,
+              "text": "线"
+            },
+            {
+              "rank": 6,
+              "token_id": 248046,
+              "score": 9.75,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 7,
+              "token_id": 95856,
+              "score": 9.75,
+              "text": "理"
+            },
+            {
+              "rank": 8,
+              "token_id": 9616,
+              "score": 9.6875,
+              "text": "（"
+            },
+            {
+              "rank": 9,
+              "token_id": 220,
+              "score": 9.375,
+              "text": " "
+            },
+            {
+              "rank": 10,
+              "token_id": 95726,
+              "score": 9.3125,
+              "text": "的"
+            }
+          ]
+        },
+        {
+          "case_idx": 96,
+          "prompt_idx": 6,
+          "id": "heldout_linear_short",
+          "step": 11,
+          "current_pos": 29,
+          "current_token_id": 95909,
+          "current_token_text": "化",
+          "label_id": 110321,
+          "label_text": "注意力",
+          "draft_id": 22054,
+          "draft_text": "linear",
+          "accepted": false,
+          "loss": 8.101690292358398,
+          "label_rank": 295,
+          "label_score": 6.59375,
+          "draft_score": 11.4375,
+          "draft_minus_label": 4.84375,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 22054,
+              "score": 11.4375,
+              "text": "linear"
+            },
+            {
+              "rank": 2,
+              "token_id": 96133,
+              "score": 11.0,
+              "text": "线"
+            },
+            {
+              "rank": 3,
+              "token_id": 105094,
+              "score": 10.875,
+              "text": "线性"
+            },
+            {
+              "rank": 4,
+              "token_id": 99142,
+              "score": 10.375,
+              "text": "动态"
+            },
+            {
+              "rank": 5,
+              "token_id": 9616,
+              "score": 10.3125,
+              "text": "（"
+            },
+            {
+              "rank": 6,
+              "token_id": 13094,
+              "score": 10.25,
+              "text": " linear"
+            },
+            {
+              "rank": 7,
+              "token_id": 27345,
+              "score": 10.0,
+              "text": " Linear"
+            },
+            {
+              "rank": 8,
+              "token_id": 12,
+              "score": 9.8125,
+              "text": "-"
+            },
+            {
+              "rank": 9,
+              "token_id": 457,
+              "score": 9.75,
+              "text": " W"
+            },
+            {
+              "rank": 10,
+              "token_id": 95856,
+              "score": 9.5625,
+              "text": "理"
+            }
+          ]
+        },
+        {
+          "case_idx": 51,
+          "prompt_idx": 3,
+          "id": "heldout_math_distance",
+          "step": 8,
+          "current_pos": 27,
+          "current_token_id": 20,
+          "current_token_text": "5",
+          "label_id": 8491,
+          "label_text": " miles",
+          "draft_id": 15,
+          "draft_text": "0",
+          "accepted": false,
+          "loss": 7.928934097290039,
+          "label_rank": 208,
+          "label_score": 6.5625,
+          "draft_score": 11.3125,
+          "draft_minus_label": 4.75,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 15,
+              "score": 11.3125,
+              "text": "0"
+            },
+            {
+              "rank": 2,
+              "token_id": 248046,
+              "score": 11.25,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 3,
+              "token_id": 19,
+              "score": 10.4375,
+              "text": "4"
+            },
+            {
+              "rank": 4,
+              "token_id": 271,
+              "score": 10.4375,
+              "text": "\n\n"
+            },
+            {
+              "rank": 5,
+              "token_id": 17,
+              "score": 10.4375,
+              "text": "2"
+            },
+            {
+              "rank": 6,
+              "token_id": 16,
+              "score": 10.1875,
+              "text": "1"
+            },
+            {
+              "rank": 7,
+              "token_id": 20,
+              "score": 9.9375,
+              "text": "5"
+            },
+            {
+              "rank": 8,
+              "token_id": 21,
+              "score": 9.8125,
+              "text": "6"
+            },
+            {
+              "rank": 9,
+              "token_id": 513,
+              "score": 9.8125,
+              "text": " are"
+            },
+            {
+              "rank": 10,
+              "token_id": 22,
+              "score": 9.75,
+              "text": "7"
+            }
+          ]
+        },
+        {
+          "case_idx": 59,
+          "prompt_idx": 4,
+          "id": "heldout_python_slug",
+          "step": 6,
+          "current_pos": 35,
+          "current_token_id": 71093,
+          "current_token_text": "```",
+          "label_id": 12305,
+          "label_text": "python",
+          "draft_id": 248046,
+          "draft_text": "<|im_end|>",
+          "accepted": false,
+          "loss": 7.810816287994385,
+          "label_rank": 158,
+          "label_score": 6.5625,
+          "draft_score": 11.125,
+          "draft_minus_label": 4.5625,
+          "miss_bucket": "stop_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 248046,
+              "score": 11.125,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 2,
+              "token_id": 248068,
+              "score": 10.6875,
+              "text": "<think>"
+            },
+            {
+              "rank": 3,
+              "token_id": 71093,
+              "score": 9.875,
+              "text": "```"
+            },
+            {
+              "rank": 4,
+              "token_id": 2005,
+              "score": 9.5,
+              "text": "“"
+            },
+            {
+              "rank": 5,
+              "token_id": 5513,
+              "score": 9.4375,
+              "text": "�"
+            },
+            {
+              "rank": 6,
+              "token_id": 9678,
+              "score": 9.375,
+              "text": "��"
+            },
+            {
+              "rank": 7,
+              "token_id": 1,
+              "score": 9.0,
+              "text": "\""
+            },
+            {
+              "rank": 8,
+              "token_id": 1265,
+              "score": 9.0,
+              "text": "action"
+            },
+            {
+              "rank": 9,
+              "token_id": 9,
+              "score": 8.9375,
+              "text": "*"
+            },
+            {
+              "rank": 10,
+              "token_id": 271,
+              "score": 8.8125,
+              "text": "\n\n"
+            }
+          ]
+        }
+      ],
+      "near_misses": [
+        {
+          "case_idx": 7,
+          "prompt_idx": 0,
+          "id": "heldout_json_berlin_metric",
+          "step": 7,
+          "current_pos": 24,
+          "current_token_id": 8656,
+          "current_token_text": "city",
+          "label_id": 763,
+          "label_text": "\":",
+          "draft_id": 3147,
+          "draft_text": "\":\"",
+          "accepted": false,
+          "loss": 0.960758626461029,
+          "label_rank": 2,
+          "label_score": 15.875,
+          "draft_score": 15.9375,
+          "draft_minus_label": 0.0625,
+          "miss_bucket": "json_punctuation",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 3147,
+              "score": 15.9375,
+              "text": "\":\""
+            },
+            {
+              "rank": 2,
+              "token_id": 763,
+              "score": 15.875,
+              "text": "\":"
+            },
+            {
+              "rank": 3,
+              "token_id": 2129,
+              "score": 14.0,
+              "text": "\",\""
+            },
+            {
+              "rank": 4,
+              "token_id": 56658,
+              "score": 12.0,
+              "text": "\"},\""
+            },
+            {
+              "rank": 5,
+              "token_id": 487,
+              "score": 12.0,
+              "text": "\","
+            },
+            {
+              "rank": 6,
+              "token_id": 1,
+              "score": 11.875,
+              "text": "\""
+            },
+            {
+              "rank": 7,
+              "token_id": 8934,
+              "score": 11.6875,
+              "text": "\"}"
+            },
+            {
+              "rank": 8,
+              "token_id": 22698,
+              "score": 11.5,
+              "text": " \":\""
+            },
+            {
+              "rank": 9,
+              "token_id": 21624,
+              "score": 11.5,
+              "text": "\":{\""
+            },
+            {
+              "rank": 10,
+              "token_id": 22754,
+              "score": 11.25,
+              "text": "\\\":\\\""
+            }
+          ]
+        },
+        {
+          "case_idx": 25,
+          "prompt_idx": 1,
+          "id": "heldout_json_status_ready",
+          "step": 9,
+          "current_pos": 22,
+          "current_token_id": 2232,
+          "current_token_text": "ready",
+          "label_id": 8934,
+          "label_text": "\"}",
+          "draft_id": 248046,
+          "draft_text": "<|im_end|>",
+          "accepted": false,
+          "loss": 2.0231099128723145,
+          "label_rank": 2,
+          "label_score": 13.5625,
+          "draft_score": 13.625,
+          "draft_minus_label": 0.0625,
+          "miss_bucket": "stop_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 248046,
+              "score": 13.625,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 2,
+              "token_id": 8934,
+              "score": 13.5625,
+              "text": "\"}"
+            },
+            {
+              "rank": 3,
+              "token_id": 487,
+              "score": 12.25,
+              "text": "\","
+            },
+            {
+              "rank": 4,
+              "token_id": 1,
+              "score": 12.1875,
+              "text": "\""
+            },
+            {
+              "rank": 5,
+              "token_id": 2129,
+              "score": 12.1875,
+              "text": "\",\""
+            },
+            {
+              "rank": 6,
+              "token_id": 271,
+              "score": 12.0625,
+              "text": "\n\n"
+            },
+            {
+              "rank": 7,
+              "token_id": 56658,
+              "score": 11.625,
+              "text": "\"},\""
+            },
+            {
+              "rank": 8,
+              "token_id": 328,
+              "score": 11.625,
+              "text": " \""
+            },
+            {
+              "rank": 9,
+              "token_id": 763,
+              "score": 11.5625,
+              "text": "\":"
+            },
+            {
+              "rank": 10,
+              "token_id": 198,
+              "score": 11.5,
+              "text": "\n"
+            }
+          ]
+        },
+        {
+          "case_idx": 54,
+          "prompt_idx": 4,
+          "id": "heldout_python_slug",
+          "step": 1,
+          "current_pos": 30,
+          "current_token_id": 271,
+          "current_token_text": "\n\n",
+          "label_id": 248068,
+          "label_text": "<think>",
+          "draft_id": 71093,
+          "draft_text": "```",
+          "accepted": false,
+          "loss": 0.9981759786605835,
+          "label_rank": 2,
+          "label_score": 15.625,
+          "draft_score": 15.8125,
+          "draft_minus_label": 0.1875,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 71093,
+              "score": 15.8125,
+              "text": "```"
+            },
+            {
+              "rank": 2,
+              "token_id": 248068,
+              "score": 15.625,
+              "text": "<think>"
+            },
+            {
+              "rank": 3,
+              "token_id": 248046,
+              "score": 12.1875,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 4,
+              "token_id": 1,
+              "score": 11.9375,
+              "text": "\""
+            },
+            {
+              "rank": 5,
+              "token_id": 5513,
+              "score": 11.875,
+              "text": "�"
+            },
+            {
+              "rank": 6,
+              "token_id": 2005,
+              "score": 11.5,
+              "text": "“"
+            },
+            {
+              "rank": 7,
+              "token_id": 9,
+              "score": 11.125,
+              "text": "*"
+            },
+            {
+              "rank": 8,
+              "token_id": 16,
+              "score": 10.9375,
+              "text": "1"
+            },
+            {
+              "rank": 9,
+              "token_id": 52451,
+              "score": 10.9375,
+              "text": " ```"
+            },
+            {
+              "rank": 10,
+              "token_id": 9678,
+              "score": 10.875,
+              "text": "��"
+            }
+          ]
+        },
+        {
+          "case_idx": 10,
+          "prompt_idx": 0,
+          "id": "heldout_json_berlin_metric",
+          "step": 10,
+          "current_pos": 27,
+          "current_token_id": 91149,
+          "current_token_text": "Berlin",
+          "label_id": 487,
+          "label_text": "\",",
+          "draft_id": 2129,
+          "draft_text": "\",\"",
+          "accepted": false,
+          "loss": 2.067138671875,
+          "label_rank": 2,
+          "label_score": 13.625,
+          "draft_score": 13.9375,
+          "draft_minus_label": 0.3125,
+          "miss_bucket": "json_punctuation",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 2129,
+              "score": 13.9375,
+              "text": "\",\""
+            },
+            {
+              "rank": 2,
+              "token_id": 487,
+              "score": 13.625,
+              "text": "\","
+            },
+            {
+              "rank": 3,
+              "token_id": 763,
+              "score": 12.8125,
+              "text": "\":"
+            },
+            {
+              "rank": 4,
+              "token_id": 8934,
+              "score": 12.625,
+              "text": "\"}"
+            },
+            {
+              "rank": 5,
+              "token_id": 1,
+              "score": 12.625,
+              "text": "\""
+            },
+            {
+              "rank": 6,
+              "token_id": 328,
+              "score": 12.5,
+              "text": " \""
+            },
+            {
+              "rank": 7,
+              "token_id": 3147,
+              "score": 12.4375,
+              "text": "\":\""
+            },
+            {
+              "rank": 8,
+              "token_id": 13,
+              "score": 11.1875,
+              "text": "."
+            },
+            {
+              "rank": 9,
+              "token_id": 3158,
+              "score": 11.125,
+              "text": "\"."
+            },
+            {
+              "rank": 10,
+              "token_id": 15,
+              "score": 11.0625,
+              "text": "0"
+            }
+          ]
+        },
+        {
+          "case_idx": 37,
+          "prompt_idx": 2,
+          "id": "heldout_tool_translate",
+          "step": 10,
+          "current_pos": 29,
+          "current_token_id": 14556,
+          "current_token_text": "hello",
+          "label_id": 487,
+          "label_text": "\",",
+          "draft_id": 2129,
+          "draft_text": "\",\"",
+          "accepted": false,
+          "loss": 1.8700785636901855,
+          "label_rank": 2,
+          "label_score": 14.125,
+          "draft_score": 14.4375,
+          "draft_minus_label": 0.3125,
+          "miss_bucket": "json_punctuation",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 2129,
+              "score": 14.4375,
+              "text": "\",\""
+            },
+            {
+              "rank": 2,
+              "token_id": 487,
+              "score": 14.125,
+              "text": "\","
+            },
+            {
+              "rank": 3,
+              "token_id": 763,
+              "score": 13.375,
+              "text": "\":"
+            },
+            {
+              "rank": 4,
+              "token_id": 8934,
+              "score": 13.1875,
+              "text": "\"}"
+            },
+            {
+              "rank": 5,
+              "token_id": 328,
+              "score": 12.4375,
+              "text": " \""
+            },
+            {
+              "rank": 6,
+              "token_id": 3147,
+              "score": 12.4375,
+              "text": "\":\""
+            },
+            {
+              "rank": 7,
+              "token_id": 1,
+              "score": 12.3125,
+              "text": "\""
+            },
+            {
+              "rank": 8,
+              "token_id": 15,
+              "score": 11.6875,
+              "text": "0"
+            },
+            {
+              "rank": 9,
+              "token_id": 220,
+              "score": 11.625,
+              "text": " "
+            },
+            {
+              "rank": 10,
+              "token_id": 2918,
+              "score": 11.4375,
+              "text": "\"\""
+            }
+          ]
+        },
+        {
+          "case_idx": 63,
+          "prompt_idx": 4,
+          "id": "heldout_python_slug",
+          "step": 10,
+          "current_pos": 39,
+          "current_token_id": 311,
+          "current_token_text": " re",
+          "label_id": 271,
+          "label_text": "\n\n",
+          "draft_id": 248046,
+          "draft_text": "<|im_end|>",
+          "accepted": false,
+          "loss": 2.203669786453247,
+          "label_rank": 2,
+          "label_score": 13.0,
+          "draft_score": 13.375,
+          "draft_minus_label": 0.375,
+          "miss_bucket": "stop_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 248046,
+              "score": 13.375,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 2,
+              "token_id": 271,
+              "score": 13.0,
+              "text": "\n\n"
+            },
+            {
+              "rank": 3,
+              "token_id": 198,
+              "score": 12.875,
+              "text": "\n"
+            },
+            {
+              "rank": 4,
+              "token_id": 71093,
+              "score": 12.25,
+              "text": "```"
+            },
+            {
+              "rank": 5,
+              "token_id": 220,
+              "score": 12.0,
+              "text": " "
+            },
+            {
+              "rank": 6,
+              "token_id": 1,
+              "score": 11.8125,
+              "text": "\""
+            },
+            {
+              "rank": 7,
+              "token_id": 9,
+              "score": 11.125,
+              "text": "*"
+            },
+            {
+              "rank": 8,
+              "token_id": 13,
+              "score": 10.875,
+              "text": "."
+            },
+            {
+              "rank": 9,
+              "token_id": 7,
+              "score": 10.875,
+              "text": "("
+            },
+            {
+              "rank": 10,
+              "token_id": 4277,
+              "score": 10.6875,
+              "text": "---"
+            }
+          ]
+        },
+        {
+          "case_idx": 28,
+          "prompt_idx": 2,
+          "id": "heldout_tool_translate",
+          "step": 1,
+          "current_pos": 20,
+          "current_token_id": 271,
+          "current_token_text": "\n\n",
+          "label_id": 248068,
+          "label_text": "<think>",
+          "draft_id": 4754,
+          "draft_text": "{\"",
+          "accepted": false,
+          "loss": 1.1919459104537964,
+          "label_rank": 2,
+          "label_score": 16.125,
+          "draft_score": 16.625,
+          "draft_minus_label": 0.5,
+          "miss_bucket": "json_punctuation",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 4754,
+              "score": 16.625,
+              "text": "{\""
+            },
+            {
+              "rank": 2,
+              "token_id": 248068,
+              "score": 16.125,
+              "text": "<think>"
+            },
+            {
+              "rank": 3,
+              "token_id": 71093,
+              "score": 13.875,
+              "text": "```"
+            },
+            {
+              "rank": 4,
+              "token_id": 1,
+              "score": 13.4375,
+              "text": "\""
+            },
+            {
+              "rank": 5,
+              "token_id": 5046,
+              "score": 13.3125,
+              "text": " {\""
+            },
+            {
+              "rank": 6,
+              "token_id": 2884,
+              "score": 12.625,
+              "text": "{{"
+            },
+            {
+              "rank": 7,
+              "token_id": 2005,
+              "score": 12.5625,
+              "text": "“"
+            },
+            {
+              "rank": 8,
+              "token_id": 90,
+              "score": 12.5625,
+              "text": "{"
+            },
+            {
+              "rank": 9,
+              "token_id": 52888,
+              "score": 12.125,
+              "text": ",{\""
+            },
+            {
+              "rank": 10,
+              "token_id": 27,
+              "score": 11.75,
+              "text": "<"
+            }
+          ]
+        },
+        {
+          "case_idx": 102,
+          "prompt_idx": 7,
+          "id": "heldout_repair_json",
+          "step": 1,
+          "current_pos": 25,
+          "current_token_id": 271,
+          "current_token_text": "\n\n",
+          "label_id": 248068,
+          "label_text": "<think>",
+          "draft_id": 4754,
+          "draft_text": "{\"",
+          "accepted": false,
+          "loss": 1.2972887754440308,
+          "label_rank": 2,
+          "label_score": 15.9375,
+          "draft_score": 16.5,
+          "draft_minus_label": 0.5625,
+          "miss_bucket": "json_punctuation",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 4754,
+              "score": 16.5,
+              "text": "{\""
+            },
+            {
+              "rank": 2,
+              "token_id": 248068,
+              "score": 15.9375,
+              "text": "<think>"
+            },
+            {
+              "rank": 3,
+              "token_id": 71093,
+              "score": 14.1875,
+              "text": "```"
+            },
+            {
+              "rank": 4,
+              "token_id": 1,
+              "score": 14.0,
+              "text": "\""
+            },
+            {
+              "rank": 5,
+              "token_id": 5046,
+              "score": 13.125,
+              "text": " {\""
+            },
+            {
+              "rank": 6,
+              "token_id": 2005,
+              "score": 12.875,
+              "text": "“"
+            },
+            {
+              "rank": 7,
+              "token_id": 90,
+              "score": 12.875,
+              "text": "{"
+            },
+            {
+              "rank": 8,
+              "token_id": 2884,
+              "score": 12.5,
+              "text": "{{"
+            },
+            {
+              "rank": 9,
+              "token_id": 52888,
+              "score": 12.1875,
+              "text": ",{\""
+            },
+            {
+              "rank": 10,
+              "token_id": 9,
+              "score": 12.0625,
+              "text": "*"
+            }
+          ]
+        },
+        {
+          "case_idx": 69,
+          "prompt_idx": 5,
+          "id": "heldout_moe_short",
+          "step": 0,
+          "current_pos": 15,
+          "current_token_id": 1710,
+          "current_token_text": "。",
+          "label_id": 271,
+          "label_text": "\n\n",
+          "draft_id": 248068,
+          "draft_text": "<think>",
+          "accepted": false,
+          "loss": 3.082827091217041,
+          "label_rank": 2,
+          "label_score": 11.875,
+          "draft_score": 12.5625,
+          "draft_minus_label": 0.6875,
+          "miss_bucket": "special_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 248068,
+              "score": 12.5625,
+              "text": "<think>"
+            },
+            {
+              "rank": 2,
+              "token_id": 248046,
+              "score": 11.875,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 3,
+              "token_id": 271,
+              "score": 11.875,
+              "text": "\n\n"
+            },
+            {
+              "rank": 4,
+              "token_id": 9643,
+              "score": 11.625,
+              "text": "router"
+            },
+            {
+              "rank": 5,
+              "token_id": 198,
+              "score": 11.3125,
+              "text": "\n"
+            },
+            {
+              "rank": 6,
+              "token_id": 1,
+              "score": 11.0625,
+              "text": "\""
+            },
+            {
+              "rank": 7,
+              "token_id": 9616,
+              "score": 11.0,
+              "text": "（"
+            },
+            {
+              "rank": 8,
+              "token_id": 1265,
+              "score": 10.875,
+              "text": "action"
+            },
+            {
+              "rank": 9,
+              "token_id": 95726,
+              "score": 10.875,
+              "text": "的"
+            },
+            {
+              "rank": 10,
+              "token_id": 2005,
+              "score": 10.75,
+              "text": "“"
+            }
+          ]
+        },
+        {
+          "case_idx": 23,
+          "prompt_idx": 1,
+          "id": "heldout_json_status_ready",
+          "step": 7,
+          "current_pos": 20,
+          "current_token_id": 2738,
+          "current_token_text": "status",
+          "label_id": 3147,
+          "label_text": "\":\"",
+          "draft_id": 763,
+          "draft_text": "\":",
+          "accepted": false,
+          "loss": 2.2374651432037354,
+          "label_rank": 2,
+          "label_score": 14.375,
+          "draft_score": 15.875,
+          "draft_minus_label": 1.5,
+          "miss_bucket": "json_punctuation",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 763,
+              "score": 15.875,
+              "text": "\":"
+            },
+            {
+              "rank": 2,
+              "token_id": 3147,
+              "score": 14.375,
+              "text": "\":\""
+            },
+            {
+              "rank": 3,
+              "token_id": 2129,
+              "score": 14.0,
+              "text": "\",\""
+            },
+            {
+              "rank": 4,
+              "token_id": 487,
+              "score": 13.375,
+              "text": "\","
+            },
+            {
+              "rank": 5,
+              "token_id": 8934,
+              "score": 13.1875,
+              "text": "\"}"
+            },
+            {
+              "rank": 6,
+              "token_id": 1,
+              "score": 13.0,
+              "text": "\""
+            },
+            {
+              "rank": 7,
+              "token_id": 328,
+              "score": 12.5,
+              "text": " \""
+            },
+            {
+              "rank": 8,
+              "token_id": 25,
+              "score": 11.9375,
+              "text": ":"
+            },
+            {
+              "rank": 9,
+              "token_id": 4961,
+              "score": 11.875,
+              "text": "\";"
+            },
+            {
+              "rank": 10,
+              "token_id": 271,
+              "score": 11.75,
+              "text": "\n\n"
+            }
+          ]
+        },
+        {
+          "case_idx": 86,
+          "prompt_idx": 6,
+          "id": "heldout_linear_short",
+          "step": 1,
+          "current_pos": 19,
+          "current_token_id": 271,
+          "current_token_text": "\n\n",
+          "label_id": 248068,
+          "label_text": "<think>",
+          "draft_id": 22054,
+          "draft_text": "linear",
+          "accepted": false,
+          "loss": 2.440624713897705,
+          "label_rank": 2,
+          "label_score": 13.4375,
+          "draft_score": 15.25,
+          "draft_minus_label": 1.8125,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 22054,
+              "score": 15.25,
+              "text": "linear"
+            },
+            {
+              "rank": 2,
+              "token_id": 248068,
+              "score": 13.4375,
+              "text": "<think>"
+            },
+            {
+              "rank": 3,
+              "token_id": 105094,
+              "score": 11.9375,
+              "text": "线性"
+            },
+            {
+              "rank": 4,
+              "token_id": 96133,
+              "score": 11.5,
+              "text": "线"
+            },
+            {
+              "rank": 5,
+              "token_id": 13094,
+              "score": 11.1875,
+              "text": " linear"
+            },
+            {
+              "rank": 6,
+              "token_id": 71093,
+              "score": 11.0,
+              "text": "```"
+            },
+            {
+              "rank": 7,
+              "token_id": 248046,
+              "score": 10.6875,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 8,
+              "token_id": 27345,
+              "score": 10.5625,
+              "text": " Linear"
+            },
+            {
+              "rank": 9,
+              "token_id": 5513,
+              "score": 10.4375,
+              "text": "�"
+            },
+            {
+              "rank": 10,
+              "token_id": 1265,
+              "score": 10.25,
+              "text": "action"
+            }
+          ]
+        },
+        {
+          "case_idx": 70,
+          "prompt_idx": 5,
+          "id": "heldout_moe_short",
+          "step": 1,
+          "current_pos": 16,
+          "current_token_id": 271,
+          "current_token_text": "\n\n",
+          "label_id": 248068,
+          "label_text": "<think>",
+          "draft_id": 9643,
+          "draft_text": "router",
+          "accepted": false,
+          "loss": 2.4254651069641113,
+          "label_rank": 2,
+          "label_score": 13.5625,
+          "draft_score": 15.4375,
+          "draft_minus_label": 1.875,
+          "miss_bucket": "generic_structured_key",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 9643,
+              "score": 15.4375,
+              "text": "router"
+            },
+            {
+              "rank": 2,
+              "token_id": 248068,
+              "score": 13.5625,
+              "text": "<think>"
+            },
+            {
+              "rank": 3,
+              "token_id": 22054,
+              "score": 11.5,
+              "text": "linear"
+            },
+            {
+              "rank": 4,
+              "token_id": 8997,
+              "score": 11.125,
+              "text": " router"
+            },
+            {
+              "rank": 5,
+              "token_id": 12,
+              "score": 11.0625,
+              "text": "-"
+            },
+            {
+              "rank": 6,
+              "token_id": 1,
+              "score": 11.0625,
+              "text": "\""
+            },
+            {
+              "rank": 7,
+              "token_id": 71093,
+              "score": 10.875,
+              "text": "```"
+            },
+            {
+              "rank": 8,
+              "token_id": 1265,
+              "score": 10.6875,
+              "text": "action"
+            },
+            {
+              "rank": 9,
+              "token_id": 2005,
+              "score": 10.625,
+              "text": "“"
+            },
+            {
+              "rank": 10,
+              "token_id": 9,
+              "score": 10.5625,
+              "text": "*"
+            }
+          ]
+        },
+        {
+          "case_idx": 15,
+          "prompt_idx": 0,
+          "id": "heldout_json_berlin_metric",
+          "step": 15,
+          "current_pos": 32,
+          "current_token_id": 328,
+          "current_token_text": " \"",
+          "label_id": 15435,
+          "label_text": "metric",
+          "draft_id": 1265,
+          "draft_text": "action",
+          "accepted": false,
+          "loss": 4.5439558029174805,
+          "label_rank": 3,
+          "label_score": 10.0,
+          "draft_score": 10.4375,
+          "draft_minus_label": 0.4375,
+          "miss_bucket": "generic_structured_key",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 3715,
+              "score": 10.4375,
+              "text": "unit"
+            },
+            {
+              "rank": 2,
+              "token_id": 1265,
+              "score": 10.4375,
+              "text": "action"
+            },
+            {
+              "rank": 3,
+              "token_id": 15435,
+              "score": 10.0,
+              "text": "metric"
+            },
+            {
+              "rank": 4,
+              "token_id": 248046,
+              "score": 10.0,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 5,
+              "token_id": 248068,
+              "score": 9.9375,
+              "text": "<think>"
+            },
+            {
+              "rank": 6,
+              "token_id": 1,
+              "score": 9.75,
+              "text": "\""
+            },
+            {
+              "rank": 7,
+              "token_id": 19,
+              "score": 9.3125,
+              "text": "4"
+            },
+            {
+              "rank": 8,
+              "token_id": 1267,
+              "score": 9.1875,
+              "text": "type"
+            },
+            {
+              "rank": 9,
+              "token_id": 13766,
+              "score": 9.125,
+              "text": "tool"
+            },
+            {
+              "rank": 10,
+              "token_id": 23,
+              "score": 8.875,
+              "text": "8"
+            }
+          ]
+        },
+        {
+          "case_idx": 85,
+          "prompt_idx": 6,
+          "id": "heldout_linear_short",
+          "step": 0,
+          "current_pos": 18,
+          "current_token_id": 1710,
+          "current_token_text": "。",
+          "label_id": 271,
+          "label_text": "\n\n",
+          "draft_id": 248068,
+          "draft_text": "<think>",
+          "accepted": false,
+          "loss": 3.6538257598876953,
+          "label_rank": 4,
+          "label_score": 11.1875,
+          "draft_score": 12.5,
+          "draft_minus_label": 1.3125,
+          "miss_bucket": "special_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 248068,
+              "score": 12.5,
+              "text": "<think>"
+            },
+            {
+              "rank": 2,
+              "token_id": 248046,
+              "score": 11.9375,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 3,
+              "token_id": 22054,
+              "score": 11.6875,
+              "text": "linear"
+            },
+            {
+              "rank": 4,
+              "token_id": 271,
+              "score": 11.1875,
+              "text": "\n\n"
+            },
+            {
+              "rank": 5,
+              "token_id": 96133,
+              "score": 10.9375,
+              "text": "线"
+            },
+            {
+              "rank": 6,
+              "token_id": 1265,
+              "score": 10.6875,
+              "text": "action"
+            },
+            {
+              "rank": 7,
+              "token_id": 1,
+              "score": 10.5,
+              "text": "\""
+            },
+            {
+              "rank": 8,
+              "token_id": 198,
+              "score": 10.3125,
+              "text": "\n"
+            },
+            {
+              "rank": 9,
+              "token_id": 2005,
+              "score": 10.125,
+              "text": "“"
+            },
+            {
+              "rank": 10,
+              "token_id": 5513,
+              "score": 9.9375,
+              "text": "�"
+            }
+          ]
+        },
+        {
+          "case_idx": 49,
+          "prompt_idx": 3,
+          "id": "heldout_math_distance",
+          "step": 6,
+          "current_pos": 25,
+          "current_token_id": 16,
+          "current_token_text": "1",
+          "label_id": 18,
+          "label_text": "3",
+          "draft_id": 15,
+          "draft_text": "0",
+          "accepted": false,
+          "loss": 2.505708694458008,
+          "label_rank": 5,
+          "label_score": 15.8125,
+          "draft_score": 16.75,
+          "draft_minus_label": 0.9375,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 15,
+              "score": 16.75,
+              "text": "0"
+            },
+            {
+              "rank": 2,
+              "token_id": 17,
+              "score": 16.625,
+              "text": "2"
+            },
+            {
+              "rank": 3,
+              "token_id": 16,
+              "score": 16.625,
+              "text": "1"
+            },
+            {
+              "rank": 4,
+              "token_id": 19,
+              "score": 16.0,
+              "text": "4"
+            },
+            {
+              "rank": 5,
+              "token_id": 18,
+              "score": 15.8125,
+              "text": "3"
+            },
+            {
+              "rank": 6,
+              "token_id": 20,
+              "score": 15.4375,
+              "text": "5"
+            },
+            {
+              "rank": 7,
+              "token_id": 21,
+              "score": 15.3125,
+              "text": "6"
+            },
+            {
+              "rank": 8,
+              "token_id": 23,
+              "score": 14.9375,
+              "text": "8"
+            },
+            {
+              "rank": 9,
+              "token_id": 22,
+              "score": 14.875,
+              "text": "7"
+            },
+            {
+              "rank": 10,
+              "token_id": 24,
+              "score": 14.6875,
+              "text": "9"
+            }
+          ]
+        },
+        {
+          "case_idx": 44,
+          "prompt_idx": 3,
+          "id": "heldout_math_distance",
+          "step": 1,
+          "current_pos": 20,
+          "current_token_id": 271,
+          "current_token_text": "\n\n",
+          "label_id": 248068,
+          "label_text": "<think>",
+          "draft_id": 16,
+          "draft_text": "1",
+          "accepted": false,
+          "loss": 3.5332775115966797,
+          "label_rank": 5,
+          "label_score": 14.9375,
+          "draft_score": 18.125,
+          "draft_minus_label": 3.1875,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 16,
+              "score": 18.125,
+              "text": "1"
+            },
+            {
+              "rank": 2,
+              "token_id": 17,
+              "score": 15.875,
+              "text": "2"
+            },
+            {
+              "rank": 3,
+              "token_id": 19,
+              "score": 15.25,
+              "text": "4"
+            },
+            {
+              "rank": 4,
+              "token_id": 18,
+              "score": 15.125,
+              "text": "3"
+            },
+            {
+              "rank": 5,
+              "token_id": 248068,
+              "score": 14.9375,
+              "text": "<think>"
+            },
+            {
+              "rank": 6,
+              "token_id": 21,
+              "score": 14.875,
+              "text": "6"
+            },
+            {
+              "rank": 7,
+              "token_id": 15,
+              "score": 14.375,
+              "text": "0"
+            },
+            {
+              "rank": 8,
+              "token_id": 20,
+              "score": 14.0625,
+              "text": "5"
+            },
+            {
+              "rank": 9,
+              "token_id": 22,
+              "score": 14.0,
+              "text": "7"
+            },
+            {
+              "rank": 10,
+              "token_id": 24,
+              "score": 13.8125,
+              "text": "9"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "v23",
+      "sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v22-margin-v6-rescue-v23-20260517_150922/mtp.safetensors",
+      "inventory": {
+        "metadata": {
+          "lynn_mtp_iterative_train": "true",
+          "eval_accept_rate_after": "0.5603448275862069",
+          "train_accept_rate_after": "0.5789473684210527",
+          "source_sidecar": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v19-margin-v5-fcnorms-v22-20260517_145317/mtp.safetensors"
+        },
+        "tensors": {
+          "mtp.fc.weight": {
+            "shape": [
+              2048,
+              4096
+            ],
+            "dtype": "bfloat16",
+            "numel": 8388608
+          },
+          "mtp.layers.0.input_layernorm.weight": {
+            "shape": [
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 2048
+          },
+          "mtp.layers.0.mlp.experts.down_proj": {
+            "shape": [
+              254,
+              2048,
+              512
+            ],
+            "dtype": "bfloat16",
+            "numel": 266338304
+          },
+          "mtp.layers.0.mlp.experts.gate_up_proj": {
+            "shape": [
+              254,
+              1024,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 532676608
+          },
+          "mtp.layers.0.mlp.gate.weight": {
+            "shape": [
+              254,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 520192
+          },
+          "mtp.layers.0.mlp.shared_expert.down_proj.weight": {
+            "shape": [
+              2048,
+              512
+            ],
+            "dtype": "bfloat16",
+            "numel": 1048576
+          },
+          "mtp.layers.0.mlp.shared_expert.gate_proj.weight": {
+            "shape": [
+              512,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 1048576
+          },
+          "mtp.layers.0.mlp.shared_expert.up_proj.weight": {
+            "shape": [
+              512,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 1048576
+          },
+          "mtp.layers.0.mlp.shared_expert_gate.weight": {
+            "shape": [
+              1,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 2048
+          },
+          "mtp.layers.0.post_attention_layernorm.weight": {
+            "shape": [
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 2048
+          },
+          "mtp.layers.0.self_attn.k_norm.weight": {
+            "shape": [
+              256
+            ],
+            "dtype": "bfloat16",
+            "numel": 256
+          },
+          "mtp.layers.0.self_attn.k_proj.weight": {
+            "shape": [
+              512,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 1048576
+          },
+          "mtp.layers.0.self_attn.o_proj.weight": {
+            "shape": [
+              2048,
+              4096
+            ],
+            "dtype": "bfloat16",
+            "numel": 8388608
+          },
+          "mtp.layers.0.self_attn.q_norm.weight": {
+            "shape": [
+              256
+            ],
+            "dtype": "bfloat16",
+            "numel": 256
+          },
+          "mtp.layers.0.self_attn.q_proj.weight": {
+            "shape": [
+              8192,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 16777216
+          },
+          "mtp.layers.0.self_attn.v_proj.weight": {
+            "shape": [
+              512,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 1048576
+          },
+          "mtp.norm.weight": {
+            "shape": [
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 2048
+          },
+          "mtp.pre_fc_norm_embedding.weight": {
+            "shape": [
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 2048
+          },
+          "mtp.pre_fc_norm_hidden.weight": {
+            "shape": [
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 2048
+          }
+        }
+      },
+      "case_count": 116,
+      "accepted": 65,
+      "accept_rate": 0.5603448275862069,
+      "miss_count": 51,
+      "near_miss_count_label_rank_le_5": 15,
+      "hard_miss_count_label_rank_gt_20": 32,
+      "by_step": {
+        "0": {
+          "events": 8,
+          "accepted": 6,
+          "misses": 2,
+          "mean_label_rank": 1.5,
+          "mean_draft_minus_label": 0.3203125,
+          "miss_buckets": {
+            "special_token": 2
+          },
+          "accept_rate": 0.75
+        },
+        "1": {
+          "events": 8,
+          "accepted": 3,
+          "misses": 5,
+          "mean_label_rank": 1.625,
+          "mean_draft_minus_label": 0.734375,
+          "miss_buckets": {
+            "json_punctuation": 2,
+            "semantic_token": 2,
+            "generic_structured_key": 1
+          },
+          "accept_rate": 0.375
+        },
+        "2": {
+          "events": 8,
+          "accepted": 8,
+          "misses": 0,
+          "mean_label_rank": 1.0,
+          "mean_draft_minus_label": 0.0,
+          "miss_buckets": {},
+          "accept_rate": 1.0
+        },
+        "3": {
+          "events": 8,
+          "accepted": 6,
+          "misses": 2,
+          "mean_label_rank": 1.25,
+          "mean_draft_minus_label": 0.0234375,
+          "miss_buckets": {
+            "special_token": 2
+          },
+          "accept_rate": 0.75
+        },
+        "4": {
+          "events": 8,
+          "accepted": 8,
+          "misses": 0,
+          "mean_label_rank": 1.0,
+          "mean_draft_minus_label": 0.0,
+          "miss_buckets": {},
+          "accept_rate": 1.0
+        },
+        "5": {
+          "events": 8,
+          "accepted": 8,
+          "misses": 0,
+          "mean_label_rank": 1.0,
+          "mean_draft_minus_label": 0.0,
+          "miss_buckets": {},
+          "accept_rate": 1.0
+        },
+        "6": {
+          "events": 8,
+          "accepted": 3,
+          "misses": 5,
+          "mean_label_rank": 145.125,
+          "mean_draft_minus_label": 2.25,
+          "miss_buckets": {
+            "generic_structured_key": 2,
+            "semantic_token": 2,
+            "stop_token": 1
+          },
+          "accept_rate": 0.375
+        },
+        "7": {
+          "events": 8,
+          "accepted": 5,
+          "misses": 3,
+          "mean_label_rank": 19.125,
+          "mean_draft_minus_label": 0.90234375,
+          "miss_buckets": {
+            "json_punctuation": 1,
+            "semantic_token": 1,
+            "whitespace": 1
+          },
+          "accept_rate": 0.625
+        },
+        "8": {
+          "events": 8,
+          "accepted": 2,
+          "misses": 6,
+          "mean_label_rank": 18409.75,
+          "mean_draft_minus_label": 5.78192138671875,
+          "miss_buckets": {
+            "special_token": 2,
+            "semantic_token": 4
+          },
+          "accept_rate": 0.25
+        },
+        "9": {
+          "events": 8,
+          "accepted": 3,
+          "misses": 5,
+          "mean_label_rank": 4225.0,
+          "mean_draft_minus_label": 3.6953125,
+          "miss_buckets": {
+            "special_token": 1,
+            "generic_structured_key": 1,
+            "stop_token": 1,
+            "semantic_token": 2
+          },
+          "accept_rate": 0.375
+        },
+        "10": {
+          "events": 7,
+          "accepted": 2,
+          "misses": 5,
+          "mean_label_rank": 19.428571428571427,
+          "mean_draft_minus_label": 1.6116071428571428,
+          "miss_buckets": {
+            "json_punctuation": 2,
+            "stop_token": 2,
+            "whitespace": 1
+          },
+          "accept_rate": 0.2857142857142857
+        },
+        "11": {
+          "events": 6,
+          "accepted": 3,
+          "misses": 3,
+          "mean_label_rank": 3665.5,
+          "mean_draft_minus_label": 3.9505208333333335,
+          "miss_buckets": {
+            "semantic_token": 3
+          },
+          "accept_rate": 0.5
+        },
+        "12": {
+          "events": 6,
+          "accepted": 2,
+          "misses": 4,
+          "mean_label_rank": 579.3333333333334,
+          "mean_draft_minus_label": 3.3958333333333335,
+          "miss_buckets": {
+            "generic_structured_key": 1,
+            "semantic_token": 2,
+            "whitespace": 1
+          },
+          "accept_rate": 0.3333333333333333
+        },
+        "13": {
+          "events": 6,
+          "accepted": 2,
+          "misses": 4,
+          "mean_label_rank": 34833.0,
+          "mean_draft_minus_label": 4.61328125,
+          "miss_buckets": {
+            "semantic_token": 2,
+            "stop_token": 1,
+            "whitespace": 1
+          },
+          "accept_rate": 0.3333333333333333
+        },
+        "14": {
+          "events": 6,
+          "accepted": 2,
+          "misses": 4,
+          "mean_label_rank": 5316.333333333333,
+          "mean_draft_minus_label": 4.682291666666667,
+          "miss_buckets": {
+            "json_punctuation": 1,
+            "generic_structured_key": 1,
+            "semantic_token": 1,
+            "stop_token": 1
+          },
+          "accept_rate": 0.3333333333333333
+        },
+        "15": {
+          "events": 5,
+          "accepted": 2,
+          "misses": 3,
+          "mean_label_rank": 2460.0,
+          "mean_draft_minus_label": 2.9375,
+          "miss_buckets": {
+            "generic_structured_key": 1,
+            "semantic_token": 2
+          },
+          "accept_rate": 0.4
+        }
+      },
+      "miss_buckets": {
+        "semantic_token": {
+          "count": 21,
+          "mean_label_rank": 6772.428571428572,
+          "mean_draft_minus_label": 5.103306361607143
+        },
+        "generic_structured_key": {
+          "count": 7,
+          "mean_label_rank": 1505.4285714285713,
+          "mean_draft_minus_label": 4.658482142857143
+        },
+        "special_token": {
+          "count": 7,
+          "mean_label_rank": 10664.57142857143,
+          "mean_draft_minus_label": 3.9676339285714284
+        },
+        "json_punctuation": {
+          "count": 6,
+          "mean_label_rank": 4622.166666666667,
+          "mean_draft_minus_label": 1.5416666666666667
+        },
+        "stop_token": {
+          "count": 6,
+          "mean_label_rank": 33885.166666666664,
+          "mean_draft_minus_label": 7.186197916666667
+        },
+        "whitespace": {
+          "count": 4,
+          "mean_label_rank": 683.0,
+          "mean_draft_minus_label": 3.890625
+        }
+      },
+      "worst_misses": [
+        {
+          "case_idx": 61,
+          "prompt_idx": 4,
+          "id": "heldout_python_slug",
+          "step": 8,
+          "current_pos": 37,
+          "current_token_id": 198,
+          "current_token_text": "\n",
+          "label_id": 464,
+          "label_text": "import",
+          "draft_id": 71093,
+          "draft_text": "```",
+          "accepted": false,
+          "loss": 15.370097160339355,
+          "label_rank": 99881,
+          "label_score": -0.02880859375,
+          "draft_score": 14.5625,
+          "draft_minus_label": 14.59130859375,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 71093,
+              "score": 14.5625,
+              "text": "```"
+            },
+            {
+              "rank": 2,
+              "token_id": 248068,
+              "score": 11.9375,
+              "text": "<think>"
+            },
+            {
+              "rank": 3,
+              "token_id": 1,
+              "score": 11.5,
+              "text": "\""
+            },
+            {
+              "rank": 4,
+              "token_id": 248046,
+              "score": 11.5,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 5,
+              "token_id": 9,
+              "score": 11.1875,
+              "text": "*"
+            },
+            {
+              "rank": 6,
+              "token_id": 5513,
+              "score": 11.125,
+              "text": "�"
+            },
+            {
+              "rank": 7,
+              "token_id": 9678,
+              "score": 10.6875,
+              "text": "��"
+            },
+            {
+              "rank": 8,
+              "token_id": 52451,
+              "score": 10.5,
+              "text": " ```"
+            },
+            {
+              "rank": 9,
+              "token_id": 2005,
+              "score": 10.25,
+              "text": "“"
+            },
+            {
+              "rank": 10,
+              "token_id": 4277,
+              "score": 9.75,
+              "text": "---"
+            }
+          ]
+        },
+        {
+          "case_idx": 64,
+          "prompt_idx": 4,
+          "id": "heldout_python_slug",
+          "step": 11,
+          "current_pos": 40,
+          "current_token_id": 271,
+          "current_token_text": "\n\n",
+          "label_id": 727,
+          "label_text": "def",
+          "draft_id": 71093,
+          "draft_text": "```",
+          "accepted": false,
+          "loss": 13.76171875,
+          "label_rank": 21500,
+          "label_score": 2.265625,
+          "draft_score": 15.625,
+          "draft_minus_label": 13.359375,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 71093,
+              "score": 15.625,
+              "text": "```"
+            },
+            {
+              "rank": 2,
+              "token_id": 1,
+              "score": 12.5,
+              "text": "\""
+            },
+            {
+              "rank": 3,
+              "token_id": 248068,
+              "score": 12.4375,
+              "text": "<think>"
+            },
+            {
+              "rank": 4,
+              "token_id": 9,
+              "score": 11.9375,
+              "text": "*"
+            },
+            {
+              "rank": 5,
+              "token_id": 5513,
+              "score": 11.625,
+              "text": "�"
+            },
+            {
+              "rank": 6,
+              "token_id": 248046,
+              "score": 11.1875,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 7,
+              "token_id": 2005,
+              "score": 11.0625,
+              "text": "“"
+            },
+            {
+              "rank": 8,
+              "token_id": 9678,
+              "score": 10.875,
+              "text": "��"
+            },
+            {
+              "rank": 9,
+              "token_id": 52451,
+              "score": 10.8125,
+              "text": " ```"
+            },
+            {
+              "rank": 10,
+              "token_id": 4277,
+              "score": 10.1875,
+              "text": "---"
+            }
+          ]
+        },
+        {
+          "case_idx": 66,
+          "prompt_idx": 4,
+          "id": "heldout_python_slug",
+          "step": 13,
+          "current_pos": 42,
+          "current_token_id": 23695,
+          "current_token_text": " slug",
+          "label_id": 1386,
+          "label_text": "ify",
+          "draft_id": 248046,
+          "draft_text": "<|im_end|>",
+          "accepted": false,
+          "loss": 16.428247451782227,
+          "label_rank": 202638,
+          "label_score": -1.6484375,
+          "draft_score": 11.125,
+          "draft_minus_label": 12.7734375,
+          "miss_bucket": "stop_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 248046,
+              "score": 11.125,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 2,
+              "token_id": 513,
+              "score": 10.25,
+              "text": " are"
+            },
+            {
+              "rank": 3,
+              "token_id": 1809,
+              "score": 9.6875,
+              "text": " group"
+            },
+            {
+              "rank": 4,
+              "token_id": 248068,
+              "score": 9.6875,
+              "text": "<think>"
+            },
+            {
+              "rank": 5,
+              "token_id": 3065,
+              "score": 9.5625,
+              "text": " thing"
+            },
+            {
+              "rank": 6,
+              "token_id": 9678,
+              "score": 9.375,
+              "text": "��"
+            },
+            {
+              "rank": 7,
+              "token_id": 369,
+              "score": 9.1875,
+              "text": " is"
+            },
+            {
+              "rank": 8,
+              "token_id": 2005,
+              "score": 8.9375,
+              "text": "“"
+            },
+            {
+              "rank": 9,
+              "token_id": 9616,
+              "score": 8.875,
+              "text": "（"
+            },
+            {
+              "rank": 10,
+              "token_id": 271,
+              "score": 8.8125,
+              "text": "\n\n"
+            }
+          ]
+        },
+        {
+          "case_idx": 52,
+          "prompt_idx": 3,
+          "id": "heldout_math_distance",
+          "step": 9,
+          "current_pos": 28,
+          "current_token_id": 8491,
+          "current_token_text": " miles",
+          "label_id": 248044,
+          "label_text": "<|endoftext|>",
+          "draft_id": 248046,
+          "draft_text": "<|im_end|>",
+          "accepted": false,
+          "loss": 10.36959457397461,
+          "label_rank": 310,
+          "label_score": 6.28125,
+          "draft_score": 16.5,
+          "draft_minus_label": 10.21875,
+          "miss_bucket": "stop_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 248046,
+              "score": 16.5,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 2,
+              "token_id": 271,
+              "score": 12.875,
+              "text": "\n\n"
+            },
+            {
+              "rank": 3,
+              "token_id": 198,
+              "score": 11.75,
+              "text": "\n"
+            },
+            {
+              "rank": 4,
+              "token_id": 6987,
+              "score": 10.75,
+              "text": "\n    \n"
+            },
+            {
+              "rank": 5,
+              "token_id": 513,
+              "score": 10.625,
+              "text": " are"
+            },
+            {
+              "rank": 6,
+              "token_id": 248068,
+              "score": 10.5,
+              "text": "<think>"
+            },
+            {
+              "rank": 7,
+              "token_id": 279,
+              "score": 10.25,
+              "text": " the"
+            },
+            {
+              "rank": 8,
+              "token_id": 11,
+              "score": 10.125,
+              "text": ","
+            },
+            {
+              "rank": 9,
+              "token_id": 13,
+              "score": 10.0625,
+              "text": "."
+            },
+            {
+              "rank": 10,
+              "token_id": 2228,
+              "score": 10.0625,
+              "text": "  \n"
+            }
+          ]
+        },
+        {
+          "case_idx": 83,
+          "prompt_idx": 5,
+          "id": "heldout_moe_short",
+          "step": 14,
+          "current_pos": 29,
+          "current_token_id": 98274,
+          "current_token_text": "不同的",
+          "label_id": 98138,
+          "label_text": "专家",
+          "draft_id": 9643,
+          "draft_text": "router",
+          "accepted": false,
+          "loss": 11.16666316986084,
+          "label_rank": 3892,
+          "label_score": 4.28125,
+          "draft_score": 13.5,
+          "draft_minus_label": 9.21875,
+          "miss_bucket": "generic_structured_key",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 9643,
+              "score": 13.5,
+              "text": "router"
+            },
+            {
+              "rank": 2,
+              "token_id": 95726,
+              "score": 13.25,
+              "text": "的"
+            },
+            {
+              "rank": 3,
+              "token_id": 12,
+              "score": 12.4375,
+              "text": "-"
+            },
+            {
+              "rank": 4,
+              "token_id": 9616,
+              "score": 12.375,
+              "text": "（"
+            },
+            {
+              "rank": 5,
+              "token_id": 8997,
+              "score": 11.75,
+              "text": " router"
+            },
+            {
+              "rank": 6,
+              "token_id": 220,
+              "score": 11.4375,
+              "text": " "
+            },
+            {
+              "rank": 7,
+              "token_id": 3709,
+              "score": 11.375,
+              "text": "，"
+            },
+            {
+              "rank": 8,
+              "token_id": 95999,
+              "score": 11.375,
+              "text": "与"
+            },
+            {
+              "rank": 9,
+              "token_id": 95871,
+              "score": 11.1875,
+              "text": "国"
+            },
+            {
+              "rank": 10,
+              "token_id": 1710,
+              "score": 11.125,
+              "text": "。"
+            }
+          ]
+        },
+        {
+          "case_idx": 109,
+          "prompt_idx": 7,
+          "id": "heldout_repair_json",
+          "step": 8,
+          "current_pos": 32,
+          "current_token_id": 3147,
+          "current_token_text": "\":\"",
+          "label_id": 91149,
+          "label_text": "Berlin",
+          "draft_id": 248068,
+          "draft_text": "<think>",
+          "accepted": false,
+          "loss": 13.018438339233398,
+          "label_rank": 42905,
+          "label_score": 1.5234375,
+          "draft_score": 10.6875,
+          "draft_minus_label": 9.1640625,
+          "miss_bucket": "special_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 248068,
+              "score": 10.6875,
+              "text": "<think>"
+            },
+            {
+              "rank": 2,
+              "token_id": 1265,
+              "score": 10.5,
+              "text": "action"
+            },
+            {
+              "rank": 3,
+              "token_id": 15435,
+              "score": 10.3125,
+              "text": "metric"
+            },
+            {
+              "rank": 4,
+              "token_id": 248046,
+              "score": 9.8125,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 5,
+              "token_id": 1267,
+              "score": 9.6875,
+              "text": "type"
+            },
+            {
+              "rank": 6,
+              "token_id": 13766,
+              "score": 9.5,
+              "text": "tool"
+            },
+            {
+              "rank": 7,
+              "token_id": 9643,
+              "score": 9.4375,
+              "text": "router"
+            },
+            {
+              "rank": 8,
+              "token_id": 1,
+              "score": 9.4375,
+              "text": "\""
+            },
+            {
+              "rank": 9,
+              "token_id": 3715,
+              "score": 9.25,
+              "text": "unit"
+            },
+            {
+              "rank": 10,
+              "token_id": 8656,
+              "score": 9.25,
+              "text": "city"
+            }
+          ]
+        },
+        {
+          "case_idx": 82,
+          "prompt_idx": 5,
+          "id": "heldout_moe_short",
+          "step": 13,
+          "current_pos": 28,
+          "current_token_id": 96237,
+          "current_token_text": "给",
+          "label_id": 98274,
+          "label_text": "不同的",
+          "draft_id": 95726,
+          "draft_text": "的",
+          "accepted": false,
+          "loss": 11.003975868225098,
+          "label_rank": 3547,
+          "label_score": 4.375,
+          "draft_score": 13.375,
+          "draft_minus_label": 9.0,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 95726,
+              "score": 13.375,
+              "text": "的"
+            },
+            {
+              "rank": 2,
+              "token_id": 9643,
+              "score": 13.3125,
+              "text": "router"
+            },
+            {
+              "rank": 3,
+              "token_id": 9616,
+              "score": 11.9375,
+              "text": "（"
+            },
+            {
+              "rank": 4,
+              "token_id": 95871,
+              "score": 11.8125,
+              "text": "国"
+            },
+            {
+              "rank": 5,
+              "token_id": 12,
+              "score": 11.75,
+              "text": "-"
+            },
+            {
+              "rank": 6,
+              "token_id": 95999,
+              "score": 11.3125,
+              "text": "与"
+            },
+            {
+              "rank": 7,
+              "token_id": 8997,
+              "score": 11.125,
+              "text": " router"
+            },
+            {
+              "rank": 8,
+              "token_id": 3709,
+              "score": 11.0625,
+              "text": "，"
+            },
+            {
+              "rank": 9,
+              "token_id": 99142,
+              "score": 11.0,
+              "text": "动态"
+            },
+            {
+              "rank": 10,
+              "token_id": 220,
+              "score": 10.8125,
+              "text": " "
+            }
+          ]
+        },
+        {
+          "case_idx": 9,
+          "prompt_idx": 0,
+          "id": "heldout_json_berlin_metric",
+          "step": 9,
+          "current_pos": 26,
+          "current_token_id": 328,
+          "current_token_text": " \"",
+          "label_id": 91149,
+          "label_text": "Berlin",
+          "draft_id": 248068,
+          "draft_text": "<think>",
+          "accepted": false,
+          "loss": 12.333489418029785,
+          "label_rank": 27850,
+          "label_score": 2.171875,
+          "draft_score": 10.9375,
+          "draft_minus_label": 8.765625,
+          "miss_bucket": "special_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 248068,
+              "score": 10.9375,
+              "text": "<think>"
+            },
+            {
+              "rank": 2,
+              "token_id": 1265,
+              "score": 10.625,
+              "text": "action"
+            },
+            {
+              "rank": 3,
+              "token_id": 248046,
+              "score": 9.9375,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 4,
+              "token_id": 13766,
+              "score": 9.5,
+              "text": "tool"
+            },
+            {
+              "rank": 5,
+              "token_id": 19,
+              "score": 9.3125,
+              "text": "4"
+            },
+            {
+              "rank": 6,
+              "token_id": 15435,
+              "score": 9.3125,
+              "text": "metric"
+            },
+            {
+              "rank": 7,
+              "token_id": 1,
+              "score": 9.25,
+              "text": "\""
+            },
+            {
+              "rank": 8,
+              "token_id": 1267,
+              "score": 9.1875,
+              "text": "type"
+            },
+            {
+              "rank": 9,
+              "token_id": 3715,
+              "score": 9.0625,
+              "text": "unit"
+            },
+            {
+              "rank": 10,
+              "token_id": 23,
+              "score": 9.0,
+              "text": "8"
+            }
+          ]
+        },
+        {
+          "case_idx": 115,
+          "prompt_idx": 7,
+          "id": "heldout_repair_json",
+          "step": 14,
+          "current_pos": 38,
+          "current_token_id": 8934,
+          "current_token_text": "\"}",
+          "label_id": 248044,
+          "label_text": "<|endoftext|>",
+          "draft_id": 248046,
+          "draft_text": "<|im_end|>",
+          "accepted": false,
+          "loss": 8.324737548828125,
+          "label_rank": 111,
+          "label_score": 7.53125,
+          "draft_score": 15.375,
+          "draft_minus_label": 7.84375,
+          "miss_bucket": "stop_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 248046,
+              "score": 15.375,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 2,
+              "token_id": 271,
+              "score": 13.0,
+              "text": "\n\n"
+            },
+            {
+              "rank": 3,
+              "token_id": 248068,
+              "score": 12.625,
+              "text": "<think>"
+            },
+            {
+              "rank": 4,
+              "token_id": 198,
+              "score": 12.25,
+              "text": "\n"
+            },
+            {
+              "rank": 5,
+              "token_id": 1,
+              "score": 11.5625,
+              "text": "\""
+            },
+            {
+              "rank": 6,
+              "token_id": 328,
+              "score": 11.4375,
+              "text": " \""
+            },
+            {
+              "rank": 7,
+              "token_id": 2005,
+              "score": 10.5,
+              "text": "“"
+            },
+            {
+              "rank": 8,
+              "token_id": 220,
+              "score": 10.4375,
+              "text": " "
+            },
+            {
+              "rank": 9,
+              "token_id": 9,
+              "score": 10.375,
+              "text": "*"
+            },
+            {
+              "rank": 10,
+              "token_id": 13,
+              "score": 10.1875,
+              "text": "."
+            }
+          ]
+        },
+        {
+          "case_idx": 26,
+          "prompt_idx": 1,
+          "id": "heldout_json_status_ready",
+          "step": 10,
+          "current_pos": 23,
+          "current_token_id": 8934,
+          "current_token_text": "\"}",
+          "label_id": 248044,
+          "label_text": "<|endoftext|>",
+          "draft_id": 248046,
+          "draft_text": "<|im_end|>",
+          "accepted": false,
+          "loss": 8.093830108642578,
+          "label_rank": 92,
+          "label_score": 7.53125,
+          "draft_score": 15.0625,
+          "draft_minus_label": 7.53125,
+          "miss_bucket": "stop_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 248046,
+              "score": 15.0625,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 2,
+              "token_id": 248068,
+              "score": 13.0,
+              "text": "<think>"
+            },
+            {
+              "rank": 3,
+              "token_id": 271,
+              "score": 12.4375,
+              "text": "\n\n"
+            },
+            {
+              "rank": 4,
+              "token_id": 198,
+              "score": 11.6875,
+              "text": "\n"
+            },
+            {
+              "rank": 5,
+              "token_id": 1,
+              "score": 11.5625,
+              "text": "\""
+            },
+            {
+              "rank": 6,
+              "token_id": 328,
+              "score": 10.6875,
+              "text": " \""
+            },
+            {
+              "rank": 7,
+              "token_id": 2005,
+              "score": 10.4375,
+              "text": "“"
+            },
+            {
+              "rank": 8,
+              "token_id": 9,
+              "score": 10.3125,
+              "text": "*"
+            },
+            {
+              "rank": 9,
+              "token_id": 1265,
+              "score": 10.0,
+              "text": "action"
+            },
+            {
+              "rank": 10,
+              "token_id": 220,
+              "score": 9.875,
+              "text": " "
+            }
+          ]
+        },
+        {
+          "case_idx": 100,
+          "prompt_idx": 6,
+          "id": "heldout_linear_short",
+          "step": 15,
+          "current_pos": 33,
+          "current_token_id": 96123,
+          "current_token_text": "将",
+          "label_id": 130859,
+          "label_text": "复杂度",
+          "draft_id": 96133,
+          "draft_text": "线",
+          "accepted": false,
+          "loss": 11.33326244354248,
+          "label_rank": 11092,
+          "label_score": 3.375,
+          "draft_score": 10.8125,
+          "draft_minus_label": 7.4375,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 96133,
+              "score": 10.8125,
+              "text": "线"
+            },
+            {
+              "rank": 2,
+              "token_id": 22054,
+              "score": 10.6875,
+              "text": "linear"
+            },
+            {
+              "rank": 3,
+              "token_id": 105094,
+              "score": 10.25,
+              "text": "线性"
+            },
+            {
+              "rank": 4,
+              "token_id": 99142,
+              "score": 10.125,
+              "text": "动态"
+            },
+            {
+              "rank": 5,
+              "token_id": 457,
+              "score": 9.875,
+              "text": " W"
+            },
+            {
+              "rank": 6,
+              "token_id": 248046,
+              "score": 9.875,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 7,
+              "token_id": 95856,
+              "score": 9.75,
+              "text": "理"
+            },
+            {
+              "rank": 8,
+              "token_id": 9616,
+              "score": 9.6875,
+              "text": "（"
+            },
+            {
+              "rank": 9,
+              "token_id": 95726,
+              "score": 9.625,
+              "text": "的"
+            },
+            {
+              "rank": 10,
+              "token_id": 95999,
+              "score": 9.5625,
+              "text": "与"
+            }
+          ]
+        },
+        {
+          "case_idx": 24,
+          "prompt_idx": 1,
+          "id": "heldout_json_status_ready",
+          "step": 8,
+          "current_pos": 21,
+          "current_token_id": 3147,
+          "current_token_text": "\":\"",
+          "label_id": 2232,
+          "label_text": "ready",
+          "draft_id": 248068,
+          "draft_text": "<think>",
+          "accepted": false,
+          "loss": 10.337037086486816,
+          "label_rank": 3887,
+          "label_score": 4.21875,
+          "draft_score": 11.3125,
+          "draft_minus_label": 7.09375,
+          "miss_bucket": "special_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 248068,
+              "score": 11.3125,
+              "text": "<think>"
+            },
+            {
+              "rank": 2,
+              "token_id": 248046,
+              "score": 10.5625,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 3,
+              "token_id": 1265,
+              "score": 10.5625,
+              "text": "action"
+            },
+            {
+              "rank": 4,
+              "token_id": 1,
+              "score": 10.1875,
+              "text": "\""
+            },
+            {
+              "rank": 5,
+              "token_id": 15435,
+              "score": 9.9375,
+              "text": "metric"
+            },
+            {
+              "rank": 6,
+              "token_id": 2005,
+              "score": 9.4375,
+              "text": "“"
+            },
+            {
+              "rank": 7,
+              "token_id": 27,
+              "score": 9.1875,
+              "text": "<"
+            },
+            {
+              "rank": 8,
+              "token_id": 19,
+              "score": 9.125,
+              "text": "4"
+            },
+            {
+              "rank": 9,
+              "token_id": 13766,
+              "score": 9.125,
+              "text": "tool"
+            },
+            {
+              "rank": 10,
+              "token_id": 513,
+              "score": 9.0625,
+              "text": " are"
+            }
+          ]
+        },
+        {
+          "case_idx": 97,
+          "prompt_idx": 6,
+          "id": "heldout_linear_short",
+          "step": 12,
+          "current_pos": 30,
+          "current_token_id": 110321,
+          "current_token_text": "注意力",
+          "label_id": 97792,
+          "label_text": "计算",
+          "draft_id": 220,
+          "draft_text": " ",
+          "accepted": false,
+          "loss": 10.062629699707031,
+          "label_rank": 2543,
+          "label_score": 4.65625,
+          "draft_score": 11.625,
+          "draft_minus_label": 6.96875,
+          "miss_bucket": "whitespace",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 220,
+              "score": 11.625,
+              "text": " "
+            },
+            {
+              "rank": 2,
+              "token_id": 9616,
+              "score": 11.125,
+              "text": "（"
+            },
+            {
+              "rank": 3,
+              "token_id": 95999,
+              "score": 10.875,
+              "text": "与"
+            },
+            {
+              "rank": 4,
+              "token_id": 95726,
+              "score": 10.75,
+              "text": "的"
+            },
+            {
+              "rank": 5,
+              "token_id": 96133,
+              "score": 10.6875,
+              "text": "线"
+            },
+            {
+              "rank": 6,
+              "token_id": 12,
+              "score": 10.25,
+              "text": "-"
+            },
+            {
+              "rank": 7,
+              "token_id": 99142,
+              "score": 10.1875,
+              "text": "动态"
+            },
+            {
+              "rank": 8,
+              "token_id": 95856,
+              "score": 9.875,
+              "text": "理"
+            },
+            {
+              "rank": 9,
+              "token_id": 248046,
+              "score": 9.75,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 10,
+              "token_id": 95772,
+              "score": 9.625,
+              "text": "在"
+            }
+          ]
+        },
+        {
+          "case_idx": 65,
+          "prompt_idx": 4,
+          "id": "heldout_python_slug",
+          "step": 12,
+          "current_pos": 41,
+          "current_token_id": 727,
+          "current_token_text": "def",
+          "label_id": 23695,
+          "label_text": " slug",
+          "draft_id": 513,
+          "draft_text": " are",
+          "accepted": false,
+          "loss": 9.163888931274414,
+          "label_rank": 824,
+          "label_score": 6.28125,
+          "draft_score": 13.25,
+          "draft_minus_label": 6.96875,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 513,
+              "score": 13.25,
+              "text": " are"
+            },
+            {
+              "rank": 2,
+              "token_id": 248046,
+              "score": 12.3125,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 3,
+              "token_id": 271,
+              "score": 12.3125,
+              "text": "\n\n"
+            },
+            {
+              "rank": 4,
+              "token_id": 198,
+              "score": 12.0625,
+              "text": "\n"
+            },
+            {
+              "rank": 5,
+              "token_id": 364,
+              "score": 11.5625,
+              "text": " for"
+            },
+            {
+              "rank": 6,
+              "token_id": 328,
+              "score": 11.5,
+              "text": " \""
+            },
+            {
+              "rank": 7,
+              "token_id": 369,
+              "score": 11.3125,
+              "text": " is"
+            },
+            {
+              "rank": 8,
+              "token_id": 220,
+              "score": 11.1875,
+              "text": " "
+            },
+            {
+              "rank": 9,
+              "token_id": 421,
+              "score": 10.875,
+              "text": " that"
+            },
+            {
+              "rank": 10,
+              "token_id": 279,
+              "score": 10.75,
+              "text": " the"
+            }
+          ]
+        },
+        {
+          "case_idx": 67,
+          "prompt_idx": 4,
+          "id": "heldout_python_slug",
+          "step": 14,
+          "current_pos": 43,
+          "current_token_id": 1386,
+          "current_token_text": "ify",
+          "label_id": 7008,
+          "label_text": "(text",
+          "draft_id": 1,
+          "draft_text": "\"",
+          "accepted": false,
+          "loss": 12.065539360046387,
+          "label_rank": 27724,
+          "label_score": 2.125,
+          "draft_score": 9.0625,
+          "draft_minus_label": 6.9375,
+          "miss_bucket": "json_punctuation",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 1,
+              "score": 9.0625,
+              "text": "\""
+            },
+            {
+              "rank": 2,
+              "token_id": 369,
+              "score": 8.8125,
+              "text": " is"
+            },
+            {
+              "rank": 3,
+              "token_id": 1691,
+              "score": 8.5625,
+              "text": " much"
+            },
+            {
+              "rank": 4,
+              "token_id": 248046,
+              "score": 8.5,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 5,
+              "token_id": 2005,
+              "score": 8.4375,
+              "text": "“"
+            },
+            {
+              "rank": 6,
+              "token_id": 97765,
+              "score": 8.25,
+              "text": "腾"
+            },
+            {
+              "rank": 7,
+              "token_id": 35463,
+              "score": 8.25,
+              "text": " stripped"
+            },
+            {
+              "rank": 8,
+              "token_id": 9,
+              "score": 8.1875,
+              "text": "*"
+            },
+            {
+              "rank": 9,
+              "token_id": 513,
+              "score": 8.0625,
+              "text": " are"
+            },
+            {
+              "rank": 10,
+              "token_id": 14912,
+              "score": 7.90625,
+              "text": " acting"
+            }
+          ]
+        },
+        {
+          "case_idx": 36,
+          "prompt_idx": 2,
+          "id": "heldout_tool_translate",
+          "step": 9,
+          "current_pos": 28,
+          "current_token_id": 328,
+          "current_token_text": " \"",
+          "label_id": 14556,
+          "label_text": "hello",
+          "draft_id": 9643,
+          "draft_text": "router",
+          "accepted": false,
+          "loss": 10.659801483154297,
+          "label_rank": 5583,
+          "label_score": 3.984375,
+          "draft_score": 10.875,
+          "draft_minus_label": 6.890625,
+          "miss_bucket": "generic_structured_key",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 9643,
+              "score": 10.875,
+              "text": "router"
+            },
+            {
+              "rank": 2,
+              "token_id": 1265,
+              "score": 10.75,
+              "text": "action"
+            },
+            {
+              "rank": 3,
+              "token_id": 248068,
+              "score": 10.375,
+              "text": "<think>"
+            },
+            {
+              "rank": 4,
+              "token_id": 13766,
+              "score": 9.625,
+              "text": "tool"
+            },
+            {
+              "rank": 5,
+              "token_id": 5658,
+              "score": 9.4375,
+              "text": "token"
+            },
+            {
+              "rank": 6,
+              "token_id": 1267,
+              "score": 9.25,
+              "text": "type"
+            },
+            {
+              "rank": 7,
+              "token_id": 248046,
+              "score": 9.25,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 8,
+              "token_id": 8656,
+              "score": 9.1875,
+              "text": "city"
+            },
+            {
+              "rank": 9,
+              "token_id": 3715,
+              "score": 9.125,
+              "text": "unit"
+            },
+            {
+              "rank": 10,
+              "token_id": 7945,
+              "score": 9.125,
+              "text": "task"
+            }
+          ]
+        },
+        {
+          "case_idx": 84,
+          "prompt_idx": 5,
+          "id": "heldout_moe_short",
+          "step": 15,
+          "current_pos": 30,
+          "current_token_id": 98138,
+          "current_token_text": "专家",
+          "label_id": 97034,
+          "label_text": "网络",
+          "draft_id": 9616,
+          "draft_text": "（",
+          "accepted": false,
+          "loss": 9.62274169921875,
+          "label_rank": 1202,
+          "label_score": 5.3125,
+          "draft_score": 12.0625,
+          "draft_minus_label": 6.75,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 9616,
+              "score": 12.0625,
+              "text": "（"
+            },
+            {
+              "rank": 2,
+              "token_id": 12,
+              "score": 12.0,
+              "text": "-"
+            },
+            {
+              "rank": 3,
+              "token_id": 95726,
+              "score": 11.9375,
+              "text": "的"
+            },
+            {
+              "rank": 4,
+              "token_id": 220,
+              "score": 11.8125,
+              "text": " "
+            },
+            {
+              "rank": 5,
+              "token_id": 248046,
+              "score": 11.625,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 6,
+              "token_id": 1710,
+              "score": 11.0,
+              "text": "。"
+            },
+            {
+              "rank": 7,
+              "token_id": 95999,
+              "score": 10.9375,
+              "text": "与"
+            },
+            {
+              "rank": 8,
+              "token_id": 95761,
+              "score": 10.8125,
+              "text": "是"
+            },
+            {
+              "rank": 9,
+              "token_id": 3709,
+              "score": 10.5625,
+              "text": "，"
+            },
+            {
+              "rank": 10,
+              "token_id": 96133,
+              "score": 10.5,
+              "text": "线"
+            }
+          ]
+        },
+        {
+          "case_idx": 22,
+          "prompt_idx": 1,
+          "id": "heldout_json_status_ready",
+          "step": 6,
+          "current_pos": 19,
+          "current_token_id": 4754,
+          "current_token_text": "{\"",
+          "label_id": 2738,
+          "label_text": "status",
+          "draft_id": 8656,
+          "draft_text": "city",
+          "accepted": false,
+          "loss": 9.130973815917969,
+          "label_rank": 901,
+          "label_score": 5.84375,
+          "draft_score": 12.375,
+          "draft_minus_label": 6.53125,
+          "miss_bucket": "generic_structured_key",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 8656,
+              "score": 12.375,
+              "text": "city"
+            },
+            {
+              "rank": 2,
+              "token_id": 1265,
+              "score": 12.0,
+              "text": "action"
+            },
+            {
+              "rank": 3,
+              "token_id": 1267,
+              "score": 11.0625,
+              "text": "type"
+            },
+            {
+              "rank": 4,
+              "token_id": 2513,
+              "score": 10.9375,
+              "text": "body"
+            },
+            {
+              "rank": 5,
+              "token_id": 248068,
+              "score": 10.8125,
+              "text": "<think>"
+            },
+            {
+              "rank": 6,
+              "token_id": 3177,
+              "score": 10.5625,
+              "text": " city"
+            },
+            {
+              "rank": 7,
+              "token_id": 13766,
+              "score": 10.25,
+              "text": "tool"
+            },
+            {
+              "rank": 8,
+              "token_id": 2005,
+              "score": 9.875,
+              "text": "“"
+            },
+            {
+              "rank": 9,
+              "token_id": 248046,
+              "score": 9.875,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 10,
+              "token_id": 96833,
+              "score": 9.6875,
+              "text": "域"
+            }
+          ]
+        },
+        {
+          "case_idx": 77,
+          "prompt_idx": 5,
+          "id": "heldout_moe_short",
+          "step": 8,
+          "current_pos": 23,
+          "current_token_id": 97279,
+          "current_token_text": "负责",
+          "label_id": 96123,
+          "label_text": "将",
+          "draft_id": 12,
+          "draft_text": "-",
+          "accepted": false,
+          "loss": 8.324673652648926,
+          "label_rank": 335,
+          "label_score": 6.6875,
+          "draft_score": 12.1875,
+          "draft_minus_label": 5.5,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 12,
+              "score": 12.1875,
+              "text": "-"
+            },
+            {
+              "rank": 2,
+              "token_id": 9616,
+              "score": 12.1875,
+              "text": "（"
+            },
+            {
+              "rank": 3,
+              "token_id": 97149,
+              "score": 12.0625,
+              "text": "根据"
+            },
+            {
+              "rank": 4,
+              "token_id": 95726,
+              "score": 11.8125,
+              "text": "的"
+            },
+            {
+              "rank": 5,
+              "token_id": 95999,
+              "score": 11.6875,
+              "text": "与"
+            },
+            {
+              "rank": 6,
+              "token_id": 220,
+              "score": 11.25,
+              "text": " "
+            },
+            {
+              "rank": 7,
+              "token_id": 99142,
+              "score": 11.0625,
+              "text": "动态"
+            },
+            {
+              "rank": 8,
+              "token_id": 95772,
+              "score": 11.0,
+              "text": "在"
+            },
+            {
+              "rank": 9,
+              "token_id": 95871,
+              "score": 10.8125,
+              "text": "国"
+            },
+            {
+              "rank": 10,
+              "token_id": 3709,
+              "score": 10.75,
+              "text": "，"
+            }
+          ]
+        },
+        {
+          "case_idx": 80,
+          "prompt_idx": 5,
+          "id": "heldout_moe_short",
+          "step": 11,
+          "current_pos": 26,
+          "current_token_id": 99142,
+          "current_token_text": "动态",
+          "label_id": 100679,
+          "label_text": "分配",
+          "draft_id": 99142,
+          "draft_text": "动态",
+          "accepted": false,
+          "loss": 7.940044403076172,
+          "label_rank": 195,
+          "label_score": 7.4375,
+          "draft_score": 12.9375,
+          "draft_minus_label": 5.5,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 99142,
+              "score": 12.9375,
+              "text": "动态"
+            },
+            {
+              "rank": 2,
+              "token_id": 95999,
+              "score": 12.75,
+              "text": "与"
+            },
+            {
+              "rank": 3,
+              "token_id": 95726,
+              "score": 12.75,
+              "text": "的"
+            },
+            {
+              "rank": 4,
+              "token_id": 9616,
+              "score": 12.6875,
+              "text": "（"
+            },
+            {
+              "rank": 5,
+              "token_id": 97149,
+              "score": 12.1875,
+              "text": "根据"
+            },
+            {
+              "rank": 6,
+              "token_id": 95772,
+              "score": 12.125,
+              "text": "在"
+            },
+            {
+              "rank": 7,
+              "token_id": 5205,
+              "score": 11.5,
+              "text": "、"
+            },
+            {
+              "rank": 8,
+              "token_id": 12,
+              "score": 11.4375,
+              "text": "-"
+            },
+            {
+              "rank": 9,
+              "token_id": 3709,
+              "score": 11.375,
+              "text": "，"
+            },
+            {
+              "rank": 10,
+              "token_id": 95761,
+              "score": 11.375,
+              "text": "是"
+            }
+          ]
+        },
+        {
+          "case_idx": 93,
+          "prompt_idx": 6,
+          "id": "heldout_linear_short",
+          "step": 8,
+          "current_pos": 26,
+          "current_token_id": 220,
+          "current_token_text": " ",
+          "label_id": 96580,
+          "label_text": "通过",
+          "draft_id": 22054,
+          "draft_text": "linear",
+          "accepted": false,
+          "loss": 7.144897937774658,
+          "label_rank": 54,
+          "label_score": 7.5625,
+          "draft_score": 12.75,
+          "draft_minus_label": 5.1875,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 22054,
+              "score": 12.75,
+              "text": "linear"
+            },
+            {
+              "rank": 2,
+              "token_id": 27345,
+              "score": 11.4375,
+              "text": " Linear"
+            },
+            {
+              "rank": 3,
+              "token_id": 105094,
+              "score": 11.375,
+              "text": "线性"
+            },
+            {
+              "rank": 4,
+              "token_id": 13094,
+              "score": 11.0625,
+              "text": " linear"
+            },
+            {
+              "rank": 5,
+              "token_id": 96133,
+              "score": 10.5,
+              "text": "线"
+            },
+            {
+              "rank": 6,
+              "token_id": 95856,
+              "score": 9.75,
+              "text": "理"
+            },
+            {
+              "rank": 7,
+              "token_id": 248046,
+              "score": 9.75,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 8,
+              "token_id": 9616,
+              "score": 9.75,
+              "text": "（"
+            },
+            {
+              "rank": 9,
+              "token_id": 220,
+              "score": 9.375,
+              "text": " "
+            },
+            {
+              "rank": 10,
+              "token_id": 95726,
+              "score": 9.375,
+              "text": "的"
+            }
+          ]
+        },
+        {
+          "case_idx": 96,
+          "prompt_idx": 6,
+          "id": "heldout_linear_short",
+          "step": 11,
+          "current_pos": 29,
+          "current_token_id": 95909,
+          "current_token_text": "化",
+          "label_id": 110321,
+          "label_text": "注意力",
+          "draft_id": 22054,
+          "draft_text": "linear",
+          "accepted": false,
+          "loss": 8.104835510253906,
+          "label_rank": 295,
+          "label_score": 6.59375,
+          "draft_score": 11.4375,
+          "draft_minus_label": 4.84375,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 22054,
+              "score": 11.4375,
+              "text": "linear"
+            },
+            {
+              "rank": 2,
+              "token_id": 96133,
+              "score": 11.0625,
+              "text": "线"
+            },
+            {
+              "rank": 3,
+              "token_id": 105094,
+              "score": 10.875,
+              "text": "线性"
+            },
+            {
+              "rank": 4,
+              "token_id": 99142,
+              "score": 10.375,
+              "text": "动态"
+            },
+            {
+              "rank": 5,
+              "token_id": 9616,
+              "score": 10.25,
+              "text": "（"
+            },
+            {
+              "rank": 6,
+              "token_id": 13094,
+              "score": 10.25,
+              "text": " linear"
+            },
+            {
+              "rank": 7,
+              "token_id": 27345,
+              "score": 10.0,
+              "text": " Linear"
+            },
+            {
+              "rank": 8,
+              "token_id": 12,
+              "score": 9.8125,
+              "text": "-"
+            },
+            {
+              "rank": 9,
+              "token_id": 457,
+              "score": 9.75,
+              "text": " W"
+            },
+            {
+              "rank": 10,
+              "token_id": 95856,
+              "score": 9.625,
+              "text": "理"
+            }
+          ]
+        },
+        {
+          "case_idx": 51,
+          "prompt_idx": 3,
+          "id": "heldout_math_distance",
+          "step": 8,
+          "current_pos": 27,
+          "current_token_id": 20,
+          "current_token_text": "5",
+          "label_id": 8491,
+          "label_text": " miles",
+          "draft_id": 15,
+          "draft_text": "0",
+          "accepted": false,
+          "loss": 7.945574760437012,
+          "label_rank": 214,
+          "label_score": 6.53125,
+          "draft_score": 11.25,
+          "draft_minus_label": 4.71875,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 248046,
+              "score": 11.25,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 2,
+              "token_id": 15,
+              "score": 11.25,
+              "text": "0"
+            },
+            {
+              "rank": 3,
+              "token_id": 19,
+              "score": 10.4375,
+              "text": "4"
+            },
+            {
+              "rank": 4,
+              "token_id": 271,
+              "score": 10.375,
+              "text": "\n\n"
+            },
+            {
+              "rank": 5,
+              "token_id": 17,
+              "score": 10.375,
+              "text": "2"
+            },
+            {
+              "rank": 6,
+              "token_id": 16,
+              "score": 10.125,
+              "text": "1"
+            },
+            {
+              "rank": 7,
+              "token_id": 20,
+              "score": 9.875,
+              "text": "5"
+            },
+            {
+              "rank": 8,
+              "token_id": 513,
+              "score": 9.75,
+              "text": " are"
+            },
+            {
+              "rank": 9,
+              "token_id": 220,
+              "score": 9.75,
+              "text": " "
+            },
+            {
+              "rank": 10,
+              "token_id": 21,
+              "score": 9.75,
+              "text": "6"
+            }
+          ]
+        },
+        {
+          "case_idx": 33,
+          "prompt_idx": 2,
+          "id": "heldout_tool_translate",
+          "step": 6,
+          "current_pos": 25,
+          "current_token_id": 4754,
+          "current_token_text": "{\"",
+          "label_id": 1272,
+          "label_text": "text",
+          "draft_id": 8656,
+          "draft_text": "city",
+          "accepted": false,
+          "loss": 7.229506492614746,
+          "label_rank": 83,
+          "label_score": 7.71875,
+          "draft_score": 12.3125,
+          "draft_minus_label": 4.59375,
+          "miss_bucket": "generic_structured_key",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 8656,
+              "score": 12.3125,
+              "text": "city"
+            },
+            {
+              "rank": 2,
+              "token_id": 1265,
+              "score": 11.9375,
+              "text": "action"
+            },
+            {
+              "rank": 3,
+              "token_id": 2513,
+              "score": 11.0,
+              "text": "body"
+            },
+            {
+              "rank": 4,
+              "token_id": 13766,
+              "score": 10.5625,
+              "text": "tool"
+            },
+            {
+              "rank": 5,
+              "token_id": 1267,
+              "score": 10.4375,
+              "text": "type"
+            },
+            {
+              "rank": 6,
+              "token_id": 3177,
+              "score": 10.375,
+              "text": " city"
+            },
+            {
+              "rank": 7,
+              "token_id": 248068,
+              "score": 10.0625,
+              "text": "<think>"
+            },
+            {
+              "rank": 8,
+              "token_id": 248046,
+              "score": 9.75,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 9,
+              "token_id": 9071,
+              "score": 9.625,
+              "text": "fast"
+            },
+            {
+              "rank": 10,
+              "token_id": 96833,
+              "score": 9.5,
+              "text": "域"
+            }
+          ]
+        }
+      ],
+      "near_misses": [
+        {
+          "case_idx": 28,
+          "prompt_idx": 2,
+          "id": "heldout_tool_translate",
+          "step": 1,
+          "current_pos": 20,
+          "current_token_id": 271,
+          "current_token_text": "\n\n",
+          "label_id": 248068,
+          "label_text": "<think>",
+          "draft_id": 4754,
+          "draft_text": "{\"",
+          "accepted": false,
+          "loss": 0.8710485696792603,
+          "label_rank": 1,
+          "label_score": 16.625,
+          "draft_score": 16.625,
+          "draft_minus_label": 0.0,
+          "miss_bucket": "json_punctuation",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 4754,
+              "score": 16.625,
+              "text": "{\""
+            },
+            {
+              "rank": 2,
+              "token_id": 248068,
+              "score": 16.625,
+              "text": "<think>"
+            },
+            {
+              "rank": 3,
+              "token_id": 71093,
+              "score": 13.75,
+              "text": "```"
+            },
+            {
+              "rank": 4,
+              "token_id": 1,
+              "score": 13.625,
+              "text": "\""
+            },
+            {
+              "rank": 5,
+              "token_id": 5046,
+              "score": 13.25,
+              "text": " {\""
+            },
+            {
+              "rank": 6,
+              "token_id": 2884,
+              "score": 12.625,
+              "text": "{{"
+            },
+            {
+              "rank": 7,
+              "token_id": 90,
+              "score": 12.5,
+              "text": "{"
+            },
+            {
+              "rank": 8,
+              "token_id": 2005,
+              "score": 12.4375,
+              "text": "“"
+            },
+            {
+              "rank": 9,
+              "token_id": 52888,
+              "score": 12.1875,
+              "text": ",{\""
+            },
+            {
+              "rank": 10,
+              "token_id": 27,
+              "score": 11.75,
+              "text": "<"
+            }
+          ]
+        },
+        {
+          "case_idx": 30,
+          "prompt_idx": 2,
+          "id": "heldout_tool_translate",
+          "step": 3,
+          "current_pos": 22,
+          "current_token_id": 271,
+          "current_token_text": "\n\n",
+          "label_id": 248069,
+          "label_text": "</think>",
+          "draft_id": 248068,
+          "draft_text": "<think>",
+          "accepted": false,
+          "loss": 1.183996319770813,
+          "label_rank": 2,
+          "label_score": 14.9375,
+          "draft_score": 15.0,
+          "draft_minus_label": 0.0625,
+          "miss_bucket": "special_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 248068,
+              "score": 15.0,
+              "text": "<think>"
+            },
+            {
+              "rank": 2,
+              "token_id": 248069,
+              "score": 14.9375,
+              "text": "</think>"
+            },
+            {
+              "rank": 3,
+              "token_id": 71093,
+              "score": 13.1875,
+              "text": "```"
+            },
+            {
+              "rank": 4,
+              "token_id": 248046,
+              "score": 12.875,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 5,
+              "token_id": 4754,
+              "score": 12.25,
+              "text": "{\""
+            },
+            {
+              "rank": 6,
+              "token_id": 510,
+              "score": 10.875,
+              "text": "</"
+            },
+            {
+              "rank": 7,
+              "token_id": 2884,
+              "score": 10.875,
+              "text": "{{"
+            },
+            {
+              "rank": 8,
+              "token_id": 1,
+              "score": 10.875,
+              "text": "\""
+            },
+            {
+              "rank": 9,
+              "token_id": 5513,
+              "score": 10.5625,
+              "text": "�"
+            },
+            {
+              "rank": 10,
+              "token_id": 794,
+              "score": 10.375,
+              "text": "####"
+            }
+          ]
+        },
+        {
+          "case_idx": 19,
+          "prompt_idx": 1,
+          "id": "heldout_json_status_ready",
+          "step": 3,
+          "current_pos": 16,
+          "current_token_id": 271,
+          "current_token_text": "\n\n",
+          "label_id": 248069,
+          "label_text": "</think>",
+          "draft_id": 248068,
+          "draft_text": "<think>",
+          "accepted": false,
+          "loss": 1.1280169486999512,
+          "label_rank": 2,
+          "label_score": 15.125,
+          "draft_score": 15.25,
+          "draft_minus_label": 0.125,
+          "miss_bucket": "special_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 248068,
+              "score": 15.25,
+              "text": "<think>"
+            },
+            {
+              "rank": 2,
+              "token_id": 248069,
+              "score": 15.125,
+              "text": "</think>"
+            },
+            {
+              "rank": 3,
+              "token_id": 71093,
+              "score": 13.1875,
+              "text": "```"
+            },
+            {
+              "rank": 4,
+              "token_id": 248046,
+              "score": 13.1875,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 5,
+              "token_id": 4754,
+              "score": 11.1875,
+              "text": "{\""
+            },
+            {
+              "rank": 6,
+              "token_id": 510,
+              "score": 11.0,
+              "text": "</"
+            },
+            {
+              "rank": 7,
+              "token_id": 1,
+              "score": 10.9375,
+              "text": "\""
+            },
+            {
+              "rank": 8,
+              "token_id": 2884,
+              "score": 10.5625,
+              "text": "{{"
+            },
+            {
+              "rank": 9,
+              "token_id": 5513,
+              "score": 10.5625,
+              "text": "�"
+            },
+            {
+              "rank": 10,
+              "token_id": 4277,
+              "score": 10.375,
+              "text": "---"
+            }
+          ]
+        },
+        {
+          "case_idx": 102,
+          "prompt_idx": 7,
+          "id": "heldout_repair_json",
+          "step": 1,
+          "current_pos": 25,
+          "current_token_id": 271,
+          "current_token_text": "\n\n",
+          "label_id": 248068,
+          "label_text": "<think>",
+          "draft_id": 4754,
+          "draft_text": "{\"",
+          "accepted": false,
+          "loss": 1.0109732151031494,
+          "label_rank": 2,
+          "label_score": 16.25,
+          "draft_score": 16.375,
+          "draft_minus_label": 0.125,
+          "miss_bucket": "json_punctuation",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 4754,
+              "score": 16.375,
+              "text": "{\""
+            },
+            {
+              "rank": 2,
+              "token_id": 248068,
+              "score": 16.25,
+              "text": "<think>"
+            },
+            {
+              "rank": 3,
+              "token_id": 71093,
+              "score": 14.0625,
+              "text": "```"
+            },
+            {
+              "rank": 4,
+              "token_id": 1,
+              "score": 13.875,
+              "text": "\""
+            },
+            {
+              "rank": 5,
+              "token_id": 5046,
+              "score": 13.0,
+              "text": " {\""
+            },
+            {
+              "rank": 6,
+              "token_id": 2005,
+              "score": 12.8125,
+              "text": "“"
+            },
+            {
+              "rank": 7,
+              "token_id": 90,
+              "score": 12.75,
+              "text": "{"
+            },
+            {
+              "rank": 8,
+              "token_id": 2884,
+              "score": 12.4375,
+              "text": "{{"
+            },
+            {
+              "rank": 9,
+              "token_id": 52888,
+              "score": 12.125,
+              "text": ",{\""
+            },
+            {
+              "rank": 10,
+              "token_id": 9,
+              "score": 11.9375,
+              "text": "*"
+            }
+          ]
+        },
+        {
+          "case_idx": 63,
+          "prompt_idx": 4,
+          "id": "heldout_python_slug",
+          "step": 10,
+          "current_pos": 39,
+          "current_token_id": 311,
+          "current_token_text": " re",
+          "label_id": 271,
+          "label_text": "\n\n",
+          "draft_id": 248046,
+          "draft_text": "<|im_end|>",
+          "accepted": false,
+          "loss": 2.0824475288391113,
+          "label_rank": 2,
+          "label_score": 13.1875,
+          "draft_score": 13.375,
+          "draft_minus_label": 0.1875,
+          "miss_bucket": "stop_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 248046,
+              "score": 13.375,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 2,
+              "token_id": 271,
+              "score": 13.1875,
+              "text": "\n\n"
+            },
+            {
+              "rank": 3,
+              "token_id": 198,
+              "score": 13.0625,
+              "text": "\n"
+            },
+            {
+              "rank": 4,
+              "token_id": 220,
+              "score": 12.1875,
+              "text": " "
+            },
+            {
+              "rank": 5,
+              "token_id": 71093,
+              "score": 12.1875,
+              "text": "```"
+            },
+            {
+              "rank": 6,
+              "token_id": 1,
+              "score": 11.875,
+              "text": "\""
+            },
+            {
+              "rank": 7,
+              "token_id": 9,
+              "score": 11.1875,
+              "text": "*"
+            },
+            {
+              "rank": 8,
+              "token_id": 13,
+              "score": 11.0,
+              "text": "."
+            },
+            {
+              "rank": 9,
+              "token_id": 7,
+              "score": 10.9375,
+              "text": "("
+            },
+            {
+              "rank": 10,
+              "token_id": 12,
+              "score": 10.6875,
+              "text": "-"
+            }
+          ]
+        },
+        {
+          "case_idx": 10,
+          "prompt_idx": 0,
+          "id": "heldout_json_berlin_metric",
+          "step": 10,
+          "current_pos": 27,
+          "current_token_id": 91149,
+          "current_token_text": "Berlin",
+          "label_id": 487,
+          "label_text": "\",",
+          "draft_id": 2129,
+          "draft_text": "\",\"",
+          "accepted": false,
+          "loss": 2.0963449478149414,
+          "label_rank": 2,
+          "label_score": 13.5625,
+          "draft_score": 13.9375,
+          "draft_minus_label": 0.375,
+          "miss_bucket": "json_punctuation",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 2129,
+              "score": 13.9375,
+              "text": "\",\""
+            },
+            {
+              "rank": 2,
+              "token_id": 487,
+              "score": 13.5625,
+              "text": "\","
+            },
+            {
+              "rank": 3,
+              "token_id": 763,
+              "score": 12.875,
+              "text": "\":"
+            },
+            {
+              "rank": 4,
+              "token_id": 8934,
+              "score": 12.625,
+              "text": "\"}"
+            },
+            {
+              "rank": 5,
+              "token_id": 1,
+              "score": 12.5625,
+              "text": "\""
+            },
+            {
+              "rank": 6,
+              "token_id": 3147,
+              "score": 12.5,
+              "text": "\":\""
+            },
+            {
+              "rank": 7,
+              "token_id": 328,
+              "score": 12.3125,
+              "text": " \""
+            },
+            {
+              "rank": 8,
+              "token_id": 3158,
+              "score": 11.125,
+              "text": "\"."
+            },
+            {
+              "rank": 9,
+              "token_id": 13,
+              "score": 11.0,
+              "text": "."
+            },
+            {
+              "rank": 10,
+              "token_id": 15,
+              "score": 11.0,
+              "text": "0"
+            }
+          ]
+        },
+        {
+          "case_idx": 37,
+          "prompt_idx": 2,
+          "id": "heldout_tool_translate",
+          "step": 10,
+          "current_pos": 29,
+          "current_token_id": 14556,
+          "current_token_text": "hello",
+          "label_id": 487,
+          "label_text": "\",",
+          "draft_id": 2129,
+          "draft_text": "\",\"",
+          "accepted": false,
+          "loss": 1.891574501991272,
+          "label_rank": 2,
+          "label_score": 14.125,
+          "draft_score": 14.5,
+          "draft_minus_label": 0.375,
+          "miss_bucket": "json_punctuation",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 2129,
+              "score": 14.5,
+              "text": "\",\""
+            },
+            {
+              "rank": 2,
+              "token_id": 487,
+              "score": 14.125,
+              "text": "\","
+            },
+            {
+              "rank": 3,
+              "token_id": 763,
+              "score": 13.4375,
+              "text": "\":"
+            },
+            {
+              "rank": 4,
+              "token_id": 8934,
+              "score": 13.1875,
+              "text": "\"}"
+            },
+            {
+              "rank": 5,
+              "token_id": 3147,
+              "score": 12.5,
+              "text": "\":\""
+            },
+            {
+              "rank": 6,
+              "token_id": 328,
+              "score": 12.4375,
+              "text": " \""
+            },
+            {
+              "rank": 7,
+              "token_id": 1,
+              "score": 12.3125,
+              "text": "\""
+            },
+            {
+              "rank": 8,
+              "token_id": 15,
+              "score": 11.75,
+              "text": "0"
+            },
+            {
+              "rank": 9,
+              "token_id": 220,
+              "score": 11.625,
+              "text": " "
+            },
+            {
+              "rank": 10,
+              "token_id": 2918,
+              "score": 11.4375,
+              "text": "\"\""
+            }
+          ]
+        },
+        {
+          "case_idx": 69,
+          "prompt_idx": 5,
+          "id": "heldout_moe_short",
+          "step": 0,
+          "current_pos": 15,
+          "current_token_id": 1710,
+          "current_token_text": "。",
+          "label_id": 271,
+          "label_text": "\n\n",
+          "draft_id": 248068,
+          "draft_text": "<think>",
+          "accepted": false,
+          "loss": 3.100843667984009,
+          "label_rank": 2,
+          "label_score": 11.875,
+          "draft_score": 12.8125,
+          "draft_minus_label": 0.9375,
+          "miss_bucket": "special_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 248068,
+              "score": 12.8125,
+              "text": "<think>"
+            },
+            {
+              "rank": 2,
+              "token_id": 248046,
+              "score": 11.875,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 3,
+              "token_id": 271,
+              "score": 11.875,
+              "text": "\n\n"
+            },
+            {
+              "rank": 4,
+              "token_id": 9643,
+              "score": 11.5625,
+              "text": "router"
+            },
+            {
+              "rank": 5,
+              "token_id": 198,
+              "score": 11.25,
+              "text": "\n"
+            },
+            {
+              "rank": 6,
+              "token_id": 9616,
+              "score": 11.0,
+              "text": "（"
+            },
+            {
+              "rank": 7,
+              "token_id": 1,
+              "score": 11.0,
+              "text": "\""
+            },
+            {
+              "rank": 8,
+              "token_id": 1265,
+              "score": 10.9375,
+              "text": "action"
+            },
+            {
+              "rank": 9,
+              "token_id": 95726,
+              "score": 10.875,
+              "text": "的"
+            },
+            {
+              "rank": 10,
+              "token_id": 2005,
+              "score": 10.75,
+              "text": "“"
+            }
+          ]
+        },
+        {
+          "case_idx": 23,
+          "prompt_idx": 1,
+          "id": "heldout_json_status_ready",
+          "step": 7,
+          "current_pos": 20,
+          "current_token_id": 2738,
+          "current_token_text": "status",
+          "label_id": 3147,
+          "label_text": "\":\"",
+          "draft_id": 763,
+          "draft_text": "\":",
+          "accepted": false,
+          "loss": 2.150651454925537,
+          "label_rank": 2,
+          "label_score": 14.5625,
+          "draft_score": 16.0,
+          "draft_minus_label": 1.4375,
+          "miss_bucket": "json_punctuation",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 763,
+              "score": 16.0,
+              "text": "\":"
+            },
+            {
+              "rank": 2,
+              "token_id": 3147,
+              "score": 14.5625,
+              "text": "\":\""
+            },
+            {
+              "rank": 3,
+              "token_id": 2129,
+              "score": 14.125,
+              "text": "\",\""
+            },
+            {
+              "rank": 4,
+              "token_id": 487,
+              "score": 13.4375,
+              "text": "\","
+            },
+            {
+              "rank": 5,
+              "token_id": 8934,
+              "score": 13.25,
+              "text": "\"}"
+            },
+            {
+              "rank": 6,
+              "token_id": 1,
+              "score": 13.0625,
+              "text": "\""
+            },
+            {
+              "rank": 7,
+              "token_id": 328,
+              "score": 12.5,
+              "text": " \""
+            },
+            {
+              "rank": 8,
+              "token_id": 25,
+              "score": 12.0,
+              "text": ":"
+            },
+            {
+              "rank": 9,
+              "token_id": 4961,
+              "score": 11.9375,
+              "text": "\";"
+            },
+            {
+              "rank": 10,
+              "token_id": 271,
+              "score": 11.8125,
+              "text": "\n\n"
+            }
+          ]
+        },
+        {
+          "case_idx": 70,
+          "prompt_idx": 5,
+          "id": "heldout_moe_short",
+          "step": 1,
+          "current_pos": 16,
+          "current_token_id": 271,
+          "current_token_text": "\n\n",
+          "label_id": 248068,
+          "label_text": "<think>",
+          "draft_id": 9643,
+          "draft_text": "router",
+          "accepted": false,
+          "loss": 2.10882568359375,
+          "label_rank": 2,
+          "label_score": 13.875,
+          "draft_score": 15.375,
+          "draft_minus_label": 1.5,
+          "miss_bucket": "generic_structured_key",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 9643,
+              "score": 15.375,
+              "text": "router"
+            },
+            {
+              "rank": 2,
+              "token_id": 248068,
+              "score": 13.875,
+              "text": "<think>"
+            },
+            {
+              "rank": 3,
+              "token_id": 22054,
+              "score": 11.5,
+              "text": "linear"
+            },
+            {
+              "rank": 4,
+              "token_id": 8997,
+              "score": 11.0625,
+              "text": " router"
+            },
+            {
+              "rank": 5,
+              "token_id": 12,
+              "score": 11.0,
+              "text": "-"
+            },
+            {
+              "rank": 6,
+              "token_id": 1,
+              "score": 11.0,
+              "text": "\""
+            },
+            {
+              "rank": 7,
+              "token_id": 1265,
+              "score": 10.8125,
+              "text": "action"
+            },
+            {
+              "rank": 8,
+              "token_id": 71093,
+              "score": 10.8125,
+              "text": "```"
+            },
+            {
+              "rank": 9,
+              "token_id": 2005,
+              "score": 10.625,
+              "text": "“"
+            },
+            {
+              "rank": 10,
+              "token_id": 5513,
+              "score": 10.625,
+              "text": "�"
+            }
+          ]
+        },
+        {
+          "case_idx": 86,
+          "prompt_idx": 6,
+          "id": "heldout_linear_short",
+          "step": 1,
+          "current_pos": 19,
+          "current_token_id": 271,
+          "current_token_text": "\n\n",
+          "label_id": 248068,
+          "label_text": "<think>",
+          "draft_id": 22054,
+          "draft_text": "linear",
+          "accepted": false,
+          "loss": 2.1804912090301514,
+          "label_rank": 2,
+          "label_score": 13.6875,
+          "draft_score": 15.1875,
+          "draft_minus_label": 1.5,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 22054,
+              "score": 15.1875,
+              "text": "linear"
+            },
+            {
+              "rank": 2,
+              "token_id": 248068,
+              "score": 13.6875,
+              "text": "<think>"
+            },
+            {
+              "rank": 3,
+              "token_id": 105094,
+              "score": 11.875,
+              "text": "线性"
+            },
+            {
+              "rank": 4,
+              "token_id": 96133,
+              "score": 11.5,
+              "text": "线"
+            },
+            {
+              "rank": 5,
+              "token_id": 13094,
+              "score": 11.125,
+              "text": " linear"
+            },
+            {
+              "rank": 6,
+              "token_id": 71093,
+              "score": 10.9375,
+              "text": "```"
+            },
+            {
+              "rank": 7,
+              "token_id": 248046,
+              "score": 10.6875,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 8,
+              "token_id": 27345,
+              "score": 10.5625,
+              "text": " Linear"
+            },
+            {
+              "rank": 9,
+              "token_id": 1265,
+              "score": 10.375,
+              "text": "action"
+            },
+            {
+              "rank": 10,
+              "token_id": 5513,
+              "score": 10.375,
+              "text": "�"
+            }
+          ]
+        },
+        {
+          "case_idx": 44,
+          "prompt_idx": 3,
+          "id": "heldout_math_distance",
+          "step": 1,
+          "current_pos": 20,
+          "current_token_id": 271,
+          "current_token_text": "\n\n",
+          "label_id": 248068,
+          "label_text": "<think>",
+          "draft_id": 16,
+          "draft_text": "1",
+          "accepted": false,
+          "loss": 3.132655382156372,
+          "label_rank": 3,
+          "label_score": 15.25,
+          "draft_score": 18.0,
+          "draft_minus_label": 2.75,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 16,
+              "score": 18.0,
+              "text": "1"
+            },
+            {
+              "rank": 2,
+              "token_id": 17,
+              "score": 15.8125,
+              "text": "2"
+            },
+            {
+              "rank": 3,
+              "token_id": 19,
+              "score": 15.25,
+              "text": "4"
+            },
+            {
+              "rank": 4,
+              "token_id": 248068,
+              "score": 15.25,
+              "text": "<think>"
+            },
+            {
+              "rank": 5,
+              "token_id": 18,
+              "score": 15.0625,
+              "text": "3"
+            },
+            {
+              "rank": 6,
+              "token_id": 21,
+              "score": 14.8125,
+              "text": "6"
+            },
+            {
+              "rank": 7,
+              "token_id": 15,
+              "score": 14.3125,
+              "text": "0"
+            },
+            {
+              "rank": 8,
+              "token_id": 20,
+              "score": 14.0,
+              "text": "5"
+            },
+            {
+              "rank": 9,
+              "token_id": 22,
+              "score": 13.9375,
+              "text": "7"
+            },
+            {
+              "rank": 10,
+              "token_id": 23,
+              "score": 13.75,
+              "text": "8"
+            }
+          ]
+        },
+        {
+          "case_idx": 15,
+          "prompt_idx": 0,
+          "id": "heldout_json_berlin_metric",
+          "step": 15,
+          "current_pos": 32,
+          "current_token_id": 328,
+          "current_token_text": " \"",
+          "label_id": 15435,
+          "label_text": "metric",
+          "draft_id": 1265,
+          "draft_text": "action",
+          "accepted": false,
+          "loss": 4.548680305480957,
+          "label_rank": 4,
+          "label_score": 10.0,
+          "draft_score": 10.5,
+          "draft_minus_label": 0.5,
+          "miss_bucket": "generic_structured_key",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 1265,
+              "score": 10.5,
+              "text": "action"
+            },
+            {
+              "rank": 2,
+              "token_id": 3715,
+              "score": 10.4375,
+              "text": "unit"
+            },
+            {
+              "rank": 3,
+              "token_id": 248068,
+              "score": 10.125,
+              "text": "<think>"
+            },
+            {
+              "rank": 4,
+              "token_id": 15435,
+              "score": 10.0,
+              "text": "metric"
+            },
+            {
+              "rank": 5,
+              "token_id": 248046,
+              "score": 10.0,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 6,
+              "token_id": 1,
+              "score": 9.75,
+              "text": "\""
+            },
+            {
+              "rank": 7,
+              "token_id": 19,
+              "score": 9.3125,
+              "text": "4"
+            },
+            {
+              "rank": 8,
+              "token_id": 1267,
+              "score": 9.1875,
+              "text": "type"
+            },
+            {
+              "rank": 9,
+              "token_id": 13766,
+              "score": 9.125,
+              "text": "tool"
+            },
+            {
+              "rank": 10,
+              "token_id": 23,
+              "score": 8.875,
+              "text": "8"
+            }
+          ]
+        },
+        {
+          "case_idx": 85,
+          "prompt_idx": 6,
+          "id": "heldout_linear_short",
+          "step": 0,
+          "current_pos": 18,
+          "current_token_id": 1710,
+          "current_token_text": "。",
+          "label_id": 271,
+          "label_text": "\n\n",
+          "draft_id": 248068,
+          "draft_text": "<think>",
+          "accepted": false,
+          "loss": 3.7415695190429688,
+          "label_rank": 4,
+          "label_score": 11.125,
+          "draft_score": 12.75,
+          "draft_minus_label": 1.625,
+          "miss_bucket": "special_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 248068,
+              "score": 12.75,
+              "text": "<think>"
+            },
+            {
+              "rank": 2,
+              "token_id": 248046,
+              "score": 11.9375,
+              "text": "<|im_end|>"
+            },
+            {
+              "rank": 3,
+              "token_id": 22054,
+              "score": 11.6875,
+              "text": "linear"
+            },
+            {
+              "rank": 4,
+              "token_id": 271,
+              "score": 11.125,
+              "text": "\n\n"
+            },
+            {
+              "rank": 5,
+              "token_id": 96133,
+              "score": 10.9375,
+              "text": "线"
+            },
+            {
+              "rank": 6,
+              "token_id": 1265,
+              "score": 10.75,
+              "text": "action"
+            },
+            {
+              "rank": 7,
+              "token_id": 1,
+              "score": 10.4375,
+              "text": "\""
+            },
+            {
+              "rank": 8,
+              "token_id": 198,
+              "score": 10.25,
+              "text": "\n"
+            },
+            {
+              "rank": 9,
+              "token_id": 2005,
+              "score": 10.0625,
+              "text": "“"
+            },
+            {
+              "rank": 10,
+              "token_id": 5513,
+              "score": 9.9375,
+              "text": "�"
+            }
+          ]
+        },
+        {
+          "case_idx": 49,
+          "prompt_idx": 3,
+          "id": "heldout_math_distance",
+          "step": 6,
+          "current_pos": 25,
+          "current_token_id": 16,
+          "current_token_text": "1",
+          "label_id": 18,
+          "label_text": "3",
+          "draft_id": 15,
+          "draft_text": "0",
+          "accepted": false,
+          "loss": 2.4527106285095215,
+          "label_rank": 5,
+          "label_score": 15.875,
+          "draft_score": 16.75,
+          "draft_minus_label": 0.875,
+          "miss_bucket": "semantic_token",
+          "mtp_topk": [
+            {
+              "rank": 1,
+              "token_id": 15,
+              "score": 16.75,
+              "text": "0"
+            },
+            {
+              "rank": 2,
+              "token_id": 17,
+              "score": 16.625,
+              "text": "2"
+            },
+            {
+              "rank": 3,
+              "token_id": 16,
+              "score": 16.625,
+              "text": "1"
+            },
+            {
+              "rank": 4,
+              "token_id": 19,
+              "score": 16.0,
+              "text": "4"
+            },
+            {
+              "rank": 5,
+              "token_id": 18,
+              "score": 15.875,
+              "text": "3"
+            },
+            {
+              "rank": 6,
+              "token_id": 20,
+              "score": 15.4375,
+              "text": "5"
+            },
+            {
+              "rank": 7,
+              "token_id": 21,
+              "score": 15.3125,
+              "text": "6"
+            },
+            {
+              "rank": 8,
+              "token_id": 23,
+              "score": 15.0,
+              "text": "8"
+            },
+            {
+              "rank": 9,
+              "token_id": 22,
+              "score": 14.9375,
+              "text": "7"
+            },
+            {
+              "rank": 10,
+              "token_id": 24,
+              "score": 14.6875,
+              "text": "9"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "best_label": "v23",
+  "best_accept_rate": 0.5603448275862069,
+  "decision": "GREEN: at least one saved sidecar clears 55% heldout accept."
+}
