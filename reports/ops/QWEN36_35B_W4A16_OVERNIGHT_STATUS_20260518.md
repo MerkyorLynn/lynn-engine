@@ -228,6 +228,9 @@ profile. It preserves the Triton recurrent path but avoids materializing the
 This is a small but quality-safe gain. It does not change the 155 TPS gap shape:
 linear blocks still dominate, so the next meaningful speed work remains fused
 linear/MoE boundaries rather than service-loop rewrites.
+Follow-up P10-C still shows the fused native FP4 in-proj as the largest isolated
+linear-core segment at about 0.080 ms/layer, with recurrent and conv each around
+0.033-0.036 ms.
 
 Copied reports:
 
@@ -235,6 +238,8 @@ Copied reports:
 - `reports/qwen36_35b/r6000_qwen36_w4a16_gqa_recurrent_p28_hybrid_block_20260518_052206.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_gqa_recurrent_p25_server_20260518_052455.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_gqa_recurrent_openai_structured_gate_20260518_052455.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_gqa_recurrent_p10c_linear_layer0_20260518_052949.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_gqa_recurrent_p10c_linear_layer28_20260518_052949.json`
 
 Negative probes from the same loop:
 
