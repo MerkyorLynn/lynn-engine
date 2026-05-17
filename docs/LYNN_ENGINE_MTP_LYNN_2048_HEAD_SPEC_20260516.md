@@ -272,6 +272,19 @@ step7, and step9. It also drops step3 from `8/8` to `6/8`, so v23 is the best
 serving-credit candidate but not the final sidecar. The next route should
 restore step3 while preserving the v23 front/format gains.
 
+The v22/v23 interpolation scan finds the next clean serving-credit step:
+alpha `0.85` reaches `66/116 = 56.90%` and saved reload confirms it. A
+subset-grid between the same parents does not beat it; the best group swap is
+only `65/116`.
+
+v24 starts from the interpolated sidecar and applies a conservative `fc_norms`
+margin run on steps `1/3/8/11`. In-memory heldout eval reaches
+`69/116 = 59.48%`, with step1 `5/8`, step3 restored to `8/8`, and steps
+2/4/5 still `8/8`. Saved reload confirms the same `69/116 = 59.48%`, making
+v24 the new authoritative serving-credit sidecar. The remaining miss profile is
+47 misses total: 11 near misses and 32 hard misses, dominated by semantic/code
+tokens rather than the earlier low-margin punctuation cases.
+
 This changes the initialization and wiring path, not the serving state: MTP can
 now run a real draft forward pass and backpropagate through a frozen-base,
 frozen-MTP-layer fc-only calibration set. The warm-start head is still not an

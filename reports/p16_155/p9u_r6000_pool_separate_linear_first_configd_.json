@@ -1,0 +1,27 @@
+{
+  "schema_version": "lynn-engine-p9u-hybrid-graph-pool-mode-probe-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-a3b-w4a8-nvfp4-v2",
+  "decode_position": 7,
+  "pool_mode": "separate",
+  "capture_order": "linear_first",
+  "pool_count": 2,
+  "full_attn_graph_slots": 10,
+  "linear_block_graphs": 10,
+  "linear_capture_s": 0.06825041770935059,
+  "eager_ms": 36.028482055664064,
+  "graph_ms": 9.624242553710937,
+  "speedup": 3.7435135133592534,
+  "one_shot_graph_ms": 9.53388786315918,
+  "one_shot_graph_tps": 104.88900376772806,
+  "logit_diff": {
+    "max_abs": 3.53125,
+    "mean_abs": 0.5222031474113464,
+    "rel_l2": 0.26092935636875053,
+    "cosine": 0.9692370295524597
+  },
+  "graph_next_id": 248068,
+  "eager_next_id": 248068,
+  "greedy_pass": true,
+  "strict_logit_pass": false,
+  "pass": true
+}

@@ -1,0 +1,29 @@
+{
+  "schema_version": "lynn-engine-p9w-real-state-slot-cross-prompt-reuse-probe-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-a3b-w4a8-nvfp4-v2",
+  "capture_prompt": "用一句话解释 MoE active parameters",
+  "test_prompt": "请一句话解释 MoE active parameters",
+  "decode_position": 7,
+  "capture_next_id": 271,
+  "test_next_id": 271,
+  "full_slot_capture_mode": "real_per_layer_state_from_capture_prompt",
+  "full_attn_graph_slots": 10,
+  "linear_block_graphs": 10,
+  "linear_capture_s": 0.0724785327911377,
+  "eager_ms": 36.6442138671875,
+  "graph_ms": 9.673154296875,
+  "speedup": 3.7882383287347903,
+  "one_shot_graph_ms": 9.51807975769043,
+  "one_shot_graph_tps": 105.06320869942478,
+  "logit_diff": {
+    "max_abs": 19.90234375,
+    "mean_abs": 2.900486707687378,
+    "rel_l2": 1.3613259027675195,
+    "cosine": -0.13396388292312622
+  },
+  "graph_next_id": 80544,
+  "eager_next_id": 248068,
+  "greedy_pass": false,
+  "strict_logit_pass": false,
+  "pass": false
+}

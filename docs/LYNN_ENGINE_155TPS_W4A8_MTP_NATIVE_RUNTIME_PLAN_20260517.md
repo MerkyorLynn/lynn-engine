@@ -280,6 +280,20 @@ step9 `2/8 -> 3/8`, while step3 drops from `8/8` to `6/8`; step2/4/5 remain
 `8/8`. v23 is therefore the best MTP serving-credit candidate so far, but the
 next rescue has to restore step3 without losing the new step1/7/9 accepts.
 
+The v22/v23 interpolation scan then finds a better midpoint than either parent:
+alpha `0.85` reloads at `66/116 = 56.90%`, adding one more step1 accept while
+preserving the v23 step7/9 gains. A subset-grid over `fc`, pre-fc norms, and
+`mtp.norm.weight` does not beat the interpolation; its best candidate is v22
+with v23 `fc`, `65/116`.
+
+A100 v24 starts from the interpolated `alpha=0.85` sidecar and applies a very
+low-LR `fc_norms` margin run on steps `1/3/8/11`. In-memory heldout eval moves
+from `66/116` to `69/116 = 59.48%`: step1 improves `4/8 -> 5/8`, step3 returns
+to `8/8`, and step2/4/5 stay `8/8`. Saved reload confirms the same
+`69/116 = 59.48%`, making v24 the new MTP serving-credit best. The diagnostic
+now shows 47 misses, 11 near misses, and 32 hard misses; the next A100 target is
+semantic/code-body failures rather than simple JSON punctuation.
+
 If fc-only cannot clear 55-70%, unfreeze in this order:
 
 1. `mtp.fc.weight`
@@ -475,6 +489,15 @@ one full-attn KV graph state. It is still greedy-safe (`104.91 one-shot tok/s`)
 but does not fix strict logits (`max_abs=3.53125`). The next R6000 proof should
 isolate CUDA graph memory pools explicitly, or switch from composed PyTorch
 CUDAGraphs to a native/static full-attn layer boundary.
+
+2026-05-17 P9U/P9V/P9W close the PyTorch CUDAGraph branch. Explicit graph-pool
+modes do not fix strict drift: full-first remains `max_abs=1.046875`, and
+linear-first remains `max_abs=3.53125`, all around `104.7-105.0 tok/s`. Capturing
+full-attn slots on their real per-layer state is strict-exact (`max_abs=0`,
+`104.93 tok/s`), but those real-state slots do not reuse across a fresh request,
+even for the same prompt. The serving route should therefore move to a native
+static full-attn boundary with explicit runtime inputs instead of trying to make
+PyTorch CUDAGraph slots portable across requests.
 
 2026-05-17 down-backend service sweep: switching only
 `LYNN_NATIVE_DOWN_BACKEND` from `triton` to `cuda_tile` gives real raw speed

@@ -33,6 +33,9 @@ P9H/P9I/P9J changed the full-attention decision:
 | P9R graph-pool/order probe | fresh full slot after linear capture is exact; stale slot drifts |
 | P9S capture-order token probe | linear-first capture stays greedy-safe but not strict-exact |
 | P9T separate-state token probe | separate linear/full graph states stay greedy-safe but not strict-exact |
+| P9U explicit graph-pool modes | shared/separate/per-slot pools do not fix strict drift |
+| P9V real-state full slots | same-request real-state slots are strict-exact |
+| P9W real-state slot reuse | real-state slots do not safely reuse across fresh requests |
 
 This makes full-attention reusable graphing the strongest non-MTP R6000 speed
 lever found today.
@@ -204,6 +207,54 @@ So simple state separation is not enough. The next proof should isolate CUDA
 graph memory-pool ownership or capture full-attn slots in a fresh graph pool per
 family; if that still drifts, the production path should move toward a native
 static full-attn layer boundary instead of composing PyTorch CUDAGraph objects.
+
+P9U tests that explicit pool hypothesis directly. None of the pool modes fixes
+strict drift:
+
+```text
+reports/p16_155/p9u_r6000_pool_default_full_first_configd_.json
+reports/p16_155/p9u_r6000_pool_shared_full_first_configd_.json
+reports/p16_155/p9u_r6000_pool_separate_full_first_configd_.json
+reports/p16_155/p9u_r6000_pool_per_slot_full_first_configd_.json
+full-first: one_shot_graph_tps ~104.9-105.0, logit_diff.max_abs 1.046875
+
+reports/p16_155/p9u_r6000_pool_shared_linear_first_configd_.json
+reports/p16_155/p9u_r6000_pool_separate_linear_first_configd_.json
+reports/p16_155/p9u_r6000_pool_per_slot_linear_first_configd_.json
+linear-first: one_shot_graph_tps ~104.7-104.9, logit_diff.max_abs 3.53125
+```
+
+So allocator pool ownership is not the missing production switch.
+
+P9V then captures each full-attention graph slot at the real per-layer state it
+sees during a representative token pass. That is strict-exact:
+
+```text
+reports/p16_155/p9v_r6000_real_state_full_slots_configd_20260517_152512.json
+one_shot_graph_tps: 104.93
+logit_diff.max_abs: 0
+strict_logit_pass: true
+```
+
+This proves the full-token graph composition itself can be exact when
+full-attention slots are captured from the actual state surface they will
+replay against.
+
+P9W is the important serving check. It reuses those real-state slots against a
+fresh prefill at the same decode position:
+
+```text
+reports/p16_155/p9w_r6000_real_state_cross_prompt_reuse_configd_20260517_152850.json
+cross-prompt reuse: greedy_pass false, logit_diff.max_abs 19.90234375
+
+reports/p16_155/p9w_r6000_real_state_same_prompt_reuse_configd_20260517_153047.json
+same-prompt fresh-prefill reuse: greedy_pass false, graph_next_id 0
+```
+
+That makes PyTorch CUDAGraph full-attn slots useful as a diagnostic, but not as
+the direct serving primitive. The next production ABI should be a native/static
+full-attn layer boundary that takes explicit `h`, position, KV cache, and output
+buffers as runtime inputs instead of relying on captured Python object state.
 
 ## Graph Key
 

@@ -1,0 +1,1859 @@
+{
+  "schema_version": "lynn-a100-mtp-sidecar-subset-grid-eval-v1",
+  "base_model": "/mnt/data/lynn-a100/models/lynn-27b-variable-recovery-step5000-bf16-final",
+  "eval_prompts_file": "reports/mtp/mtp_fc_calibration_heldout_prompts_v1.json",
+  "max_new_eval": 16,
+  "case_count": 116,
+  "label_a": "v22",
+  "sidecar_a": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v19-margin-v5-fcnorms-v22-20260517_145317/mtp.safetensors",
+  "inventory_a": {
+    "metadata": {
+      "source_sidecar": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v18-targeted-v4-fcnorms-v19-20260517_135834/mtp.safetensors",
+      "eval_accept_rate_after": "0.5517241379310345",
+      "train_accept_rate_after": "0.441747572815534",
+      "lynn_mtp_iterative_train": "true"
+    },
+    "tensors": {
+      "mtp.fc.weight": {
+        "shape": [
+          2048,
+          4096
+        ],
+        "dtype": "bfloat16",
+        "numel": 8388608
+      },
+      "mtp.layers.0.input_layernorm.weight": {
+        "shape": [
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 2048
+      },
+      "mtp.layers.0.mlp.experts.down_proj": {
+        "shape": [
+          254,
+          2048,
+          512
+        ],
+        "dtype": "bfloat16",
+        "numel": 266338304
+      },
+      "mtp.layers.0.mlp.experts.gate_up_proj": {
+        "shape": [
+          254,
+          1024,
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 532676608
+      },
+      "mtp.layers.0.mlp.gate.weight": {
+        "shape": [
+          254,
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 520192
+      },
+      "mtp.layers.0.mlp.shared_expert.down_proj.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "bfloat16",
+        "numel": 1048576
+      },
+      "mtp.layers.0.mlp.shared_expert.gate_proj.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 1048576
+      },
+      "mtp.layers.0.mlp.shared_expert.up_proj.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 1048576
+      },
+      "mtp.layers.0.mlp.shared_expert_gate.weight": {
+        "shape": [
+          1,
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 2048
+      },
+      "mtp.layers.0.post_attention_layernorm.weight": {
+        "shape": [
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 2048
+      },
+      "mtp.layers.0.self_attn.k_norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "bfloat16",
+        "numel": 256
+      },
+      "mtp.layers.0.self_attn.k_proj.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 1048576
+      },
+      "mtp.layers.0.self_attn.o_proj.weight": {
+        "shape": [
+          2048,
+          4096
+        ],
+        "dtype": "bfloat16",
+        "numel": 8388608
+      },
+      "mtp.layers.0.self_attn.q_norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "bfloat16",
+        "numel": 256
+      },
+      "mtp.layers.0.self_attn.q_proj.weight": {
+        "shape": [
+          8192,
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 16777216
+      },
+      "mtp.layers.0.self_attn.v_proj.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 1048576
+      },
+      "mtp.norm.weight": {
+        "shape": [
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 2048
+      },
+      "mtp.pre_fc_norm_embedding.weight": {
+        "shape": [
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 2048
+      },
+      "mtp.pre_fc_norm_hidden.weight": {
+        "shape": [
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 2048
+      }
+    }
+  },
+  "label_b": "v23",
+  "sidecar_b": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v22-margin-v6-rescue-v23-20260517_150922/mtp.safetensors",
+  "inventory_b": {
+    "metadata": {
+      "source_sidecar": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v19-margin-v5-fcnorms-v22-20260517_145317/mtp.safetensors",
+      "lynn_mtp_iterative_train": "true",
+      "train_accept_rate_after": "0.5789473684210527",
+      "eval_accept_rate_after": "0.5603448275862069"
+    },
+    "tensors": {
+      "mtp.fc.weight": {
+        "shape": [
+          2048,
+          4096
+        ],
+        "dtype": "bfloat16",
+        "numel": 8388608
+      },
+      "mtp.layers.0.input_layernorm.weight": {
+        "shape": [
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 2048
+      },
+      "mtp.layers.0.mlp.experts.down_proj": {
+        "shape": [
+          254,
+          2048,
+          512
+        ],
+        "dtype": "bfloat16",
+        "numel": 266338304
+      },
+      "mtp.layers.0.mlp.experts.gate_up_proj": {
+        "shape": [
+          254,
+          1024,
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 532676608
+      },
+      "mtp.layers.0.mlp.gate.weight": {
+        "shape": [
+          254,
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 520192
+      },
+      "mtp.layers.0.mlp.shared_expert.down_proj.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "bfloat16",
+        "numel": 1048576
+      },
+      "mtp.layers.0.mlp.shared_expert.gate_proj.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 1048576
+      },
+      "mtp.layers.0.mlp.shared_expert.up_proj.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 1048576
+      },
+      "mtp.layers.0.mlp.shared_expert_gate.weight": {
+        "shape": [
+          1,
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 2048
+      },
+      "mtp.layers.0.post_attention_layernorm.weight": {
+        "shape": [
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 2048
+      },
+      "mtp.layers.0.self_attn.k_norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "bfloat16",
+        "numel": 256
+      },
+      "mtp.layers.0.self_attn.k_proj.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 1048576
+      },
+      "mtp.layers.0.self_attn.o_proj.weight": {
+        "shape": [
+          2048,
+          4096
+        ],
+        "dtype": "bfloat16",
+        "numel": 8388608
+      },
+      "mtp.layers.0.self_attn.q_norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "bfloat16",
+        "numel": 256
+      },
+      "mtp.layers.0.self_attn.q_proj.weight": {
+        "shape": [
+          8192,
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 16777216
+      },
+      "mtp.layers.0.self_attn.v_proj.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 1048576
+      },
+      "mtp.norm.weight": {
+        "shape": [
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 2048
+      },
+      "mtp.pre_fc_norm_embedding.weight": {
+        "shape": [
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 2048
+      },
+      "mtp.pre_fc_norm_hidden.weight": {
+        "shape": [
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 2048
+      }
+    }
+  },
+  "groups": [
+    "fc",
+    "pre_hidden",
+    "pre_embed",
+    "norm"
+  ],
+  "rows": [
+    {
+      "label": "a",
+      "groups_from_b": [],
+      "eval": {
+        "accepted": 64,
+        "case_count": 116,
+        "accept_rate": 0.5517241379310345,
+        "mean_loss": 3.5209394046025158,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 6,
+            "accept_rate": 0.75
+          },
+          "1": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 4,
+            "accept_rate": 0.5
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "10": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "11": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "12": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 2,
+            "accept_rate": 0.4
+          }
+        }
+      }
+    },
+    {
+      "label": "b:fc",
+      "groups_from_b": [
+        "fc"
+      ],
+      "eval": {
+        "accepted": 65,
+        "case_count": 116,
+        "accept_rate": 0.5603448275862069,
+        "mean_loss": 3.493215372826069,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 6,
+            "accept_rate": 0.75
+          },
+          "1": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 6,
+            "accept_rate": 0.75
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 5,
+            "accept_rate": 0.625
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "10": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "11": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "12": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 2,
+            "accept_rate": 0.4
+          }
+        }
+      }
+    },
+    {
+      "label": "b:pre_hidden",
+      "groups_from_b": [
+        "pre_hidden"
+      ],
+      "eval": {
+        "accepted": 64,
+        "case_count": 116,
+        "accept_rate": 0.5517241379310345,
+        "mean_loss": 3.5209394046025158,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 6,
+            "accept_rate": 0.75
+          },
+          "1": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 4,
+            "accept_rate": 0.5
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "10": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "11": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "12": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 2,
+            "accept_rate": 0.4
+          }
+        }
+      }
+    },
+    {
+      "label": "b:pre_embed",
+      "groups_from_b": [
+        "pre_embed"
+      ],
+      "eval": {
+        "accepted": 64,
+        "case_count": 116,
+        "accept_rate": 0.5517241379310345,
+        "mean_loss": 3.5209394046025158,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 6,
+            "accept_rate": 0.75
+          },
+          "1": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 4,
+            "accept_rate": 0.5
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "10": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "11": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "12": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 2,
+            "accept_rate": 0.4
+          }
+        }
+      }
+    },
+    {
+      "label": "b:norm",
+      "groups_from_b": [
+        "norm"
+      ],
+      "eval": {
+        "accepted": 64,
+        "case_count": 116,
+        "accept_rate": 0.5517241379310345,
+        "mean_loss": 3.5209394046025158,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 6,
+            "accept_rate": 0.75
+          },
+          "1": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 4,
+            "accept_rate": 0.5
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "10": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "11": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "12": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 2,
+            "accept_rate": 0.4
+          }
+        }
+      }
+    },
+    {
+      "label": "b:fc+pre_hidden",
+      "groups_from_b": [
+        "fc",
+        "pre_hidden"
+      ],
+      "eval": {
+        "accepted": 65,
+        "case_count": 116,
+        "accept_rate": 0.5603448275862069,
+        "mean_loss": 3.493215372826069,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 6,
+            "accept_rate": 0.75
+          },
+          "1": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 6,
+            "accept_rate": 0.75
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 5,
+            "accept_rate": 0.625
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "10": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "11": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "12": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 2,
+            "accept_rate": 0.4
+          }
+        }
+      }
+    },
+    {
+      "label": "b:fc+pre_embed",
+      "groups_from_b": [
+        "fc",
+        "pre_embed"
+      ],
+      "eval": {
+        "accepted": 65,
+        "case_count": 116,
+        "accept_rate": 0.5603448275862069,
+        "mean_loss": 3.493215372826069,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 6,
+            "accept_rate": 0.75
+          },
+          "1": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 6,
+            "accept_rate": 0.75
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 5,
+            "accept_rate": 0.625
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "10": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "11": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "12": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 2,
+            "accept_rate": 0.4
+          }
+        }
+      }
+    },
+    {
+      "label": "b:fc+norm",
+      "groups_from_b": [
+        "fc",
+        "norm"
+      ],
+      "eval": {
+        "accepted": 65,
+        "case_count": 116,
+        "accept_rate": 0.5603448275862069,
+        "mean_loss": 3.493215372826069,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 6,
+            "accept_rate": 0.75
+          },
+          "1": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 6,
+            "accept_rate": 0.75
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 5,
+            "accept_rate": 0.625
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "10": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "11": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "12": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 2,
+            "accept_rate": 0.4
+          }
+        }
+      }
+    },
+    {
+      "label": "b:pre_hidden+pre_embed",
+      "groups_from_b": [
+        "pre_hidden",
+        "pre_embed"
+      ],
+      "eval": {
+        "accepted": 64,
+        "case_count": 116,
+        "accept_rate": 0.5517241379310345,
+        "mean_loss": 3.5209394046025158,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 6,
+            "accept_rate": 0.75
+          },
+          "1": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 4,
+            "accept_rate": 0.5
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "10": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "11": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "12": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 2,
+            "accept_rate": 0.4
+          }
+        }
+      }
+    },
+    {
+      "label": "b:pre_hidden+norm",
+      "groups_from_b": [
+        "pre_hidden",
+        "norm"
+      ],
+      "eval": {
+        "accepted": 64,
+        "case_count": 116,
+        "accept_rate": 0.5517241379310345,
+        "mean_loss": 3.5209394046025158,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 6,
+            "accept_rate": 0.75
+          },
+          "1": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 4,
+            "accept_rate": 0.5
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "10": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "11": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "12": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 2,
+            "accept_rate": 0.4
+          }
+        }
+      }
+    },
+    {
+      "label": "b:pre_embed+norm",
+      "groups_from_b": [
+        "pre_embed",
+        "norm"
+      ],
+      "eval": {
+        "accepted": 64,
+        "case_count": 116,
+        "accept_rate": 0.5517241379310345,
+        "mean_loss": 3.5209394046025158,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 6,
+            "accept_rate": 0.75
+          },
+          "1": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 4,
+            "accept_rate": 0.5
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "10": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "11": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "12": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 2,
+            "accept_rate": 0.4
+          }
+        }
+      }
+    },
+    {
+      "label": "b:fc+pre_hidden+pre_embed",
+      "groups_from_b": [
+        "fc",
+        "pre_hidden",
+        "pre_embed"
+      ],
+      "eval": {
+        "accepted": 65,
+        "case_count": 116,
+        "accept_rate": 0.5603448275862069,
+        "mean_loss": 3.493215372826069,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 6,
+            "accept_rate": 0.75
+          },
+          "1": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 6,
+            "accept_rate": 0.75
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 5,
+            "accept_rate": 0.625
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "10": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "11": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "12": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 2,
+            "accept_rate": 0.4
+          }
+        }
+      }
+    },
+    {
+      "label": "b:fc+pre_hidden+norm",
+      "groups_from_b": [
+        "fc",
+        "pre_hidden",
+        "norm"
+      ],
+      "eval": {
+        "accepted": 65,
+        "case_count": 116,
+        "accept_rate": 0.5603448275862069,
+        "mean_loss": 3.493215372826069,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 6,
+            "accept_rate": 0.75
+          },
+          "1": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 6,
+            "accept_rate": 0.75
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 5,
+            "accept_rate": 0.625
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "10": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "11": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "12": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 2,
+            "accept_rate": 0.4
+          }
+        }
+      }
+    },
+    {
+      "label": "b:fc+pre_embed+norm",
+      "groups_from_b": [
+        "fc",
+        "pre_embed",
+        "norm"
+      ],
+      "eval": {
+        "accepted": 65,
+        "case_count": 116,
+        "accept_rate": 0.5603448275862069,
+        "mean_loss": 3.493215372826069,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 6,
+            "accept_rate": 0.75
+          },
+          "1": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 6,
+            "accept_rate": 0.75
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 5,
+            "accept_rate": 0.625
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "10": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "11": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "12": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 2,
+            "accept_rate": 0.4
+          }
+        }
+      }
+    },
+    {
+      "label": "b:pre_hidden+pre_embed+norm",
+      "groups_from_b": [
+        "pre_hidden",
+        "pre_embed",
+        "norm"
+      ],
+      "eval": {
+        "accepted": 64,
+        "case_count": 116,
+        "accept_rate": 0.5517241379310345,
+        "mean_loss": 3.5209394046025158,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 6,
+            "accept_rate": 0.75
+          },
+          "1": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 4,
+            "accept_rate": 0.5
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "10": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "11": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "12": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 2,
+            "accept_rate": 0.4
+          }
+        }
+      }
+    },
+    {
+      "label": "b:fc+pre_hidden+pre_embed+norm",
+      "groups_from_b": [
+        "fc",
+        "pre_hidden",
+        "pre_embed",
+        "norm"
+      ],
+      "eval": {
+        "accepted": 65,
+        "case_count": 116,
+        "accept_rate": 0.5603448275862069,
+        "mean_loss": 3.493215372826069,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 6,
+            "accept_rate": 0.75
+          },
+          "1": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 6,
+            "accept_rate": 0.75
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 5,
+            "accept_rate": 0.625
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "10": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "11": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "12": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 2,
+            "accept_rate": 0.4
+          }
+        }
+      }
+    }
+  ],
+  "best_groups_from_b": [
+    "fc"
+  ],
+  "best_accept_rate": 0.5603448275862069,
+  "best_accepted": 65,
+  "best_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-subset-v22-v23-groups-20260517_152624/mtp.safetensors",
+  "decision": "GREEN: subset sidecar clears 55% heldout accept."
+}
