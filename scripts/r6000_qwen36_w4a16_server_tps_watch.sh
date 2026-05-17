@@ -133,6 +133,7 @@ log "server ready; running P25 decode TPS"
 "$PY" benchmarks/p25_server_decode_tps_probe.py \
   --url "http://${HOST}:${PORT}/v1" \
   --model "$SERVED" \
+  --chat \
   --max-tokens $MAX_TOKENS \
   --runs "$RUNS" \
   --out "$OUT" 2>&1 | tee -a "$LOG"
