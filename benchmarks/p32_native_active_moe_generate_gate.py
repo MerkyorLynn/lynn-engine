@@ -41,6 +41,7 @@ def _set_runtime_env(
         "LYNN_PREFILL_WARMUP": "1",
         "LYNN_LINEAR_ATTN_RECURRENT_BACKEND": "triton_fused_prepare",
         "LYNN_LINEAR_ATTN_RECURRENT_INPLACE": "1",
+        "LYNN_LINEAR_ATTN_GQA_RECURRENT": "1",
         "LYNN_MOE_IMPL": "packed_nvfp4",
         "LYNN_QK_NORM_ROPE_BACKEND": "triton_pair",
         "LYNN_RMSNORM_GATED_BACKEND": "triton",

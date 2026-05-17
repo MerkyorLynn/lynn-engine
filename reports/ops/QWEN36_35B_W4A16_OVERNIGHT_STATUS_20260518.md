@@ -488,6 +488,15 @@ References:
 - <https://arxiv.org/abs/2605.01106>
 - <https://njannasch.dev/blog/mtp-speculative-decoding-qwen-3-6-5060ti/>
 
+## Benchmark Harness Hygiene
+
+After promoting `LYNN_LINEAR_ATTN_GQA_RECURRENT=1`, the P32/P33/P36/P37/P38
+MoE gates and P50/P62 first-divergence probes must run on the same fast baseline
+as the service path. The harnesses now include that flag by default, P105 W4A8
+fake-quant comparisons inherit it, and P11/P12 shadow-release graph checks
+require it explicitly. This prevents future native-kernel probes from comparing
+against the stale pre-GQA recurrent path.
+
 ## Immediate Work
 
 1. Stop open-ended A100 quality repair for 27B/W4A8 unless a concrete 35B

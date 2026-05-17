@@ -132,6 +132,7 @@ def main() -> int:
         "moe_impl": requested_moe,
         "linear_recurrent_backend": os.environ.get("LYNN_LINEAR_ATTN_RECURRENT_BACKEND", "torch"),
         "linear_recurrent_inplace": os.environ.get("LYNN_LINEAR_ATTN_RECURRENT_INPLACE", "0"),
+        "linear_gqa_recurrent": os.environ.get("LYNN_LINEAR_ATTN_GQA_RECURRENT", "0"),
         "qk_norm_rope_backend": os.environ.get("LYNN_QK_NORM_ROPE_BACKEND", "torch"),
         "eager_ms": eager_ms,
         "eager_tps": 1000.0 / eager_ms,

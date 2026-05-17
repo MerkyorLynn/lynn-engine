@@ -110,6 +110,7 @@ def main() -> int:
     os.environ.setdefault("LYNN_W4A8_FAKE_QUANT_FORMAT", "e4m3")
     os.environ.setdefault("LYNN_W4A8_FAKE_QUANT_GRANULARITY", "per16")
     os.environ.setdefault("LYNN_LINEAR_ATTN_RECURRENT_INPLACE", "1")
+    os.environ.setdefault("LYNN_LINEAR_ATTN_GQA_RECURRENT", "1")
     os.environ.setdefault("LYNN_LINEAR_STATE_UPDATE", "inplace")
 
     runner = LynnIncrementalRunner(args.model, device="cuda", verbose=False)
