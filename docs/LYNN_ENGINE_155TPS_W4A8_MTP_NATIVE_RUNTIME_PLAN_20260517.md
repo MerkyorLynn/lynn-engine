@@ -230,6 +230,14 @@ This closes the simple MTP-layer specialist route for now. The next useful A100
 move is a merge/selection experiment or a different trainable surface for
 step1, not another low-LR `fc_mtp_layer` weak-step run.
 
+A100 v19/v14 merge checks close the old step1-specialist rescue route. A fine
+interpolation scan from v19 toward the v14 step1/3 specialist keeps best
+alpha at `0.0`; alpha `0.025` already drops to `59/116`. A subset grid over
+`fc`, `pre_hidden`, `pre_embed`, and `norm` also keeps best at pure v19; any
+candidate that imports v14 `fc` collapses to `41/116`. v14's specialist signal
+is therefore not composable with the v19 saved sidecar by linear or small-block
+merge.
+
 If fc-only cannot clear 55-70%, unfreeze in this order:
 
 1. `mtp.fc.weight`
