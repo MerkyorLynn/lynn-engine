@@ -461,6 +461,15 @@ training set must include guard-forced hidden states, or serving should disable
 MTP until the forced prefix span is past and the route has re-entered a state
 distribution the sidecar has seen.
 
+v39 adds that collection mode to the iterative trainer with
+`--force-prefix-from-spec --skip-forced-prefix-cases`. On v4 structured
+templates as train and v6 heldout templates as eval, a conservative `fc_norms`
+rank-flip pass can move train accept from `0/44` to `3/44`, but heldout remains
+flat at `22/172 = 12.79%`. This confirms the guard-forced distribution shift is
+real and not solved by the old small-surface rank-flip recipe. Next useful
+experiments are either a wider guard-forced specialist or a runtime
+multi-candidate/reranker path that can exploit the raw-route top8 ceiling.
+
 Report:
 
 ```text

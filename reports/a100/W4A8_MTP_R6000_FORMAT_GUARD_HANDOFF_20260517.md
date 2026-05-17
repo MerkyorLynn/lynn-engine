@@ -363,6 +363,14 @@ only `109/271 = 40.22%`. So the quality guard path is not yet MTP-friendly.
 The next R6000/A100 MTP calibration must explicitly include guard-forced hidden
 states before MTP can be enabled on structured/template routes.
 
+The first guard-forced calibration attempt is v39. The trainer now supports
+`--force-prefix-from-spec --skip-forced-prefix-cases`, so it can collect cases
+after the service template has injected its prefix. A conservative `fc_norms`
+rank-flip pass on v4 templates moves train accept `0/44 -> 3/44`, but v6
+heldout stays flat at `22/172 = 12.79%`. This makes the boundary concrete:
+quality templates are solved for W4A8 v16, but MTP needs a separate
+guard-aware specialist or a multi-candidate runtime path.
+
 The fc-only train smoke confirms gradient wiring:
 
 | Field | Value |

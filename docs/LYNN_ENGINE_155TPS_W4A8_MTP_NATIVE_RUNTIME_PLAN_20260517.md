@@ -35,7 +35,9 @@ MTP: aligned sidecar forward works; best native R6000 sidecar is v34 at
      `LYNN_MTP_SHADOW_TOPK` ceiling mode: v34 top2/top4/top8 containment is
      73/121, 80/121, and 87/121 respectively. The next runtime lever is no
      longer only single-candidate sidecar tuning; multi-candidate verification
-     and reranking are now justified.
+     and reranking are now justified. Guarded structured routes are a separate
+     MTP distribution: v39 guard-forced calibration improves train accept but
+     leaves v6 heldout flat at 22/172.
 ```
 
 155 requires a compound win. There is no single safe env flag left.

@@ -111,6 +111,7 @@ def _load_prompts(path: str | None, inline: list[str]) -> list[dict[str, Any]]:
                     "id": str(item.get("id", idx)),
                     "prompt": str(item["prompt"]),
                     "weight": float(item.get("weight", 1.0)),
+                    "forced_prefix": item.get("forced_prefix"),
                 }
             )
         else:
@@ -164,12 +165,23 @@ def _collect_prompt_cases(
     spec: dict[str, Any],
     prompt_idx: int,
     use_chat_template: bool,
+    force_prefix_from_spec: bool,
+    skip_forced_prefix_cases: bool,
     max_new: int,
     first_token_weight: float,
     step1_weight: float,
     later_token_weight: float,
 ) -> list[dict[str, Any]]:
     ids = _encode_prompt(runner.tokenizer, spec["prompt"], runner.device, use_chat_template=use_chat_template)
+    forced_prefix_ids: list[int] = []
+    if force_prefix_from_spec and spec.get("forced_prefix") is not None:
+        forced_prefix_ids = [
+            int(x)
+            for x in runner.tokenizer(
+                str(spec["forced_prefix"]),
+                add_special_tokens=False,
+            ).input_ids
+        ]
     state = LynnInferenceState(
         batch=1,
         max_seq_len=runner.max_seq_len,
@@ -191,6 +203,10 @@ def _collect_prompt_cases(
     state.seq_len = int(ids.shape[1])
 
     cases: list[dict[str, Any]] = []
+
+    def should_keep_case(step: int) -> bool:
+        return not (skip_forced_prefix_cases and step < len(forced_prefix_ids))
+
     current_hidden = h[:, -1:, :].contiguous()
     current_token_id = int(ids[0, -1].item())
     current_pos = int(ids.shape[1] - 1)
@@ -208,8 +224,9 @@ def _collect_prompt_cases(
         step1_weight=step1_weight,
         later_token_weight=later_token_weight,
     )
-    cases.append(case)
-    next_id = int(case["label_id"])
+    if should_keep_case(0):
+        cases.append(case)
+    next_id = int(forced_prefix_ids[0]) if forced_prefix_ids else int(case["label_id"])
 
     new_token_tensor = torch.empty((1, 1), device=runner.device, dtype=torch.long)
     pos_tensor = torch.empty((1, 1), device=runner.device, dtype=torch.long)
@@ -237,8 +254,9 @@ def _collect_prompt_cases(
             step1_weight=step1_weight,
             later_token_weight=later_token_weight,
         )
-        cases.append(case)
-        next_id = int(case["label_id"])
+        if should_keep_case(step):
+            cases.append(case)
+        next_id = int(forced_prefix_ids[step]) if step < len(forced_prefix_ids) else int(case["label_id"])
     return cases
 
 
@@ -247,6 +265,8 @@ def _collect_cases(
     runner: LynnIncrementalRunner,
     specs: list[dict[str, Any]],
     use_chat_template: bool,
+    force_prefix_from_spec: bool,
+    skip_forced_prefix_cases: bool,
     max_new: int,
     first_token_weight: float,
     step1_weight: float,
@@ -260,6 +280,8 @@ def _collect_cases(
                 spec=spec,
                 prompt_idx=prompt_idx,
                 use_chat_template=use_chat_template,
+                force_prefix_from_spec=force_prefix_from_spec,
+                skip_forced_prefix_cases=skip_forced_prefix_cases,
                 max_new=max_new,
                 first_token_weight=first_token_weight,
                 step1_weight=step1_weight,
@@ -497,6 +519,12 @@ def main() -> int:
     ap.add_argument("--out", required=True)
     ap.add_argument("--out-sidecar-dir")
     ap.add_argument("--use-chat-template", action="store_true")
+    ap.add_argument("--force-prefix-from-spec", action="store_true")
+    ap.add_argument(
+        "--skip-forced-prefix-cases",
+        action="store_true",
+        help="When forcing prompt-spec prefixes, train/eval only after the forced span.",
+    )
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--dtype", default="bfloat16", choices=["bfloat16", "float16"])
     ap.add_argument("--max-new-train", type=int, default=8)
@@ -548,6 +576,8 @@ def main() -> int:
         runner=runner,
         specs=train_specs,
         use_chat_template=args.use_chat_template,
+        force_prefix_from_spec=args.force_prefix_from_spec,
+        skip_forced_prefix_cases=args.skip_forced_prefix_cases,
         max_new=args.max_new_train,
         first_token_weight=args.first_token_weight,
         step1_weight=args.step1_weight,
@@ -561,6 +591,8 @@ def main() -> int:
             runner=runner,
             specs=eval_specs,
             use_chat_template=args.use_chat_template,
+            force_prefix_from_spec=args.force_prefix_from_spec,
+            skip_forced_prefix_cases=args.skip_forced_prefix_cases,
             max_new=args.max_new_eval,
             first_token_weight=args.first_token_weight,
             step1_weight=args.step1_weight,
@@ -622,6 +654,8 @@ def main() -> int:
         "base_model": args.base_model,
         "source_sidecar_file": args.sidecar_file,
         "use_chat_template": args.use_chat_template,
+        "force_prefix_from_spec": args.force_prefix_from_spec,
+        "skip_forced_prefix_cases": args.skip_forced_prefix_cases,
         "dtype": args.dtype,
         "trainable": args.trainable,
         "trainable_tensors": trainable_keys,
