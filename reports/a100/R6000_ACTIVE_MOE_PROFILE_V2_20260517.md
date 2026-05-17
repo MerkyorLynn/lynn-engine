@@ -170,3 +170,24 @@ still useful:
 
 The next R6000 profile is therefore layer-34 linear-attention segmentation, not
 another active-MoE approximation.
+
+## Linear-Attention Segment Profiles
+
+Follow-up reports:
+
+```text
+reports/p16_155/p10c_linear_attn_layer0_r6000_v2_configd_20260517_123614.json
+reports/p16_155/p10c_linear_attn_layer24_r6000_v2_configd_20260517_123614.json
+reports/p16_155/p10c_linear_attn_layer34_r6000_v2_configd_20260517_123509.json
+```
+
+| Layer | Full core ms | Fused in-proj | Recurrent | Conv | Split | Norm | Out |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 0 | 0.341 | 0.078 | 0.036 | 0.032 | 0.026 | 0.019 | 0.015 |
+| 24 | 0.333 | 0.075 | 0.036 | 0.033 | 0.026 | 0.020 | 0.014 |
+| 34 | 0.330 | 0.079 | 0.036 | 0.033 | 0.026 | 0.020 | 0.016 |
+
+The segment shape is stable across early/mid/late linear-attention layers. The
+largest individual linear-attention target is the fused native-FP4 in-proj, but
+the whole linear core is only about `0.33-0.34 ms`; per-layer MoE/router/shared
+and Python/runtime scheduling still need to be part of the 155 TPS plan.

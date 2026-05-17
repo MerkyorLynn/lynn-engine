@@ -1,0 +1,40 @@
+{
+  "schema_version": "lynn-engine-p10c-linear-attn-core-segment-profile-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-a3b-w4a8-nvfp4-v2",
+  "layer": 24,
+  "timing_ms": {
+    "fused_native_fp4_inproj": 0.07526415824890137,
+    "conv_update": 0.03323199987411499,
+    "split_qkv_repeat": 0.02595151901245117,
+    "recurrent_fused_prepare": 0.03572144031524658,
+    "gated_rmsnorm": 0.0197816002368927,
+    "out_proj_bf16": 0.0143995201587677,
+    "full_core_recomposed": 0.3326073455810547
+  },
+  "top_segments": [
+    {
+      "segment": "fused_native_fp4_inproj",
+      "latency_ms": 0.07526415824890137
+    },
+    {
+      "segment": "recurrent_fused_prepare",
+      "latency_ms": 0.03572144031524658
+    },
+    {
+      "segment": "conv_update",
+      "latency_ms": 0.03323199987411499
+    },
+    {
+      "segment": "split_qkv_repeat",
+      "latency_ms": 0.02595151901245117
+    },
+    {
+      "segment": "gated_rmsnorm",
+      "latency_ms": 0.0197816002368927
+    },
+    {
+      "segment": "out_proj_bf16",
+      "latency_ms": 0.0143995201587677
+    }
+  ]
+}

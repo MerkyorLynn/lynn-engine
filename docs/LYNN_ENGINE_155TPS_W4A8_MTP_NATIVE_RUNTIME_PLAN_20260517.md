@@ -226,6 +226,12 @@ relative shape is still useful: 30 linear-attention layers average `0.905 ms`
 each, 10 full-attention layers average `0.791 ms` each. R6000 is now profiling
 layer-34 linear-attention segments to choose the next runtime boundary.
 
+2026-05-17 linear-attention segment profiles: layers 0/24/34 are consistent.
+The full linear-attention core is `0.330-0.341 ms`; fused native-FP4 in-proj is
+the largest single segment at `0.075-0.079 ms`, followed by recurrent
+`~0.036 ms` and conv `~0.033 ms`. This makes in-proj fusion worth improving, but
+it is too small to be the whole 155 TPS lever.
+
 Required native path:
 
 ```text
