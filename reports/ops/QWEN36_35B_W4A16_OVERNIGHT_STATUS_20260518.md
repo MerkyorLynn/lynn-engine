@@ -315,6 +315,9 @@ Follow-up isolation narrows the failure mode:
   but it no longer collapses into repeated punctuation. The remaining issue is
   long-run greedy sensitivity from tiny down-order differences, not an obviously
   broken down tile kernel.
+- Triton scale-hoist is numerically clean but not a speed lever: P53 keeps
+  active cosine at `1.0`, but down slows from `0.025 ms` to `0.078 ms` and
+  combined active MoE falls to `0.16x`. Do not add it as a runtime backend.
 
 This confirms the remaining MoE opportunity is mostly boundary fusion: one
 kernel boundary for routed active experts and, later, a shared-expert fusion.
@@ -354,6 +357,7 @@ Copied reports:
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p49_down_tile1_true_decode_20260518_055633.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p50_down_tile1_first_divergence_20260518_055633.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p37_down_cuda_tile1_graphoff_gate_20260518_055939.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p53_triton_scale_hoist_20260518_062117.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p37_down_cuda_tile_gate_20260518_040259.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p37_grouped_per16_nonatomic_gate_20260518_040522.json`
 
