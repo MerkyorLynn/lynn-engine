@@ -229,11 +229,27 @@ runner verifier confirms this survives real `generate()` wiring:
 |---|---|---:|---:|---:|
 | structured_v10_top6 | v24 | 68/116 = 58.62% | 7.52 | 83.42 |
 | structured_v16_top6_damped075 | v24 | 68/116 = 58.62% | 7.11 | 79.00 |
+| R6000 W4A8 NVFP4 v2 | v24 | 61/121 = 50.41% | 55.94 with shadow | 130.51 |
 
 This answers the v16 question narrowly: v16 remains the more conservative
 quality baseline, but it does not improve MTP serving-credit over v10 in this
 heldout shadow gate. For the MTP lane, v24 sidecar is the artifact to wire into
 R6000 tests.
+
+R6000 confirms the next blocker: the same v24 sidecar loads and runs under
+W4A8 NVFP4 v2, but acceptance drops below the 55% credit bar. The strongest
+prompts are JSON repair (`13/15`) and JSON Berlin (`11/16`); the weakest are
+Chinese MoE short answer (`3/16`), linear-attention Chinese answer (`5/16`),
+and Python slugify (`6/16`). The miss pattern is no longer just punctuation:
+semantic/code tails and `<think>`/format-open choices are still fragile under
+quantized runtime. This keeps MTP as the right multiplier path, but the R6000
+artifact needs W4A8-aware sidecar repair before it can contribute to 155 TPS.
+
+2026-05-17 v26 update: a narrower `fc_mtp_layer` v7 tail repair from v24
+reduces loss but leaves accept unchanged (`68/116` eval before and after in the
+train script). Treat v26 as a closed diagnostic, not a new sidecar candidate.
+The next MTP quality work should build a different target set or a
+specialist/merge candidate instead of repeating v7 tail tuning.
 
 A100 v19 uses the new targeted v4 calibration set and `fc_norms` from v18.
 Saved-sidecar eval confirms another real but narrow high:

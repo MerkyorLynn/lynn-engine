@@ -1,0 +1,3826 @@
+{
+  "schema_version": "lynn-p107-mtp-shadow-serving-credit-v1",
+  "decision": "AMBER: MTP shadow accept is below serving-credit threshold.",
+  "model": "/root/autodl-tmp/models/lynn-27b-w4a8-nvfp4-v2",
+  "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-v24/mtp.safetensors",
+  "use_chat_template": false,
+  "dtype": "bfloat16",
+  "max_new": 16,
+  "summary": {
+    "prompt_count": 8,
+    "events": 121,
+    "accepted": 61,
+    "accept_rate": 0.5041322314049587,
+    "mean_prompt_accept_rate": 0.5067708333333334,
+    "decode_tps": 55.93621739807252,
+    "draft_tps": 130.51334088023012,
+    "mean_draft_seconds": 0.007662051965382473,
+    "max_one_token_speculative_multiplier": 1.5041322314049588
+  },
+  "rows": [
+    {
+      "id": "heldout_json_berlin_metric",
+      "prompt": "Return one JSON object with keys city and unit for Berlin in metric units. No markdown.",
+      "completion_text": "\n\n<think>\n\n</think>\n\n{\"city\": \"Berlin\", \"unit\": \"metric",
+      "new_ids": [
+        271,
+        248068,
+        271,
+        248069,
+        271,
+        4754,
+        8656,
+        763,
+        328,
+        91149,
+        487,
+        328,
+        3715,
+        763,
+        328,
+        15435
+      ],
+      "timings": {
+        "prefill_seconds": 0.6085305213928223,
+        "decode_step_seconds": [
+          0.02318406105041504,
+          0.018301725387573242,
+          0.017868995666503906,
+          0.017767667770385742,
+          0.017816781997680664,
+          0.017745256423950195,
+          0.017714977264404297,
+          0.01777482032775879,
+          0.017807960510253906,
+          0.017821073532104492,
+          0.017786026000976562,
+          0.01778578758239746,
+          0.01782989501953125,
+          0.017718791961669922,
+          0.017816781997680664
+        ],
+        "decode_tps": 54.997311961900664,
+        "linear_block_graph_capture_seconds": 0.0,
+        "linear_block_graph_reused": true,
+        "prefill_warmup_seconds": 1.3009371757507324,
+        "linear_block_graph_prewarm_seconds": 0.0917196273803711,
+        "native_fp4_lm_head_enabled": true,
+        "native_fp4_lm_head_prepare_seconds": 0.1081991195678711,
+        "decode_bf16_shadow_release": null,
+        "full_token_graph_slot_enabled": false,
+        "full_token_graph_slot_capture_seconds": [],
+        "full_token_graph_slot_replay_seconds": [],
+        "full_token_graph_slot_replay_tps": null,
+        "mtp_shadow": {
+          "loaded": true,
+          "enabled": true,
+          "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-v24/mtp.safetensors",
+          "load_seconds": 0.4622368812561035,
+          "events": 16,
+          "accepted": 11,
+          "accept_rate": 0.6875,
+          "max_one_token_speculative_multiplier": 1.6875,
+          "draft_step_seconds": [
+            0.012903451919555664,
+            0.007645368576049805,
+            0.008075475692749023,
+            0.007620573043823242,
+            0.0075740814208984375,
+            0.007609367370605469,
+            0.007597446441650391,
+            0.007616758346557617,
+            0.007550954818725586,
+            0.007586479187011719,
+            0.0075910091400146484,
+            0.007575273513793945,
+            0.007578849792480469,
+            0.007595539093017578,
+            0.007582902908325195,
+            0.007592201232910156
+          ],
+          "draft_tps": 125.69156629213904
+        }
+      },
+      "mtp_shadow": {
+        "loaded": true,
+        "enabled": true,
+        "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-v24/mtp.safetensors",
+        "load_seconds": 0.4622368812561035,
+        "events": 16,
+        "accepted": 11,
+        "accept_rate": 0.6875,
+        "max_one_token_speculative_multiplier": 1.6875,
+        "draft_step_seconds": [
+          0.012903451919555664,
+          0.007645368576049805,
+          0.008075475692749023,
+          0.007620573043823242,
+          0.0075740814208984375,
+          0.007609367370605469,
+          0.007597446441650391,
+          0.007616758346557617,
+          0.007550954818725586,
+          0.007586479187011719,
+          0.0075910091400146484,
+          0.007575273513793945,
+          0.007578849792480469,
+          0.007595539093017578,
+          0.007582902908325195,
+          0.007592201232910156
+        ],
+        "draft_tps": 125.69156629213904,
+        "trace": [
+          {
+            "step": 0,
+            "current_pos": 17,
+            "current_token_id": 13,
+            "current_token_text": ".",
+            "base_next_id": 271,
+            "base_next_text": "\n\n",
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "accepted": true,
+            "draft_seconds": 0.012903451919555664,
+            "base_score_in_draft_logits": 15.0546875,
+            "draft_top2": {
+              "ids": [
+                271,
+                198
+              ],
+              "values": [
+                15.0546875,
+                13.203125
+              ],
+              "top1_margin": 1.8515625
+            }
+          },
+          {
+            "step": 1,
+            "current_pos": 18,
+            "current_token_id": 271,
+            "current_token_text": "\n\n",
+            "base_next_id": 248068,
+            "base_next_text": "<think>",
+            "draft_id": 4754,
+            "draft_text": "{\"",
+            "accepted": false,
+            "draft_seconds": 0.007645368576049805,
+            "base_score_in_draft_logits": 15.7578125,
+            "draft_top2": {
+              "ids": [
+                4754,
+                248068
+              ],
+              "values": [
+                16.3125,
+                15.7578125
+              ],
+              "top1_margin": 0.5546875
+            }
+          },
+          {
+            "step": 2,
+            "current_pos": 19,
+            "current_token_id": 248068,
+            "current_token_text": "<think>",
+            "base_next_id": 271,
+            "base_next_text": "\n\n",
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "accepted": true,
+            "draft_seconds": 0.008075475692749023,
+            "base_score_in_draft_logits": 19.609375,
+            "draft_top2": {
+              "ids": [
+                271,
+                198
+              ],
+              "values": [
+                19.609375,
+                16.578125
+              ],
+              "top1_margin": 3.03125
+            }
+          },
+          {
+            "step": 3,
+            "current_pos": 20,
+            "current_token_id": 271,
+            "current_token_text": "\n\n",
+            "base_next_id": 248069,
+            "base_next_text": "</think>",
+            "draft_id": 248069,
+            "draft_text": "</think>",
+            "accepted": true,
+            "draft_seconds": 0.007620573043823242,
+            "base_score_in_draft_logits": 15.8203125,
+            "draft_top2": {
+              "ids": [
+                248069,
+                248068
+              ],
+              "values": [
+                15.8203125,
+                14.3828125
+              ],
+              "top1_margin": 1.4375
+            }
+          },
+          {
+            "step": 4,
+            "current_pos": 21,
+            "current_token_id": 248069,
+            "current_token_text": "</think>",
+            "base_next_id": 271,
+            "base_next_text": "\n\n",
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "accepted": true,
+            "draft_seconds": 0.0075740814208984375,
+            "base_score_in_draft_logits": 16.234375,
+            "draft_top2": {
+              "ids": [
+                271,
+                198
+              ],
+              "values": [
+                16.234375,
+                14.4375
+              ],
+              "top1_margin": 1.796875
+            }
+          },
+          {
+            "step": 5,
+            "current_pos": 22,
+            "current_token_id": 271,
+            "current_token_text": "\n\n",
+            "base_next_id": 4754,
+            "base_next_text": "{\"",
+            "draft_id": 4754,
+            "draft_text": "{\"",
+            "accepted": true,
+            "draft_seconds": 0.007609367370605469,
+            "base_score_in_draft_logits": 19.796875,
+            "draft_top2": {
+              "ids": [
+                4754,
+                5046
+              ],
+              "values": [
+                19.796875,
+                15.984375
+              ],
+              "top1_margin": 3.8125
+            }
+          },
+          {
+            "step": 6,
+            "current_pos": 23,
+            "current_token_id": 4754,
+            "current_token_text": "{\"",
+            "base_next_id": 8656,
+            "base_next_text": "city",
+            "draft_id": 8656,
+            "draft_text": "city",
+            "accepted": true,
+            "draft_seconds": 0.007597446441650391,
+            "base_score_in_draft_logits": 14.0390625,
+            "draft_top2": {
+              "ids": [
+                8656,
+                1265
+              ],
+              "values": [
+                14.0390625,
+                11.8671875
+              ],
+              "top1_margin": 2.171875
+            }
+          },
+          {
+            "step": 7,
+            "current_pos": 24,
+            "current_token_id": 8656,
+            "current_token_text": "city",
+            "base_next_id": 763,
+            "base_next_text": "\":",
+            "draft_id": 3147,
+            "draft_text": "\":\"",
+            "accepted": false,
+            "draft_seconds": 0.007616758346557617,
+            "base_score_in_draft_logits": 16.25,
+            "draft_top2": {
+              "ids": [
+                3147,
+                763
+              ],
+              "values": [
+                16.515625,
+                16.25
+              ],
+              "top1_margin": 0.265625
+            }
+          },
+          {
+            "step": 8,
+            "current_pos": 25,
+            "current_token_id": 763,
+            "current_token_text": "\":",
+            "base_next_id": 328,
+            "base_next_text": " \"",
+            "draft_id": 328,
+            "draft_text": " \"",
+            "accepted": true,
+            "draft_seconds": 0.007550954818725586,
+            "base_score_in_draft_logits": 17.0625,
+            "draft_top2": {
+              "ids": [
+                328,
+                220
+              ],
+              "values": [
+                17.0625,
+                13.7421875
+              ],
+              "top1_margin": 3.3203125
+            }
+          },
+          {
+            "step": 9,
+            "current_pos": 26,
+            "current_token_id": 328,
+            "current_token_text": " \"",
+            "base_next_id": 91149,
+            "base_next_text": "Berlin",
+            "draft_id": 248068,
+            "draft_text": "<think>",
+            "accepted": false,
+            "draft_seconds": 0.007586479187011719,
+            "base_score_in_draft_logits": 2.494140625,
+            "draft_top2": {
+              "ids": [
+                248068,
+                1265
+              ],
+              "values": [
+                10.2890625,
+                10.15625
+              ],
+              "top1_margin": 0.1328125
+            }
+          },
+          {
+            "step": 10,
+            "current_pos": 27,
+            "current_token_id": 91149,
+            "current_token_text": "Berlin",
+            "base_next_id": 487,
+            "base_next_text": "\",",
+            "draft_id": 2129,
+            "draft_text": "\",\"",
+            "accepted": false,
+            "draft_seconds": 0.0075910091400146484,
+            "base_score_in_draft_logits": 13.3359375,
+            "draft_top2": {
+              "ids": [
+                2129,
+                487
+              ],
+              "values": [
+                13.8203125,
+                13.3359375
+              ],
+              "top1_margin": 0.484375
+            }
+          },
+          {
+            "step": 11,
+            "current_pos": 28,
+            "current_token_id": 487,
+            "current_token_text": "\",",
+            "base_next_id": 328,
+            "base_next_text": " \"",
+            "draft_id": 328,
+            "draft_text": " \"",
+            "accepted": true,
+            "draft_seconds": 0.007575273513793945,
+            "base_score_in_draft_logits": 16.34375,
+            "draft_top2": {
+              "ids": [
+                328,
+                271
+              ],
+              "values": [
+                16.34375,
+                12.7890625
+              ],
+              "top1_margin": 3.5546875
+            }
+          },
+          {
+            "step": 12,
+            "current_pos": 29,
+            "current_token_id": 328,
+            "current_token_text": " \"",
+            "base_next_id": 3715,
+            "base_next_text": "unit",
+            "draft_id": 3715,
+            "draft_text": "unit",
+            "accepted": true,
+            "draft_seconds": 0.007578849792480469,
+            "base_score_in_draft_logits": 12.5703125,
+            "draft_top2": {
+              "ids": [
+                3715,
+                1267
+              ],
+              "values": [
+                12.5703125,
+                11.578125
+              ],
+              "top1_margin": 0.9921875
+            }
+          },
+          {
+            "step": 13,
+            "current_pos": 30,
+            "current_token_id": 3715,
+            "current_token_text": "unit",
+            "base_next_id": 763,
+            "base_next_text": "\":",
+            "draft_id": 763,
+            "draft_text": "\":",
+            "accepted": true,
+            "draft_seconds": 0.007595539093017578,
+            "base_score_in_draft_logits": 16.65625,
+            "draft_top2": {
+              "ids": [
+                763,
+                3147
+              ],
+              "values": [
+                16.65625,
+                15.5390625
+              ],
+              "top1_margin": 1.1171875
+            }
+          },
+          {
+            "step": 14,
+            "current_pos": 31,
+            "current_token_id": 763,
+            "current_token_text": "\":",
+            "base_next_id": 328,
+            "base_next_text": " \"",
+            "draft_id": 328,
+            "draft_text": " \"",
+            "accepted": true,
+            "draft_seconds": 0.007582902908325195,
+            "base_score_in_draft_logits": 17.5,
+            "draft_top2": {
+              "ids": [
+                328,
+                220
+              ],
+              "values": [
+                17.5,
+                14.59375
+              ],
+              "top1_margin": 2.90625
+            }
+          },
+          {
+            "step": 15,
+            "current_pos": 32,
+            "current_token_id": 328,
+            "current_token_text": " \"",
+            "base_next_id": 15435,
+            "base_next_text": "metric",
+            "draft_id": 1265,
+            "draft_text": "action",
+            "accepted": false,
+            "draft_seconds": 0.007592201232910156,
+            "base_score_in_draft_logits": 9.859375,
+            "draft_top2": {
+              "ids": [
+                1265,
+                248068
+              ],
+              "values": [
+                10.1640625,
+                10.015625
+              ],
+              "top1_margin": 0.1484375
+            }
+          }
+        ]
+      },
+      "stopped_reason": "max_new"
+    },
+    {
+      "id": "heldout_json_status_ready",
+      "prompt": "Return one JSON object with key status and value ready. No markdown.",
+      "completion_text": "\n\n<think>\n\n</think>\n\n{\n  \"status\": \"ready\"\n}",
+      "new_ids": [
+        271,
+        248068,
+        271,
+        248069,
+        271,
+        90,
+        198,
+        220,
+        328,
+        2738,
+        763,
+        328,
+        2232,
+        1,
+        198,
+        92
+      ],
+      "timings": {
+        "prefill_seconds": 0.5607621669769287,
+        "decode_step_seconds": [
+          0.017905712127685547,
+          0.017847537994384766,
+          0.017846345901489258,
+          0.01781320571899414,
+          0.01783132553100586,
+          0.01780390739440918,
+          0.017808198928833008,
+          0.01784968376159668,
+          0.017837047576904297,
+          0.017862319946289062,
+          0.017826080322265625,
+          0.017871379852294922,
+          0.017776012420654297,
+          0.017767667770385742,
+          0.017808914184570312
+        ],
+        "decode_tps": 56.0841299032171,
+        "linear_block_graph_capture_seconds": 0.0,
+        "linear_block_graph_reused": true,
+        "prefill_warmup_seconds": 1.3009371757507324,
+        "linear_block_graph_prewarm_seconds": 0.0917196273803711,
+        "native_fp4_lm_head_enabled": true,
+        "native_fp4_lm_head_prepare_seconds": 0.1081991195678711,
+        "decode_bf16_shadow_release": null,
+        "full_token_graph_slot_enabled": false,
+        "full_token_graph_slot_capture_seconds": [],
+        "full_token_graph_slot_replay_seconds": [],
+        "full_token_graph_slot_replay_tps": null,
+        "mtp_shadow": {
+          "loaded": true,
+          "enabled": true,
+          "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-v24/mtp.safetensors",
+          "load_seconds": 0.4622368812561035,
+          "events": 16,
+          "accepted": 8,
+          "accept_rate": 0.5,
+          "max_one_token_speculative_multiplier": 1.5,
+          "draft_step_seconds": [
+            0.007709503173828125,
+            0.0076138973236083984,
+            0.007613658905029297,
+            0.007588624954223633,
+            0.0075871944427490234,
+            0.0076084136962890625,
+            0.007627248764038086,
+            0.007592439651489258,
+            0.007622480392456055,
+            0.007606983184814453,
+            0.007628202438354492,
+            0.00762629508972168,
+            0.00762176513671875,
+            0.007603168487548828,
+            0.007623195648193359,
+            0.007559537887573242
+          ],
+          "draft_tps": 131.32772997418803
+        }
+      },
+      "mtp_shadow": {
+        "loaded": true,
+        "enabled": true,
+        "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-v24/mtp.safetensors",
+        "load_seconds": 0.4622368812561035,
+        "events": 16,
+        "accepted": 8,
+        "accept_rate": 0.5,
+        "max_one_token_speculative_multiplier": 1.5,
+        "draft_step_seconds": [
+          0.007709503173828125,
+          0.0076138973236083984,
+          0.007613658905029297,
+          0.007588624954223633,
+          0.0075871944427490234,
+          0.0076084136962890625,
+          0.007627248764038086,
+          0.007592439651489258,
+          0.007622480392456055,
+          0.007606983184814453,
+          0.007628202438354492,
+          0.00762629508972168,
+          0.00762176513671875,
+          0.007603168487548828,
+          0.007623195648193359,
+          0.007559537887573242
+        ],
+        "draft_tps": 131.32772997418803,
+        "trace": [
+          {
+            "step": 0,
+            "current_pos": 13,
+            "current_token_id": 13,
+            "current_token_text": ".",
+            "base_next_id": 271,
+            "base_next_text": "\n\n",
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "accepted": true,
+            "draft_seconds": 0.007709503173828125,
+            "base_score_in_draft_logits": 15.609375,
+            "draft_top2": {
+              "ids": [
+                271,
+                198
+              ],
+              "values": [
+                15.609375,
+                13.78125
+              ],
+              "top1_margin": 1.828125
+            }
+          },
+          {
+            "step": 1,
+            "current_pos": 14,
+            "current_token_id": 271,
+            "current_token_text": "\n\n",
+            "base_next_id": 248068,
+            "base_next_text": "<think>",
+            "draft_id": 248068,
+            "draft_text": "<think>",
+            "accepted": true,
+            "draft_seconds": 0.0076138973236083984,
+            "base_score_in_draft_logits": 15.2109375,
+            "draft_top2": {
+              "ids": [
+                248068,
+                71093
+              ],
+              "values": [
+                15.2109375,
+                12.4765625
+              ],
+              "top1_margin": 2.734375
+            }
+          },
+          {
+            "step": 2,
+            "current_pos": 15,
+            "current_token_id": 248068,
+            "current_token_text": "<think>",
+            "base_next_id": 271,
+            "base_next_text": "\n\n",
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "accepted": true,
+            "draft_seconds": 0.007613658905029297,
+            "base_score_in_draft_logits": 18.296875,
+            "draft_top2": {
+              "ids": [
+                271,
+                198
+              ],
+              "values": [
+                18.296875,
+                16.25
+              ],
+              "top1_margin": 2.046875
+            }
+          },
+          {
+            "step": 3,
+            "current_pos": 16,
+            "current_token_id": 271,
+            "current_token_text": "\n\n",
+            "base_next_id": 248069,
+            "base_next_text": "</think>",
+            "draft_id": 248069,
+            "draft_text": "</think>",
+            "accepted": true,
+            "draft_seconds": 0.007588624954223633,
+            "base_score_in_draft_logits": 15.078125,
+            "draft_top2": {
+              "ids": [
+                248069,
+                248068
+              ],
+              "values": [
+                15.078125,
+                14.828125
+              ],
+              "top1_margin": 0.25
+            }
+          },
+          {
+            "step": 4,
+            "current_pos": 17,
+            "current_token_id": 248069,
+            "current_token_text": "</think>",
+            "base_next_id": 271,
+            "base_next_text": "\n\n",
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "accepted": true,
+            "draft_seconds": 0.0075871944427490234,
+            "base_score_in_draft_logits": 16.34375,
+            "draft_top2": {
+              "ids": [
+                271,
+                198
+              ],
+              "values": [
+                16.34375,
+                14.7109375
+              ],
+              "top1_margin": 1.6328125
+            }
+          },
+          {
+            "step": 5,
+            "current_pos": 18,
+            "current_token_id": 271,
+            "current_token_text": "\n\n",
+            "base_next_id": 90,
+            "base_next_text": "{",
+            "draft_id": 4754,
+            "draft_text": "{\"",
+            "accepted": false,
+            "draft_seconds": 0.0076084136962890625,
+            "base_score_in_draft_logits": 13.0546875,
+            "draft_top2": {
+              "ids": [
+                4754,
+                248068
+              ],
+              "values": [
+                14.484375,
+                14.140625
+              ],
+              "top1_margin": 0.34375
+            }
+          },
+          {
+            "step": 6,
+            "current_pos": 19,
+            "current_token_id": 90,
+            "current_token_text": "{",
+            "base_next_id": 198,
+            "base_next_text": "\n",
+            "draft_id": 248068,
+            "draft_text": "<think>",
+            "accepted": false,
+            "draft_seconds": 0.007627248764038086,
+            "base_score_in_draft_logits": 9.3984375,
+            "draft_top2": {
+              "ids": [
+                248068,
+                248046
+              ],
+              "values": [
+                11.5859375,
+                11.3125
+              ],
+              "top1_margin": 0.2734375
+            }
+          },
+          {
+            "step": 7,
+            "current_pos": 20,
+            "current_token_id": 198,
+            "current_token_text": "\n",
+            "base_next_id": 220,
+            "base_next_text": " ",
+            "draft_id": 4754,
+            "draft_text": "{\"",
+            "accepted": false,
+            "draft_seconds": 0.007592439651489258,
+            "base_score_in_draft_logits": 8.328125,
+            "draft_top2": {
+              "ids": [
+                4754,
+                1
+              ],
+              "values": [
+                13.7578125,
+                13.0546875
+              ],
+              "top1_margin": 0.703125
+            }
+          },
+          {
+            "step": 8,
+            "current_pos": 21,
+            "current_token_id": 220,
+            "current_token_text": " ",
+            "base_next_id": 328,
+            "base_next_text": " \"",
+            "draft_id": 328,
+            "draft_text": " \"",
+            "accepted": true,
+            "draft_seconds": 0.007622480392456055,
+            "base_score_in_draft_logits": 14.5546875,
+            "draft_top2": {
+              "ids": [
+                328,
+                248046
+              ],
+              "values": [
+                14.5546875,
+                13.5390625
+              ],
+              "top1_margin": 1.015625
+            }
+          },
+          {
+            "step": 9,
+            "current_pos": 22,
+            "current_token_id": 328,
+            "current_token_text": " \"",
+            "base_next_id": 2738,
+            "base_next_text": "status",
+            "draft_id": 1265,
+            "draft_text": "action",
+            "accepted": false,
+            "draft_seconds": 0.007606983184814453,
+            "base_score_in_draft_logits": 4.79296875,
+            "draft_top2": {
+              "ids": [
+                1265,
+                1267
+              ],
+              "values": [
+                10.78125,
+                10.4609375
+              ],
+              "top1_margin": 0.3203125
+            }
+          },
+          {
+            "step": 10,
+            "current_pos": 23,
+            "current_token_id": 2738,
+            "current_token_text": "status",
+            "base_next_id": 763,
+            "base_next_text": "\":",
+            "draft_id": 763,
+            "draft_text": "\":",
+            "accepted": true,
+            "draft_seconds": 0.007628202438354492,
+            "base_score_in_draft_logits": 16.765625,
+            "draft_top2": {
+              "ids": [
+                763,
+                3147
+              ],
+              "values": [
+                16.765625,
+                15.125
+              ],
+              "top1_margin": 1.640625
+            }
+          },
+          {
+            "step": 11,
+            "current_pos": 24,
+            "current_token_id": 763,
+            "current_token_text": "\":",
+            "base_next_id": 328,
+            "base_next_text": " \"",
+            "draft_id": 328,
+            "draft_text": " \"",
+            "accepted": true,
+            "draft_seconds": 0.00762629508972168,
+            "base_score_in_draft_logits": 18.40625,
+            "draft_top2": {
+              "ids": [
+                328,
+                220
+              ],
+              "values": [
+                18.40625,
+                14.640625
+              ],
+              "top1_margin": 3.765625
+            }
+          },
+          {
+            "step": 12,
+            "current_pos": 25,
+            "current_token_id": 328,
+            "current_token_text": " \"",
+            "base_next_id": 2232,
+            "base_next_text": "ready",
+            "draft_id": 248068,
+            "draft_text": "<think>",
+            "accepted": false,
+            "draft_seconds": 0.00762176513671875,
+            "base_score_in_draft_logits": 4.74609375,
+            "draft_top2": {
+              "ids": [
+                248068,
+                1265
+              ],
+              "values": [
+                10.6171875,
+                10.46875
+              ],
+              "top1_margin": 0.1484375
+            }
+          },
+          {
+            "step": 13,
+            "current_pos": 26,
+            "current_token_id": 2232,
+            "current_token_text": "ready",
+            "base_next_id": 1,
+            "base_next_text": "\"",
+            "draft_id": 248046,
+            "draft_text": "<|im_end|>",
+            "accepted": false,
+            "draft_seconds": 0.007603168487548828,
+            "base_score_in_draft_logits": 11.34375,
+            "draft_top2": {
+              "ids": [
+                248046,
+                271
+              ],
+              "values": [
+                12.671875,
+                11.875
+              ],
+              "top1_margin": 0.796875
+            }
+          },
+          {
+            "step": 14,
+            "current_pos": 27,
+            "current_token_id": 1,
+            "current_token_text": "\"",
+            "base_next_id": 198,
+            "base_next_text": "\n",
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "accepted": false,
+            "draft_seconds": 0.007623195648193359,
+            "base_score_in_draft_logits": 11.703125,
+            "draft_top2": {
+              "ids": [
+                271,
+                248046
+              ],
+              "values": [
+                12.671875,
+                12.046875
+              ],
+              "top1_margin": 0.625
+            }
+          },
+          {
+            "step": 15,
+            "current_pos": 28,
+            "current_token_id": 198,
+            "current_token_text": "\n",
+            "base_next_id": 92,
+            "base_next_text": "}",
+            "draft_id": 248046,
+            "draft_text": "<|im_end|>",
+            "accepted": false,
+            "draft_seconds": 0.007559537887573242,
+            "base_score_in_draft_logits": 9.09375,
+            "draft_top2": {
+              "ids": [
+                248046,
+                248068
+              ],
+              "values": [
+                11.953125,
+                11.296875
+              ],
+              "top1_margin": 0.65625
+            }
+          }
+        ]
+      },
+      "stopped_reason": "max_new"
+    },
+    {
+      "id": "heldout_tool_translate",
+      "prompt": "Output exactly one JSON arguments object for translate_text with text hello and target_language Japanese. No markdown.",
+      "completion_text": "\n\n<think>\n\n</think>\n\n{\"text\": \"hello\", \"target_language\": \"",
+      "new_ids": [
+        271,
+        248068,
+        271,
+        248069,
+        271,
+        4754,
+        1272,
+        763,
+        328,
+        14556,
+        487,
+        328,
+        5480,
+        28074,
+        763,
+        328
+      ],
+      "timings": {
+        "prefill_seconds": 0.5970330238342285,
+        "decode_step_seconds": [
+          0.017919063568115234,
+          0.017827987670898438,
+          0.017854690551757812,
+          0.01778721809387207,
+          0.017792224884033203,
+          0.017752885818481445,
+          0.017801761627197266,
+          0.01776599884033203,
+          0.017693281173706055,
+          0.01781177520751953,
+          0.01778388023376465,
+          0.017803192138671875,
+          0.01772451400756836,
+          0.01995062828063965,
+          0.017801284790039062
+        ],
+        "decode_tps": 55.7474948230626,
+        "linear_block_graph_capture_seconds": 0.0,
+        "linear_block_graph_reused": true,
+        "prefill_warmup_seconds": 1.3009371757507324,
+        "linear_block_graph_prewarm_seconds": 0.0917196273803711,
+        "native_fp4_lm_head_enabled": true,
+        "native_fp4_lm_head_prepare_seconds": 0.1081991195678711,
+        "decode_bf16_shadow_release": null,
+        "full_token_graph_slot_enabled": false,
+        "full_token_graph_slot_capture_seconds": [],
+        "full_token_graph_slot_replay_seconds": [],
+        "full_token_graph_slot_replay_tps": null,
+        "mtp_shadow": {
+          "loaded": true,
+          "enabled": true,
+          "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-v24/mtp.safetensors",
+          "load_seconds": 0.4622368812561035,
+          "events": 16,
+          "accepted": 10,
+          "accept_rate": 0.625,
+          "max_one_token_speculative_multiplier": 1.625,
+          "draft_step_seconds": [
+            0.0076999664306640625,
+            0.0076446533203125,
+            0.00760197639465332,
+            0.007633209228515625,
+            0.007586479187011719,
+            0.007604837417602539,
+            0.007607460021972656,
+            0.007610797882080078,
+            0.007578134536743164,
+            0.007613420486450195,
+            0.007616281509399414,
+            0.007603883743286133,
+            0.007594108581542969,
+            0.007616519927978516,
+            0.0076482295989990234,
+            0.007653951644897461
+          ],
+          "draft_tps": 131.24015144403768
+        }
+      },
+      "mtp_shadow": {
+        "loaded": true,
+        "enabled": true,
+        "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-v24/mtp.safetensors",
+        "load_seconds": 0.4622368812561035,
+        "events": 16,
+        "accepted": 10,
+        "accept_rate": 0.625,
+        "max_one_token_speculative_multiplier": 1.625,
+        "draft_step_seconds": [
+          0.0076999664306640625,
+          0.0076446533203125,
+          0.00760197639465332,
+          0.007633209228515625,
+          0.007586479187011719,
+          0.007604837417602539,
+          0.007607460021972656,
+          0.007610797882080078,
+          0.007578134536743164,
+          0.007613420486450195,
+          0.007616281509399414,
+          0.007603883743286133,
+          0.007594108581542969,
+          0.007616519927978516,
+          0.0076482295989990234,
+          0.007653951644897461
+        ],
+        "draft_tps": 131.24015144403768,
+        "trace": [
+          {
+            "step": 0,
+            "current_pos": 19,
+            "current_token_id": 13,
+            "current_token_text": ".",
+            "base_next_id": 271,
+            "base_next_text": "\n\n",
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "accepted": true,
+            "draft_seconds": 0.0076999664306640625,
+            "base_score_in_draft_logits": 15.953125,
+            "draft_top2": {
+              "ids": [
+                271,
+                198
+              ],
+              "values": [
+                15.953125,
+                13.921875
+              ],
+              "top1_margin": 2.03125
+            }
+          },
+          {
+            "step": 1,
+            "current_pos": 20,
+            "current_token_id": 271,
+            "current_token_text": "\n\n",
+            "base_next_id": 248068,
+            "base_next_text": "<think>",
+            "draft_id": 4754,
+            "draft_text": "{\"",
+            "accepted": false,
+            "draft_seconds": 0.0076446533203125,
+            "base_score_in_draft_logits": 15.6015625,
+            "draft_top2": {
+              "ids": [
+                4754,
+                248068
+              ],
+              "values": [
+                17.40625,
+                15.6015625
+              ],
+              "top1_margin": 1.8046875
+            }
+          },
+          {
+            "step": 2,
+            "current_pos": 21,
+            "current_token_id": 248068,
+            "current_token_text": "<think>",
+            "base_next_id": 271,
+            "base_next_text": "\n\n",
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "accepted": true,
+            "draft_seconds": 0.00760197639465332,
+            "base_score_in_draft_logits": 18.40625,
+            "draft_top2": {
+              "ids": [
+                271,
+                198
+              ],
+              "values": [
+                18.40625,
+                15.71875
+              ],
+              "top1_margin": 2.6875
+            }
+          },
+          {
+            "step": 3,
+            "current_pos": 22,
+            "current_token_id": 271,
+            "current_token_text": "\n\n",
+            "base_next_id": 248069,
+            "base_next_text": "</think>",
+            "draft_id": 248069,
+            "draft_text": "</think>",
+            "accepted": true,
+            "draft_seconds": 0.007633209228515625,
+            "base_score_in_draft_logits": 15.421875,
+            "draft_top2": {
+              "ids": [
+                248069,
+                248068
+              ],
+              "values": [
+                15.421875,
+                14.421875
+              ],
+              "top1_margin": 1.0
+            }
+          },
+          {
+            "step": 4,
+            "current_pos": 23,
+            "current_token_id": 248069,
+            "current_token_text": "</think>",
+            "base_next_id": 271,
+            "base_next_text": "\n\n",
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "accepted": true,
+            "draft_seconds": 0.007586479187011719,
+            "base_score_in_draft_logits": 16.6875,
+            "draft_top2": {
+              "ids": [
+                271,
+                198
+              ],
+              "values": [
+                16.6875,
+                14.390625
+              ],
+              "top1_margin": 2.296875
+            }
+          },
+          {
+            "step": 5,
+            "current_pos": 24,
+            "current_token_id": 271,
+            "current_token_text": "\n\n",
+            "base_next_id": 4754,
+            "base_next_text": "{\"",
+            "draft_id": 4754,
+            "draft_text": "{\"",
+            "accepted": true,
+            "draft_seconds": 0.007604837417602539,
+            "base_score_in_draft_logits": 21.625,
+            "draft_top2": {
+              "ids": [
+                4754,
+                5046
+              ],
+              "values": [
+                21.625,
+                17.28125
+              ],
+              "top1_margin": 4.34375
+            }
+          },
+          {
+            "step": 6,
+            "current_pos": 25,
+            "current_token_id": 4754,
+            "current_token_text": "{\"",
+            "base_next_id": 1272,
+            "base_next_text": "text",
+            "draft_id": 8656,
+            "draft_text": "city",
+            "accepted": false,
+            "draft_seconds": 0.007607460021972656,
+            "base_score_in_draft_logits": 7.97265625,
+            "draft_top2": {
+              "ids": [
+                8656,
+                1265
+              ],
+              "values": [
+                13.34375,
+                11.8125
+              ],
+              "top1_margin": 1.53125
+            }
+          },
+          {
+            "step": 7,
+            "current_pos": 26,
+            "current_token_id": 1272,
+            "current_token_text": "text",
+            "base_next_id": 763,
+            "base_next_text": "\":",
+            "draft_id": 763,
+            "draft_text": "\":",
+            "accepted": true,
+            "draft_seconds": 0.007610797882080078,
+            "base_score_in_draft_logits": 16.5,
+            "draft_top2": {
+              "ids": [
+                763,
+                3147
+              ],
+              "values": [
+                16.5,
+                13.9609375
+              ],
+              "top1_margin": 2.5390625
+            }
+          },
+          {
+            "step": 8,
+            "current_pos": 27,
+            "current_token_id": 763,
+            "current_token_text": "\":",
+            "base_next_id": 328,
+            "base_next_text": " \"",
+            "draft_id": 328,
+            "draft_text": " \"",
+            "accepted": true,
+            "draft_seconds": 0.007578134536743164,
+            "base_score_in_draft_logits": 17.875,
+            "draft_top2": {
+              "ids": [
+                328,
+                220
+              ],
+              "values": [
+                17.875,
+                14.09375
+              ],
+              "top1_margin": 3.78125
+            }
+          },
+          {
+            "step": 9,
+            "current_pos": 28,
+            "current_token_id": 328,
+            "current_token_text": " \"",
+            "base_next_id": 14556,
+            "base_next_text": "hello",
+            "draft_id": 1265,
+            "draft_text": "action",
+            "accepted": false,
+            "draft_seconds": 0.007613420486450195,
+            "base_score_in_draft_logits": 3.869140625,
+            "draft_top2": {
+              "ids": [
+                1265,
+                9643
+              ],
+              "values": [
+                10.9609375,
+                10.6015625
+              ],
+              "top1_margin": 0.359375
+            }
+          },
+          {
+            "step": 10,
+            "current_pos": 29,
+            "current_token_id": 14556,
+            "current_token_text": "hello",
+            "base_next_id": 487,
+            "base_next_text": "\",",
+            "draft_id": 2129,
+            "draft_text": "\",\"",
+            "accepted": false,
+            "draft_seconds": 0.007616281509399414,
+            "base_score_in_draft_logits": 14.328125,
+            "draft_top2": {
+              "ids": [
+                2129,
+                487
+              ],
+              "values": [
+                14.6171875,
+                14.328125
+              ],
+              "top1_margin": 0.2890625
+            }
+          },
+          {
+            "step": 11,
+            "current_pos": 30,
+            "current_token_id": 487,
+            "current_token_text": "\",",
+            "base_next_id": 328,
+            "base_next_text": " \"",
+            "draft_id": 328,
+            "draft_text": " \"",
+            "accepted": true,
+            "draft_seconds": 0.007603883743286133,
+            "base_score_in_draft_logits": 16.65625,
+            "draft_top2": {
+              "ids": [
+                328,
+                271
+              ],
+              "values": [
+                16.65625,
+                13.8671875
+              ],
+              "top1_margin": 2.7890625
+            }
+          },
+          {
+            "step": 12,
+            "current_pos": 31,
+            "current_token_id": 328,
+            "current_token_text": " \"",
+            "base_next_id": 5480,
+            "base_next_text": "target",
+            "draft_id": 1265,
+            "draft_text": "action",
+            "accepted": false,
+            "draft_seconds": 0.007594108581542969,
+            "base_score_in_draft_logits": 8.2578125,
+            "draft_top2": {
+              "ids": [
+                1265,
+                3715
+              ],
+              "values": [
+                10.9609375,
+                10.9453125
+              ],
+              "top1_margin": 0.015625
+            }
+          },
+          {
+            "step": 13,
+            "current_pos": 32,
+            "current_token_id": 5480,
+            "current_token_text": "target",
+            "base_next_id": 28074,
+            "base_next_text": "_language",
+            "draft_id": 26927,
+            "draft_text": "town",
+            "accepted": false,
+            "draft_seconds": 0.007616519927978516,
+            "base_score_in_draft_logits": 3.994140625,
+            "draft_top2": {
+              "ids": [
+                26927,
+                56658
+              ],
+              "values": [
+                7.9765625,
+                7.92578125
+              ],
+              "top1_margin": 0.05078125
+            }
+          },
+          {
+            "step": 14,
+            "current_pos": 33,
+            "current_token_id": 28074,
+            "current_token_text": "_language",
+            "base_next_id": 763,
+            "base_next_text": "\":",
+            "draft_id": 763,
+            "draft_text": "\":",
+            "accepted": true,
+            "draft_seconds": 0.0076482295989990234,
+            "base_score_in_draft_logits": 17.8125,
+            "draft_top2": {
+              "ids": [
+                763,
+                3147
+              ],
+              "values": [
+                17.8125,
+                15.71875
+              ],
+              "top1_margin": 2.09375
+            }
+          },
+          {
+            "step": 15,
+            "current_pos": 34,
+            "current_token_id": 763,
+            "current_token_text": "\":",
+            "base_next_id": 328,
+            "base_next_text": " \"",
+            "draft_id": 328,
+            "draft_text": " \"",
+            "accepted": true,
+            "draft_seconds": 0.007653951644897461,
+            "base_score_in_draft_logits": 18.46875,
+            "draft_top2": {
+              "ids": [
+                328,
+                220
+              ],
+              "values": [
+                18.46875,
+                15.046875
+              ],
+              "top1_margin": 3.421875
+            }
+          }
+        ]
+      },
+      "stopped_reason": "max_new"
+    },
+    {
+      "id": "heldout_math_distance",
+      "prompt": "Answer only with the distance and unit: a car travels 45 mph for 3 hours.",
+      "completion_text": "\n\n<think>\n\n</think>\n\n135 miles",
+      "new_ids": [
+        271,
+        248068,
+        271,
+        248069,
+        271,
+        16,
+        18,
+        20,
+        8491,
+        248044
+      ],
+      "timings": {
+        "prefill_seconds": 0.6070616245269775,
+        "decode_step_seconds": [
+          0.01783895492553711,
+          0.017813920974731445,
+          0.017756223678588867,
+          0.017798423767089844,
+          0.01777791976928711,
+          0.017806291580200195,
+          0.017651796340942383,
+          0.017849206924438477,
+          0.017768383026123047
+        ],
+        "decode_tps": 56.22852035838503,
+        "linear_block_graph_capture_seconds": 0.0,
+        "linear_block_graph_reused": true,
+        "prefill_warmup_seconds": 1.3009371757507324,
+        "linear_block_graph_prewarm_seconds": 0.0917196273803711,
+        "native_fp4_lm_head_enabled": true,
+        "native_fp4_lm_head_prepare_seconds": 0.1081991195678711,
+        "decode_bf16_shadow_release": null,
+        "full_token_graph_slot_enabled": false,
+        "full_token_graph_slot_capture_seconds": [],
+        "full_token_graph_slot_replay_seconds": [],
+        "full_token_graph_slot_replay_tps": null,
+        "mtp_shadow": {
+          "loaded": true,
+          "enabled": true,
+          "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-v24/mtp.safetensors",
+          "load_seconds": 0.4622368812561035,
+          "events": 10,
+          "accepted": 5,
+          "accept_rate": 0.5,
+          "max_one_token_speculative_multiplier": 1.5,
+          "draft_step_seconds": [
+            0.007659912109375,
+            0.007600307464599609,
+            0.007606983184814453,
+            0.007601022720336914,
+            0.007610797882080078,
+            0.00756382942199707,
+            0.0075724124908447266,
+            0.007561206817626953,
+            0.007589101791381836,
+            0.007569074630737305
+          ],
+          "draft_tps": 131.69218789737923
+        }
+      },
+      "mtp_shadow": {
+        "loaded": true,
+        "enabled": true,
+        "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-v24/mtp.safetensors",
+        "load_seconds": 0.4622368812561035,
+        "events": 10,
+        "accepted": 5,
+        "accept_rate": 0.5,
+        "max_one_token_speculative_multiplier": 1.5,
+        "draft_step_seconds": [
+          0.007659912109375,
+          0.007600307464599609,
+          0.007606983184814453,
+          0.007601022720336914,
+          0.007610797882080078,
+          0.00756382942199707,
+          0.0075724124908447266,
+          0.007561206817626953,
+          0.007589101791381836,
+          0.007569074630737305
+        ],
+        "draft_tps": 131.69218789737923,
+        "trace": [
+          {
+            "step": 0,
+            "current_pos": 19,
+            "current_token_id": 13,
+            "current_token_text": ".",
+            "base_next_id": 271,
+            "base_next_text": "\n\n",
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "accepted": true,
+            "draft_seconds": 0.007659912109375,
+            "base_score_in_draft_logits": 15.4453125,
+            "draft_top2": {
+              "ids": [
+                271,
+                198
+              ],
+              "values": [
+                15.4453125,
+                13.3125
+              ],
+              "top1_margin": 2.1328125
+            }
+          },
+          {
+            "step": 1,
+            "current_pos": 20,
+            "current_token_id": 271,
+            "current_token_text": "\n\n",
+            "base_next_id": 248068,
+            "base_next_text": "<think>",
+            "draft_id": 16,
+            "draft_text": "1",
+            "accepted": false,
+            "draft_seconds": 0.007600307464599609,
+            "base_score_in_draft_logits": 14.265625,
+            "draft_top2": {
+              "ids": [
+                16,
+                17
+              ],
+              "values": [
+                18.40625,
+                16.03125
+              ],
+              "top1_margin": 2.375
+            }
+          },
+          {
+            "step": 2,
+            "current_pos": 21,
+            "current_token_id": 248068,
+            "current_token_text": "<think>",
+            "base_next_id": 271,
+            "base_next_text": "\n\n",
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "accepted": true,
+            "draft_seconds": 0.007606983184814453,
+            "base_score_in_draft_logits": 19.4375,
+            "draft_top2": {
+              "ids": [
+                271,
+                198
+              ],
+              "values": [
+                19.4375,
+                17.109375
+              ],
+              "top1_margin": 2.328125
+            }
+          },
+          {
+            "step": 3,
+            "current_pos": 22,
+            "current_token_id": 271,
+            "current_token_text": "\n\n",
+            "base_next_id": 248069,
+            "base_next_text": "</think>",
+            "draft_id": 248069,
+            "draft_text": "</think>",
+            "accepted": true,
+            "draft_seconds": 0.007601022720336914,
+            "base_score_in_draft_logits": 15.9921875,
+            "draft_top2": {
+              "ids": [
+                248069,
+                248068
+              ],
+              "values": [
+                15.9921875,
+                14.1484375
+              ],
+              "top1_margin": 1.84375
+            }
+          },
+          {
+            "step": 4,
+            "current_pos": 23,
+            "current_token_id": 248069,
+            "current_token_text": "</think>",
+            "base_next_id": 271,
+            "base_next_text": "\n\n",
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "accepted": true,
+            "draft_seconds": 0.007610797882080078,
+            "base_score_in_draft_logits": 17.328125,
+            "draft_top2": {
+              "ids": [
+                271,
+                16
+              ],
+              "values": [
+                17.328125,
+                16.828125
+              ],
+              "top1_margin": 0.5
+            }
+          },
+          {
+            "step": 5,
+            "current_pos": 24,
+            "current_token_id": 271,
+            "current_token_text": "\n\n",
+            "base_next_id": 16,
+            "base_next_text": "1",
+            "draft_id": 16,
+            "draft_text": "1",
+            "accepted": true,
+            "draft_seconds": 0.00756382942199707,
+            "base_score_in_draft_logits": 26.078125,
+            "draft_top2": {
+              "ids": [
+                16,
+                17
+              ],
+              "values": [
+                26.078125,
+                22.5625
+              ],
+              "top1_margin": 3.515625
+            }
+          },
+          {
+            "step": 6,
+            "current_pos": 25,
+            "current_token_id": 16,
+            "current_token_text": "1",
+            "base_next_id": 18,
+            "base_next_text": "3",
+            "draft_id": 17,
+            "draft_text": "2",
+            "accepted": false,
+            "draft_seconds": 0.0075724124908447266,
+            "base_score_in_draft_logits": 15.4140625,
+            "draft_top2": {
+              "ids": [
+                17,
+                15
+              ],
+              "values": [
+                16.03125,
+                15.8203125
+              ],
+              "top1_margin": 0.2109375
+            }
+          },
+          {
+            "step": 7,
+            "current_pos": 26,
+            "current_token_id": 18,
+            "current_token_text": "3",
+            "base_next_id": 20,
+            "base_next_text": "5",
+            "draft_id": 15,
+            "draft_text": "0",
+            "accepted": false,
+            "draft_seconds": 0.007561206817626953,
+            "base_score_in_draft_logits": 11.2578125,
+            "draft_top2": {
+              "ids": [
+                15,
+                220
+              ],
+              "values": [
+                12.453125,
+                11.9375
+              ],
+              "top1_margin": 0.515625
+            }
+          },
+          {
+            "step": 8,
+            "current_pos": 27,
+            "current_token_id": 20,
+            "current_token_text": "5",
+            "base_next_id": 8491,
+            "base_next_text": " miles",
+            "draft_id": 248046,
+            "draft_text": "<|im_end|>",
+            "accepted": false,
+            "draft_seconds": 0.007589101791381836,
+            "base_score_in_draft_logits": 6.2734375,
+            "draft_top2": {
+              "ids": [
+                248046,
+                15
+              ],
+              "values": [
+                11.1953125,
+                10.96875
+              ],
+              "top1_margin": 0.2265625
+            }
+          },
+          {
+            "step": 9,
+            "current_pos": 28,
+            "current_token_id": 8491,
+            "current_token_text": " miles",
+            "base_next_id": 248044,
+            "base_next_text": "<|endoftext|>",
+            "draft_id": 248046,
+            "draft_text": "<|im_end|>",
+            "accepted": false,
+            "draft_seconds": 0.007569074630737305,
+            "base_score_in_draft_logits": 6.21875,
+            "draft_top2": {
+              "ids": [
+                248046,
+                271
+              ],
+              "values": [
+                15.9375,
+                12.4375
+              ],
+              "top1_margin": 3.5
+            }
+          }
+        ]
+      },
+      "stopped_reason": "stop_token"
+    },
+    {
+      "id": "heldout_python_slug",
+      "prompt": "Only output a Python code block defining slugify(text: str) -> str. It must lowercase and replace spaces with hyphens. No explanation.",
+      "completion_text": "\n\n<think>\n\n</think>\n\n```python\ndef slugify(text: str) ->",
+      "new_ids": [
+        271,
+        248068,
+        271,
+        248069,
+        271,
+        71093,
+        12305,
+        198,
+        727,
+        23695,
+        1386,
+        7008,
+        25,
+        592,
+        8,
+        1411
+      ],
+      "timings": {
+        "prefill_seconds": 0.6750664710998535,
+        "decode_step_seconds": [
+          0.017931699752807617,
+          0.017873048782348633,
+          0.01780104637145996,
+          0.017686843872070312,
+          0.017764568328857422,
+          0.017768144607543945,
+          0.0177919864654541,
+          0.017833471298217773,
+          0.017776012420654297,
+          0.017743587493896484,
+          0.017733335494995117,
+          0.01774740219116211,
+          0.01767444610595703,
+          0.017704248428344727,
+          0.01772785186767578
+        ],
+        "decode_tps": 56.27299592853105,
+        "linear_block_graph_capture_seconds": 0.0,
+        "linear_block_graph_reused": true,
+        "prefill_warmup_seconds": 1.3009371757507324,
+        "linear_block_graph_prewarm_seconds": 0.0917196273803711,
+        "native_fp4_lm_head_enabled": true,
+        "native_fp4_lm_head_prepare_seconds": 0.1081991195678711,
+        "decode_bf16_shadow_release": null,
+        "full_token_graph_slot_enabled": false,
+        "full_token_graph_slot_capture_seconds": [],
+        "full_token_graph_slot_replay_seconds": [],
+        "full_token_graph_slot_replay_tps": null,
+        "mtp_shadow": {
+          "loaded": true,
+          "enabled": true,
+          "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-v24/mtp.safetensors",
+          "load_seconds": 0.4622368812561035,
+          "events": 16,
+          "accepted": 6,
+          "accept_rate": 0.375,
+          "max_one_token_speculative_multiplier": 1.375,
+          "draft_step_seconds": [
+            0.007710456848144531,
+            0.00760960578918457,
+            0.007623195648193359,
+            0.007572174072265625,
+            0.007587909698486328,
+            0.00758051872253418,
+            0.007563591003417969,
+            0.007562160491943359,
+            0.007598876953125,
+            0.007562160491943359,
+            0.007578372955322266,
+            0.007584095001220703,
+            0.0076024532318115234,
+            0.007532358169555664,
+            0.007587909698486328,
+            0.007577419281005859
+          ],
+          "draft_tps": 131.7596205195866
+        }
+      },
+      "mtp_shadow": {
+        "loaded": true,
+        "enabled": true,
+        "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-v24/mtp.safetensors",
+        "load_seconds": 0.4622368812561035,
+        "events": 16,
+        "accepted": 6,
+        "accept_rate": 0.375,
+        "max_one_token_speculative_multiplier": 1.375,
+        "draft_step_seconds": [
+          0.007710456848144531,
+          0.00760960578918457,
+          0.007623195648193359,
+          0.007572174072265625,
+          0.007587909698486328,
+          0.00758051872253418,
+          0.007563591003417969,
+          0.007562160491943359,
+          0.007598876953125,
+          0.007562160491943359,
+          0.007578372955322266,
+          0.007584095001220703,
+          0.0076024532318115234,
+          0.007532358169555664,
+          0.007587909698486328,
+          0.007577419281005859
+        ],
+        "draft_tps": 131.7596205195866,
+        "trace": [
+          {
+            "step": 0,
+            "current_pos": 29,
+            "current_token_id": 13,
+            "current_token_text": ".",
+            "base_next_id": 271,
+            "base_next_text": "\n\n",
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "accepted": true,
+            "draft_seconds": 0.007710456848144531,
+            "base_score_in_draft_logits": 16.203125,
+            "draft_top2": {
+              "ids": [
+                271,
+                198
+              ],
+              "values": [
+                16.203125,
+                14.6328125
+              ],
+              "top1_margin": 1.5703125
+            }
+          },
+          {
+            "step": 1,
+            "current_pos": 30,
+            "current_token_id": 271,
+            "current_token_text": "\n\n",
+            "base_next_id": 248068,
+            "base_next_text": "<think>",
+            "draft_id": 71093,
+            "draft_text": "```",
+            "accepted": false,
+            "draft_seconds": 0.00760960578918457,
+            "base_score_in_draft_logits": 15.4375,
+            "draft_top2": {
+              "ids": [
+                71093,
+                248068
+              ],
+              "values": [
+                15.78125,
+                15.4375
+              ],
+              "top1_margin": 0.34375
+            }
+          },
+          {
+            "step": 2,
+            "current_pos": 31,
+            "current_token_id": 248068,
+            "current_token_text": "<think>",
+            "base_next_id": 271,
+            "base_next_text": "\n\n",
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "accepted": true,
+            "draft_seconds": 0.007623195648193359,
+            "base_score_in_draft_logits": 19.25,
+            "draft_top2": {
+              "ids": [
+                271,
+                198
+              ],
+              "values": [
+                19.25,
+                16.8125
+              ],
+              "top1_margin": 2.4375
+            }
+          },
+          {
+            "step": 3,
+            "current_pos": 32,
+            "current_token_id": 271,
+            "current_token_text": "\n\n",
+            "base_next_id": 248069,
+            "base_next_text": "</think>",
+            "draft_id": 248069,
+            "draft_text": "</think>",
+            "accepted": true,
+            "draft_seconds": 0.007572174072265625,
+            "base_score_in_draft_logits": 15.1875,
+            "draft_top2": {
+              "ids": [
+                248069,
+                248068
+              ],
+              "values": [
+                15.1875,
+                14.3515625
+              ],
+              "top1_margin": 0.8359375
+            }
+          },
+          {
+            "step": 4,
+            "current_pos": 33,
+            "current_token_id": 248069,
+            "current_token_text": "</think>",
+            "base_next_id": 271,
+            "base_next_text": "\n\n",
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "accepted": true,
+            "draft_seconds": 0.007587909698486328,
+            "base_score_in_draft_logits": 17.65625,
+            "draft_top2": {
+              "ids": [
+                271,
+                198
+              ],
+              "values": [
+                17.65625,
+                15.625
+              ],
+              "top1_margin": 2.03125
+            }
+          },
+          {
+            "step": 5,
+            "current_pos": 34,
+            "current_token_id": 271,
+            "current_token_text": "\n\n",
+            "base_next_id": 71093,
+            "base_next_text": "```",
+            "draft_id": 71093,
+            "draft_text": "```",
+            "accepted": true,
+            "draft_seconds": 0.00758051872253418,
+            "base_score_in_draft_logits": 17.796875,
+            "draft_top2": {
+              "ids": [
+                71093,
+                248068
+              ],
+              "values": [
+                17.796875,
+                13.9921875
+              ],
+              "top1_margin": 3.8046875
+            }
+          },
+          {
+            "step": 6,
+            "current_pos": 35,
+            "current_token_id": 71093,
+            "current_token_text": "```",
+            "base_next_id": 12305,
+            "base_next_text": "python",
+            "draft_id": 248068,
+            "draft_text": "<think>",
+            "accepted": false,
+            "draft_seconds": 0.007563591003417969,
+            "base_score_in_draft_logits": 6.30078125,
+            "draft_top2": {
+              "ids": [
+                248068,
+                248046
+              ],
+              "values": [
+                10.734375,
+                10.1953125
+              ],
+              "top1_margin": 0.5390625
+            }
+          },
+          {
+            "step": 7,
+            "current_pos": 36,
+            "current_token_id": 12305,
+            "current_token_text": "python",
+            "base_next_id": 198,
+            "base_next_text": "\n",
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "accepted": false,
+            "draft_seconds": 0.007562160491943359,
+            "base_score_in_draft_logits": 13.1171875,
+            "draft_top2": {
+              "ids": [
+                271,
+                248046
+              ],
+              "values": [
+                13.53125,
+                13.4609375
+              ],
+              "top1_margin": 0.0703125
+            }
+          },
+          {
+            "step": 8,
+            "current_pos": 37,
+            "current_token_id": 198,
+            "current_token_text": "\n",
+            "base_next_id": 727,
+            "base_next_text": "def",
+            "draft_id": 71093,
+            "draft_text": "```",
+            "accepted": false,
+            "draft_seconds": 0.007598876953125,
+            "base_score_in_draft_logits": 2.69140625,
+            "draft_top2": {
+              "ids": [
+                71093,
+                9
+              ],
+              "values": [
+                13.6796875,
+                11.6640625
+              ],
+              "top1_margin": 2.015625
+            }
+          },
+          {
+            "step": 9,
+            "current_pos": 38,
+            "current_token_id": 727,
+            "current_token_text": "def",
+            "base_next_id": 23695,
+            "base_next_text": " slug",
+            "draft_id": 513,
+            "draft_text": " are",
+            "accepted": false,
+            "draft_seconds": 0.007562160491943359,
+            "base_score_in_draft_logits": 6.85546875,
+            "draft_top2": {
+              "ids": [
+                513,
+                248046
+              ],
+              "values": [
+                12.4375,
+                11.6640625
+              ],
+              "top1_margin": 0.7734375
+            }
+          },
+          {
+            "step": 10,
+            "current_pos": 39,
+            "current_token_id": 23695,
+            "current_token_text": " slug",
+            "base_next_id": 1386,
+            "base_next_text": "ify",
+            "draft_id": 513,
+            "draft_text": " are",
+            "accepted": false,
+            "draft_seconds": 0.007578372955322266,
+            "base_score_in_draft_logits": -0.82568359375,
+            "draft_top2": {
+              "ids": [
+                513,
+                248046
+              ],
+              "values": [
+                10.5625,
+                10.3046875
+              ],
+              "top1_margin": 0.2578125
+            }
+          },
+          {
+            "step": 11,
+            "current_pos": 40,
+            "current_token_id": 1386,
+            "current_token_text": "ify",
+            "base_next_id": 7008,
+            "base_next_text": "(text",
+            "draft_id": 2005,
+            "draft_text": "“",
+            "accepted": false,
+            "draft_seconds": 0.007584095001220703,
+            "base_score_in_draft_logits": 2.494140625,
+            "draft_top2": {
+              "ids": [
+                2005,
+                1
+              ],
+              "values": [
+                8.6953125,
+                8.6875
+              ],
+              "top1_margin": 0.0078125
+            }
+          },
+          {
+            "step": 12,
+            "current_pos": 41,
+            "current_token_id": 7008,
+            "current_token_text": "(text",
+            "base_next_id": 25,
+            "base_next_text": ":",
+            "draft_id": 25,
+            "draft_text": ":",
+            "accepted": true,
+            "draft_seconds": 0.0076024532318115234,
+            "base_score_in_draft_logits": 15.078125,
+            "draft_top2": {
+              "ids": [
+                25,
+                11
+              ],
+              "values": [
+                15.078125,
+                14.4140625
+              ],
+              "top1_margin": 0.6640625
+            }
+          },
+          {
+            "step": 13,
+            "current_pos": 42,
+            "current_token_id": 25,
+            "current_token_text": ":",
+            "base_next_id": 592,
+            "base_next_text": " str",
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "accepted": false,
+            "draft_seconds": 0.007532358169555664,
+            "base_score_in_draft_logits": 8.40625,
+            "draft_top2": {
+              "ids": [
+                271,
+                220
+              ],
+              "values": [
+                11.0078125,
+                10.90625
+              ],
+              "top1_margin": 0.1015625
+            }
+          },
+          {
+            "step": 14,
+            "current_pos": 43,
+            "current_token_id": 592,
+            "current_token_text": " str",
+            "base_next_id": 8,
+            "base_next_text": ")",
+            "draft_id": 25,
+            "draft_text": ":",
+            "accepted": false,
+            "draft_seconds": 0.007587909698486328,
+            "base_score_in_draft_logits": 11.9375,
+            "draft_top2": {
+              "ids": [
+                25,
+                8
+              ],
+              "values": [
+                12.2265625,
+                11.9375
+              ],
+              "top1_margin": 0.2890625
+            }
+          },
+          {
+            "step": 15,
+            "current_pos": 44,
+            "current_token_id": 8,
+            "current_token_text": ")",
+            "base_next_id": 1411,
+            "base_next_text": " ->",
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "accepted": false,
+            "draft_seconds": 0.007577419281005859,
+            "base_score_in_draft_logits": 9.0546875,
+            "draft_top2": {
+              "ids": [
+                271,
+                220
+              ],
+              "values": [
+                12.3125,
+                11.6953125
+              ],
+              "top1_margin": 0.6171875
+            }
+          }
+        ]
+      },
+      "stopped_reason": "max_new"
+    },
+    {
+      "id": "heldout_moe_short",
+      "prompt": "用一句中文短句说明 MoE router 的作用。必须以 router 开头。",
+      "completion_text": "\n\n<think>\n\n</think>\n\nMoE router 负责将输入动态分配给不同的",
+      "new_ids": [
+        271,
+        248068,
+        271,
+        248069,
+        271,
+        24797,
+        36,
+        8997,
+        220,
+        97279,
+        96123,
+        99486,
+        99142,
+        100679,
+        96237,
+        98274
+      ],
+      "timings": {
+        "prefill_seconds": 0.5734491348266602,
+        "decode_step_seconds": [
+          0.01788330078125,
+          0.017772436141967773,
+          0.017851591110229492,
+          0.017783164978027344,
+          0.017749547958374023,
+          0.017734766006469727,
+          0.01777195930480957,
+          0.017633438110351562,
+          0.017753124237060547,
+          0.017670154571533203,
+          0.017786026000976562,
+          0.017817020416259766,
+          0.017711162567138672,
+          0.01778554916381836,
+          0.017794370651245117
+        ],
+        "decode_tps": 56.285682590009415,
+        "linear_block_graph_capture_seconds": 0.0,
+        "linear_block_graph_reused": true,
+        "prefill_warmup_seconds": 1.3009371757507324,
+        "linear_block_graph_prewarm_seconds": 0.0917196273803711,
+        "native_fp4_lm_head_enabled": true,
+        "native_fp4_lm_head_prepare_seconds": 0.1081991195678711,
+        "decode_bf16_shadow_release": null,
+        "full_token_graph_slot_enabled": false,
+        "full_token_graph_slot_capture_seconds": [],
+        "full_token_graph_slot_replay_seconds": [],
+        "full_token_graph_slot_replay_tps": null,
+        "mtp_shadow": {
+          "loaded": true,
+          "enabled": true,
+          "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-v24/mtp.safetensors",
+          "load_seconds": 0.4622368812561035,
+          "events": 16,
+          "accepted": 3,
+          "accept_rate": 0.1875,
+          "max_one_token_speculative_multiplier": 1.1875,
+          "draft_step_seconds": [
+            0.007703065872192383,
+            0.0076100826263427734,
+            0.0076084136962890625,
+            0.007630586624145508,
+            0.007569551467895508,
+            0.0075931549072265625,
+            0.007559061050415039,
+            0.007570981979370117,
+            0.007519721984863281,
+            0.007607698440551758,
+            0.007581949234008789,
+            0.007622480392456055,
+            0.007605075836181641,
+            0.007614850997924805,
+            0.0075626373291015625,
+            0.007590293884277344
+          ],
+          "draft_tps": 131.63349914478948
+        }
+      },
+      "mtp_shadow": {
+        "loaded": true,
+        "enabled": true,
+        "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-v24/mtp.safetensors",
+        "load_seconds": 0.4622368812561035,
+        "events": 16,
+        "accepted": 3,
+        "accept_rate": 0.1875,
+        "max_one_token_speculative_multiplier": 1.1875,
+        "draft_step_seconds": [
+          0.007703065872192383,
+          0.0076100826263427734,
+          0.0076084136962890625,
+          0.007630586624145508,
+          0.007569551467895508,
+          0.0075931549072265625,
+          0.007559061050415039,
+          0.007570981979370117,
+          0.007519721984863281,
+          0.007607698440551758,
+          0.007581949234008789,
+          0.007622480392456055,
+          0.007605075836181641,
+          0.007614850997924805,
+          0.0075626373291015625,
+          0.007590293884277344
+        ],
+        "draft_tps": 131.63349914478948,
+        "trace": [
+          {
+            "step": 0,
+            "current_pos": 15,
+            "current_token_id": 1710,
+            "current_token_text": "。",
+            "base_next_id": 271,
+            "base_next_text": "\n\n",
+            "draft_id": 248068,
+            "draft_text": "<think>",
+            "accepted": false,
+            "draft_seconds": 0.007703065872192383,
+            "base_score_in_draft_logits": 11.3515625,
+            "draft_top2": {
+              "ids": [
+                248068,
+                9643
+              ],
+              "values": [
+                12.671875,
+                11.546875
+              ],
+              "top1_margin": 1.125
+            }
+          },
+          {
+            "step": 1,
+            "current_pos": 16,
+            "current_token_id": 271,
+            "current_token_text": "\n\n",
+            "base_next_id": 248068,
+            "base_next_text": "<think>",
+            "draft_id": 9643,
+            "draft_text": "router",
+            "accepted": false,
+            "draft_seconds": 0.0076100826263427734,
+            "base_score_in_draft_logits": 13.3515625,
+            "draft_top2": {
+              "ids": [
+                9643,
+                248068
+              ],
+              "values": [
+                14.765625,
+                13.3515625
+              ],
+              "top1_margin": 1.4140625
+            }
+          },
+          {
+            "step": 2,
+            "current_pos": 17,
+            "current_token_id": 248068,
+            "current_token_text": "<think>",
+            "base_next_id": 271,
+            "base_next_text": "\n\n",
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "accepted": true,
+            "draft_seconds": 0.0076084136962890625,
+            "base_score_in_draft_logits": 20.46875,
+            "draft_top2": {
+              "ids": [
+                271,
+                198
+              ],
+              "values": [
+                20.46875,
+                17.6875
+              ],
+              "top1_margin": 2.78125
+            }
+          },
+          {
+            "step": 3,
+            "current_pos": 18,
+            "current_token_id": 271,
+            "current_token_text": "\n\n",
+            "base_next_id": 248069,
+            "base_next_text": "</think>",
+            "draft_id": 248068,
+            "draft_text": "<think>",
+            "accepted": false,
+            "draft_seconds": 0.007630586624145508,
+            "base_score_in_draft_logits": 14.2109375,
+            "draft_top2": {
+              "ids": [
+                248068,
+                248069
+              ],
+              "values": [
+                14.3359375,
+                14.2109375
+              ],
+              "top1_margin": 0.125
+            }
+          },
+          {
+            "step": 4,
+            "current_pos": 19,
+            "current_token_id": 248069,
+            "current_token_text": "</think>",
+            "base_next_id": 271,
+            "base_next_text": "\n\n",
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "accepted": true,
+            "draft_seconds": 0.007569551467895508,
+            "base_score_in_draft_logits": 15.984375,
+            "draft_top2": {
+              "ids": [
+                271,
+                198
+              ],
+              "values": [
+                15.984375,
+                15.1640625
+              ],
+              "top1_margin": 0.8203125
+            }
+          },
+          {
+            "step": 5,
+            "current_pos": 20,
+            "current_token_id": 271,
+            "current_token_text": "\n\n",
+            "base_next_id": 24797,
+            "base_next_text": "Mo",
+            "draft_id": 9643,
+            "draft_text": "router",
+            "accepted": false,
+            "draft_seconds": 0.0075931549072265625,
+            "base_score_in_draft_logits": 1.2509765625,
+            "draft_top2": {
+              "ids": [
+                9643,
+                8997
+              ],
+              "values": [
+                17.984375,
+                13.40625
+              ],
+              "top1_margin": 4.578125
+            }
+          },
+          {
+            "step": 6,
+            "current_pos": 21,
+            "current_token_id": 24797,
+            "current_token_text": "Mo",
+            "base_next_id": 36,
+            "base_next_text": "E",
+            "draft_id": 12,
+            "draft_text": "-",
+            "accepted": false,
+            "draft_seconds": 0.007559061050415039,
+            "base_score_in_draft_logits": 8.1171875,
+            "draft_top2": {
+              "ids": [
+                12,
+                32
+              ],
+              "values": [
+                11.265625,
+                10.5859375
+              ],
+              "top1_margin": 0.6796875
+            }
+          },
+          {
+            "step": 7,
+            "current_pos": 22,
+            "current_token_id": 36,
+            "current_token_text": "E",
+            "base_next_id": 8997,
+            "base_next_text": " router",
+            "draft_id": 9643,
+            "draft_text": "router",
+            "accepted": false,
+            "draft_seconds": 0.007570981979370117,
+            "base_score_in_draft_logits": 11.9375,
+            "draft_top2": {
+              "ids": [
+                9643,
+                220
+              ],
+              "values": [
+                14.1015625,
+                13.0390625
+              ],
+              "top1_margin": 1.0625
+            }
+          },
+          {
+            "step": 8,
+            "current_pos": 23,
+            "current_token_id": 8997,
+            "current_token_text": " router",
+            "base_next_id": 220,
+            "base_next_text": " ",
+            "draft_id": 220,
+            "draft_text": " ",
+            "accepted": true,
+            "draft_seconds": 0.007519721984863281,
+            "base_score_in_draft_logits": 13.03125,
+            "draft_top2": {
+              "ids": [
+                220,
+                9616
+              ],
+              "values": [
+                13.03125,
+                11.9765625
+              ],
+              "top1_margin": 1.0546875
+            }
+          },
+          {
+            "step": 9,
+            "current_pos": 24,
+            "current_token_id": 220,
+            "current_token_text": " ",
+            "base_next_id": 97279,
+            "base_next_text": "负责",
+            "draft_id": 9616,
+            "draft_text": "（",
+            "accepted": false,
+            "draft_seconds": 0.007607698440551758,
+            "base_score_in_draft_logits": 6.9765625,
+            "draft_top2": {
+              "ids": [
+                9616,
+                95772
+              ],
+              "values": [
+                11.28125,
+                11.2265625
+              ],
+              "top1_margin": 0.0546875
+            }
+          },
+          {
+            "step": 10,
+            "current_pos": 25,
+            "current_token_id": 97279,
+            "current_token_text": "负责",
+            "base_next_id": 96123,
+            "base_next_text": "将",
+            "draft_id": 12,
+            "draft_text": "-",
+            "accepted": false,
+            "draft_seconds": 0.007581949234008789,
+            "base_score_in_draft_logits": 6.67578125,
+            "draft_top2": {
+              "ids": [
+                12,
+                95999
+              ],
+              "values": [
+                12.1796875,
+                12.0390625
+              ],
+              "top1_margin": 0.140625
+            }
+          },
+          {
+            "step": 11,
+            "current_pos": 26,
+            "current_token_id": 96123,
+            "current_token_text": "将",
+            "base_next_id": 99486,
+            "base_next_text": "输入",
+            "draft_id": 95999,
+            "draft_text": "与",
+            "accepted": false,
+            "draft_seconds": 0.007622480392456055,
+            "base_score_in_draft_logits": 10.3125,
+            "draft_top2": {
+              "ids": [
+                95999,
+                9616
+              ],
+              "values": [
+                12.03125,
+                11.734375
+              ],
+              "top1_margin": 0.296875
+            }
+          },
+          {
+            "step": 12,
+            "current_pos": 27,
+            "current_token_id": 99486,
+            "current_token_text": "输入",
+            "base_next_id": 99142,
+            "base_next_text": "动态",
+            "draft_id": 95726,
+            "draft_text": "的",
+            "accepted": false,
+            "draft_seconds": 0.007605075836181641,
+            "base_score_in_draft_logits": 11.9375,
+            "draft_top2": {
+              "ids": [
+                95726,
+                95999
+              ],
+              "values": [
+                12.4140625,
+                12.171875
+              ],
+              "top1_margin": 0.2421875
+            }
+          },
+          {
+            "step": 13,
+            "current_pos": 28,
+            "current_token_id": 99142,
+            "current_token_text": "动态",
+            "base_next_id": 100679,
+            "base_next_text": "分配",
+            "draft_id": 95999,
+            "draft_text": "与",
+            "accepted": false,
+            "draft_seconds": 0.007614850997924805,
+            "base_score_in_draft_logits": 6.89453125,
+            "draft_top2": {
+              "ids": [
+                95999,
+                9616
+              ],
+              "values": [
+                12.5625,
+                12.4140625
+              ],
+              "top1_margin": 0.1484375
+            }
+          },
+          {
+            "step": 14,
+            "current_pos": 29,
+            "current_token_id": 100679,
+            "current_token_text": "分配",
+            "base_next_id": 96237,
+            "base_next_text": "给",
+            "draft_id": 9616,
+            "draft_text": "（",
+            "accepted": false,
+            "draft_seconds": 0.0075626373291015625,
+            "base_score_in_draft_logits": 8.8203125,
+            "draft_top2": {
+              "ids": [
+                9616,
+                95999
+              ],
+              "values": [
+                12.1953125,
+                11.828125
+              ],
+              "top1_margin": 0.3671875
+            }
+          },
+          {
+            "step": 15,
+            "current_pos": 30,
+            "current_token_id": 96237,
+            "current_token_text": "给",
+            "base_next_id": 98274,
+            "base_next_text": "不同的",
+            "draft_id": 95726,
+            "draft_text": "的",
+            "accepted": false,
+            "draft_seconds": 0.007590293884277344,
+            "base_score_in_draft_logits": 4.97265625,
+            "draft_top2": {
+              "ids": [
+                95726,
+                95871
+              ],
+              "values": [
+                13.6015625,
+                12.6875
+              ],
+              "top1_margin": 0.9140625
+            }
+          }
+        ]
+      },
+      "stopped_reason": "max_new"
+    },
+    {
+      "id": "heldout_linear_short",
+      "prompt": "用一句中文短句说明 linear attention 适合长上下文的原因。必须以 linear attention 开头。",
+      "completion_text": "\n\n<think>\n\n</think>\n\nlinear attention 通过线性化注意力机制，将计算",
+      "new_ids": [
+        271,
+        248068,
+        271,
+        248069,
+        271,
+        22054,
+        6326,
+        220,
+        96580,
+        105094,
+        95909,
+        110321,
+        98853,
+        3709,
+        96123,
+        97792
+      ],
+      "timings": {
+        "prefill_seconds": 0.5950343608856201,
+        "decode_step_seconds": [
+          0.017902612686157227,
+          0.017763376235961914,
+          0.017804384231567383,
+          0.017771482467651367,
+          0.017782211303710938,
+          0.017787933349609375,
+          0.017779827117919922,
+          0.017809629440307617,
+          0.01779937744140625,
+          0.01780867576599121,
+          0.017736196517944336,
+          0.017793893814086914,
+          0.01781940460205078,
+          0.017788171768188477,
+          0.017755508422851562
+        ],
+        "decode_tps": 56.20025887227092,
+        "linear_block_graph_capture_seconds": 0.0,
+        "linear_block_graph_reused": true,
+        "prefill_warmup_seconds": 1.3009371757507324,
+        "linear_block_graph_prewarm_seconds": 0.0917196273803711,
+        "native_fp4_lm_head_enabled": true,
+        "native_fp4_lm_head_prepare_seconds": 0.1081991195678711,
+        "decode_bf16_shadow_release": null,
+        "full_token_graph_slot_enabled": false,
+        "full_token_graph_slot_capture_seconds": [],
+        "full_token_graph_slot_replay_seconds": [],
+        "full_token_graph_slot_replay_tps": null,
+        "mtp_shadow": {
+          "loaded": true,
+          "enabled": true,
+          "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-v24/mtp.safetensors",
+          "load_seconds": 0.4622368812561035,
+          "events": 16,
+          "accepted": 5,
+          "accept_rate": 0.3125,
+          "max_one_token_speculative_multiplier": 1.3125,
+          "draft_step_seconds": [
+            0.00771784782409668,
+            0.007614612579345703,
+            0.0076007843017578125,
+            0.007600307464599609,
+            0.007594585418701172,
+            0.00757145881652832,
+            0.007587909698486328,
+            0.007570505142211914,
+            0.007595539093017578,
+            0.0075757503509521484,
+            0.007614850997924805,
+            0.0075685977935791016,
+            0.0075969696044921875,
+            0.0075948238372802734,
+            0.0075838565826416016,
+            0.00757598876953125
+          ],
+          "draft_tps": 131.61749281200602
+        }
+      },
+      "mtp_shadow": {
+        "loaded": true,
+        "enabled": true,
+        "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-v24/mtp.safetensors",
+        "load_seconds": 0.4622368812561035,
+        "events": 16,
+        "accepted": 5,
+        "accept_rate": 0.3125,
+        "max_one_token_speculative_multiplier": 1.3125,
+        "draft_step_seconds": [
+          0.00771784782409668,
+          0.007614612579345703,
+          0.0076007843017578125,
+          0.007600307464599609,
+          0.007594585418701172,
+          0.00757145881652832,
+          0.007587909698486328,
+          0.007570505142211914,
+          0.007595539093017578,
+          0.0075757503509521484,
+          0.007614850997924805,
+          0.0075685977935791016,
+          0.0075969696044921875,
+          0.0075948238372802734,
+          0.0075838565826416016,
+          0.00757598876953125
+        ],
+        "draft_tps": 131.61749281200602,
+        "trace": [
+          {
+            "step": 0,
+            "current_pos": 18,
+            "current_token_id": 1710,
+            "current_token_text": "。",
+            "base_next_id": 271,
+            "base_next_text": "\n\n",
+            "draft_id": 248068,
+            "draft_text": "<think>",
+            "accepted": false,
+            "draft_seconds": 0.00771784782409668,
+            "base_score_in_draft_logits": 10.375,
+            "draft_top2": {
+              "ids": [
+                248068,
+                22054
+              ],
+              "values": [
+                12.375,
+                11.359375
+              ],
+              "top1_margin": 1.015625
+            }
+          },
+          {
+            "step": 1,
+            "current_pos": 19,
+            "current_token_id": 271,
+            "current_token_text": "\n\n",
+            "base_next_id": 248068,
+            "base_next_text": "<think>",
+            "draft_id": 22054,
+            "draft_text": "linear",
+            "accepted": false,
+            "draft_seconds": 0.007614612579345703,
+            "base_score_in_draft_logits": 13.515625,
+            "draft_top2": {
+              "ids": [
+                22054,
+                248068
+              ],
+              "values": [
+                14.078125,
+                13.515625
+              ],
+              "top1_margin": 0.5625
+            }
+          },
+          {
+            "step": 2,
+            "current_pos": 20,
+            "current_token_id": 248068,
+            "current_token_text": "<think>",
+            "base_next_id": 271,
+            "base_next_text": "\n\n",
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "accepted": true,
+            "draft_seconds": 0.0076007843017578125,
+            "base_score_in_draft_logits": 19.546875,
+            "draft_top2": {
+              "ids": [
+                271,
+                198
+              ],
+              "values": [
+                19.546875,
+                16.40625
+              ],
+              "top1_margin": 3.140625
+            }
+          },
+          {
+            "step": 3,
+            "current_pos": 21,
+            "current_token_id": 271,
+            "current_token_text": "\n\n",
+            "base_next_id": 248069,
+            "base_next_text": "</think>",
+            "draft_id": 248068,
+            "draft_text": "<think>",
+            "accepted": false,
+            "draft_seconds": 0.007600307464599609,
+            "base_score_in_draft_logits": 13.5078125,
+            "draft_top2": {
+              "ids": [
+                248068,
+                248069
+              ],
+              "values": [
+                13.96875,
+                13.5078125
+              ],
+              "top1_margin": 0.4609375
+            }
+          },
+          {
+            "step": 4,
+            "current_pos": 22,
+            "current_token_id": 248069,
+            "current_token_text": "</think>",
+            "base_next_id": 271,
+            "base_next_text": "\n\n",
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "accepted": true,
+            "draft_seconds": 0.007594585418701172,
+            "base_score_in_draft_logits": 14.90625,
+            "draft_top2": {
+              "ids": [
+                271,
+                198
+              ],
+              "values": [
+                14.90625,
+                13.5390625
+              ],
+              "top1_margin": 1.3671875
+            }
+          },
+          {
+            "step": 5,
+            "current_pos": 23,
+            "current_token_id": 271,
+            "current_token_text": "\n\n",
+            "base_next_id": 22054,
+            "base_next_text": "linear",
+            "draft_id": 22054,
+            "draft_text": "linear",
+            "accepted": true,
+            "draft_seconds": 0.00757145881652832,
+            "base_score_in_draft_logits": 17.265625,
+            "draft_top2": {
+              "ids": [
+                22054,
+                105094
+              ],
+              "values": [
+                17.265625,
+                13.6484375
+              ],
+              "top1_margin": 3.6171875
+            }
+          },
+          {
+            "step": 6,
+            "current_pos": 24,
+            "current_token_id": 22054,
+            "current_token_text": "linear",
+            "base_next_id": 6326,
+            "base_next_text": " attention",
+            "draft_id": 220,
+            "draft_text": " ",
+            "accepted": false,
+            "draft_seconds": 0.007587909698486328,
+            "base_score_in_draft_logits": 9.53125,
+            "draft_top2": {
+              "ids": [
+                220,
+                9616
+              ],
+              "values": [
+                11.15625,
+                10.6796875
+              ],
+              "top1_margin": 0.4765625
+            }
+          },
+          {
+            "step": 7,
+            "current_pos": 25,
+            "current_token_id": 6326,
+            "current_token_text": " attention",
+            "base_next_id": 220,
+            "base_next_text": " ",
+            "draft_id": 220,
+            "draft_text": " ",
+            "accepted": true,
+            "draft_seconds": 0.007570505142211914,
+            "base_score_in_draft_logits": 13.59375,
+            "draft_top2": {
+              "ids": [
+                220,
+                271
+              ],
+              "values": [
+                13.59375,
+                11.390625
+              ],
+              "top1_margin": 2.203125
+            }
+          },
+          {
+            "step": 8,
+            "current_pos": 26,
+            "current_token_id": 220,
+            "current_token_text": " ",
+            "base_next_id": 96580,
+            "base_next_text": "通过",
+            "draft_id": 22054,
+            "draft_text": "linear",
+            "accepted": false,
+            "draft_seconds": 0.007595539093017578,
+            "base_score_in_draft_logits": 8.1484375,
+            "draft_top2": {
+              "ids": [
+                22054,
+                105094
+              ],
+              "values": [
+                12.0859375,
+                11.34375
+              ],
+              "top1_margin": 0.7421875
+            }
+          },
+          {
+            "step": 9,
+            "current_pos": 27,
+            "current_token_id": 96580,
+            "current_token_text": "通过",
+            "base_next_id": 105094,
+            "base_next_text": "线性",
+            "draft_id": 105094,
+            "draft_text": "线性",
+            "accepted": true,
+            "draft_seconds": 0.0075757503509521484,
+            "base_score_in_draft_logits": 11.453125,
+            "draft_top2": {
+              "ids": [
+                105094,
+                22054
+              ],
+              "values": [
+                11.453125,
+                10.96875
+              ],
+              "top1_margin": 0.484375
+            }
+          },
+          {
+            "step": 10,
+            "current_pos": 28,
+            "current_token_id": 105094,
+            "current_token_text": "线性",
+            "base_next_id": 95909,
+            "base_next_text": "化",
+            "draft_id": 9616,
+            "draft_text": "（",
+            "accepted": false,
+            "draft_seconds": 0.007614850997924805,
+            "base_score_in_draft_logits": 9.515625,
+            "draft_top2": {
+              "ids": [
+                9616,
+                220
+              ],
+              "values": [
+                11.59375,
+                10.7578125
+              ],
+              "top1_margin": 0.8359375
+            }
+          },
+          {
+            "step": 11,
+            "current_pos": 29,
+            "current_token_id": 95909,
+            "current_token_text": "化",
+            "base_next_id": 110321,
+            "base_next_text": "注意力",
+            "draft_id": 22054,
+            "draft_text": "linear",
+            "accepted": false,
+            "draft_seconds": 0.0075685977935791016,
+            "base_score_in_draft_logits": 6.62890625,
+            "draft_top2": {
+              "ids": [
+                22054,
+                105094
+              ],
+              "values": [
+                10.7890625,
+                10.734375
+              ],
+              "top1_margin": 0.0546875
+            }
+          },
+          {
+            "step": 12,
+            "current_pos": 30,
+            "current_token_id": 110321,
+            "current_token_text": "注意力",
+            "base_next_id": 98853,
+            "base_next_text": "机制",
+            "draft_id": 220,
+            "draft_text": " ",
+            "accepted": false,
+            "draft_seconds": 0.0075969696044921875,
+            "base_score_in_draft_logits": 9.2578125,
+            "draft_top2": {
+              "ids": [
+                220,
+                95726
+              ],
+              "values": [
+                10.9296875,
+                10.7578125
+              ],
+              "top1_margin": 0.171875
+            }
+          },
+          {
+            "step": 13,
+            "current_pos": 31,
+            "current_token_id": 98853,
+            "current_token_text": "机制",
+            "base_next_id": 3709,
+            "base_next_text": "，",
+            "draft_id": 12,
+            "draft_text": "-",
+            "accepted": false,
+            "draft_seconds": 0.0075948238372802734,
+            "base_score_in_draft_logits": 8.828125,
+            "draft_top2": {
+              "ids": [
+                12,
+                2005
+              ],
+              "values": [
+                10.734375,
+                10.578125
+              ],
+              "top1_margin": 0.15625
+            }
+          },
+          {
+            "step": 14,
+            "current_pos": 32,
+            "current_token_id": 3709,
+            "current_token_text": "，",
+            "base_next_id": 96123,
+            "base_next_text": "将",
+            "draft_id": 22054,
+            "draft_text": "linear",
+            "accepted": false,
+            "draft_seconds": 0.0075838565826416016,
+            "base_score_in_draft_logits": 7.4921875,
+            "draft_top2": {
+              "ids": [
+                22054,
+                96133
+              ],
+              "values": [
+                11.0078125,
+                10.703125
+              ],
+              "top1_margin": 0.3046875
+            }
+          },
+          {
+            "step": 15,
+            "current_pos": 33,
+            "current_token_id": 96123,
+            "current_token_text": "将",
+            "base_next_id": 97792,
+            "base_next_text": "计算",
+            "draft_id": 96133,
+            "draft_text": "线",
+            "accepted": false,
+            "draft_seconds": 0.00757598876953125,
+            "base_score_in_draft_logits": 3.673828125,
+            "draft_top2": {
+              "ids": [
+                96133,
+                22054
+              ],
+              "values": [
+                11.0546875,
+                10.7421875
+              ],
+              "top1_margin": 0.3125
+            }
+          }
+        ]
+      },
+      "stopped_reason": "max_new"
+    },
+    {
+      "id": "heldout_repair_json",
+      "prompt": "Repair this invalid JSON and output exactly one valid JSON object: {'city':'Berlin','unit':'metric',}. No markdown.",
+      "completion_text": "\n\n<think>\n\n</think>\n\n{\"city\":\"Berlin\",\"unit\":\"metric\"}",
+      "new_ids": [
+        271,
+        248068,
+        271,
+        248069,
+        271,
+        4754,
+        8656,
+        3147,
+        91149,
+        2129,
+        3715,
+        3147,
+        15435,
+        8934,
+        248044
+      ],
+      "timings": {
+        "prefill_seconds": 0.6448183059692383,
+        "decode_step_seconds": [
+          0.017930030822753906,
+          0.017813920974731445,
+          0.017816781997680664,
+          0.017755746841430664,
+          0.01777505874633789,
+          0.017772197723388672,
+          0.017658710479736328,
+          0.017778873443603516,
+          0.017728567123413086,
+          0.017803430557250977,
+          0.01767420768737793,
+          0.019438743591308594,
+          0.01799917221069336,
+          0.017927169799804688
+        ],
+        "decode_tps": 55.80521479972174,
+        "linear_block_graph_capture_seconds": 0.0,
+        "linear_block_graph_reused": true,
+        "prefill_warmup_seconds": 1.3009371757507324,
+        "linear_block_graph_prewarm_seconds": 0.0917196273803711,
+        "native_fp4_lm_head_enabled": true,
+        "native_fp4_lm_head_prepare_seconds": 0.1081991195678711,
+        "decode_bf16_shadow_release": null,
+        "full_token_graph_slot_enabled": false,
+        "full_token_graph_slot_capture_seconds": [],
+        "full_token_graph_slot_replay_seconds": [],
+        "full_token_graph_slot_replay_tps": null,
+        "mtp_shadow": {
+          "loaded": true,
+          "enabled": true,
+          "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-v24/mtp.safetensors",
+          "load_seconds": 0.4622368812561035,
+          "events": 15,
+          "accepted": 13,
+          "accept_rate": 0.8666666666666667,
+          "max_one_token_speculative_multiplier": 1.8666666666666667,
+          "draft_step_seconds": [
+            0.007733821868896484,
+            0.007635831832885742,
+            0.007586479187011719,
+            0.007604122161865234,
+            0.007538795471191406,
+            0.007572174072265625,
+            0.007556915283203125,
+            0.007598161697387695,
+            0.007594585418701172,
+            0.007601737976074219,
+            0.007566690444946289,
+            0.0075931549072265625,
+            0.009056329727172852,
+            0.0076389312744140625,
+            0.007706403732299805
+          ],
+          "draft_tps": 129.77559587041947
+        }
+      },
+      "mtp_shadow": {
+        "loaded": true,
+        "enabled": true,
+        "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-v24/mtp.safetensors",
+        "load_seconds": 0.4622368812561035,
+        "events": 15,
+        "accepted": 13,
+        "accept_rate": 0.8666666666666667,
+        "max_one_token_speculative_multiplier": 1.8666666666666667,
+        "draft_step_seconds": [
+          0.007733821868896484,
+          0.007635831832885742,
+          0.007586479187011719,
+          0.007604122161865234,
+          0.007538795471191406,
+          0.007572174072265625,
+          0.007556915283203125,
+          0.007598161697387695,
+          0.007594585418701172,
+          0.007601737976074219,
+          0.007566690444946289,
+          0.0075931549072265625,
+          0.009056329727172852,
+          0.0076389312744140625,
+          0.007706403732299805
+        ],
+        "draft_tps": 129.77559587041947,
+        "trace": [
+          {
+            "step": 0,
+            "current_pos": 24,
+            "current_token_id": 13,
+            "current_token_text": ".",
+            "base_next_id": 271,
+            "base_next_text": "\n\n",
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "accepted": true,
+            "draft_seconds": 0.007733821868896484,
+            "base_score_in_draft_logits": 16.03125,
+            "draft_top2": {
+              "ids": [
+                271,
+                198
+              ],
+              "values": [
+                16.03125,
+                14.1640625
+              ],
+              "top1_margin": 1.8671875
+            }
+          },
+          {
+            "step": 1,
+            "current_pos": 25,
+            "current_token_id": 271,
+            "current_token_text": "\n\n",
+            "base_next_id": 248068,
+            "base_next_text": "<think>",
+            "draft_id": 248068,
+            "draft_text": "<think>",
+            "accepted": true,
+            "draft_seconds": 0.007635831832885742,
+            "base_score_in_draft_logits": 15.4453125,
+            "draft_top2": {
+              "ids": [
+                248068,
+                4754
+              ],
+              "values": [
+                15.4453125,
+                15.359375
+              ],
+              "top1_margin": 0.0859375
+            }
+          },
+          {
+            "step": 2,
+            "current_pos": 26,
+            "current_token_id": 248068,
+            "current_token_text": "<think>",
+            "base_next_id": 271,
+            "base_next_text": "\n\n",
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "accepted": true,
+            "draft_seconds": 0.007586479187011719,
+            "base_score_in_draft_logits": 20.109375,
+            "draft_top2": {
+              "ids": [
+                271,
+                198
+              ],
+              "values": [
+                20.109375,
+                17.625
+              ],
+              "top1_margin": 2.484375
+            }
+          },
+          {
+            "step": 3,
+            "current_pos": 27,
+            "current_token_id": 271,
+            "current_token_text": "\n\n",
+            "base_next_id": 248069,
+            "base_next_text": "</think>",
+            "draft_id": 248069,
+            "draft_text": "</think>",
+            "accepted": true,
+            "draft_seconds": 0.007604122161865234,
+            "base_score_in_draft_logits": 15.9296875,
+            "draft_top2": {
+              "ids": [
+                248069,
+                248068
+              ],
+              "values": [
+                15.9296875,
+                14.609375
+              ],
+              "top1_margin": 1.3203125
+            }
+          },
+          {
+            "step": 4,
+            "current_pos": 28,
+            "current_token_id": 248069,
+            "current_token_text": "</think>",
+            "base_next_id": 271,
+            "base_next_text": "\n\n",
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "accepted": true,
+            "draft_seconds": 0.007538795471191406,
+            "base_score_in_draft_logits": 15.6328125,
+            "draft_top2": {
+              "ids": [
+                271,
+                198
+              ],
+              "values": [
+                15.6328125,
+                13.78125
+              ],
+              "top1_margin": 1.8515625
+            }
+          },
+          {
+            "step": 5,
+            "current_pos": 29,
+            "current_token_id": 271,
+            "current_token_text": "\n\n",
+            "base_next_id": 4754,
+            "base_next_text": "{\"",
+            "draft_id": 4754,
+            "draft_text": "{\"",
+            "accepted": true,
+            "draft_seconds": 0.007572174072265625,
+            "base_score_in_draft_logits": 20.796875,
+            "draft_top2": {
+              "ids": [
+                4754,
+                5046
+              ],
+              "values": [
+                20.796875,
+                16.609375
+              ],
+              "top1_margin": 4.1875
+            }
+          },
+          {
+            "step": 6,
+            "current_pos": 30,
+            "current_token_id": 4754,
+            "current_token_text": "{\"",
+            "base_next_id": 8656,
+            "base_next_text": "city",
+            "draft_id": 8656,
+            "draft_text": "city",
+            "accepted": true,
+            "draft_seconds": 0.007556915283203125,
+            "base_score_in_draft_logits": 14.671875,
+            "draft_top2": {
+              "ids": [
+                8656,
+                2513
+              ],
+              "values": [
+                14.671875,
+                11.8671875
+              ],
+              "top1_margin": 2.8046875
+            }
+          },
+          {
+            "step": 7,
+            "current_pos": 31,
+            "current_token_id": 8656,
+            "current_token_text": "city",
+            "base_next_id": 3147,
+            "base_next_text": "\":\"",
+            "draft_id": 3147,
+            "draft_text": "\":\"",
+            "accepted": true,
+            "draft_seconds": 0.007598161697387695,
+            "base_score_in_draft_logits": 18.390625,
+            "draft_top2": {
+              "ids": [
+                3147,
+                763
+              ],
+              "values": [
+                18.390625,
+                17.40625
+              ],
+              "top1_margin": 0.984375
+            }
+          },
+          {
+            "step": 8,
+            "current_pos": 32,
+            "current_token_id": 3147,
+            "current_token_text": "\":\"",
+            "base_next_id": 91149,
+            "base_next_text": "Berlin",
+            "draft_id": 1265,
+            "draft_text": "action",
+            "accepted": false,
+            "draft_seconds": 0.007594585418701172,
+            "base_score_in_draft_logits": 2.060546875,
+            "draft_top2": {
+              "ids": [
+                1265,
+                248068
+              ],
+              "values": [
+                10.796875,
+                10.703125
+              ],
+              "top1_margin": 0.09375
+            }
+          },
+          {
+            "step": 9,
+            "current_pos": 33,
+            "current_token_id": 91149,
+            "current_token_text": "Berlin",
+            "base_next_id": 2129,
+            "base_next_text": "\",\"",
+            "draft_id": 2129,
+            "draft_text": "\",\"",
+            "accepted": true,
+            "draft_seconds": 0.007601737976074219,
+            "base_score_in_draft_logits": 15.4765625,
+            "draft_top2": {
+              "ids": [
+                2129,
+                487
+              ],
+              "values": [
+                15.4765625,
+                13.8203125
+              ],
+              "top1_margin": 1.65625
+            }
+          },
+          {
+            "step": 10,
+            "current_pos": 34,
+            "current_token_id": 2129,
+            "current_token_text": "\",\"",
+            "base_next_id": 3715,
+            "base_next_text": "unit",
+            "draft_id": 3715,
+            "draft_text": "unit",
+            "accepted": true,
+            "draft_seconds": 0.007566690444946289,
+            "base_score_in_draft_logits": 14.4765625,
+            "draft_top2": {
+              "ids": [
+                3715,
+                1265
+              ],
+              "values": [
+                14.4765625,
+                11.640625
+              ],
+              "top1_margin": 2.8359375
+            }
+          },
+          {
+            "step": 11,
+            "current_pos": 35,
+            "current_token_id": 3715,
+            "current_token_text": "unit",
+            "base_next_id": 3147,
+            "base_next_text": "\":\"",
+            "draft_id": 3147,
+            "draft_text": "\":\"",
+            "accepted": true,
+            "draft_seconds": 0.0075931549072265625,
+            "base_score_in_draft_logits": 18.15625,
+            "draft_top2": {
+              "ids": [
+                3147,
+                763
+              ],
+              "values": [
+                18.15625,
+                16.765625
+              ],
+              "top1_margin": 1.390625
+            }
+          },
+          {
+            "step": 12,
+            "current_pos": 36,
+            "current_token_id": 3147,
+            "current_token_text": "\":\"",
+            "base_next_id": 15435,
+            "base_next_text": "metric",
+            "draft_id": 15435,
+            "draft_text": "metric",
+            "accepted": true,
+            "draft_seconds": 0.009056329727172852,
+            "base_score_in_draft_logits": 11.7265625,
+            "draft_top2": {
+              "ids": [
+                15435,
+                3715
+              ],
+              "values": [
+                11.7265625,
+                11.0625
+              ],
+              "top1_margin": 0.6640625
+            }
+          },
+          {
+            "step": 13,
+            "current_pos": 37,
+            "current_token_id": 15435,
+            "current_token_text": "metric",
+            "base_next_id": 8934,
+            "base_next_text": "\"}",
+            "draft_id": 8934,
+            "draft_text": "\"}",
+            "accepted": true,
+            "draft_seconds": 0.0076389312744140625,
+            "base_score_in_draft_logits": 15.5078125,
+            "draft_top2": {
+              "ids": [
+                8934,
+                2129
+              ],
+              "values": [
+                15.5078125,
+                14.796875
+              ],
+              "top1_margin": 0.7109375
+            }
+          },
+          {
+            "step": 14,
+            "current_pos": 38,
+            "current_token_id": 8934,
+            "current_token_text": "\"}",
+            "base_next_id": 248044,
+            "base_next_text": "<|endoftext|>",
+            "draft_id": 248046,
+            "draft_text": "<|im_end|>",
+            "accepted": false,
+            "draft_seconds": 0.007706403732299805,
+            "base_score_in_draft_logits": 7.375,
+            "draft_top2": {
+              "ids": [
+                248046,
+                271
+              ],
+              "values": [
+                14.703125,
+                12.578125
+              ],
+              "top1_margin": 2.125
+            }
+          }
+        ]
+      },
+      "stopped_reason": "stop_token"
+    }
+  ]
+}
