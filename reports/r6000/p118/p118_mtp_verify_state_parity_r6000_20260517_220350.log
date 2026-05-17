@@ -1,0 +1,70 @@
+[r6000-p118] start Sun May 17 22:03:50 CST 2026
+[r6000-p118] model=/root/autodl-tmp/models/lynn-27b-a3b-w4a8-nvfp4-v2
+[r6000-p118] max_events=8 max_seq_len=4096 dtype=bfloat16
+[r6000-p118] native_fp4_lm_head=1 moe_impl=packed_nvfp4
+[resident] loading outside weights from /root/autodl-tmp/models/lynn-27b-a3b-w4a8-nvfp4-v2
+[resident] loading 40 layers
+  Lynn variable NVFP4 slow dequant load: 1.67 GB in 0.3s
+  Lynn variable NVFP4 slow dequant load: 1.66 GB in 0.2s
+  Lynn variable NVFP4 slow dequant load: 1.69 GB in 0.2s
+  Lynn variable NVFP4 slow dequant load: 1.62 GB in 0.2s
+  Lynn variable NVFP4 slow dequant load: 1.64 GB in 0.2s
+  [resident] L04: 2.9s
+  Lynn variable NVFP4 slow dequant load: 1.64 GB in 0.2s
+  Lynn variable NVFP4 slow dequant load: 1.56 GB in 0.2s
+  Lynn variable NVFP4 slow dequant load: 1.52 GB in 0.1s
+  Lynn variable NVFP4 slow dequant load: 1.53 GB in 0.2s
+  Lynn variable NVFP4 slow dequant load: 1.53 GB in 0.2s
+  [resident] L09: 3.7s
+  Lynn variable NVFP4 slow dequant load: 1.54 GB in 0.2s
+  Lynn variable NVFP4 slow dequant load: 1.55 GB in 0.2s
+  Lynn variable NVFP4 slow dequant load: 1.60 GB in 0.2s
+  Lynn variable NVFP4 slow dequant load: 1.53 GB in 0.2s
+  Lynn variable NVFP4 slow dequant load: 1.47 GB in 0.2s
+  [resident] L14: 4.6s
+  Lynn variable NVFP4 slow dequant load: 1.46 GB in 0.1s
+  Lynn variable NVFP4 slow dequant load: 1.47 GB in 0.1s
+  Lynn variable NVFP4 slow dequant load: 1.47 GB in 0.2s
+  Lynn variable NVFP4 slow dequant load: 1.47 GB in 0.2s
+  Lynn variable NVFP4 slow dequant load: 1.46 GB in 0.1s
+  [resident] L19: 5.3s
+  Lynn variable NVFP4 slow dequant load: 1.47 GB in 0.2s
+  Lynn variable NVFP4 slow dequant load: 1.47 GB in 0.2s
+  Lynn variable NVFP4 slow dequant load: 1.55 GB in 0.2s
+  Lynn variable NVFP4 slow dequant load: 1.54 GB in 0.2s
+  Lynn variable NVFP4 slow dequant load: 1.47 GB in 0.2s
+  [resident] L24: 6.2s
+  Lynn variable NVFP4 slow dequant load: 1.47 GB in 0.1s
+  Lynn variable NVFP4 slow dequant load: 1.47 GB in 0.2s
+  Lynn variable NVFP4 slow dequant load: 1.46 GB in 0.1s
+  Lynn variable NVFP4 slow dequant load: 1.47 GB in 0.2s
+  Lynn variable NVFP4 slow dequant load: 1.47 GB in 0.2s
+  [resident] L29: 6.9s
+  Lynn variable NVFP4 slow dequant load: 1.47 GB in 0.1s
+  Lynn variable NVFP4 slow dequant load: 1.46 GB in 0.1s
+  Lynn variable NVFP4 slow dequant load: 1.51 GB in 0.2s
+  Lynn variable NVFP4 slow dequant load: 1.51 GB in 0.2s
+  Lynn variable NVFP4 slow dequant load: 1.51 GB in 0.2s
+  [resident] L34: 7.7s
+  Lynn variable NVFP4 slow dequant load: 1.50 GB in 0.2s
+  Lynn variable NVFP4 slow dequant load: 1.51 GB in 0.2s
+  Lynn variable NVFP4 slow dequant load: 1.53 GB in 0.2s
+  Lynn variable NVFP4 slow dequant load: 1.51 GB in 0.2s
+  Lynn variable NVFP4 slow dequant load: 1.50 GB in 0.2s
+  [resident] L39: 8.6s
+[resident] shared expert fused gate/up attached=40
+[resident] packed NVFP4 MoE aliases attached=40
+[resident] native FP4 lm_head prepared in 0.162s
+{
+  "decision": "GREEN: Python K=2 verify accept/reject commit semantics match direct base decode.",
+  "summary": {
+    "prompt_count": 3,
+    "events": 24,
+    "passed_events": 24,
+    "pass_rate": 1.0,
+    "mean_prompt_events": 8.0,
+    "max_abs_diff": 0.0
+  }
+}
+[r6000-p118] report=/root/autodl-tmp/reports/p118/p118_mtp_verify_state_parity_r6000_20260517_220350.json
+[r6000-p118] done Sun May 17 22:04:16 CST 2026
