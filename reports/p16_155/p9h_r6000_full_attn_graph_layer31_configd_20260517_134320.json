@@ -1,0 +1,45 @@
+{
+  "schema_version": "lynn-engine-p9h-full-attn-graph-probe-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-a3b-w4a8-nvfp4-v2",
+  "layer": 31,
+  "device": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+  "qk_norm_rope_backend": "triton_pair",
+  "eager_ms": 0.7767271995544434,
+  "graph_ms": 0.19926128387451172,
+  "speedup": 3.8980336995299143,
+  "output_diff": {
+    "max_abs": 0.0,
+    "mean_abs": 0.0,
+    "rel_l2": 0.0,
+    "cosine": 0.9999997615814209
+  },
+  "kv_diff": {
+    "k": {
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "rel_l2": 0.0,
+      "cosine": 1.0000001192092896
+    },
+    "v": {
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "rel_l2": 0.0,
+      "cosine": 0.9999999403953552
+    }
+  },
+  "kv_write_slice_diff": {
+    "position": 7,
+    "k": {
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "rel_l2": 0.0,
+      "cosine": 1.0
+    },
+    "v": {
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "rel_l2": 0.0,
+      "cosine": 1.0
+    }
+  }
+}

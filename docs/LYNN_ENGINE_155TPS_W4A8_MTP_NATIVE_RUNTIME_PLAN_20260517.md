@@ -23,8 +23,8 @@ R6000 v2 active-MoE micro gain: ~1.12x interval, not enough alone
 A100 best W4A8 recovery baseline: structured_v16_top6_damped075
 A100 teacher-clean v2 serving gate: 10/12 served exact, still RED
 A100 teacher-clean v3 serving gate: 11/12 served exact, min prefix 16, AMBER by plan threshold
-MTP: aligned sidecar forward works; best saved sidecar is now v16 at
-     57/116 = 49.14%, still AMBER and below serving multiplier credit
+MTP: aligned sidecar forward works; best saved sidecar is now v17 at
+     58/116 = 50.00%, still AMBER and below serving multiplier credit
 ```
 
 155 requires a compound win. There is no single safe env flag left.
@@ -337,6 +337,16 @@ full-layer recomposition `0.73-0.85 ms`, attention full decode `0.28-0.31 ms`,
 packed MoE `0.20-0.22 ms`, q/k norm+RoPE `0.125-0.136 ms`, and SDPA GQA
 `~0.015 ms`. This makes the next C++/CUDA target a fused/static full-layer
 boundary, not a standalone SDPA kernel.
+
+2026-05-17 P9H full-attention graph probe gives the first strong full-attn
+runtime signal. On layer 31, a fixed-position graph capture of the full layer
+boundary measures `0.7767 ms` eager vs `0.1993 ms` graph replay, or `3.90x`
+speedup, with exact output/KV parity (`max_abs=0`, `rel_l2=0`) and exact KV
+write-slice parity at position 7. This does not mean the current server can
+flip one env var; it means the next R6000 runtime investment should build
+reusable static-position/KV graph families or an equivalent native full-layer
+boundary. The earlier Spark strict-slot result remains rejected because it
+recaptures every token, but reusable capture is now a proven high-ROI path.
 
 2026-05-17 down-backend service sweep: switching only
 `LYNN_NATIVE_DOWN_BACKEND` from `triton` to `cuda_tile` gives real raw speed

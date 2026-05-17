@@ -311,6 +311,33 @@ reports/p16_155/p27_r6000_full_layer_sweep_configd_20260517_133837.json
 
 The shape is stable across shallow/mid/late full-attention layers.
 
+## Full-Attention Graph Probe
+
+Fixed-position graph probe:
+
+```text
+reports/p16_155/p9h_r6000_full_attn_graph_layer31_configd_20260517_134320.json
+```
+
+Layer 31 result:
+
+| Mode | Mean ms |
+|---|---:|
+| Eager full layer | 0.777 |
+| Graph replay | 0.199 |
+| Speedup | 3.90x |
+
+Parity is exact for the measured path: output `max_abs=0`, output `rel_l2=0`,
+KV cache `max_abs=0`, and the written KV slice at position 7 also matches with
+`max_abs=0`.
+
+This changes the full-attention conclusion from "profile more" to "invest in
+reusable graph/static-state capture." The rejected whole-decode strict-slot path
+was slow because it recaptured every token; this probe shows the reused replay
+side of the same idea is fast enough to matter. The next runtime target is a
+static-position/KV graph family or equivalent native full-layer boundary for the
+ten full-attention layers, while preserving Config D as fallback.
+
 ## Down Backend Service Sweep
 
 Service-path report:
