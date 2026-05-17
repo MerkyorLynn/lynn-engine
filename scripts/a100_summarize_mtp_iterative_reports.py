@@ -40,6 +40,10 @@ def summarize(paths: list[Path]) -> dict[str, Any]:
             {
                 "path": str(path),
                 "trainable": report.get("trainable"),
+                "loss_mode": report.get("loss_mode", "ce"),
+                "margin": report.get("margin"),
+                "margin_alpha": report.get("margin_alpha"),
+                "hard_negative_top_k": report.get("hard_negative_top_k"),
                 "steps": report.get("steps"),
                 "lr": report.get("lr"),
                 "first_token_weight": report.get("first_token_weight"),
@@ -67,17 +71,24 @@ def summarize(paths: list[Path]) -> dict[str, Any]:
         key=lambda row: -1.0 if row.get("eval_after") is None else float(row["eval_after"]["accept_rate"]),
         default=None,
     )
+    best_rate = None if best is None or best.get("eval_after") is None else float(best["eval_after"]["accept_rate"])
+    if not rows:
+        decision = "No iterative reports found."
+    elif best_rate is not None and best_rate >= 0.70:
+        decision = "GREEN: best iterative sidecar clears the 70% promotion threshold."
+    elif best_rate is not None and best_rate >= 0.55:
+        decision = "GREEN-CREDIT: best iterative sidecar clears the 55% serving-credit threshold."
+    else:
+        decision = "MTP iterative accept is improving but remains below serving-credit threshold."
     return {
         "schema_version": "lynn-a100-mtp-iterative-ladder-summary-v1",
         "report_count": len(rows),
         "best_eval_after_path": None if best is None else best["path"],
         "best_eval_after_accept_rate": None if best is None else best["eval_after"]["accept_rate"],
+        "serving_credit_accept_rate": 0.55,
+        "promotion_accept_rate": 0.70,
         "rows": rows,
-        "decision": (
-            "No iterative reports found."
-            if not rows
-            else "MTP iterative accept is improving but remains below serving multiplier threshold."
-        ),
+        "decision": decision,
     }
 
 

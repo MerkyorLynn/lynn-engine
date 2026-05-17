@@ -27,9 +27,10 @@ R6000 hybrid graph token: greedy pass, 9.53 ms one-shot, strict logits not yet e
 A100 best W4A8 recovery baseline: structured_v16_top6_damped075
 A100 teacher-clean v2 serving gate: 10/12 served exact, still RED
 A100 teacher-clean v3 serving gate: 11/12 served exact, min prefix 16, AMBER by plan threshold
-MTP: aligned sidecar forward works; best saved sidecar is now v19 at
-     60/116 = 51.72%, still AMBER and below serving multiplier credit.
-     v19 diagnostic shows 18 near misses, so v22 uses CE + hard-negative margin.
+MTP: aligned sidecar forward works; best saved sidecar is now v22 at
+     64/116 = 55.17%, GREEN-CREDIT but not promotion-ready.
+     v19 diagnostic showed 18 near misses; v22 CE + hard-negative margin
+     converted enough of them to cross the 55% serving-credit bar.
 ```
 
 155 requires a compound win. There is no single safe env flag left.
@@ -258,6 +259,20 @@ the top-k set. The v5 margin calibration prompts focus on compact JSON,
 function arguments, JSON repair, Python code-body continuation, and short
 router/linear-attention prefixes.
 
+A100 v22 is the first saved MTP sidecar to cross the 55% serving-credit bar.
+In-memory eval moves from v19 `60/116` to `64/116`, and saved-sidecar reload
+confirms v22 at `64/116 = 55.17%` with decision GREEN. The sidecar is:
+
+```text
+/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v19-margin-v5-fcnorms-v22-20260517_145317/mtp.safetensors
+```
+
+The gain is not uniform: step0 improves `4/8 -> 6/8`, step7 `3/8 -> 4/8`,
+step11 `2/6 -> 3/6`, step12 `1/6 -> 2/6`, and step15 `1/5 -> 2/5`, while
+step10 regresses `4/7 -> 2/7`. That makes v22 the first MTP serving-credit
+candidate, but the next A100 run should recover step10/step1 before calling it
+promotion-ready.
+
 If fc-only cannot clear 55-70%, unfreeze in this order:
 
 1. `mtp.fc.weight`
@@ -431,6 +446,12 @@ drift to full-attn slot layer3: linear block0 is exact, then layer3 slot output
 diff appears (`max_abs=0.02124`, `rel_l2=0.1479`). The next R6000 runtime patch
 should tighten the full-attn slot state contract before wiring an env-flagged
 server path.
+
+2026-05-17 P9P repeats the layerwise diff with a single restored state matching
+P9N's execution shape. It confirms P9O was not a two-prefill artifact: first
+drift is still full-attn slot layer3 with the same `max_abs=0.02124`, while
+linear block0 remains exact. This pins the next graph task to the full-attn slot
+capture contract.
 
 2026-05-17 down-backend service sweep: switching only
 `LYNN_NATIVE_DOWN_BACKEND` from `triton` to `cuda_tile` gives real raw speed

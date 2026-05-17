@@ -28,6 +28,7 @@ P9H/P9I/P9J changed the full-attention decision:
 | P9M pre-captured slot on populated KV | layer31 position39 exact output/KV parity, 0.295 ms replay |
 | P9N hybrid token probe | 10 linear graphs + 10 full-attn slots, greedy pass, 9.53 ms one-shot |
 | P9O layerwise diff | first strict drift at full-attn slot layer3; linear block0 is exact |
+| P9P single-state layerwise diff | confirms P9O drift is not a two-prefill artifact |
 
 This makes full-attention reusable graphing the strongest non-MTP R6000 speed
 lever found today.
@@ -135,6 +136,19 @@ layer3 slot diff: max_abs 0.02124, rel_l2 0.1479
 
 The next runtime patch should therefore focus on the first full-attn slot's
 capture/replay state contract, not on the linear block graph.
+
+P9P repeats that check with one shared state restored from the same prefill
+base, matching the P9N execution model:
+
+```text
+reports/p16_155/p9p_r6000_hybrid_full_attn_graph_single_state_diff_configd_20260517_145702.json
+first_drift: full_attention_slot layer3
+linear block0 diff: max_abs 0
+layer3 slot diff: max_abs 0.02124, rel_l2 0.1479
+```
+
+So the layer3 drift is a real composition issue, not an artifact of comparing
+two independently-prefilled states.
 
 ## Graph Key
 

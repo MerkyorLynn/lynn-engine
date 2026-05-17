@@ -174,6 +174,15 @@ near_misses_label_rank_le_5: 18
 hard_misses_label_rank_gt_20: 32
 largest miss buckets: semantic_token 21, stop_token 18, generic_structured_key 8,
 json_punctuation 6
+
+reports/mtp/mtp_fc_calibration_prompts_v5_margin_nearmiss.json
+reports/mtp/a100_mtp_iterative_train_v19_margin_v5_fcnorms_v22_20260517_145317.json
+reports/mtp/a100_mtp_saved_sidecar_eval_v19_v22_20260517_145645.json
+decision: GREEN-CREDIT
+best_label: v22
+best_accept: 64/116 = 55.17%
+sidecar:
+/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v19-margin-v5-fcnorms-v22-20260517_145317/mtp.safetensors
 ```
 
 The weighted-math v3 sidecar is a GREEN first-token draft candidate, but it is
@@ -225,6 +234,15 @@ reports/mtp/mtp_fc_calibration_prompts_v5_margin_nearmiss.json
 loss_mode: ce_margin
 target: make label logit beat the current hard negative by margin
 ```
+
+v22 confirms the new objective is useful. In-memory eval moves from `60/116`
+to `64/116`, and the saved-sidecar reload gate keeps v22 as best at
+`64/116 = 55.17%`. The gain comes from step0 `4/8 -> 6/8`, step7 `3/8 -> 4/8`,
+step11 `2/6 -> 3/6`, step12 `1/6 -> 2/6`, and step15 `1/5 -> 2/5`, while the
+already-restored step2/3/4/5 band remains `8/8`. Step10 regresses from `4/7`
+to `2/7`, so v22 is a serving-credit candidate, not yet a final promotion
+candidate. The next MTP move should preserve v22 and recover step10/step1
+without losing the new step0/late-tail accepts.
 
 This changes the initialization and wiring path, not the serving state: MTP can
 now run a real draft forward pass and backpropagate through a frozen-base,
