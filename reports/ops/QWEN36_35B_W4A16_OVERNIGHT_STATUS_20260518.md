@@ -109,6 +109,37 @@ Copied reports:
 - `reports/qwen36_35b/r6000_qwen36_w4a16_graph_structured_p25_20260518_013525.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_graph_structured_rerun_gate_20260518_013742.json`
 
+## Speed Profile
+
+R6000 P26 phase profile on graph+in-place narrows the 155 TPS gap:
+
+| Phase | Mean ms/token |
+|---|---:|
+| Linear-attention graph blocks | 8.68 |
+| Full-attention layers | 4.14 |
+| Norm + native FP4 lm_head | 0.33 |
+| Host gap | 0.14 |
+| Total profiled wall | 13.33 |
+
+The immediate bottleneck is GPU work, not Python/server overhead. To reach 155
+TPS, the target is roughly 6.45 ms/token, so the next runtime work should focus
+on linear-block replay and full-attention layer fusion before C++ service-loop
+rewrites.
+
+Supporting micro-profiles:
+
+- Full-attention layer 31: `layer.full_decode` 1.02 ms, with attention decode
+  0.53 ms, qk norm/RoPE 0.36 ms, and MoE 0.22 ms.
+- Linear-attention layer 0 core: recomposed core 0.42 ms; top segments are gated
+  RMSNorm 0.078 ms, native FP4 fused in-proj 0.074 ms, recurrent update 0.038 ms,
+  conv update 0.033 ms.
+
+Copied reports:
+
+- `reports/qwen36_35b/r6000_qwen36_w4a16_graph_inplace_p26_phase_20260518_014002.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_graph_inplace_p27_full_layer31_20260518_014148.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p10c_linear_layer0_20260518_014332.json`
+
 ## W4A8 Matrix
 
 R6000 W4A8 comparison:

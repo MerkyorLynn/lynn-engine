@@ -56,6 +56,12 @@ with 72.76 wall TPS at 512 tokens, and passed a 14-request OpenAI structured
 gate covering JSON, tool-call JSON, Python, YAML, Chinese constraints, and a
 numeric answer.
 
+The 155 TPS gap is now a GPU-kernel problem first. P26 profiling measured about
+8.68 ms/token in linear-attention graph blocks, 4.14 ms/token in full-attention
+layers, 0.33 ms/token in norm + native FP4 lm_head, and only 0.14 ms/token host
+gap. Prioritize linear-block replay/fusion and full-attention layer fusion before
+large service-loop rewrites.
+
 ## Tonight's Objective
 
 The R6000 official 35B pipeline should answer:
