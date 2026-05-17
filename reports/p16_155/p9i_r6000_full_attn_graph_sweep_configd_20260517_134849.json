@@ -1,0 +1,431 @@
+{
+  "schema_version": "lynn-engine-p9i-full-attn-graph-sweep-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-a3b-w4a8-nvfp4-v2",
+  "device": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+  "qk_norm_rope_backend": "torch",
+  "summary": {
+    "case_count": 12,
+    "layers": [
+      3,
+      15,
+      31,
+      39
+    ],
+    "positions": [
+      10,
+      14,
+      32
+    ],
+    "eager_restore_ms_mean": 1.0611960026952956,
+    "graph_restore_ms_mean": 0.25687637858920626,
+    "speedup_restore_min": 4.024083937177835,
+    "speedup_restore_mean": 4.133410489517092,
+    "speedup_restore_max": 4.327326095159386,
+    "eager_no_restore_ms_mean": 1.0308805704116821,
+    "graph_replay_ms_mean": 0.2522853334744771,
+    "speedup_replay_min": 3.999852186456813,
+    "speedup_replay_mean": 4.088405645803114,
+    "speedup_replay_max": 4.287616089216375,
+    "max_output_diff": 0.0,
+    "max_kv_write_k_diff": 0.0,
+    "max_kv_write_v_diff": 0.0
+  },
+  "records": [
+    {
+      "prompt_index": 0,
+      "prompt": "Explain MoE active parameters in one sentence.",
+      "position": 10,
+      "layer": 3,
+      "eager_restore_ms": 1.0636186599731445,
+      "graph_restore_ms": 0.24579119682312012,
+      "speedup_restore": 4.327326095159386,
+      "eager_no_restore_ms": 1.038376013437907,
+      "graph_replay_ms": 0.24218026796976724,
+      "speedup_replay": 4.287616089216375,
+      "output_diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104
+      },
+      "kv_write_slice_diff": {
+        "position": 10,
+        "k": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0000001192092896
+        },
+        "v": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        }
+      }
+    },
+    {
+      "prompt_index": 0,
+      "prompt": "Explain MoE active parameters in one sentence.",
+      "position": 10,
+      "layer": 15,
+      "eager_restore_ms": 1.0592866738637288,
+      "graph_restore_ms": 0.24630187352498373,
+      "speedup_restore": 4.300765798910091,
+      "eager_no_restore_ms": 1.034178654352824,
+      "graph_replay_ms": 0.24271440505981445,
+      "speedup_replay": 4.260887004617469,
+      "output_diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      },
+      "kv_write_slice_diff": {
+        "position": 10,
+        "k": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 0.9999998807907104
+        },
+        "v": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0000001192092896
+        }
+      }
+    },
+    {
+      "prompt_index": 0,
+      "prompt": "Explain MoE active parameters in one sentence.",
+      "position": 10,
+      "layer": 31,
+      "eager_restore_ms": 1.0493079821268718,
+      "graph_restore_ms": 0.24654666582743326,
+      "speedup_restore": 4.2560217904602275,
+      "eager_no_restore_ms": 1.0280826886494954,
+      "graph_replay_ms": 0.24275280634562174,
+      "speedup_replay": 4.235101147237624,
+      "output_diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "kv_write_slice_diff": {
+        "position": 10,
+        "k": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 0.9999998807907104
+        },
+        "v": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        }
+      }
+    },
+    {
+      "prompt_index": 0,
+      "prompt": "Explain MoE active parameters in one sentence.",
+      "position": 10,
+      "layer": 39,
+      "eager_restore_ms": 1.092135985692342,
+      "graph_restore_ms": 0.2605690638224284,
+      "speedup_restore": 4.191349386113644,
+      "eager_no_restore_ms": 1.0320160388946533,
+      "graph_replay_ms": 0.25530667304992677,
+      "speedup_replay": 4.0422603395596965,
+      "output_diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "kv_write_slice_diff": {
+        "position": 10,
+        "k": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 0.9999999403953552
+        },
+        "v": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        }
+      }
+    },
+    {
+      "prompt_index": 1,
+      "prompt": "Return only a compact JSON object with city and status for Shanghai weather.",
+      "position": 14,
+      "layer": 3,
+      "eager_restore_ms": 1.0504559675852458,
+      "graph_restore_ms": 0.2608890692392985,
+      "speedup_restore": 4.026446836765412,
+      "eager_no_restore_ms": 1.0327400366465251,
+      "graph_replay_ms": 0.2559725284576416,
+      "speedup_replay": 4.0345737211304815,
+      "output_diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104
+      },
+      "kv_write_slice_diff": {
+        "position": 14,
+        "k": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "v": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        }
+      }
+    },
+    {
+      "prompt_index": 1,
+      "prompt": "Return only a compact JSON object with city and status for Shanghai weather.",
+      "position": 14,
+      "layer": 15,
+      "eager_restore_ms": 1.0495733420054119,
+      "graph_restore_ms": 0.2603229363759359,
+      "speedup_restore": 4.031812780759774,
+      "eager_no_restore_ms": 1.0309092998504639,
+      "graph_replay_ms": 0.255405600865682,
+      "speedup_replay": 4.036361365437009,
+      "output_diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "kv_write_slice_diff": {
+        "position": 14,
+        "k": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 0.9999998807907104
+        },
+        "v": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0000001192092896
+        }
+      }
+    },
+    {
+      "prompt_index": 1,
+      "prompt": "Return only a compact JSON object with city and status for Shanghai weather.",
+      "position": 14,
+      "layer": 31,
+      "eager_restore_ms": 1.0568040211995442,
+      "graph_restore_ms": 0.2608250617980957,
+      "speedup_restore": 4.051773299368044,
+      "eager_no_restore_ms": 1.0318533579508464,
+      "graph_replay_ms": 0.2559175968170166,
+      "speedup_replay": 4.031975021587245,
+      "output_diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "kv_write_slice_diff": {
+        "position": 14,
+        "k": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "v": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        }
+      }
+    },
+    {
+      "prompt_index": 1,
+      "prompt": "Return only a compact JSON object with city and status for Shanghai weather.",
+      "position": 14,
+      "layer": 39,
+      "eager_restore_ms": 1.0570533275604248,
+      "graph_restore_ms": 0.2607746601104736,
+      "speedup_restore": 4.053512435267363,
+      "eager_no_restore_ms": 1.0232293605804443,
+      "graph_replay_ms": 0.25581679344177244,
+      "speedup_replay": 3.999852186456813,
+      "output_diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998211860657
+      },
+      "kv_write_slice_diff": {
+        "position": 14,
+        "k": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 0.9999999403953552
+        },
+        "v": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        }
+      }
+    },
+    {
+      "prompt_index": 2,
+      "prompt": "Write five concise bullet points comparing W4A8 and W4A4 quantization for a deployment engineer, focusing on latency, memory, and quality risk.",
+      "position": 32,
+      "layer": 3,
+      "eager_restore_ms": 1.04613200823466,
+      "graph_restore_ms": 0.2599677403767904,
+      "speedup_restore": 4.024083937177835,
+      "eager_no_restore_ms": 1.0276467005411785,
+      "graph_replay_ms": 0.25523145993550617,
+      "speedup_replay": 4.026332415294149,
+      "output_diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104
+      },
+      "kv_write_slice_diff": {
+        "position": 32,
+        "k": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0000001192092896
+        },
+        "v": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        }
+      }
+    },
+    {
+      "prompt_index": 2,
+      "prompt": "Write five concise bullet points comparing W4A8 and W4A4 quantization for a deployment engineer, focusing on latency, memory, and quality risk.",
+      "position": 32,
+      "layer": 15,
+      "eager_restore_ms": 1.055613358815511,
+      "graph_restore_ms": 0.2605504035949707,
+      "speedup_restore": 4.051474663829256,
+      "eager_no_restore_ms": 1.0291600227355957,
+      "graph_replay_ms": 0.25601760546366376,
+      "speedup_replay": 4.019879886274708,
+      "output_diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104
+      },
+      "kv_write_slice_diff": {
+        "position": 32,
+        "k": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 0.9999998211860657
+        },
+        "v": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0000001192092896
+        }
+      }
+    },
+    {
+      "prompt_index": 2,
+      "prompt": "Write five concise bullet points comparing W4A8 and W4A4 quantization for a deployment engineer, focusing on latency, memory, and quality risk.",
+      "position": 32,
+      "layer": 31,
+      "eager_restore_ms": 1.1032000382741292,
+      "graph_restore_ms": 0.2600346724192301,
+      "speedup_restore": 4.242511308244081,
+      "eager_no_restore_ms": 1.0325413544972737,
+      "graph_replay_ms": 0.25502559343973796,
+      "speedup_replay": 4.048775421205955,
+      "output_diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896
+      },
+      "kv_write_slice_diff": {
+        "position": 32,
+        "k": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0000001192092896
+        },
+        "v": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        }
+      }
+    },
+    {
+      "prompt_index": 2,
+      "prompt": "Write five concise bullet points comparing W4A8 and W4A4 quantization for a deployment engineer, focusing on latency, memory, and quality risk.",
+      "position": 32,
+      "layer": 39,
+      "eager_restore_ms": 1.0511706670125325,
+      "graph_restore_ms": 0.25994319915771485,
+      "speedup_restore": 4.043847542149997,
+      "eager_no_restore_ms": 1.0298333168029785,
+      "graph_replay_ms": 0.25508267084757485,
+      "speedup_replay": 4.037253151619843,
+      "output_diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104
+      },
+      "kv_write_slice_diff": {
+        "position": 32,
+        "k": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 0.9999999403953552
+        },
+        "v": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        }
+      }
+    }
+  ]
+}

@@ -317,6 +317,7 @@ Fixed-position graph probe:
 
 ```text
 reports/p16_155/p9h_r6000_full_attn_graph_layer31_configd_20260517_134320.json
+reports/p16_155/p9i_r6000_full_attn_graph_sweep_configd_20260517_134849.json
 ```
 
 Layer 31 result:
@@ -337,6 +338,23 @@ was slow because it recaptured every token; this probe shows the reused replay
 side of the same idea is fast enough to matter. The next runtime target is a
 static-position/KV graph family or equivalent native full-layer boundary for the
 ten full-attention layers, while preserving Config D as fallback.
+
+P9I repeats the probe across layers 3/15/31/39 and prompt positions 10/14/32:
+
+| Metric | Value |
+|---|---:|
+| Cases | 12 |
+| Eager no-restore mean | 1.031 ms |
+| Graph replay mean | 0.252 ms |
+| Replay speedup min | 4.00x |
+| Replay speedup mean | 4.09x |
+| Replay speedup max | 4.29x |
+| Max output diff | 0 |
+| Max KV write diff | 0 |
+
+The multi-point sweep turns the layer-31 result into a stable runtime signal.
+The next implementation question is graph-family ownership and KV/state ABI,
+not whether full-attention replay is fast enough.
 
 ## Down Backend Service Sweep
 

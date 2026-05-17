@@ -20,6 +20,7 @@ R6000 JSON guarded serving: 8/8 parseable, mean decode 98.99 tok/s
 R6000 long decode serving: 512-token wall 88.23 tok/s, decode 100.11 tok/s
 R6000 1024-token serving: wall 88.70 tok/s, decode 98.85 tok/s
 R6000 v2 active-MoE micro gain: ~1.12x interval, not enough alone
+R6000 full-attn graph sweep: 12/12 parity, replay 4.09x faster than eager
 A100 best W4A8 recovery baseline: structured_v16_top6_damped075
 A100 teacher-clean v2 serving gate: 10/12 served exact, still RED
 A100 teacher-clean v3 serving gate: 11/12 served exact, min prefix 16, AMBER by plan threshold
@@ -347,6 +348,13 @@ flip one env var; it means the next R6000 runtime investment should build
 reusable static-position/KV graph families or an equivalent native full-layer
 boundary. The earlier Spark strict-slot result remains rejected because it
 recaptures every token, but reusable capture is now a proven high-ROI path.
+
+2026-05-17 P9I follow-up sweep confirms this is not a single favorable layer.
+Across 12 cases (layers 3/15/31/39 and positions 10/14/32), replay-only graph
+timing averages `0.252 ms` vs `1.031 ms` eager, with speedup range
+`4.00-4.29x` and exact output/KV write-slice parity in every case. This makes
+full-attention reusable graphing the most concrete non-MTP R6000 speed lever
+found today.
 
 2026-05-17 down-backend service sweep: switching only
 `LYNN_NATIVE_DOWN_BACKEND` from `triton` to `cuda_tile` gives real raw speed
