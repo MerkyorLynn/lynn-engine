@@ -120,6 +120,7 @@ usable speculative decode. The heldout iterative accept ladder is:
 | iterative v4 | `fc_mtp_layer` | 25/94, 26.60% | 16-token curriculum keeps moving |
 | iterative v5 | `fc_norms` | 26/94, 27.66% | loss drops, accept gain is small |
 | iterative v6 | `fc_mtp_layer` | 27/94, 28.72% | step1-weighted, but step1 still 0/8 |
+| iterative v7 | `fc_mtp_layer`, step1 only | 28/94, 29.79% | first heldout step1 accept: 1/8 |
 
 A100 v5 exposes the next bottleneck: heldout step 0 is 8/8, but heldout step 1
 is still 0/8. The trainer now has explicit `--step1-weight` and
@@ -132,6 +133,10 @@ and the draft repeatedly prefers `"type"` where the base wants keys like
 `city`, `status`, or `text`. The trainer now supports `--train-steps`; v7
 should train only step-1 cases to test whether targeted curriculum can break
 that mode bias.
+
+A100 v7 gives the first positive step-1 movement: training step1 reaches 3/26
+and heldout step1 reaches 1/8. A100 v8 continues this step1-only curriculum
+with lower LR and more steps.
 
 If fc-only cannot clear 55-70%, unfreeze in this order:
 

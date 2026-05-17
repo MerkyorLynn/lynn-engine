@@ -1,8 +1,8 @@
 {
   "schema_version": "lynn-a100-mtp-iterative-ladder-summary-v1",
-  "report_count": 6,
-  "best_eval_after_path": "reports/mtp/a100_mtp_iterative_train_step1_layer_v6_20260517_122534.json",
-  "best_eval_after_accept_rate": 0.2872340425531915,
+  "report_count": 7,
+  "best_eval_after_path": "reports/mtp/a100_mtp_iterative_train_step1only_v7_20260517_123111.json",
+  "best_eval_after_accept_rate": 0.2978723404255319,
   "rows": [
     {
       "path": "reports/mtp/a100_mtp_iterative_train_fc_v1_20260517_120606.json",
@@ -2065,6 +2065,225 @@
         }
       },
       "eval_accept_delta": 0.010638297872340441
+    },
+    {
+      "path": "reports/mtp/a100_mtp_iterative_train_step1only_v7_20260517_123111.json",
+      "trainable": "fc_mtp_layer",
+      "steps": 12,
+      "lr": 5e-06,
+      "first_token_weight": 0.1,
+      "step1_weight": 1.0,
+      "later_token_weight": 0.1,
+      "train_steps": [
+        1
+      ],
+      "max_new_train": 16,
+      "max_new_eval": 16,
+      "source_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-step1-layer-v6-20260517_122534/mtp.safetensors",
+      "trained_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-step1only-v7-20260517_123111/mtp.safetensors",
+      "train_before": {
+        "accepted": 0,
+        "total": 26,
+        "accept_rate": 0.0,
+        "mean_loss": 6.348744621643653,
+        "by_step": {
+          "1": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "train_after": {
+        "accepted": 3,
+        "total": 26,
+        "accept_rate": 0.11538461538461539,
+        "mean_loss": 5.160950491061578,
+        "by_step": {
+          "1": {
+            "events": 26,
+            "accepted": 3,
+            "accept_rate": 0.11538461538461539
+          }
+        }
+      },
+      "eval_before": {
+        "accepted": 27,
+        "total": 94,
+        "accept_rate": 0.2872340425531915,
+        "mean_loss": 5.64636693228695,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "3": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "4": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "5": {
+            "events": 7,
+            "accepted": 1,
+            "accept_rate": 0.14285714285714285
+          },
+          "6": {
+            "events": 7,
+            "accepted": 3,
+            "accept_rate": 0.42857142857142855
+          },
+          "7": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "8": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "9": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "10": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "11": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "12": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "13": {
+            "events": 3,
+            "accepted": 1,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "15": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "eval_after": {
+        "accepted": 28,
+        "total": 94,
+        "accept_rate": 0.2978723404255319,
+        "mean_loss": 5.446833077405747,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "2": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "3": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "4": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "5": {
+            "events": 7,
+            "accepted": 1,
+            "accept_rate": 0.14285714285714285
+          },
+          "6": {
+            "events": 7,
+            "accepted": 3,
+            "accept_rate": 0.42857142857142855
+          },
+          "7": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "8": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "9": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "10": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "11": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "12": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "13": {
+            "events": 3,
+            "accepted": 1,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "15": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "eval_accept_delta": 0.010638297872340385
     }
   ],
   "decision": "MTP iterative accept is improving but remains below serving multiplier threshold."
