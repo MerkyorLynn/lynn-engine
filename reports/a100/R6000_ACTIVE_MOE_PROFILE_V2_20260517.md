@@ -242,6 +242,34 @@ This pins the service-speed stack: linear-block graph is the real pillar
 still adds wall overhead; preserving graph semantics while reducing host/Python
 decode-loop boundaries is the next practical runtime bridge.
 
+## Decode Phase Profile
+
+Follow-up resident runner phase profile:
+
+```text
+reports/p16_155/p26_r6000_decode_phase_configd_events_20260517_132939.json
+```
+
+The corrected P26 profiler records CUDA events through one token and synchronizes
+only once at the token boundary, so it matches the service-shaped Config D
+number:
+
+| Phase | Mean ms/token |
+|---|---:|
+| Wall | 10.173 |
+| Accounted CUDA | 10.026 |
+| Linear-block graph replay | 6.546 |
+| 10 eager full-attention layers | 3.109 |
+| Norm + native FP4 lm_head | 0.332 |
+| Embedding | 0.030 |
+| Argmax | 0.010 |
+| Host gap | 0.147 |
+
+This changes the runtime priority. There is not enough pure Python overhead left
+to reach 155 TPS by moving only the token loop into C++. The next base-runtime
+work must either reduce the graph-captured linear blocks, make the full-attention
+layers graph/static-state friendly, or rely on MTP for the missing multiplier.
+
 ## Down Backend Service Sweep
 
 Service-path report:

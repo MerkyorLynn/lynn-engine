@@ -23,8 +23,8 @@ R6000 v2 active-MoE micro gain: ~1.12x interval, not enough alone
 A100 best W4A8 recovery baseline: structured_v16_top6_damped075
 A100 teacher-clean v2 serving gate: 10/12 served exact, still RED
 A100 teacher-clean v3 serving gate: 11/12 served exact, min prefix 16, AMBER by plan threshold
-MTP: aligned sidecar forward works; best saved sidecar is now v15 at
-     56/116 = 48.28%, still AMBER and below serving multiplier credit
+MTP: aligned sidecar forward works; best saved sidecar is now v16 at
+     57/116 = 49.14%, still AMBER and below serving multiplier credit
 ```
 
 155 requires a compound win. There is no single safe env flag left.
@@ -187,6 +187,12 @@ A100 v16 is running from v15 with a lower LR and `fc_norms` only on those weak
 positions; the goal is to cross the `>=55%` saved heldout gate without damaging
 the restored 8/8 front positions.
 
+A100 v16 saved-sidecar eval confirms a small but real new high:
+`57/116 = 49.14%`. The gain is narrow but clean: step1 improves from `1/8` to
+`2/8`, while step2/3/4/5 stay `8/8`. This is still below the `>=55%` serving
+credit gate, so the next A100 move is a fine interpolation scan between v16 and
+the earlier v14 step1/3 specialist before launching another wider training run.
+
 If fc-only cannot clear 55-70%, unfreeze in this order:
 
 1. `mtp.fc.weight`
@@ -295,6 +301,15 @@ keeps decode near 100 tok/s for long requests, with the same ~0.08-0.10s wall
 overhead per request. The next runtime bridge should preserve linear-block graph
 semantics while reducing host/Python decode-loop boundaries; eager/no-graph
 paths are not viable for 155.
+
+2026-05-17 P26 decode phase profile corrects the next runtime bet. With Config
+D and reusable linear-block graphs, the token wall is `10.17 ms` (`98.3 tok/s`),
+of which `10.03 ms` is accounted CUDA work. Linear-block graph replay is
+`6.55 ms`, the ten eager full-attention layers are `3.11 ms`, native FP4
+lm_head is `0.33 ms`, and the residual host gap is only `0.15 ms`. A C++ token
+loop alone cannot provide the missing `~3.5 ms/token`; the C++/CUDA refactor has
+to make full-attention/static-state graphing or native fused layer boundaries
+possible, while MTP supplies the effective-token multiplier.
 
 2026-05-17 down-backend service sweep: switching only
 `LYNN_NATIVE_DOWN_BACKEND` from `triton` to `cuda_tile` gives real raw speed

@@ -43,20 +43,6 @@ def _median(xs: list[float]) -> float | None:
     return statistics.median(xs) if xs else None
 
 
-def _cuda_ms(fn: Callable[[], Any], *, device: str) -> tuple[Any, float]:
-    if not device.startswith("cuda"):
-        t0 = time.time()
-        out = fn()
-        return out, (time.time() - t0) * 1000.0
-    start = torch.cuda.Event(enable_timing=True)
-    end = torch.cuda.Event(enable_timing=True)
-    start.record()
-    out = fn()
-    end.record()
-    torch.cuda.synchronize()
-    return out, float(start.elapsed_time(end))
-
-
 def _summarize_steps(rows: list[dict[str, Any]]) -> dict[str, Any]:
     keys = [
         "wall_ms",
@@ -187,23 +173,34 @@ def main() -> int:
         wall_t0 = time.time()
         new_token_tensor.fill_(next_id)
         pos_tensor.fill_(state.seq_len)
+        event_rows: list[tuple[str, torch.cuda.Event, torch.cuda.Event]] = []
+        cpu_fallback_ms: dict[str, float] = {}
 
-        h, embed_ms = _cuda_ms(
+        def measure(name: str, fn: Callable[[], Any]) -> Any:
+            if not args.device.startswith("cuda"):
+                t0 = time.time()
+                out = fn()
+                cpu_fallback_ms[name] = cpu_fallback_ms.get(name, 0.0) + (time.time() - t0) * 1000.0
+                return out
+            start = torch.cuda.Event(enable_timing=True)
+            end = torch.cuda.Event(enable_timing=True)
+            start.record()
+            out = fn()
+            end.record()
+            event_rows.append((name, start, end))
+            return out
+
+        h = measure(
+            "embed_ms",
             lambda: F.embedding(new_token_tensor, runner.outside["model.language_model.embed_tokens.weight"]),
-            device=args.device,
         )
-        linear_ms = 0.0
-        full_ms = 0.0
         if linear_block_graphs is None:
             for layer_idx in range(runner.n_layers):
-                h, ms = _cuda_ms(
+                name = "linear_blocks_ms" if LAYER_TYPES[layer_idx] == "linear_attention" else "full_layers_ms"
+                h = measure(
+                    name,
                     lambda h=h, layer_idx=layer_idx: runner._decode_layer_fast(h, pos_tensor, state, layer_idx),
-                    device=args.device,
                 )
-                if LAYER_TYPES[layer_idx] == "linear_attention":
-                    linear_ms += ms
-                else:
-                    full_ms += ms
         else:
             for bi, block in enumerate(linear_block_graphs):
                 def replay_block(block=block, h=h):
@@ -211,32 +208,40 @@ def main() -> int:
                     block["graph"].replay()
                     return block["output"]
 
-                h, ms = _cuda_ms(replay_block, device=args.device)
-                linear_ms += ms
+                h = measure("linear_blocks_ms", replay_block)
                 full_layer = bi * 4 + 3
-                h, ms = _cuda_ms(
+                h = measure(
+                    "full_layers_ms",
                     lambda h=h, full_layer=full_layer: runner._decode_layer_fast(
                         h,
                         pos_tensor,
                         state,
                         full_layer,
                     ),
-                    device=args.device,
                 )
-                full_ms += ms
 
         state.seq_len += 1
-        logits, norm_lm_head_ms = _cuda_ms(
+        logits = measure(
+            "norm_lm_head_ms",
             lambda h=h: runner._lm_head_logits(
                 _rms_norm(h, runner.outside["model.language_model.norm.weight"])
             ),
-            device=args.device,
         )
-        raw_next_id_tensor, argmax_ms = _cuda_ms(lambda logits=logits: logits[0].argmax(), device=args.device)
-        next_id = int(raw_next_id_tensor.item())
+        raw_next_id_tensor = measure("argmax_ms", lambda logits=logits: logits[0].argmax())
         if args.device.startswith("cuda"):
             torch.cuda.synchronize()
+            measured_ms: dict[str, float] = {}
+            for name, start, end in event_rows:
+                measured_ms[name] = measured_ms.get(name, 0.0) + float(start.elapsed_time(end))
+        else:
+            measured_ms = cpu_fallback_ms
+        next_id = int(raw_next_id_tensor.item())
         wall_ms = (time.time() - wall_t0) * 1000.0
+        embed_ms = measured_ms.get("embed_ms", 0.0)
+        linear_ms = measured_ms.get("linear_blocks_ms", 0.0)
+        full_ms = measured_ms.get("full_layers_ms", 0.0)
+        norm_lm_head_ms = measured_ms.get("norm_lm_head_ms", 0.0)
+        argmax_ms = measured_ms.get("argmax_ms", 0.0)
         accounted = embed_ms + linear_ms + full_ms + norm_lm_head_ms + argmax_ms
         row = {
             "step": step,
