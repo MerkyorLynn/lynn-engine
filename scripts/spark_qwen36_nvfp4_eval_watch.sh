@@ -11,6 +11,7 @@ CAND="${CAND:-nvfp4-qwen36-w4a16-r6000}"
 SERVED_NAME="${SERVED_NAME:-Qwen3.6-35B-A3B-W4A16-NVFP4}"
 POLL_SECONDS="${POLL_SECONDS:-120}"
 LOCK_DIR="${LOCK_DIR:-/tmp/lynn-qwen36-nvfp4-eval.lock}"
+EXTRA_ENV="${EXTRA_ENV:-LYNN_PACKED_DECODE=0 LYNN_PACKED_DECODE_FULL_ATTN=0 LYNN_PACKED_DECODE_LINEAR_ATTN=0 LYNN_PACKED_SHARED_EXPERT=0 LYNN_LINEAR_BLOCK_GRAPH=0 LYNN_LINEAR_BLOCK_GRAPH_REUSE=0 LYNN_LINEAR_BLOCK_GRAPH_PREWARM=0 LYNN_MOE_FAST_FIXED=0}"
 
 log() {
     printf '[nvfp4-eval-watch] %s %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"
@@ -87,5 +88,5 @@ fi
 
 LOG_PATH="$RESULTS_DIR/${CAND}_watch_$(date '+%Y%m%d_%H%M%S').log"
 log "launching $CAND eval -> $LOG_PATH"
-bash "$RUNNER" "$CAND" "$NVFP4_MODEL" "$SERVED_NAME" "" "bfloat16" >"$LOG_PATH" 2>&1
+bash "$RUNNER" "$CAND" "$NVFP4_MODEL" "$SERVED_NAME" "$EXTRA_ENV" "bfloat16" >"$LOG_PATH" 2>&1
 log "$CAND eval finished"
