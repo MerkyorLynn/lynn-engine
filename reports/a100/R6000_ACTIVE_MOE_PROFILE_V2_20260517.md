@@ -191,3 +191,20 @@ The segment shape is stable across early/mid/late linear-attention layers. The
 largest individual linear-attention target is the fused native-FP4 in-proj, but
 the whole linear core is only about `0.33-0.34 ms`; per-layer MoE/router/shared
 and Python/runtime scheduling still need to be part of the 155 TPS plan.
+
+## Config D Service Anchor
+
+Follow-up service probe:
+
+```text
+reports/p16_155/r6000_p25_server_decode_sweep_20260517_123947.json
+```
+
+| Max Tokens | Decode TPS |
+|---:|---:|
+| 128 | 99.42 |
+| 256 | 100.01 |
+| 512 | 100.35 |
+
+This reconfirms the safe serving line is still ~100 TPS. The preview is normal
+text, not the rejected exclamation-loop failure mode.

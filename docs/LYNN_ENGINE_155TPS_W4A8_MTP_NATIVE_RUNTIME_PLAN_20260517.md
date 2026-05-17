@@ -237,6 +237,10 @@ the largest single segment at `0.075-0.079 ms`, followed by recurrent
 `~0.036 ms` and conv `~0.033 ms`. This makes in-proj fusion worth improving, but
 it is too small to be the whole 155 TPS lever.
 
+2026-05-17 Config D service anchor: the R6000 OpenAI server confirms decode TPS
+`99.42 / 100.01 / 100.35` at max tokens `128 / 256 / 512`. This is the current
+usable serving baseline; 155 still requires a real multiplier.
+
 Required native path:
 
 ```text
