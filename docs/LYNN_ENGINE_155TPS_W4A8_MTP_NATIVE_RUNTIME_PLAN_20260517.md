@@ -126,6 +126,7 @@ usable speculative decode. The heldout iterative accept ladder is:
 | iterative v9 | `fc_mtp_layer`, steps 1-2 | 32/94, 34.04% | preserves step1/2, adds one later token |
 | iterative v10 | `fc_mtp_layer`, steps 3-5 | 34/94, 36.17% | improves step4 and step8; still below multiplier bar |
 | iterative v11 | `fc_mtp_layer`, late steps | 29/116, 25.00% | diagnostic: different case set; not a promotion |
+| iterative v12 | `fc_mtp_layer`, steps 0-4 | 29/116, 25.00% | front-restore failed; train accept remains 0/130 |
 
 A100 v5 exposes the next bottleneck: heldout step 0 is 8/8, but heldout step 1
 is still 0/8. The trainer now has explicit `--step1-weight` and
@@ -161,6 +162,11 @@ best saved sidecar is v11 at `29/116 = 25.00%`; all saved sidecars have
 means the previous in-memory ladder is useful for training direction, but not
 enough to hand a sidecar to serving. A100 v12 is therefore a front-restore run
 from v11 targeting steps 0-4 before any more late-step curriculum.
+
+A100 v12 confirms that low-LR `fc_mtp_layer` tuning is not enough to restore
+front tokens: train steps 0-4 remain `0/130` accepted and saved-sidecar eval
+still selects v11 over v12. A100 v13 is now testing the smaller `fc_norms`
+surface with higher LR on the same front-token target.
 
 If fc-only cannot clear 55-70%, unfreeze in this order:
 
@@ -273,6 +279,11 @@ step 28 (`主流` vs `核心`) on a low-margin choice. The first visible hidden
 drift is already at step 0/layer 11. The down tile path is therefore a real
 speed lever, but its accumulation-order drift is large enough to flip semantic
 tokens in long decode.
+
+Tile-hidden sweep (`1/2/4/8`) does not change the outcome: every tested tile
+variant diverges at the same step 28 on the same `主流` vs `核心` choice. The
+fix is not a tile-size choice; it needs a drift-reduced down kernel or a
+different active-MoE fusion path.
 
 Required native path:
 

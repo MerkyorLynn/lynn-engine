@@ -242,6 +242,7 @@ Follow-up first-divergence probes:
 ```text
 reports/p16_155/p50_down_tile_first_divergence_r6000_v2_service_20260517_124952.json
 reports/p16_155/p50_down_tile_first_divergence_r6000_v2_p25prompt_20260517_125245.json
+reports/p16_155/p50_down_tile_tile_sweep_p25_20260517_125845_summary.json
 ```
 
 The short diagnostic prompt stays top-1 matched for 8 steps, but hidden drift is
@@ -256,3 +257,15 @@ the down tile kernel is numerically close enough for local contracts, but its
 accumulation-order drift survives through the decode stack and flips low-margin
 semantic tokens. Promotion requires a drift-reduced kernel or a full decode
 quality gate, not just faster down projection timing.
+
+Tile-hidden sweep result:
+
+| Tile Hidden | First Top-1 Divergence | Triton Token | CUDA Tile Token |
+|---:|---:|---|---|
+| 1 | step 28 | `主流` | `核心` |
+| 2 | step 28 | `主流` | `核心` |
+| 4 | step 28 | `主流` | `核心` |
+| 8 | step 28 | `主流` | `核心` |
+
+Changing tile size does not move the semantic divergence. The current CUDA down
+tile family should stay as a kernel-design signal only.

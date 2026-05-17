@@ -1,0 +1,80 @@
+{
+  "schema_version": "r6000-p50-down-tile-tile-sweep-summary-v1",
+  "prompt": "请连续输出一段关于 MoE 推理优化、NVFP4、CUDA graph 和工具调用服务化的中文技术说明。要求持续展开，不要提前结束。",
+  "rows": [
+    {
+      "tile": 1,
+      "pass": false,
+      "first_top1_divergence": {
+        "step": 28,
+        "triton_top1": 102204,
+        "cuda_tile_top1": 98144,
+        "triton_margin": 0.4296875,
+        "cuda_tile_margin": 0.0546875
+      },
+      "first_layer_divergence": {
+        "step": 0,
+        "layer": 11,
+        "cosine": 0.9999964237213135,
+        "max_abs": 0.0009765625,
+        "rel_l2": 0.0026897634379565716
+      }
+    },
+    {
+      "tile": 2,
+      "pass": false,
+      "first_top1_divergence": {
+        "step": 28,
+        "triton_top1": 102204,
+        "cuda_tile_top1": 98144,
+        "triton_margin": 0.4296875,
+        "cuda_tile_margin": 0.0546875
+      },
+      "first_layer_divergence": {
+        "step": 0,
+        "layer": 11,
+        "cosine": 0.9999964237213135,
+        "max_abs": 0.0009765625,
+        "rel_l2": 0.0026897634379565716
+      }
+    },
+    {
+      "tile": 4,
+      "pass": false,
+      "first_top1_divergence": {
+        "step": 28,
+        "triton_top1": 102204,
+        "cuda_tile_top1": 98144,
+        "triton_margin": 0.4296875,
+        "cuda_tile_margin": 0.0546875
+      },
+      "first_layer_divergence": {
+        "step": 0,
+        "layer": 11,
+        "cosine": 0.9999964237213135,
+        "max_abs": 0.0009765625,
+        "rel_l2": 0.0026897634379565716
+      }
+    },
+    {
+      "tile": 8,
+      "pass": false,
+      "first_top1_divergence": {
+        "step": 28,
+        "triton_top1": 102204,
+        "cuda_tile_top1": 98144,
+        "triton_margin": 0.4296875,
+        "cuda_tile_margin": 0.0546875
+      },
+      "first_layer_divergence": {
+        "step": 0,
+        "layer": 11,
+        "cosine": 0.9999964237213135,
+        "max_abs": 0.0009765625,
+        "rel_l2": 0.0026897634379565716
+      }
+    }
+  ],
+  "all_pass": false,
+  "decision": "RED: every tested tile-hidden variant drifts on the same P25 low-margin token."
+}
