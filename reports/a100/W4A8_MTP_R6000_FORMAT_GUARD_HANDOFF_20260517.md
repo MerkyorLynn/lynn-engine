@@ -251,6 +251,7 @@ Forward-smoke report:
 
 ```text
 reports/mtp/a100_mtp_forward_smoke_20260517_110159.json
+reports/mtp/a100_mtp_fc_train_smoke_20260517_111251.json
 ```
 
 Mapping result:
@@ -282,8 +283,22 @@ Forward smoke now runs the aligned sidecar through the MTP `fc -> decoder layer
 | argmax match | false |
 
 This upgrades MTP from a shape-only asset to a real forward-wired draft head,
-but it is not useful for speculative decode yet. Head-only training and
-accept-rate evaluation remain mandatory before any TPS claim.
+but it is not useful for speculative decode yet.
+
+The fc-only train smoke confirms gradient wiring:
+
+| Field | Value |
+|---|---:|
+| mode | fc-only, single prompt, base argmax label |
+| steps | 4 |
+| loss before | 8.9365 |
+| loss after | 0.0 |
+| draft argmax after | token 4754 (`{"`) |
+| weights saved | false |
+
+This is intentionally just an overfit smoke. Head-only training over a real
+calibration set and accept-rate evaluation remain mandatory before any TPS
+claim.
 
 ## Next Work
 

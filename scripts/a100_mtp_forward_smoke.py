@@ -139,6 +139,8 @@ def run_smoke(
     device: str,
     dtype: torch.dtype,
     top_k: int,
+    train_fc_steps: int,
+    train_lr: float,
 ) -> dict[str, Any]:
     runner = LynnIncrementalRunner(str(base_model), device=device, dtype=dtype, max_seq_len=4096, verbose=True)
     sidecar, sidecar_inventory = _load_sidecar(sidecar_file, device, dtype)
@@ -152,10 +154,6 @@ def run_smoke(
     base_normed = _rms_norm(base_hidden, runner.outside["model.language_model.norm.weight"])
     base_logits = runner._lm_head_logits(base_normed)
 
-    hidden_part = _rms_norm(base_hidden, sidecar["mtp.pre_fc_norm_hidden.weight"])
-    embed_part = _rms_norm(input_embed, sidecar["mtp.pre_fc_norm_embedding.weight"])
-    mtp_hidden = F.linear(torch.cat([hidden_part, embed_part], dim=-1), sidecar["mtp.fc.weight"])
-
     text_cfg = (runner.cfg.get("text_config") or runner.cfg) if isinstance(runner.cfg, dict) else runner.cfg
     mtp_cfg = dict(text_cfg)
     mtp_cfg["num_experts"] = int(mtp_w["mlp.experts.gate_up_proj"].shape[0])
@@ -163,12 +161,50 @@ def run_smoke(
     mtp_cfg["expert_intermediate"] = int(mtp_w["mlp.experts.down_proj"].shape[-1])
     mtp_cfg["layer_idx"] = 0
     pos = torch.tensor([[last_pos]], device=runner.device, dtype=torch.long)
-    mtp_out = _layer_forward(mtp_hidden, pos, "full_attention", mtp_w, mtp_cfg)
-    mtp_normed = _rms_norm(mtp_out, sidecar["mtp.norm.weight"])
-    mtp_logits = runner._lm_head_logits(mtp_normed)
+
+    def mtp_forward() -> tuple[torch.Tensor, torch.Tensor]:
+        hidden_part = _rms_norm(base_hidden.detach(), sidecar["mtp.pre_fc_norm_hidden.weight"])
+        embed_part = _rms_norm(input_embed.detach(), sidecar["mtp.pre_fc_norm_embedding.weight"])
+        mtp_hidden_local = F.linear(torch.cat([hidden_part, embed_part], dim=-1), sidecar["mtp.fc.weight"])
+        mtp_out = _layer_forward(mtp_hidden_local, pos, "full_attention", mtp_w, mtp_cfg)
+        mtp_normed = _rms_norm(mtp_out, sidecar["mtp.norm.weight"])
+        return mtp_hidden_local, runner._lm_head_logits(mtp_normed)
+
+    mtp_hidden, mtp_logits = mtp_forward()
+    base_argmax = int(base_logits[0].argmax().item())
+    train_report = None
+    if train_fc_steps > 0:
+        for tensor in sidecar.values():
+            tensor.requires_grad_(False)
+        sidecar["mtp.fc.weight"].requires_grad_(True)
+        label = torch.tensor([base_argmax], device=runner.device, dtype=torch.long)
+        optimizer = torch.optim.AdamW([sidecar["mtp.fc.weight"]], lr=train_lr)
+        history: list[dict[str, float]] = []
+        for step in range(train_fc_steps + 1):
+            _, step_logits = mtp_forward()
+            loss = F.cross_entropy(step_logits.float(), label)
+            history.append({"step": step, "loss": float(loss.detach().item())})
+            if step == train_fc_steps:
+                mtp_logits = step_logits.detach()
+                break
+            optimizer.zero_grad(set_to_none=True)
+            loss.backward()
+            optimizer.step()
+        sidecar["mtp.fc.weight"].requires_grad_(False)
+        train_report = {
+            "mode": "fc_only_single_prompt_ce_to_base_argmax",
+            "steps": train_fc_steps,
+            "lr": train_lr,
+            "label_token_id": base_argmax,
+            "label_text": runner.tokenizer.decode([base_argmax]),
+            "loss_before": history[0]["loss"],
+            "loss_after": history[-1]["loss"],
+            "loss_delta": history[-1]["loss"] - history[0]["loss"],
+            "history": history,
+            "weights_saved": False,
+        }
 
     finite = bool(torch.isfinite(mtp_logits).all().item())
-    base_argmax = int(base_logits[0].argmax().item())
     mtp_argmax = int(mtp_logits[0].argmax().item())
     result = {
         "schema_version": "lynn-a100-mtp-forward-smoke-v1",
@@ -195,6 +231,7 @@ def run_smoke(
             "text": runner.tokenizer.decode([mtp_argmax]),
         },
         "argmax_match": base_argmax == mtp_argmax,
+        "train_smoke": train_report,
         "base_next_topk": _topk(runner.tokenizer, base_logits, top_k),
         "mtp_draft_topk": _topk(runner.tokenizer, mtp_logits, top_k),
         "sidecar": sidecar_inventory,
@@ -216,6 +253,8 @@ def main() -> int:
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--dtype", default="bfloat16", choices=["bfloat16", "float16"])
     ap.add_argument("--top-k", type=int, default=8)
+    ap.add_argument("--train-fc-steps", type=int, default=0)
+    ap.add_argument("--train-lr", type=float, default=1e-3)
     args = ap.parse_args()
 
     dtype = {"bfloat16": torch.bfloat16, "float16": torch.float16}[args.dtype]
@@ -227,6 +266,8 @@ def main() -> int:
         device=args.device,
         dtype=dtype,
         top_k=args.top_k,
+        train_fc_steps=args.train_fc_steps,
+        train_lr=args.train_lr,
     )
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)

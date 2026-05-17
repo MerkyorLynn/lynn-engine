@@ -41,10 +41,22 @@ base_next_argmax: {"token_id": 4754, "text": "{\""}
 mtp_draft_argmax: {"token_id": 98175, "text": "十二"}
 ```
 
+FC-only train-smoke report:
+
+```text
+reports/mtp/a100_mtp_fc_train_smoke_20260517_111251.json
+decision: GREEN
+mode: fc_only_single_prompt_ce_to_base_argmax
+loss_before: 8.9365
+loss_after: 0.0
+argmax_match_after: true
+weights_saved: false
+```
+
 This changes the initialization and wiring path, not the serving state: MTP can
-now run a real draft forward pass, but the warm-start head is not yet an
-acceptable draft predictor. It still needs head-only training and accept-rate
-evaluation before it can contribute TPS.
+now run a real draft forward pass and backpropagate through a frozen-base,
+frozen-MTP-layer fc-only smoke. The warm-start head is still not an acceptable
+draft predictor until real head-only training and accept-rate evaluation pass.
 
 Report:
 
@@ -138,9 +150,10 @@ freeze base model
 num_speculative_tokens = 2
 ```
 
-2026-05-17 status: Stage 0 shape mapping and forward smoke are complete for
-the official 2048-hidden Qwen3.6-35B-A3B sidecar. The forward path is finite
-but not token-aligned, so Stage 1 training is now the blocker.
+2026-05-17 status: Stage 0 shape mapping, forward smoke, and one-prompt
+fc-only train smoke are complete for the official 2048-hidden Qwen3.6-35B-A3B
+sidecar. The training smoke overfits one base-greedy token and saves no
+weights, so Stage 1 needs a real calibration set and accept-rate gate.
 
 Stage 1: short head-only training
 
