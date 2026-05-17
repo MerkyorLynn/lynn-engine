@@ -325,6 +325,22 @@ Forward smoke now runs the aligned sidecar through the MTP `fc -> decoder layer
 This upgrades MTP from a shape-only asset to a real forward-wired draft head,
 but it is not useful for speculative decode yet.
 
+2026-05-17 A100 calibration update: the A100 saved-sidecar ladder now has a
+new BF16-side best. v24 had already crossed the 55% serving-credit bar at
+`69/116 = 59.48%`. A smaller v27 continuation from v24 trains only weak
+steps `6/8/9/10/12/13/14/15` and filters to misses where the label is still in
+MTP top-k. That leaves nine train cases, improves heldout to
+`70/116 = 60.34%`, and saved reload confirms the same best label:
+
+```text
+reports/mtp/a100_mtp_iterative_train_v24_v7_weak_missintopk_fcnorms_v27_20260517_185051.json
+reports/mtp/a100_mtp_saved_sidecar_eval_v24_v27_weak_missintopk_20260517_185423.json
+sidecar: /mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v24-v7-weak-missintopk-fcnorms-v27-20260517_185051/mtp.safetensors
+```
+
+This is not yet a R6000 native promotion; it is the new A100 MTP calibration
+best and should get a native W4A8 P107 transfer check.
+
 2026-05-17 R6000 native update: activation-aware fake-native training plus a
 rank-flip filter is now the productive MTP repair path. The broad v32
 continuation regresses, but v33/v34 train only misses where the native label is

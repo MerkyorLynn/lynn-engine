@@ -178,6 +178,8 @@ def main() -> int:
         runner=runner,
         specs=specs,
         use_chat_template=args.use_chat_template,
+        force_prefix_from_spec=False,
+        skip_forced_prefix_cases=False,
         max_new=args.max_new_eval,
         first_token_weight=args.first_token_weight,
         step1_weight=args.step1_weight,

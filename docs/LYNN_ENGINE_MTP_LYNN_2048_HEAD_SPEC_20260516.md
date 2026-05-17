@@ -198,6 +198,14 @@ best_label: v23
 best_accept: 65/116 = 56.03%
 sidecar:
 /mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v22-margin-v6-rescue-v23-20260517_150922/mtp.safetensors
+
+reports/mtp/a100_mtp_iterative_train_v24_v7_weak_missintopk_fcnorms_v27_20260517_185051.json
+reports/mtp/a100_mtp_saved_sidecar_eval_v24_v27_weak_missintopk_20260517_185423.json
+decision: GREEN-CREDIT
+best_label: v27
+best_accept: 70/116 = 60.34%
+sidecar:
+/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v24-v7-weak-missintopk-fcnorms-v27-20260517_185051/mtp.safetensors
 ```
 
 The weighted-math v3 sidecar is a GREEN first-token draft candidate, but it is
@@ -297,6 +305,16 @@ steps. It lowers loss but does not move accept: eval remains `68/116 = 58.62%`
 inside the train script. This closes the simple "unfreeze the MTP layer on tail
 cases" route for now; the next A100 MTP move should use new target construction
 or a separate specialist/merge, not another low-LR v7 replay.
+
+A100 v27 returns to the safer `fc_norms` surface from v24 but changes the target
+construction instead of widening training. It keeps only weak steps
+`6/8/9/10/12/13/14/15` and then filters training to misses where the teacher
+label is already inside MTP top-k. That leaves nine train cases. In-memory eval
+improves `69/116 -> 70/116`, and saved-sidecar reload confirms v27 as the new
+authoritative A100 saved best at `70/116 = 60.34%`. The improvement is narrow
+but clean: step10 moves `2/7 -> 3/7`, while step2/3/4/5 remain `8/8`. This
+validates the miss-in-topk curriculum; the next step is either another small
+near-miss bucket or a R6000 native W4A8 P107 transfer check for this v27 sidecar.
 
 P107 moves the v24 sidecar from script-only eval into the resident runner
 shadow path. `LYNN_MTP_SIDECAR=/path/to/mtp.safetensors` loads the sidecar and

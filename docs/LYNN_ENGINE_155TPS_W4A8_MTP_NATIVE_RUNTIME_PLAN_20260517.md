@@ -468,6 +468,17 @@ shape is complementary rather than better: step10 improves `2/7 -> 3/7`, but
 step12 drops `2/6 -> 1/6`. A v24/v25 interpolation scan keeps best alpha at
 `0.0`, so v24 remains the authoritative sidecar.
 
+2026-05-17 A100 v27 weak-nearmiss update: a smaller continuation from v24 uses
+the same v7 semantic/code-tail prompts, but trains only weak steps
+`6/8/9/10/12/13/14/15` and filters to misses where the label is still inside
+the MTP top-k. This keeps the train set to nine near-miss cases. In-memory
+heldout eval moves from `69/116` to `70/116 = 60.34%`, and saved-sidecar reload
+confirms v27 as the new best at `70/116 = 60.34%`. The gain lands on step10
+(`2/7 -> 3/7`) while the restored step2/3/4/5 band stays `8/8`. This is the
+first clean post-v24 improvement and validates the near-miss filter; it is
+still an A100 BF16-side saved gate, so R6000 native W4A8 credit must be checked
+before serving promotion.
+
 If fc-only cannot clear 55-70%, unfreeze in this order:
 
 1. `mtp.fc.weight`
