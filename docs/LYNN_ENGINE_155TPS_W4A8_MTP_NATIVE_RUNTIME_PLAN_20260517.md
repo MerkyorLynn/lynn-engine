@@ -486,6 +486,14 @@ transfer (`61/121`), but not a serving promotion. The split is now explicit:
 A100 can keep raising BF16-side calibration, while R6000 promotion needs native
 rank-flip/native-label alignment.
 
+P111 budget refresh with the slot-sorted runtime keeps the same strategic
+answer. For native v34, the measured draft cost is now `2.24 ms` instead of the
+old `7.6 ms`, but a 100 tok/s production baseline still projects to only
+`125.63 tok/s` for serial top1 and `140.49 tok/s` even if top8 containment were
+usable. The top8 zero-overhead ceiling is `171.90 tok/s`, so the remaining TPS
+work is overlap/inline draft execution, multi-token credit, or a higher native
+baseline, not another plain one-token serial sidecar.
+
 If fc-only cannot clear 55-70%, unfreeze in this order:
 
 1. `mtp.fc.weight`

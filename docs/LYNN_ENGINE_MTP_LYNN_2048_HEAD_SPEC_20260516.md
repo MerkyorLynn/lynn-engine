@@ -331,6 +331,20 @@ native-trained v34 (`65/121`). Therefore A100 BF16-side improvements do not
 automatically promote to R6000; the serving side still needs native
 rank-flip/native-label training.
 
+The refreshed P111 budget files are:
+
+```text
+reports/mtp/r6000_p111_mtp_speculative_budget_v34_slotsorted_20260517_1908.json
+reports/mtp/r6000_p111_mtp_speculative_budget_a100v27_slotsorted_20260517_1908.json
+```
+
+For v34 with slot-sorted MTP, production projection from a 100 tok/s baseline is
+`125.63 tok/s` for serial top1 and `140.49 tok/s` for serial top8. The top8
+zero-overhead ceiling is `171.90 tok/s`, but the measured `2.24 ms` draft cost
+does not fit the `1.09 ms` top8 budget for 155 TPS. The next runtime win must
+hide the draft, make it sub-millisecond, or turn one-token MTP into multi-token
+credit.
+
 P107 moves the v24 sidecar from script-only eval into the resident runner
 shadow path. `LYNN_MTP_SIDECAR=/path/to/mtp.safetensors` loads the sidecar and
 `LYNN_MTP_SHADOW_VERIFY=1` records draft-vs-base argmax matches inside

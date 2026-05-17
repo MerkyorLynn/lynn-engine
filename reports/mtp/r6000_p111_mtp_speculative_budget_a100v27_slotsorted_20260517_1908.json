@@ -1,0 +1,115 @@
+{
+  "schema_version": "lynn-p111-mtp-speculative-budget-v1",
+  "source_report": "reports/mtp/r6000_p107_mtp_shadow_a100v27_weak_missintopk_w4a8_v2_slotsorted_20260517_190539.json",
+  "decision": "AMBER-BUDGET: top1 cannot clear 155 TPS without either higher accept, hidden draft cost, or multi-token credit.",
+  "events": 121,
+  "measured_decode_tps": 25.661281578532893,
+  "measured_draft_tps": 444.0362465866806,
+  "production_baseline_tps": 100.0,
+  "rates": {
+    "top1": 0.512396694214876,
+    "top2": 0.5950413223140496,
+    "top4": 0.6528925619834711,
+    "top8": 0.7024793388429752
+  },
+  "measured_path": {
+    "top1": {
+      "accept_rate": 0.512396694214876,
+      "zero_overhead_tps": 38.810037428690244,
+      "zero_overhead_speedup": 1.512396694214876,
+      "feasible_even_zero_overhead_for_155": false,
+      "max_draft_ms_for_155": null,
+      "draft_tps": 444.0362465866806,
+      "draft_ms": 2.2520684013681964,
+      "serial_one_token_tps": 36.68970415288745,
+      "serial_one_token_speedup": 1.4297689708366106,
+      "draft_ms_fits_155_budget": false
+    },
+    "top2": {
+      "accept_rate": 0.5950413223140496,
+      "zero_overhead_tps": 40.930804501296265,
+      "zero_overhead_speedup": 1.5950413223140496,
+      "feasible_even_zero_overhead_for_155": false,
+      "max_draft_ms_for_155": null,
+      "draft_tps": 444.0362465866806,
+      "draft_ms": 2.2520684013681964,
+      "serial_one_token_tps": 38.69460601916545,
+      "serial_one_token_speedup": 1.5078984227948953,
+      "draft_ms_fits_155_budget": false
+    },
+    "top4": {
+      "accept_rate": 0.6528925619834711,
+      "zero_overhead_tps": 42.41534145212049,
+      "zero_overhead_speedup": 1.6528925619834711,
+      "feasible_even_zero_overhead_for_155": false,
+      "max_draft_ms_for_155": null,
+      "draft_tps": 444.0362465866806,
+      "draft_ms": 2.2520684013681964,
+      "serial_one_token_tps": 40.09803732556006,
+      "serial_one_token_speedup": 1.5625890391656947,
+      "draft_ms_fits_155_budget": false
+    },
+    "top8": {
+      "accept_rate": 0.7024793388429752,
+      "zero_overhead_tps": 43.6878016956841,
+      "zero_overhead_speedup": 1.7024793388429753,
+      "feasible_even_zero_overhead_for_155": false,
+      "max_draft_ms_for_155": null,
+      "draft_tps": 444.0362465866806,
+      "draft_ms": 2.2520684013681964,
+      "serial_one_token_tps": 41.300978445326855,
+      "serial_one_token_speedup": 1.6094667103406655,
+      "draft_ms_fits_155_budget": false
+    }
+  },
+  "production_projection": {
+    "top1": {
+      "accept_rate": 0.512396694214876,
+      "zero_overhead_tps": 151.2396694214876,
+      "zero_overhead_speedup": 1.512396694214876,
+      "feasible_even_zero_overhead_for_155": false,
+      "max_draft_ms_for_155": null,
+      "draft_tps": 444.0362465866806,
+      "draft_ms": 2.2520684013681964,
+      "serial_one_token_tps": 123.44011187906735,
+      "serial_one_token_speedup": 1.2344011187906734,
+      "draft_ms_fits_155_budget": false
+    },
+    "top2": {
+      "accept_rate": 0.5950413223140496,
+      "zero_overhead_tps": 159.50413223140495,
+      "zero_overhead_speedup": 1.5950413223140496,
+      "feasible_even_zero_overhead_for_155": true,
+      "max_draft_ms_for_155": 0.29058917621967506,
+      "draft_tps": 444.0362465866806,
+      "draft_ms": 2.2520684013681964,
+      "serial_one_token_tps": 130.18547318393442,
+      "serial_one_token_speedup": 1.3018547318393443,
+      "draft_ms_fits_155_budget": false
+    },
+    "top4": {
+      "accept_rate": 0.6528925619834711,
+      "zero_overhead_tps": 165.28925619834712,
+      "zero_overhead_speedup": 1.6528925619834711,
+      "feasible_even_zero_overhead_for_155": true,
+      "max_draft_ms_for_155": 0.6638229805385233,
+      "draft_tps": 444.0362465866806,
+      "draft_ms": 2.2520684013681964,
+      "serial_one_token_tps": 134.90722609734135,
+      "serial_one_token_speedup": 1.3490722609734136,
+      "draft_ms_fits_155_budget": false
+    },
+    "top8": {
+      "accept_rate": 0.7024793388429752,
+      "zero_overhead_tps": 170.24793388429754,
+      "zero_overhead_speedup": 1.7024793388429753,
+      "feasible_even_zero_overhead_for_155": true,
+      "max_draft_ms_for_155": 0.9837376699546787,
+      "draft_tps": 444.0362465866806,
+      "draft_ms": 2.2520684013681964,
+      "serial_one_token_tps": 138.9544428802616,
+      "serial_one_token_speedup": 1.3895444288026162,
+      "draft_ms_fits_155_budget": false
+    }
+  }
+}
