@@ -199,6 +199,12 @@ helps the remaining late positions. A100 v17 therefore switches from linear
 interpolation back to training: low-LR `fc_mtp_layer`, steps 6-15 only, using
 v16 as the source sidecar.
 
+A100 v17 saved-sidecar eval confirms another small new high:
+`58/116 = 50.00%`. The gain lands on step12 (`0/6 -> 1/6`) while step2/3/4/5
+remain `8/8`. This proves low-LR MTP-layer late repair is valid, but it is still
+too incremental; A100 v18 is running from v17 with even lower LR over combined
+weak steps `0/1/6/7/8/9/11/12/13/14/15`.
+
 If fc-only cannot clear 55-70%, unfreeze in this order:
 
 1. `mtp.fc.weight`
@@ -325,6 +331,12 @@ profile. The useful conclusion is not "replace SDPA"; SDPA itself is only about
 `0.015 ms` at this short seq_len. The next runtime work should fuse/static-graph
 the full-attn layer boundary, especially q/k norm+RoPE, norms, and packed MoE
 dispatch, rather than chasing attention core alone.
+
+A three-layer P27 sweep confirms the same shape on layers 3/15/39:
+full-layer recomposition `0.73-0.85 ms`, attention full decode `0.28-0.31 ms`,
+packed MoE `0.20-0.22 ms`, q/k norm+RoPE `0.125-0.136 ms`, and SDPA GQA
+`~0.015 ms`. This makes the next C++/CUDA target a fused/static full-layer
+boundary, not a standalone SDPA kernel.
 
 2026-05-17 down-backend service sweep: switching only
 `LYNN_NATIVE_DOWN_BACKEND` from `triton` to `cuda_tile` gives real raw speed

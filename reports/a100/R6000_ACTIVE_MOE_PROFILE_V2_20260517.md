@@ -297,6 +297,20 @@ The speed path is a service-shaped fused/static boundary for the full-attn
 layer: q/k norm+RoPE, norms, packed MoE dispatch, and graphability matter more
 than swapping attention kernels alone.
 
+Three-layer sweep:
+
+```text
+reports/p16_155/p27_r6000_full_layer_sweep_configd_20260517_133837.json
+```
+
+| Layer | Full layer ms | Attn full ms | Packed MoE ms | q/k norm+RoPE ms | SDPA ms |
+|---:|---:|---:|---:|---:|---:|
+| 3 | 0.778 | 0.306 | 0.219 | 0.136 | 0.015 |
+| 15 | 0.846 | 0.305 | 0.218 | 0.135 | 0.014 |
+| 39 | 0.734 | 0.282 | 0.204 | 0.125 | 0.015 |
+
+The shape is stable across shallow/mid/late full-attention layers.
+
 ## Down Backend Service Sweep
 
 Service-path report:

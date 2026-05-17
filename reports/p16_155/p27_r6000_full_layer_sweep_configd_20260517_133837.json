@@ -1,0 +1,32 @@
+{
+  "schema_version": "p27-full-layer-sweep-v1",
+  "rows": [
+    {
+      "layer": 15,
+      "layer_full_decode_ms": 0.8461695671081543,
+      "attn_full_decode_ms": 0.30492000579833983,
+      "moe_full_ms": 0.21775360107421876,
+      "qk_norm_rope_ms": 0.134825599193573,
+      "sdpa_gqa_ms": 0.014470399916172027,
+      "path": "/root/autodl-tmp/reports/p16_155/p27_r6000_full_layer15_configd_segment_20260517_133837.json"
+    },
+    {
+      "layer": 39,
+      "layer_full_decode_ms": 0.7335904121398926,
+      "attn_full_decode_ms": 0.2820832014083862,
+      "moe_full_ms": 0.20416638851165772,
+      "qk_norm_rope_ms": 0.12479360103607177,
+      "sdpa_gqa_ms": 0.014824000000953675,
+      "path": "/root/autodl-tmp/reports/p16_155/p27_r6000_full_layer39_configd_segment_20260517_133837.json"
+    },
+    {
+      "layer": 3,
+      "layer_full_decode_ms": 0.7781775951385498,
+      "attn_full_decode_ms": 0.30568480491638184,
+      "moe_full_ms": 0.2185296058654785,
+      "qk_norm_rope_ms": 0.13551360368728638,
+      "sdpa_gqa_ms": 0.015255999565124512,
+      "path": "/root/autodl-tmp/reports/p16_155/p27_r6000_full_layer3_configd_segment_20260517_133837.json"
+    }
+  ]
+}

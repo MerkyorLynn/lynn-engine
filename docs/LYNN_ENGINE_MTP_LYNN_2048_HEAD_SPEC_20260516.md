@@ -120,6 +120,12 @@ reports/mtp/a100_mtp_interpolate_v16_v14_fine_20260517_133151.json
 decision: AMBER
 best_alpha: 0.0
 best_accept: 57/116 = 49.14%
+
+reports/mtp/a100_mtp_iterative_train_v16_late_mtplow_v17_20260517_133334.json
+reports/mtp/a100_mtp_saved_sidecar_eval_v16_v17_20260517_134040.json
+decision: AMBER
+best_label: v17
+best_accept: 58/116 = 50.00%
 ```
 
 The weighted-math v3 sidecar is a GREEN first-token draft candidate, but it is
@@ -134,6 +140,10 @@ damaging the restored step2/3/4/5 band. A fine interpolation back toward the
 v14 step1/3 specialist does not help; even small alpha values start hurting
 front positions before improving the late tail. The next repair direction is
 therefore low-LR late-step MTP-layer training from v16, not more v14 blending.
+v17 confirms that this path can move the saved gate again, but only by one
+late-tail accept so far: step12 moves from `0/6` to `1/6`, total `58/116`.
+v18 continues from v17 with lower LR and a combined front+late weak-step
+curriculum.
 
 This changes the initialization and wiring path, not the serving state: MTP can
 now run a real draft forward pass and backpropagate through a frozen-base,
