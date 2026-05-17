@@ -908,6 +908,40 @@ The C++ refactor is justified if either:
 - native active-MoE fused kernel cannot be called efficiently from Python/Triton
   orchestration.
 
+2026-05-17 Atlas/C++/Rust ROI update:
+
+```text
+Reference: docs/LYNN_ENGINE_CPP_RUST_REWRITE_ROI_20260517.md
+Decision: staged native core first, Rust server later.
+```
+
+Atlas is now the strongest external validation for a Lynn-owned runtime. Its
+published GB10 Qwen3.5-35B-A3B numbers (`~130` tok/s peak, `~111` tok/s average
+with MTP K=2) are not directly comparable to Lynn's R6000 path, but they prove
+that Rust/CUDA plus model-specific kernels and real speculative verify is a
+production-shaped architecture, not only a research idea. The useful lesson is
+not "copy Atlas"; the repo is AGPL-3.0-only. The useful lesson is the shape:
+own the buffer arena, own native decode kernels, and verify MTP drafts in a
+batched K=2/K=3 path with explicit state commit/rollback.
+
+The rewrite sequence is therefore:
+
+1. C++/CUDA decode-core island under the current Python oracle;
+2. native K=2/K=3 verify ABI and transposed active-MoE layout probes;
+3. standalone `liblynn_decode_core` only after parity and cost gates pass;
+4. Rust server/scheduler after the core reaches a real serving TPS gate.
+
+Do not spend weeks on a blank-page Rust HTTP server before the native decode
+core proves it can beat the current Python/Triton runner. The server rewrite has
+high production ROI, but the 155 TPS ROI lives first in the native verify/core
+boundary.
+
+The product route is also fixed: keep Lynn 27B-A3B variable-expert W4A8 as the
+main line. Do not pivot to standard Qwen3.5-35B-A3B only because Atlas can run
+it fast; that would move Lynn into the most commoditized path. Standard 35B can
+remain a benchmark/reference model, while the product edge stays in custom W4A8,
+custom MTP, structured-tool quality gates, and the native runtime.
+
 ## Workstream E: Spark > llama.cpp
 
 Spark target is not the same kernel path as R6000:

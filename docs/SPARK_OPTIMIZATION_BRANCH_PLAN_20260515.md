@@ -71,6 +71,48 @@ baseline. If Spark can consume the same native packed path as R6000, a 50+
 tok/s target is reasonable. Treat 50+ as the Spark mid-term goal, not the
 current branch acceptance gate.
 
+2026-05-17 Atlas update:
+
+Atlas changes the long-term Spark expectation. Its public GB10 numbers show
+Qwen3.5-35B-A3B around `~130` tok/s peak / `~111` tok/s average with Rust+CUDA
+and MTP K=2, and about `70` tok/s without speculative decoding in its own README.
+Those are different model/runtime conditions and should not be pasted onto Lynn,
+but they prove Spark-class hardware can run far above the current Lynn Config D
+class when the engine owns CUDA kernels, buffer state, and speculative verify.
+
+Updated Spark target ladder:
+
+| Stage | Target | Meaning |
+|---|---:|---|
+| Scalar fallback | 24 tok/s | Known-good quality baseline. |
+| Current Config D class | ~49 tok/s | Stable production-like floor. |
+| Native packed + W4A8 mirror | 60-90 tok/s | First serious llama.cpp comparison band. |
+| Native core + K=2 MTP verify | 90-130 tok/s | Atlas-like architecture band, not guaranteed. |
+| Lynn stretch | > llama.cpp on same prompt/token budget | Actual acceptance gate. |
+
+Spark should not start from a full Rust rewrite. It should consume the same
+C++/CUDA decode-core gates as R6000, then wrap them in a cleaner server if the
+core beats llama.cpp on identical benchmarks.
+
+Atlas reproduction on Spark is useful but not blocking. If Spark is idle, run
+the official Atlas image as an external baseline and record:
+
+```text
+image digest
+model id
+exact command
+max context
+MTP on/off
+warmup tokens
+decode benchmark prompt/token budget
+single-stream and 4-concurrent results
+tool-call smoke result
+```
+
+Do not use Atlas reproduction as a substitute for Lynn's own gate. The Spark
+acceptance criterion remains Lynn engine > llama.cpp on the same prompt/token
+budget with Lynn's model/artifact.
+
 ## Guardrails
 
 - Do not publish Spark TPS as R6000 TPS.
@@ -90,4 +132,3 @@ reports/spark-sm121/master_eval_*.json
 reports/spark-sm121/tps_*.json
 docs/SPARK_SM121_STATUS_*.md
 ```
-
