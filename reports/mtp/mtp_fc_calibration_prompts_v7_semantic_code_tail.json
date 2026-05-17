@@ -1,0 +1,62 @@
+[
+  {
+    "id": "python_code_block_slugify_import_re_v7",
+    "prompt": "Only output a Python code block defining normalize_slug(text: str) -> str. It must import re, lowercase, strip whitespace, replace non alphanumeric runs with hyphens, and strip leading or trailing hyphens. No explanation.",
+    "weight": 5.0
+  },
+  {
+    "id": "python_plain_slugify_import_re_v7",
+    "prompt": "Only output Python code, no markdown. Import re and define make_slug(text: str) -> str that lowercases, strips, replaces non alphanumeric runs with hyphens, and strips hyphens at both ends.",
+    "weight": 5.0
+  },
+  {
+    "id": "python_code_block_parse_bool_v7",
+    "prompt": "Only output a Python code block defining parse_bool(value: str) -> bool. It must strip, lowercase, and return True for yes, true, or 1. No explanation.",
+    "weight": 4.0
+  },
+  {
+    "id": "python_plain_normalize_city_v7",
+    "prompt": "Only output Python code, no markdown. Define normalize_city(name: str) -> str that strips whitespace and title-cases each word.",
+    "weight": 4.0
+  },
+  {
+    "id": "json_action_city_args_v7",
+    "prompt": "Output exactly one compact JSON arguments object with keys action and city for booking a taxi in Kyoto. No markdown, no explanation.",
+    "weight": 4.0
+  },
+  {
+    "id": "json_weather_args_city_unit_v7",
+    "prompt": "Output exactly one compact JSON arguments object with keys city and unit for get_weather in Madrid with celsius. No function name, no markdown.",
+    "weight": 4.0
+  },
+  {
+    "id": "json_status_retry_v7",
+    "prompt": "Return exactly one compact JSON object with key status and value retry. No markdown, no explanation.",
+    "weight": 3.0
+  },
+  {
+    "id": "repair_json_action_city_v7",
+    "prompt": "Repair this invalid JSON and output exactly one compact valid JSON object: {'action':'book_taxi','city':'Kyoto',}. No markdown.",
+    "weight": 4.0
+  },
+  {
+    "id": "router_semantic_short_v7",
+    "prompt": "用一句中文短句说明 MoE router 如何选择专家。必须以 router 开头,不要解释。",
+    "weight": 4.0
+  },
+  {
+    "id": "linear_semantic_short_v7",
+    "prompt": "用一句中文短句说明 linear attention 如何节省 KV cache。必须以 linear attention 开头,不要解释。",
+    "weight": 4.0
+  },
+  {
+    "id": "mtp_semantic_short_v7",
+    "prompt": "用一句中文短句说明 MTP 如何帮助 speculative decode。必须以 MTP 开头,不要解释。",
+    "weight": 3.0
+  },
+  {
+    "id": "distance_tail_v7",
+    "prompt": "Answer only with the distance and unit: a drone flies 38 mph for 4 hours.",
+    "weight": 2.0
+  }
+]

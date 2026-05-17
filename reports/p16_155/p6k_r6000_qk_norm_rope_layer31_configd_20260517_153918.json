@@ -1,0 +1,24 @@
+{
+  "schema_version": "lynn-engine-p6k-qk-norm-rope-probe-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-a3b-w4a8-nvfp4-v2",
+  "layer": 31,
+  "device": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+  "has_triton": true,
+  "head_dim": 256,
+  "rotary_dim": 64,
+  "diff": {
+    "q_max_abs": 0.03125,
+    "q_cosine": 0.9999992251396179,
+    "k_max_abs": 0.0078125,
+    "k_cosine": 0.9999998807907104
+  },
+  "latency_ms": {
+    "torch_q_norm_rope": 0.12342720031738282,
+    "torch_k_norm_rope": 0.12280800342559814,
+    "triton_q_norm_rope": 0.022077866395314536,
+    "triton_k_norm_rope": 0.02096666693687439,
+    "torch_qk_total": 0.24623520374298097,
+    "triton_qk_total": 0.043044533332188925
+  },
+  "speedup_qk_total": 5.7204756256201525
+}

@@ -294,6 +294,12 @@ to `8/8`, and step2/4/5 stay `8/8`. Saved reload confirms the same
 now shows 47 misses, 11 near misses, and 32 hard misses; the next A100 target is
 semantic/code-body failures rather than simple JSON punctuation.
 
+A100 v25 tests that semantic/code-tail direction with a v7 prompt set from v24.
+It lowers heldout loss but does not add accept: total remains `69/116`. Its
+shape is complementary rather than better: step10 improves `2/7 -> 3/7`, but
+step12 drops `2/6 -> 1/6`. A v24/v25 interpolation scan keeps best alpha at
+`0.0`, so v24 remains the authoritative sidecar.
+
 If fc-only cannot clear 55-70%, unfreeze in this order:
 
 1. `mtp.fc.weight`
@@ -498,6 +504,19 @@ full-attn slots on their real per-layer state is strict-exact (`max_abs=0`,
 even for the same prompt. The serving route should therefore move to a native
 static full-attn boundary with explicit runtime inputs instead of trying to make
 PyTorch CUDAGraph slots portable across requests.
+
+2026-05-17 P6G backend profile shows `manual_gqa` is not a speed lever for
+full-attention decode: layer31 `attn.full_decode_recomposed` is `0.336 ms` with
+SDPA and `0.427 ms` with manual GQA. The attention core is only about
+`0.015 ms`; the useful native target is q/k norm + RoPE + cache/output glue, and
+the larger layer-level bottleneck remains active-MoE (`~0.41 ms` for the active
+expert loop on this layer).
+
+P6K confirms that the existing Triton q/k norm+RoPE kernels already remove the
+big torch overhead: torch q+k total is `0.246 ms`, Triton q+k total is
+`0.043 ms` (`5.72x`). A native full-attn boundary can still reduce glue and
+allocation, but the next large R6000 speed lever is still active-MoE/native
+expert math plus MTP, not replacing SDPA.
 
 2026-05-17 down-backend service sweep: switching only
 `LYNN_NATIVE_DOWN_BACKEND` from `triton` to `cuda_tile` gives real raw speed

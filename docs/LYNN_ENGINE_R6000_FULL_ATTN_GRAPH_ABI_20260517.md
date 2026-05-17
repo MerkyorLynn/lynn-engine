@@ -256,6 +256,44 @@ the direct serving primitive. The next production ABI should be a native/static
 full-attn layer boundary that takes explicit `h`, position, KV cache, and output
 buffers as runtime inputs instead of relying on captured Python object state.
 
+P6G then re-profiles the full-attention layer31 segment under the same Config D
+runtime knobs to aim that native boundary:
+
+```text
+reports/p16_155/p6g_r6000_full_attn_layer31_sdpa_configd_20260517_153618.json
+attn.full_decode_recomposed: 0.336 ms
+attn.qk_norm: 0.127 ms
+attn.rope_apply: 0.117 ms
+attn.sdpa_gqa: 0.015 ms
+moe.active_expert_loop: 0.413 ms
+layer.full_recomposed: 1.186 ms
+
+reports/p16_155/p6g_r6000_full_attn_layer31_manual_gqa_configd_20260517_153618.json
+attn.full_decode_recomposed: 0.427 ms
+layer.full_recomposed: 1.265 ms
+```
+
+Manual GQA is slower than SDPA here, and SDPA itself is not the expensive
+piece. The native/static full-attn path should first fuse q/k norm + RoPE +
+cache write/output glue, while the larger per-layer win still comes from the
+active-MoE expert loop.
+
+P6K shows the q/k norm+RoPE target has already been mostly compressed by the
+Triton path:
+
+```text
+reports/p16_155/p6k_r6000_qk_norm_rope_layer31_configd_20260517_153918.json
+torch_qk_total: 0.246 ms
+triton_qk_total: 0.043 ms
+speedup_qk_total: 5.72x
+q_max_abs: 0.03125
+k_max_abs: 0.0078125
+```
+
+That leaves native full-attn as a glue/allocation reduction rather than a
+standalone 155-TPS lever. The larger native investment should stay focused on
+active-MoE expert math and a serving-safe MTP verifier.
+
 ## Graph Key
 
 Graph slots must be invalidated by:

@@ -285,6 +285,12 @@ v24 the new authoritative serving-credit sidecar. The remaining miss profile is
 47 misses total: 11 near misses and 32 hard misses, dominated by semantic/code
 tokens rather than the earlier low-margin punctuation cases.
 
+v25 adds a v7 semantic/code-tail calibration set from v24. It lowers eval loss
+but does not add heldout accept: `69/116` before and after. The by-step trade is
+useful for diagnosis but not promotion: step10 improves to `3/7`, while step12
+drops to `1/6`. Interpolating v24 and v25 keeps best alpha at `0.0`, so v24
+remains the sidecar to wire into serving-credit experiments.
+
 This changes the initialization and wiring path, not the serving state: MTP can
 now run a real draft forward pass and backpropagate through a frozen-base,
 frozen-MTP-layer fc-only calibration set. The warm-start head is still not an

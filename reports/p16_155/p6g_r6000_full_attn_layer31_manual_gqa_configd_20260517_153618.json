@@ -1,0 +1,91 @@
+{
+  "schema_version": "lynn-engine-p6g-full-attention-layer-profile-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-a3b-w4a8-nvfp4-v2",
+  "layer": 31,
+  "layer_type": "full_attention",
+  "device": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+  "dtype": "bf16",
+  "load_seconds": 16.11461853981018,
+  "prompt_tokens": 7,
+  "active_experts": [
+    181,
+    108,
+    125,
+    13,
+    138,
+    186,
+    145,
+    89
+  ],
+  "segment_ms": {
+    "layer.input_rmsnorm": 0.06258986790974935,
+    "attn.q_proj": 0.027176533142725626,
+    "attn.k_proj": 0.010241066416104635,
+    "attn.v_proj": 0.010212266445159912,
+    "attn.reshape_chunk": 0.042973868052164715,
+    "attn.qk_norm": 0.12517013549804687,
+    "attn.rope_apply": 0.11751573085784912,
+    "attn.cache_write": 0.014495999614397685,
+    "attn.sdpa_gqa": 0.015214932958285014,
+    "attn.output_gate": 0.024433066447575886,
+    "attn.o_proj": 0.013520000378290813,
+    "attn.full_decode_recomposed": 0.42654186884562173,
+    "layer.post_attn_rmsnorm": 0.061961599191029865,
+    "moe.router": 0.009361066420873006,
+    "moe.topk_softmax": 0.04103680054346721,
+    "moe.active_expert_loop": 0.408896001180013,
+    "moe.shared_expert": 0.061527466773986815,
+    "moe.full_recomposed": 0.4754645347595215,
+    "layer.full_recomposed": 1.2646628788539342
+  },
+  "top_segments": [
+    {
+      "segment": "moe.active_expert_loop",
+      "latency_ms": 0.408896001180013
+    },
+    {
+      "segment": "attn.qk_norm",
+      "latency_ms": 0.12517013549804687
+    },
+    {
+      "segment": "attn.rope_apply",
+      "latency_ms": 0.11751573085784912
+    },
+    {
+      "segment": "layer.input_rmsnorm",
+      "latency_ms": 0.06258986790974935
+    },
+    {
+      "segment": "layer.post_attn_rmsnorm",
+      "latency_ms": 0.061961599191029865
+    },
+    {
+      "segment": "moe.shared_expert",
+      "latency_ms": 0.061527466773986815
+    },
+    {
+      "segment": "attn.reshape_chunk",
+      "latency_ms": 0.042973868052164715
+    },
+    {
+      "segment": "moe.topk_softmax",
+      "latency_ms": 0.04103680054346721
+    },
+    {
+      "segment": "attn.q_proj",
+      "latency_ms": 0.027176533142725626
+    },
+    {
+      "segment": "attn.output_gate",
+      "latency_ms": 0.024433066447575886
+    },
+    {
+      "segment": "attn.sdpa_gqa",
+      "latency_ms": 0.015214932958285014
+    },
+    {
+      "segment": "attn.cache_write",
+      "latency_ms": 0.014495999614397685
+    }
+  ]
+}
