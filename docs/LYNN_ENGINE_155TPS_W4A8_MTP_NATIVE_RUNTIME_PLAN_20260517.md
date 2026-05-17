@@ -193,6 +193,12 @@ A100 v16 saved-sidecar eval confirms a small but real new high:
 credit gate, so the next A100 move is a fine interpolation scan between v16 and
 the earlier v14 step1/3 specialist before launching another wider training run.
 
+The v16/v14 fine interpolation scan does not add more accept: best alpha is
+`0.0`, i.e. v16 itself. Moving toward v14 starts damaging step0/4 before it
+helps the remaining late positions. A100 v17 therefore switches from linear
+interpolation back to training: low-LR `fc_mtp_layer`, steps 6-15 only, using
+v16 as the source sidecar.
+
 If fc-only cannot clear 55-70%, unfreeze in this order:
 
 1. `mtp.fc.weight`
@@ -310,6 +316,15 @@ lm_head is `0.33 ms`, and the residual host gap is only `0.15 ms`. A C++ token
 loop alone cannot provide the missing `~3.5 ms/token`; the C++/CUDA refactor has
 to make full-attention/static-state graphing or native fused layer boundaries
 possible, while MTP supplies the effective-token multiplier.
+
+2026-05-17 P27 full-layer segment profile opens one service-shaped full-attn
+layer under Config D. Layer 31 measures `attn.full_decode 0.281 ms`,
+`packed MoE 0.203 ms`, `qk_norm_rope 0.124 ms`, and two RMSNorms of about
+`0.061 ms` each. The full-layer recomposition is `0.739 ms` in the isolated
+profile. The useful conclusion is not "replace SDPA"; SDPA itself is only about
+`0.015 ms` at this short seq_len. The next runtime work should fuse/static-graph
+the full-attn layer boundary, especially q/k norm+RoPE, norms, and packed MoE
+dispatch, rather than chasing attention core alone.
 
 2026-05-17 down-backend service sweep: switching only
 `LYNN_NATIVE_DOWN_BACKEND` from `triton` to `cuda_tile` gives real raw speed

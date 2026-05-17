@@ -115,6 +115,11 @@ best_label: v16
 best_accept: 57/116 = 49.14%
 sidecar:
 /mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v15-weaksteps-v16-20260517_132509/mtp.safetensors
+
+reports/mtp/a100_mtp_interpolate_v16_v14_fine_20260517_133151.json
+decision: AMBER
+best_alpha: 0.0
+best_accept: 57/116 = 49.14%
 ```
 
 The weighted-math v3 sidecar is a GREEN first-token draft candidate, but it is
@@ -125,7 +130,10 @@ saved sidecar to approach the 55% serving-credit bar, with steps 2/3/4/5 at
 8/8 and the remaining weakness concentrated at steps 1/8/9/12/15. v16 is a
 low-LR `fc_norms` repair run from v15 targeting only those weak positions; it
 adds one saved heldout accept by moving step1 from `1/8` to `2/8` without
-damaging the restored step2/3/4/5 band.
+damaging the restored step2/3/4/5 band. A fine interpolation back toward the
+v14 step1/3 specialist does not help; even small alpha values start hurting
+front positions before improving the late tail. The next repair direction is
+therefore low-LR late-step MTP-layer training from v16, not more v14 blending.
 
 This changes the initialization and wiring path, not the serving state: MTP can
 now run a real draft forward pass and backpropagate through a frozen-base,

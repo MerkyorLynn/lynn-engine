@@ -270,6 +270,33 @@ to reach 155 TPS by moving only the token loop into C++. The next base-runtime
 work must either reduce the graph-captured linear blocks, make the full-attention
 layers graph/static-state friendly, or rely on MTP for the missing multiplier.
 
+## Full-Attention Layer Segment Profile
+
+Follow-up service-shaped layer profile:
+
+```text
+reports/p16_155/p27_r6000_full_layer31_configd_segment_20260517_133558.json
+```
+
+Layer 31 under Config D:
+
+| Segment | Mean ms |
+|---|---:|
+| Full layer recomposed | 0.739 |
+| Attention full decode | 0.281 |
+| Packed MoE full | 0.203 |
+| q/k norm + RoPE | 0.124 |
+| input RMSNorm | 0.062 |
+| post-attn RMSNorm | 0.061 |
+| q_proj | 0.027 |
+| output gate | 0.024 |
+| SDPA GQA core | 0.015 |
+
+The SDPA core is not the dominant full-attention cost at this sequence length.
+The speed path is a service-shaped fused/static boundary for the full-attn
+layer: q/k norm+RoPE, norms, packed MoE dispatch, and graphability matter more
+than swapping attention kernels alone.
+
 ## Down Backend Service Sweep
 
 Service-path report:
