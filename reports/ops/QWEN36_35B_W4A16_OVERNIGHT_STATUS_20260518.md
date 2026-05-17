@@ -301,6 +301,10 @@ That confirms the next native kernel should borrow the down-tile lesson while
 preserving the W4A16 numerical contract. Directly promoting the quantized
 activation composition would repeat the W4A8 quality failure mode.
 
+Runtime gate with `LYNN_NATIVE_DOWN_TILE_HIDDEN=1` confirms that conclusion:
+the candidate reaches 111.08 median decode TPS, but all three greedy prompts
+diverge into repeated exclamation marks. Tile size is not the quality fix.
+
 This confirms the remaining MoE opportunity is mostly boundary fusion: one
 kernel boundary for routed active experts and, later, a shared-expert fusion.
 The individual gate/up and down kernels are already small enough that more tile
@@ -335,6 +339,7 @@ Copied reports:
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p97_active_moe_interval_layer28_20260518_053622.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p97_active_moe_interval_layer32_20260518_053622.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p97_active_moe_interval_layer36_20260518_053622.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p37_down_cuda_tile1_gqa_gate_20260518_055325.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p37_down_cuda_tile_gate_20260518_040259.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p37_grouped_per16_nonatomic_gate_20260518_040522.json`
 
