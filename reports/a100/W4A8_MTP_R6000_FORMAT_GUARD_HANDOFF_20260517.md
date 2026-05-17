@@ -129,6 +129,23 @@ served-text exact with 12/12 reference and candidate format clean. This rescues
 the structured JSON/YAML/tool-call failures, but leaves natural-language
 wording, `normalize_city` implementation style, and bullet wording drift.
 
+The OpenAI-compatible server now has the same primitive wired in:
+
+```text
+response_format: {"type": "json_object"}
+
+or private:
+lynn_format_guard: {
+  "forced_prefix": "{\n  \"",
+  "stop_after": "balanced_json",
+  "stop_before": ["<think>", "</think>"]
+}
+```
+
+Supported `stop_after` modes are `balanced_json`, `code_fence`, and
+`bullet_count`. The hook is intentionally opt-in and should be used only for
+structured modes while v16 remains the general Recovery baseline.
+
 ## Full-Token Graph Slot Trigger
 
 The existing whole-decode graph-slot path is opt-in:

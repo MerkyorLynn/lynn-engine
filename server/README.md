@@ -35,6 +35,28 @@ Wait ~5 min for "READY" message (40 layers × 6 s each load).
 | POST | `/v1/completions` | Text completion (OpenAI Completions schema) |
 | POST | `/v1/chat/completions` | Chat completion (applies tokenizer chat_template) |
 
+## Structured Guard
+
+For JSON-only calls, the server accepts the OpenAI-style response format and
+uses a small serving guard:
+
+```json
+{"response_format": {"type": "json_object"}}
+```
+
+This forces a JSON-object prefix and returns only the first balanced object.
+For internal experiments, `lynn_format_guard` can specify:
+
+```json
+{
+  "forced_prefix": "{\n  \"",
+  "stop_after": "balanced_json",
+  "stop_before": ["<think>", "</think>"]
+}
+```
+
+Supported `stop_after` modes: `balanced_json`, `code_fence`, `bullet_count`.
+
 ## Brain integration
 
 In Lynn brain `.env`:

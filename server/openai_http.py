@@ -54,6 +54,104 @@ from typing import Any, AsyncIterator, Optional
 # Engine wrapper (lazy-init, GPU optional for dev mode)
 # ----------------------------------------------------------------------------
 
+def _trim_before(text: str, needles: list[str]) -> str:
+    hits = [text.find(item) for item in needles if item and text.find(item) >= 0]
+    return text if not hits else text[: min(hits)].rstrip()
+
+
+def _balanced_json(text: str) -> str:
+    start = text.find("{")
+    if start < 0:
+        return text
+    depth = 0
+    in_string = False
+    escape = False
+    for idx in range(start, len(text)):
+        ch = text[idx]
+        if in_string:
+            if escape:
+                escape = False
+            elif ch == "\\":
+                escape = True
+            elif ch == '"':
+                in_string = False
+            continue
+        if ch == '"':
+            in_string = True
+        elif ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return text[: idx + 1]
+    return text
+
+
+def _closed_code_fence(text: str) -> str:
+    stripped = text.lstrip()
+    offset = len(text) - len(stripped)
+    if not stripped.startswith("```"):
+        return text
+    first_newline = text.find("\n", offset)
+    if first_newline < 0:
+        return text
+    close = text.find("```", first_newline + 1)
+    return text if close < 0 else text[: close + 3]
+
+
+def _first_bullets(text: str, count: int) -> str:
+    lines = text.splitlines()
+    out: list[str] = []
+    bullet_count = 0
+    started = False
+    for line in lines:
+        if line.lstrip().startswith("-"):
+            started = True
+            bullet_count += 1
+        elif started and bullet_count >= count:
+            break
+        if started:
+            out.append(line)
+        if bullet_count >= count:
+            break
+    return "\n".join(out).rstrip() if out else text
+
+
+def resolve_format_guard(
+    *,
+    lynn_format_guard: Optional[dict[str, Any]],
+    response_format: Optional[dict[str, Any]],
+) -> Optional[dict[str, Any]]:
+    if lynn_format_guard:
+        return dict(lynn_format_guard)
+    if response_format and response_format.get("type") == "json_object":
+        return {
+            "forced_prefix": "{\n  \"",
+            "stop_after": "balanced_json",
+            "stop_before": ["<think>", "</think>", "```"],
+            "strip": True,
+        }
+    return None
+
+
+def apply_format_guard(text: str, guard: Optional[dict[str, Any]]) -> tuple[str, bool]:
+    if not guard:
+        return text, False
+    served = text
+    stop_before = guard.get("stop_before") or []
+    if stop_before:
+        served = _trim_before(served, [str(item) for item in stop_before])
+    stop_after = guard.get("stop_after")
+    if stop_after == "balanced_json":
+        served = _balanced_json(served)
+    elif stop_after == "code_fence":
+        served = _closed_code_fence(served)
+    elif stop_after == "bullet_count":
+        served = _first_bullets(served, int(guard.get("bullet_count", 3)))
+    if guard.get("strip", True):
+        served = served.strip()
+    return served, served != text
+
 @dataclass
 class EngineConfig:
     model_dir: str
@@ -101,7 +199,8 @@ class LynnEngineHandle:
               flush=True)
 
     def generate(self, prompt: str, max_new_tokens: int, temperature: float = 0.0,
-                 stop: Optional[list[str]] = None) -> dict:
+                 stop: Optional[list[str]] = None,
+                 format_guard: Optional[dict[str, Any]] = None) -> dict:
         """Greedy (or temp=0) incremental decode. Returns dict with text + tokens."""
         if temperature not in (0, 0.0):
             raise ValueError("Lynn engine MVP server currently supports greedy temperature=0 only")
@@ -113,11 +212,13 @@ class LynnEngineHandle:
         result = self.runner.generate(
             prompt,
             max_new=max_new_tokens,
+            forced_prefix_text=None if not format_guard else format_guard.get("forced_prefix"),
             release_decode_shadows_after_prefill=self.release_decode_shadows_after_prefill,
         )
         if self.release_decode_shadows_after_prefill:
             self.release_decode_shadows_consumed = True
         completion = result["completion_text"]
+        completion, format_guard_stopped = apply_format_guard(completion, format_guard)
         if stop:
             for s in stop:
                 pos = completion.find(s)
@@ -130,6 +231,12 @@ class LynnEngineHandle:
             "prompt_tokens": len(self.tokenizer(prompt).input_ids),
             "completion_tokens": len(result["new_ids"]),
             "timings": result["timings"],
+            "format_guard": {
+                "enabled": bool(format_guard),
+                "stopped": format_guard_stopped,
+                "forced_prefix": result.get("forced_prefix"),
+                "stop_after": None if not format_guard else format_guard.get("stop_after"),
+            },
             "release_decode_shadows_after_prefill": self.release_decode_shadows_after_prefill,
             "release_decode_shadows_consumed": self.release_decode_shadows_consumed,
         }
@@ -155,6 +262,8 @@ def make_app(handle: LynnEngineHandle):
         stream: bool = False
         stop: Optional[list[str]] = None
         logprobs: Optional[int] = None       # accepted but ignored for now
+        response_format: Optional[dict[str, Any]] = None
+        lynn_format_guard: Optional[dict[str, Any]] = None
 
     class ChatMessage(BaseModel):
         role: str
@@ -170,6 +279,8 @@ def make_app(handle: LynnEngineHandle):
         tools: Optional[list[dict[str, Any]]] = None
         tool_choice: Optional[Any] = None       # accepted for OpenAI compatibility; model decides today
         chat_template_kwargs: Optional[dict[str, Any]] = None
+        response_format: Optional[dict[str, Any]] = None
+        lynn_format_guard: Optional[dict[str, Any]] = None
 
     def parse_qwen_tool_calls(text: str) -> tuple[str, list[dict[str, Any]]]:
         """Parse Qwen-style XML tool calls into OpenAI `tool_calls`.
@@ -265,11 +376,15 @@ def make_app(handle: LynnEngineHandle):
 
         async with handle.lock:
             t0 = time_mod.time()
+            format_guard = resolve_format_guard(
+                lynn_format_guard=req.lynn_format_guard,
+                response_format=req.response_format,
+            )
             try:
                 result = await asyncio.get_event_loop().run_in_executor(
                     None,
                     lambda: handle.generate(req.prompt, req.max_tokens,
-                                            req.temperature, req.stop),
+                                            req.temperature, req.stop, format_guard),
                 )
             except ValueError as exc:
                 raise HTTPException(400, str(exc)) from exc
@@ -285,7 +400,7 @@ def make_app(handle: LynnEngineHandle):
             "choices": [{
                 "index": 0,
                 "text": result["completion"],
-                "finish_reason": "stop" if req.stop else "length",
+                "finish_reason": "stop" if req.stop or result["format_guard"]["stopped"] else "length",
                 "logprobs": None,
             }],
             "usage": {
@@ -297,6 +412,7 @@ def make_app(handle: LynnEngineHandle):
                 "elapsed_s": elapsed,
                 "tokens_per_second": result["completion_tokens"] / max(elapsed, 1e-6),
                 "timings": result["timings"],
+                "format_guard": result["format_guard"],
             },
         }
 
@@ -333,11 +449,15 @@ def make_app(handle: LynnEngineHandle):
 
         async with handle.lock:
             t0 = time_mod.time()
+            format_guard = resolve_format_guard(
+                lynn_format_guard=req.lynn_format_guard,
+                response_format=req.response_format,
+            )
             try:
                 result = await asyncio.get_event_loop().run_in_executor(
                     None,
                     lambda: handle.generate(prompt, req.max_tokens,
-                                            req.temperature, req.stop),
+                                            req.temperature, req.stop, format_guard),
                 )
             except ValueError as exc:
                 raise HTTPException(400, str(exc)) from exc
@@ -347,7 +467,9 @@ def make_app(handle: LynnEngineHandle):
 
         content, tool_calls = parse_qwen_tool_calls(result["completion"])
         message: dict[str, Any] = {"role": "assistant", "content": content}
-        finish_reason = "tool_calls" if tool_calls else ("stop" if req.stop else "length")
+        finish_reason = "tool_calls" if tool_calls else (
+            "stop" if req.stop or result["format_guard"]["stopped"] else "length"
+        )
         if tool_calls:
             message["tool_calls"] = tool_calls
 
@@ -370,6 +492,7 @@ def make_app(handle: LynnEngineHandle):
                 "elapsed_s": elapsed,
                 "tokens_per_second": result["completion_tokens"] / max(elapsed, 1e-6),
                 "timings": result["timings"],
+                "format_guard": result["format_guard"],
             },
         }
 
