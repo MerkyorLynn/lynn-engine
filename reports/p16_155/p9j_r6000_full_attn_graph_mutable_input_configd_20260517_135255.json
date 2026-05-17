@@ -1,0 +1,249 @@
+{
+  "schema_version": "lynn-engine-p9j-full-attn-graph-mutable-input-probe-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-a3b-w4a8-nvfp4-v2",
+  "device": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+  "qk_norm_rope_backend": "torch",
+  "prompt": "Explain MoE active parameters in one sentence.",
+  "summary": {
+    "case_count": 4,
+    "layers": [
+      3,
+      15,
+      31,
+      39
+    ],
+    "position": 10,
+    "eager_ms_mean": 1.0329580108324685,
+    "graph_replay_ms_mean": 0.24547953208287557,
+    "speedup_min": 4.028065296742981,
+    "speedup_mean": 4.210487190008909,
+    "speedup_max": 4.3024071330167075,
+    "max_case_a_output_diff": 0.0,
+    "max_case_b_output_diff": 0.0,
+    "max_case_a_kv_k_diff": 0.0,
+    "max_case_b_kv_k_diff": 0.0,
+    "min_graph_output_delta_rel_l2": 1.0715548716147343
+  },
+  "records": [
+    {
+      "layer": 3,
+      "position": 10,
+      "token_a": 271,
+      "token_b": 1280,
+      "eager_ms": 1.0410666465759277,
+      "graph_replay_ms": 0.24197306632995605,
+      "speedup": 4.3024071330167075,
+      "case_a_output_diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104
+      },
+      "case_b_output_diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      },
+      "case_a_kv_write_diff": {
+        "k": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0000001192092896
+        },
+        "v": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        }
+      },
+      "case_b_kv_write_diff": {
+        "k": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 0.9999998807907104
+        },
+        "v": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 0.9999998211860657
+        }
+      },
+      "graph_output_delta_a_to_b": {
+        "max_abs": 0.984375,
+        "mean_abs": 0.18839356303215027,
+        "rel_l2": 1.1952692996888414,
+        "cosine": 0.3505920469760895
+      }
+    },
+    {
+      "layer": 15,
+      "position": 10,
+      "token_a": 271,
+      "token_b": 1280,
+      "eager_ms": 1.0319560368855794,
+      "graph_replay_ms": 0.24153946240743002,
+      "speedup": 4.27241174837456,
+      "case_a_output_diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      },
+      "case_b_output_diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896
+      },
+      "case_a_kv_write_diff": {
+        "k": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 0.9999998807907104
+        },
+        "v": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0000001192092896
+        }
+      },
+      "case_b_kv_write_diff": {
+        "k": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "v": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        }
+      },
+      "graph_output_delta_a_to_b": {
+        "max_abs": 3.796875,
+        "mean_abs": 0.17654412984848022,
+        "rel_l2": 1.0715548716147343,
+        "cosine": 0.17384935915470123
+      }
+    },
+    {
+      "layer": 31,
+      "position": 10,
+      "token_a": 271,
+      "token_b": 1280,
+      "eager_ms": 1.0286107063293457,
+      "graph_replay_ms": 0.24265039761861165,
+      "speedup": 4.239064581901388,
+      "case_a_output_diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "case_b_output_diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      },
+      "case_a_kv_write_diff": {
+        "k": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 0.9999998807907104
+        },
+        "v": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        }
+      },
+      "case_b_kv_write_diff": {
+        "k": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0000001192092896
+        },
+        "v": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0000001192092896
+        }
+      },
+      "graph_output_delta_a_to_b": {
+        "max_abs": 1.3671875,
+        "mean_abs": 0.16844956576824188,
+        "rel_l2": 1.2411552221115494,
+        "cosine": 0.15695728361606598
+      }
+    },
+    {
+      "layer": 39,
+      "position": 10,
+      "token_a": 271,
+      "token_b": 1280,
+      "eager_ms": 1.0301986535390217,
+      "graph_replay_ms": 0.25575520197550455,
+      "speedup": 4.028065296742981,
+      "case_a_output_diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "case_b_output_diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896
+      },
+      "case_a_kv_write_diff": {
+        "k": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 0.9999999403953552
+        },
+        "v": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        }
+      },
+      "case_b_kv_write_diff": {
+        "k": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "v": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0000001192092896
+        }
+      },
+      "graph_output_delta_a_to_b": {
+        "max_abs": 8.44140625,
+        "mean_abs": 0.6052364110946655,
+        "rel_l2": 2.3321125694315223,
+        "cosine": 0.25896263122558594
+      }
+    }
+  ]
+}

@@ -318,6 +318,7 @@ Fixed-position graph probe:
 ```text
 reports/p16_155/p9h_r6000_full_attn_graph_layer31_configd_20260517_134320.json
 reports/p16_155/p9i_r6000_full_attn_graph_sweep_configd_20260517_134849.json
+reports/p16_155/p9j_r6000_full_attn_graph_mutable_input_configd_20260517_135255.json
 ```
 
 Layer 31 result:
@@ -355,6 +356,26 @@ P9I repeats the probe across layers 3/15/31/39 and prompt positions 10/14/32:
 The multi-point sweep turns the layer-31 result into a stable runtime signal.
 The next implementation question is graph-family ownership and KV/state ABI,
 not whether full-attention replay is fast enough.
+
+P9J then tests the missing serving contract: a captured graph must consume a
+changed hidden input buffer at the same position.
+
+| Metric | Value |
+|---|---:|
+| Cases | 4 |
+| Layers | 3, 15, 31, 39 |
+| Position | 10 |
+| Eager mean | 1.033 ms |
+| Graph replay mean | 0.245 ms |
+| Replay speedup mean | 4.21x |
+| Max case-A output diff | 0 |
+| Max case-B output diff | 0 |
+| Max KV write diff | 0 |
+| Min output delta A->B rel_l2 | 1.07 |
+
+The graph is therefore not replaying stale input; it responds to changed
+hidden data while staying bit-identical to eager for both inputs. This clears
+the main prerequisite for a single-stream resident full-attn graph family.
 
 ## Down Backend Service Sweep
 

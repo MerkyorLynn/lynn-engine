@@ -21,11 +21,12 @@ R6000 long decode serving: 512-token wall 88.23 tok/s, decode 100.11 tok/s
 R6000 1024-token serving: wall 88.70 tok/s, decode 98.85 tok/s
 R6000 v2 active-MoE micro gain: ~1.12x interval, not enough alone
 R6000 full-attn graph sweep: 12/12 parity, replay 4.09x faster than eager
+R6000 full-attn mutable-input graph: 4/4 parity, replay 4.21x faster than eager
 A100 best W4A8 recovery baseline: structured_v16_top6_damped075
 A100 teacher-clean v2 serving gate: 10/12 served exact, still RED
 A100 teacher-clean v3 serving gate: 11/12 served exact, min prefix 16, AMBER by plan threshold
-MTP: aligned sidecar forward works; best saved sidecar is now v17 at
-     58/116 = 50.00%, still AMBER and below serving multiplier credit
+MTP: aligned sidecar forward works; best saved sidecar is now v18 at
+     59/116 = 50.86%, still AMBER and below serving multiplier credit
 ```
 
 155 requires a compound win. There is no single safe env flag left.
@@ -206,6 +207,14 @@ remain `8/8`. This proves low-LR MTP-layer late repair is valid, but it is still
 too incremental; A100 v18 is running from v17 with even lower LR over combined
 weak steps `0/1/6/7/8/9/11/12/13/14/15`.
 
+A100 v18 saved-sidecar eval confirms the next small high:
+`59/116 = 50.86%`. The gain is clean but narrow: step0 improves from `3/8` to
+`4/8`, while step2/3/4/5 remain `8/8`; step1 and the late tail do not move.
+This keeps v18 as the best saved sidecar, but the slope is now too incremental
+for blind weak-step sweeps. The next A100 move should add targeted calibration
+coverage or a small specialist/merge strategy for step1 plus late-tail keys,
+not simply lower LR again on the same case set.
+
 If fc-only cannot clear 55-70%, unfreeze in this order:
 
 1. `mtp.fc.weight`
@@ -355,6 +364,15 @@ timing averages `0.252 ms` vs `1.031 ms` eager, with speedup range
 `4.00-4.29x` and exact output/KV write-slice parity in every case. This makes
 full-attention reusable graphing the most concrete non-MTP R6000 speed lever
 found today.
+
+2026-05-17 P9J closes the mutable-input concern for the graph slot contract.
+Across layers 3/15/31/39 at position 10, one captured graph per layer replays
+correctly after swapping the input hidden buffer to a second token: both case-A
+and case-B outputs have `max_abs=0`, KV writes have `max_abs=0`, and graph
+outputs actually change between inputs (`min rel_l2=1.07`). Mean replay timing
+is `0.245 ms` vs `1.033 ms` eager, or `4.21x`. The next implementation step is
+a single-stream resident graph-state ABI, not another proof that graph inputs
+can vary.
 
 2026-05-17 down-backend service sweep: switching only
 `LYNN_NATIVE_DOWN_BACKEND` from `triton` to `cuda_tile` gives real raw speed

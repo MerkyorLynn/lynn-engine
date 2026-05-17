@@ -126,6 +126,14 @@ reports/mtp/a100_mtp_saved_sidecar_eval_v16_v17_20260517_134040.json
 decision: AMBER
 best_label: v17
 best_accept: 58/116 = 50.00%
+
+reports/mtp/a100_mtp_iterative_train_v17_weakall_mtplow_v18_20260517_134200.json
+reports/mtp/a100_mtp_saved_sidecar_eval_v17_v18_20260517_135418.json
+decision: AMBER
+best_label: v18
+best_accept: 59/116 = 50.86%
+sidecar:
+/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v17-weakall-mtplow-v18-20260517_134200/mtp.safetensors
 ```
 
 The weighted-math v3 sidecar is a GREEN first-token draft candidate, but it is
@@ -143,7 +151,11 @@ therefore low-LR late-step MTP-layer training from v16, not more v14 blending.
 v17 confirms that this path can move the saved gate again, but only by one
 late-tail accept so far: step12 moves from `0/6` to `1/6`, total `58/116`.
 v18 continues from v17 with lower LR and a combined front+late weak-step
-curriculum.
+curriculum; saved eval confirms one more accept, moving step0 from `3/8` to
+`4/8` for total `59/116`. Step1 and the late tail stay flat, so the next
+useful move is not another blind low-LR weak-step sweep. Add targeted
+calibration coverage or train a small specialist/merge candidate for step1 and
+late-tail key positions before spending more A100 cycles.
 
 This changes the initialization and wiring path, not the serving state: MTP can
 now run a real draft forward pass and backpropagate through a frozen-base,
