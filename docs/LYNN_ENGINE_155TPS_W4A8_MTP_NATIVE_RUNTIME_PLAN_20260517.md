@@ -203,6 +203,12 @@ mean `1.105x`. The best down interval is stable at about `0.02253 ms`, while
 the best gate/up interval still averages `0.05797 ms`; the next R6000 speed
 lever is therefore gate/up scheduling/fusion, not more down-only work.
 
+2026-05-17 split16+tile1 generate gate: the P97 local winner fails in real
+decode. Config D baseline median is `101.13 tok/s`; split16 gate/up plus native
+down tile1 falls to `25.15 tok/s` median and `0/3` exact IDs because it must run
+with graph reuse disabled and activation quantization changes the generated
+path. Do not pursue this as a serving flag combination.
+
 Required native path:
 
 ```text

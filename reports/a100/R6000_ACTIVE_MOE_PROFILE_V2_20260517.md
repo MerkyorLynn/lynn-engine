@@ -133,3 +133,20 @@ Decision: the native-down tile path is consistently the local winner, but the
 gate/up interval is now the larger remaining active-MoE cost. This shifts the
 next speed work from "prove native down" to "reduce or fuse gate/up scheduling
 without triggering split16 activation-quant drift in generation."
+
+## Split16 + Tile1 Generate Gate
+
+Follow-up service-shaped gate:
+
+```text
+reports/p16_155/p37_r6000_v2_split16_tile1_generate_gate_20260517_122904.json
+```
+
+| Mode | Median decode TPS | Exact IDs |
+|---|---:|---:|
+| Config D baseline | 101.13 | reference |
+| split16 gate/up + native down tile1 | 25.15 | 0/3 |
+
+The local P97 winner is therefore not a promotable serving switch. It requires
+graph-off activation quantization and changes greedy IDs. Treat split16 as an
+offline kernel research artifact, not the next runtime bridge.
