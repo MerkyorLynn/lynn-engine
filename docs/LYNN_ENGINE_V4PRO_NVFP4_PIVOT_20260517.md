@@ -52,13 +52,13 @@ If the BF16 oracle was deleted, the runner downloads it first:
 ```text
 DOWNLOAD_BF16_IF_MISSING=1
 DOWNLOAD_SOURCE=modelscope
-MS_REPO=Merkyor/Lynn-V4-Pro-Distill-Qwen-35B-A3B-BF16-merged
+MS_REPO=Merkyor/Lynn-V4-Pro-Distill-Qwen-35B-A3B
 ```
 
 Set `DOWNLOAD_SOURCE=hf` to use:
 
 ```text
-HF_REPO=nerkyor/Lynn-V4-Pro-Distill-Qwen-35B-A3B-BF16-merged
+HF_REPO=Merkyor/Lynn-V4-Pro-Distill-Qwen-35B-A3B
 ```
 
 Disk handling defaults:
