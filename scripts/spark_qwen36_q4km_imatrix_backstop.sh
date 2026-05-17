@@ -15,6 +15,10 @@ OUT_DIR="${OUT_DIR:-/home/merkyor/models/Qwen3.6-35B-A3B-GGUF-imatrix}"
 CALIB="${CALIB:-/home/merkyor/calibration/calib_combined.txt}"
 RESULTS_DIR="${RESULTS_DIR:-/home/merkyor/quality-eval-20260517/results}"
 LLAMACPP_EVAL="${LLAMACPP_EVAL:-/home/merkyor/quality-eval-20260517/scripts/run_llamacpp_eval.sh}"
+P25="${P25:-/home/merkyor/lynn-engine/benchmarks/p25_server_decode_tps_probe.py}"
+TPS_PORT="${TPS_PORT:-18096}"
+TPS_MAX_TOKENS="${TPS_MAX_TOKENS:-128 256}"
+TPS_RUNS="${TPS_RUNS:-1}"
 POLL_SECONDS="${POLL_SECONDS:-120}"
 
 F16="$OUT_DIR/Qwen3.6-35B-A3B-F16.gguf"
@@ -171,6 +175,56 @@ eval_q4() {
     bash "$LLAMACPP_EVAL" "qwen36-q4km-imatrix" "$Q4" 2>&1 | tee -a "$LOG"
 }
 
+bench_q4_tps() {
+    local ts cont served server_log out ready smoke
+    ts="$(date '+%Y%m%d_%H%M%S')"
+    cont="qwen36-q4km-imatrix-tps-$ts"
+    served="Qwen3.6-35B-A3B-Q4KM-imatrix"
+    server_log="$RESULTS_DIR/qwen36_q4km_imatrix_llamacpp_server_${ts}.log"
+    out="$RESULTS_DIR/qwen36_q4km_imatrix_llamacpp_p25_${ts}.json"
+    if [ ! -s "$P25" ]; then
+        log "missing P25 probe script: $P25"
+        return 0
+    fi
+    log "running llama.cpp Q4_K_M-imatrix P25 TPS -> $out"
+    sudo docker rm -f "$cont" 2>/dev/null || true
+    sudo docker run -d --name "$cont" --network host --gpus all --shm-size 16g \
+        -v "$(dirname "$Q4"):/gguf" \
+        ghcr.io/ggml-org/llama.cpp:server-cuda \
+        --model "/gguf/$(basename "$Q4")" \
+        --host 0.0.0.0 --port "$TPS_PORT" \
+        --n-gpu-layers 99 \
+        --ctx-size 4096 \
+        --threads 12 \
+        --jinja \
+        -a "$served" >"$server_log" 2>&1
+    ready=0
+    for _ in $(seq 1 90); do
+        sleep 10
+        smoke="$(curl -s -m 30 -H 'Content-Type: application/json' \
+            -d '{"model":"'"$served"'","prompt":"A","max_tokens":4,"temperature":0}' \
+            "http://127.0.0.1:$TPS_PORT/v1/completions" 2>&1 || true)"
+        if echo "$smoke" | grep -q '"choices"'; then
+            ready=1
+            break
+        fi
+    done
+    if [ "$ready" != 1 ]; then
+        log "llama.cpp TPS server not ready; tailing logs"
+        sudo docker logs --tail 80 "$cont" 2>&1 | tee -a "$LOG" || true
+        sudo docker rm -f "$cont" 2>/dev/null || true
+        return 0
+    fi
+    python3 "$P25" \
+        --url "http://127.0.0.1:$TPS_PORT/v1" \
+        --model "$served" \
+        --max-tokens $TPS_MAX_TOKENS \
+        --runs "$TPS_RUNS" \
+        --out "$out" 2>&1 | tee -a "$LOG"
+    sudo docker rm -f "$cont" 2>/dev/null || true
+    log "llama.cpp Q4_K_M-imatrix TPS report=$out"
+}
+
 wait_until_hhmm "$TARGET_HHMM"
 while ! bf16_ready; do
     log "waiting for official BF16 package: $BF16_MODEL"
@@ -183,4 +237,6 @@ run_imatrix
 quant_q4
 wait_for_eval_slot
 eval_q4
+wait_for_eval_slot
+bench_q4_tps
 log "Q4_K_M-imatrix backstop complete"
