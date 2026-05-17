@@ -499,6 +499,40 @@ So the expensive part is not the lm_head; it is the full MTP decoder layer.
 Future runtime work should target that layer with graph/fusion/overlap or a
 lighter predictor architecture before expecting one-token MTP to help 155 TPS.
 
+P113 finds the first low-risk MTP runtime cut. The MTP sidecar is always a
+one-token decode layer, but it was calling the generic full-forward MoE path,
+which scans empty expert masks. On v34 sampled states, swapping only that MoE
+step to the decode active-expert path gives exact parity:
+
+```text
+reports/mtp/r6000_p113_mtp_layer_moe_variant_v34_raw_native_20260517_182304.json
+baseline_full_forward layer median: 6.696 ms
+decode_active_experts median:       1.890 ms, 64/64 top1 match
+decode_bmm median:                  1.086 ms, 60/64 top1 match
+```
+
+`decode_bmm` is faster but not exact, so it stays a research probe. The runtime
+now exposes the exact path through:
+
+```text
+LYNN_MTP_LAYER_MOE=decode_active
+```
+
+P107 with that setting preserves v34 acceptance and cuts the real shadow draft
+cost:
+
+```text
+reports/mtp/r6000_p107_mtp_shadow_v34_rankflip_w4a8_v2_decodeactive_20260517_182518.json
+accept: 65/121 = 53.72%
+mean draft: 2.76 ms
+draft_tps: 362.30
+top2/top4/top8: 73/121, 80/121, 87/121
+```
+
+This does not close 155 by itself, but it changes the MTP runtime problem from
+`~7.6 ms` serial draft to `~2.8 ms`. The next viable cuts are overlap/inline
+execution, a parity-safe batched/grouped expert path, or multi-token credit.
+
 Report:
 
 ```text

@@ -41,7 +41,10 @@ MTP: aligned sidecar forward works; best native R6000 sidecar is v34 at
 P111 budget: with a 100 tok/s production baseline, raw v34 top1 is only
      153.72 tok/s even with zero draft overhead; top2/top4/top8 can clear 155
      only if draft overhead is <=0.34/0.72/1.09 ms, while the current draft head
-     costs about 7.6 ms in the P107 path.
+     costs about 7.6 ms in the original P107 path. P113 identifies the main
+     runtime miss: the MTP sidecar was using full-forward MoE for a one-token
+     decode layer. `LYNN_MTP_LAYER_MOE=decode_active` is exact on 64/64 sampled
+     states and moves P107 draft cost from 7.61 ms to 2.76 ms.
 ```
 
 155 requires a compound win. There is no single safe env flag left.
@@ -75,6 +78,17 @@ Profiling v34 on R6000 shows total MTP draft median `7.47 ms`, with the MTP
 decoder layer at `6.64 ms`, native FP4 lm_head at `0.44 ms`, pre-fc norms at
 `0.16 ms`, and fc at `0.05 ms`. The next runtime engineering target is the
 MTP layer itself: simplify it, graph/fuse it, or overlap it with base decode.
+
+2026-05-17 P113 runtime update: the first simplification works. On the same
+v34 states, replacing the MTP layer's full-forward MoE with the decode
+active-expert MoE is bit-exact/top1-exact on `64/64` cases and cuts the MTP
+layer median from `6.70 ms` to `1.89 ms` (`3.54x`). The faster decode-bmm path
+hits `1.09 ms` but has top1 drift (`60/64`), so it stays research-only. The
+runtime now exposes `LYNN_MTP_LAYER_MOE=decode_active`; P107 with that setting
+keeps v34 accept at `65/121 = 53.72%` and raises draft throughput from
+`131.45` to `362.30` draft tok/s. This is a real MTP cost cut, but still not
+enough by itself: top1 zero-overhead remains below 155 from a 100 tok/s base,
+and top2/top4/top8 still need sub-millisecond effective draft or overlap.
 
 ## Workstream A: Quality Floor
 

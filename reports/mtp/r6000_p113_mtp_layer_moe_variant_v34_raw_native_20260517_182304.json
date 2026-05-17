@@ -1,0 +1,58 @@
+{
+  "schema_version": "lynn-p113-mtp-layer-moe-variant-profile-v1",
+  "decision": "AMBER: MTP layer MoE variant profile collected.",
+  "model": "/root/autodl-tmp/models/lynn-27b-w4a8-nvfp4-v2",
+  "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-v33-fake-act-rankflip-v34-20260517_163912/mtp.safetensors",
+  "prompts_file": "reports/mtp/mtp_fc_calibration_heldout_prompts_v1.json",
+  "lm_head": "native_fp4",
+  "case_count": 64,
+  "repeats": 1,
+  "summary": {
+    "baseline_full_forward": {
+      "count": 64,
+      "mean_ms": 6.735023111104965,
+      "median_ms": 6.695985794067383,
+      "p90_ms": 6.754636764526367,
+      "median_speedup_vs_baseline": 1.0
+    },
+    "decode_active_experts": {
+      "count": 64,
+      "mean_ms": 1.906469464302063,
+      "median_ms": 1.8903017044067383,
+      "p90_ms": 1.920938491821289,
+      "median_speedup_vs_baseline": 3.5422841647222048
+    },
+    "decode_bmm": {
+      "count": 64,
+      "mean_ms": 1.094568520784378,
+      "median_ms": 1.0859966278076172,
+      "p90_ms": 1.1055469512939453,
+      "median_speedup_vs_baseline": 6.165751920965971
+    }
+  },
+  "accepted": {
+    "baseline_full_forward": 42,
+    "decode_active_experts": 42,
+    "decode_bmm": 41
+  },
+  "accept_rate": {
+    "baseline_full_forward": 0.65625,
+    "decode_active_experts": 0.65625,
+    "decode_bmm": 0.640625
+  },
+  "parity_vs_baseline": {
+    "decode_active_experts": {
+      "max_abs_vs_baseline": 0.0,
+      "max_rel_l2_vs_baseline": 0.0,
+      "top1_match_baseline": 64,
+      "top1_match_rate_baseline": 1.0
+    },
+    "decode_bmm": {
+      "max_abs_vs_baseline": 0.0625,
+      "max_rel_l2_vs_baseline": 0.0015211929567158222,
+      "top1_match_baseline": 60,
+      "top1_match_rate_baseline": 0.9375
+    }
+  },
+  "sidecar_tensor_count": 19
+}

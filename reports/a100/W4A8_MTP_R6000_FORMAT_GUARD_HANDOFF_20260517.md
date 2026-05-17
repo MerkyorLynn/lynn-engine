@@ -393,6 +393,29 @@ the MTP decoder layer alone is `6.64 ms`. Native FP4 lm_head is only `0.44 ms`;
 fc is `0.05 ms`. The runtime target is therefore the MTP layer, not the head:
 fuse/graph/overlap it, or replace it with a lighter predictor.
 
+P113 turns that diagnosis into the first runtime win. The sidecar MTP layer was
+using full-forward MoE even though it is always a single decode token. Reusing
+the decode active-expert MoE path is exact on the v34 sampled states and cuts
+the layer median from `6.70 ms` to `1.89 ms`:
+
+| Variant | Layer Median | Parity |
+|---|---:|---:|
+| baseline full-forward MoE | 6.696 ms | reference |
+| decode active-expert MoE | 1.890 ms | 64/64 top1, max_abs 0 |
+| decode bmm | 1.086 ms | 60/64 top1, research only |
+
+Runtime hook:
+
+```text
+LYNN_MTP_LAYER_MOE=decode_active
+```
+
+P107 with the hook keeps v34 acceptance unchanged at `65/121 = 53.72%`, while
+draft throughput improves from `131.45` to `362.30` draft tok/s
+(`7.61 ms -> 2.76 ms` mean draft). This is the right next native-serving branch:
+make the exact decode-active MTP path the serving default after one more parity
+gate, then chase overlap or a parity-safe grouped/BMM expert kernel.
+
 The fc-only train smoke confirms gradient wiring:
 
 | Field | Value |
