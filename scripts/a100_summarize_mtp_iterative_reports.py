@@ -45,6 +45,7 @@ def summarize(paths: list[Path]) -> dict[str, Any]:
                 "first_token_weight": report.get("first_token_weight"),
                 "step1_weight": report.get("step1_weight"),
                 "later_token_weight": report.get("later_token_weight"),
+                "train_steps": report.get("train_steps"),
                 "max_new_train": report.get("max_new_train"),
                 "max_new_eval": report.get("max_new_eval"),
                 "source_sidecar_file": report.get("source_sidecar_file"),

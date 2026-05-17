@@ -210,6 +210,12 @@ def _collect_cases(
     return cases
 
 
+def _filter_cases_by_step(cases: list[dict[str, Any]], steps: set[int] | None) -> list[dict[str, Any]]:
+    if steps is None:
+        return cases
+    return [case for case in cases if int(case["step"]) in steps]
+
+
 def _mtp_logits_for_case(
     runner: LynnIncrementalRunner,
     sidecar: dict[str, torch.Tensor],
@@ -384,6 +390,7 @@ def main() -> int:
     ap.add_argument("--first-token-weight", type=float, default=2.0)
     ap.add_argument("--step1-weight", type=float, default=1.0)
     ap.add_argument("--later-token-weight", type=float, default=1.0)
+    ap.add_argument("--train-steps", type=int, nargs="*", default=None)
     ap.add_argument("--trainable", default="fc", choices=["fc", "fc_norms", "fc_mtp_layer"])
     ap.add_argument("--steps", type=int, default=6)
     ap.add_argument("--lr", type=float, default=5e-5)
@@ -399,7 +406,7 @@ def main() -> int:
     mtp_w = _mtp_layer_weights(sidecar)
     cfg = _mtp_cfg(runner, mtp_w)
 
-    train_cases = _collect_cases(
+    train_cases_all = _collect_cases(
         runner=runner,
         specs=train_specs,
         use_chat_template=args.use_chat_template,
@@ -408,6 +415,9 @@ def main() -> int:
         step1_weight=args.step1_weight,
         later_token_weight=args.later_token_weight,
     )
+    train_cases = _filter_cases_by_step(train_cases_all, set(args.train_steps) if args.train_steps else None)
+    if not train_cases:
+        raise ValueError("no training cases left after --train-steps filter")
     eval_cases = (
         _collect_cases(
             runner=runner,
@@ -459,7 +469,9 @@ def main() -> int:
         "first_token_weight": args.first_token_weight,
         "step1_weight": args.step1_weight,
         "later_token_weight": args.later_token_weight,
+        "train_steps": args.train_steps,
         "weights_saved": bool(args.out_sidecar_dir),
+        "train_case_count_before_filter": len(train_cases_all),
         "train_case_count": len(train_cases),
         "eval_case_count": len(eval_cases),
         "train_before": train_before,
