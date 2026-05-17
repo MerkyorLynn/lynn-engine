@@ -304,6 +304,17 @@ activation composition would repeat the W4A8 quality failure mode.
 Runtime gate with `LYNN_NATIVE_DOWN_TILE_HIDDEN=1` confirms that conclusion:
 the candidate reaches 111.08 median decode TPS, but all three greedy prompts
 diverge into repeated exclamation marks. Tile size is not the quality fix.
+Follow-up isolation narrows the failure mode:
+
+- P49 true decode-state local down comparison is GREEN: tile1 is 1.25x faster
+  than Triton down, with max rel L2 `4.7e-6` and cosine `1.0`.
+- P50 first-divergence with linear-block graphs disabled keeps top-1 logits
+  aligned for eight reference-fed decode steps, although hidden drift first
+  appears at layer 15.
+- P37 graph-off generation still fails exact greedy parity on all three prompts,
+  but it no longer collapses into repeated punctuation. The remaining issue is
+  long-run greedy sensitivity from tiny down-order differences, not an obviously
+  broken down tile kernel.
 
 This confirms the remaining MoE opportunity is mostly boundary fusion: one
 kernel boundary for routed active experts and, later, a shared-expert fusion.
@@ -340,6 +351,9 @@ Copied reports:
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p97_active_moe_interval_layer32_20260518_053622.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p97_active_moe_interval_layer36_20260518_053622.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p37_down_cuda_tile1_gqa_gate_20260518_055325.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p49_down_tile1_true_decode_20260518_055633.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p50_down_tile1_first_divergence_20260518_055633.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p37_down_cuda_tile1_graphoff_gate_20260518_055939.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p37_down_cuda_tile_gate_20260518_040259.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p37_grouped_per16_nonatomic_gate_20260518_040522.json`
 
