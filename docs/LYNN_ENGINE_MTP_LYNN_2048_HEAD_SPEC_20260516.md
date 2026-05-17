@@ -53,10 +53,28 @@ argmax_match_after: true
 weights_saved: false
 ```
 
+FC-only calibration report:
+
+```text
+reports/mtp/a100_mtp_fc_calibration_teacher_clean_v2_20260517_113413.json
+reports/mtp/a100_mtp_fc_calibration_saved_teacher_clean_v2_20260517_113808.json
+reports/mtp/a100_mtp_fc_calibration_heldout_v1_20260517_113808.json
+decision: GREEN
+case_count: 12
+accept_before: 0/12
+accept_after: 12/12
+mean_loss_before: 11.4534
+mean_loss_after: 0.0076
+trained_sidecar:
+/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-fc-teacherclean-v2-20260517_113808/mtp.safetensors
+heldout_accept: 5/8
+```
+
 This changes the initialization and wiring path, not the serving state: MTP can
 now run a real draft forward pass and backpropagate through a frozen-base,
-frozen-MTP-layer fc-only smoke. The warm-start head is still not an acceptable
-draft predictor until real head-only training and accept-rate evaluation pass.
+frozen-MTP-layer fc-only calibration set. The warm-start head is still not an
+acceptable draft predictor until a saved sidecar passes heldout and iterative
+accept-rate evaluation.
 
 Report:
 
@@ -150,10 +168,13 @@ freeze base model
 num_speculative_tokens = 2
 ```
 
-2026-05-17 status: Stage 0 shape mapping, forward smoke, and one-prompt
-fc-only train smoke are complete for the official 2048-hidden Qwen3.6-35B-A3B
-sidecar. The training smoke overfits one base-greedy token and saves no
-weights, so Stage 1 needs a real calibration set and accept-rate gate.
+2026-05-17 status: Stage 0 shape mapping, forward smoke, and fc-only
+calibration training are complete for the official 2048-hidden Qwen3.6-35B-A3B
+sidecar. The 12-prompt training gate reaches 100% one-token accept on its
+training set, and the saved sidecar reaches 5/8 one-token accept on heldout.
+This is promising but below the 70% GREEN threshold; Stage 1 now needs either
+format-start weighted calibration or partial MTP head unfreeze before iterative
+accept-rate evaluation.
 
 Stage 1: short head-only training
 

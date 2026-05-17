@@ -1,0 +1,34 @@
+[
+  {
+    "id": "heldout_json_berlin_metric",
+    "prompt": "Return one JSON object with keys city and unit for Berlin in metric units. No markdown."
+  },
+  {
+    "id": "heldout_json_status_ready",
+    "prompt": "Return one JSON object with key status and value ready. No markdown."
+  },
+  {
+    "id": "heldout_tool_translate",
+    "prompt": "Output exactly one JSON arguments object for translate_text with text hello and target_language Japanese. No markdown."
+  },
+  {
+    "id": "heldout_math_distance",
+    "prompt": "Answer only with the distance and unit: a car travels 45 mph for 3 hours."
+  },
+  {
+    "id": "heldout_python_slug",
+    "prompt": "Only output a Python code block defining slugify(text: str) -> str. It must lowercase and replace spaces with hyphens. No explanation."
+  },
+  {
+    "id": "heldout_moe_short",
+    "prompt": "用一句中文短句说明 MoE router 的作用。必须以 router 开头。"
+  },
+  {
+    "id": "heldout_linear_short",
+    "prompt": "用一句中文短句说明 linear attention 适合长上下文的原因。必须以 linear attention 开头。"
+  },
+  {
+    "id": "heldout_repair_json",
+    "prompt": "Repair this invalid JSON and output exactly one valid JSON object: {'city':'Berlin','unit':'metric',}. No markdown."
+  }
+]

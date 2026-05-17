@@ -152,6 +152,7 @@ R6000 live OpenAI HTTP smoke confirms the JSON path is not just an offline gate:
 reports/a100/server_guard_http_smoke_20260517_1051.json
 reports/a100/server_guard_chat_smoke_metrics_20260517_1055.json
 reports/a100/server_guard_repeated_bench_20260517_110648.json
+reports/a100/p25_server_decode_tps_v2_20260517_114239.json
 ```
 
 | Endpoint | Guard | Result | Decode TPS | Notes |
@@ -160,6 +161,7 @@ reports/a100/server_guard_repeated_bench_20260517_110648.json
 | `/v1/chat/completions` | `response_format={"type":"json_object"}` | parseable JSON, `finish_reason=stop` | 96.59 | `stopped_reason=stop_token`, no markdown |
 | `/v1/completions` | private bullet guard | not sufficient | 98.48 | only the first prefix is forced; content quality can still drift |
 | `/v1/chat/completions` repeated bench | `response_format={"type":"json_object"}` | 8/8 parseable JSON, 8/8 stop | 98.99 mean | min/max 95.62/101.07 |
+| `/v1/completions` long decode, 512 tok | no guard | wall 88.23, decode 100.11 | 100.11 mean | confirms 155 gap is below service wrapper |
 
 This validates the low-risk serving escape hatch for JSON/tool-call style
 outputs, but also draws the boundary: format guard fixes entry-domain and
@@ -172,6 +174,8 @@ serving gate:
 reports/a100/a100_w4a8_serving_guard12_gate_structured_v16_chat_template_12prompt_48tok.json
 reports/a100/w4a8_structured_recovery_prompts_v2_teacher_clean_guard_specs.json
 reports/a100/a100_w4a8_teacher_clean_v2_gate_structured_v16_12prompt_48tok.json
+reports/a100/w4a8_structured_recovery_prompts_v3_teacher_clean_guard_specs.json
+reports/a100/a100_w4a8_teacher_clean_v3_gate_structured_v16_12prompt_48tok.json
 ```
 
 | Gate | Served Exact | Min Prefix | Mean Prefix | Ref Format | Cand Format | Raw Prefix | Decision |
@@ -179,6 +183,7 @@ reports/a100/a100_w4a8_teacher_clean_v2_gate_structured_v16_12prompt_48tok.json
 | serving guard12 v16, raw prompts | 8/12 | 12 | 34.75 | 12/12 | 12/12 | 4/12 | RED, format-clean |
 | serving guard12 v16, chat template | 5/12 | 8 | 28.42 | 12/12 | 12/12 | 7/12 | RED, regression |
 | teacher-clean v2 prompts, raw template | 10/12 | 9 | 32.33 | 12/12 | 12/12 | 0/12 | RED, improved |
+| teacher-clean v3 prompts, raw template | 11/12 | 16 | 34.33 | 12/12 | 12/12 | 0/12 | AMBER by plan threshold |
 
 The chat template makes the teacher format clean, but shifts the teacher token
 path and worsens parity on this prompt set. Keep raw structured prompts as the
@@ -191,6 +196,12 @@ at prefix 9 and `normalize_city_code_clean` at prefix 39. Both are style or
 implementation-choice drift, not JSON/YAML/tool-call format collapse. This is
 evidence for a serving-template strategy on structured outputs, but it is not
 yet enough to promote full-active W4A8.
+
+The v3 rewrite clears the code-style miss and reaches the planned teacher-clean
+AMBER threshold (`>=11/12` served exact and min prefix `>=16`). Only
+`moe_router_expert_v3` remains divergent, at prefix 24. This makes v16 the
+current quality baseline to keep improving; NVFP4 v2 remains a runtime research
+artifact, not the best quality artifact.
 
 ## Full-Token Graph Slot Trigger
 
@@ -252,6 +263,9 @@ Forward-smoke report:
 ```text
 reports/mtp/a100_mtp_forward_smoke_20260517_110159.json
 reports/mtp/a100_mtp_fc_train_smoke_20260517_111251.json
+reports/mtp/a100_mtp_fc_calibration_teacher_clean_v2_20260517_113413.json
+reports/mtp/a100_mtp_fc_calibration_saved_teacher_clean_v2_20260517_113808.json
+reports/mtp/a100_mtp_fc_calibration_heldout_v1_20260517_113808.json
 ```
 
 Mapping result:
@@ -296,9 +310,24 @@ The fc-only train smoke confirms gradient wiring:
 | draft argmax after | token 4754 (`{"`) |
 | weights saved | false |
 
-This is intentionally just an overfit smoke. Head-only training over a real
-calibration set and accept-rate evaluation remain mandatory before any TPS
-claim.
+The 12-prompt fc-only calibration gate is stronger:
+
+| Field | Value |
+|---|---:|
+| prompts | teacher-clean v2, 12 |
+| accept before | 0/12 |
+| accept after | 12/12 |
+| mean loss before | 11.4534 |
+| mean loss after | 0.0076 |
+| saved sidecar | `/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-fc-teacherclean-v2-20260517_113808/mtp.safetensors` |
+| heldout accept | 5/8 |
+
+This confirms that the MTP draft path can be trained toward base greedy tokens
+with only the `mtp.fc.weight` bridge unfrozen. The saved sidecar shows
+non-random heldout behavior but is not yet GREEN: failures are JSON-start
+drafting ` ``` ` instead of `{` and a Chinese router short-answer drifting to
+bullet form. Next MTP calibration needs format-start weighted examples or a
+small partial-head unfreeze before iterative accept-rate eval.
 
 ## Next Work
 

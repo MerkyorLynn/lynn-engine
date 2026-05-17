@@ -1,0 +1,1746 @@
+{
+  "schema_version": "lynn-a100-mtp-fc-calibration-train-v1",
+  "decision": "GREEN: fc-only MTP calibration improved one-token accept rate.",
+  "base_model": "/mnt/data/lynn-a100/models/lynn-27b-variable-recovery-step5000-bf16-final",
+  "source_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-warm-start-aligned/mtp.safetensors",
+  "use_chat_template": true,
+  "dtype": "bfloat16",
+  "steps": 8,
+  "lr": 0.0005,
+  "weight_decay": 0.0,
+  "trainable_tensors": [
+    "mtp.fc.weight"
+  ],
+  "weights_saved": true,
+  "before": {
+    "case_count": 12,
+    "accepted": 0,
+    "accept_rate": 0.0,
+    "mean_loss": 11.453447937965393,
+    "max_loss": 17.388565063476562,
+    "rows": [
+      {
+        "prompt_idx": 0,
+        "id": "w4a8_explain_clean",
+        "prompt_tokens": 49,
+        "label_id": 54,
+        "label_text": "W",
+        "draft_id": 45600,
+        "draft_text": " Turbo",
+        "accepted": false,
+        "loss": 15.270896911621094,
+        "mtp_topk": [
+          {
+            "rank": 1,
+            "token_id": 45600,
+            "score": 9.0625,
+            "text": " Turbo"
+          },
+          {
+            "rank": 2,
+            "token_id": 176201,
+            "score": 8.375,
+            "text": " непосред"
+          },
+          {
+            "rank": 3,
+            "token_id": 11725,
+            "score": 8.375,
+            "text": "ère"
+          },
+          {
+            "rank": 4,
+            "token_id": 2349,
+            "score": 8.1875,
+            "text": "https"
+          },
+          {
+            "rank": 5,
+            "token_id": 88943,
+            "score": 8.125,
+            "text": " THINK"
+          }
+        ]
+      },
+      {
+        "prompt_idx": 1,
+        "id": "palindrome_code_clean",
+        "prompt_tokens": 43,
+        "label_id": 71093,
+        "label_text": "```",
+        "draft_id": 2972,
+        "draft_text": " **",
+        "accepted": false,
+        "loss": 7.276453018188477,
+        "mtp_topk": [
+          {
+            "rank": 1,
+            "token_id": 2972,
+            "score": 10.6875,
+            "text": " **"
+          },
+          {
+            "rank": 2,
+            "token_id": 332,
+            "score": 10.4375,
+            "text": "**"
+          },
+          {
+            "rank": 3,
+            "token_id": 77256,
+            "score": 9.875,
+            "text": "ospace"
+          },
+          {
+            "rank": 4,
+            "token_id": 271,
+            "score": 9.8125,
+            "text": "\n\n"
+          },
+          {
+            "rank": 5,
+            "token_id": 43147,
+            "score": 9.4375,
+            "text": "-thirds"
+          }
+        ]
+      },
+      {
+        "prompt_idx": 2,
+        "id": "train_math_clean",
+        "prompt_tokens": 34,
+        "label_id": 16,
+        "label_text": "1",
+        "draft_id": 40561,
+        "draft_text": "iris",
+        "accepted": false,
+        "loss": 11.619958877563477,
+        "mtp_topk": [
+          {
+            "rank": 1,
+            "token_id": 40561,
+            "score": 10.5,
+            "text": "iris"
+          },
+          {
+            "rank": 2,
+            "token_id": 113281,
+            "score": 10.0,
+            "text": "三千"
+          },
+          {
+            "rank": 3,
+            "token_id": 11,
+            "score": 9.375,
+            "text": ","
+          },
+          {
+            "rank": 4,
+            "token_id": 11168,
+            "score": 9.1875,
+            "text": " hundreds"
+          },
+          {
+            "rank": 5,
+            "token_id": 2349,
+            "score": 9.0,
+            "text": "https"
+          }
+        ]
+      },
+      {
+        "prompt_idx": 3,
+        "id": "json_city_clean",
+        "prompt_tokens": 34,
+        "label_id": 4754,
+        "label_text": "{\"",
+        "draft_id": 66655,
+        "draft_text": "ugen",
+        "accepted": false,
+        "loss": 9.85504150390625,
+        "mtp_topk": [
+          {
+            "rank": 1,
+            "token_id": 66655,
+            "score": 9.875,
+            "text": "ugen"
+          },
+          {
+            "rank": 2,
+            "token_id": 112176,
+            "score": 9.75,
+            "text": "三百"
+          },
+          {
+            "rank": 3,
+            "token_id": 114101,
+            "score": 9.4375,
+            "text": "六十"
+          },
+          {
+            "rank": 4,
+            "token_id": 58844,
+            "score": 9.4375,
+            "text": ":///"
+          },
+          {
+            "rank": 5,
+            "token_id": 11,
+            "score": 9.25,
+            "text": ","
+          }
+        ]
+      },
+      {
+        "prompt_idx": 4,
+        "id": "moe_router_expert_clean",
+        "prompt_tokens": 45,
+        "label_id": 12,
+        "label_text": "-",
+        "draft_id": 175559,
+        "draft_text": "zul",
+        "accepted": false,
+        "loss": 7.803905963897705,
+        "mtp_topk": [
+          {
+            "rank": 1,
+            "token_id": 175559,
+            "score": 9.5,
+            "text": "zul"
+          },
+          {
+            "rank": 2,
+            "token_id": 88943,
+            "score": 8.9375,
+            "text": " THINK"
+          },
+          {
+            "rank": 3,
+            "token_id": 98251,
+            "score": 8.875,
+            "text": "虽然"
+          },
+          {
+            "rank": 4,
+            "token_id": 2972,
+            "score": 8.8125,
+            "text": " **"
+          },
+          {
+            "rank": 5,
+            "token_id": 55113,
+            "score": 8.625,
+            "text": "soc"
+          }
+        ]
+      },
+      {
+        "prompt_idx": 5,
+        "id": "linear_attention_explain_clean",
+        "prompt_tokens": 41,
+        "label_id": 22054,
+        "label_text": "linear",
+        "draft_id": 65379,
+        "draft_text": "}_${",
+        "accepted": false,
+        "loss": 17.388565063476562,
+        "mtp_topk": [
+          {
+            "rank": 1,
+            "token_id": 65379,
+            "score": 9.25,
+            "text": "}_${"
+          },
+          {
+            "rank": 2,
+            "token_id": 99190,
+            "score": 9.0,
+            "text": "十一"
+          },
+          {
+            "rank": 3,
+            "token_id": 2349,
+            "score": 9.0,
+            "text": "https"
+          },
+          {
+            "rank": 4,
+            "token_id": 45600,
+            "score": 9.0,
+            "text": " Turbo"
+          },
+          {
+            "rank": 5,
+            "token_id": 68993,
+            "score": 8.5,
+            "text": " schl"
+          }
+        ]
+      },
+      {
+        "prompt_idx": 6,
+        "id": "tool_json_clean",
+        "prompt_tokens": 39,
+        "label_id": 4754,
+        "label_text": "{\"",
+        "draft_id": 29285,
+        "draft_text": "armed",
+        "accepted": false,
+        "loss": 9.701133728027344,
+        "mtp_topk": [
+          {
+            "rank": 1,
+            "token_id": 29285,
+            "score": 10.375,
+            "text": "armed"
+          },
+          {
+            "rank": 2,
+            "token_id": 11,
+            "score": 10.0,
+            "text": ","
+          },
+          {
+            "rank": 3,
+            "token_id": 271,
+            "score": 9.625,
+            "text": "\n\n"
+          },
+          {
+            "rank": 4,
+            "token_id": 56343,
+            "score": 9.5625,
+            "text": "gens"
+          },
+          {
+            "rank": 5,
+            "token_id": 4289,
+            "score": 9.375,
+            "text": "aced"
+          }
+        ]
+      },
+      {
+        "prompt_idx": 7,
+        "id": "openapi_yaml_clean",
+        "prompt_tokens": 36,
+        "label_id": 1267,
+        "label_text": "type",
+        "draft_id": 96357,
+        "draft_text": "片",
+        "accepted": false,
+        "loss": 12.87952995300293,
+        "mtp_topk": [
+          {
+            "rank": 1,
+            "token_id": 96357,
+            "score": 9.0625,
+            "text": "片"
+          },
+          {
+            "rank": 2,
+            "token_id": 96348,
+            "score": 8.8125,
+            "text": "或"
+          },
+          {
+            "rank": 3,
+            "token_id": 99190,
+            "score": 8.75,
+            "text": "十一"
+          },
+          {
+            "rank": 4,
+            "token_id": 106032,
+            "score": 8.625,
+            "text": "斯基"
+          },
+          {
+            "rank": 5,
+            "token_id": 60159,
+            "score": 8.5625,
+            "text": ")::"
+          }
+        ]
+      },
+      {
+        "prompt_idx": 8,
+        "id": "normalize_city_code_clean",
+        "prompt_tokens": 42,
+        "label_id": 71093,
+        "label_text": "```",
+        "draft_id": 11,
+        "draft_text": ",",
+        "accepted": false,
+        "loss": 10.997383117675781,
+        "mtp_topk": [
+          {
+            "rank": 1,
+            "token_id": 11,
+            "score": 9.8125,
+            "text": ","
+          },
+          {
+            "rank": 2,
+            "token_id": 148293,
+            "score": 9.8125,
+            "text": "ой"
+          },
+          {
+            "rank": 3,
+            "token_id": 99190,
+            "score": 9.6875,
+            "text": "十一"
+          },
+          {
+            "rank": 4,
+            "token_id": 106032,
+            "score": 9.4375,
+            "text": "斯基"
+          },
+          {
+            "rank": 5,
+            "token_id": 1657,
+            "score": 9.0625,
+            "text": "less"
+          }
+        ]
+      },
+      {
+        "prompt_idx": 9,
+        "id": "repair_json_clean",
+        "prompt_tokens": 39,
+        "label_id": 4754,
+        "label_text": "{\"",
+        "draft_id": 66655,
+        "draft_text": "ugen",
+        "accepted": false,
+        "loss": 11.307900428771973,
+        "mtp_topk": [
+          {
+            "rank": 1,
+            "token_id": 66655,
+            "score": 11.1875,
+            "text": "ugen"
+          },
+          {
+            "rank": 2,
+            "token_id": 12,
+            "score": 10.9375,
+            "text": "-"
+          },
+          {
+            "rank": 3,
+            "token_id": 109912,
+            "score": 9.6875,
+            "text": "与此同时"
+          },
+          {
+            "rank": 4,
+            "token_id": 4289,
+            "score": 9.1875,
+            "text": "aced"
+          },
+          {
+            "rank": 5,
+            "token_id": 271,
+            "score": 9.0625,
+            "text": "\n\n"
+          }
+        ]
+      },
+      {
+        "prompt_idx": 10,
+        "id": "function_args_clean",
+        "prompt_tokens": 36,
+        "label_id": 4754,
+        "label_text": "{\"",
+        "draft_id": 112176,
+        "draft_text": "三百",
+        "accepted": false,
+        "loss": 11.116585731506348,
+        "mtp_topk": [
+          {
+            "rank": 1,
+            "token_id": 112176,
+            "score": 11.375,
+            "text": "三百"
+          },
+          {
+            "rank": 2,
+            "token_id": 113281,
+            "score": 10.1875,
+            "text": "三千"
+          },
+          {
+            "rank": 3,
+            "token_id": 271,
+            "score": 10.0625,
+            "text": "\n\n"
+          },
+          {
+            "rank": 4,
+            "token_id": 124299,
+            "score": 9.625,
+            "text": "四百"
+          },
+          {
+            "rank": 5,
+            "token_id": 29285,
+            "score": 9.5625,
+            "text": "armed"
+          }
+        ]
+      },
+      {
+        "prompt_idx": 11,
+        "id": "linear_attention_bullets_clean",
+        "prompt_tokens": 33,
+        "label_id": 12,
+        "label_text": "-",
+        "draft_id": 1472,
+        "draft_text": " through",
+        "accepted": false,
+        "loss": 12.224020957946777,
+        "mtp_topk": [
+          {
+            "rank": 1,
+            "token_id": 1472,
+            "score": 10.6875,
+            "text": " through"
+          },
+          {
+            "rank": 2,
+            "token_id": 97732,
+            "score": 10.5,
+            "text": "既"
+          },
+          {
+            "rank": 3,
+            "token_id": 66655,
+            "score": 10.25,
+            "text": "ugen"
+          },
+          {
+            "rank": 4,
+            "token_id": 96580,
+            "score": 9.8125,
+            "text": "通过"
+          },
+          {
+            "rank": 5,
+            "token_id": 121,
+            "score": 9.5625,
+            "text": "�"
+          }
+        ]
+      }
+    ]
+  },
+  "history": [
+    {
+      "step": 1,
+      "mean_loss": 11.453447937965393,
+      "accept_rate": 0.0
+    },
+    {
+      "step": 2,
+      "mean_loss": 5.7489207188285905,
+      "accept_rate": 0.3333333333333333
+    },
+    {
+      "step": 3,
+      "mean_loss": 1.2036964089219282,
+      "accept_rate": 0.8333333333333334
+    },
+    {
+      "step": 4,
+      "mean_loss": 0.7081400419617694,
+      "accept_rate": 0.9166666666666666
+    },
+    {
+      "step": 5,
+      "mean_loss": 0.3644439012852369,
+      "accept_rate": 0.9166666666666666
+    },
+    {
+      "step": 6,
+      "mean_loss": 0.0652514927124533,
+      "accept_rate": 1.0
+    },
+    {
+      "step": 7,
+      "mean_loss": 0.018605319547911375,
+      "accept_rate": 1.0
+    },
+    {
+      "step": 8,
+      "mean_loss": 0.011305811141520886,
+      "accept_rate": 1.0
+    }
+  ],
+  "after": {
+    "case_count": 12,
+    "accepted": 12,
+    "accept_rate": 1.0,
+    "mean_loss": 0.007644264058626504,
+    "max_loss": 0.036968983709812164,
+    "rows": [
+      {
+        "prompt_idx": 0,
+        "id": "w4a8_explain_clean",
+        "prompt_tokens": 49,
+        "label_id": 54,
+        "label_text": "W",
+        "draft_id": 54,
+        "draft_text": "W",
+        "accepted": true,
+        "loss": 0.0007659838884137571,
+        "mtp_topk": [
+          {
+            "rank": 1,
+            "token_id": 54,
+            "score": 34.0,
+            "text": "W"
+          },
+          {
+            "rank": 2,
+            "token_id": 457,
+            "score": 26.75,
+            "text": " W"
+          },
+          {
+            "rank": 3,
+            "token_id": 12,
+            "score": 24.0,
+            "text": "-"
+          },
+          {
+            "rank": 4,
+            "token_id": 71093,
+            "score": 21.5,
+            "text": "```"
+          },
+          {
+            "rank": 5,
+            "token_id": 22054,
+            "score": 21.375,
+            "text": "linear"
+          }
+        ]
+      },
+      {
+        "prompt_idx": 1,
+        "id": "palindrome_code_clean",
+        "prompt_tokens": 43,
+        "label_id": 71093,
+        "label_text": "```",
+        "draft_id": 71093,
+        "draft_text": "```",
+        "accepted": true,
+        "loss": 6.318072337307967e-06,
+        "mtp_topk": [
+          {
+            "rank": 1,
+            "token_id": 71093,
+            "score": 34.75,
+            "text": "```"
+          },
+          {
+            "rank": 2,
+            "token_id": 52451,
+            "score": 21.5,
+            "text": " ```"
+          },
+          {
+            "rank": 3,
+            "token_id": 12,
+            "score": 21.5,
+            "text": "-"
+          },
+          {
+            "rank": 4,
+            "token_id": 9,
+            "score": 21.25,
+            "text": "*"
+          },
+          {
+            "rank": 5,
+            "token_id": 54,
+            "score": 20.625,
+            "text": "W"
+          }
+        ]
+      },
+      {
+        "prompt_idx": 2,
+        "id": "train_math_clean",
+        "prompt_tokens": 34,
+        "label_id": 16,
+        "label_text": "1",
+        "draft_id": 16,
+        "draft_text": "1",
+        "accepted": true,
+        "loss": 0.00381337758153677,
+        "mtp_topk": [
+          {
+            "rank": 1,
+            "token_id": 16,
+            "score": 37.5,
+            "text": "1"
+          },
+          {
+            "rank": 2,
+            "token_id": 17,
+            "score": 31.75,
+            "text": "2"
+          },
+          {
+            "rank": 3,
+            "token_id": 18,
+            "score": 29.5,
+            "text": "3"
+          },
+          {
+            "rank": 4,
+            "token_id": 12,
+            "score": 28.375,
+            "text": "-"
+          },
+          {
+            "rank": 5,
+            "token_id": 19,
+            "score": 28.25,
+            "text": "4"
+          }
+        ]
+      },
+      {
+        "prompt_idx": 3,
+        "id": "json_city_clean",
+        "prompt_tokens": 34,
+        "label_id": 4754,
+        "label_text": "{\"",
+        "draft_id": 4754,
+        "draft_text": "{\"",
+        "accepted": true,
+        "loss": 0.036968983709812164,
+        "mtp_topk": [
+          {
+            "rank": 1,
+            "token_id": 4754,
+            "score": 28.875,
+            "text": "{\""
+          },
+          {
+            "rank": 2,
+            "token_id": 71093,
+            "score": 25.5,
+            "text": "```"
+          },
+          {
+            "rank": 3,
+            "token_id": 90,
+            "score": 22.875,
+            "text": "{"
+          },
+          {
+            "rank": 4,
+            "token_id": 9,
+            "score": 21.25,
+            "text": "*"
+          },
+          {
+            "rank": 5,
+            "token_id": 5046,
+            "score": 20.25,
+            "text": " {\""
+          }
+        ]
+      },
+      {
+        "prompt_idx": 4,
+        "id": "moe_router_expert_clean",
+        "prompt_tokens": 45,
+        "label_id": 12,
+        "label_text": "-",
+        "draft_id": 12,
+        "draft_text": "-",
+        "accepted": true,
+        "loss": 0.00012754580529872328,
+        "mtp_topk": [
+          {
+            "rank": 1,
+            "token_id": 12,
+            "score": 33.25,
+            "text": "-"
+          },
+          {
+            "rank": 2,
+            "token_id": 54,
+            "score": 24.0,
+            "text": "W"
+          },
+          {
+            "rank": 3,
+            "token_id": 16,
+            "score": 22.0,
+            "text": "1"
+          },
+          {
+            "rank": 4,
+            "token_id": 9,
+            "score": 21.5,
+            "text": "*"
+          },
+          {
+            "rank": 5,
+            "token_id": 71093,
+            "score": 21.375,
+            "text": "```"
+          }
+        ]
+      },
+      {
+        "prompt_idx": 5,
+        "id": "linear_attention_explain_clean",
+        "prompt_tokens": 41,
+        "label_id": 22054,
+        "label_text": "linear",
+        "draft_id": 22054,
+        "draft_text": "linear",
+        "accepted": true,
+        "loss": 0.010729952715337276,
+        "mtp_topk": [
+          {
+            "rank": 1,
+            "token_id": 22054,
+            "score": 32.0,
+            "text": "linear"
+          },
+          {
+            "rank": 2,
+            "token_id": 13094,
+            "score": 27.25,
+            "text": " linear"
+          },
+          {
+            "rank": 3,
+            "token_id": 105094,
+            "score": 25.25,
+            "text": "线性"
+          },
+          {
+            "rank": 4,
+            "token_id": 27345,
+            "score": 24.625,
+            "text": " Linear"
+          },
+          {
+            "rank": 5,
+            "token_id": 54,
+            "score": 23.25,
+            "text": "W"
+          }
+        ]
+      },
+      {
+        "prompt_idx": 6,
+        "id": "tool_json_clean",
+        "prompt_tokens": 39,
+        "label_id": 4754,
+        "label_text": "{\"",
+        "draft_id": 4754,
+        "draft_text": "{\"",
+        "accepted": true,
+        "loss": 0.02239322103559971,
+        "mtp_topk": [
+          {
+            "rank": 1,
+            "token_id": 4754,
+            "score": 29.625,
+            "text": "{\""
+          },
+          {
+            "rank": 2,
+            "token_id": 71093,
+            "score": 25.75,
+            "text": "```"
+          },
+          {
+            "rank": 3,
+            "token_id": 90,
+            "score": 23.125,
+            "text": "{"
+          },
+          {
+            "rank": 4,
+            "token_id": 9,
+            "score": 20.875,
+            "text": "*"
+          },
+          {
+            "rank": 5,
+            "token_id": 5046,
+            "score": 20.625,
+            "text": " {\""
+          }
+        ]
+      },
+      {
+        "prompt_idx": 7,
+        "id": "openapi_yaml_clean",
+        "prompt_tokens": 36,
+        "label_id": 1267,
+        "label_text": "type",
+        "draft_id": 1267,
+        "draft_text": "type",
+        "accepted": true,
+        "loss": 0.00031704644788987935,
+        "mtp_topk": [
+          {
+            "rank": 1,
+            "token_id": 1267,
+            "score": 31.375,
+            "text": "type"
+          },
+          {
+            "rank": 2,
+            "token_id": 913,
+            "score": 23.25,
+            "text": " type"
+          },
+          {
+            "rank": 3,
+            "token_id": 10289,
+            "score": 19.5,
+            "text": "-type"
+          },
+          {
+            "rank": 4,
+            "token_id": 71093,
+            "score": 19.125,
+            "text": "```"
+          },
+          {
+            "rank": 5,
+            "token_id": 12,
+            "score": 19.0,
+            "text": "-"
+          }
+        ]
+      },
+      {
+        "prompt_idx": 8,
+        "id": "normalize_city_code_clean",
+        "prompt_tokens": 42,
+        "label_id": 71093,
+        "label_text": "```",
+        "draft_id": 71093,
+        "draft_text": "```",
+        "accepted": true,
+        "loss": 9.536697689327411e-06,
+        "mtp_topk": [
+          {
+            "rank": 1,
+            "token_id": 71093,
+            "score": 34.75,
+            "text": "```"
+          },
+          {
+            "rank": 2,
+            "token_id": 12,
+            "score": 22.25,
+            "text": "-"
+          },
+          {
+            "rank": 3,
+            "token_id": 9,
+            "score": 22.0,
+            "text": "*"
+          },
+          {
+            "rank": 4,
+            "token_id": 52451,
+            "score": 21.25,
+            "text": " ```"
+          },
+          {
+            "rank": 5,
+            "token_id": 63,
+            "score": 20.75,
+            "text": "`"
+          }
+        ]
+      },
+      {
+        "prompt_idx": 9,
+        "id": "repair_json_clean",
+        "prompt_tokens": 39,
+        "label_id": 4754,
+        "label_text": "{\"",
+        "draft_id": 4754,
+        "draft_text": "{\"",
+        "accepted": true,
+        "loss": 0.014926181174814701,
+        "mtp_topk": [
+          {
+            "rank": 1,
+            "token_id": 4754,
+            "score": 29.375,
+            "text": "{\""
+          },
+          {
+            "rank": 2,
+            "token_id": 71093,
+            "score": 25.0,
+            "text": "```"
+          },
+          {
+            "rank": 3,
+            "token_id": 90,
+            "score": 23.125,
+            "text": "{"
+          },
+          {
+            "rank": 4,
+            "token_id": 9,
+            "score": 20.875,
+            "text": "*"
+          },
+          {
+            "rank": 5,
+            "token_id": 5046,
+            "score": 20.5,
+            "text": " {\""
+          }
+        ]
+      },
+      {
+        "prompt_idx": 10,
+        "id": "function_args_clean",
+        "prompt_tokens": 36,
+        "label_id": 4754,
+        "label_text": "{\"",
+        "draft_id": 4754,
+        "draft_text": "{\"",
+        "accepted": true,
+        "loss": 0.001668134005740285,
+        "mtp_topk": [
+          {
+            "rank": 1,
+            "token_id": 4754,
+            "score": 30.25,
+            "text": "{\""
+          },
+          {
+            "rank": 2,
+            "token_id": 71093,
+            "score": 23.375,
+            "text": "```"
+          },
+          {
+            "rank": 3,
+            "token_id": 90,
+            "score": 22.5,
+            "text": "{"
+          },
+          {
+            "rank": 4,
+            "token_id": 5046,
+            "score": 20.875,
+            "text": " {\""
+          },
+          {
+            "rank": 5,
+            "token_id": 9,
+            "score": 20.75,
+            "text": "*"
+          }
+        ]
+      },
+      {
+        "prompt_idx": 11,
+        "id": "linear_attention_bullets_clean",
+        "prompt_tokens": 33,
+        "label_id": 12,
+        "label_text": "-",
+        "draft_id": 12,
+        "draft_text": "-",
+        "accepted": true,
+        "loss": 4.887569048150908e-06,
+        "mtp_topk": [
+          {
+            "rank": 1,
+            "token_id": 12,
+            "score": 35.25,
+            "text": "-"
+          },
+          {
+            "rank": 2,
+            "token_id": 9,
+            "score": 22.5,
+            "text": "*"
+          },
+          {
+            "rank": 3,
+            "token_id": 16,
+            "score": 21.25,
+            "text": "1"
+          },
+          {
+            "rank": 4,
+            "token_id": 54,
+            "score": 20.75,
+            "text": "W"
+          },
+          {
+            "rank": 5,
+            "token_id": 71093,
+            "score": 20.375,
+            "text": "```"
+          }
+        ]
+      }
+    ]
+  },
+  "cases": [
+    {
+      "prompt_idx": 0,
+      "id": "w4a8_explain_clean",
+      "prompt": "用一句中文短句回答: W4A8 比 W4A4 更稳的原因。必须以 W4A8 开头,不超过 28 个汉字。",
+      "prompt_tokens": 49,
+      "label_id": 54,
+      "label_text": "W",
+      "base_topk": [
+        {
+          "rank": 1,
+          "token_id": 54,
+          "score": 19.875,
+          "text": "W"
+        },
+        {
+          "rank": 2,
+          "token_id": 96789,
+          "score": 13.1875,
+          "text": "因为"
+        },
+        {
+          "rank": 3,
+          "token_id": 86,
+          "score": 12.75,
+          "text": "w"
+        },
+        {
+          "rank": 4,
+          "token_id": 19,
+          "score": 12.25,
+          "text": "4"
+        },
+        {
+          "rank": 5,
+          "token_id": 98832,
+          "score": 11.6875,
+          "text": "为什么"
+        }
+      ]
+    },
+    {
+      "prompt_idx": 1,
+      "id": "palindrome_code_clean",
+      "prompt": "只输出 Python 代码块,实现 is_palindrome(s: str) -> bool。忽略大小写、空格和非字母数字字符,不要解释。",
+      "prompt_tokens": 43,
+      "label_id": 71093,
+      "label_text": "```",
+      "base_topk": [
+        {
+          "rank": 1,
+          "token_id": 71093,
+          "score": 19.25,
+          "text": "```"
+        },
+        {
+          "rank": 2,
+          "token_id": 727,
+          "score": 16.75,
+          "text": "def"
+        },
+        {
+          "rank": 3,
+          "token_id": 29292,
+          "score": 13.625,
+          "text": "Python"
+        },
+        {
+          "rank": 4,
+          "token_id": 464,
+          "score": 13.5,
+          "text": "import"
+        },
+        {
+          "rank": 5,
+          "token_id": 284,
+          "score": 12.9375,
+          "text": "is"
+        }
+      ]
+    },
+    {
+      "prompt_idx": 2,
+      "id": "train_math_clean",
+      "prompt": "Answer only with the distance and unit: a train travels 60 mph for 2.5 hours.",
+      "prompt_tokens": 34,
+      "label_id": 16,
+      "label_text": "1",
+      "base_topk": [
+        {
+          "rank": 1,
+          "token_id": 16,
+          "score": 20.75,
+          "text": "1"
+        },
+        {
+          "rank": 2,
+          "token_id": 760,
+          "score": 16.25,
+          "text": "The"
+        },
+        {
+          "rank": 3,
+          "token_id": 64,
+          "score": 15.625,
+          "text": "a"
+        },
+        {
+          "rank": 4,
+          "token_id": 14349,
+          "score": 14.6875,
+          "text": "Distance"
+        },
+        {
+          "rank": 5,
+          "token_id": 18,
+          "score": 14.0,
+          "text": "3"
+        }
+      ]
+    },
+    {
+      "prompt_idx": 3,
+      "id": "json_city_clean",
+      "prompt": "Output exactly one JSON object with keys city and unit for Tokyo in celsius. No markdown, no explanation.",
+      "prompt_tokens": 34,
+      "label_id": 4754,
+      "label_text": "{\"",
+      "base_topk": [
+        {
+          "rank": 1,
+          "token_id": 4754,
+          "score": 21.25,
+          "text": "{\""
+        },
+        {
+          "rank": 2,
+          "token_id": 90,
+          "score": 18.25,
+          "text": "{"
+        },
+        {
+          "rank": 3,
+          "token_id": 71093,
+          "score": 16.125,
+          "text": "```"
+        },
+        {
+          "rank": 4,
+          "token_id": 1,
+          "score": 14.3125,
+          "text": "\""
+        },
+        {
+          "rank": 5,
+          "token_id": 8656,
+          "score": 14.25,
+          "text": "city"
+        }
+      ]
+    },
+    {
+      "prompt_idx": 4,
+      "id": "moe_router_expert_clean",
+      "prompt": "用两条中文 bullet 说明 MoE 中 router 和 expert 的分工。第一条必须讲 router,第二条必须讲 expert。不要解释其他内容。",
+      "prompt_tokens": 45,
+      "label_id": 12,
+      "label_text": "-",
+      "base_topk": [
+        {
+          "rank": 1,
+          "token_id": 12,
+          "score": 18.75,
+          "text": "-"
+        },
+        {
+          "rank": 2,
+          "token_id": 9242,
+          "score": 15.1875,
+          "text": "Router"
+        },
+        {
+          "rank": 3,
+          "token_id": 114996,
+          "score": 14.6875,
+          "text": "路由器"
+        },
+        {
+          "rank": 4,
+          "token_id": 104916,
+          "score": 14.5,
+          "text": "路由"
+        },
+        {
+          "rank": 5,
+          "token_id": 9,
+          "score": 14.5,
+          "text": "*"
+        }
+      ]
+    },
+    {
+      "prompt_idx": 5,
+      "id": "linear_attention_explain_clean",
+      "prompt": "用一句中文短句说明 linear attention 对长上下文推理的主要优势。必须以 linear attention 开头,不超过 36 个汉字。",
+      "prompt_tokens": 41,
+      "label_id": 22054,
+      "label_text": "linear",
+      "base_topk": [
+        {
+          "rank": 1,
+          "token_id": 22054,
+          "score": 19.625,
+          "text": "linear"
+        },
+        {
+          "rank": 2,
+          "token_id": 30851,
+          "score": 18.125,
+          "text": "Linear"
+        },
+        {
+          "rank": 3,
+          "token_id": 105094,
+          "score": 18.0,
+          "text": "线性"
+        },
+        {
+          "rank": 4,
+          "token_id": 13094,
+          "score": 13.9375,
+          "text": " linear"
+        },
+        {
+          "rank": 5,
+          "token_id": 59229,
+          "score": 13.0,
+          "text": "-linear"
+        }
+      ]
+    },
+    {
+      "prompt_idx": 6,
+      "id": "tool_json_clean",
+      "prompt": "Output exactly one JSON object for a tool call with tool=get_weather and arguments city=Tokyo, unit=celsius. No markdown.",
+      "prompt_tokens": 39,
+      "label_id": 4754,
+      "label_text": "{\"",
+      "base_topk": [
+        {
+          "rank": 1,
+          "token_id": 4754,
+          "score": 22.25,
+          "text": "{\""
+        },
+        {
+          "rank": 2,
+          "token_id": 90,
+          "score": 19.375,
+          "text": "{"
+        },
+        {
+          "rank": 3,
+          "token_id": 71093,
+          "score": 15.6875,
+          "text": "```"
+        },
+        {
+          "rank": 4,
+          "token_id": 62070,
+          "score": 15.5,
+          "text": "{\\\""
+        },
+        {
+          "rank": 5,
+          "token_id": 27,
+          "score": 14.5625,
+          "text": "<"
+        }
+      ]
+    },
+    {
+      "prompt_idx": 7,
+      "id": "openapi_yaml_clean",
+      "prompt": "Output only an OpenAPI 3.0 requestBody YAML schema for JSON fields city:string and unit:string. No markdown.",
+      "prompt_tokens": 36,
+      "label_id": 1267,
+      "label_text": "type",
+      "base_topk": [
+        {
+          "rank": 1,
+          "token_id": 1267,
+          "score": 18.875,
+          "text": "type"
+        },
+        {
+          "rank": 2,
+          "token_id": 90,
+          "score": 17.625,
+          "text": "{"
+        },
+        {
+          "rank": 3,
+          "token_id": 2428,
+          "score": 16.625,
+          "text": "open"
+        },
+        {
+          "rank": 4,
+          "token_id": 71093,
+          "score": 16.5,
+          "text": "```"
+        },
+        {
+          "rank": 5,
+          "token_id": 2513,
+          "score": 15.5625,
+          "text": "body"
+        }
+      ]
+    },
+    {
+      "prompt_idx": 8,
+      "id": "normalize_city_code_clean",
+      "prompt": "Only output a Python code block defining normalize_city(payload: dict) -> dict. It must lowercase city and default unit to celsius. No explanation.",
+      "prompt_tokens": 42,
+      "label_id": 71093,
+      "label_text": "```",
+      "base_topk": [
+        {
+          "rank": 1,
+          "token_id": 71093,
+          "score": 20.625,
+          "text": "```"
+        },
+        {
+          "rank": 2,
+          "token_id": 727,
+          "score": 17.5,
+          "text": "def"
+        },
+        {
+          "rank": 3,
+          "token_id": 29292,
+          "score": 15.5,
+          "text": "Python"
+        },
+        {
+          "rank": 4,
+          "token_id": 29591,
+          "score": 15.125,
+          "text": "normalize"
+        },
+        {
+          "rank": 5,
+          "token_id": 248058,
+          "score": 15.0625,
+          "text": "<tool_call>"
+        }
+      ]
+    },
+    {
+      "prompt_idx": 9,
+      "id": "repair_json_clean",
+      "prompt": "Repair this invalid JSON and output exactly one valid JSON object: {'city':'Tokyo','unit':'celsius',}. No markdown.",
+      "prompt_tokens": 39,
+      "label_id": 4754,
+      "label_text": "{\"",
+      "base_topk": [
+        {
+          "rank": 1,
+          "token_id": 4754,
+          "score": 21.25,
+          "text": "{\""
+        },
+        {
+          "rank": 2,
+          "token_id": 90,
+          "score": 16.25,
+          "text": "{"
+        },
+        {
+          "rank": 3,
+          "token_id": 13215,
+          "score": 16.0,
+          "text": "{'"
+        },
+        {
+          "rank": 4,
+          "token_id": 760,
+          "score": 14.75,
+          "text": "The"
+        },
+        {
+          "rank": 5,
+          "token_id": 248068,
+          "score": 14.125,
+          "text": "<think>"
+        }
+      ]
+    },
+    {
+      "prompt_idx": 10,
+      "id": "function_args_clean",
+      "prompt": "Output exactly one JSON arguments object for get_weather with city Tokyo and unit celsius. No function name, no markdown.",
+      "prompt_tokens": 36,
+      "label_id": 4754,
+      "label_text": "{\"",
+      "base_topk": [
+        {
+          "rank": 1,
+          "token_id": 4754,
+          "score": 22.625,
+          "text": "{\""
+        },
+        {
+          "rank": 2,
+          "token_id": 90,
+          "score": 19.125,
+          "text": "{"
+        },
+        {
+          "rank": 3,
+          "token_id": 71093,
+          "score": 17.0,
+          "text": "```"
+        },
+        {
+          "rank": 4,
+          "token_id": 1,
+          "score": 15.6875,
+          "text": "\""
+        },
+        {
+          "rank": 5,
+          "token_id": 62070,
+          "score": 15.25,
+          "text": "{\\\""
+        }
+      ]
+    },
+    {
+      "prompt_idx": 11,
+      "id": "linear_attention_bullets_clean",
+      "prompt": "Output exactly three terse bullets about linear attention benefits. Each bullet must start with '- '. No markdown heading.",
+      "prompt_tokens": 33,
+      "label_id": 12,
+      "label_text": "-",
+      "base_topk": [
+        {
+          "rank": 1,
+          "token_id": 12,
+          "score": 21.375,
+          "text": "-"
+        },
+        {
+          "rank": 2,
+          "token_id": 30851,
+          "score": 15.6875,
+          "text": "Linear"
+        },
+        {
+          "rank": 3,
+          "token_id": 59229,
+          "score": 14.875,
+          "text": "-linear"
+        },
+        {
+          "rank": 4,
+          "token_id": 46,
+          "score": 14.375,
+          "text": "O"
+        },
+        {
+          "rank": 5,
+          "token_id": 22882,
+          "score": 13.6875,
+          "text": "-O"
+        }
+      ]
+    }
+  ],
+  "sidecar": {
+    "metadata": {
+      "alignment": "slice_first_dim_for_expert_count_mismatch",
+      "lynn_mtp_warm_start": "true",
+      "source_sidecar": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp/mtp.safetensors"
+    },
+    "tensors": {
+      "mtp.fc.weight": {
+        "shape": [
+          2048,
+          4096
+        ],
+        "dtype": "bfloat16",
+        "numel": 8388608
+      },
+      "mtp.layers.0.input_layernorm.weight": {
+        "shape": [
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 2048
+      },
+      "mtp.layers.0.mlp.experts.down_proj": {
+        "shape": [
+          254,
+          2048,
+          512
+        ],
+        "dtype": "bfloat16",
+        "numel": 266338304
+      },
+      "mtp.layers.0.mlp.experts.gate_up_proj": {
+        "shape": [
+          254,
+          1024,
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 532676608
+      },
+      "mtp.layers.0.mlp.gate.weight": {
+        "shape": [
+          254,
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 520192
+      },
+      "mtp.layers.0.mlp.shared_expert.down_proj.weight": {
+        "shape": [
+          2048,
+          512
+        ],
+        "dtype": "bfloat16",
+        "numel": 1048576
+      },
+      "mtp.layers.0.mlp.shared_expert.gate_proj.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 1048576
+      },
+      "mtp.layers.0.mlp.shared_expert.up_proj.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 1048576
+      },
+      "mtp.layers.0.mlp.shared_expert_gate.weight": {
+        "shape": [
+          1,
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 2048
+      },
+      "mtp.layers.0.post_attention_layernorm.weight": {
+        "shape": [
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 2048
+      },
+      "mtp.layers.0.self_attn.k_norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "bfloat16",
+        "numel": 256
+      },
+      "mtp.layers.0.self_attn.k_proj.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 1048576
+      },
+      "mtp.layers.0.self_attn.o_proj.weight": {
+        "shape": [
+          2048,
+          4096
+        ],
+        "dtype": "bfloat16",
+        "numel": 8388608
+      },
+      "mtp.layers.0.self_attn.q_norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "bfloat16",
+        "numel": 256
+      },
+      "mtp.layers.0.self_attn.q_proj.weight": {
+        "shape": [
+          8192,
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 16777216
+      },
+      "mtp.layers.0.self_attn.v_proj.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 1048576
+      },
+      "mtp.norm.weight": {
+        "shape": [
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 2048
+      },
+      "mtp.pre_fc_norm_embedding.weight": {
+        "shape": [
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 2048
+      },
+      "mtp.pre_fc_norm_hidden.weight": {
+        "shape": [
+          2048
+        ],
+        "dtype": "bfloat16",
+        "numel": 2048
+      }
+    }
+  },
+  "trained_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-fc-teacherclean-v2-20260517_113808/mtp.safetensors"
+}
