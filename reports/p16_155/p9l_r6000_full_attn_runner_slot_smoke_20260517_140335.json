@@ -1,0 +1,33 @@
+{
+  "schema_version": "lynn-engine-p9l-full-attn-runner-slot-smoke-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-a3b-w4a8-nvfp4-v2",
+  "device": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+  "method": "LynnIncrementalRunner._capture_full_attn_layer_graph_slot",
+  "layer": 31,
+  "position": 10,
+  "token_a": 271,
+  "token_b": 1280,
+  "slot_seq_len": 10,
+  "slot_replays": 2,
+  "case_a_output": {
+    "max_abs": 0.0,
+    "rel_l2": 0.0
+  },
+  "case_b_output": {
+    "max_abs": 0.0,
+    "rel_l2": 0.0
+  },
+  "case_a_k": {
+    "max_abs": 0.0,
+    "rel_l2": 0.0
+  },
+  "case_b_k": {
+    "max_abs": 0.0,
+    "rel_l2": 0.0
+  },
+  "graph_output_delta": {
+    "max_abs": 1.3671875,
+    "rel_l2": 1.2411552221115494
+  },
+  "decision": "GREEN: runner scaffold captures and replays mutable full-attn layer input with exact eager parity."
+}

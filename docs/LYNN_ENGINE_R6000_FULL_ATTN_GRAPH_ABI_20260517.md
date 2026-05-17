@@ -24,6 +24,7 @@ P9H/P9I/P9J changed the full-attention decision:
 | P9H layer31 fixed-position graph | 3.90x replay speedup, exact output/KV parity |
 | P9I layers 3/15/31/39, positions 10/14/32 | 12/12 exact parity, 4.09x mean replay speedup |
 | P9J mutable input buffer | 4/4 exact parity after swapping graph input, 4.21x mean replay speedup |
+| P9L runner slot smoke | `_capture_full_attn_layer_graph_slot` exact parity on R6000 |
 
 This makes full-attention reusable graphing the strongest non-MTP R6000 speed
 lever found today.
@@ -86,6 +87,16 @@ h = output_buf
 
 P9J verifies that this input buffer is genuinely mutable: changing `input_buf`
 changes graph output while preserving exact eager parity for both inputs.
+
+P9L then verifies the same contract through the actual runner scaffold:
+
+```text
+reports/p16_155/p9l_r6000_full_attn_runner_slot_smoke_20260517_140335.json
+layer31 position10
+case-A output/KV max_abs: 0
+case-B output/KV max_abs: 0
+graph output delta A->B rel_l2: 1.241
+```
 
 ## Graph Key
 
