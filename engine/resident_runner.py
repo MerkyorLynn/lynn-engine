@@ -930,10 +930,20 @@ class LynnIncrementalRunner:
         max_new: int = 4,
         top_k: int = 0,
         use_chat_template: bool = False,
+        forced_prefix_text: str | None = None,
+        forced_prefix_ids: list[int] | None = None,
         release_decode_shadows_after_prefill: bool = False,
     ) -> dict[str, Any]:
         tok = self.tokenizer
         ids = _encode_prompt(tok, prompt, self.device, use_chat_template=use_chat_template)
+        if forced_prefix_text is not None and forced_prefix_ids is not None:
+            raise ValueError("pass either forced_prefix_text or forced_prefix_ids, not both")
+        if forced_prefix_text is not None:
+            forced_prefix_ids = tok(
+                forced_prefix_text,
+                add_special_tokens=False,
+            ).input_ids
+        forced_prefix_ids = [int(x) for x in (forced_prefix_ids or [])]
         T = ids.shape[1]
         state = LynnInferenceState(
             batch=1,
@@ -952,7 +962,23 @@ class LynnIncrementalRunner:
         state.seq_len = T
         h_final = _rms_norm(h, self.outside["model.language_model.norm.weight"])
         logits = self._lm_head_logits(h_final)
-        next_id = int(logits[0].argmax().item())
+        raw_next_id = int(logits[0].argmax().item())
+        forced_trace = []
+        if forced_prefix_ids:
+            forced_id = forced_prefix_ids[0]
+            forced_trace.append(
+                {
+                    "index": 0,
+                    "raw_id": raw_next_id,
+                    "raw_text": tok.decode([raw_next_id]),
+                    "forced_id": forced_id,
+                    "forced_text": tok.decode([forced_id]),
+                    "raw_matched": raw_next_id == forced_id,
+                }
+            )
+            next_id = forced_id
+        else:
+            next_id = raw_next_id
         topk_trace = []
         if top_k > 0:
             topk_trace.append(_logit_topk(logits, top_k))
@@ -1080,7 +1106,22 @@ class LynnIncrementalRunner:
                 state.seq_len += 1
                 h_final = _rms_norm(h, self.outside["model.language_model.norm.weight"])
                 logits = self._lm_head_logits(h_final)
-            next_id = int(logits[0].argmax().item())
+            raw_next_id = int(logits[0].argmax().item())
+            if step < len(forced_prefix_ids):
+                forced_id = forced_prefix_ids[step]
+                forced_trace.append(
+                    {
+                        "index": step,
+                        "raw_id": raw_next_id,
+                        "raw_text": tok.decode([raw_next_id]),
+                        "forced_id": forced_id,
+                        "forced_text": tok.decode([forced_id]),
+                        "raw_matched": raw_next_id == forced_id,
+                    }
+                )
+                next_id = forced_id
+            else:
+                next_id = raw_next_id
             if top_k > 0:
                 topk_trace.append(_logit_topk(logits, top_k))
             if self.device.startswith("cuda"):
@@ -1131,4 +1172,11 @@ class LynnIncrementalRunner:
         }
         if top_k > 0:
             result["topk_trace"] = topk_trace
+        if forced_prefix_ids:
+            result["forced_prefix"] = {
+                "text": forced_prefix_text,
+                "ids": forced_prefix_ids,
+                "trace": forced_trace,
+                "raw_all_matched": all(row["raw_matched"] for row in forced_trace),
+            }
         return result

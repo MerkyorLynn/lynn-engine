@@ -8,6 +8,30 @@ Lynn 27B needs a **Lynn-owned 2048-hidden MTP predictor**. The community
 Qwen3.6-27B MTP sidecar is useful as a shape/architecture reference, but it is
 not a direct initializer because it is built for hidden size 5120.
 
+2026-05-17 update: the official Qwen3.6-35B-A3B MTP sidecar is different from
+the earlier 5120-hidden community sidecar. It has 2048-hidden `mtp.*` tensors
+and is now available as a Lynn warm-start asset after expert-dimension
+alignment.
+
+```text
+reports/mtp/a100_qwen36_a3b_mtp_sidecar_shape_audit_v2_20260517_0935.json
+decision: GREEN
+
+reports/mtp/a100_qwen36_a3b_mtp_warm_start_mapping_aligned_20260517_0938.json
+decision: GREEN
+direct_copy: 16
+slice_first_dim: 3
+```
+
+Aligned sidecar:
+
+```text
+/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-warm-start-aligned/mtp.safetensors
+```
+
+This changes the initialization path, not the serving state: MTP still needs
+head wiring, training, and accept-rate evaluation before it can contribute TPS.
+
 Report:
 
 ```text

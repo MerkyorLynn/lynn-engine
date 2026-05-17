@@ -1,0 +1,328 @@
+{
+  "schema_version": "lynn-a100-mtp-warm-start-mapping-v1",
+  "decision": "GREEN: official MTP sidecar is shape-alignable for Lynn by slicing the expert dimension.",
+  "sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp/mtp.safetensors",
+  "sidecar_bytes": 1689283656,
+  "base_model": "/mnt/data2/lynn-a100/models/lynn-27b-variable-recovery-step5000-bf16-w4a8-alpha-overlay-structured_v10_top6",
+  "base_hidden_size": 2048,
+  "reference_attention_layer": 3,
+  "reference_moe_layer": 0,
+  "counts": {
+    "direct_copy": 16,
+    "slice_first_dim": 3,
+    "missing_source": 0,
+    "shape_mismatch": 0,
+    "dtype_mismatch": 0,
+    "extra_source": 0
+  },
+  "extra_source_keys": [],
+  "rows": [
+    {
+      "key": "mtp.fc.weight",
+      "status": "direct_copy",
+      "source_shape": [
+        2048,
+        4096
+      ],
+      "target_shape": [
+        2048,
+        4096
+      ],
+      "source_dtype": "bfloat16",
+      "target_dtype": "bfloat16",
+      "target_source": "derived_from_config",
+      "base_key": null
+    },
+    {
+      "key": "mtp.layers.0.input_layernorm.weight",
+      "status": "direct_copy",
+      "source_shape": [
+        2048
+      ],
+      "target_shape": [
+        2048
+      ],
+      "source_dtype": "bfloat16",
+      "target_dtype": "bfloat16",
+      "target_source": "derived_from_base_layer",
+      "base_key": "model.language_model.layers.0.input_layernorm.weight"
+    },
+    {
+      "key": "mtp.layers.0.mlp.experts.down_proj",
+      "status": "slice_first_dim",
+      "source_shape": [
+        256,
+        2048,
+        512
+      ],
+      "target_shape": [
+        254,
+        2048,
+        512
+      ],
+      "source_dtype": "bfloat16",
+      "target_dtype": "bfloat16",
+      "target_source": "derived_from_base_layer",
+      "base_key": "model.language_model.layers.0.mlp.experts.down_proj"
+    },
+    {
+      "key": "mtp.layers.0.mlp.experts.gate_up_proj",
+      "status": "slice_first_dim",
+      "source_shape": [
+        256,
+        1024,
+        2048
+      ],
+      "target_shape": [
+        254,
+        1024,
+        2048
+      ],
+      "source_dtype": "bfloat16",
+      "target_dtype": "bfloat16",
+      "target_source": "derived_from_base_layer",
+      "base_key": "model.language_model.layers.0.mlp.experts.gate_up_proj"
+    },
+    {
+      "key": "mtp.layers.0.mlp.gate.weight",
+      "status": "slice_first_dim",
+      "source_shape": [
+        256,
+        2048
+      ],
+      "target_shape": [
+        254,
+        2048
+      ],
+      "source_dtype": "bfloat16",
+      "target_dtype": "bfloat16",
+      "target_source": "derived_from_base_layer",
+      "base_key": "model.language_model.layers.0.mlp.gate.weight"
+    },
+    {
+      "key": "mtp.layers.0.mlp.shared_expert.down_proj.weight",
+      "status": "direct_copy",
+      "source_shape": [
+        2048,
+        512
+      ],
+      "target_shape": [
+        2048,
+        512
+      ],
+      "source_dtype": "bfloat16",
+      "target_dtype": "bfloat16",
+      "target_source": "derived_from_base_layer",
+      "base_key": "model.language_model.layers.0.mlp.shared_expert.down_proj.weight"
+    },
+    {
+      "key": "mtp.layers.0.mlp.shared_expert.gate_proj.weight",
+      "status": "direct_copy",
+      "source_shape": [
+        512,
+        2048
+      ],
+      "target_shape": [
+        512,
+        2048
+      ],
+      "source_dtype": "bfloat16",
+      "target_dtype": "bfloat16",
+      "target_source": "derived_from_base_layer",
+      "base_key": "model.language_model.layers.0.mlp.shared_expert.gate_proj.weight"
+    },
+    {
+      "key": "mtp.layers.0.mlp.shared_expert.up_proj.weight",
+      "status": "direct_copy",
+      "source_shape": [
+        512,
+        2048
+      ],
+      "target_shape": [
+        512,
+        2048
+      ],
+      "source_dtype": "bfloat16",
+      "target_dtype": "bfloat16",
+      "target_source": "derived_from_base_layer",
+      "base_key": "model.language_model.layers.0.mlp.shared_expert.up_proj.weight"
+    },
+    {
+      "key": "mtp.layers.0.mlp.shared_expert_gate.weight",
+      "status": "direct_copy",
+      "source_shape": [
+        1,
+        2048
+      ],
+      "target_shape": [
+        1,
+        2048
+      ],
+      "source_dtype": "bfloat16",
+      "target_dtype": "bfloat16",
+      "target_source": "derived_from_base_layer",
+      "base_key": "model.language_model.layers.0.mlp.shared_expert_gate.weight"
+    },
+    {
+      "key": "mtp.layers.0.post_attention_layernorm.weight",
+      "status": "direct_copy",
+      "source_shape": [
+        2048
+      ],
+      "target_shape": [
+        2048
+      ],
+      "source_dtype": "bfloat16",
+      "target_dtype": "bfloat16",
+      "target_source": "derived_from_base_layer",
+      "base_key": "model.language_model.layers.0.post_attention_layernorm.weight"
+    },
+    {
+      "key": "mtp.layers.0.self_attn.k_norm.weight",
+      "status": "direct_copy",
+      "source_shape": [
+        256
+      ],
+      "target_shape": [
+        256
+      ],
+      "source_dtype": "bfloat16",
+      "target_dtype": "bfloat16",
+      "target_source": "derived_from_base_layer",
+      "base_key": "model.language_model.layers.3.self_attn.k_norm.weight"
+    },
+    {
+      "key": "mtp.layers.0.self_attn.k_proj.weight",
+      "status": "direct_copy",
+      "source_shape": [
+        512,
+        2048
+      ],
+      "target_shape": [
+        512,
+        2048
+      ],
+      "source_dtype": "bfloat16",
+      "target_dtype": "bfloat16",
+      "target_source": "derived_from_base_layer",
+      "base_key": "model.language_model.layers.3.self_attn.k_proj.weight"
+    },
+    {
+      "key": "mtp.layers.0.self_attn.o_proj.weight",
+      "status": "direct_copy",
+      "source_shape": [
+        2048,
+        4096
+      ],
+      "target_shape": [
+        2048,
+        4096
+      ],
+      "source_dtype": "bfloat16",
+      "target_dtype": "bfloat16",
+      "target_source": "derived_from_base_layer",
+      "base_key": "model.language_model.layers.3.self_attn.o_proj.weight"
+    },
+    {
+      "key": "mtp.layers.0.self_attn.q_norm.weight",
+      "status": "direct_copy",
+      "source_shape": [
+        256
+      ],
+      "target_shape": [
+        256
+      ],
+      "source_dtype": "bfloat16",
+      "target_dtype": "bfloat16",
+      "target_source": "derived_from_base_layer",
+      "base_key": "model.language_model.layers.3.self_attn.q_norm.weight"
+    },
+    {
+      "key": "mtp.layers.0.self_attn.q_proj.weight",
+      "status": "direct_copy",
+      "source_shape": [
+        8192,
+        2048
+      ],
+      "target_shape": [
+        8192,
+        2048
+      ],
+      "source_dtype": "bfloat16",
+      "target_dtype": "bfloat16",
+      "target_source": "derived_from_base_layer",
+      "base_key": "model.language_model.layers.3.self_attn.q_proj.weight"
+    },
+    {
+      "key": "mtp.layers.0.self_attn.v_proj.weight",
+      "status": "direct_copy",
+      "source_shape": [
+        512,
+        2048
+      ],
+      "target_shape": [
+        512,
+        2048
+      ],
+      "source_dtype": "bfloat16",
+      "target_dtype": "bfloat16",
+      "target_source": "derived_from_base_layer",
+      "base_key": "model.language_model.layers.3.self_attn.v_proj.weight"
+    },
+    {
+      "key": "mtp.norm.weight",
+      "status": "direct_copy",
+      "source_shape": [
+        2048
+      ],
+      "target_shape": [
+        2048
+      ],
+      "source_dtype": "bfloat16",
+      "target_dtype": "bfloat16",
+      "target_source": "derived_from_config",
+      "base_key": null
+    },
+    {
+      "key": "mtp.pre_fc_norm_embedding.weight",
+      "status": "direct_copy",
+      "source_shape": [
+        2048
+      ],
+      "target_shape": [
+        2048
+      ],
+      "source_dtype": "bfloat16",
+      "target_dtype": "bfloat16",
+      "target_source": "derived_from_config",
+      "base_key": null
+    },
+    {
+      "key": "mtp.pre_fc_norm_hidden.weight",
+      "status": "direct_copy",
+      "source_shape": [
+        2048
+      ],
+      "target_shape": [
+        2048
+      ],
+      "source_dtype": "bfloat16",
+      "target_dtype": "bfloat16",
+      "target_source": "derived_from_config",
+      "base_key": null
+    }
+  ],
+  "warm_start_sidecar_mode": "aligned_safetensors",
+  "alignment": {
+    "aligned_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-warm-start-aligned/mtp.safetensors",
+    "aligned_sidecar_bytes": 1676692752,
+    "slice_first_dim_count": 3,
+    "slice_first_dim_keys": [
+      "mtp.layers.0.mlp.experts.down_proj",
+      "mtp.layers.0.mlp.experts.gate_up_proj",
+      "mtp.layers.0.mlp.gate.weight"
+    ]
+  },
+  "warm_start_dir": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-warm-start-aligned",
+  "warm_start_sidecar": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-warm-start-aligned/mtp.safetensors"
+}

@@ -1,0 +1,202 @@
+{
+  "decision": "GREEN",
+  "reason": "sidecar shapes are plausible for qwen3_next_mtp-style audit",
+  "base_config": {
+    "hidden_size": 2048,
+    "intermediate_size": null,
+    "head_dim": 256,
+    "num_hidden_layers": 40,
+    "vocab_size": 248320,
+    "mtp_num_hidden_layers": 1,
+    "mtp_use_dedicated_embeddings": false
+  },
+  "sidecar": {
+    "tensor_count": 19,
+    "key_prefixes": [
+      "mtp"
+    ],
+    "dtypes": [
+      "bfloat16"
+    ],
+    "all_keys_start_mtp": true,
+    "tensors_with_hidden_size": 17,
+    "tensors_with_vocab_size": 0,
+    "likely_shared_lm_head": true,
+    "suspicious_shape_count": 0
+  },
+  "suspicious_shapes": [],
+  "tensors": [
+    {
+      "key": "mtp.fc.weight",
+      "shape": [
+        2048,
+        4096
+      ],
+      "dtype": "bfloat16",
+      "numel": 8388608
+    },
+    {
+      "key": "mtp.layers.0.input_layernorm.weight",
+      "shape": [
+        2048
+      ],
+      "dtype": "bfloat16",
+      "numel": 2048
+    },
+    {
+      "key": "mtp.layers.0.mlp.experts.down_proj",
+      "shape": [
+        256,
+        2048,
+        512
+      ],
+      "dtype": "bfloat16",
+      "numel": 268435456
+    },
+    {
+      "key": "mtp.layers.0.mlp.experts.gate_up_proj",
+      "shape": [
+        256,
+        1024,
+        2048
+      ],
+      "dtype": "bfloat16",
+      "numel": 536870912
+    },
+    {
+      "key": "mtp.layers.0.mlp.gate.weight",
+      "shape": [
+        256,
+        2048
+      ],
+      "dtype": "bfloat16",
+      "numel": 524288
+    },
+    {
+      "key": "mtp.layers.0.mlp.shared_expert.down_proj.weight",
+      "shape": [
+        2048,
+        512
+      ],
+      "dtype": "bfloat16",
+      "numel": 1048576
+    },
+    {
+      "key": "mtp.layers.0.mlp.shared_expert.gate_proj.weight",
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "bfloat16",
+      "numel": 1048576
+    },
+    {
+      "key": "mtp.layers.0.mlp.shared_expert.up_proj.weight",
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "bfloat16",
+      "numel": 1048576
+    },
+    {
+      "key": "mtp.layers.0.mlp.shared_expert_gate.weight",
+      "shape": [
+        1,
+        2048
+      ],
+      "dtype": "bfloat16",
+      "numel": 2048
+    },
+    {
+      "key": "mtp.layers.0.post_attention_layernorm.weight",
+      "shape": [
+        2048
+      ],
+      "dtype": "bfloat16",
+      "numel": 2048
+    },
+    {
+      "key": "mtp.layers.0.self_attn.k_norm.weight",
+      "shape": [
+        256
+      ],
+      "dtype": "bfloat16",
+      "numel": 256
+    },
+    {
+      "key": "mtp.layers.0.self_attn.k_proj.weight",
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "bfloat16",
+      "numel": 1048576
+    },
+    {
+      "key": "mtp.layers.0.self_attn.o_proj.weight",
+      "shape": [
+        2048,
+        4096
+      ],
+      "dtype": "bfloat16",
+      "numel": 8388608
+    },
+    {
+      "key": "mtp.layers.0.self_attn.q_norm.weight",
+      "shape": [
+        256
+      ],
+      "dtype": "bfloat16",
+      "numel": 256
+    },
+    {
+      "key": "mtp.layers.0.self_attn.q_proj.weight",
+      "shape": [
+        8192,
+        2048
+      ],
+      "dtype": "bfloat16",
+      "numel": 16777216
+    },
+    {
+      "key": "mtp.layers.0.self_attn.v_proj.weight",
+      "shape": [
+        512,
+        2048
+      ],
+      "dtype": "bfloat16",
+      "numel": 1048576
+    },
+    {
+      "key": "mtp.norm.weight",
+      "shape": [
+        2048
+      ],
+      "dtype": "bfloat16",
+      "numel": 2048
+    },
+    {
+      "key": "mtp.pre_fc_norm_embedding.weight",
+      "shape": [
+        2048
+      ],
+      "dtype": "bfloat16",
+      "numel": 2048
+    },
+    {
+      "key": "mtp.pre_fc_norm_hidden.weight",
+      "shape": [
+        2048
+      ],
+      "dtype": "bfloat16",
+      "numel": 2048
+    }
+  ],
+  "schema_version": "lynn-a100-mtp-sidecar-shape-audit-v1",
+  "source": "safetensors",
+  "complete_safetensors": true,
+  "sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp/mtp.safetensors",
+  "sidecar_bytes": 1689283656,
+  "base_model": "/mnt/data2/lynn-a100/models/lynn-27b-variable-recovery-step5000-bf16-w4a8-alpha-overlay-structured_v10_top6"
+}

@@ -1,0 +1,88 @@
+{
+  "schema_version": "r6000-v2-p97-multilayer-summary-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-a3b-w4a8-nvfp4-v2",
+  "layers": [
+    4,
+    12,
+    20,
+    28,
+    36
+  ],
+  "all_contract_pass": true,
+  "best_variant_set": [
+    "p93_gateup_native_down_tile1"
+  ],
+  "speedup_min": 1.1001201637404632,
+  "speedup_mean": 1.1177452184043626,
+  "speedup_max": 1.1263200172978463,
+  "gate_median_mean_ms": 0.05777280107140541,
+  "down_median_mean_ms": 0.02252800017595291,
+  "rows": [
+    {
+      "path": "/root/autodl-tmp/reports/p16_155/p97_r6000_v2_layer4_20260517_092812.json",
+      "layer": 4,
+      "contract_pass": true,
+      "best_variant": "p93_gateup_native_down_tile1",
+      "baseline_total_median_ms": 0.08790399879217148,
+      "best_total_median_ms": 0.0799039974808693,
+      "best_gate_median_ms": 0.05737600103020668,
+      "best_down_median_ms": 0.02252800017595291,
+      "speedup": 1.1001201637404632,
+      "best_rel_l2": 0.0016688057221472263,
+      "best_cosine": 0.9999985694885254
+    },
+    {
+      "path": "/root/autodl-tmp/reports/p16_155/p97_r6000_v2_layer12_20260517_092812.json",
+      "layer": 12,
+      "contract_pass": true,
+      "best_variant": "p93_gateup_native_down_tile1",
+      "baseline_total_median_ms": 0.09044800326228142,
+      "best_total_median_ms": 0.08030400052666664,
+      "best_gate_median_ms": 0.05790400132536888,
+      "best_down_median_ms": 0.02252800017595291,
+      "speedup": 1.1263200172978463,
+      "best_rel_l2": 0.0016639139503240585,
+      "best_cosine": 0.9999985098838806
+    },
+    {
+      "path": "/root/autodl-tmp/reports/p16_155/p97_r6000_v2_layer20_20260517_092812.json",
+      "layer": 20,
+      "contract_pass": true,
+      "best_variant": "p93_gateup_native_down_tile1",
+      "baseline_total_median_ms": 0.09039999917149544,
+      "best_total_median_ms": 0.08036800101399422,
+      "best_gate_median_ms": 0.057840000838041306,
+      "best_down_median_ms": 0.02252800017595291,
+      "speedup": 1.1248257768132666,
+      "best_rel_l2": 0.001606449601240456,
+      "best_cosine": 0.9999987483024597
+    },
+    {
+      "path": "/root/autodl-tmp/reports/p16_155/p97_r6000_v2_layer28_20260517_092812.json",
+      "layer": 28,
+      "contract_pass": true,
+      "best_variant": "p93_gateup_native_down_tile1",
+      "baseline_total_median_ms": 0.08985599875450134,
+      "best_total_median_ms": 0.08032000064849854,
+      "best_gate_median_ms": 0.05782400071620941,
+      "best_down_median_ms": 0.02252800017595291,
+      "speedup": 1.1187250750623727,
+      "best_rel_l2": 0.001670823316089809,
+      "best_cosine": 0.9999985694885254
+    },
+    {
+      "path": "/root/autodl-tmp/reports/p16_155/p97_r6000_v2_layer36_20260517_092812.json",
+      "layer": 36,
+      "contract_pass": true,
+      "best_variant": "p93_gateup_native_down_tile1",
+      "baseline_total_median_ms": 0.08999999985098839,
+      "best_total_median_ms": 0.08044800162315369,
+      "best_gate_median_ms": 0.057920001447200775,
+      "best_down_median_ms": 0.02252800017595291,
+      "speedup": 1.1187350591078642,
+      "best_rel_l2": 0.0016186624998226762,
+      "best_cosine": 0.9999986886978149
+    }
+  ],
+  "decision": "native_down_tile1 repeatedly wins across sampled layers, but gate/up remains the dominant interval; pursue gate/up scheduling/fusion next before runtime promotion."
+}

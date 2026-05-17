@@ -9,6 +9,10 @@ For runtime, this can be folded into MoE down weights:
 
     down_weight[expert, hidden, channel] *= alpha[layer, expert, channel]
 
+Shared alpha vectors are also supported and broadcast across experts:
+
+    down_weight[:, hidden, channel] *= alpha[layer, channel]
+
 This script creates a new artifact directory that symlinks unchanged files to
 the source model and writes modified safetensors files only for the target
 `mlp.experts.down_proj` shards. It never mutates the source model.
@@ -94,20 +98,31 @@ def _fold_one_layer(
     out_file = out / rel
     payload = torch.load(alpha_path, map_location="cpu")
     alpha = payload["alpha"].float()
-    if alpha.ndim != 2:
-        raise ValueError(f"expected expert alpha [E, I] for folding, got {tuple(alpha.shape)} at {alpha_path}")
     tensors = load_file(src_file, device="cpu")
     if key not in tensors:
         raise KeyError(f"{key} not found inside {src_file}")
     weight = tensors[key]
     if weight.ndim != 3:
         raise ValueError(f"expected down_proj [E, hidden, I], got {tuple(weight.shape)}")
-    if tuple(alpha.shape) != (int(weight.shape[0]), int(weight.shape[2])):
-        raise ValueError(
-            f"alpha shape {tuple(alpha.shape)} does not match weight [E,I] "
-            f"{(int(weight.shape[0]), int(weight.shape[2]))} for layer {layer}"
-        )
-    folded = (weight.float() * alpha[:, None, :]).to(weight.dtype).contiguous()
+    if alpha.ndim == 1:
+        if int(alpha.shape[0]) != int(weight.shape[2]):
+            raise ValueError(
+                f"shared alpha shape {tuple(alpha.shape)} does not match weight I "
+                f"{int(weight.shape[2])} for layer {layer}"
+            )
+        alpha_for_fold = alpha[None, None, :]
+        alpha_mode = "shared"
+    elif alpha.ndim == 2:
+        if tuple(alpha.shape) != (int(weight.shape[0]), int(weight.shape[2])):
+            raise ValueError(
+                f"expert alpha shape {tuple(alpha.shape)} does not match weight [E,I] "
+                f"{(int(weight.shape[0]), int(weight.shape[2]))} for layer {layer}"
+            )
+        alpha_for_fold = alpha[:, None, :]
+        alpha_mode = "expert"
+    else:
+        raise ValueError(f"expected shared [I] or expert [E, I] alpha, got {tuple(alpha.shape)} at {alpha_path}")
+    folded = (weight.float() * alpha_for_fold).to(weight.dtype).contiguous()
     rewritten = dict(tensors)
     rewritten[key] = folded
     if out_file.exists() or out_file.is_symlink():
@@ -119,6 +134,7 @@ def _fold_one_layer(
         "key": key,
         "relative_file": rel,
         "alpha_path": str(alpha_path),
+        "alpha_mode": alpha_mode,
         "weight_shape": list(weight.shape),
         "alpha_shape": list(alpha.shape),
         "alpha_min": float(alpha.min().item()),
@@ -176,7 +192,7 @@ def main() -> int:
                 "for FP8 activation and silently degrade the BF16 path."
             ),
         },
-        "folding_rule": "down_proj[expert, :, channel] *= alpha[layer, expert, channel]",
+        "folding_rule": "down_proj[expert, :, channel] *= alpha[layer, expert, channel] or shared alpha[layer, channel]",
         "folded_layers": [x["layer"] for x in folded],
         "folded": folded,
     }

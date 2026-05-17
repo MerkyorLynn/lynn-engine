@@ -67,6 +67,42 @@ def _text_config(cfg: dict[str, Any]) -> dict[str, Any]:
     return cfg.get("text_config") or cfg
 
 
+def _allowed_shape_dims(cfg: dict[str, Any]) -> set[int]:
+    """Dimensions that are expected in a Qwen3-style MTP sidecar.
+
+    The first audit only allowed hidden/intermediate/vocab dimensions, which
+    incorrectly marked q/k norm vectors as suspicious for Lynn because their
+    length is the attention head dimension.
+    """
+    keys = (
+        "hidden_size",
+        "intermediate_size",
+        "vocab_size",
+        "head_dim",
+        "num_attention_heads",
+        "num_key_value_heads",
+        "num_experts",
+        "moe_intermediate_size",
+        "shared_expert_intermediate_size",
+        "num_experts_per_tok",
+    )
+    dims = {int(cfg[key]) for key in keys if isinstance(cfg.get(key), int) and int(cfg[key]) > 0}
+    hidden = cfg.get("hidden_size")
+    head_dim = cfg.get("head_dim")
+    n_heads = cfg.get("num_attention_heads")
+    n_kv_heads = cfg.get("num_key_value_heads")
+    if isinstance(hidden, int):
+        dims.add(hidden * 2)
+    if isinstance(head_dim, int):
+        dims.add(head_dim)
+        if isinstance(n_heads, int):
+            dims.add(n_heads * head_dim)
+        if isinstance(n_kv_heads, int):
+            dims.add(n_kv_heads * head_dim)
+    dims.add(1)
+    return dims
+
+
 def _classify(rows: list[dict[str, Any]], cfg: dict[str, Any]) -> dict[str, Any]:
     hidden_size = cfg.get("hidden_size")
     intermediate_size = cfg.get("intermediate_size")
@@ -79,13 +115,8 @@ def _classify(rows: list[dict[str, Any]], cfg: dict[str, Any]) -> dict[str, Any]
     dtypes = sorted({row["dtype"] for row in rows})
     hidden_matches = [row for row in rows if _contains_dim(row["shape"], hidden_size)]
     vocab_matches = [row for row in rows if _contains_dim(row["shape"], vocab_size)]
-    suspicious = [
-        row
-        for row in rows
-        if hidden_size is not None
-        and row["shape"]
-        and all(dim not in (hidden_size, intermediate_size, vocab_size) for dim in row["shape"])
-    ]
+    allowed_dims = _allowed_shape_dims(cfg)
+    suspicious = [row for row in rows if row["shape"] and all(dim not in allowed_dims for dim in row["shape"])]
 
     has_mtp_keys = all(row["key"].startswith("mtp.") for row in rows)
     has_hidden = bool(hidden_matches)
@@ -110,6 +141,7 @@ def _classify(rows: list[dict[str, Any]], cfg: dict[str, Any]) -> dict[str, Any]
         "base_config": {
             "hidden_size": hidden_size,
             "intermediate_size": intermediate_size,
+            "head_dim": cfg.get("head_dim"),
             "num_hidden_layers": num_layers,
             "vocab_size": vocab_size,
             "mtp_num_hidden_layers": mtp_layers,

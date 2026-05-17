@@ -1,0 +1,44 @@
+[
+  {
+    "id": "json_city",
+    "prompt": "只输出一个 JSON object,首字符必须是 {,不要 Markdown,不要解释。内容: city=Tokyo, unit=celsius。",
+    "forced_prefix": "{",
+    "expected_start": "{",
+    "forbid": ["```", "<think>", "</think>"]
+  },
+  {
+    "id": "tool_args",
+    "prompt": "只输出 get_weather 的 JSON arguments object,首字符必须是 {,不要函数名,不要 Markdown。参数: city=Tokyo, unit=celsius。",
+    "forced_prefix": "{",
+    "expected_start": "{",
+    "forbid": ["```", "<think>", "</think>", "get_weather"]
+  },
+  {
+    "id": "repair_json",
+    "prompt": "修复这个 JSON,只输出修复后的 JSON object,首字符必须是 {: {'city':'Tokyo','unit':'celsius',}",
+    "forced_prefix": "{",
+    "expected_start": "{",
+    "forbid": ["```", "<think>", "</think>"]
+  },
+  {
+    "id": "openapi_request_body",
+    "prompt": "只输出 OpenAPI 3.0 requestBody YAML,首行必须是 ```yaml,不要解释。schema 对象包含 city 和 unit 两个 string 字段。",
+    "forced_prefix": "```yaml\n",
+    "expected_start": "```yaml",
+    "forbid": ["<think>", "</think>"]
+  },
+  {
+    "id": "normalize_city_code",
+    "prompt": "只输出 Python 代码块,首行必须是 ```python。实现 normalize_city(payload): 输入 dict,返回 city 小写和 unit 默认 celsius。",
+    "forced_prefix": "```python\n",
+    "expected_start": "```python",
+    "forbid": ["<think>", "</think>"]
+  },
+  {
+    "id": "linear_attention_bullets",
+    "prompt": "不要输出 <think>。只输出三条 bullet,第一行必须以 - 开头,解释 linear attention 的优势。",
+    "forced_prefix": "-",
+    "expected_start": "-",
+    "forbid": ["<think>", "</think>"]
+  }
+]
