@@ -68,6 +68,13 @@ layer. Across 30 linear layers this is roughly 6.15 ms/token, so MoE fusion and
 shared-expert/native active-expert kernel work is the first kernel island to
 attack before expecting 155 TPS from W4A16.
 
+MoE optimization alone is not enough. On 2026-05-18 upper-bound ablations showed
+skip-shared at 82.67 TPS, skip-active at 91.65 TPS, and skip-all-MoE at
+102.49 TPS. This means 155 TPS requires combined gains: MoE fusion, attention
+fusion, and/or a locally accepted speculation path. Also keep
+`LYNN_PACKED_SHARED_EXPERT=0`: on 35B, packed shared scalar/native paths are
+slower than BF16 shared expert and native fast 2D has worse local cosine.
+
 Full-attention graph slots are not yet a reusable cross-request solution. P9-V
 passed strict parity when captured on the same prompt state, but P9-W failed
 cross-prompt reuse. Keep the promoted serving profile on reusable linear-block

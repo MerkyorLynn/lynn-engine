@@ -1,0 +1,484 @@
+{
+  "schema_version": "lynn-engine-p38-moe-multilayer-profile-v1",
+  "model": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0",
+  "prompt": "用一句话解释 MoE active parameters",
+  "decode_position": 7,
+  "native_prepared": 0,
+  "packed_decode_backend": "scalar_bridge",
+  "moe_impl": "packed_nvfp4",
+  "applied_env": {
+    "LYNN_PREFILL_WARMUP": "1",
+    "LYNN_LINEAR_ATTN_RECURRENT_BACKEND": "triton_fused_prepare",
+    "LYNN_LINEAR_ATTN_RECURRENT_INPLACE": "1",
+    "LYNN_MOE_IMPL": "packed_nvfp4",
+    "LYNN_MOE_GATE_BLOCK_INTER": "8",
+    "LYNN_MOE_GATE_BLOCK_HIDDEN": "256",
+    "LYNN_MOE_DOWN_BLOCK_HIDDEN": "8",
+    "LYNN_MOE_DOWN_BLOCK_INTER": "512",
+    "LYNN_MOE_GATE_NUM_WARPS": "4",
+    "LYNN_MOE_DOWN_NUM_WARPS": "8",
+    "LYNN_QK_NORM_ROPE_BACKEND": "triton_pair",
+    "LYNN_RMSNORM_GATED_BACKEND": "triton",
+    "LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4": "1",
+    "LYNN_NATIVE_FP4_LM_HEAD": "1",
+    "LYNN_LINEAR_STATE_UPDATE": "inplace",
+    "LYNN_LINEAR_BLOCK_GRAPH": "1",
+    "LYNN_LINEAR_BLOCK_GRAPH_REUSE": "1",
+    "LYNN_LINEAR_BLOCK_GRAPH_PREWARM": "1",
+    "LYNN_PACKED_DECODE": "0",
+    "LYNN_PACKED_DECODE_PREPARE_NATIVE": "0",
+    "LYNN_PACKED_SHARED_EXPERT": "1",
+    "LYNN_NATIVE_ACTIVE_MOE_BACKEND": "triton"
+  },
+  "kernel_config": {
+    "gate_block_inter": 8,
+    "gate_block_hidden": 256,
+    "down_block_hidden": 8,
+    "down_block_inter": 512
+  },
+  "summary": {
+    "router_topk_ms_mean": 0.03784782158003913,
+    "active_packed_ms_mean": 0.11349520021014743,
+    "shared_bf16_ms_mean": 0.06143431133694119,
+    "current_full_moe_ms_mean": 0.20457839965820312,
+    "profiled_layer_count": 6,
+    "skipped_layer_count": 0,
+    "sampled_layers": [
+      2,
+      8,
+      14,
+      20,
+      28,
+      36
+    ]
+  },
+  "layers": [
+    {
+      "layer": 2,
+      "layer_type": "linear_attention",
+      "expert_ids": [
+        158,
+        40,
+        164,
+        88,
+        109,
+        210,
+        249,
+        17
+      ],
+      "routing_weights": [
+        0.42089617252349854,
+        0.12539248168468475,
+        0.1055910587310791,
+        0.09031682461500168,
+        0.07725206762552261,
+        0.07257160544395447,
+        0.05651881918311119,
+        0.05146097019314766
+      ],
+      "timings_ms": {
+        "router_topk_ms": 0.03780693213144938,
+        "active_packed_ms": 0.11337973276774088,
+        "shared_bf16_ms": 0.061481066544850665,
+        "shared_packed_scalar_bridge_ms": 0.14138933817545574,
+        "shared_packed_native_fast_2d_ms": 0.23697706858317058,
+        "current_full_moe_ms": 0.20614879926045734
+      },
+      "timings_tps_equiv": {
+        "router_topk_tps": 26450.175764675663,
+        "active_packed_tps": 8819.918477392308,
+        "shared_bf16_tps": 16265.17001409688,
+        "shared_packed_scalar_bridge_tps": 7072.669077487722,
+        "shared_packed_native_fast_2d_tps": 4219.817579729388,
+        "current_full_moe_tps": 4850.865023650012
+      },
+      "router_active_shared_sum_ms": 0.21266773144404094,
+      "current_vs_active_plus_shared_bf16": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "cosine": 1.0
+      },
+      "current_vs_active_plus_shared_scalar": {
+        "max_abs": 0.0001220703125,
+        "mean_abs": 3.809458576142788e-06,
+        "cosine": 0.9999986886978149
+      },
+      "current_vs_active_plus_shared_native": {
+        "max_abs": 0.0029296875,
+        "mean_abs": 0.0004112664610147476,
+        "cosine": 0.9976696968078613
+      },
+      "shared_scalar_vs_bf16": {
+        "max_abs": 6.103515625e-05,
+        "mean_abs": 3.857343017443782e-06,
+        "cosine": 0.9999967813491821
+      },
+      "shared_native_vs_bf16": {
+        "max_abs": 0.0029296875,
+        "mean_abs": 0.00041122251423075795,
+        "cosine": 0.9867656826972961
+      },
+      "shared_native_vs_scalar": {
+        "max_abs": 0.0029296875,
+        "mean_abs": 0.0004107524291612208,
+        "cosine": 0.986779510974884
+      }
+    },
+    {
+      "layer": 8,
+      "layer_type": "linear_attention",
+      "expert_ids": [
+        107,
+        151,
+        191,
+        224,
+        77,
+        159,
+        239,
+        180
+      ],
+      "routing_weights": [
+        0.25110048055648804,
+        0.12237659841775894,
+        0.12047932296991348,
+        0.10969767719507217,
+        0.10969767719507217,
+        0.10467424988746643,
+        0.09382940083742142,
+        0.08814456313848495
+      ],
+      "timings_ms": {
+        "router_topk_ms": 0.03797706762949626,
+        "active_packed_ms": 0.11532213687896728,
+        "shared_bf16_ms": 0.061568001906077065,
+        "shared_packed_scalar_bridge_ms": 0.141430934270223,
+        "shared_packed_native_fast_2d_ms": 0.23527572949727377,
+        "current_full_moe_ms": 0.2062448024749756
+      },
+      "timings_tps_equiv": {
+        "router_topk_tps": 26331.680206486348,
+        "active_packed_tps": 8671.362039098518,
+        "shared_bf16_tps": 16242.203239363125,
+        "shared_packed_scalar_bridge_tps": 7070.588942652138,
+        "shared_packed_native_fast_2d_tps": 4250.332161913825,
+        "current_full_moe_tps": 4848.607033970388
+      },
+      "router_active_shared_sum_ms": 0.2148672064145406,
+      "current_vs_active_plus_shared_bf16": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "cosine": 1.0
+      },
+      "current_vs_active_plus_shared_scalar": {
+        "max_abs": 0.0001220703125,
+        "mean_abs": 7.546506822109222e-06,
+        "cosine": 0.9999982118606567
+      },
+      "current_vs_active_plus_shared_native": {
+        "max_abs": 0.0126953125,
+        "mean_abs": 0.0008431155001744628,
+        "cosine": 0.9940249919891357
+      },
+      "shared_scalar_vs_bf16": {
+        "max_abs": 0.0001220703125,
+        "mean_abs": 7.700989954173565e-06,
+        "cosine": 0.9999971389770508
+      },
+      "shared_native_vs_bf16": {
+        "max_abs": 0.0126953125,
+        "mean_abs": 0.0008437242940999568,
+        "cosine": 0.982300877571106
+      },
+      "shared_native_vs_scalar": {
+        "max_abs": 0.0126953125,
+        "mean_abs": 0.000844094785861671,
+        "cosine": 0.9822965264320374
+      }
+    },
+    {
+      "layer": 14,
+      "layer_type": "linear_attention",
+      "expert_ids": [
+        137,
+        52,
+        64,
+        131,
+        167,
+        242,
+        189,
+        218
+      ],
+      "routing_weights": [
+        0.19493350386619568,
+        0.17473725974559784,
+        0.15663348138332367,
+        0.12009505182504654,
+        0.11823315173387527,
+        0.08383986353874207,
+        0.07753919064998627,
+        0.0739884153008461
+      ],
+      "timings_ms": {
+        "router_topk_ms": 0.0378170649210612,
+        "active_packed_ms": 0.1132912000020345,
+        "shared_bf16_ms": 0.061524800459543866,
+        "shared_packed_scalar_bridge_ms": 0.14169653256734213,
+        "shared_packed_native_fast_2d_ms": 0.23337599436442058,
+        "current_full_moe_ms": 0.20464000701904297
+      },
+      "timings_tps_equiv": {
+        "router_topk_tps": 26443.088644964537,
+        "active_packed_tps": 8826.810908367479,
+        "shared_bf16_tps": 16253.608179640634,
+        "shared_packed_scalar_bridge_tps": 7057.3357151470445,
+        "shared_packed_native_fast_2d_tps": 4284.930858991791,
+        "current_full_moe_tps": 4886.630012219184
+      },
+      "router_active_shared_sum_ms": 0.21263306538263957,
+      "current_vs_active_plus_shared_bf16": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "cosine": 0.9999999403953552
+      },
+      "current_vs_active_plus_shared_scalar": {
+        "max_abs": 0.0078125,
+        "mean_abs": 1.806207001209259e-05,
+        "cosine": 0.9999898672103882
+      },
+      "current_vs_active_plus_shared_native": {
+        "max_abs": 0.0546875,
+        "mean_abs": 0.0014959520194679499,
+        "cosine": 0.9963434338569641
+      },
+      "shared_scalar_vs_bf16": {
+        "max_abs": 0.0078125,
+        "mean_abs": 1.8396040104562417e-05,
+        "cosine": 0.9999908208847046
+      },
+      "shared_native_vs_bf16": {
+        "max_abs": 0.0546875,
+        "mean_abs": 0.0014960533007979393,
+        "cosine": 0.9940634965896606
+      },
+      "shared_native_vs_scalar": {
+        "max_abs": 0.0625,
+        "mean_abs": 0.0015012151561677456,
+        "cosine": 0.9939269423484802
+      }
+    },
+    {
+      "layer": 20,
+      "layer_type": "linear_attention",
+      "expert_ids": [
+        115,
+        116,
+        239,
+        224,
+        63,
+        191,
+        186,
+        107
+      ],
+      "routing_weights": [
+        0.1633772850036621,
+        0.1608443558216095,
+        0.15347875654697418,
+        0.1195293739438057,
+        0.1195293739438057,
+        0.10223890095949173,
+        0.09755703061819077,
+        0.08344496041536331
+      ],
+      "timings_ms": {
+        "router_topk_ms": 0.038176000118255615,
+        "active_packed_ms": 0.11338026523590088,
+        "shared_bf16_ms": 0.06152106523513794,
+        "shared_packed_scalar_bridge_ms": 0.14052267074584962,
+        "shared_packed_native_fast_2d_ms": 0.23442667325337727,
+        "current_full_moe_ms": 0.20399573644002278
+      },
+      "timings_tps_equiv": {
+        "router_topk_tps": 26194.46764727465,
+        "active_packed_tps": 8819.877056376463,
+        "shared_bf16_tps": 16254.595010309527,
+        "shared_packed_scalar_bridge_tps": 7116.289454878121,
+        "shared_packed_native_fast_2d_tps": 4265.726191145331,
+        "current_full_moe_tps": 4902.063236473631
+      },
+      "router_active_shared_sum_ms": 0.21307733058929443,
+      "current_vs_active_plus_shared_bf16": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "cosine": 1.000000238418579
+      },
+      "current_vs_active_plus_shared_scalar": {
+        "max_abs": 0.000244140625,
+        "mean_abs": 1.386646181344986e-05,
+        "cosine": 0.9999986886978149
+      },
+      "current_vs_active_plus_shared_native": {
+        "max_abs": 0.046875,
+        "mean_abs": 0.0012853634543716908,
+        "cosine": 0.9958253502845764
+      },
+      "shared_scalar_vs_bf16": {
+        "max_abs": 0.0001220703125,
+        "mean_abs": 1.3088485502521507e-05,
+        "cosine": 0.9999989867210388
+      },
+      "shared_native_vs_bf16": {
+        "max_abs": 0.046875,
+        "mean_abs": 0.0012857615947723389,
+        "cosine": 0.9937934279441833
+      },
+      "shared_native_vs_scalar": {
+        "max_abs": 0.046875,
+        "mean_abs": 0.0012854032684117556,
+        "cosine": 0.9937889575958252
+      }
+    },
+    {
+      "layer": 28,
+      "layer_type": "linear_attention",
+      "expert_ids": [
+        229,
+        233,
+        43,
+        98,
+        130,
+        150,
+        61,
+        80
+      ],
+      "routing_weights": [
+        0.19956709444522858,
+        0.17611734569072723,
+        0.1393202841281891,
+        0.12885020673274994,
+        0.1035340428352356,
+        0.09426882117986679,
+        0.08718440681695938,
+        0.07115784287452698
+      ],
+      "timings_ms": {
+        "router_topk_ms": 0.03760586579640706,
+        "active_packed_ms": 0.11288479963938396,
+        "shared_bf16_ms": 0.06141120195388794,
+        "shared_packed_scalar_bridge_ms": 0.14018719991048176,
+        "shared_packed_native_fast_2d_ms": 0.234441073735555,
+        "current_full_moe_ms": 0.20300265947977703
+      },
+      "timings_tps_equiv": {
+        "router_topk_tps": 26591.596252931955,
+        "active_packed_tps": 8858.588607098114,
+        "shared_bf16_tps": 16283.674121064652,
+        "shared_packed_scalar_bridge_tps": 7133.318881028811,
+        "shared_packed_native_fast_2d_tps": 4265.464170019886,
+        "current_full_moe_tps": 4926.043838847438
+      },
+      "router_active_shared_sum_ms": 0.21190186738967895,
+      "current_vs_active_plus_shared_bf16": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "cosine": 1.0
+      },
+      "current_vs_active_plus_shared_scalar": {
+        "max_abs": 0.00048828125,
+        "mean_abs": 2.2905413061380386e-05,
+        "cosine": 0.9999971389770508
+      },
+      "current_vs_active_plus_shared_native": {
+        "max_abs": 0.01116943359375,
+        "mean_abs": 0.0017276029102504253,
+        "cosine": 0.9949923753738403
+      },
+      "shared_scalar_vs_bf16": {
+        "max_abs": 0.0001220703125,
+        "mean_abs": 2.1909359929850325e-05,
+        "cosine": 0.9999914169311523
+      },
+      "shared_native_vs_bf16": {
+        "max_abs": 0.01116943359375,
+        "mean_abs": 0.0017280380707234144,
+        "cosine": 0.9663596153259277
+      },
+      "shared_native_vs_scalar": {
+        "max_abs": 0.01116943359375,
+        "mean_abs": 0.0017275144346058369,
+        "cosine": 0.9663712978363037
+      }
+    },
+    {
+      "layer": 36,
+      "layer_type": "linear_attention",
+      "expert_ids": [
+        158,
+        174,
+        121,
+        50,
+        173,
+        28,
+        194,
+        10
+      ],
+      "routing_weights": [
+        0.36005836725234985,
+        0.12443284690380096,
+        0.09998459368944168,
+        0.09392683953046799,
+        0.08552136272192001,
+        0.08033987879753113,
+        0.07786808162927628,
+        0.07786808162927628
+      ],
+      "timings_ms": {
+        "router_topk_ms": 0.037703998883565265,
+        "active_packed_ms": 0.11271306673685709,
+        "shared_bf16_ms": 0.06109973192214966,
+        "shared_packed_scalar_bridge_ms": 0.13982826868693035,
+        "shared_packed_native_fast_2d_ms": 0.23218933741251627,
+        "current_full_moe_ms": 0.20343839327494304
+      },
+      "timings_tps_equiv": {
+        "router_topk_tps": 26522.385678190978,
+        "active_packed_tps": 8872.085810020824,
+        "shared_bf16_tps": 16366.683920547342,
+        "shared_packed_scalar_bridge_tps": 7151.629705427865,
+        "shared_packed_native_fast_2d_tps": 4306.829982564456,
+        "current_full_moe_tps": 4915.493009466111
+      },
+      "router_active_shared_sum_ms": 0.21151679754257202,
+      "current_vs_active_plus_shared_bf16": {
+        "max_abs": 0.0001220703125,
+        "mean_abs": 5.960464477539063e-08,
+        "cosine": 1.0
+      },
+      "current_vs_active_plus_shared_scalar": {
+        "max_abs": 0.0009765625,
+        "mean_abs": 2.4529173970222473e-05,
+        "cosine": 0.9999992847442627
+      },
+      "current_vs_active_plus_shared_native": {
+        "max_abs": 0.07421875,
+        "mean_abs": 0.0030941544100642204,
+        "cosine": 0.9984402060508728
+      },
+      "shared_scalar_vs_bf16": {
+        "max_abs": 0.000244140625,
+        "mean_abs": 2.593328827060759e-05,
+        "cosine": 0.9999979138374329
+      },
+      "shared_native_vs_bf16": {
+        "max_abs": 0.07421875,
+        "mean_abs": 0.003084595315158367,
+        "cosine": 0.9857150316238403
+      },
+      "shared_native_vs_scalar": {
+        "max_abs": 0.07421875,
+        "mean_abs": 0.003088028635829687,
+        "cosine": 0.9856973886489868
+      }
+    }
+  ],
+  "note": "Profiles MoE subsegments across sampled layers; attention/setup is outside timed regions."
+}

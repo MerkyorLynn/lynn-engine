@@ -140,6 +140,16 @@ Supporting micro-profiles:
   packed MoE averages 0.205 ms/layer: router 0.037 ms, active packed experts
   0.113 ms, shared BF16 expert 0.061 ms. Across 30 linear layers, MoE alone is
   about 6.15 ms/token, roughly 71% of the linear-block budget.
+- Rechecking `LYNN_PACKED_SHARED_EXPERT=1` on 35B confirms it is still not a
+  promote lever: shared BF16 averages 0.061 ms/layer, packed scalar bridge
+  averages 0.141 ms/layer, and native fast 2D averages 0.234 ms/layer with worse
+  local cosine. Keep BF16 shared expert until there is a fused native shared
+  kernel, not three separate packed calls.
+- P26 upper-bound ablations show MoE work matters but is not sufficient alone:
+  skipping shared reaches 82.67 TPS, skipping active reaches 91.65 TPS, and
+  skipping all MoE reaches 102.49 TPS. Even making MoE free would not reach 155,
+  so the route needs MoE fusion plus full-attention/linear-attention fusion or a
+  real accepted speculation path.
 - Full-attention graph slots are exact only under the same captured prompt state:
   P9-V passed strict logit parity at 11.18 ms/token, but P9-W cross-prompt reuse
   failed with graph next id 0 versus eager next id 248068. Do not promote
@@ -154,6 +164,10 @@ Copied reports:
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p28_hybrid_block_timing_20260518_024830.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p38_moe_multilayer_20260518_025304.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p39_active_moe_inner_20260518_025121.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p38_moe_multilayer_packed_shared_20260518_031708.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p26_skip_shared_upper_bound_20260518_031849.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p26_skip_active_upper_bound_20260518_032051.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p26_skip_all_moe_upper_bound_20260518_032228.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p9v_real_state_full_attn_slots_20260518_014801.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p9w_cross_prompt_full_attn_slots_20260518_021815.json`
 
