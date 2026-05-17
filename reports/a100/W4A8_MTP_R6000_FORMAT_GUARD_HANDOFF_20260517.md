@@ -490,6 +490,19 @@ story: `179.80 tok/s` same-cost, `152.02 tok/s` serial per-draft-token. The
 next R6000 prototype should therefore target overlap or near-constant-cost
 multi-token draft, not naive recursive serial MTP.
 
+P116 adds route policy on top of that budget:
+
+| Trace | Aggregate Decision | Key Constraint | Route Split |
+|---|---|---|---|
+| raw v34 slot-sorted | top1 depth2 needs overlap | cut 0.58 ms / 26.1% from current draft; top8 depth2 same-cost is 179.80 tok/s | 3 enable top1 depth2, 3 need overlap, 1 top8 rerank, 1 top8 depth4 |
+| A100 v27 transfer | top1 depth2 needs overlap | weaker than v34; needs 0.94 ms / 41.7% cut | same split, lower aggregate headroom |
+| structured v4 forced-skip slot-sorted | not globally ready | top8 depth2 zero-overhead 153.30 tok/s | 6 disable/retrain, 5 need overlap, 1 top8 rerank |
+
+The fresh structured rerun uses the current exact slot-sorted path:
+`62/279 = 22.22%` top1 after forced-prefix skipping, `117/279 = 41.94%` top8,
+and `2.34 ms` mean draft. P113's runtime cut applies, but the structured
+sidecar distribution is still too weak for default MTP.
+
 v41 tried one last narrow v34 continuation on steps `7/10/14` from the
 semantic/code-tail set. It is a negative: train stays `0/4 -> 0/4`, heldout
 proxy regresses `63/121 -> 62/121`, and eval loss slightly worsens. Keep v34
@@ -535,7 +548,8 @@ small partial-head unfreeze before iterative accept-rate eval.
    with balanced JSON stop for object-only outputs.
 5. Prototype R6000 continuous-credit or overlap around v34 slot-sorted MTP;
    P114 shows clustered accepts, and P115 says depth2 needs <=1.65 ms per
-   iteration or top8 depth2 needs near-constant draft cost.
+   iteration or top8 depth2 needs near-constant draft cost. P116 says start
+   with raw JSON/tool/repair routes, not global structured guarded serving.
 6. Test whether the full-token graph-slot primitive can be turned into a
    reusable current-position slot lifecycle without capture-per-token overhead.
 7. Start Lynn MTP wiring from the aligned 2048-hidden sidecar only after W4A8

@@ -661,6 +661,42 @@ continuity signal. Guarded structured routes remain below target in this model:
 top8 depth2 zero-overhead is only `150.56 tok/s`, so structured serving still
 needs guard-aware MTP calibration before speculation should be enabled there.
 
+P116 turns the same traces into route-level policy:
+
+```text
+reports/mtp/r6000_p116_mtp_route_policy_v34_slotsorted_20260517_1950.json
+raw v34 aggregate: TOP1_DEPTH2_NEEDS_OVERLAP
+top1 depth2 required cost cut: 0.58 ms = 26.1%
+top8 depth2 same-cost: 179.80 tok/s
+top8 depth2 serial two-token cost: 152.02 tok/s, needs only 0.28 ms = 6.2%
+routes: ENABLE_TOP1_DEPTH2 3, TOP1_DEPTH2_NEEDS_OVERLAP 3,
+        TOP8_DEPTH2_RERANK_CANDIDATE 1, TOP8_DEPTH4_ONLY 1
+```
+
+The enabled top1-depth2 routes are JSON/tool/repair shaped
+(`heldout_json_berlin_metric`, `heldout_tool_translate`, `heldout_repair_json`).
+Status/math/python need overlap; MoE short needs top8 rerank; linear short needs
+either top8 depth4 or retraining. This gives the first practical runtime policy:
+start MTP speculation on the high-continuity structured-object routes rather
+than enabling it globally.
+
+The structured guard trace was rerun with the current exact slot-sorted path:
+
+```text
+reports/mtp/r6000_p107_mtp_shadow_v34_structured_v4_forced_skip_slotsorted_20260517_1955.json
+accept after forced-prefix skip: 62/279 = 22.22%
+draft_tps: 426.62, mean draft 2.34 ms
+top2/top4/top8: 74/279, 101/279, 117/279
+reports/mtp/r6000_p116_mtp_route_policy_v34_structured_v4_forced_skip_slotsorted_20260517_1955.json
+route policy: DISABLE_OR_RETRAIN 6, TOP1_DEPTH2_NEEDS_OVERLAP 5,
+              TOP8_DEPTH2_RERANK_CANDIDATE 1
+top8 depth2 zero-overhead: 153.30 tok/s
+```
+
+So P113's cost cut transfers to structured traces, but quality/coverage still
+does not. Structured/template serving should keep MTP disabled until a
+guard-aware sidecar or route-specific policy is trained.
+
 Report:
 
 ```text

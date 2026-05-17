@@ -124,6 +124,27 @@ serial per-draft-token projection `152.02 tok/s`. Therefore the next R6000
 prototype must either overlap draft work or compute multiple draft tokens for
 roughly one current draft cost; naive serial recursive MTP is not enough.
 
+2026-05-17 P116 route-policy update: aggregate raw v34 still needs a runtime
+cut, but the route split is actionable. Top1 depth2 needs a `0.58 ms`
+per-iteration cut from the current `2.24 ms` draft cost (`26.1%`) to clear
+155. Top8 depth2 is much closer if a verifier/reranker exists: same-cost
+projection is `179.80 tok/s`, and serial two-token cost misses by only
+`0.28 ms` (`6.2%`). Route policy on the raw heldout trace is:
+`3` routes already clear with top1 depth2 same-cost (`json_berlin`,
+`tool_translate`, `repair_json`), `3` need top1 depth2 overlap
+(`json_status`, `math_distance`, `python_slug`), `1` is a top8 depth2 rerank
+candidate (`moe_short`), and `1` should wait for top8 depth4 or retraining
+(`linear_short`).
+
+The structured guarded trace was rerun after P113 with the current exact
+slot-sorted MTP path. Draft cost drops from `7.54 ms` to `2.34 ms`, but accept
+is still only `62/279 = 22.22%` after forced-prefix skipping, with top8
+containment `117/279 = 41.94%`. P115/P116 on that fresh trace says top8 depth2
+zero-overhead is `153.30 tok/s`, still below target, and route policy is
+`6` disable/retrain, `5` top1-overlap-needed, `1` top8-rerank candidate.
+Therefore structured/template serving should not enable MTP by default until
+guard-aware MTP calibration improves the sidecar distribution.
+
 ## Workstream A: Quality Floor
 
 Purpose: keep W4A8 from entering the wrong output domain, especially structured
@@ -561,6 +582,15 @@ linearly with depth. Top8 depth2 is closer: same-cost projection `179.80 tok/s`,
 serial-per-token projection `152.02 tok/s`. The engineering target is therefore
 multi-token/overlapped MTP with near-constant per-iteration cost, not recursive
 serial draft generation.
+
+P116 converts that into serving policy. Raw v34 aggregate top1 depth2 needs a
+`26.1%` effective draft-cost cut, while top8 depth2 can clear the target in the
+same-cost model and needs only a `6.2%` cut in the serial two-token model. The
+first runtime prototype should therefore start with raw JSON/tool/repair-style
+routes where top1 depth2 already clears, then test top8 depth2 on MoE/short
+semantic routes. The updated structured slot-sorted rerun is not ready:
+`62/279` top1 and `117/279` top8 after forced-prefix skipping, with top8 depth2
+zero-overhead only `153.30 tok/s`.
 
 If fc-only cannot clear 55-70%, unfreeze in this order:
 

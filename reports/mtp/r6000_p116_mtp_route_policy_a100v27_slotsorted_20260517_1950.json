@@ -1,0 +1,3239 @@
+{
+  "schema_version": "lynn-p116-mtp-route-policy-probe-v1",
+  "source_report": "reports/mtp/r6000_p107_mtp_shadow_a100v27_weak_missintopk_w4a8_v2_slotsorted_20260517_190539.json",
+  "skip_forced_prefix_events": false,
+  "production_baseline_tps": 100.0,
+  "target_tps": 155.0,
+  "draft_ms": 2.2520684013681964,
+  "note": "Upper-bound policy from base-state P107 shadow traces, not recursive MTP rollout.",
+  "decision": "TOP1_DEPTH2_NEEDS_OVERLAP: top1 continuity is enough, but draft cost must be hidden or cut.",
+  "summary": {
+    "routes_by_recommendation": {
+      "ENABLE_TOP1_DEPTH2": 3,
+      "TOP1_DEPTH2_NEEDS_OVERLAP": 3,
+      "TOP8_DEPTH2_RERANK_CANDIDATE": 1,
+      "TOP8_DEPTH4_ONLY": 1
+    },
+    "aggregate_top1_depth2": {
+      "zero_overhead_tps": 175.36231884057972,
+      "optimistic_same_draft_cost_tps": 143.12874618051993,
+      "serial_per_draft_token_tps": 120.90503642208844,
+      "max_draft_ms_per_iteration_for_target": 1.3136979897148195,
+      "same_cost_meets_target": false,
+      "serial_per_draft_token_meets_target": false,
+      "required_same_cost_cut_ms": 0.9383704116533769,
+      "required_same_cost_cut_fraction": 0.41667047549856384,
+      "required_serial_cost_cut_ms": 3.190438813021573,
+      "required_serial_cost_cut_fraction": 0.7083352377492819
+    },
+    "aggregate_top8_depth2": {
+      "zero_overhead_tps": 216.07142857142856,
+      "optimistic_same_draft_cost_tps": 176.3550622581406,
+      "serial_per_draft_token_tps": 148.97227702007328,
+      "max_draft_ms_per_iteration_for_target": 3.940092165898617,
+      "same_cost_meets_target": true,
+      "serial_per_draft_token_meets_target": false,
+      "required_same_cost_cut_ms": 0.0,
+      "required_same_cost_cut_fraction": 0.0,
+      "required_serial_cost_cut_ms": 0.5640446368377758,
+      "required_serial_cost_cut_fraction": 0.12522813172439667
+    }
+  },
+  "analysis": {
+    "aggregate": {
+      "recommendation": "TOP1_DEPTH2_NEEDS_OVERLAP: top1 continuity is enough, but draft cost must be hidden or cut.",
+      "metrics": {
+        "top1": {
+          "events": 121,
+          "covered": 62,
+          "coverage": 0.512396694214876,
+          "by_depth": {
+            "depth1": {
+              "events": 121,
+              "iterations": 81,
+              "accepted_drafts": 40,
+              "accepted_drafts_per_iteration": 0.49382716049382713,
+              "full_depth_iterations": 40,
+              "zero_overhead_multiplier": 1.4938271604938271,
+              "projection": {
+                "zero_overhead_tps": 149.3827160493827,
+                "optimistic_same_draft_cost_tps": 121.92448748710956,
+                "serial_per_draft_token_tps": 121.92448748710956,
+                "max_draft_ms_per_iteration_for_target": null,
+                "same_cost_meets_target": false,
+                "serial_per_draft_token_meets_target": false,
+                "required_same_cost_cut_ms": null,
+                "required_same_cost_cut_fraction": null,
+                "required_serial_cost_cut_ms": null,
+                "required_serial_cost_cut_fraction": null
+              }
+            },
+            "depth2": {
+              "events": 121,
+              "iterations": 69,
+              "accepted_drafts": 52,
+              "accepted_drafts_per_iteration": 0.7536231884057971,
+              "full_depth_iterations": 17,
+              "zero_overhead_multiplier": 1.7536231884057971,
+              "projection": {
+                "zero_overhead_tps": 175.36231884057972,
+                "optimistic_same_draft_cost_tps": 143.12874618051993,
+                "serial_per_draft_token_tps": 120.90503642208844,
+                "max_draft_ms_per_iteration_for_target": 1.3136979897148195,
+                "same_cost_meets_target": false,
+                "serial_per_draft_token_meets_target": false,
+                "required_same_cost_cut_ms": 0.9383704116533769,
+                "required_same_cost_cut_fraction": 0.41667047549856384,
+                "required_serial_cost_cut_ms": 3.190438813021573,
+                "required_serial_cost_cut_fraction": 0.7083352377492819
+              }
+            },
+            "depth4": {
+              "events": 121,
+              "iterations": 63,
+              "accepted_drafts": 58,
+              "accepted_drafts_per_iteration": 0.9206349206349206,
+              "full_depth_iterations": 8,
+              "zero_overhead_multiplier": 1.9206349206349207,
+              "projection": {
+                "zero_overhead_tps": 192.06349206349208,
+                "optimistic_same_draft_cost_tps": 156.76005534056944,
+                "serial_per_draft_token_tps": 101.04204939905428,
+                "max_draft_ms_per_iteration_for_target": 2.3911930363543257,
+                "same_cost_meets_target": true,
+                "serial_per_draft_token_meets_target": false,
+                "required_same_cost_cut_ms": 0.0,
+                "required_same_cost_cut_fraction": 0.0,
+                "required_serial_cost_cut_ms": 6.61708056911846,
+                "required_serial_cost_cut_fraction": 0.7345559048182544
+              }
+            },
+            "depth8": {
+              "events": 121,
+              "iterations": 59,
+              "accepted_drafts": 62,
+              "accepted_drafts_per_iteration": 1.0508474576271187,
+              "full_depth_iterations": 1,
+              "zero_overhead_multiplier": 2.0508474576271185,
+              "projection": {
+                "zero_overhead_tps": 205.08474576271186,
+                "optimistic_same_draft_cost_tps": 167.38785570264193,
+                "serial_per_draft_token_tps": 73.20129215729656,
+                "max_draft_ms_per_iteration_for_target": 3.2312739201749587,
+                "same_cost_meets_target": true,
+                "serial_per_draft_token_meets_target": false,
+                "required_same_cost_cut_ms": 0.0,
+                "required_same_cost_cut_fraction": 0.0,
+                "required_serial_cost_cut_ms": 14.785273290770613,
+                "required_serial_cost_cut_fraction": 0.8206496570990103
+              }
+            }
+          }
+        },
+        "top2": {
+          "events": 121,
+          "covered": 72,
+          "coverage": 0.5950413223140496,
+          "by_depth": {
+            "depth1": {
+              "events": 121,
+              "iterations": 79,
+              "accepted_drafts": 42,
+              "accepted_drafts_per_iteration": 0.5316455696202531,
+              "full_depth_iterations": 42,
+              "zero_overhead_multiplier": 1.5316455696202531,
+              "projection": {
+                "zero_overhead_tps": 153.1645569620253,
+                "optimistic_same_draft_cost_tps": 125.01118337285916,
+                "serial_per_draft_token_tps": 125.01118337285916,
+                "max_draft_ms_per_iteration_for_target": null,
+                "same_cost_meets_target": false,
+                "serial_per_draft_token_meets_target": false,
+                "required_same_cost_cut_ms": null,
+                "required_same_cost_cut_fraction": null,
+                "required_serial_cost_cut_ms": null,
+                "required_serial_cost_cut_fraction": null
+              }
+            },
+            "depth2": {
+              "events": 121,
+              "iterations": 65,
+              "accepted_drafts": 56,
+              "accepted_drafts_per_iteration": 0.8615384615384616,
+              "full_depth_iterations": 24,
+              "zero_overhead_multiplier": 1.8615384615384616,
+              "projection": {
+                "zero_overhead_tps": 186.15384615384616,
+                "optimistic_same_draft_cost_tps": 151.93666902239806,
+                "serial_per_draft_token_tps": 128.34534635575542,
+                "max_draft_ms_per_iteration_for_target": 2.009925558312654,
+                "same_cost_meets_target": false,
+                "serial_per_draft_token_meets_target": false,
+                "required_same_cost_cut_ms": 0.24214284305554257,
+                "required_same_cost_cut_fraction": 0.10752019916821079,
+                "required_serial_cost_cut_ms": 2.494211244423739,
+                "required_serial_cost_cut_fraction": 0.5537600995841054
+              }
+            },
+            "depth4": {
+              "events": 121,
+              "iterations": 57,
+              "accepted_drafts": 64,
+              "accepted_drafts_per_iteration": 1.1228070175438596,
+              "full_depth_iterations": 11,
+              "zero_overhead_multiplier": 2.1228070175438596,
+              "projection": {
+                "zero_overhead_tps": 212.28070175438597,
+                "optimistic_same_draft_cost_tps": 173.26111379747147,
+                "serial_per_draft_token_tps": 111.67805459895473,
+                "max_draft_ms_per_iteration_for_target": 3.695529145444255,
+                "same_cost_meets_target": true,
+                "serial_per_draft_token_meets_target": false,
+                "required_same_cost_cut_ms": 0.0,
+                "required_same_cost_cut_fraction": 0.0,
+                "required_serial_cost_cut_ms": 5.312744460028531,
+                "required_serial_cost_cut_fraction": 0.5897627772763125
+              }
+            },
+            "depth8": {
+              "events": 121,
+              "iterations": 50,
+              "accepted_drafts": 71,
+              "accepted_drafts_per_iteration": 1.42,
+              "full_depth_iterations": 2,
+              "zero_overhead_multiplier": 2.42,
+              "projection": {
+                "zero_overhead_tps": 242.0,
+                "optimistic_same_draft_cost_tps": 197.5176697291175,
+                "serial_per_draft_token_tps": 86.37752474560993,
+                "max_draft_ms_per_iteration_for_target": 5.61290322580645,
+                "same_cost_meets_target": true,
+                "serial_per_draft_token_meets_target": false,
+                "required_same_cost_cut_ms": 0.0,
+                "required_same_cost_cut_fraction": 0.0,
+                "required_serial_cost_cut_ms": 12.403643985139121,
+                "required_serial_cost_cut_fraction": 0.688458439894829
+              }
+            }
+          }
+        },
+        "top4": {
+          "events": 121,
+          "covered": 79,
+          "coverage": 0.6528925619834711,
+          "by_depth": {
+            "depth1": {
+              "events": 121,
+              "iterations": 74,
+              "accepted_drafts": 47,
+              "accepted_drafts_per_iteration": 0.6351351351351351,
+              "full_depth_iterations": 47,
+              "zero_overhead_multiplier": 1.635135135135135,
+              "projection": {
+                "zero_overhead_tps": 163.51351351351352,
+                "optimistic_same_draft_cost_tps": 133.4578849521064,
+                "serial_per_draft_token_tps": 133.4578849521064,
+                "max_draft_ms_per_iteration_for_target": 0.5492589363557103,
+                "same_cost_meets_target": false,
+                "serial_per_draft_token_meets_target": false,
+                "required_same_cost_cut_ms": 1.702809465012486,
+                "required_same_cost_cut_fraction": 0.7561091234964179,
+                "required_serial_cost_cut_ms": 1.702809465012486,
+                "required_serial_cost_cut_fraction": 0.7561091234964179
+              }
+            },
+            "depth2": {
+              "events": 121,
+              "iterations": 59,
+              "accepted_drafts": 62,
+              "accepted_drafts_per_iteration": 1.0508474576271187,
+              "full_depth_iterations": 27,
+              "zero_overhead_multiplier": 2.0508474576271185,
+              "projection": {
+                "zero_overhead_tps": 205.08474576271186,
+                "optimistic_same_draft_cost_tps": 167.38785570264193,
+                "serial_per_draft_token_tps": 141.39741547667973,
+                "max_draft_ms_per_iteration_for_target": 3.2312739201749587,
+                "same_cost_meets_target": true,
+                "serial_per_draft_token_meets_target": false,
+                "required_same_cost_cut_ms": 0.0,
+                "required_same_cost_cut_fraction": 0.0,
+                "required_serial_cost_cut_ms": 1.272862882561434,
+                "required_serial_cost_cut_fraction": 0.282598628396041
+              }
+            },
+            "depth4": {
+              "events": 121,
+              "iterations": 52,
+              "accepted_drafts": 69,
+              "accepted_drafts_per_iteration": 1.3269230769230769,
+              "full_depth_iterations": 11,
+              "zero_overhead_multiplier": 2.326923076923077,
+              "projection": {
+                "zero_overhead_tps": 232.6923076923077,
+                "optimistic_same_draft_cost_tps": 189.92083627799758,
+                "serial_per_draft_token_tps": 122.41632907962344,
+                "max_draft_ms_per_iteration_for_target": 5.012406947890819,
+                "same_cost_meets_target": true,
+                "serial_per_draft_token_meets_target": false,
+                "required_same_cost_cut_ms": 0.0,
+                "required_same_cost_cut_fraction": 0.0,
+                "required_serial_cost_cut_ms": 3.995866657581967,
+                "required_serial_cost_cut_fraction": 0.44357740812339036
+              }
+            },
+            "depth8": {
+              "events": 121,
+              "iterations": 44,
+              "accepted_drafts": 77,
+              "accepted_drafts_per_iteration": 1.75,
+              "full_depth_iterations": 3,
+              "zero_overhead_multiplier": 2.75,
+              "projection": {
+                "zero_overhead_tps": 275.0,
+                "optimistic_same_draft_cost_tps": 224.4518974194517,
+                "serial_per_draft_token_tps": 98.15627812001131,
+                "max_draft_ms_per_iteration_for_target": 7.741935483870968,
+                "same_cost_meets_target": true,
+                "serial_per_draft_token_meets_target": false,
+                "required_same_cost_cut_ms": 0.0,
+                "required_same_cost_cut_fraction": 0.0,
+                "required_serial_cost_cut_ms": 10.274611727074603,
+                "required_serial_cost_cut_fraction": 0.5702875033032123
+              }
+            }
+          }
+        },
+        "top8": {
+          "events": 121,
+          "covered": 85,
+          "coverage": 0.7024793388429752,
+          "by_depth": {
+            "depth1": {
+              "events": 121,
+              "iterations": 74,
+              "accepted_drafts": 47,
+              "accepted_drafts_per_iteration": 0.6351351351351351,
+              "full_depth_iterations": 47,
+              "zero_overhead_multiplier": 1.635135135135135,
+              "projection": {
+                "zero_overhead_tps": 163.51351351351352,
+                "optimistic_same_draft_cost_tps": 133.4578849521064,
+                "serial_per_draft_token_tps": 133.4578849521064,
+                "max_draft_ms_per_iteration_for_target": 0.5492589363557103,
+                "same_cost_meets_target": false,
+                "serial_per_draft_token_meets_target": false,
+                "required_same_cost_cut_ms": 1.702809465012486,
+                "required_same_cost_cut_fraction": 0.7561091234964179,
+                "required_serial_cost_cut_ms": 1.702809465012486,
+                "required_serial_cost_cut_fraction": 0.7561091234964179
+              }
+            },
+            "depth2": {
+              "events": 121,
+              "iterations": 56,
+              "accepted_drafts": 65,
+              "accepted_drafts_per_iteration": 1.1607142857142858,
+              "full_depth_iterations": 29,
+              "zero_overhead_multiplier": 2.1607142857142856,
+              "projection": {
+                "zero_overhead_tps": 216.07142857142856,
+                "optimistic_same_draft_cost_tps": 176.3550622581406,
+                "serial_per_draft_token_tps": 148.97227702007328,
+                "max_draft_ms_per_iteration_for_target": 3.940092165898617,
+                "same_cost_meets_target": true,
+                "serial_per_draft_token_meets_target": false,
+                "required_same_cost_cut_ms": 0.0,
+                "required_same_cost_cut_fraction": 0.0,
+                "required_serial_cost_cut_ms": 0.5640446368377758,
+                "required_serial_cost_cut_fraction": 0.12522813172439667
+              }
+            },
+            "depth4": {
+              "events": 121,
+              "iterations": 47,
+              "accepted_drafts": 74,
+              "accepted_drafts_per_iteration": 1.574468085106383,
+              "full_depth_iterations": 12,
+              "zero_overhead_multiplier": 2.574468085106383,
+              "projection": {
+                "zero_overhead_tps": 257.4468085106383,
+                "optimistic_same_draft_cost_tps": 210.12518056289096,
+                "serial_per_draft_token_tps": 135.43934281149828,
+                "max_draft_ms_per_iteration_for_target": 6.609471516815372,
+                "same_cost_meets_target": true,
+                "serial_per_draft_token_meets_target": false,
+                "required_same_cost_cut_ms": 0.0,
+                "required_same_cost_cut_fraction": 0.0,
+                "required_serial_cost_cut_ms": 2.3988020886574137,
+                "required_serial_cost_cut_fraction": 0.26628876893793196
+              }
+            },
+            "depth8": {
+              "events": 121,
+              "iterations": 39,
+              "accepted_drafts": 82,
+              "accepted_drafts_per_iteration": 2.1025641025641026,
+              "full_depth_iterations": 4,
+              "zero_overhead_multiplier": 3.1025641025641026,
+              "projection": {
+                "zero_overhead_tps": 310.2564102564103,
+                "optimistic_same_draft_cost_tps": 253.22778170399678,
+                "serial_per_draft_token_tps": 110.74041634052556,
+                "max_draft_ms_per_iteration_for_target": 10.01654259718776,
+                "same_cost_meets_target": true,
+                "serial_per_draft_token_meets_target": false,
+                "required_same_cost_cut_ms": 0.0,
+                "required_same_cost_cut_fraction": 0.0,
+                "required_serial_cost_cut_ms": 8.000004613757811,
+                "required_serial_cost_cut_fraction": 0.44403650267114325
+              }
+            }
+          }
+        }
+      }
+    },
+    "routes": [
+      {
+        "id": "heldout_json_berlin_metric",
+        "events": 16,
+        "recommendation": "ENABLE_TOP1_DEPTH2: current one-draft-cost iteration clears target in the upper-bound trace.",
+        "metrics": {
+          "top1": {
+            "events": 16,
+            "covered": 11,
+            "coverage": 0.6875,
+            "by_depth": {
+              "depth1": {
+                "events": 16,
+                "iterations": 9,
+                "accepted_drafts": 7,
+                "accepted_drafts_per_iteration": 0.7777777777777778,
+                "full_depth_iterations": 7,
+                "zero_overhead_multiplier": 1.7777777777777777,
+                "projection": {
+                  "zero_overhead_tps": 177.77777777777777,
+                  "optimistic_same_draft_cost_tps": 145.10021651358494,
+                  "serial_per_draft_token_tps": 145.10021651358494,
+                  "max_draft_ms_per_iteration_for_target": 1.4695340501792113,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.7825343511889851,
+                  "required_same_cost_cut_fraction": 0.34747361612710026,
+                  "required_serial_cost_cut_ms": 0.7825343511889851,
+                  "required_serial_cost_cut_fraction": 0.34747361612710026
+                }
+              },
+              "depth2": {
+                "events": 16,
+                "iterations": 7,
+                "accepted_drafts": 9,
+                "accepted_drafts_per_iteration": 1.2857142857142858,
+                "full_depth_iterations": 3,
+                "zero_overhead_multiplier": 2.2857142857142856,
+                "projection": {
+                  "zero_overhead_tps": 228.57142857142856,
+                  "optimistic_same_draft_cost_tps": 186.55742123175204,
+                  "serial_per_draft_token_tps": 157.590507922061,
+                  "max_draft_ms_per_iteration_for_target": 4.746543778801843,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              },
+              "depth4": {
+                "events": 16,
+                "iterations": 6,
+                "accepted_drafts": 10,
+                "accepted_drafts_per_iteration": 1.6666666666666667,
+                "full_depth_iterations": 2,
+                "zero_overhead_multiplier": 2.6666666666666665,
+                "projection": {
+                  "zero_overhead_tps": 266.66666666666663,
+                  "optimistic_same_draft_cost_tps": 217.65032477037738,
+                  "serial_per_draft_token_tps": 140.28978759538114,
+                  "max_draft_ms_per_iteration_for_target": 7.204301075268817,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 1.8039725302039686,
+                  "required_serial_cost_cut_fraction": 0.20025729781431187
+                }
+              },
+              "depth8": {
+                "events": 16,
+                "iterations": 5,
+                "accepted_drafts": 11,
+                "accepted_drafts_per_iteration": 2.2,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 3.2,
+                "projection": {
+                  "zero_overhead_tps": 320.0,
+                  "optimistic_same_draft_cost_tps": 261.1803897244529,
+                  "serial_per_draft_token_tps": 114.21821453964951,
+                  "max_draft_ms_per_iteration_for_target": 10.64516129032258,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 7.371385920622991,
+                  "required_serial_cost_cut_fraction": 0.409145317041917
+                }
+              }
+            }
+          },
+          "top2": {
+            "events": 16,
+            "covered": 14,
+            "coverage": 0.875,
+            "by_depth": {
+              "depth1": {
+                "events": 16,
+                "iterations": 8,
+                "accepted_drafts": 8,
+                "accepted_drafts_per_iteration": 1.0,
+                "full_depth_iterations": 8,
+                "zero_overhead_multiplier": 2.0,
+                "projection": {
+                  "zero_overhead_tps": 200.0,
+                  "optimistic_same_draft_cost_tps": 163.23774357778305,
+                  "serial_per_draft_token_tps": 163.23774357778305,
+                  "max_draft_ms_per_iteration_for_target": 2.9032258064516125,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              },
+              "depth2": {
+                "events": 16,
+                "iterations": 6,
+                "accepted_drafts": 10,
+                "accepted_drafts_per_iteration": 1.6666666666666667,
+                "full_depth_iterations": 5,
+                "zero_overhead_multiplier": 2.6666666666666665,
+                "projection": {
+                  "zero_overhead_tps": 266.66666666666663,
+                  "optimistic_same_draft_cost_tps": 217.65032477037738,
+                  "serial_per_draft_token_tps": 183.85559257573783,
+                  "max_draft_ms_per_iteration_for_target": 7.204301075268817,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              },
+              "depth4": {
+                "events": 16,
+                "iterations": 4,
+                "accepted_drafts": 12,
+                "accepted_drafts_per_iteration": 3.0,
+                "full_depth_iterations": 3,
+                "zero_overhead_multiplier": 4.0,
+                "projection": {
+                  "zero_overhead_tps": 400.0,
+                  "optimistic_same_draft_cost_tps": 326.4754871555661,
+                  "serial_per_draft_token_tps": 210.4346813930717,
+                  "max_draft_ms_per_iteration_for_target": 15.806451612903228,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              },
+              "depth8": {
+                "events": 16,
+                "iterations": 3,
+                "accepted_drafts": 13,
+                "accepted_drafts_per_iteration": 4.333333333333333,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 5.333333333333333,
+                "projection": {
+                  "zero_overhead_tps": 533.3333333333333,
+                  "optimistic_same_draft_cost_tps": 435.30064954075476,
+                  "serial_per_draft_token_tps": 190.36369089941584,
+                  "max_draft_ms_per_iteration_for_target": 24.408602150537632,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              }
+            }
+          },
+          "top4": {
+            "events": 16,
+            "covered": 15,
+            "coverage": 0.9375,
+            "by_depth": {
+              "depth1": {
+                "events": 16,
+                "iterations": 8,
+                "accepted_drafts": 8,
+                "accepted_drafts_per_iteration": 1.0,
+                "full_depth_iterations": 8,
+                "zero_overhead_multiplier": 2.0,
+                "projection": {
+                  "zero_overhead_tps": 200.0,
+                  "optimistic_same_draft_cost_tps": 163.23774357778305,
+                  "serial_per_draft_token_tps": 163.23774357778305,
+                  "max_draft_ms_per_iteration_for_target": 2.9032258064516125,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              },
+              "depth2": {
+                "events": 16,
+                "iterations": 6,
+                "accepted_drafts": 10,
+                "accepted_drafts_per_iteration": 1.6666666666666667,
+                "full_depth_iterations": 5,
+                "zero_overhead_multiplier": 2.6666666666666665,
+                "projection": {
+                  "zero_overhead_tps": 266.66666666666663,
+                  "optimistic_same_draft_cost_tps": 217.65032477037738,
+                  "serial_per_draft_token_tps": 183.85559257573783,
+                  "max_draft_ms_per_iteration_for_target": 7.204301075268817,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              },
+              "depth4": {
+                "events": 16,
+                "iterations": 4,
+                "accepted_drafts": 13,
+                "accepted_drafts_per_iteration": 3.25,
+                "full_depth_iterations": 3,
+                "zero_overhead_multiplier": 4.0,
+                "projection": {
+                  "zero_overhead_tps": 400.0,
+                  "optimistic_same_draft_cost_tps": 326.4754871555661,
+                  "serial_per_draft_token_tps": 210.4346813930717,
+                  "max_draft_ms_per_iteration_for_target": 15.806451612903228,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              },
+              "depth8": {
+                "events": 16,
+                "iterations": 3,
+                "accepted_drafts": 14,
+                "accepted_drafts_per_iteration": 4.666666666666667,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 5.333333333333333,
+                "projection": {
+                  "zero_overhead_tps": 533.3333333333333,
+                  "optimistic_same_draft_cost_tps": 435.30064954075476,
+                  "serial_per_draft_token_tps": 190.36369089941584,
+                  "max_draft_ms_per_iteration_for_target": 24.408602150537632,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              }
+            }
+          },
+          "top8": {
+            "events": 16,
+            "covered": 15,
+            "coverage": 0.9375,
+            "by_depth": {
+              "depth1": {
+                "events": 16,
+                "iterations": 8,
+                "accepted_drafts": 8,
+                "accepted_drafts_per_iteration": 1.0,
+                "full_depth_iterations": 8,
+                "zero_overhead_multiplier": 2.0,
+                "projection": {
+                  "zero_overhead_tps": 200.0,
+                  "optimistic_same_draft_cost_tps": 163.23774357778305,
+                  "serial_per_draft_token_tps": 163.23774357778305,
+                  "max_draft_ms_per_iteration_for_target": 2.9032258064516125,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              },
+              "depth2": {
+                "events": 16,
+                "iterations": 6,
+                "accepted_drafts": 10,
+                "accepted_drafts_per_iteration": 1.6666666666666667,
+                "full_depth_iterations": 5,
+                "zero_overhead_multiplier": 2.6666666666666665,
+                "projection": {
+                  "zero_overhead_tps": 266.66666666666663,
+                  "optimistic_same_draft_cost_tps": 217.65032477037738,
+                  "serial_per_draft_token_tps": 183.85559257573783,
+                  "max_draft_ms_per_iteration_for_target": 7.204301075268817,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              },
+              "depth4": {
+                "events": 16,
+                "iterations": 4,
+                "accepted_drafts": 13,
+                "accepted_drafts_per_iteration": 3.25,
+                "full_depth_iterations": 3,
+                "zero_overhead_multiplier": 4.0,
+                "projection": {
+                  "zero_overhead_tps": 400.0,
+                  "optimistic_same_draft_cost_tps": 326.4754871555661,
+                  "serial_per_draft_token_tps": 210.4346813930717,
+                  "max_draft_ms_per_iteration_for_target": 15.806451612903228,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              },
+              "depth8": {
+                "events": 16,
+                "iterations": 3,
+                "accepted_drafts": 14,
+                "accepted_drafts_per_iteration": 4.666666666666667,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 5.333333333333333,
+                "projection": {
+                  "zero_overhead_tps": 533.3333333333333,
+                  "optimistic_same_draft_cost_tps": 435.30064954075476,
+                  "serial_per_draft_token_tps": 190.36369089941584,
+                  "max_draft_ms_per_iteration_for_target": 24.408602150537632,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "heldout_json_status_ready",
+        "events": 16,
+        "recommendation": "TOP1_DEPTH2_NEEDS_OVERLAP: top1 continuity is enough, but draft cost must be hidden or cut.",
+        "metrics": {
+          "top1": {
+            "events": 16,
+            "covered": 8,
+            "coverage": 0.5,
+            "by_depth": {
+              "depth1": {
+                "events": 16,
+                "iterations": 11,
+                "accepted_drafts": 5,
+                "accepted_drafts_per_iteration": 0.45454545454545453,
+                "full_depth_iterations": 5,
+                "zero_overhead_multiplier": 1.4545454545454546,
+                "projection": {
+                  "zero_overhead_tps": 145.45454545454547,
+                  "optimistic_same_draft_cost_tps": 118.7183589656604,
+                  "serial_per_draft_token_tps": 118.7183589656604,
+                  "max_draft_ms_per_iteration_for_target": null,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": null,
+                  "required_same_cost_cut_fraction": null,
+                  "required_serial_cost_cut_ms": null,
+                  "required_serial_cost_cut_fraction": null
+                }
+              },
+              "depth2": {
+                "events": 16,
+                "iterations": 9,
+                "accepted_drafts": 7,
+                "accepted_drafts_per_iteration": 0.7777777777777778,
+                "full_depth_iterations": 3,
+                "zero_overhead_multiplier": 1.7777777777777777,
+                "projection": {
+                  "zero_overhead_tps": 177.77777777777777,
+                  "optimistic_same_draft_cost_tps": 145.10021651358494,
+                  "serial_per_draft_token_tps": 122.5703950504919,
+                  "max_draft_ms_per_iteration_for_target": 1.4695340501792113,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.7825343511889851,
+                  "required_same_cost_cut_fraction": 0.34747361612710026,
+                  "required_serial_cost_cut_ms": 3.0346027525571815,
+                  "required_serial_cost_cut_fraction": 0.6737368080635502
+                }
+              },
+              "depth4": {
+                "events": 16,
+                "iterations": 9,
+                "accepted_drafts": 7,
+                "accepted_drafts_per_iteration": 0.7777777777777778,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 1.7777777777777777,
+                "projection": {
+                  "zero_overhead_tps": 177.77777777777777,
+                  "optimistic_same_draft_cost_tps": 145.10021651358494,
+                  "serial_per_draft_token_tps": 93.52652506358743,
+                  "max_draft_ms_per_iteration_for_target": 1.4695340501792113,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.7825343511889851,
+                  "required_same_cost_cut_fraction": 0.34747361612710026,
+                  "required_serial_cost_cut_ms": 7.538739555293574,
+                  "required_serial_cost_cut_fraction": 0.8368684040317751
+                }
+              },
+              "depth8": {
+                "events": 16,
+                "iterations": 8,
+                "accepted_drafts": 8,
+                "accepted_drafts_per_iteration": 1.0,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 2.0,
+                "projection": {
+                  "zero_overhead_tps": 200.0,
+                  "optimistic_same_draft_cost_tps": 163.23774357778305,
+                  "serial_per_draft_token_tps": 71.38638408728094,
+                  "max_draft_ms_per_iteration_for_target": 2.9032258064516125,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 15.11332140449396,
+                  "required_serial_cost_cut_fraction": 0.8388578137387047
+                }
+              }
+            }
+          },
+          "top2": {
+            "events": 16,
+            "covered": 8,
+            "coverage": 0.5,
+            "by_depth": {
+              "depth1": {
+                "events": 16,
+                "iterations": 11,
+                "accepted_drafts": 5,
+                "accepted_drafts_per_iteration": 0.45454545454545453,
+                "full_depth_iterations": 5,
+                "zero_overhead_multiplier": 1.4545454545454546,
+                "projection": {
+                  "zero_overhead_tps": 145.45454545454547,
+                  "optimistic_same_draft_cost_tps": 118.7183589656604,
+                  "serial_per_draft_token_tps": 118.7183589656604,
+                  "max_draft_ms_per_iteration_for_target": null,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": null,
+                  "required_same_cost_cut_fraction": null,
+                  "required_serial_cost_cut_ms": null,
+                  "required_serial_cost_cut_fraction": null
+                }
+              },
+              "depth2": {
+                "events": 16,
+                "iterations": 9,
+                "accepted_drafts": 7,
+                "accepted_drafts_per_iteration": 0.7777777777777778,
+                "full_depth_iterations": 3,
+                "zero_overhead_multiplier": 1.7777777777777777,
+                "projection": {
+                  "zero_overhead_tps": 177.77777777777777,
+                  "optimistic_same_draft_cost_tps": 145.10021651358494,
+                  "serial_per_draft_token_tps": 122.5703950504919,
+                  "max_draft_ms_per_iteration_for_target": 1.4695340501792113,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.7825343511889851,
+                  "required_same_cost_cut_fraction": 0.34747361612710026,
+                  "required_serial_cost_cut_ms": 3.0346027525571815,
+                  "required_serial_cost_cut_fraction": 0.6737368080635502
+                }
+              },
+              "depth4": {
+                "events": 16,
+                "iterations": 9,
+                "accepted_drafts": 7,
+                "accepted_drafts_per_iteration": 0.7777777777777778,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 1.7777777777777777,
+                "projection": {
+                  "zero_overhead_tps": 177.77777777777777,
+                  "optimistic_same_draft_cost_tps": 145.10021651358494,
+                  "serial_per_draft_token_tps": 93.52652506358743,
+                  "max_draft_ms_per_iteration_for_target": 1.4695340501792113,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.7825343511889851,
+                  "required_same_cost_cut_fraction": 0.34747361612710026,
+                  "required_serial_cost_cut_ms": 7.538739555293574,
+                  "required_serial_cost_cut_fraction": 0.8368684040317751
+                }
+              },
+              "depth8": {
+                "events": 16,
+                "iterations": 8,
+                "accepted_drafts": 8,
+                "accepted_drafts_per_iteration": 1.0,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 2.0,
+                "projection": {
+                  "zero_overhead_tps": 200.0,
+                  "optimistic_same_draft_cost_tps": 163.23774357778305,
+                  "serial_per_draft_token_tps": 71.38638408728094,
+                  "max_draft_ms_per_iteration_for_target": 2.9032258064516125,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 15.11332140449396,
+                  "required_serial_cost_cut_fraction": 0.8388578137387047
+                }
+              }
+            }
+          },
+          "top4": {
+            "events": 16,
+            "covered": 10,
+            "coverage": 0.625,
+            "by_depth": {
+              "depth1": {
+                "events": 16,
+                "iterations": 10,
+                "accepted_drafts": 6,
+                "accepted_drafts_per_iteration": 0.6,
+                "full_depth_iterations": 6,
+                "zero_overhead_multiplier": 1.6,
+                "projection": {
+                  "zero_overhead_tps": 160.0,
+                  "optimistic_same_draft_cost_tps": 130.59019486222644,
+                  "serial_per_draft_token_tps": 130.59019486222644,
+                  "max_draft_ms_per_iteration_for_target": 0.3225806451612901,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 1.9294877562069064,
+                  "required_same_cost_cut_fraction": 0.8567625011010709,
+                  "required_serial_cost_cut_ms": 1.9294877562069064,
+                  "required_serial_cost_cut_fraction": 0.8567625011010709
+                }
+              },
+              "depth2": {
+                "events": 16,
+                "iterations": 7,
+                "accepted_drafts": 9,
+                "accepted_drafts_per_iteration": 1.2857142857142858,
+                "full_depth_iterations": 4,
+                "zero_overhead_multiplier": 2.2857142857142856,
+                "projection": {
+                  "zero_overhead_tps": 228.57142857142856,
+                  "optimistic_same_draft_cost_tps": 186.55742123175204,
+                  "serial_per_draft_token_tps": 157.590507922061,
+                  "max_draft_ms_per_iteration_for_target": 4.746543778801843,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              },
+              "depth4": {
+                "events": 16,
+                "iterations": 7,
+                "accepted_drafts": 9,
+                "accepted_drafts_per_iteration": 1.2857142857142858,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 2.2857142857142856,
+                "projection": {
+                  "zero_overhead_tps": 228.57142857142856,
+                  "optimistic_same_draft_cost_tps": 186.55742123175204,
+                  "serial_per_draft_token_tps": 120.24838936746954,
+                  "max_draft_ms_per_iteration_for_target": 4.746543778801843,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 4.261729826670942,
+                  "required_serial_cost_cut_fraction": 0.47309062905036753
+                }
+              },
+              "depth8": {
+                "events": 16,
+                "iterations": 6,
+                "accepted_drafts": 10,
+                "accepted_drafts_per_iteration": 1.6666666666666667,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 2.6666666666666665,
+                "projection": {
+                  "zero_overhead_tps": 266.66666666666663,
+                  "optimistic_same_draft_cost_tps": 217.65032477037738,
+                  "serial_per_draft_token_tps": 95.18184544970792,
+                  "max_draft_ms_per_iteration_for_target": 7.204301075268817,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 10.812246135676755,
+                  "required_serial_cost_cut_fraction": 0.600128648907156
+                }
+              }
+            }
+          },
+          "top8": {
+            "events": 16,
+            "covered": 11,
+            "coverage": 0.6875,
+            "by_depth": {
+              "depth1": {
+                "events": 16,
+                "iterations": 10,
+                "accepted_drafts": 6,
+                "accepted_drafts_per_iteration": 0.6,
+                "full_depth_iterations": 6,
+                "zero_overhead_multiplier": 1.6,
+                "projection": {
+                  "zero_overhead_tps": 160.0,
+                  "optimistic_same_draft_cost_tps": 130.59019486222644,
+                  "serial_per_draft_token_tps": 130.59019486222644,
+                  "max_draft_ms_per_iteration_for_target": 0.3225806451612901,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 1.9294877562069064,
+                  "required_same_cost_cut_fraction": 0.8567625011010709,
+                  "required_serial_cost_cut_ms": 1.9294877562069064,
+                  "required_serial_cost_cut_fraction": 0.8567625011010709
+                }
+              },
+              "depth2": {
+                "events": 16,
+                "iterations": 7,
+                "accepted_drafts": 9,
+                "accepted_drafts_per_iteration": 1.2857142857142858,
+                "full_depth_iterations": 4,
+                "zero_overhead_multiplier": 2.2857142857142856,
+                "projection": {
+                  "zero_overhead_tps": 228.57142857142856,
+                  "optimistic_same_draft_cost_tps": 186.55742123175204,
+                  "serial_per_draft_token_tps": 157.590507922061,
+                  "max_draft_ms_per_iteration_for_target": 4.746543778801843,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              },
+              "depth4": {
+                "events": 16,
+                "iterations": 6,
+                "accepted_drafts": 10,
+                "accepted_drafts_per_iteration": 1.6666666666666667,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 2.6666666666666665,
+                "projection": {
+                  "zero_overhead_tps": 266.66666666666663,
+                  "optimistic_same_draft_cost_tps": 217.65032477037738,
+                  "serial_per_draft_token_tps": 140.28978759538114,
+                  "max_draft_ms_per_iteration_for_target": 7.204301075268817,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 1.8039725302039686,
+                  "required_serial_cost_cut_fraction": 0.20025729781431187
+                }
+              },
+              "depth8": {
+                "events": 16,
+                "iterations": 5,
+                "accepted_drafts": 11,
+                "accepted_drafts_per_iteration": 2.2,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 3.2,
+                "projection": {
+                  "zero_overhead_tps": 320.0,
+                  "optimistic_same_draft_cost_tps": 261.1803897244529,
+                  "serial_per_draft_token_tps": 114.21821453964951,
+                  "max_draft_ms_per_iteration_for_target": 10.64516129032258,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 7.371385920622991,
+                  "required_serial_cost_cut_fraction": 0.409145317041917
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "heldout_tool_translate",
+        "events": 16,
+        "recommendation": "ENABLE_TOP1_DEPTH2: current one-draft-cost iteration clears target in the upper-bound trace.",
+        "metrics": {
+          "top1": {
+            "events": 16,
+            "covered": 10,
+            "coverage": 0.625,
+            "by_depth": {
+              "depth1": {
+                "events": 16,
+                "iterations": 10,
+                "accepted_drafts": 6,
+                "accepted_drafts_per_iteration": 0.6,
+                "full_depth_iterations": 6,
+                "zero_overhead_multiplier": 1.6,
+                "projection": {
+                  "zero_overhead_tps": 160.0,
+                  "optimistic_same_draft_cost_tps": 130.59019486222644,
+                  "serial_per_draft_token_tps": 130.59019486222644,
+                  "max_draft_ms_per_iteration_for_target": 0.3225806451612901,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 1.9294877562069064,
+                  "required_same_cost_cut_fraction": 0.8567625011010709,
+                  "required_serial_cost_cut_ms": 1.9294877562069064,
+                  "required_serial_cost_cut_fraction": 0.8567625011010709
+                }
+              },
+              "depth2": {
+                "events": 16,
+                "iterations": 8,
+                "accepted_drafts": 9,
+                "accepted_drafts_per_iteration": 1.125,
+                "full_depth_iterations": 3,
+                "zero_overhead_multiplier": 2.0,
+                "projection": {
+                  "zero_overhead_tps": 200.0,
+                  "optimistic_same_draft_cost_tps": 163.23774357778305,
+                  "serial_per_draft_token_tps": 137.89169443180336,
+                  "max_draft_ms_per_iteration_for_target": 2.9032258064516125,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 1.6009109962847803,
+                  "required_serial_cost_cut_fraction": 0.3554312549548186
+                }
+              },
+              "depth4": {
+                "events": 16,
+                "iterations": 7,
+                "accepted_drafts": 10,
+                "accepted_drafts_per_iteration": 1.4285714285714286,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 2.2857142857142856,
+                "projection": {
+                  "zero_overhead_tps": 228.57142857142856,
+                  "optimistic_same_draft_cost_tps": 186.55742123175204,
+                  "serial_per_draft_token_tps": 120.24838936746954,
+                  "max_draft_ms_per_iteration_for_target": 4.746543778801843,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 4.261729826670942,
+                  "required_serial_cost_cut_fraction": 0.47309062905036753
+                }
+              },
+              "depth8": {
+                "events": 16,
+                "iterations": 7,
+                "accepted_drafts": 10,
+                "accepted_drafts_per_iteration": 1.4285714285714286,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 2.2857142857142856,
+                "projection": {
+                  "zero_overhead_tps": 228.57142857142856,
+                  "optimistic_same_draft_cost_tps": 186.55742123175204,
+                  "serial_per_draft_token_tps": 81.5844389568925,
+                  "max_draft_ms_per_iteration_for_target": 4.746543778801843,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 13.270003432143728,
+                  "required_serial_cost_cut_fraction": 0.7365453145251838
+                }
+              }
+            }
+          },
+          "top2": {
+            "events": 16,
+            "covered": 12,
+            "coverage": 0.75,
+            "by_depth": {
+              "depth1": {
+                "events": 16,
+                "iterations": 10,
+                "accepted_drafts": 6,
+                "accepted_drafts_per_iteration": 0.6,
+                "full_depth_iterations": 6,
+                "zero_overhead_multiplier": 1.6,
+                "projection": {
+                  "zero_overhead_tps": 160.0,
+                  "optimistic_same_draft_cost_tps": 130.59019486222644,
+                  "serial_per_draft_token_tps": 130.59019486222644,
+                  "max_draft_ms_per_iteration_for_target": 0.3225806451612901,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 1.9294877562069064,
+                  "required_same_cost_cut_fraction": 0.8567625011010709,
+                  "required_serial_cost_cut_ms": 1.9294877562069064,
+                  "required_serial_cost_cut_fraction": 0.8567625011010709
+                }
+              },
+              "depth2": {
+                "events": 16,
+                "iterations": 7,
+                "accepted_drafts": 10,
+                "accepted_drafts_per_iteration": 1.4285714285714286,
+                "full_depth_iterations": 5,
+                "zero_overhead_multiplier": 2.2857142857142856,
+                "projection": {
+                  "zero_overhead_tps": 228.57142857142856,
+                  "optimistic_same_draft_cost_tps": 186.55742123175204,
+                  "serial_per_draft_token_tps": 157.590507922061,
+                  "max_draft_ms_per_iteration_for_target": 4.746543778801843,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              },
+              "depth4": {
+                "events": 16,
+                "iterations": 6,
+                "accepted_drafts": 11,
+                "accepted_drafts_per_iteration": 1.8333333333333333,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 2.6666666666666665,
+                "projection": {
+                  "zero_overhead_tps": 266.66666666666663,
+                  "optimistic_same_draft_cost_tps": 217.65032477037738,
+                  "serial_per_draft_token_tps": 140.28978759538114,
+                  "max_draft_ms_per_iteration_for_target": 7.204301075268817,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 1.8039725302039686,
+                  "required_serial_cost_cut_fraction": 0.20025729781431187
+                }
+              },
+              "depth8": {
+                "events": 16,
+                "iterations": 5,
+                "accepted_drafts": 12,
+                "accepted_drafts_per_iteration": 2.4,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 3.2,
+                "projection": {
+                  "zero_overhead_tps": 320.0,
+                  "optimistic_same_draft_cost_tps": 261.1803897244529,
+                  "serial_per_draft_token_tps": 114.21821453964951,
+                  "max_draft_ms_per_iteration_for_target": 10.64516129032258,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 7.371385920622991,
+                  "required_serial_cost_cut_fraction": 0.409145317041917
+                }
+              }
+            }
+          },
+          "top4": {
+            "events": 16,
+            "covered": 12,
+            "coverage": 0.75,
+            "by_depth": {
+              "depth1": {
+                "events": 16,
+                "iterations": 10,
+                "accepted_drafts": 6,
+                "accepted_drafts_per_iteration": 0.6,
+                "full_depth_iterations": 6,
+                "zero_overhead_multiplier": 1.6,
+                "projection": {
+                  "zero_overhead_tps": 160.0,
+                  "optimistic_same_draft_cost_tps": 130.59019486222644,
+                  "serial_per_draft_token_tps": 130.59019486222644,
+                  "max_draft_ms_per_iteration_for_target": 0.3225806451612901,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 1.9294877562069064,
+                  "required_same_cost_cut_fraction": 0.8567625011010709,
+                  "required_serial_cost_cut_ms": 1.9294877562069064,
+                  "required_serial_cost_cut_fraction": 0.8567625011010709
+                }
+              },
+              "depth2": {
+                "events": 16,
+                "iterations": 7,
+                "accepted_drafts": 10,
+                "accepted_drafts_per_iteration": 1.4285714285714286,
+                "full_depth_iterations": 5,
+                "zero_overhead_multiplier": 2.2857142857142856,
+                "projection": {
+                  "zero_overhead_tps": 228.57142857142856,
+                  "optimistic_same_draft_cost_tps": 186.55742123175204,
+                  "serial_per_draft_token_tps": 157.590507922061,
+                  "max_draft_ms_per_iteration_for_target": 4.746543778801843,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              },
+              "depth4": {
+                "events": 16,
+                "iterations": 6,
+                "accepted_drafts": 11,
+                "accepted_drafts_per_iteration": 1.8333333333333333,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 2.6666666666666665,
+                "projection": {
+                  "zero_overhead_tps": 266.66666666666663,
+                  "optimistic_same_draft_cost_tps": 217.65032477037738,
+                  "serial_per_draft_token_tps": 140.28978759538114,
+                  "max_draft_ms_per_iteration_for_target": 7.204301075268817,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 1.8039725302039686,
+                  "required_serial_cost_cut_fraction": 0.20025729781431187
+                }
+              },
+              "depth8": {
+                "events": 16,
+                "iterations": 5,
+                "accepted_drafts": 12,
+                "accepted_drafts_per_iteration": 2.4,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 3.2,
+                "projection": {
+                  "zero_overhead_tps": 320.0,
+                  "optimistic_same_draft_cost_tps": 261.1803897244529,
+                  "serial_per_draft_token_tps": 114.21821453964951,
+                  "max_draft_ms_per_iteration_for_target": 10.64516129032258,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 7.371385920622991,
+                  "required_serial_cost_cut_fraction": 0.409145317041917
+                }
+              }
+            }
+          },
+          "top8": {
+            "events": 16,
+            "covered": 12,
+            "coverage": 0.75,
+            "by_depth": {
+              "depth1": {
+                "events": 16,
+                "iterations": 10,
+                "accepted_drafts": 6,
+                "accepted_drafts_per_iteration": 0.6,
+                "full_depth_iterations": 6,
+                "zero_overhead_multiplier": 1.6,
+                "projection": {
+                  "zero_overhead_tps": 160.0,
+                  "optimistic_same_draft_cost_tps": 130.59019486222644,
+                  "serial_per_draft_token_tps": 130.59019486222644,
+                  "max_draft_ms_per_iteration_for_target": 0.3225806451612901,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 1.9294877562069064,
+                  "required_same_cost_cut_fraction": 0.8567625011010709,
+                  "required_serial_cost_cut_ms": 1.9294877562069064,
+                  "required_serial_cost_cut_fraction": 0.8567625011010709
+                }
+              },
+              "depth2": {
+                "events": 16,
+                "iterations": 7,
+                "accepted_drafts": 10,
+                "accepted_drafts_per_iteration": 1.4285714285714286,
+                "full_depth_iterations": 5,
+                "zero_overhead_multiplier": 2.2857142857142856,
+                "projection": {
+                  "zero_overhead_tps": 228.57142857142856,
+                  "optimistic_same_draft_cost_tps": 186.55742123175204,
+                  "serial_per_draft_token_tps": 157.590507922061,
+                  "max_draft_ms_per_iteration_for_target": 4.746543778801843,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              },
+              "depth4": {
+                "events": 16,
+                "iterations": 6,
+                "accepted_drafts": 11,
+                "accepted_drafts_per_iteration": 1.8333333333333333,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 2.6666666666666665,
+                "projection": {
+                  "zero_overhead_tps": 266.66666666666663,
+                  "optimistic_same_draft_cost_tps": 217.65032477037738,
+                  "serial_per_draft_token_tps": 140.28978759538114,
+                  "max_draft_ms_per_iteration_for_target": 7.204301075268817,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 1.8039725302039686,
+                  "required_serial_cost_cut_fraction": 0.20025729781431187
+                }
+              },
+              "depth8": {
+                "events": 16,
+                "iterations": 5,
+                "accepted_drafts": 12,
+                "accepted_drafts_per_iteration": 2.4,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 3.2,
+                "projection": {
+                  "zero_overhead_tps": 320.0,
+                  "optimistic_same_draft_cost_tps": 261.1803897244529,
+                  "serial_per_draft_token_tps": 114.21821453964951,
+                  "max_draft_ms_per_iteration_for_target": 10.64516129032258,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 7.371385920622991,
+                  "required_serial_cost_cut_fraction": 0.409145317041917
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "heldout_math_distance",
+        "events": 10,
+        "recommendation": "TOP1_DEPTH2_NEEDS_OVERLAP: top1 continuity is enough, but draft cost must be hidden or cut.",
+        "metrics": {
+          "top1": {
+            "events": 10,
+            "covered": 5,
+            "coverage": 0.5,
+            "by_depth": {
+              "depth1": {
+                "events": 10,
+                "iterations": 7,
+                "accepted_drafts": 3,
+                "accepted_drafts_per_iteration": 0.42857142857142855,
+                "full_depth_iterations": 3,
+                "zero_overhead_multiplier": 1.4285714285714286,
+                "projection": {
+                  "zero_overhead_tps": 142.85714285714286,
+                  "optimistic_same_draft_cost_tps": 116.59838826984503,
+                  "serial_per_draft_token_tps": 116.59838826984503,
+                  "max_draft_ms_per_iteration_for_target": null,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": null,
+                  "required_same_cost_cut_fraction": null,
+                  "required_serial_cost_cut_ms": null,
+                  "required_serial_cost_cut_fraction": null
+                }
+              },
+              "depth2": {
+                "events": 10,
+                "iterations": 6,
+                "accepted_drafts": 4,
+                "accepted_drafts_per_iteration": 0.6666666666666666,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 1.6666666666666667,
+                "projection": {
+                  "zero_overhead_tps": 166.66666666666669,
+                  "optimistic_same_draft_cost_tps": 136.03145298148587,
+                  "serial_per_draft_token_tps": 114.90974535983614,
+                  "max_draft_ms_per_iteration_for_target": 0.7526881720430096,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 1.4993802293251868,
+                  "required_same_cost_cut_fraction": 0.6657791692358324,
+                  "required_serial_cost_cut_ms": 3.751448630693383,
+                  "required_serial_cost_cut_fraction": 0.8328895846179162
+                }
+              },
+              "depth4": {
+                "events": 10,
+                "iterations": 5,
+                "accepted_drafts": 5,
+                "accepted_drafts_per_iteration": 1.0,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 2.0,
+                "projection": {
+                  "zero_overhead_tps": 200.0,
+                  "optimistic_same_draft_cost_tps": 163.23774357778305,
+                  "serial_per_draft_token_tps": 105.21734069653584,
+                  "max_draft_ms_per_iteration_for_target": 2.9032258064516125,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 6.105047799021174,
+                  "required_serial_cost_cut_fraction": 0.6777156274774093
+                }
+              },
+              "depth8": {
+                "events": 10,
+                "iterations": 5,
+                "accepted_drafts": 5,
+                "accepted_drafts_per_iteration": 1.0,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 2.0,
+                "projection": {
+                  "zero_overhead_tps": 200.0,
+                  "optimistic_same_draft_cost_tps": 163.23774357778305,
+                  "serial_per_draft_token_tps": 71.38638408728094,
+                  "max_draft_ms_per_iteration_for_target": 2.9032258064516125,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 15.11332140449396,
+                  "required_serial_cost_cut_fraction": 0.8388578137387047
+                }
+              }
+            }
+          },
+          "top2": {
+            "events": 10,
+            "covered": 5,
+            "coverage": 0.5,
+            "by_depth": {
+              "depth1": {
+                "events": 10,
+                "iterations": 7,
+                "accepted_drafts": 3,
+                "accepted_drafts_per_iteration": 0.42857142857142855,
+                "full_depth_iterations": 3,
+                "zero_overhead_multiplier": 1.4285714285714286,
+                "projection": {
+                  "zero_overhead_tps": 142.85714285714286,
+                  "optimistic_same_draft_cost_tps": 116.59838826984503,
+                  "serial_per_draft_token_tps": 116.59838826984503,
+                  "max_draft_ms_per_iteration_for_target": null,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": null,
+                  "required_same_cost_cut_fraction": null,
+                  "required_serial_cost_cut_ms": null,
+                  "required_serial_cost_cut_fraction": null
+                }
+              },
+              "depth2": {
+                "events": 10,
+                "iterations": 6,
+                "accepted_drafts": 4,
+                "accepted_drafts_per_iteration": 0.6666666666666666,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 1.6666666666666667,
+                "projection": {
+                  "zero_overhead_tps": 166.66666666666669,
+                  "optimistic_same_draft_cost_tps": 136.03145298148587,
+                  "serial_per_draft_token_tps": 114.90974535983614,
+                  "max_draft_ms_per_iteration_for_target": 0.7526881720430096,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 1.4993802293251868,
+                  "required_same_cost_cut_fraction": 0.6657791692358324,
+                  "required_serial_cost_cut_ms": 3.751448630693383,
+                  "required_serial_cost_cut_fraction": 0.8328895846179162
+                }
+              },
+              "depth4": {
+                "events": 10,
+                "iterations": 5,
+                "accepted_drafts": 5,
+                "accepted_drafts_per_iteration": 1.0,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 2.0,
+                "projection": {
+                  "zero_overhead_tps": 200.0,
+                  "optimistic_same_draft_cost_tps": 163.23774357778305,
+                  "serial_per_draft_token_tps": 105.21734069653584,
+                  "max_draft_ms_per_iteration_for_target": 2.9032258064516125,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 6.105047799021174,
+                  "required_serial_cost_cut_fraction": 0.6777156274774093
+                }
+              },
+              "depth8": {
+                "events": 10,
+                "iterations": 5,
+                "accepted_drafts": 5,
+                "accepted_drafts_per_iteration": 1.0,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 2.0,
+                "projection": {
+                  "zero_overhead_tps": 200.0,
+                  "optimistic_same_draft_cost_tps": 163.23774357778305,
+                  "serial_per_draft_token_tps": 71.38638408728094,
+                  "max_draft_ms_per_iteration_for_target": 2.9032258064516125,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 15.11332140449396,
+                  "required_serial_cost_cut_fraction": 0.8388578137387047
+                }
+              }
+            }
+          },
+          "top4": {
+            "events": 10,
+            "covered": 6,
+            "coverage": 0.6,
+            "by_depth": {
+              "depth1": {
+                "events": 10,
+                "iterations": 6,
+                "accepted_drafts": 4,
+                "accepted_drafts_per_iteration": 0.6666666666666666,
+                "full_depth_iterations": 4,
+                "zero_overhead_multiplier": 1.6666666666666667,
+                "projection": {
+                  "zero_overhead_tps": 166.66666666666669,
+                  "optimistic_same_draft_cost_tps": 136.03145298148587,
+                  "serial_per_draft_token_tps": 136.03145298148587,
+                  "max_draft_ms_per_iteration_for_target": 0.7526881720430096,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 1.4993802293251868,
+                  "required_same_cost_cut_fraction": 0.6657791692358324,
+                  "required_serial_cost_cut_ms": 1.4993802293251868,
+                  "required_serial_cost_cut_fraction": 0.6657791692358324
+                }
+              },
+              "depth2": {
+                "events": 10,
+                "iterations": 5,
+                "accepted_drafts": 5,
+                "accepted_drafts_per_iteration": 1.0,
+                "full_depth_iterations": 2,
+                "zero_overhead_multiplier": 2.0,
+                "projection": {
+                  "zero_overhead_tps": 200.0,
+                  "optimistic_same_draft_cost_tps": 163.23774357778305,
+                  "serial_per_draft_token_tps": 137.89169443180336,
+                  "max_draft_ms_per_iteration_for_target": 2.9032258064516125,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 1.6009109962847803,
+                  "required_serial_cost_cut_fraction": 0.3554312549548186
+                }
+              },
+              "depth4": {
+                "events": 10,
+                "iterations": 5,
+                "accepted_drafts": 5,
+                "accepted_drafts_per_iteration": 1.0,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 2.0,
+                "projection": {
+                  "zero_overhead_tps": 200.0,
+                  "optimistic_same_draft_cost_tps": 163.23774357778305,
+                  "serial_per_draft_token_tps": 105.21734069653584,
+                  "max_draft_ms_per_iteration_for_target": 2.9032258064516125,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 6.105047799021174,
+                  "required_serial_cost_cut_fraction": 0.6777156274774093
+                }
+              },
+              "depth8": {
+                "events": 10,
+                "iterations": 4,
+                "accepted_drafts": 6,
+                "accepted_drafts_per_iteration": 1.5,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 2.5,
+                "projection": {
+                  "zero_overhead_tps": 250.0,
+                  "optimistic_same_draft_cost_tps": 204.0471794722288,
+                  "serial_per_draft_token_tps": 89.23298010910118,
+                  "max_draft_ms_per_iteration_for_target": 6.129032258064515,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 11.887514952881055,
+                  "required_serial_cost_cut_fraction": 0.6598109401150432
+                }
+              }
+            }
+          },
+          "top8": {
+            "events": 10,
+            "covered": 8,
+            "coverage": 0.8,
+            "by_depth": {
+              "depth1": {
+                "events": 10,
+                "iterations": 6,
+                "accepted_drafts": 4,
+                "accepted_drafts_per_iteration": 0.6666666666666666,
+                "full_depth_iterations": 4,
+                "zero_overhead_multiplier": 1.6666666666666667,
+                "projection": {
+                  "zero_overhead_tps": 166.66666666666669,
+                  "optimistic_same_draft_cost_tps": 136.03145298148587,
+                  "serial_per_draft_token_tps": 136.03145298148587,
+                  "max_draft_ms_per_iteration_for_target": 0.7526881720430096,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 1.4993802293251868,
+                  "required_same_cost_cut_fraction": 0.6657791692358324,
+                  "required_serial_cost_cut_ms": 1.4993802293251868,
+                  "required_serial_cost_cut_fraction": 0.6657791692358324
+                }
+              },
+              "depth2": {
+                "events": 10,
+                "iterations": 4,
+                "accepted_drafts": 6,
+                "accepted_drafts_per_iteration": 1.5,
+                "full_depth_iterations": 3,
+                "zero_overhead_multiplier": 2.5,
+                "projection": {
+                  "zero_overhead_tps": 250.0,
+                  "optimistic_same_draft_cost_tps": 204.0471794722288,
+                  "serial_per_draft_token_tps": 172.3646180397542,
+                  "max_draft_ms_per_iteration_for_target": 6.129032258064515,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              },
+              "depth4": {
+                "events": 10,
+                "iterations": 3,
+                "accepted_drafts": 7,
+                "accepted_drafts_per_iteration": 2.3333333333333335,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 3.3333333333333335,
+                "projection": {
+                  "zero_overhead_tps": 333.33333333333337,
+                  "optimistic_same_draft_cost_tps": 272.06290596297174,
+                  "serial_per_draft_token_tps": 175.36223449422644,
+                  "max_draft_ms_per_iteration_for_target": 11.50537634408602,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              },
+              "depth8": {
+                "events": 10,
+                "iterations": 2,
+                "accepted_drafts": 8,
+                "accepted_drafts_per_iteration": 4.0,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 5.0,
+                "projection": {
+                  "zero_overhead_tps": 500.0,
+                  "optimistic_same_draft_cost_tps": 408.0943589444576,
+                  "serial_per_draft_token_tps": 178.46596021820235,
+                  "max_draft_ms_per_iteration_for_target": 22.25806451612903,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "heldout_python_slug",
+        "events": 16,
+        "recommendation": "TOP1_DEPTH2_NEEDS_OVERLAP: top1 continuity is enough, but draft cost must be hidden or cut.",
+        "metrics": {
+          "top1": {
+            "events": 16,
+            "covered": 7,
+            "coverage": 0.4375,
+            "by_depth": {
+              "depth1": {
+                "events": 16,
+                "iterations": 11,
+                "accepted_drafts": 5,
+                "accepted_drafts_per_iteration": 0.45454545454545453,
+                "full_depth_iterations": 5,
+                "zero_overhead_multiplier": 1.4545454545454546,
+                "projection": {
+                  "zero_overhead_tps": 145.45454545454547,
+                  "optimistic_same_draft_cost_tps": 118.7183589656604,
+                  "serial_per_draft_token_tps": 118.7183589656604,
+                  "max_draft_ms_per_iteration_for_target": null,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": null,
+                  "required_same_cost_cut_fraction": null,
+                  "required_serial_cost_cut_ms": null,
+                  "required_serial_cost_cut_fraction": null
+                }
+              },
+              "depth2": {
+                "events": 16,
+                "iterations": 10,
+                "accepted_drafts": 6,
+                "accepted_drafts_per_iteration": 0.6,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 1.6,
+                "projection": {
+                  "zero_overhead_tps": 160.0,
+                  "optimistic_same_draft_cost_tps": 130.59019486222644,
+                  "serial_per_draft_token_tps": 110.31335554544269,
+                  "max_draft_ms_per_iteration_for_target": 0.3225806451612901,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 1.9294877562069064,
+                  "required_same_cost_cut_fraction": 0.8567625011010709,
+                  "required_serial_cost_cut_ms": 4.181556157575103,
+                  "required_serial_cost_cut_fraction": 0.9283812505505354
+                }
+              },
+              "depth4": {
+                "events": 16,
+                "iterations": 9,
+                "accepted_drafts": 7,
+                "accepted_drafts_per_iteration": 0.7777777777777778,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 1.7777777777777777,
+                "projection": {
+                  "zero_overhead_tps": 177.77777777777777,
+                  "optimistic_same_draft_cost_tps": 145.10021651358494,
+                  "serial_per_draft_token_tps": 93.52652506358743,
+                  "max_draft_ms_per_iteration_for_target": 1.4695340501792113,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.7825343511889851,
+                  "required_same_cost_cut_fraction": 0.34747361612710026,
+                  "required_serial_cost_cut_ms": 7.538739555293574,
+                  "required_serial_cost_cut_fraction": 0.8368684040317751
+                }
+              },
+              "depth8": {
+                "events": 16,
+                "iterations": 9,
+                "accepted_drafts": 7,
+                "accepted_drafts_per_iteration": 0.7777777777777778,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 1.7777777777777777,
+                "projection": {
+                  "zero_overhead_tps": 177.77777777777777,
+                  "optimistic_same_draft_cost_tps": 145.10021651358494,
+                  "serial_per_draft_token_tps": 63.454563633138605,
+                  "max_draft_ms_per_iteration_for_target": 1.4695340501792113,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.7825343511889851,
+                  "required_same_cost_cut_fraction": 0.34747361612710026,
+                  "required_serial_cost_cut_ms": 16.54701316076636,
+                  "required_serial_cost_cut_fraction": 0.9184342020158877
+                }
+              }
+            }
+          },
+          "top2": {
+            "events": 16,
+            "covered": 8,
+            "coverage": 0.5,
+            "by_depth": {
+              "depth1": {
+                "events": 16,
+                "iterations": 11,
+                "accepted_drafts": 5,
+                "accepted_drafts_per_iteration": 0.45454545454545453,
+                "full_depth_iterations": 5,
+                "zero_overhead_multiplier": 1.4545454545454546,
+                "projection": {
+                  "zero_overhead_tps": 145.45454545454547,
+                  "optimistic_same_draft_cost_tps": 118.7183589656604,
+                  "serial_per_draft_token_tps": 118.7183589656604,
+                  "max_draft_ms_per_iteration_for_target": null,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": null,
+                  "required_same_cost_cut_fraction": null,
+                  "required_serial_cost_cut_ms": null,
+                  "required_serial_cost_cut_fraction": null
+                }
+              },
+              "depth2": {
+                "events": 16,
+                "iterations": 10,
+                "accepted_drafts": 6,
+                "accepted_drafts_per_iteration": 0.6,
+                "full_depth_iterations": 2,
+                "zero_overhead_multiplier": 1.6,
+                "projection": {
+                  "zero_overhead_tps": 160.0,
+                  "optimistic_same_draft_cost_tps": 130.59019486222644,
+                  "serial_per_draft_token_tps": 110.31335554544269,
+                  "max_draft_ms_per_iteration_for_target": 0.3225806451612901,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 1.9294877562069064,
+                  "required_same_cost_cut_fraction": 0.8567625011010709,
+                  "required_serial_cost_cut_ms": 4.181556157575103,
+                  "required_serial_cost_cut_fraction": 0.9283812505505354
+                }
+              },
+              "depth4": {
+                "events": 16,
+                "iterations": 9,
+                "accepted_drafts": 7,
+                "accepted_drafts_per_iteration": 0.7777777777777778,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 1.7777777777777777,
+                "projection": {
+                  "zero_overhead_tps": 177.77777777777777,
+                  "optimistic_same_draft_cost_tps": 145.10021651358494,
+                  "serial_per_draft_token_tps": 93.52652506358743,
+                  "max_draft_ms_per_iteration_for_target": 1.4695340501792113,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.7825343511889851,
+                  "required_same_cost_cut_fraction": 0.34747361612710026,
+                  "required_serial_cost_cut_ms": 7.538739555293574,
+                  "required_serial_cost_cut_fraction": 0.8368684040317751
+                }
+              },
+              "depth8": {
+                "events": 16,
+                "iterations": 8,
+                "accepted_drafts": 8,
+                "accepted_drafts_per_iteration": 1.0,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 2.0,
+                "projection": {
+                  "zero_overhead_tps": 200.0,
+                  "optimistic_same_draft_cost_tps": 163.23774357778305,
+                  "serial_per_draft_token_tps": 71.38638408728094,
+                  "max_draft_ms_per_iteration_for_target": 2.9032258064516125,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 15.11332140449396,
+                  "required_serial_cost_cut_fraction": 0.8388578137387047
+                }
+              }
+            }
+          },
+          "top4": {
+            "events": 16,
+            "covered": 9,
+            "coverage": 0.5625,
+            "by_depth": {
+              "depth1": {
+                "events": 16,
+                "iterations": 10,
+                "accepted_drafts": 6,
+                "accepted_drafts_per_iteration": 0.6,
+                "full_depth_iterations": 6,
+                "zero_overhead_multiplier": 1.6,
+                "projection": {
+                  "zero_overhead_tps": 160.0,
+                  "optimistic_same_draft_cost_tps": 130.59019486222644,
+                  "serial_per_draft_token_tps": 130.59019486222644,
+                  "max_draft_ms_per_iteration_for_target": 0.3225806451612901,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 1.9294877562069064,
+                  "required_same_cost_cut_fraction": 0.8567625011010709,
+                  "required_serial_cost_cut_ms": 1.9294877562069064,
+                  "required_serial_cost_cut_fraction": 0.8567625011010709
+                }
+              },
+              "depth2": {
+                "events": 16,
+                "iterations": 9,
+                "accepted_drafts": 7,
+                "accepted_drafts_per_iteration": 0.7777777777777778,
+                "full_depth_iterations": 2,
+                "zero_overhead_multiplier": 1.7777777777777777,
+                "projection": {
+                  "zero_overhead_tps": 177.77777777777777,
+                  "optimistic_same_draft_cost_tps": 145.10021651358494,
+                  "serial_per_draft_token_tps": 122.5703950504919,
+                  "max_draft_ms_per_iteration_for_target": 1.4695340501792113,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.7825343511889851,
+                  "required_same_cost_cut_fraction": 0.34747361612710026,
+                  "required_serial_cost_cut_ms": 3.0346027525571815,
+                  "required_serial_cost_cut_fraction": 0.6737368080635502
+                }
+              },
+              "depth4": {
+                "events": 16,
+                "iterations": 8,
+                "accepted_drafts": 8,
+                "accepted_drafts_per_iteration": 1.0,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 2.0,
+                "projection": {
+                  "zero_overhead_tps": 200.0,
+                  "optimistic_same_draft_cost_tps": 163.23774357778305,
+                  "serial_per_draft_token_tps": 105.21734069653586,
+                  "max_draft_ms_per_iteration_for_target": 2.9032258064516125,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 6.105047799021174,
+                  "required_serial_cost_cut_fraction": 0.6777156274774093
+                }
+              },
+              "depth8": {
+                "events": 16,
+                "iterations": 7,
+                "accepted_drafts": 9,
+                "accepted_drafts_per_iteration": 1.2857142857142858,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 2.2857142857142856,
+                "projection": {
+                  "zero_overhead_tps": 228.57142857142856,
+                  "optimistic_same_draft_cost_tps": 186.55742123175204,
+                  "serial_per_draft_token_tps": 81.5844389568925,
+                  "max_draft_ms_per_iteration_for_target": 4.746543778801843,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 13.270003432143728,
+                  "required_serial_cost_cut_fraction": 0.7365453145251838
+                }
+              }
+            }
+          },
+          "top8": {
+            "events": 16,
+            "covered": 9,
+            "coverage": 0.5625,
+            "by_depth": {
+              "depth1": {
+                "events": 16,
+                "iterations": 10,
+                "accepted_drafts": 6,
+                "accepted_drafts_per_iteration": 0.6,
+                "full_depth_iterations": 6,
+                "zero_overhead_multiplier": 1.6,
+                "projection": {
+                  "zero_overhead_tps": 160.0,
+                  "optimistic_same_draft_cost_tps": 130.59019486222644,
+                  "serial_per_draft_token_tps": 130.59019486222644,
+                  "max_draft_ms_per_iteration_for_target": 0.3225806451612901,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 1.9294877562069064,
+                  "required_same_cost_cut_fraction": 0.8567625011010709,
+                  "required_serial_cost_cut_ms": 1.9294877562069064,
+                  "required_serial_cost_cut_fraction": 0.8567625011010709
+                }
+              },
+              "depth2": {
+                "events": 16,
+                "iterations": 9,
+                "accepted_drafts": 7,
+                "accepted_drafts_per_iteration": 0.7777777777777778,
+                "full_depth_iterations": 2,
+                "zero_overhead_multiplier": 1.7777777777777777,
+                "projection": {
+                  "zero_overhead_tps": 177.77777777777777,
+                  "optimistic_same_draft_cost_tps": 145.10021651358494,
+                  "serial_per_draft_token_tps": 122.5703950504919,
+                  "max_draft_ms_per_iteration_for_target": 1.4695340501792113,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.7825343511889851,
+                  "required_same_cost_cut_fraction": 0.34747361612710026,
+                  "required_serial_cost_cut_ms": 3.0346027525571815,
+                  "required_serial_cost_cut_fraction": 0.6737368080635502
+                }
+              },
+              "depth4": {
+                "events": 16,
+                "iterations": 8,
+                "accepted_drafts": 8,
+                "accepted_drafts_per_iteration": 1.0,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 2.0,
+                "projection": {
+                  "zero_overhead_tps": 200.0,
+                  "optimistic_same_draft_cost_tps": 163.23774357778305,
+                  "serial_per_draft_token_tps": 105.21734069653586,
+                  "max_draft_ms_per_iteration_for_target": 2.9032258064516125,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 6.105047799021174,
+                  "required_serial_cost_cut_fraction": 0.6777156274774093
+                }
+              },
+              "depth8": {
+                "events": 16,
+                "iterations": 7,
+                "accepted_drafts": 9,
+                "accepted_drafts_per_iteration": 1.2857142857142858,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 2.2857142857142856,
+                "projection": {
+                  "zero_overhead_tps": 228.57142857142856,
+                  "optimistic_same_draft_cost_tps": 186.55742123175204,
+                  "serial_per_draft_token_tps": 81.5844389568925,
+                  "max_draft_ms_per_iteration_for_target": 4.746543778801843,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 13.270003432143728,
+                  "required_serial_cost_cut_fraction": 0.7365453145251838
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "heldout_moe_short",
+        "events": 16,
+        "recommendation": "TOP8_DEPTH2_RERANK_CANDIDATE: needs a verifier/reranker, but cost budget is plausible.",
+        "metrics": {
+          "top1": {
+            "events": 16,
+            "covered": 3,
+            "coverage": 0.1875,
+            "by_depth": {
+              "depth1": {
+                "events": 16,
+                "iterations": 13,
+                "accepted_drafts": 3,
+                "accepted_drafts_per_iteration": 0.23076923076923078,
+                "full_depth_iterations": 3,
+                "zero_overhead_multiplier": 1.2307692307692308,
+                "projection": {
+                  "zero_overhead_tps": 123.07692307692308,
+                  "optimistic_same_draft_cost_tps": 100.45399604786648,
+                  "serial_per_draft_token_tps": 100.45399604786648,
+                  "max_draft_ms_per_iteration_for_target": null,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": null,
+                  "required_same_cost_cut_fraction": null,
+                  "required_serial_cost_cut_ms": null,
+                  "required_serial_cost_cut_fraction": null
+                }
+              },
+              "depth2": {
+                "events": 16,
+                "iterations": 13,
+                "accepted_drafts": 3,
+                "accepted_drafts_per_iteration": 0.23076923076923078,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 1.2307692307692308,
+                "projection": {
+                  "zero_overhead_tps": 123.07692307692308,
+                  "optimistic_same_draft_cost_tps": 100.45399604786648,
+                  "serial_per_draft_token_tps": 84.85642734264823,
+                  "max_draft_ms_per_iteration_for_target": null,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": null,
+                  "required_same_cost_cut_fraction": null,
+                  "required_serial_cost_cut_ms": null,
+                  "required_serial_cost_cut_fraction": null
+                }
+              },
+              "depth4": {
+                "events": 16,
+                "iterations": 13,
+                "accepted_drafts": 3,
+                "accepted_drafts_per_iteration": 0.23076923076923078,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 1.2307692307692308,
+                "projection": {
+                  "zero_overhead_tps": 123.07692307692308,
+                  "optimistic_same_draft_cost_tps": 100.45399604786648,
+                  "serial_per_draft_token_tps": 64.74913273632976,
+                  "max_draft_ms_per_iteration_for_target": null,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": null,
+                  "required_same_cost_cut_fraction": null,
+                  "required_serial_cost_cut_ms": null,
+                  "required_serial_cost_cut_fraction": null
+                }
+              },
+              "depth8": {
+                "events": 16,
+                "iterations": 13,
+                "accepted_drafts": 3,
+                "accepted_drafts_per_iteration": 0.23076923076923078,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 1.2307692307692308,
+                "projection": {
+                  "zero_overhead_tps": 123.07692307692308,
+                  "optimistic_same_draft_cost_tps": 100.45399604786648,
+                  "serial_per_draft_token_tps": 43.93008251524981,
+                  "max_draft_ms_per_iteration_for_target": null,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": null,
+                  "required_same_cost_cut_fraction": null,
+                  "required_serial_cost_cut_ms": null,
+                  "required_serial_cost_cut_fraction": null
+                }
+              }
+            }
+          },
+          "top2": {
+            "events": 16,
+            "covered": 5,
+            "coverage": 0.3125,
+            "by_depth": {
+              "depth1": {
+                "events": 16,
+                "iterations": 13,
+                "accepted_drafts": 3,
+                "accepted_drafts_per_iteration": 0.23076923076923078,
+                "full_depth_iterations": 3,
+                "zero_overhead_multiplier": 1.2307692307692308,
+                "projection": {
+                  "zero_overhead_tps": 123.07692307692308,
+                  "optimistic_same_draft_cost_tps": 100.45399604786648,
+                  "serial_per_draft_token_tps": 100.45399604786648,
+                  "max_draft_ms_per_iteration_for_target": null,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": null,
+                  "required_same_cost_cut_fraction": null,
+                  "required_serial_cost_cut_ms": null,
+                  "required_serial_cost_cut_fraction": null
+                }
+              },
+              "depth2": {
+                "events": 16,
+                "iterations": 12,
+                "accepted_drafts": 4,
+                "accepted_drafts_per_iteration": 0.3333333333333333,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 1.3333333333333333,
+                "projection": {
+                  "zero_overhead_tps": 133.33333333333331,
+                  "optimistic_same_draft_cost_tps": 108.82516238518869,
+                  "serial_per_draft_token_tps": 91.92779628786892,
+                  "max_draft_ms_per_iteration_for_target": null,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": null,
+                  "required_same_cost_cut_fraction": null,
+                  "required_serial_cost_cut_ms": null,
+                  "required_serial_cost_cut_fraction": null
+                }
+              },
+              "depth4": {
+                "events": 16,
+                "iterations": 11,
+                "accepted_drafts": 5,
+                "accepted_drafts_per_iteration": 0.45454545454545453,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 1.4545454545454546,
+                "projection": {
+                  "zero_overhead_tps": 145.45454545454547,
+                  "optimistic_same_draft_cost_tps": 118.7183589656604,
+                  "serial_per_draft_token_tps": 76.52170232475335,
+                  "max_draft_ms_per_iteration_for_target": null,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": null,
+                  "required_same_cost_cut_fraction": null,
+                  "required_serial_cost_cut_ms": null,
+                  "required_serial_cost_cut_fraction": null
+                }
+              },
+              "depth8": {
+                "events": 16,
+                "iterations": 11,
+                "accepted_drafts": 5,
+                "accepted_drafts_per_iteration": 0.45454545454545453,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 1.4545454545454546,
+                "projection": {
+                  "zero_overhead_tps": 145.45454545454547,
+                  "optimistic_same_draft_cost_tps": 118.7183589656604,
+                  "serial_per_draft_token_tps": 51.91737024529523,
+                  "max_draft_ms_per_iteration_for_target": null,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": null,
+                  "required_same_cost_cut_fraction": null,
+                  "required_serial_cost_cut_ms": null,
+                  "required_serial_cost_cut_fraction": null
+                }
+              }
+            }
+          },
+          "top4": {
+            "events": 16,
+            "covered": 7,
+            "coverage": 0.4375,
+            "by_depth": {
+              "depth1": {
+                "events": 16,
+                "iterations": 11,
+                "accepted_drafts": 5,
+                "accepted_drafts_per_iteration": 0.45454545454545453,
+                "full_depth_iterations": 5,
+                "zero_overhead_multiplier": 1.4545454545454546,
+                "projection": {
+                  "zero_overhead_tps": 145.45454545454547,
+                  "optimistic_same_draft_cost_tps": 118.7183589656604,
+                  "serial_per_draft_token_tps": 118.7183589656604,
+                  "max_draft_ms_per_iteration_for_target": null,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": null,
+                  "required_same_cost_cut_fraction": null,
+                  "required_serial_cost_cut_ms": null,
+                  "required_serial_cost_cut_fraction": null
+                }
+              },
+              "depth2": {
+                "events": 16,
+                "iterations": 10,
+                "accepted_drafts": 6,
+                "accepted_drafts_per_iteration": 0.6,
+                "full_depth_iterations": 2,
+                "zero_overhead_multiplier": 1.6,
+                "projection": {
+                  "zero_overhead_tps": 160.0,
+                  "optimistic_same_draft_cost_tps": 130.59019486222644,
+                  "serial_per_draft_token_tps": 110.31335554544269,
+                  "max_draft_ms_per_iteration_for_target": 0.3225806451612901,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 1.9294877562069064,
+                  "required_same_cost_cut_fraction": 0.8567625011010709,
+                  "required_serial_cost_cut_ms": 4.181556157575103,
+                  "required_serial_cost_cut_fraction": 0.9283812505505354
+                }
+              },
+              "depth4": {
+                "events": 16,
+                "iterations": 10,
+                "accepted_drafts": 6,
+                "accepted_drafts_per_iteration": 0.6,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 1.6,
+                "projection": {
+                  "zero_overhead_tps": 160.0,
+                  "optimistic_same_draft_cost_tps": 130.59019486222644,
+                  "serial_per_draft_token_tps": 84.17387255722868,
+                  "max_draft_ms_per_iteration_for_target": 0.3225806451612901,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 1.9294877562069064,
+                  "required_same_cost_cut_fraction": 0.8567625011010709,
+                  "required_serial_cost_cut_ms": 8.685692960311496,
+                  "required_serial_cost_cut_fraction": 0.9641906252752678
+                }
+              },
+              "depth8": {
+                "events": 16,
+                "iterations": 9,
+                "accepted_drafts": 7,
+                "accepted_drafts_per_iteration": 0.7777777777777778,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 1.7777777777777777,
+                "projection": {
+                  "zero_overhead_tps": 177.77777777777777,
+                  "optimistic_same_draft_cost_tps": 145.10021651358494,
+                  "serial_per_draft_token_tps": 63.454563633138605,
+                  "max_draft_ms_per_iteration_for_target": 1.4695340501792113,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.7825343511889851,
+                  "required_same_cost_cut_fraction": 0.34747361612710026,
+                  "required_serial_cost_cut_ms": 16.54701316076636,
+                  "required_serial_cost_cut_fraction": 0.9184342020158877
+                }
+              }
+            }
+          },
+          "top8": {
+            "events": 16,
+            "covered": 9,
+            "coverage": 0.5625,
+            "by_depth": {
+              "depth1": {
+                "events": 16,
+                "iterations": 11,
+                "accepted_drafts": 5,
+                "accepted_drafts_per_iteration": 0.45454545454545453,
+                "full_depth_iterations": 5,
+                "zero_overhead_multiplier": 1.4545454545454546,
+                "projection": {
+                  "zero_overhead_tps": 145.45454545454547,
+                  "optimistic_same_draft_cost_tps": 118.7183589656604,
+                  "serial_per_draft_token_tps": 118.7183589656604,
+                  "max_draft_ms_per_iteration_for_target": null,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": null,
+                  "required_same_cost_cut_fraction": null,
+                  "required_serial_cost_cut_ms": null,
+                  "required_serial_cost_cut_fraction": null
+                }
+              },
+              "depth2": {
+                "events": 16,
+                "iterations": 8,
+                "accepted_drafts": 8,
+                "accepted_drafts_per_iteration": 1.0,
+                "full_depth_iterations": 4,
+                "zero_overhead_multiplier": 2.0,
+                "projection": {
+                  "zero_overhead_tps": 200.0,
+                  "optimistic_same_draft_cost_tps": 163.23774357778305,
+                  "serial_per_draft_token_tps": 137.89169443180336,
+                  "max_draft_ms_per_iteration_for_target": 2.9032258064516125,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 1.6009109962847803,
+                  "required_serial_cost_cut_fraction": 0.3554312549548186
+                }
+              },
+              "depth4": {
+                "events": 16,
+                "iterations": 8,
+                "accepted_drafts": 8,
+                "accepted_drafts_per_iteration": 1.0,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 2.0,
+                "projection": {
+                  "zero_overhead_tps": 200.0,
+                  "optimistic_same_draft_cost_tps": 163.23774357778305,
+                  "serial_per_draft_token_tps": 105.21734069653586,
+                  "max_draft_ms_per_iteration_for_target": 2.9032258064516125,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 6.105047799021174,
+                  "required_serial_cost_cut_fraction": 0.6777156274774093
+                }
+              },
+              "depth8": {
+                "events": 16,
+                "iterations": 7,
+                "accepted_drafts": 9,
+                "accepted_drafts_per_iteration": 1.2857142857142858,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 2.2857142857142856,
+                "projection": {
+                  "zero_overhead_tps": 228.57142857142856,
+                  "optimistic_same_draft_cost_tps": 186.55742123175204,
+                  "serial_per_draft_token_tps": 81.5844389568925,
+                  "max_draft_ms_per_iteration_for_target": 4.746543778801843,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 13.270003432143728,
+                  "required_serial_cost_cut_fraction": 0.7365453145251838
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "heldout_linear_short",
+        "events": 16,
+        "recommendation": "TOP8_DEPTH4_ONLY: top-k has theoretical credit, but runtime/rerank burden is high.",
+        "metrics": {
+          "top1": {
+            "events": 16,
+            "covered": 5,
+            "coverage": 0.3125,
+            "by_depth": {
+              "depth1": {
+                "events": 16,
+                "iterations": 12,
+                "accepted_drafts": 4,
+                "accepted_drafts_per_iteration": 0.3333333333333333,
+                "full_depth_iterations": 4,
+                "zero_overhead_multiplier": 1.3333333333333333,
+                "projection": {
+                  "zero_overhead_tps": 133.33333333333331,
+                  "optimistic_same_draft_cost_tps": 108.82516238518869,
+                  "serial_per_draft_token_tps": 108.82516238518869,
+                  "max_draft_ms_per_iteration_for_target": null,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": null,
+                  "required_same_cost_cut_fraction": null,
+                  "required_serial_cost_cut_ms": null,
+                  "required_serial_cost_cut_fraction": null
+                }
+              },
+              "depth2": {
+                "events": 16,
+                "iterations": 11,
+                "accepted_drafts": 5,
+                "accepted_drafts_per_iteration": 0.45454545454545453,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 1.4545454545454546,
+                "projection": {
+                  "zero_overhead_tps": 145.45454545454547,
+                  "optimistic_same_draft_cost_tps": 118.7183589656604,
+                  "serial_per_draft_token_tps": 100.28486867767516,
+                  "max_draft_ms_per_iteration_for_target": null,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": null,
+                  "required_same_cost_cut_fraction": null,
+                  "required_serial_cost_cut_ms": null,
+                  "required_serial_cost_cut_fraction": null
+                }
+              },
+              "depth4": {
+                "events": 16,
+                "iterations": 11,
+                "accepted_drafts": 5,
+                "accepted_drafts_per_iteration": 0.45454545454545453,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 1.4545454545454546,
+                "projection": {
+                  "zero_overhead_tps": 145.45454545454547,
+                  "optimistic_same_draft_cost_tps": 118.7183589656604,
+                  "serial_per_draft_token_tps": 76.52170232475335,
+                  "max_draft_ms_per_iteration_for_target": null,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": null,
+                  "required_same_cost_cut_fraction": null,
+                  "required_serial_cost_cut_ms": null,
+                  "required_serial_cost_cut_fraction": null
+                }
+              },
+              "depth8": {
+                "events": 16,
+                "iterations": 11,
+                "accepted_drafts": 5,
+                "accepted_drafts_per_iteration": 0.45454545454545453,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 1.4545454545454546,
+                "projection": {
+                  "zero_overhead_tps": 145.45454545454547,
+                  "optimistic_same_draft_cost_tps": 118.7183589656604,
+                  "serial_per_draft_token_tps": 51.91737024529523,
+                  "max_draft_ms_per_iteration_for_target": null,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": null,
+                  "required_same_cost_cut_fraction": null,
+                  "required_serial_cost_cut_ms": null,
+                  "required_serial_cost_cut_fraction": null
+                }
+              }
+            }
+          },
+          "top2": {
+            "events": 16,
+            "covered": 7,
+            "coverage": 0.4375,
+            "by_depth": {
+              "depth1": {
+                "events": 16,
+                "iterations": 11,
+                "accepted_drafts": 5,
+                "accepted_drafts_per_iteration": 0.45454545454545453,
+                "full_depth_iterations": 5,
+                "zero_overhead_multiplier": 1.4545454545454546,
+                "projection": {
+                  "zero_overhead_tps": 145.45454545454547,
+                  "optimistic_same_draft_cost_tps": 118.7183589656604,
+                  "serial_per_draft_token_tps": 118.7183589656604,
+                  "max_draft_ms_per_iteration_for_target": null,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": null,
+                  "required_same_cost_cut_fraction": null,
+                  "required_serial_cost_cut_ms": null,
+                  "required_serial_cost_cut_fraction": null
+                }
+              },
+              "depth2": {
+                "events": 16,
+                "iterations": 10,
+                "accepted_drafts": 6,
+                "accepted_drafts_per_iteration": 0.6,
+                "full_depth_iterations": 2,
+                "zero_overhead_multiplier": 1.6,
+                "projection": {
+                  "zero_overhead_tps": 160.0,
+                  "optimistic_same_draft_cost_tps": 130.59019486222644,
+                  "serial_per_draft_token_tps": 110.31335554544269,
+                  "max_draft_ms_per_iteration_for_target": 0.3225806451612901,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 1.9294877562069064,
+                  "required_same_cost_cut_fraction": 0.8567625011010709,
+                  "required_serial_cost_cut_ms": 4.181556157575103,
+                  "required_serial_cost_cut_fraction": 0.9283812505505354
+                }
+              },
+              "depth4": {
+                "events": 16,
+                "iterations": 10,
+                "accepted_drafts": 6,
+                "accepted_drafts_per_iteration": 0.6,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 1.6,
+                "projection": {
+                  "zero_overhead_tps": 160.0,
+                  "optimistic_same_draft_cost_tps": 130.59019486222644,
+                  "serial_per_draft_token_tps": 84.17387255722868,
+                  "max_draft_ms_per_iteration_for_target": 0.3225806451612901,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 1.9294877562069064,
+                  "required_same_cost_cut_fraction": 0.8567625011010709,
+                  "required_serial_cost_cut_ms": 8.685692960311496,
+                  "required_serial_cost_cut_fraction": 0.9641906252752678
+                }
+              },
+              "depth8": {
+                "events": 16,
+                "iterations": 9,
+                "accepted_drafts": 7,
+                "accepted_drafts_per_iteration": 0.7777777777777778,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 1.7777777777777777,
+                "projection": {
+                  "zero_overhead_tps": 177.77777777777777,
+                  "optimistic_same_draft_cost_tps": 145.10021651358494,
+                  "serial_per_draft_token_tps": 63.454563633138605,
+                  "max_draft_ms_per_iteration_for_target": 1.4695340501792113,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.7825343511889851,
+                  "required_same_cost_cut_fraction": 0.34747361612710026,
+                  "required_serial_cost_cut_ms": 16.54701316076636,
+                  "required_serial_cost_cut_fraction": 0.9184342020158877
+                }
+              }
+            }
+          },
+          "top4": {
+            "events": 16,
+            "covered": 7,
+            "coverage": 0.4375,
+            "by_depth": {
+              "depth1": {
+                "events": 16,
+                "iterations": 11,
+                "accepted_drafts": 5,
+                "accepted_drafts_per_iteration": 0.45454545454545453,
+                "full_depth_iterations": 5,
+                "zero_overhead_multiplier": 1.4545454545454546,
+                "projection": {
+                  "zero_overhead_tps": 145.45454545454547,
+                  "optimistic_same_draft_cost_tps": 118.7183589656604,
+                  "serial_per_draft_token_tps": 118.7183589656604,
+                  "max_draft_ms_per_iteration_for_target": null,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": null,
+                  "required_same_cost_cut_fraction": null,
+                  "required_serial_cost_cut_ms": null,
+                  "required_serial_cost_cut_fraction": null
+                }
+              },
+              "depth2": {
+                "events": 16,
+                "iterations": 10,
+                "accepted_drafts": 6,
+                "accepted_drafts_per_iteration": 0.6,
+                "full_depth_iterations": 2,
+                "zero_overhead_multiplier": 1.6,
+                "projection": {
+                  "zero_overhead_tps": 160.0,
+                  "optimistic_same_draft_cost_tps": 130.59019486222644,
+                  "serial_per_draft_token_tps": 110.31335554544269,
+                  "max_draft_ms_per_iteration_for_target": 0.3225806451612901,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 1.9294877562069064,
+                  "required_same_cost_cut_fraction": 0.8567625011010709,
+                  "required_serial_cost_cut_ms": 4.181556157575103,
+                  "required_serial_cost_cut_fraction": 0.9283812505505354
+                }
+              },
+              "depth4": {
+                "events": 16,
+                "iterations": 10,
+                "accepted_drafts": 6,
+                "accepted_drafts_per_iteration": 0.6,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 1.6,
+                "projection": {
+                  "zero_overhead_tps": 160.0,
+                  "optimistic_same_draft_cost_tps": 130.59019486222644,
+                  "serial_per_draft_token_tps": 84.17387255722868,
+                  "max_draft_ms_per_iteration_for_target": 0.3225806451612901,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 1.9294877562069064,
+                  "required_same_cost_cut_fraction": 0.8567625011010709,
+                  "required_serial_cost_cut_ms": 8.685692960311496,
+                  "required_serial_cost_cut_fraction": 0.9641906252752678
+                }
+              },
+              "depth8": {
+                "events": 16,
+                "iterations": 9,
+                "accepted_drafts": 7,
+                "accepted_drafts_per_iteration": 0.7777777777777778,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 1.7777777777777777,
+                "projection": {
+                  "zero_overhead_tps": 177.77777777777777,
+                  "optimistic_same_draft_cost_tps": 145.10021651358494,
+                  "serial_per_draft_token_tps": 63.454563633138605,
+                  "max_draft_ms_per_iteration_for_target": 1.4695340501792113,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.7825343511889851,
+                  "required_same_cost_cut_fraction": 0.34747361612710026,
+                  "required_serial_cost_cut_ms": 16.54701316076636,
+                  "required_serial_cost_cut_fraction": 0.9184342020158877
+                }
+              }
+            }
+          },
+          "top8": {
+            "events": 16,
+            "covered": 8,
+            "coverage": 0.5,
+            "by_depth": {
+              "depth1": {
+                "events": 16,
+                "iterations": 11,
+                "accepted_drafts": 5,
+                "accepted_drafts_per_iteration": 0.45454545454545453,
+                "full_depth_iterations": 5,
+                "zero_overhead_multiplier": 1.4545454545454546,
+                "projection": {
+                  "zero_overhead_tps": 145.45454545454547,
+                  "optimistic_same_draft_cost_tps": 118.7183589656604,
+                  "serial_per_draft_token_tps": 118.7183589656604,
+                  "max_draft_ms_per_iteration_for_target": null,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": null,
+                  "required_same_cost_cut_fraction": null,
+                  "required_serial_cost_cut_ms": null,
+                  "required_serial_cost_cut_fraction": null
+                }
+              },
+              "depth2": {
+                "events": 16,
+                "iterations": 10,
+                "accepted_drafts": 6,
+                "accepted_drafts_per_iteration": 0.6,
+                "full_depth_iterations": 2,
+                "zero_overhead_multiplier": 1.6,
+                "projection": {
+                  "zero_overhead_tps": 160.0,
+                  "optimistic_same_draft_cost_tps": 130.59019486222644,
+                  "serial_per_draft_token_tps": 110.31335554544269,
+                  "max_draft_ms_per_iteration_for_target": 0.3225806451612901,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 1.9294877562069064,
+                  "required_same_cost_cut_fraction": 0.8567625011010709,
+                  "required_serial_cost_cut_ms": 4.181556157575103,
+                  "required_serial_cost_cut_fraction": 0.9283812505505354
+                }
+              },
+              "depth4": {
+                "events": 16,
+                "iterations": 9,
+                "accepted_drafts": 7,
+                "accepted_drafts_per_iteration": 0.7777777777777778,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 1.7777777777777777,
+                "projection": {
+                  "zero_overhead_tps": 177.77777777777777,
+                  "optimistic_same_draft_cost_tps": 145.10021651358494,
+                  "serial_per_draft_token_tps": 93.52652506358743,
+                  "max_draft_ms_per_iteration_for_target": 1.4695340501792113,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.7825343511889851,
+                  "required_same_cost_cut_fraction": 0.34747361612710026,
+                  "required_serial_cost_cut_ms": 7.538739555293574,
+                  "required_serial_cost_cut_fraction": 0.8368684040317751
+                }
+              },
+              "depth8": {
+                "events": 16,
+                "iterations": 8,
+                "accepted_drafts": 8,
+                "accepted_drafts_per_iteration": 1.0,
+                "full_depth_iterations": 0,
+                "zero_overhead_multiplier": 2.0,
+                "projection": {
+                  "zero_overhead_tps": 200.0,
+                  "optimistic_same_draft_cost_tps": 163.23774357778305,
+                  "serial_per_draft_token_tps": 71.38638408728094,
+                  "max_draft_ms_per_iteration_for_target": 2.9032258064516125,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 15.11332140449396,
+                  "required_serial_cost_cut_fraction": 0.8388578137387047
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "heldout_repair_json",
+        "events": 15,
+        "recommendation": "ENABLE_TOP1_DEPTH2: current one-draft-cost iteration clears target in the upper-bound trace.",
+        "metrics": {
+          "top1": {
+            "events": 15,
+            "covered": 13,
+            "coverage": 0.8666666666666667,
+            "by_depth": {
+              "depth1": {
+                "events": 15,
+                "iterations": 8,
+                "accepted_drafts": 7,
+                "accepted_drafts_per_iteration": 0.875,
+                "full_depth_iterations": 7,
+                "zero_overhead_multiplier": 1.875,
+                "projection": {
+                  "zero_overhead_tps": 187.5,
+                  "optimistic_same_draft_cost_tps": 153.0353846041716,
+                  "serial_per_draft_token_tps": 153.0353846041716,
+                  "max_draft_ms_per_iteration_for_target": 2.0967741935483866,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.15529420781980985,
+                  "required_same_cost_cut_fraction": 0.0689562571569603,
+                  "required_serial_cost_cut_ms": 0.15529420781980985,
+                  "required_serial_cost_cut_fraction": 0.0689562571569603
+                }
+              },
+              "depth2": {
+                "events": 15,
+                "iterations": 5,
+                "accepted_drafts": 10,
+                "accepted_drafts_per_iteration": 2.0,
+                "full_depth_iterations": 5,
+                "zero_overhead_multiplier": 3.0,
+                "projection": {
+                  "zero_overhead_tps": 300.0,
+                  "optimistic_same_draft_cost_tps": 244.8566153666746,
+                  "serial_per_draft_token_tps": 206.83754164770505,
+                  "max_draft_ms_per_iteration_for_target": 9.35483870967742,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              },
+              "depth4": {
+                "events": 15,
+                "iterations": 4,
+                "accepted_drafts": 11,
+                "accepted_drafts_per_iteration": 2.75,
+                "full_depth_iterations": 2,
+                "zero_overhead_multiplier": 3.75,
+                "projection": {
+                  "zero_overhead_tps": 375.0,
+                  "optimistic_same_draft_cost_tps": 306.0707692083432,
+                  "serial_per_draft_token_tps": 197.28251380600472,
+                  "max_draft_ms_per_iteration_for_target": 14.193548387096774,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              },
+              "depth8": {
+                "events": 15,
+                "iterations": 2,
+                "accepted_drafts": 13,
+                "accepted_drafts_per_iteration": 6.5,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 7.5,
+                "projection": {
+                  "zero_overhead_tps": 750.0,
+                  "optimistic_same_draft_cost_tps": 612.1415384166864,
+                  "serial_per_draft_token_tps": 267.69894032730355,
+                  "max_draft_ms_per_iteration_for_target": 38.387096774193544,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              }
+            }
+          },
+          "top2": {
+            "events": 15,
+            "covered": 13,
+            "coverage": 0.8666666666666667,
+            "by_depth": {
+              "depth1": {
+                "events": 15,
+                "iterations": 8,
+                "accepted_drafts": 7,
+                "accepted_drafts_per_iteration": 0.875,
+                "full_depth_iterations": 7,
+                "zero_overhead_multiplier": 1.875,
+                "projection": {
+                  "zero_overhead_tps": 187.5,
+                  "optimistic_same_draft_cost_tps": 153.0353846041716,
+                  "serial_per_draft_token_tps": 153.0353846041716,
+                  "max_draft_ms_per_iteration_for_target": 2.0967741935483866,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.15529420781980985,
+                  "required_same_cost_cut_fraction": 0.0689562571569603,
+                  "required_serial_cost_cut_ms": 0.15529420781980985,
+                  "required_serial_cost_cut_fraction": 0.0689562571569603
+                }
+              },
+              "depth2": {
+                "events": 15,
+                "iterations": 5,
+                "accepted_drafts": 10,
+                "accepted_drafts_per_iteration": 2.0,
+                "full_depth_iterations": 5,
+                "zero_overhead_multiplier": 3.0,
+                "projection": {
+                  "zero_overhead_tps": 300.0,
+                  "optimistic_same_draft_cost_tps": 244.8566153666746,
+                  "serial_per_draft_token_tps": 206.83754164770505,
+                  "max_draft_ms_per_iteration_for_target": 9.35483870967742,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              },
+              "depth4": {
+                "events": 15,
+                "iterations": 4,
+                "accepted_drafts": 11,
+                "accepted_drafts_per_iteration": 2.75,
+                "full_depth_iterations": 2,
+                "zero_overhead_multiplier": 3.75,
+                "projection": {
+                  "zero_overhead_tps": 375.0,
+                  "optimistic_same_draft_cost_tps": 306.0707692083432,
+                  "serial_per_draft_token_tps": 197.28251380600472,
+                  "max_draft_ms_per_iteration_for_target": 14.193548387096774,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              },
+              "depth8": {
+                "events": 15,
+                "iterations": 2,
+                "accepted_drafts": 13,
+                "accepted_drafts_per_iteration": 6.5,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 7.5,
+                "projection": {
+                  "zero_overhead_tps": 750.0,
+                  "optimistic_same_draft_cost_tps": 612.1415384166864,
+                  "serial_per_draft_token_tps": 267.69894032730355,
+                  "max_draft_ms_per_iteration_for_target": 38.387096774193544,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              }
+            }
+          },
+          "top4": {
+            "events": 15,
+            "covered": 13,
+            "coverage": 0.8666666666666667,
+            "by_depth": {
+              "depth1": {
+                "events": 15,
+                "iterations": 8,
+                "accepted_drafts": 7,
+                "accepted_drafts_per_iteration": 0.875,
+                "full_depth_iterations": 7,
+                "zero_overhead_multiplier": 1.875,
+                "projection": {
+                  "zero_overhead_tps": 187.5,
+                  "optimistic_same_draft_cost_tps": 153.0353846041716,
+                  "serial_per_draft_token_tps": 153.0353846041716,
+                  "max_draft_ms_per_iteration_for_target": 2.0967741935483866,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.15529420781980985,
+                  "required_same_cost_cut_fraction": 0.0689562571569603,
+                  "required_serial_cost_cut_ms": 0.15529420781980985,
+                  "required_serial_cost_cut_fraction": 0.0689562571569603
+                }
+              },
+              "depth2": {
+                "events": 15,
+                "iterations": 5,
+                "accepted_drafts": 10,
+                "accepted_drafts_per_iteration": 2.0,
+                "full_depth_iterations": 5,
+                "zero_overhead_multiplier": 3.0,
+                "projection": {
+                  "zero_overhead_tps": 300.0,
+                  "optimistic_same_draft_cost_tps": 244.8566153666746,
+                  "serial_per_draft_token_tps": 206.83754164770505,
+                  "max_draft_ms_per_iteration_for_target": 9.35483870967742,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              },
+              "depth4": {
+                "events": 15,
+                "iterations": 4,
+                "accepted_drafts": 11,
+                "accepted_drafts_per_iteration": 2.75,
+                "full_depth_iterations": 2,
+                "zero_overhead_multiplier": 3.75,
+                "projection": {
+                  "zero_overhead_tps": 375.0,
+                  "optimistic_same_draft_cost_tps": 306.0707692083432,
+                  "serial_per_draft_token_tps": 197.28251380600472,
+                  "max_draft_ms_per_iteration_for_target": 14.193548387096774,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              },
+              "depth8": {
+                "events": 15,
+                "iterations": 2,
+                "accepted_drafts": 13,
+                "accepted_drafts_per_iteration": 6.5,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 7.5,
+                "projection": {
+                  "zero_overhead_tps": 750.0,
+                  "optimistic_same_draft_cost_tps": 612.1415384166864,
+                  "serial_per_draft_token_tps": 267.69894032730355,
+                  "max_draft_ms_per_iteration_for_target": 38.387096774193544,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              }
+            }
+          },
+          "top8": {
+            "events": 15,
+            "covered": 13,
+            "coverage": 0.8666666666666667,
+            "by_depth": {
+              "depth1": {
+                "events": 15,
+                "iterations": 8,
+                "accepted_drafts": 7,
+                "accepted_drafts_per_iteration": 0.875,
+                "full_depth_iterations": 7,
+                "zero_overhead_multiplier": 1.875,
+                "projection": {
+                  "zero_overhead_tps": 187.5,
+                  "optimistic_same_draft_cost_tps": 153.0353846041716,
+                  "serial_per_draft_token_tps": 153.0353846041716,
+                  "max_draft_ms_per_iteration_for_target": 2.0967741935483866,
+                  "same_cost_meets_target": false,
+                  "serial_per_draft_token_meets_target": false,
+                  "required_same_cost_cut_ms": 0.15529420781980985,
+                  "required_same_cost_cut_fraction": 0.0689562571569603,
+                  "required_serial_cost_cut_ms": 0.15529420781980985,
+                  "required_serial_cost_cut_fraction": 0.0689562571569603
+                }
+              },
+              "depth2": {
+                "events": 15,
+                "iterations": 5,
+                "accepted_drafts": 10,
+                "accepted_drafts_per_iteration": 2.0,
+                "full_depth_iterations": 5,
+                "zero_overhead_multiplier": 3.0,
+                "projection": {
+                  "zero_overhead_tps": 300.0,
+                  "optimistic_same_draft_cost_tps": 244.8566153666746,
+                  "serial_per_draft_token_tps": 206.83754164770505,
+                  "max_draft_ms_per_iteration_for_target": 9.35483870967742,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              },
+              "depth4": {
+                "events": 15,
+                "iterations": 4,
+                "accepted_drafts": 11,
+                "accepted_drafts_per_iteration": 2.75,
+                "full_depth_iterations": 2,
+                "zero_overhead_multiplier": 3.75,
+                "projection": {
+                  "zero_overhead_tps": 375.0,
+                  "optimistic_same_draft_cost_tps": 306.0707692083432,
+                  "serial_per_draft_token_tps": 197.28251380600472,
+                  "max_draft_ms_per_iteration_for_target": 14.193548387096774,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              },
+              "depth8": {
+                "events": 15,
+                "iterations": 2,
+                "accepted_drafts": 13,
+                "accepted_drafts_per_iteration": 6.5,
+                "full_depth_iterations": 1,
+                "zero_overhead_multiplier": 7.5,
+                "projection": {
+                  "zero_overhead_tps": 750.0,
+                  "optimistic_same_draft_cost_tps": 612.1415384166864,
+                  "serial_per_draft_token_tps": 267.69894032730355,
+                  "max_draft_ms_per_iteration_for_target": 38.387096774193544,
+                  "same_cost_meets_target": true,
+                  "serial_per_draft_token_meets_target": true,
+                  "required_same_cost_cut_ms": 0.0,
+                  "required_same_cost_cut_fraction": 0.0,
+                  "required_serial_cost_cut_ms": 0.0,
+                  "required_serial_cost_cut_fraction": 0.0
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+}
