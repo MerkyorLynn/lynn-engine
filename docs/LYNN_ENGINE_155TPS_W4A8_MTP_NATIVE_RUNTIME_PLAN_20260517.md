@@ -273,6 +273,16 @@ runtime-native case collector that records hidden states/labels under the exact
 R6000 env, or a differentiable approximation of the native FP4 lm_head so the
 training objective no longer optimizes the wrong projection boundary.
 
+v30 runs that runtime-native collection path under the R6000 env. It collects
+different training/eval cases (`93` train cases, proxy `66/121 -> 67/121`) but
+native `p107` again stays flat at `62/121`. So hidden collection alone is not
+enough.
+
+v31 adds a chunked fake-native-FP4 lm_head training surrogate. It avoids the
+initial 15 GiB temporary OOM by quantizing the lm_head in row chunks, but this
+surrogate also fails to add accept (`64/121` before and after). Treat
+fake-native lm_head as a closed first attempt, not the next promotion path.
+
 A100 v19 uses the new targeted v4 calibration set and `fc_norms` from v18.
 Saved-sidecar eval confirms another real but narrow high:
 `60/116 = 51.72%`. The gain lands on step9 (`1/8 -> 2/8`); step0 remains

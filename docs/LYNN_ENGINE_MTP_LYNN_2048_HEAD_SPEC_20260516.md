@@ -340,6 +340,15 @@ native-label v29 proxy eval: 67/121 -> 68/121
 
 reports/mtp/r6000_p107_mtp_shadow_v29_native_label_w4a8_v2_20260517_160659.json
 R6000 v29 with native FP4 lm_head: 62/121 = 51.24%
+
+reports/mtp/r6000_mtp_iterative_train_w4a8_v2_v29_runtime_native_v30_20260517_160917.json
+runtime-env collection v30 proxy eval: 66/121 -> 67/121
+
+reports/mtp/r6000_p107_mtp_shadow_v30_runtime_native_w4a8_v2_20260517_161038.json
+R6000 v30 with native FP4 lm_head: 62/121 = 51.24%
+
+reports/mtp/r6000_mtp_iterative_train_w4a8_v2_v29_fake_native_v31_20260517_161411.json
+fake-native-FP4 lm_head v31 proxy eval: 64/121 -> 64/121
 ```
 
 This is a GREEN-CREDIT serving-shadow result, not a final TPS claim. It proves
@@ -359,6 +368,13 @@ native-label/BF16-backprop proxy is saturated. The next sidecar training loop
 must either collect full runtime-native hidden states/labels or train against a
 native-lm-head-aware target while retaining a BF16 differentiable projection for
 backprop.
+
+v30 and v31 test both ideas in minimal form. Runtime-env collection changes the
+case distribution but does not move native accept. The first fake-native-FP4
+lm_head surrogate is memory-safe after row chunking, but it lowers loss without
+adding accept. The next useful route is therefore not another low-LR replay; it
+needs either broader native-labeled calibration coverage or a more faithful
+native lm_head surrogate validated by top-k parity against `_scaled_mm`.
 
 Report:
 
