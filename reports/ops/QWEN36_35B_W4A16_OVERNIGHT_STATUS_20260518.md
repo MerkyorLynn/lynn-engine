@@ -208,6 +208,34 @@ Copied reports:
 - `reports/qwen36_35b/r6000_qwen36_w4a16_rmsgated_p10c_linear_layer0_20260518_042119.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_rmsgated_p10c_linear_layer28_20260518_042119.json`
 
+### GQA Recurrent Promotion
+
+`LYNN_LINEAR_ATTN_GQA_RECURRENT=1` is now part of the R6000 W4A16 fast service
+profile. It preserves the Triton recurrent path but avoids materializing the
+`q/k` repeat for grouped-query linear attention.
+
+| Probe | Result |
+|---|---:|
+| P26 linear graph blocks | 6.45 -> 6.33 ms/token |
+| P26 full-attention layers | 3.09 -> 3.06 ms/token |
+| P26 decode TPS | 99.18 -> 100.80 |
+| P25 128-token wall / decode TPS | 60.53 / 102.13 |
+| P25 256-token wall / decode TPS | 79.27 / 103.16 |
+| P25 512-token wall / decode TPS | 85.75 / 102.90 |
+| Structured OpenAI gate | GREEN, 14/14 format-clean |
+| Structured gate decode TPS | mean 103.17, min 100.70 |
+
+This is a small but quality-safe gain. It does not change the 155 TPS gap shape:
+linear blocks still dominate, so the next meaningful speed work remains fused
+linear/MoE boundaries rather than service-loop rewrites.
+
+Copied reports:
+
+- `reports/qwen36_35b/r6000_qwen36_w4a16_gqa_recurrent_p26_phase_20260518_052206.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_gqa_recurrent_p28_hybrid_block_20260518_052206.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_gqa_recurrent_p25_server_20260518_052455.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_gqa_recurrent_openai_structured_gate_20260518_052455.json`
+
 Negative probes from the same loop:
 
 - Router Triton top-k is not a full-path win: sampled full router regressed from
@@ -388,8 +416,8 @@ References:
 
 1. Stop open-ended A100 quality repair for 27B/W4A8 unless a concrete 35B
    W4A16 blocker appears.
-2. Make graph+in-place the next R6000 speed baseline candidate and run a broader
-   structured/tool-call gate before default serving promotion.
+2. Treat graph+in-place plus gate/up fastdecode, triton-pair QK/RoPE, triton
+   gated RMSNorm, and GQA recurrent as the current R6000 W4A16 serving baseline.
 3. Push native-kernel work from 82 decode TPS toward the 155 target: packed
    prefill/decode parity, MoE grouped kernel, and Python serving overhead.
 4. Keep MTP as a trained/calibrated sidecar project, not default promote credit.

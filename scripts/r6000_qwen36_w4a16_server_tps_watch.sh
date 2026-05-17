@@ -90,9 +90,11 @@ export LYNN_PACKED_SHARED_EXPERT="${LYNN_PACKED_SHARED_EXPERT:-0}"
 export LYNN_NATIVE_FP4_LM_HEAD="${LYNN_NATIVE_FP4_LM_HEAD:-1}"
 export LYNN_LINEAR_ATTN_INPROJ_FUSED="${LYNN_LINEAR_ATTN_INPROJ_FUSED:-1}"
 export LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4="${LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4:-1}"
+export LYNN_LINEAR_ATTN_GQA_RECURRENT="${LYNN_LINEAR_ATTN_GQA_RECURRENT:-1}"
 # Current promoted fast profile for official Qwen3.6-35B-A3B W4A16. The
-# graph+in-place path passed the 2026-05-18 structured OpenAI service gate; keep
-# env overrides available for quality backstops and ablation runs.
+# graph+in-place path plus GQA recurrent passed the 2026-05-18 structured
+# OpenAI service gate; keep env overrides available for quality backstops and
+# ablation runs.
 export LYNN_LINEAR_BLOCK_GRAPH="${LYNN_LINEAR_BLOCK_GRAPH:-1}"
 export LYNN_LINEAR_BLOCK_GRAPH_REUSE="${LYNN_LINEAR_BLOCK_GRAPH_REUSE:-1}"
 export LYNN_LINEAR_BLOCK_GRAPH_PREWARM="${LYNN_LINEAR_BLOCK_GRAPH_PREWARM:-1}"
