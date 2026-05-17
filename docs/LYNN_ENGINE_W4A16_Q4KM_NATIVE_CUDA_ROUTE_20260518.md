@@ -118,3 +118,14 @@ R6000 native-kernel readiness checks now pass for this route:
 This means the native CUDA work should target boundary fusion first: remove
 separate routed-expert launches and intermediate tensors before spending time on
 another scalar tile sweep.
+
+Do not promote the old scalar/native tile references directly. They have real
+speed signal but fail generation:
+
+| Candidate | Median Decode TPS | Speedup | Gate |
+|---|---:|---:|---|
+| `LYNN_NATIVE_DOWN_BACKEND=cuda_tile` | 108.58 | 1.07x | RED, 0/3 greedy IDs match |
+| `LYNN_NATIVE_ACTIVE_MOE_BACKEND=grouped_per16_nonatomic` | 124.30 | 1.23x | RED, 0/3 greedy IDs match |
+
+Both emitted repeated exclamation marks in P37. The useful lesson is the target
+shape and speed budget, not the numeric path itself.

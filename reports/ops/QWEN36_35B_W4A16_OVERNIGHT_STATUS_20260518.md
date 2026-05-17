@@ -188,12 +188,28 @@ The individual gate/up and down kernels are already small enough that more tile
 sweeps are low ROI unless they remove launches, intermediate tensors, or
 separate scheduling boundaries.
 
+Two tempting native tile runtime candidates are explicitly blocked by generation
+quality:
+
+| Candidate | Median Decode TPS | Speedup | Gate |
+|---|---:|---:|---|
+| `LYNN_NATIVE_DOWN_BACKEND=cuda_tile` | 108.58 | 1.07x | RED, 0/3 greedy IDs match |
+| `LYNN_NATIVE_ACTIVE_MOE_BACKEND=grouped_per16_nonatomic` | 124.30 | 1.23x | RED, 0/3 greedy IDs match |
+
+Both candidates collapse the three P37 prompts into repeated exclamation marks.
+Keep them as kernel signals only. The production path needs a fused kernel that
+preserves the Triton numerical contract, not a direct promotion of the old
+scalar/native tile references.
+
 Copied reports:
 
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p76_cutlass_cute_20260518_035340.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p70_grouped_fused_guard_20260518_035519.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p38_moe_multilayer_fastdecode_20260518_035645.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p39_active_moe_inner_fastdecode_20260518_035645.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p74_active_moe_budget_fastdecode_20260518_040044.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p37_down_cuda_tile_gate_20260518_040259.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p37_grouped_per16_nonatomic_gate_20260518_040522.json`
 
 ## Speed Profile
 

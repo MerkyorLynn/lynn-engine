@@ -55,6 +55,8 @@ BASE_ENV = {
     "LYNN_PACKED_DECODE_PREPARE_NATIVE": "0",
     "LYNN_PACKED_SHARED_EXPERT": "0",
     "LYNN_NATIVE_ACTIVE_MOE_BACKEND": "triton",
+    "LYNN_NATIVE_GATEUP_BACKEND": "triton_fast_decode",
+    "LYNN_NATIVE_DOWN_BACKEND": "triton",
 }
 
 
