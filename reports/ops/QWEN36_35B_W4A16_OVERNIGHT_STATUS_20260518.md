@@ -272,6 +272,20 @@ Python service-loop rewrite. Toolchain and ABI gates are now checked on R6000:
 | P39 down | 0.026 ms/layer sampled mean |
 | P39 shared BF16 | 0.060 ms/layer sampled mean |
 
+P97 interval decomposition on layer 28 shows there is real native-down speed in
+the kernel island, but the clean contract is currently in the quantized
+activation reference domain, not the W4A16 BF16-activation serving contract:
+
+| Variant | Gate ms | Down ms | Total ms | Speedup |
+|---|---:|---:|---:|---:|
+| Triton gate/up + Triton down | 0.0569 | 0.0328 | 0.0901 | 1.00x |
+| P93 split16 gate/up + Triton down | 0.0582 | 0.0266 | 0.0848 | 1.06x |
+| P93 split16 gate/up + native down tile1 | 0.0578 | 0.0225 | 0.0803 | 1.12x |
+
+That confirms the next native kernel should borrow the down-tile lesson while
+preserving the W4A16 numerical contract. Directly promoting the quantized
+activation composition would repeat the W4A8 quality failure mode.
+
 This confirms the remaining MoE opportunity is mostly boundary fusion: one
 kernel boundary for routed active experts and, later, a shared-expert fusion.
 The individual gate/up and down kernels are already small enough that more tile
@@ -298,6 +312,7 @@ Copied reports:
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p38_moe_multilayer_fastdecode_20260518_035645.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p39_active_moe_inner_fastdecode_20260518_035645.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p74_active_moe_budget_fastdecode_20260518_040044.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p97_active_moe_interval_layer28_20260518_053300.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p37_down_cuda_tile_gate_20260518_040259.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p37_grouped_per16_nonatomic_gate_20260518_040522.json`
 
