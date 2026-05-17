@@ -232,12 +232,28 @@ Follow-up P10-C still shows the fused native FP4 in-proj as the largest isolated
 linear-core segment at about 0.080 ms/layer, with recurrent and conv each around
 0.033-0.036 ms.
 
+### Fast Dispatch Pin
+
+P36 was rerun after the GQA recurrent promotion to make sure the runner-fixed
+decode dispatch remains quality-safe on the current baseline. It was exact on
+all 3 greedy prompts and gave a small median gain, so the server watch script
+now pins `LYNN_DECODE_FAST_DISPATCH=1` explicitly instead of relying only on the
+runner default.
+
+| Probe | Legacy dispatch | Fast dispatch |
+|---|---:|---:|
+| Exact greedy match | 3/3 | 3/3 |
+| Mean decode TPS | 100.65 | 101.52 |
+| Median decode TPS | 101.06 | 101.79 |
+| Median speedup | - | 1.007x |
+
 Copied reports:
 
 - `reports/qwen36_35b/r6000_qwen36_w4a16_gqa_recurrent_p26_phase_20260518_052206.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_gqa_recurrent_p28_hybrid_block_20260518_052206.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_gqa_recurrent_p25_server_20260518_052455.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_gqa_recurrent_openai_structured_gate_20260518_052455.json`
+- `reports/qwen36_35b/p36_fast_dispatch_gqa_20260518_072216.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_gqa_recurrent_p10c_linear_layer0_20260518_052949.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_gqa_recurrent_p10c_linear_layer28_20260518_052949.json`
 
