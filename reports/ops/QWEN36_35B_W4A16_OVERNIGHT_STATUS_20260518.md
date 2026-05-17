@@ -184,6 +184,30 @@ Copied reports:
 - `reports/qwen36_35b/r6000_qwen36_w4a16_fastdecode_tritonpair_rmsgated_p25_20260518_041200.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_fastdecode_tritonpair_rmsgated_structured_gate_20260518_041200.json`
 
+### Linear-Attention Core After Gated RMSNorm
+
+P10-C was rerun after the rmsgated promotion to identify the next safe linear
+block target:
+
+| Segment | Layer 0 | Layer 28 |
+|---|---:|---:|
+| Fused native FP4 in-proj | 0.074 ms | 0.071 ms |
+| Recurrent fused prepare | 0.036 ms | 0.036 ms |
+| Conv update | 0.032 ms | 0.032 ms |
+| QKV split/repeat | 0.026 ms | 0.026 ms |
+| Gated RMSNorm | 0.020 ms | 0.020 ms |
+| Out projection BF16 | 0.014 ms | 0.016 ms |
+| Full recomposed core | 0.332 ms | 0.320 ms |
+
+This confirms the remaining linear-block work is not a single easy env switch.
+The next safe target is a real fused linear-attention core boundary, with the
+native FP4 in-proj still the largest isolated segment.
+
+Copied reports:
+
+- `reports/qwen36_35b/r6000_qwen36_w4a16_rmsgated_p10c_linear_layer0_20260518_042119.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_rmsgated_p10c_linear_layer28_20260518_042119.json`
+
 Negative probes from the same loop:
 
 - Router Triton top-k is not a full-path win: sampled full router regressed from
