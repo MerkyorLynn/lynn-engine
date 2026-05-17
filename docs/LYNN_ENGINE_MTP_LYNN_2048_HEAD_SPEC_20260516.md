@@ -473,6 +473,14 @@ next useful experiments are no longer more tiny rank-flip continuations; use a
 new guard-aware sidecar dataset or a runtime multi-candidate/reranker path that
 can exploit the raw-route top8 ceiling.
 
+P109 checks the cheapest possible reranker before any C++ work: switch from
+top1 to top2 when the MTP top1 margin is below a threshold. On the raw v34 P107
+trace, the best threshold is `0.0`, i.e. never switch, and accept remains
+`65/121`. On the guarded v4 trace, the best margin switch moves only
+`54/271 -> 55/271`. So a margin-only reranker is not worth implementing; a
+useful multi-candidate path needs a trained reranker or a new sidecar that
+changes the top1 ordering directly.
+
 Report:
 
 ```text

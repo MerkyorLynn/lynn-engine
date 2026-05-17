@@ -374,6 +374,12 @@ guard-forced test to `fc_mtp_layer`; it also leaves heldout flat at `22/172`
 and worsens eval loss, so the tiny rank-flip continuation branch is closed for
 guarded structured routes.
 
+P109 tests the lowest-cost reranker idea using only MTP top1 margin. It does
+not justify runtime work: on raw v34, the best threshold never switches and
+stays `65/121`; on the guarded v4 trace, the best switch only reaches
+`55/271`. If we invest in multi-candidate decode, it needs a trained reranker
+or a refreshed guard-aware sidecar, not a hand-tuned margin rule.
+
 The fc-only train smoke confirms gradient wiring:
 
 | Field | Value |
