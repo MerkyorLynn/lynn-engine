@@ -1,0 +1,139 @@
+{
+  "schema_version": "lynn-p107-mtp-shadow-serving-credit-v1",
+  "decision": "AMBER: MTP shadow accept is below serving-credit threshold.",
+  "model": "/root/autodl-tmp/models/lynn-27b-w4a8-nvfp4-v2",
+  "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-v33-fake-act-rankflip-v34-20260517_163912/mtp.safetensors",
+  "use_chat_template": false,
+  "force_prefix_from_spec": true,
+  "skip_forced_prefix_events": true,
+  "mtp_layer_moe": "decode_slot_sorted",
+  "dtype": "bfloat16",
+  "max_new": 8,
+  "summary": {
+    "prompt_count": 1,
+    "events": 0,
+    "accepted": 0,
+    "accept_rate": null,
+    "skipped_forced_prefix_events": 0,
+    "mean_prompt_accept_rate": null,
+    "decode_tps": 12.883391336132622,
+    "draft_tps": null,
+    "mean_draft_seconds": null,
+    "max_one_token_speculative_multiplier": null,
+    "topk_ceiling": {}
+  },
+  "rows": [
+    {
+      "id": "guard_json_smoke",
+      "prompt": "Return one JSON object with keys city and unit for Berlin in metric units. No markdown.",
+      "forced_prefix": "{\n  \"",
+      "forced_prefix_report": {
+        "text": "{\n  \"",
+        "ids": [
+          90,
+          198,
+          220,
+          328
+        ],
+        "trace": [
+          {
+            "index": 0,
+            "raw_id": 271,
+            "raw_text": "\n\n",
+            "forced_id": 90,
+            "forced_text": "{",
+            "raw_matched": false
+          },
+          {
+            "index": 1,
+            "raw_id": 8656,
+            "raw_text": "city",
+            "forced_id": 198,
+            "forced_text": "\n",
+            "raw_matched": false
+          },
+          {
+            "index": 2,
+            "raw_id": 220,
+            "raw_text": " ",
+            "forced_id": 220,
+            "forced_text": " ",
+            "raw_matched": true
+          },
+          {
+            "index": 3,
+            "raw_id": 328,
+            "raw_text": " \"",
+            "forced_id": 328,
+            "forced_text": " \"",
+            "raw_matched": true
+          }
+        ],
+        "raw_all_matched": false
+      },
+      "completion_text": "{\n  \"city\": \"Berlin",
+      "new_ids": [
+        90,
+        198,
+        220,
+        328,
+        8656,
+        763,
+        328,
+        91149
+      ],
+      "timings": {
+        "prefill_seconds": 1.0812039375305176,
+        "decode_step_seconds": [
+          0.09718823432922363,
+          0.07437539100646973,
+          0.07453250885009766,
+          0.07445645332336426,
+          0.07433390617370605,
+          0.07442140579223633,
+          0.07402729988098145
+        ],
+        "decode_tps": 12.883391336132622,
+        "linear_block_graph_capture_seconds": null,
+        "linear_block_graph_reused": null,
+        "prefill_warmup_seconds": null,
+        "linear_block_graph_prewarm_seconds": null,
+        "native_fp4_lm_head_enabled": false,
+        "native_fp4_lm_head_prepare_seconds": null,
+        "decode_bf16_shadow_release": null,
+        "full_token_graph_slot_enabled": false,
+        "full_token_graph_slot_capture_seconds": [],
+        "full_token_graph_slot_replay_seconds": [],
+        "full_token_graph_slot_replay_tps": null,
+        "mtp_shadow": {
+          "loaded": true,
+          "enabled": false,
+          "disabled_reason": "format_guard_forced_prefix",
+          "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-v33-fake-act-rankflip-v34-20260517_163912/mtp.safetensors",
+          "load_seconds": 0.30133676528930664,
+          "events": 0,
+          "accepted": 0,
+          "accept_rate": null,
+          "max_one_token_speculative_multiplier": null,
+          "draft_step_seconds": [],
+          "draft_tps": null
+        }
+      },
+      "mtp_shadow": {
+        "loaded": true,
+        "enabled": false,
+        "disabled_reason": "format_guard_forced_prefix",
+        "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-v33-fake-act-rankflip-v34-20260517_163912/mtp.safetensors",
+        "load_seconds": 0.30133676528930664,
+        "events": 0,
+        "accepted": 0,
+        "accept_rate": null,
+        "max_one_token_speculative_multiplier": null,
+        "draft_step_seconds": [],
+        "draft_tps": null,
+        "trace": []
+      },
+      "stopped_reason": "max_new"
+    }
+  ]
+}

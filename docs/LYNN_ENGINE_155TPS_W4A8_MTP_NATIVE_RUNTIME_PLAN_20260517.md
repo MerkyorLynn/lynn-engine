@@ -617,13 +617,27 @@ instead of adding draft cost to the guarded path. That keeps v16 structured
 serving clean while the MTP sidecar distribution is still weak on forced-prefix
 states.
 
+R6000 smoke validates the guard on the real v2 package:
+
+```text
+reports/mtp/r6000_p107_mtp_guard_disable_smoke_v34_20260517_2052.json
+mtp_shadow.enabled: false
+disabled_reason: format_guard_forced_prefix
+events: 0
+```
+
 The v27 hard-miss A100 follow-up is also bounded. v42 trains `fc_norms` on a
 new semantic/code hard-miss v9 set and lowers mean eval loss
 `3.4300 -> 3.4246`, but saved reload stays tied with v27 at
 `70/116 = 60.34%`. v43 widens that same v9 set to `fc_mtp_layer`; it also
-reloads at `70/116` and slightly worsens mean eval loss (`3.4308`). Therefore
-v27 remains the A100 best sidecar and hard-miss semantic/code repair needs a
-new target construction, not more direct continuation on the same v9 cases.
+reloads at `70/116` and slightly worsens mean eval loss (`3.4308`). v44 turns
+that into an overfit canary with higher LR/more steps: train hard cases still
+stay `0/59`, while eval loss improves to `3.4006` without adding accept. v45
+changes the case construction instead, adding service-style forced prefixes and
+skipping those prefix events; it also reloads tied at `70/116`, with loss
+`3.4278`. Therefore v27 remains the A100 best sidecar and hard-miss
+semantic/code repair needs a different objective or label source, not more
+direct continuation on v9/v10 cases.
 
 If fc-only cannot clear 55-70%, unfreeze in this order:
 

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "python_slug_codeblock_guard_v10",
+    "prompt": "Only output a Python code block defining slugify(text: str) -> str. It must import re, lowercase text, replace every run of non-alphanumeric characters with a hyphen, strip hyphens, and return the slug.",
+    "forced_prefix": "```python\n"
+  },
+  {
+    "id": "python_slug_plain_import_guard_v10",
+    "prompt": "Only output Python code, no markdown. Import re and define slugify(text: str) -> str that lowercases, replaces non alphanumeric runs with hyphens, strips hyphens, and returns the result.",
+    "forced_prefix": "import re\n"
+  },
+  {
+    "id": "moe_router_chinese_guard_v10",
+    "prompt": "用一句中文短句说明 MoE router 的作用。必须以 router 开头,必须包含 动态分配、不同的专家,不要 bullet,不要英文。",
+    "forced_prefix": "router "
+  },
+  {
+    "id": "moe_router_expert_network_guard_v10",
+    "prompt": "用一句中文短句回答: MoE router 如何让输入进入专家网络。必须包含 输入、分配、专家网络,不要 bullet。",
+    "forced_prefix": "输入"
+  },
+  {
+    "id": "linear_attention_complexity_guard_v10",
+    "prompt": "用一句中文短句说明 linear attention 适合长上下文的原因。必须以 linear attention 开头,必须包含 计算复杂度、线性,不要 bullet。",
+    "forced_prefix": "linear attention "
+  },
+  {
+    "id": "linear_attention_kv_cache_guard_v10",
+    "prompt": "用一句中文短句说明 linear attention 如何节省长上下文开销。必须包含 KV cache、计算、线性增长,不要 bullet。",
+    "forced_prefix": "KV cache "
+  },
+  {
+    "id": "json_berlin_metric_guard_v10",
+    "prompt": "Return exactly one compact JSON object with keys city and unit for Berlin in metric units. No markdown, no explanation, no thinking text.",
+    "forced_prefix": "{\"city\""
+  },
+  {
+    "id": "json_status_ready_guard_v10",
+    "prompt": "Return exactly one compact JSON object with key status and value ready. No markdown, no explanation, no thinking text.",
+    "forced_prefix": "{\"status\""
+  },
+  {
+    "id": "repair_json_berlin_metric_guard_v10",
+    "prompt": "Repair this invalid JSON and output exactly one compact valid JSON object: {'city':'Berlin','unit':'metric',}. No markdown, no explanation.",
+    "forced_prefix": "{\"city\""
+  },
+  {
+    "id": "math_distance_stop_guard_v10",
+    "prompt": "Answer only with the distance and unit, then stop: a car travels 45 mph for 3 hours.",
+    "forced_prefix": "135"
+  },
+  {
+    "id": "json_translate_text_guard_v10",
+    "prompt": "Output exactly one compact JSON arguments object for translate_text with keys text and target_language, using text hello and target_language Japanese. No markdown.",
+    "forced_prefix": "{\"text\""
+  },
+  {
+    "id": "json_status_colon_guard_v10",
+    "prompt": "Return exactly this JSON shape with double quotes and no spaces: {\"status\":\"ready\"}. No markdown.",
+    "forced_prefix": "{\"status\""
+  }
+]

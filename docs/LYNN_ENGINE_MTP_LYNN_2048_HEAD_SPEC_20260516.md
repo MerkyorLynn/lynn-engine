@@ -719,7 +719,16 @@ MTP shadow verification is disabled for that request and the response metadata
 records `disabled_reason: format_guard_forced_prefix`. This avoids paying MTP
 draft cost on the structured path that P116 says is not ready.
 
-A100 v42/v43 tests whether the v27 hard-miss set can be fixed with direct
+The R6000 smoke report confirms the behavior with the v34 sidecar loaded:
+
+```text
+reports/mtp/r6000_p107_mtp_guard_disable_smoke_v34_20260517_2052.json
+mtp_shadow.enabled: false
+disabled_reason: format_guard_forced_prefix
+events: 0
+```
+
+A100 v42-v45 tests whether the v27 hard-miss set can be fixed with direct
 continuation:
 
 ```text
@@ -728,17 +737,27 @@ reports/mtp/a100_mtp_iterative_train_v27_v9_hardmiss_fcnorms_v42_20260517_2020.j
 reports/mtp/a100_mtp_saved_sidecar_eval_v27_v42_hardmiss_20260517_2023.json
 reports/mtp/a100_mtp_iterative_train_v27_v9_hardmiss_fcmtplayer_v43_20260517_2032.json
 reports/mtp/a100_mtp_saved_sidecar_eval_v27_v43_hardmiss_20260517_2035.json
+reports/mtp/a100_mtp_iterative_train_v27_v9_hardmiss_fcmtplayer_overfit_v44_20260517_2045.json
+reports/mtp/mtp_fc_calibration_prompts_v10_guarded_hardmiss_semantic_code.json
+reports/mtp/a100_mtp_iterative_train_v27_v10_guarded_hardmiss_fcnorms_v45_20260517_2058.json
+reports/mtp/a100_mtp_saved_sidecar_eval_v27_v45_guarded_hardmiss_20260517_2055.json
 v42 train hard cases: 0/59 -> 0/59
 v43 train hard cases: 0/59 -> 0/59
-saved eval: v27 70/116, v42 70/116, v43 70/116
+v44 train hard cases: 0/59 -> 0/59
+v45 guarded hard cases: 0/40 -> 0/40
+saved eval: v27 70/116, v42 70/116, v43 70/116, v45 70/116
 v42 mean eval loss: 3.4300 -> 3.4246
 v43 mean eval loss: 3.4300 -> 3.4308
+v44 mean eval loss: 3.4300 -> 3.4006
+v45 mean eval loss: 3.4300 -> 3.4278
 ```
 
 This is a useful negative. v27 remains the best A100 sidecar; v42 only lowers
-loss, and v43's wider `fc_mtp_layer` surface does not add accept. The remaining
-semantic/code hard misses need new case construction before they are likely to
-add accepted tokens.
+loss, v43's wider `fc_mtp_layer` surface does not add accept, v44 proves the
+same hard cases do not overfit into top1 with simple continuation, and v45
+shows forced-prefix case construction is still flat. The remaining semantic/code
+hard misses need a different objective or label source before they are likely
+to add accepted tokens.
 
 Report:
 

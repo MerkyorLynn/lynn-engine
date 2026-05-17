@@ -526,18 +526,30 @@ verification and records `format_guard_forced_prefix` in the MTP metadata. This
 keeps JSON/tool serving from paying a known-bad MTP draft tax while the
 guard-forced sidecar distribution is still below target.
 
+R6000 live smoke confirms the guard behavior with v34 loaded:
+
+```text
+reports/mtp/r6000_p107_mtp_guard_disable_smoke_v34_20260517_2052.json
+mtp_shadow.enabled: false
+disabled_reason: format_guard_forced_prefix
+events: 0
+```
+
 v41 tried one last narrow v34 continuation on steps `7/10/14` from the
 semantic/code-tail set. It is a negative: train stays `0/4 -> 0/4`, heldout
 proxy regresses `63/121 -> 62/121`, and eval loss slightly worsens. Keep v34
 as the native serving-credit sidecar; do not promote v41.
 
-A100 v42/v43 test the next hard-miss hypothesis from v27. The new v9 prompt set
+A100 v42-v45 test the next hard-miss hypothesis from v27. The new v9 prompt set
 targets semantic/code hard misses, but direct continuation does not add accept:
 v42 `fc_norms` keeps hard cases `0/59 -> 0/59`, saved eval ties v27 at
 `70/116 = 60.34%`, and only mean loss improves (`3.4300 -> 3.4246`). v43 widens
 to `fc_mtp_layer`, but saved reload again ties v27 at `70/116` and mean loss is
-slightly worse (`3.4308`). Keep v27 as the A100 best; continue hard-miss work
-with new labels/case construction, not another direct v9 continuation.
+slightly worse (`3.4308`). v44 raises LR/steps as an overfit canary and lowers
+loss to `3.4006`, yet train hard cases remain `0/59`. v45 changes construction
+to guarded forced-prefix v10 cases; saved reload still ties v27 at `70/116`.
+Keep v27 as the A100 best; continue hard-miss work with a different objective
+or label source, not another direct v9/v10 continuation.
 
 The fc-only train smoke confirms gradient wiring:
 
