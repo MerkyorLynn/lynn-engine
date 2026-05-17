@@ -189,6 +189,15 @@ v22_miss_count: 52
 v22_near_misses_label_rank_le_5: 16
 v22_largest_miss_buckets: semantic_token 22, generic_structured_key 7,
 json_punctuation 7, stop_token 7, special_token 5
+
+reports/mtp/mtp_fc_calibration_prompts_v6_step1_step10_rescue.json
+reports/mtp/a100_mtp_iterative_train_v22_margin_v6_rescue_v23_20260517_150922.json
+reports/mtp/a100_mtp_saved_sidecar_eval_v22_v23_20260517_151100.json
+decision: GREEN-CREDIT
+best_label: v23
+best_accept: 65/116 = 56.03%
+sidecar:
+/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v22-margin-v6-rescue-v23-20260517_150922/mtp.safetensors
 ```
 
 The weighted-math v3 sidecar is a GREEN first-token draft candidate, but it is
@@ -256,6 +265,12 @@ are JSON punctuation (`":` vs `":"`, `","` vs `",`) and step1 `<think>` versus
 format-open tokens. The hard failures are now concentrated in Python code-body
 continuation and semantic Chinese MoE tails, so the next rescue should be
 targeted rather than a broad replay of v5.
+
+v23 is a narrow continuation from v22 using v6 prompts and margin loss on
+steps 1/7/10. Saved reload confirms `65/116 = 56.03%`, with gains at step1,
+step7, and step9. It also drops step3 from `8/8` to `6/8`, so v23 is the best
+serving-credit candidate but not the final sidecar. The next route should
+restore step3 while preserving the v23 front/format gains.
 
 This changes the initialization and wiring path, not the serving state: MTP can
 now run a real draft forward pass and backpropagate through a frozen-base,

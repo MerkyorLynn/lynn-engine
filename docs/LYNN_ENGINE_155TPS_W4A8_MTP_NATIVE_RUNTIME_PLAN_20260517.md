@@ -27,10 +27,10 @@ R6000 hybrid graph token: greedy pass, 9.53 ms one-shot, strict logits not yet e
 A100 best W4A8 recovery baseline: structured_v16_top6_damped075
 A100 teacher-clean v2 serving gate: 10/12 served exact, still RED
 A100 teacher-clean v3 serving gate: 11/12 served exact, min prefix 16, AMBER by plan threshold
-MTP: aligned sidecar forward works; best saved sidecar is now v22 at
-     64/116 = 55.17%, GREEN-CREDIT but not promotion-ready.
+MTP: aligned sidecar forward works; best saved sidecar is now v23 at
+     65/116 = 56.03%, GREEN-CREDIT but not promotion-ready.
      v19 diagnostic showed 18 near misses; v22 CE + hard-negative margin
-     converted enough of them to cross the 55% serving-credit bar.
+     crossed the 55% serving-credit bar, and v23 adds one more accept.
 ```
 
 155 requires a compound win. There is no single safe env flag left.
@@ -272,6 +272,13 @@ step11 `2/6 -> 3/6`, step12 `1/6 -> 2/6`, and step15 `1/5 -> 2/5`, while
 step10 regresses `4/7 -> 2/7`. That makes v22 the first MTP serving-credit
 candidate, but the next A100 run should recover step10/step1 before calling it
 promotion-ready.
+
+A100 v23 continues from v22 with a narrow v6 rescue set and margin loss only on
+steps 1/7/10. Saved-sidecar reload confirms another small high:
+`65/116 = 56.03%`. The gain is step1 `2/8 -> 3/8`, step7 `4/8 -> 5/8`, and
+step9 `2/8 -> 3/8`, while step3 drops from `8/8` to `6/8`; step2/4/5 remain
+`8/8`. v23 is therefore the best MTP serving-credit candidate so far, but the
+next rescue has to restore step3 without losing the new step1/7/9 accepts.
 
 If fc-only cannot clear 55-70%, unfreeze in this order:
 

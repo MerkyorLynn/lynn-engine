@@ -1,0 +1,67 @@
+[
+  {
+    "id": "json_two_string_fields_osaka_v6",
+    "prompt": "Output exactly one compact JSON object with keys city and unit for Osaka in metric units. No markdown, no explanation.",
+    "weight": 4.0
+  },
+  {
+    "id": "json_two_string_fields_dublin_v6",
+    "prompt": "Output exactly one compact JSON object with keys city and unit for Dublin in celsius. No markdown, no explanation.",
+    "weight": 4.0
+  },
+  {
+    "id": "json_status_paused_v6",
+    "prompt": "Return exactly one compact JSON object with key status and value paused. No markdown, no explanation.",
+    "weight": 4.0
+  },
+  {
+    "id": "json_status_done_v6",
+    "prompt": "Return exactly one compact JSON object with key status and value done. No markdown, no explanation.",
+    "weight": 4.0
+  },
+  {
+    "id": "tool_translate_args_italian_v6",
+    "prompt": "Output exactly one compact JSON arguments object for translate_text with text morning and target_language Italian. No function name, no markdown.",
+    "weight": 4.0
+  },
+  {
+    "id": "tool_weather_args_dublin_v6",
+    "prompt": "Output exactly one compact JSON arguments object for get_weather with city Dublin and unit celsius. No function name, no markdown.",
+    "weight": 4.0
+  },
+  {
+    "id": "repair_json_osaka_metric_v6",
+    "prompt": "Repair this invalid JSON and output exactly one compact valid JSON object: {'city':'Osaka','unit':'metric',}. No markdown.",
+    "weight": 4.0
+  },
+  {
+    "id": "repair_json_rome_celsius_v6",
+    "prompt": "Repair this invalid JSON and output exactly one compact valid JSON object: {'city':'Rome','unit':'celsius',}. No markdown.",
+    "weight": 4.0
+  },
+  {
+    "id": "python_code_block_import_body_v6",
+    "prompt": "Only output a Python code block defining compact_slug(text: str) -> str. It must import re, lowercase, strip, and replace non alphanumeric runs with hyphens. No explanation.",
+    "weight": 3.0
+  },
+  {
+    "id": "python_plain_import_body_v6",
+    "prompt": "Only output Python code, no markdown. Import re and define safe_slug(text: str) -> str that lowercases and replaces non alphanumeric runs with hyphens.",
+    "weight": 3.0
+  },
+  {
+    "id": "router_think_prefix_v6",
+    "prompt": "用一句中文短句说明 MoE router 为什么要先看 token。必须以 router 开头,不要解释。",
+    "weight": 3.0
+  },
+  {
+    "id": "linear_think_prefix_v6",
+    "prompt": "用一句中文短句说明 linear attention 为什么适合 streaming decode。必须以 linear attention 开头,不要解释。",
+    "weight": 3.0
+  },
+  {
+    "id": "distance_end_token_v6",
+    "prompt": "Answer only with the distance and unit: a courier travels 55 mph for 2 hours.",
+    "weight": 2.0
+  }
+]
