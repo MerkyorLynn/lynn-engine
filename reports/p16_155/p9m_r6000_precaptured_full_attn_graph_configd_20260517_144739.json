@@ -1,0 +1,81 @@
+{
+  "schema_version": "lynn-engine-p9m-precaptured-full-attn-graph-probe-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-a3b-w4a8-nvfp4-v2",
+  "layer": 31,
+  "base_seq_len": 7,
+  "prefix_new": 32,
+  "target_position": 39,
+  "input_token_id": 96184,
+  "generated_prefix": [
+    248068,
+    271,
+    248069,
+    271,
+    24797,
+    36,
+    220,
+    96580,
+    99142,
+    104916,
+    96123,
+    99486,
+    96902,
+    109494,
+    95839,
+    98895,
+    98138,
+    97034,
+    95789,
+    3709,
+    96725,
+    109719,
+    96985,
+    98138,
+    96335,
+    97792,
+    3709,
+    99131,
+    95772,
+    97559,
+    103725,
+    96184
+  ],
+  "graph_ms": 0.2945919930934906,
+  "graph_tps": 3394.525389163051,
+  "output_diff": {
+    "max_abs": 0.0,
+    "mean_abs": 0.0,
+    "rel_l2": 0.0,
+    "cosine": 1.0000001192092896
+  },
+  "kv_diff": {
+    "k": {
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "rel_l2": 0.0,
+      "cosine": 1.0000001192092896
+    },
+    "v": {
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "rel_l2": 0.0,
+      "cosine": 0.9999998211860657
+    }
+  },
+  "kv_write_slice_diff": {
+    "position": 39,
+    "k": {
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "rel_l2": 0.0,
+      "cosine": 1.0
+    },
+    "v": {
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "rel_l2": 0.0,
+      "cosine": 1.0000001192092896
+    }
+  },
+  "pass": true
+}

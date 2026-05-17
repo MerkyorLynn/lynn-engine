@@ -22,11 +22,14 @@ R6000 1024-token serving: wall 88.70 tok/s, decode 98.85 tok/s
 R6000 v2 active-MoE micro gain: ~1.12x interval, not enough alone
 R6000 full-attn graph sweep: 12/12 parity, replay 4.09x faster than eager
 R6000 full-attn mutable-input graph: 4/4 parity, replay 4.21x faster than eager
+R6000 pre-captured full-attn slot: exact on populated KV, layer31 replay 0.295 ms
+R6000 hybrid graph token: greedy pass, 9.53 ms one-shot, strict logits not yet exact
 A100 best W4A8 recovery baseline: structured_v16_top6_damped075
 A100 teacher-clean v2 serving gate: 10/12 served exact, still RED
 A100 teacher-clean v3 serving gate: 11/12 served exact, min prefix 16, AMBER by plan threshold
 MTP: aligned sidecar forward works; best saved sidecar is now v19 at
-     60/116 = 51.72%, still AMBER and below serving multiplier credit
+     60/116 = 51.72%, still AMBER and below serving multiplier credit.
+     v19 diagnostic shows 18 near misses, so v22 uses CE + hard-negative margin.
 ```
 
 155 requires a compound win. There is no single safe env flag left.
@@ -244,6 +247,17 @@ and loses the v19 step9 gain. This closes the simple step1-only `fc_norms`
 route. The remaining MTP work needs a different target construction, not more
 low-LR tuning on the same heldout-shaped positions.
 
+A100 v19 diagnostic turns that into a concrete target. The saved sidecar still
+accepts `60/116`, but among the 56 misses there are 18 near misses with
+teacher label rank <=5. Miss buckets are dominated by semantic-token drift
+(`21`), premature stop-token selection (`18`), generic structured keys (`8`),
+and JSON punctuation splits (`6`). The low-risk next construction is therefore
+not another broad CE sweep: v22 adds `--loss-mode ce_margin`, which keeps CE but
+also penalizes the current hard negative when it beats the teacher label inside
+the top-k set. The v5 margin calibration prompts focus on compact JSON,
+function arguments, JSON repair, Python code-body continuation, and short
+router/linear-attention prefixes.
+
 If fc-only cannot clear 55-70%, unfreeze in this order:
 
 1. `mtp.fc.weight`
@@ -402,6 +416,21 @@ outputs actually change between inputs (`min rel_l2=1.07`). Mean replay timing
 is `0.245 ms` vs `1.033 ms` eager, or `4.21x`. The next implementation step is
 a single-stream resident graph-state ABI, not another proof that graph inputs
 can vary.
+
+2026-05-17 P9M proves the service-shape pre-capture assumption: a full-attn
+slot captured before real KV exists can replay exactly after prefill and 32
+eager prefix tokens populate the same cache. Layer31 at position39 reports
+`0.2946 ms` replay with output and KV write `max_abs=0`. This means graph slots
+do not need to be captured on the hot token path.
+
+2026-05-17 P9N then composes 10 linear-block graphs and 10 pre-captured
+full-attn slots into a whole-token hybrid path. The path is greedy-safe on the
+probe prompt and one-shot graph timing is `9.5298 ms` (`104.93 tok/s`), but
+strict logits are not exact (`max_abs=1.046875`). P9O localizes the first strict
+drift to full-attn slot layer3: linear block0 is exact, then layer3 slot output
+diff appears (`max_abs=0.02124`, `rel_l2=0.1479`). The next R6000 runtime patch
+should tighten the full-attn slot state contract before wiring an env-flagged
+server path.
 
 2026-05-17 down-backend service sweep: switching only
 `LYNN_NATIVE_DOWN_BACKEND` from `triton` to `cuda_tile` gives real raw speed

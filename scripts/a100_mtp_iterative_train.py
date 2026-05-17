@@ -328,6 +328,10 @@ def _train(
     lr: float,
     weight_decay: float,
     trainable: str,
+    loss_mode: str,
+    margin: float,
+    margin_alpha: float,
+    hard_negative_top_k: int,
 ) -> tuple[list[str], list[dict[str, float]]]:
     keys, params = _select_trainable(sidecar, trainable)
     opt = torch.optim.AdamW(params, lr=lr, weight_decay=weight_decay)
@@ -336,20 +340,40 @@ def _train(
     for step in range(steps):
         opt.zero_grad(set_to_none=True)
         total_loss = 0.0
+        total_ce_loss = 0.0
+        total_margin_loss = 0.0
         accepted = 0
         for case in cases:
             logits = _mtp_logits_for_case(runner, sidecar, mtp_w, cfg, case)
             label = torch.tensor([case["label_id"]], device=runner.device, dtype=torch.long)
-            loss = F.cross_entropy(logits.float(), label)
+            logits_f = logits.float()
+            ce_loss = F.cross_entropy(logits_f, label)
+            margin_loss = logits_f.new_zeros(())
+            if loss_mode == "ce_margin":
+                top_k = min(int(hard_negative_top_k), int(logits_f.shape[-1]))
+                _, top_ids = torch.topk(logits_f.detach(), k=top_k, dim=-1)
+                negative_ids = top_ids[0][top_ids[0] != int(case["label_id"])]
+                if negative_ids.numel() > 0:
+                    hard_id = negative_ids[0].view(1)
+                    hard_logit = logits_f[0].gather(0, hard_id)[0]
+                    label_logit = logits_f[0, int(case["label_id"])]
+                    margin_loss = F.relu(hard_logit - label_logit + float(margin))
+            elif loss_mode != "ce":
+                raise ValueError(f"unknown loss_mode: {loss_mode}")
+            loss = ce_loss + float(margin_alpha) * margin_loss
             (loss * (float(case.get("weight", 1.0)) / total_weight)).backward()
             total_loss += float(loss.detach().item())
+            total_ce_loss += float(ce_loss.detach().item())
+            total_margin_loss += float(margin_loss.detach().item())
             accepted += int(int(logits[0].argmax().item()) == case["label_id"])
-            del logits, label, loss
+            del logits, label, logits_f, ce_loss, margin_loss, loss
         opt.step()
         history.append(
             {
                 "step": step + 1,
                 "mean_loss": total_loss / max(1, len(cases)),
+                "mean_ce_loss": total_ce_loss / max(1, len(cases)),
+                "mean_margin_loss": total_margin_loss / max(1, len(cases)),
                 "accept_rate": accepted / max(1, len(cases)),
             }
         )
@@ -392,6 +416,10 @@ def main() -> int:
     ap.add_argument("--later-token-weight", type=float, default=1.0)
     ap.add_argument("--train-steps", type=int, nargs="*", default=None)
     ap.add_argument("--trainable", default="fc", choices=["fc", "fc_norms", "fc_mtp_layer"])
+    ap.add_argument("--loss-mode", default="ce", choices=["ce", "ce_margin"])
+    ap.add_argument("--margin", type=float, default=1.0)
+    ap.add_argument("--margin-alpha", type=float, default=0.25)
+    ap.add_argument("--hard-negative-top-k", type=int, default=8)
     ap.add_argument("--steps", type=int, default=6)
     ap.add_argument("--lr", type=float, default=5e-5)
     ap.add_argument("--weight-decay", type=float, default=0.0)
@@ -444,6 +472,10 @@ def main() -> int:
         lr=args.lr,
         weight_decay=args.weight_decay,
         trainable=args.trainable,
+        loss_mode=args.loss_mode,
+        margin=args.margin,
+        margin_alpha=args.margin_alpha,
+        hard_negative_top_k=args.hard_negative_top_k,
     )
     train_after = _evaluate(runner, sidecar, mtp_w, cfg, train_cases)
     eval_after = _evaluate(runner, sidecar, mtp_w, cfg, eval_cases) if eval_cases else None
@@ -461,6 +493,10 @@ def main() -> int:
         "dtype": args.dtype,
         "trainable": args.trainable,
         "trainable_tensors": trainable_keys,
+        "loss_mode": args.loss_mode,
+        "margin": args.margin,
+        "margin_alpha": args.margin_alpha,
+        "hard_negative_top_k": args.hard_negative_top_k,
         "steps": args.steps,
         "lr": args.lr,
         "weight_decay": args.weight_decay,

@@ -25,6 +25,9 @@ P9H/P9I/P9J changed the full-attention decision:
 | P9I layers 3/15/31/39, positions 10/14/32 | 12/12 exact parity, 4.09x mean replay speedup |
 | P9J mutable input buffer | 4/4 exact parity after swapping graph input, 4.21x mean replay speedup |
 | P9L runner slot smoke | `_capture_full_attn_layer_graph_slot` exact parity on R6000 |
+| P9M pre-captured slot on populated KV | layer31 position39 exact output/KV parity, 0.295 ms replay |
+| P9N hybrid token probe | 10 linear graphs + 10 full-attn slots, greedy pass, 9.53 ms one-shot |
+| P9O layerwise diff | first strict drift at full-attn slot layer3; linear block0 is exact |
 
 This makes full-attention reusable graphing the strongest non-MTP R6000 speed
 lever found today.
@@ -98,6 +101,41 @@ case-B output/KV max_abs: 0
 graph output delta A->B rel_l2: 1.241
 ```
 
+P9M strengthens the serving ABI: a full-attention graph slot can be captured
+before real request KV exists, then replayed after prefill and 32 eager prefix
+tokens have populated the same cache tensors. The R6000 report is:
+
+```text
+reports/p16_155/p9m_r6000_precaptured_full_attn_graph_configd_20260517_144739.json
+layer31 position39
+graph_ms: 0.2946
+output/KV write max_abs: 0
+```
+
+P9N combines the existing 10 linear-attention block graphs with 10 pre-captured
+full-attention slots for one whole decode token:
+
+```text
+reports/p16_155/p9n_r6000_hybrid_full_attn_graph_slots_configd_20260517_144814.json
+one_shot_graph_ms: 9.5298
+one_shot_graph_tps: 104.93
+greedy_pass: true
+strict_logit_pass: false
+```
+
+This is a graph-composition proof, not yet the target server number. P9O then
+locates the strict drift:
+
+```text
+reports/p16_155/p9o_r6000_hybrid_full_attn_graph_layerwise_diff_configd_20260517_145103.json
+first_drift: full_attention_slot layer3
+linear block0 diff: max_abs 0
+layer3 slot diff: max_abs 0.02124, rel_l2 0.1479
+```
+
+The next runtime patch should therefore focus on the first full-attn slot's
+capture/replay state contract, not on the linear block graph.
+
 ## Graph Key
 
 Graph slots must be invalidated by:
@@ -168,14 +206,15 @@ combined: >155 effective tok/s
 
 ## Implementation Order
 
-1. Add opt-in `LYNN_FULL_ATTN_LAYER_GRAPH=1` with eager fallback.
-2. Reuse the existing `LynnInferenceState` as the resident graph state for
+1. Tighten the full-attn slot state contract until P9O is strict at layer3.
+2. Add opt-in `LYNN_FULL_ATTN_LAYER_GRAPH=1` with eager fallback.
+3. Reuse the existing `LynnInferenceState` as the resident graph state for
    single-stream serving.
-3. Capture per-layer slots for one or more positions after prefill warmup.
-4. Add a parity gate comparing eager full-attn layers vs graph slots for the
+4. Capture per-layer slots for one or more positions after prefill warmup.
+5. Add a parity gate comparing eager full-attn layers vs graph slots for the
    same request.
-5. Run repeated-prompt service TPS with position-family hits.
-6. Only after that, start the static-window/native kernel refactor.
+6. Run repeated-prompt service TPS with position-family hits.
+7. Only after that, start the static-window/native kernel refactor.
 
 No full-active W4A8 promotion depends on this path until generation gates stay
 AMBER/GREEN.

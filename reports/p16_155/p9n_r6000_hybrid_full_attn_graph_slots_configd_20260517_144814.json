@@ -1,0 +1,26 @@
+{
+  "schema_version": "lynn-engine-p9n-hybrid-full-attn-graph-slots-probe-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-a3b-w4a8-nvfp4-v2",
+  "decode_position": 7,
+  "full_attn_graph_slots": 10,
+  "linear_block_graphs": 10,
+  "linear_capture_s": 0.0724477767944336,
+  "eager_ms": 35.287042236328126,
+  "graph_ms": 9.606436767578124,
+  "speedup": 3.673270650718532,
+  "graph_tps": 104.09687006685098,
+  "one_shot_graph_ms": 9.529791831970215,
+  "one_shot_graph_tps": 104.9340864556175,
+  "logit_diff": {
+    "max_abs": 1.046875,
+    "mean_abs": 0.20146840810775757,
+    "rel_l2": 0.09688726161258425,
+    "cosine": 0.9958622455596924
+  },
+  "graph_next_id": 248068,
+  "eager_next_id": 248068,
+  "greedy_pass": true,
+  "strict_logit_pass": false,
+  "pass": true,
+  "note": "graph_ms includes benchmark state-restore overhead; one_shot_graph_ms is closer to serving hot-path latency."
+}

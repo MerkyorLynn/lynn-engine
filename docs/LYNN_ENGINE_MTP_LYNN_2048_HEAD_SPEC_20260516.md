@@ -165,6 +165,15 @@ reports/mtp/a100_mtp_saved_sidecar_eval_v19_v21_20260517_143629.json
 decision: AMBER
 best_label: v19
 v21_accept: 59/116 = 50.86%
+
+reports/mtp/a100_mtp_v19_saved_sidecar_diagnostic_20260517_144739.json
+decision: AMBER
+best_label: v19
+best_accept: 60/116 = 51.72%
+near_misses_label_rank_le_5: 18
+hard_misses_label_rank_gt_20: 32
+largest miss buckets: semantic_token 21, stop_token 18, generic_structured_key 8,
+json_punctuation 6
 ```
 
 The weighted-math v3 sidecar is a GREEN first-token draft candidate, but it is
@@ -202,7 +211,20 @@ step1-specialist direction is not composable with v19 by simple linear or
 small-block merge. v21 then tests step1-only `fc_norms` from v19; it fails to
 move step1 and drops the saved total to `59/116` by losing the v19 step9 gain.
 The next path needs a different target construction, not another low-LR run on
-the same heldout-shaped step positions.
+the same heldout-shaped step positions. The v19 diagnostic now identifies the
+new target construction: 18 of 56 misses are near misses where the teacher token
+is still rank <=5, including stop-token over-selection (`<|im_end|>` vs
+newline/end-of-text), JSON punctuation splits (`":` vs `":"`), and generic
+structured-key substitutions (`action`/`city` over the desired key/value). A100
+v22 therefore switches from plain CE to CE plus hard-negative margin on a new
+v5 near-miss calibration set:
+
+```text
+scripts/a100_mtp_saved_sidecar_diagnostic.py
+reports/mtp/mtp_fc_calibration_prompts_v5_margin_nearmiss.json
+loss_mode: ce_margin
+target: make label logit beat the current hard negative by margin
+```
 
 This changes the initialization and wiring path, not the serving state: MTP can
 now run a real draft forward pass and backpropagate through a frozen-base,

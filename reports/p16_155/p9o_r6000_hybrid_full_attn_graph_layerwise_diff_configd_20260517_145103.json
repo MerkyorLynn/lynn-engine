@@ -1,0 +1,251 @@
+{
+  "schema_version": "lynn-engine-p9o-hybrid-full-attn-graph-layerwise-diff-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-a3b-w4a8-nvfp4-v2",
+  "decode_position": 7,
+  "linear_capture_s": 0.07189798355102539,
+  "full_attn_graph_slots": 10,
+  "linear_block_graphs": 10,
+  "layer_rows": [
+    {
+      "kind": "linear_block",
+      "block_index": 0,
+      "start_layer": 0,
+      "end_layer": 2,
+      "diff": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      }
+    },
+    {
+      "kind": "full_attention_slot",
+      "layer": 3,
+      "diff": {
+        "max_abs": 0.021240234375,
+        "mean_abs": 0.0034711258485913277,
+        "rel_l2": 0.14791513081380583,
+        "cosine": 0.9890114068984985
+      }
+    },
+    {
+      "kind": "linear_block",
+      "block_index": 1,
+      "start_layer": 4,
+      "end_layer": 6,
+      "diff": {
+        "max_abs": 0.046875,
+        "mean_abs": 0.0038357404991984367,
+        "rel_l2": 0.1110941946968943,
+        "cosine": 0.9938512444496155
+      }
+    },
+    {
+      "kind": "full_attention_slot",
+      "layer": 7,
+      "diff": {
+        "max_abs": 0.0234375,
+        "mean_abs": 0.005022941157221794,
+        "rel_l2": 0.1617750715348854,
+        "cosine": 0.9870286583900452
+      }
+    },
+    {
+      "kind": "linear_block",
+      "block_index": 2,
+      "start_layer": 8,
+      "end_layer": 10,
+      "diff": {
+        "max_abs": 0.03125,
+        "mean_abs": 0.004869882017374039,
+        "rel_l2": 0.10721023413307414,
+        "cosine": 0.9943740963935852
+      }
+    },
+    {
+      "kind": "full_attention_slot",
+      "layer": 11,
+      "diff": {
+        "max_abs": 0.0352783203125,
+        "mean_abs": 0.008108904585242271,
+        "rel_l2": 0.18786701844028292,
+        "cosine": 0.9822090268135071
+      }
+    },
+    {
+      "kind": "linear_block",
+      "block_index": 3,
+      "start_layer": 12,
+      "end_layer": 14,
+      "diff": {
+        "max_abs": 0.1484375,
+        "mean_abs": 0.007709827274084091,
+        "rel_l2": 0.1458035057889596,
+        "cosine": 0.9900020956993103
+      }
+    },
+    {
+      "kind": "full_attention_slot",
+      "layer": 15,
+      "diff": {
+        "max_abs": 0.040771484375,
+        "mean_abs": 0.008726239204406738,
+        "rel_l2": 0.17470449491368786,
+        "cosine": 0.9846229553222656
+      }
+    },
+    {
+      "kind": "linear_block",
+      "block_index": 4,
+      "start_layer": 16,
+      "end_layer": 18,
+      "diff": {
+        "max_abs": 0.04443359375,
+        "mean_abs": 0.00846010074019432,
+        "rel_l2": 0.13262857840076508,
+        "cosine": 0.9911683797836304
+      }
+    },
+    {
+      "kind": "full_attention_slot",
+      "layer": 19,
+      "diff": {
+        "max_abs": 0.0546875,
+        "mean_abs": 0.009908139705657959,
+        "rel_l2": 0.14417802935855872,
+        "cosine": 0.9896351099014282
+      }
+    },
+    {
+      "kind": "linear_block",
+      "block_index": 5,
+      "start_layer": 20,
+      "end_layer": 22,
+      "diff": {
+        "max_abs": 0.15625,
+        "mean_abs": 0.009635178372263908,
+        "rel_l2": 0.12865612489793846,
+        "cosine": 0.9917862415313721
+      }
+    },
+    {
+      "kind": "full_attention_slot",
+      "layer": 23,
+      "diff": {
+        "max_abs": 0.1015625,
+        "mean_abs": 0.011677052825689316,
+        "rel_l2": 0.15210339960173203,
+        "cosine": 0.9883907437324524
+      }
+    },
+    {
+      "kind": "linear_block",
+      "block_index": 6,
+      "start_layer": 24,
+      "end_layer": 26,
+      "diff": {
+        "max_abs": 0.09375,
+        "mean_abs": 0.011042892932891846,
+        "rel_l2": 0.12069856403248282,
+        "cosine": 0.9927146434783936
+      }
+    },
+    {
+      "kind": "full_attention_slot",
+      "layer": 27,
+      "diff": {
+        "max_abs": 0.056640625,
+        "mean_abs": 0.012770310044288635,
+        "rel_l2": 0.11678615955105658,
+        "cosine": 0.9932246804237366
+      }
+    },
+    {
+      "kind": "linear_block",
+      "block_index": 7,
+      "start_layer": 28,
+      "end_layer": 30,
+      "diff": {
+        "max_abs": 0.0650634765625,
+        "mean_abs": 0.01221926137804985,
+        "rel_l2": 0.11126176750203988,
+        "cosine": 0.9938055872917175
+      }
+    },
+    {
+      "kind": "full_attention_slot",
+      "layer": 31,
+      "diff": {
+        "max_abs": 0.0859375,
+        "mean_abs": 0.01420755684375763,
+        "rel_l2": 0.12139238923027476,
+        "cosine": 0.992604672908783
+      }
+    },
+    {
+      "kind": "linear_block",
+      "block_index": 8,
+      "start_layer": 32,
+      "end_layer": 34,
+      "diff": {
+        "max_abs": 0.21875,
+        "mean_abs": 0.015026718378067017,
+        "rel_l2": 0.08760005693636239,
+        "cosine": 0.9963727593421936
+      }
+    },
+    {
+      "kind": "full_attention_slot",
+      "layer": 35,
+      "diff": {
+        "max_abs": 0.0859375,
+        "mean_abs": 0.016587167978286743,
+        "rel_l2": 0.1031023387620152,
+        "cosine": 0.9947164058685303
+      }
+    },
+    {
+      "kind": "linear_block",
+      "block_index": 9,
+      "start_layer": 36,
+      "end_layer": 38,
+      "diff": {
+        "max_abs": 0.3125,
+        "mean_abs": 0.021167367696762085,
+        "rel_l2": 0.08536772892431714,
+        "cosine": 0.9965505003929138
+      }
+    },
+    {
+      "kind": "full_attention_slot",
+      "layer": 39,
+      "diff": {
+        "max_abs": 0.75,
+        "mean_abs": 0.023738667368888855,
+        "rel_l2": 0.08847146479137492,
+        "cosine": 0.9965088367462158
+      }
+    }
+  ],
+  "first_drift": {
+    "kind": "full_attention_slot",
+    "layer": 3,
+    "diff": {
+      "max_abs": 0.021240234375,
+      "mean_abs": 0.0034711258485913277,
+      "rel_l2": 0.14791513081380583,
+      "cosine": 0.9890114068984985
+    }
+  },
+  "logit_diff": {
+    "max_abs": 1.49853515625,
+    "mean_abs": 0.30922186374664307,
+    "rel_l2": 0.15167377123270767,
+    "cosine": 0.9906691908836365
+  },
+  "graph_next_id": 248068,
+  "eager_next_id": 248068,
+  "greedy_pass": true,
+  "strict_logit_pass": false,
+  "pass": true
+}

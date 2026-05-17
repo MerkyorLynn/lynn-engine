@@ -1,0 +1,97 @@
+[
+  {
+    "id": "json_status_busy_margin_v5",
+    "prompt": "Return exactly one compact JSON object with key status and value busy. No markdown, no explanation.",
+    "weight": 4.0
+  },
+  {
+    "id": "json_status_idle_margin_v5",
+    "prompt": "Return exactly one compact JSON object with key status and value idle. No markdown, no explanation.",
+    "weight": 4.0
+  },
+  {
+    "id": "json_city_oslo_metric_margin_v5",
+    "prompt": "Output exactly one compact JSON object with keys city and unit for Oslo in metric units. No markdown.",
+    "weight": 4.0
+  },
+  {
+    "id": "json_city_rome_celsius_margin_v5",
+    "prompt": "Output exactly one compact JSON object with keys city and unit for Rome in celsius. No markdown.",
+    "weight": 4.0
+  },
+  {
+    "id": "tool_weather_args_oslo_margin_v5",
+    "prompt": "Output exactly one compact JSON arguments object for get_weather with city Oslo and unit metric. No function name, no markdown.",
+    "weight": 4.0
+  },
+  {
+    "id": "tool_translate_args_spanish_margin_v5",
+    "prompt": "Output exactly one compact JSON arguments object for translate_text with text welcome and target_language Spanish. No function name, no markdown.",
+    "weight": 4.0
+  },
+  {
+    "id": "tool_search_args_latency_margin_v5",
+    "prompt": "Output exactly one compact JSON arguments object for search_docs with query throughput and top_k 5. No function name, no markdown.",
+    "weight": 3.0
+  },
+  {
+    "id": "repair_json_paris_metric_margin_v5",
+    "prompt": "Repair this invalid JSON and output exactly one compact valid JSON object: {'city':'Paris','unit':'metric',}. No markdown.",
+    "weight": 4.0
+  },
+  {
+    "id": "repair_json_seoul_celsius_margin_v5",
+    "prompt": "Repair this invalid JSON and output exactly one compact valid JSON object: {'city':'Seoul','unit':'celsius',}. No markdown.",
+    "weight": 4.0
+  },
+  {
+    "id": "repair_json_lima_metric_margin_v5",
+    "prompt": "Repair this invalid JSON and output exactly one compact valid JSON object: {'city':'Lima','unit':'metric',}. No markdown.",
+    "weight": 3.0
+  },
+  {
+    "id": "python_slug_simple_margin_v5",
+    "prompt": "Only output a Python code block defining slug(text: str) -> str. It must lowercase, strip whitespace, and replace spaces with hyphens. No explanation.",
+    "weight": 3.0
+  },
+  {
+    "id": "python_kebab_case_margin_v5",
+    "prompt": "Only output a Python code block defining kebab_case(text: str) -> str. It must use re.sub to replace non alphanumeric runs with hyphens. No explanation.",
+    "weight": 3.0
+  },
+  {
+    "id": "python_normalize_city_margin_v5",
+    "prompt": "Only output a Python code block defining normalize_city(name: str) -> str. It must strip whitespace and title-case words. No explanation.",
+    "weight": 2.5
+  },
+  {
+    "id": "python_import_re_margin_v5",
+    "prompt": "Only output Python code. Import re and define clean_key(text: str) -> str that lowercases and replaces spaces with underscores. No markdown, no explanation.",
+    "weight": 2.5
+  },
+  {
+    "id": "distance_train_210_margin_v5",
+    "prompt": "Answer only with the distance and unit: a train travels 70 mph for 3 hours.",
+    "weight": 2.0
+  },
+  {
+    "id": "distance_bike_36_margin_v5",
+    "prompt": "Answer only with the distance and unit: a bike travels 12 mph for 3 hours.",
+    "weight": 2.0
+  },
+  {
+    "id": "router_short_prefix_margin_v5",
+    "prompt": "用一句中文短句说明 MoE router 如何选择 expert。必须以 router 开头,不要解释。",
+    "weight": 3.0
+  },
+  {
+    "id": "expert_short_prefix_margin_v5",
+    "prompt": "用一句中文短句说明 MoE expert 处理 token 的作用。必须以 expert 开头,不要解释。",
+    "weight": 2.0
+  },
+  {
+    "id": "linear_attention_prefix_margin_v5",
+    "prompt": "用一句中文短句说明 linear attention 的流式推理优势。必须以 linear attention 开头,不要解释。",
+    "weight": 2.0
+  }
+]
