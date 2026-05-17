@@ -133,6 +133,13 @@ Supporting micro-profiles:
 - Linear-attention layer 0 core: recomposed core 0.42 ms; top segments are gated
   RMSNorm 0.078 ms, native FP4 fused in-proj 0.074 ms, recurrent update 0.038 ms,
   conv update 0.033 ms.
+- P28 hybrid block timing shows the hot path is uniform, not a single bad layer:
+  10 linear graph blocks sum to 8.69 ms/token, while the 10 eager full-attention
+  layers sum to 4.21 ms/token. Each linear block is about 0.866 ms.
+- P38/P39 packed-MoE profiling across sampled linear layers shows current full
+  packed MoE averages 0.205 ms/layer: router 0.037 ms, active packed experts
+  0.113 ms, shared BF16 expert 0.061 ms. Across 30 linear layers, MoE alone is
+  about 6.15 ms/token, roughly 71% of the linear-block budget.
 - Full-attention graph slots are exact only under the same captured prompt state:
   P9-V passed strict logit parity at 11.18 ms/token, but P9-W cross-prompt reuse
   failed with graph next id 0 versus eager next id 248068. Do not promote
@@ -144,6 +151,9 @@ Copied reports:
 - `reports/qwen36_35b/r6000_qwen36_w4a16_graph_inplace_p26_phase_20260518_014002.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_graph_inplace_p27_full_layer31_20260518_014148.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p10c_linear_layer0_20260518_014332.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p28_hybrid_block_timing_20260518_024830.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p38_moe_multilayer_20260518_025304.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p39_active_moe_inner_20260518_025121.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p9v_real_state_full_attn_slots_20260518_014801.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p9w_cross_prompt_full_attn_slots_20260518_021815.json`
 

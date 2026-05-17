@@ -62,6 +62,12 @@ layers, 0.33 ms/token in norm + native FP4 lm_head, and only 0.14 ms/token host
 gap. Prioritize linear-block replay/fusion and full-attention layer fusion before
 large service-loop rewrites.
 
+P28/P38/P39 sharpen the next target: the 10 linear graph blocks are uniform at
+about 0.866 ms each, and sampled packed MoE costs about 0.205 ms per linear
+layer. Across 30 linear layers this is roughly 6.15 ms/token, so MoE fusion and
+shared-expert/native active-expert kernel work is the first kernel island to
+attack before expecting 155 TPS from W4A16.
+
 Full-attention graph slots are not yet a reusable cross-request solution. P9-V
 passed strict parity when captured on the same prompt state, but P9-W failed
 cross-prompt reuse. Keep the promoted serving profile on reusable linear-block
