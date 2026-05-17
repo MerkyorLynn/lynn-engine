@@ -895,3 +895,20 @@ Current default answer:
 W4A8 Recovery first. Train compact Lynn-owned MTP head after W4A8 generation
 gate reaches AMBER/GREEN.
 ```
+
+2026-05-17 quality-matrix addendum:
+
+```text
+Lynn V4-Pro Q4_K_M:                 MMLU 83.60, GPQA 42.42
+Lynn V4-Flash Q4_K_M:               MMLU 80.60, GPQA 43.94
+Lynn 27B BF16:                      MMLU 72.00, GPQA 44.44
+Lynn 27B NVFP4-V2 dequant:          MMLU 69.00, GPQA 41.92
+Lynn 27B NVFP4-V0 production gamma: MMLU 68.00, GPQA 40.40
+Qwen3.6-35B-A3B-FP8 teacher:        MMLU 63.00, GPQA 44.95
+```
+
+Implication for MTP: use the 35B V4-Pro/V4-Flash outputs as high-quality
+teacher/calibration material when building draft labels, but verify and train
+serving MTP against the actual 27B W4A8/V2 runtime path. V2 is currently the
+best 27B NVFP4 quality artifact, while v16 remains the structured-template
+Recovery baseline for service routes.

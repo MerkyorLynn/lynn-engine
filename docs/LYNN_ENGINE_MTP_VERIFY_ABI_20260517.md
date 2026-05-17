@@ -258,5 +258,18 @@ continue optimizing active-MoE/MTP layer kernels.
 4. Move active-MoE verify into the transposed/native layout.
 5. Only then replace the full verify loop with `lynn_verify_k`.
 
+Initial P118 harness:
+
+```bash
+python3 benchmarks/p118_mtp_verify_state_parity.py \
+  --base-model /path/to/lynn-27b-a3b-w4a8-nvfp4-v2 \
+  --out reports/p118/p118_mtp_verify_state_parity.json \
+  --max-events 8
+```
+
+The first P118 harness uses synthetic accept/reject drafts rather than a real
+sidecar. That is deliberate: it tests the verifier state contract in isolation
+before proposer quality and runtime cost enter the loop.
+
 This sequence keeps each failure diagnosable. It also avoids the false shortcut
 of moving the token loop to C++ before the costly math and state ABI are ready.

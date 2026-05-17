@@ -200,6 +200,30 @@ explicit service templates turns the heldout check GREEN on v16:
 the quality split to preserve: v16 plus explicit structured templates is
 serviceable; raw open-ended W4A8 remains a separate gate.
 
+2026-05-17 quality matrix update from Spark eval:
+
+| Candidate | Class | MMLU 500 5-shot | GPQA Diamond 198 0-shot |
+|---|---:|---:|---:|
+| Lynn V4-Pro Q4_K_M | 35B unpruned distill GGUF | 83.60% | 42.42% |
+| Lynn V4-Flash Q4_K_M | 35B unpruned distill GGUF | 80.60% | 43.94% |
+| Lynn 27B BF16 | 27B variable-expert distill reference | 72.00% | 44.44% |
+| Lynn 27B NVFP4-V2 dequant | alpha-fold W4 -> BF16 | 69.00% | 41.92% |
+| Lynn 27B NVFP4-V0 production gamma | W4A4 Triton mirror | 68.00% | 40.40% |
+| Qwen3.6-35B-A3B-FP8 teacher | non-Lynn base | 63.00% | 44.95% |
+
+Interpretation:
+
+- V2 is the best measured 27B NVFP4 quality artifact, about `+1pp` MMLU and
+  `+1.52pp` GPQA over V0 production gamma, but still about `-3pp` MMLU behind
+  the 27B BF16 reference.
+- v16 remains the best structured-template Recovery baseline; this matrix does
+  not replace the v16 service-template GREEN result.
+- The 35B V4-Pro/V4-Flash line is the quality ceiling and teacher/calibration
+  source. It is not the R6000 155 TPS serving artifact unless a separate 35B
+  runtime plan is opened.
+- GPQA is saturated in the `40-45%` band for this family; MMLU is the better
+  signal for retained factual coverage during pruning/quantization.
+
 ## Workstream B: MTP Training
 
 Stage B0 is complete:
