@@ -476,8 +476,15 @@ heldout eval moves from `69/116` to `70/116 = 60.34%`, and saved-sidecar reload
 confirms v27 as the new best at `70/116 = 60.34%`. The gain lands on step10
 (`2/7 -> 3/7`) while the restored step2/3/4/5 band stays `8/8`. This is the
 first clean post-v24 improvement and validates the near-miss filter; it is
-still an A100 BF16-side saved gate, so R6000 native W4A8 credit must be checked
-before serving promotion.
+still an A100 BF16-side saved gate.
+
+R6000 transfer check for this A100 v27 confirms the native boundary. The
+sidecar copies cleanly to R6000 (sha256 matched), but under W4A8 NVFP4 v2 with
+the exact slot-sorted MTP runtime it reaches only `62/121 = 51.24%`, below the
+native-trained v34 at `65/121 = 53.72%`. It is slightly better than old A100 v24
+transfer (`61/121`), but not a serving promotion. The split is now explicit:
+A100 can keep raising BF16-side calibration, while R6000 promotion needs native
+rank-flip/native-label alignment.
 
 If fc-only cannot clear 55-70%, unfreeze in this order:
 

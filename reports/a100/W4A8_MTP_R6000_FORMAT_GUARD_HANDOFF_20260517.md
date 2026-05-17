@@ -339,7 +339,17 @@ sidecar: /mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v
 ```
 
 This is not yet a R6000 native promotion; it is the new A100 MTP calibration
-best and should get a native W4A8 P107 transfer check.
+best. The native W4A8 P107 transfer check has now been run:
+
+```text
+reports/mtp/r6000_p107_mtp_shadow_a100v27_weak_missintopk_w4a8_v2_slotsorted_20260517_190539.json
+R6000 W4A8 NVFP4 v2 + A100 v27: 62/121 = 51.24%
+draft_tps: 444.04
+```
+
+That is a small improvement over the older A100 v24 transfer (`61/121`) but
+still below the native-trained v34 (`65/121`). Keep v27 as the A100 BF16
+calibration best; keep v34 as the R6000 native serving-credit best.
 
 2026-05-17 R6000 native update: activation-aware fake-native training plus a
 rank-flip filter is now the productive MTP repair path. The broad v32

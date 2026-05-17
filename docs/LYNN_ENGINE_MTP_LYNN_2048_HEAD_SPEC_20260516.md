@@ -313,8 +313,23 @@ label is already inside MTP top-k. That leaves nine train cases. In-memory eval
 improves `69/116 -> 70/116`, and saved-sidecar reload confirms v27 as the new
 authoritative A100 saved best at `70/116 = 60.34%`. The improvement is narrow
 but clean: step10 moves `2/7 -> 3/7`, while step2/3/4/5 remain `8/8`. This
-validates the miss-in-topk curriculum; the next step is either another small
-near-miss bucket or a R6000 native W4A8 P107 transfer check for this v27 sidecar.
+validates the miss-in-topk curriculum.
+
+The R6000 transfer check for this A100 v27 sidecar is a useful negative. The
+1.6 GiB sidecar was copied from A100 to R6000 and sha256 matched, but native
+W4A8 P107 reaches only `62/121 = 51.24%`:
+
+```text
+reports/mtp/r6000_p107_mtp_shadow_a100v27_weak_missintopk_w4a8_v2_slotsorted_20260517_190539.json
+accept: 62/121 = 51.24%
+draft_tps: 444.04
+top2/top4/top8: 72/121, 79/121, 85/121
+```
+
+That is better than the old A100 v24 native transfer (`61/121`) but worse than
+native-trained v34 (`65/121`). Therefore A100 BF16-side improvements do not
+automatically promote to R6000; the serving side still needs native
+rank-flip/native-label training.
 
 P107 moves the v24 sidecar from script-only eval into the resident runner
 shadow path. `LYNN_MTP_SIDECAR=/path/to/mtp.safetensors` loads the sidecar and
