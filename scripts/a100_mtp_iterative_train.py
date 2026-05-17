@@ -69,10 +69,13 @@ def _case_from_hidden(
     current_pos: int,
     base_hidden: torch.Tensor,
     first_token_weight: float,
+    step1_weight: float,
+    later_token_weight: float,
 ) -> dict[str, Any]:
     base_logits = runner._lm_head_logits(_rms_norm(base_hidden, runner.outside["model.language_model.norm.weight"]))
     label_id = int(base_logits[0].argmax().item())
-    case_weight = prompt_weight * (first_token_weight if step == 0 else 1.0)
+    token_weight = first_token_weight if step == 0 else step1_weight if step == 1 else later_token_weight
+    case_weight = prompt_weight * token_weight
     return {
         "prompt_idx": prompt_idx,
         "id": prompt_id,
@@ -102,6 +105,8 @@ def _collect_prompt_cases(
     use_chat_template: bool,
     max_new: int,
     first_token_weight: float,
+    step1_weight: float,
+    later_token_weight: float,
 ) -> list[dict[str, Any]]:
     ids = _encode_prompt(runner.tokenizer, spec["prompt"], runner.device, use_chat_template=use_chat_template)
     state = LynnInferenceState(
@@ -139,6 +144,8 @@ def _collect_prompt_cases(
         current_pos=current_pos,
         base_hidden=current_hidden,
         first_token_weight=first_token_weight,
+        step1_weight=step1_weight,
+        later_token_weight=later_token_weight,
     )
     cases.append(case)
     next_id = int(case["label_id"])
@@ -166,6 +173,8 @@ def _collect_prompt_cases(
             current_pos=pos_id,
             base_hidden=h_step.contiguous(),
             first_token_weight=first_token_weight,
+            step1_weight=step1_weight,
+            later_token_weight=later_token_weight,
         )
         cases.append(case)
         next_id = int(case["label_id"])
@@ -179,6 +188,8 @@ def _collect_cases(
     use_chat_template: bool,
     max_new: int,
     first_token_weight: float,
+    step1_weight: float,
+    later_token_weight: float,
 ) -> list[dict[str, Any]]:
     cases: list[dict[str, Any]] = []
     for prompt_idx, spec in enumerate(specs):
@@ -190,6 +201,8 @@ def _collect_cases(
                 use_chat_template=use_chat_template,
                 max_new=max_new,
                 first_token_weight=first_token_weight,
+                step1_weight=step1_weight,
+                later_token_weight=later_token_weight,
             )
         )
         if torch.cuda.is_available():
@@ -369,6 +382,8 @@ def main() -> int:
     ap.add_argument("--max-new-train", type=int, default=8)
     ap.add_argument("--max-new-eval", type=int, default=16)
     ap.add_argument("--first-token-weight", type=float, default=2.0)
+    ap.add_argument("--step1-weight", type=float, default=1.0)
+    ap.add_argument("--later-token-weight", type=float, default=1.0)
     ap.add_argument("--trainable", default="fc", choices=["fc", "fc_norms", "fc_mtp_layer"])
     ap.add_argument("--steps", type=int, default=6)
     ap.add_argument("--lr", type=float, default=5e-5)
@@ -390,6 +405,8 @@ def main() -> int:
         use_chat_template=args.use_chat_template,
         max_new=args.max_new_train,
         first_token_weight=args.first_token_weight,
+        step1_weight=args.step1_weight,
+        later_token_weight=args.later_token_weight,
     )
     eval_cases = (
         _collect_cases(
@@ -398,6 +415,8 @@ def main() -> int:
             use_chat_template=args.use_chat_template,
             max_new=args.max_new_eval,
             first_token_weight=args.first_token_weight,
+            step1_weight=args.step1_weight,
+            later_token_weight=args.later_token_weight,
         )
         if eval_specs
         else []
@@ -438,6 +457,8 @@ def main() -> int:
         "max_new_train": args.max_new_train,
         "max_new_eval": args.max_new_eval,
         "first_token_weight": args.first_token_weight,
+        "step1_weight": args.step1_weight,
+        "later_token_weight": args.later_token_weight,
         "weights_saved": bool(args.out_sidecar_dir),
         "train_case_count": len(train_cases),
         "eval_case_count": len(eval_cases),

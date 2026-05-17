@@ -118,9 +118,13 @@ usable speculative decode. The heldout iterative accept ladder is:
 | iterative v2 | `fc_norms` | 21/94, 22.34% | best ROI so far |
 | iterative v3 | `fc_mtp_layer` | 22/94, 23.40% | loss improves, accept barely moves |
 | iterative v4 | `fc_mtp_layer` | 25/94, 26.60% | 16-token curriculum keeps moving |
+| iterative v5 | `fc_norms` | 26/94, 27.66% | loss drops, accept gain is small |
 
-A100 v5 continues from v4 with `fc_norms` at a lower-risk LR. The accept target
-remains >=55% heldout before this can be counted as a runtime multiplier.
+A100 v5 exposes the next bottleneck: heldout step 0 is 8/8, but heldout step 1
+is still 0/8. The trainer now has explicit `--step1-weight` and
+`--later-token-weight` controls so v6 can stop over-rewarding the already-green
+first token. The accept target remains >=55% heldout before this can be counted
+as a runtime multiplier.
 
 If fc-only cannot clear 55-70%, unfreeze in this order:
 
