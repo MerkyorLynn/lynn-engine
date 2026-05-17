@@ -27,10 +27,12 @@ R6000 hybrid graph token: greedy pass, 9.53 ms one-shot, strict logits not yet e
 A100 best W4A8 recovery baseline: structured_v16_top6_damped075
 A100 teacher-clean v2 serving gate: 10/12 served exact, still RED
 A100 teacher-clean v3 serving gate: 11/12 served exact, min prefix 16, AMBER by plan threshold
-MTP: aligned sidecar forward works; best saved sidecar is now v23 at
-     65/116 = 56.03%, GREEN-CREDIT but not promotion-ready.
-     v19 diagnostic showed 18 near misses; v22 CE + hard-negative margin
-     crossed the 55% serving-credit bar, and v23 adds one more accept.
+MTP: aligned sidecar forward works; best saved sidecar is now v24 at
+     69/116 = 59.48%, GREEN-CREDIT but not promotion-ready.
+     P107 runner shadow-verifier now wires the sidecar into the actual
+     `LynnIncrementalRunner.generate()` path without changing output; on A100
+     structured_v10_top6 and structured_v16_top6_damped075 both score
+     68/116 = 58.62% shadow accept with the v24 sidecar.
 ```
 
 155 requires a compound win. There is no single safe env flag left.
@@ -218,6 +220,20 @@ This keeps v18 as the best saved sidecar, but the slope is now too incremental
 for blind weak-step sweeps. The next A100 move should add targeted calibration
 coverage or a small specialist/merge strategy for step1 plus late-tail keys,
 not simply lower LR again on the same case set.
+
+2026-05-17 P107 serving-shadow update: the best current MTP artifact is v24,
+not v16/v23. The v24 saved-sidecar gate reaches `69/116 = 59.48%`. The new
+runner verifier confirms this survives real `generate()` wiring:
+
+| Model candidate | Sidecar | Shadow accept | Decode TPS in probe | Draft TPS |
+|---|---|---:|---:|---:|
+| structured_v10_top6 | v24 | 68/116 = 58.62% | 7.52 | 83.42 |
+| structured_v16_top6_damped075 | v24 | 68/116 = 58.62% | 7.11 | 79.00 |
+
+This answers the v16 question narrowly: v16 remains the more conservative
+quality baseline, but it does not improve MTP serving-credit over v10 in this
+heldout shadow gate. For the MTP lane, v24 sidecar is the artifact to wire into
+R6000 tests.
 
 A100 v19 uses the new targeted v4 calibration set and `fc_norms` from v18.
 Saved-sidecar eval confirms another real but narrow high:

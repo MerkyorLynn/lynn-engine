@@ -242,6 +242,7 @@ class LynnEngineHandle:
             "prompt_tokens": len(self.tokenizer(prompt).input_ids),
             "completion_tokens": len(result["new_ids"]),
             "timings": result["timings"],
+            "mtp_shadow": result.get("mtp_shadow"),
             "format_guard": {
                 "enabled": bool(format_guard),
                 "stopped": format_guard_stopped,
@@ -359,6 +360,10 @@ def make_app(handle: LynnEngineHandle):
                 "native_fp4_lm_head_enabled": getattr(
                     handle.runner, "native_fp4_lm_head_enabled", None
                 ),
+                "mtp_sidecar_loaded": getattr(handle.runner, "mtp_sidecar_loaded", None),
+                "mtp_shadow_verify_enabled": getattr(handle.runner, "mtp_shadow_verify_enabled", None),
+                "mtp_sidecar_path": getattr(handle.runner, "mtp_sidecar_path", None),
+                "mtp_load_seconds": getattr(handle.runner, "mtp_load_seconds", None),
                 "runtime_warnings": getattr(handle.runner, "runtime_warnings", []),
             }
         return {
@@ -424,6 +429,7 @@ def make_app(handle: LynnEngineHandle):
                 "elapsed_s": elapsed,
                 "tokens_per_second": result["completion_tokens"] / max(elapsed, 1e-6),
                 "timings": result["timings"],
+                "mtp_shadow": result.get("mtp_shadow"),
                 "format_guard": result["format_guard"],
                 "stopped_reason": result.get("stopped_reason"),
             },
@@ -507,6 +513,7 @@ def make_app(handle: LynnEngineHandle):
                 "elapsed_s": elapsed,
                 "tokens_per_second": result["completion_tokens"] / max(elapsed, 1e-6),
                 "timings": result["timings"],
+                "mtp_shadow": result.get("mtp_shadow"),
                 "format_guard": result["format_guard"],
                 "stopped_reason": result.get("stopped_reason"),
             },

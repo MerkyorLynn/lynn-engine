@@ -291,11 +291,29 @@ useful for diagnosis but not promotion: step10 improves to `3/7`, while step12
 drops to `1/6`. Interpolating v24 and v25 keeps best alpha at `0.0`, so v24
 remains the sidecar to wire into serving-credit experiments.
 
-This changes the initialization and wiring path, not the serving state: MTP can
-now run a real draft forward pass and backpropagate through a frozen-base,
-frozen-MTP-layer fc-only calibration set. The warm-start head is still not an
-acceptable draft predictor until a saved sidecar passes heldout and iterative
-accept-rate evaluation.
+P107 moves the v24 sidecar from script-only eval into the resident runner
+shadow path. `LYNN_MTP_SIDECAR=/path/to/mtp.safetensors` loads the sidecar and
+`LYNN_MTP_SHADOW_VERIFY=1` records draft-vs-base argmax matches inside
+`LynnIncrementalRunner.generate()` without changing emitted tokens. The first
+A100 P107 gates are:
+
+```text
+reports/mtp/a100_p107_mtp_shadow_v24_structured_v10_top6_20260517_154801.json
+structured_v10_top6 + v24: 68/116 = 58.62%
+draft_tps: 83.42
+max_one_token_speculative_multiplier: 1.586x
+
+reports/mtp/a100_p107_mtp_shadow_v24_structured_v16_damped075_20260517_154859.json
+structured_v16_top6_damped075 + v24: 68/116 = 58.62%
+draft_tps: 79.00
+max_one_token_speculative_multiplier: 1.586x
+```
+
+This is a GREEN-CREDIT serving-shadow result, not a final TPS claim. It proves
+the v24 sidecar survives the real runner hidden-state boundary and gives R6000
+a concrete sidecar to test under W4A8 NVFP4 v2. It also shows v16 is not better
+than v10 for MTP credit on this heldout gate; v16's value remains quality
+conservatism, not higher draft acceptance.
 
 Report:
 

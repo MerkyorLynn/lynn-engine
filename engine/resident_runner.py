@@ -30,6 +30,7 @@ from engine.full_forward import (
 )
 from engine.inference_state import LAYER_TYPES, LynnInferenceState
 from engine.loader import load_qwen36_layer
+from engine.mtp_sidecar import load_mtp_sidecar, mtp_layer_config, mtp_layer_weights, mtp_logits
 from engine.nvfp4_runtime import (
     _compact_scale_to_swizzled_fp8,
     load_grouped_nvfp4_weight,
@@ -306,6 +307,42 @@ class LynnIncrementalRunner:
         self.native_fp4_lm_head_prepare_seconds: float | None = None
         if os.environ.get("LYNN_NATIVE_FP4_LM_HEAD", "0") == "1":
             self._prepare_native_fp4_lm_head()
+        self.mtp_sidecar_path = os.environ.get("LYNN_MTP_SIDECAR") or None
+        self.mtp_shadow_verify_enabled = (
+            os.environ.get("LYNN_MTP_SHADOW_VERIFY", os.environ.get("LYNN_MTP_VERIFY", "0")) == "1"
+        )
+        self.mtp_sidecar_loaded = False
+        self.mtp_load_seconds: float | None = None
+        self.mtp_sidecar_inventory: dict[str, Any] | None = None
+        self.mtp_sidecar: dict[str, torch.Tensor] | None = None
+        self.mtp_layer_w: dict[str, torch.Tensor] | None = None
+        self.mtp_layer_cfg: dict[str, Any] | None = None
+        if self.mtp_sidecar_path:
+            t_mtp = time.time()
+            self.mtp_sidecar, inventory = load_mtp_sidecar(
+                self.mtp_sidecar_path,
+                device=self.device,
+                dtype=self.dtype,
+            )
+            for tensor in self.mtp_sidecar.values():
+                tensor.requires_grad_(False)
+            self.mtp_layer_w = mtp_layer_weights(self.mtp_sidecar)
+            self.mtp_layer_cfg = mtp_layer_config(self.cfg, self.mtp_layer_w)
+            self.mtp_load_seconds = time.time() - t_mtp
+            self.mtp_sidecar_inventory = {
+                "path": self.mtp_sidecar_path,
+                "metadata": inventory.get("metadata", {}),
+                "tensor_count": len(inventory.get("tensors", {})),
+                "tensors": inventory.get("tensors", {}),
+            }
+            self.mtp_sidecar_loaded = True
+            if self.verbose:
+                mode = "shadow-verify" if self.mtp_shadow_verify_enabled else "loaded-only"
+                print(
+                    f"[resident] MTP sidecar {mode} tensors={self.mtp_sidecar_inventory['tensor_count']} "
+                    f"load={self.mtp_load_seconds:.3f}s",
+                    flush=True,
+                )
         if os.environ.get("LYNN_PREFILL_WARMUP", "0") == "1" and device.startswith("cuda"):
             t_prefill = time.time()
             self._warmup_prefill_kernels()
@@ -578,6 +615,31 @@ class LynnIncrementalRunner:
             scale_a=scale_a,
             scale_b=self._native_fp4_lm_head_scale_b,
             out_dtype=torch.float16,
+        )
+
+    def _mtp_draft_logits(
+        self,
+        *,
+        base_hidden: torch.Tensor,
+        current_token_id: int,
+        current_pos: int,
+    ) -> torch.Tensor:
+        """Run the loaded one-layer MTP sidecar for one draft token."""
+        if not self.mtp_sidecar_loaded:
+            raise RuntimeError("MTP sidecar is not loaded; set LYNN_MTP_SIDECAR")
+        assert self.mtp_sidecar is not None
+        assert self.mtp_layer_w is not None
+        assert self.mtp_layer_cfg is not None
+        return mtp_logits(
+            sidecar=self.mtp_sidecar,
+            mtp_w=self.mtp_layer_w,
+            mtp_cfg=self.mtp_layer_cfg,
+            embed_weight=self.outside["model.language_model.embed_tokens.weight"],
+            lm_head_fn=self._lm_head_logits,
+            base_hidden=base_hidden.contiguous(),
+            current_token_id=current_token_id,
+            current_pos=current_pos,
+            device=self.device,
         )
 
     @staticmethod
@@ -1061,6 +1123,57 @@ class LynnIncrementalRunner:
         h_final = _rms_norm(h, self.outside["model.language_model.norm.weight"])
         logits = self._lm_head_logits(h_final)
         raw_next_id = int(logits[0].argmax().item())
+        mtp_shadow_trace: list[dict[str, Any]] = []
+        mtp_shadow_step_seconds: list[float] = []
+        mtp_shadow_active = self.mtp_sidecar_loaded and self.mtp_shadow_verify_enabled
+
+        def record_mtp_shadow(
+            *,
+            step: int,
+            current_token_id: int,
+            current_pos: int,
+            base_hidden: torch.Tensor,
+            base_next_id: int,
+        ) -> None:
+            if not mtp_shadow_active:
+                return
+            mtp_t0 = time.time()
+            draft_logits = self._mtp_draft_logits(
+                base_hidden=base_hidden,
+                current_token_id=current_token_id,
+                current_pos=current_pos,
+            )
+            if self.device.startswith("cuda"):
+                torch.cuda.synchronize()
+            elapsed = time.time() - mtp_t0
+            draft_id = int(draft_logits[0].argmax().item())
+            base_score = float(draft_logits[0, int(base_next_id)].float().item())
+            draft_top2 = _logit_topk(draft_logits, 2)
+            mtp_shadow_step_seconds.append(elapsed)
+            mtp_shadow_trace.append(
+                {
+                    "step": int(step),
+                    "current_pos": int(current_pos),
+                    "current_token_id": int(current_token_id),
+                    "current_token_text": tok.decode([int(current_token_id)]),
+                    "base_next_id": int(base_next_id),
+                    "base_next_text": tok.decode([int(base_next_id)]),
+                    "draft_id": draft_id,
+                    "draft_text": tok.decode([draft_id]),
+                    "accepted": draft_id == int(base_next_id),
+                    "draft_seconds": elapsed,
+                    "base_score_in_draft_logits": base_score,
+                    "draft_top2": draft_top2,
+                }
+            )
+
+        record_mtp_shadow(
+            step=0,
+            current_token_id=int(ids[0, -1].item()),
+            current_pos=T - 1,
+            base_hidden=h[:, -1:, :],
+            base_next_id=raw_next_id,
+        )
         forced_trace = []
         if forced_prefix_ids:
             forced_id = forced_prefix_ids[0]
@@ -1171,6 +1284,7 @@ class LynnIncrementalRunner:
             if stopped_reason == "stop_token":
                 break
             step_t0 = time.time()
+            decode_input_id = int(next_id)
             new_token_tensor.fill_(next_id)
             pos_id = state.seq_len
             pos_tensor.fill_(pos_id)
@@ -1205,6 +1319,14 @@ class LynnIncrementalRunner:
                 h_final = _rms_norm(h, self.outside["model.language_model.norm.weight"])
                 logits = self._lm_head_logits(h_final)
             raw_next_id = int(logits[0].argmax().item())
+            if not full_token_graph_slot_enabled:
+                record_mtp_shadow(
+                    step=step,
+                    current_token_id=decode_input_id,
+                    current_pos=pos_id,
+                    base_hidden=h,
+                    base_next_id=raw_next_id,
+                )
             if step < len(forced_prefix_ids):
                 forced_id = forced_prefix_ids[step]
                 forced_trace.append(
@@ -1240,6 +1362,32 @@ class LynnIncrementalRunner:
         full_text = tok.decode(ids[0].tolist() + new_ids)
         completion_text_raw = tok.decode(new_ids)
         completion_text = tok.decode(new_ids, skip_special_tokens=True)
+        mtp_shadow_accepted = sum(1 for row in mtp_shadow_trace if row["accepted"])
+        mtp_shadow_summary = {
+            "loaded": self.mtp_sidecar_loaded,
+            "enabled": mtp_shadow_active,
+            "sidecar_file": self.mtp_sidecar_path,
+            "load_seconds": self.mtp_load_seconds,
+            "events": len(mtp_shadow_trace),
+            "accepted": mtp_shadow_accepted,
+            "accept_rate": (
+                mtp_shadow_accepted / len(mtp_shadow_trace)
+                if mtp_shadow_trace
+                else None
+            ),
+            "max_one_token_speculative_multiplier": (
+                (len(mtp_shadow_trace) + mtp_shadow_accepted) / len(mtp_shadow_trace)
+                if mtp_shadow_trace
+                else None
+            ),
+            "draft_step_seconds": mtp_shadow_step_seconds,
+            "draft_tps": (
+                len(mtp_shadow_step_seconds) / sum(mtp_shadow_step_seconds)
+                if mtp_shadow_step_seconds
+                else None
+            ),
+            "trace": mtp_shadow_trace,
+        }
         result = {
             "text": full_text,
             "completion_text": completion_text,
@@ -1264,7 +1412,13 @@ class LynnIncrementalRunner:
                     if full_token_graph_slot_replay_seconds
                     else None
                 ),
+                "mtp_shadow": {
+                    key: value
+                    for key, value in mtp_shadow_summary.items()
+                    if key != "trace"
+                },
             },
+            "mtp_shadow": mtp_shadow_summary,
             "stopped_reason": stopped_reason,
             "stop_token_ids": sorted(self.stop_token_ids),
         }
