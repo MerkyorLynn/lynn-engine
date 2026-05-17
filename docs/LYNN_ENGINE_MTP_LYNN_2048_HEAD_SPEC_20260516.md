@@ -143,6 +143,12 @@ best_label: v19
 best_accept: 60/116 = 51.72%
 sidecar:
 /mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v18-targeted-v4-fcnorms-v19-20260517_135834/mtp.safetensors
+
+reports/mtp/a100_mtp_iterative_train_v19_step1_late_mtplow_v20_20260517_141105.json
+reports/mtp/a100_mtp_saved_sidecar_eval_v19_v20_20260517_142412.json
+decision: AMBER
+best_label: v19
+v20_accept: 60/116 = 51.72%
 ```
 
 The weighted-math v3 sidecar is a GREEN first-token draft candidate, but it is
@@ -169,7 +175,11 @@ format-tail calibration and trains `fc_norms` from v18; it confirms one more
 saved accept by moving step9 from `1/8` to `2/8`, reaching `60/116`. The
 remaining 55% gap is now four accepts, concentrated in step1 and late-tail
 positions. Continue with a step1/late specialist or merge route, not another
-broad v4 repeat.
+broad v4 repeat. v20 tests a direct `fc_mtp_layer` specialist on
+steps `1/8/9/11/12/13/14/15` from v19 and reloads at the same `60/116`; it does
+not damage the restored band, but it also does not add accept. That closes this
+simple specialist shape. The next A100 move should be merge/selection or a
+different trainable surface for step1.
 
 This changes the initialization and wiring path, not the serving state: MTP can
 now run a real draft forward pass and backpropagate through a frozen-base,

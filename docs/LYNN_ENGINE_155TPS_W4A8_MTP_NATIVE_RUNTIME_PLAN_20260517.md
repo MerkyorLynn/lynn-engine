@@ -223,6 +223,13 @@ format-tail coverage can move the saved gate, but the remaining gap to the
 `>=55%` credit bar is still four accepts. The next run should be a step1/late
 specialist or merge candidate rather than a broad v4 repeat.
 
+A100 v20 tests that specialist direction directly: `fc_mtp_layer` only on
+steps `1/8/9/11/12/13/14/15` from v19. It does not improve saved heldout:
+v19 and v20 both reload at `60/116 = 51.72%`, with the same by-step shape.
+This closes the simple MTP-layer specialist route for now. The next useful A100
+move is a merge/selection experiment or a different trainable surface for
+step1, not another low-LR `fc_mtp_layer` weak-step run.
+
 If fc-only cannot clear 55-70%, unfreeze in this order:
 
 1. `mtp.fc.weight`
