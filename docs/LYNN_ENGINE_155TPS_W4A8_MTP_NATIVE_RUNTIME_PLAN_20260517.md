@@ -912,6 +912,7 @@ The C++ refactor is justified if either:
 
 ```text
 Reference: docs/LYNN_ENGINE_CPP_RUST_REWRITE_ROI_20260517.md
+Verify ABI: docs/LYNN_ENGINE_MTP_VERIFY_ABI_20260517.md
 Decision: staged native core first, Rust server later.
 ```
 

@@ -34,6 +34,7 @@ Primary references:
 - Chimere repo: <https://github.com/AIdevsmartdata/chimere>
 - TriAttention paper: <https://arxiv.org/abs/2604.04921>
 - TriAttention repo: <https://github.com/WeianMao/triattention>
+- Lynn MTP verify ABI: <./LYNN_ENGINE_MTP_VERIFY_ABI_20260517.md>
 
 Atlas claims and source code line up with a Rust + CUDA architecture:
 
