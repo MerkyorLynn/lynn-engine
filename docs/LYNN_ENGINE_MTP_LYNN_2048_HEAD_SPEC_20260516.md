@@ -134,6 +134,15 @@ best_label: v18
 best_accept: 59/116 = 50.86%
 sidecar:
 /mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v17-weakall-mtplow-v18-20260517_134200/mtp.safetensors
+
+reports/mtp/mtp_fc_calibration_prompts_v4_targeted_format_tail.json
+reports/mtp/a100_mtp_iterative_train_v18_targeted_v4_fcnorms_v19_20260517_135834.json
+reports/mtp/a100_mtp_saved_sidecar_eval_v18_v19_20260517_140826.json
+decision: AMBER
+best_label: v19
+best_accept: 60/116 = 51.72%
+sidecar:
+/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v18-targeted-v4-fcnorms-v19-20260517_135834/mtp.safetensors
 ```
 
 The weighted-math v3 sidecar is a GREEN first-token draft candidate, but it is
@@ -155,7 +164,12 @@ curriculum; saved eval confirms one more accept, moving step0 from `3/8` to
 `4/8` for total `59/116`. Step1 and the late tail stay flat, so the next
 useful move is not another blind low-LR weak-step sweep. Add targeted
 calibration coverage or train a small specialist/merge candidate for step1 and
-late-tail key positions before spending more A100 cycles.
+late-tail key positions before spending more A100 cycles. v19 adds targeted v4
+format-tail calibration and trains `fc_norms` from v18; it confirms one more
+saved accept by moving step9 from `1/8` to `2/8`, reaching `60/116`. The
+remaining 55% gap is now four accepts, concentrated in step1 and late-tail
+positions. Continue with a step1/late specialist or merge route, not another
+broad v4 repeat.
 
 This changes the initialization and wiring path, not the serving state: MTP can
 now run a real draft forward pass and backpropagate through a frozen-base,

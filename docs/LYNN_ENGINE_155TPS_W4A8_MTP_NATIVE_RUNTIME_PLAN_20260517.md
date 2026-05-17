@@ -25,8 +25,8 @@ R6000 full-attn mutable-input graph: 4/4 parity, replay 4.21x faster than eager
 A100 best W4A8 recovery baseline: structured_v16_top6_damped075
 A100 teacher-clean v2 serving gate: 10/12 served exact, still RED
 A100 teacher-clean v3 serving gate: 11/12 served exact, min prefix 16, AMBER by plan threshold
-MTP: aligned sidecar forward works; best saved sidecar is now v18 at
-     59/116 = 50.86%, still AMBER and below serving multiplier credit
+MTP: aligned sidecar forward works; best saved sidecar is now v19 at
+     60/116 = 51.72%, still AMBER and below serving multiplier credit
 ```
 
 155 requires a compound win. There is no single safe env flag left.
@@ -214,6 +214,14 @@ This keeps v18 as the best saved sidecar, but the slope is now too incremental
 for blind weak-step sweeps. The next A100 move should add targeted calibration
 coverage or a small specialist/merge strategy for step1 plus late-tail keys,
 not simply lower LR again on the same case set.
+
+A100 v19 uses the new targeted v4 calibration set and `fc_norms` from v18.
+Saved-sidecar eval confirms another real but narrow high:
+`60/116 = 51.72%`. The gain lands on step9 (`1/8 -> 2/8`); step0 remains
+`4/8`, step1 remains `2/8`, and step2/3/4/5 remain `8/8`. This proves adding
+format-tail coverage can move the saved gate, but the remaining gap to the
+`>=55%` credit bar is still four accepts. The next run should be a step1/late
+specialist or merge candidate rather than a broad v4 repeat.
 
 If fc-only cannot clear 55-70%, unfreeze in this order:
 
