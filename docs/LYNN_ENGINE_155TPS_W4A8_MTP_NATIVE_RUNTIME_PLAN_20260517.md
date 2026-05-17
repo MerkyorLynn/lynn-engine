@@ -24,7 +24,7 @@ A100 best W4A8 recovery baseline: structured_v16_top6_damped075
 A100 teacher-clean v2 serving gate: 10/12 served exact, still RED
 A100 teacher-clean v3 serving gate: 11/12 served exact, min prefix 16, AMBER by plan threshold
 MTP: aligned sidecar forward works; first-token fc calibration is GREEN, but
-     iterative accept is still only 34/94 heldout after v10, so no TPS credit yet
+     saved-sidecar eval is still only 29/116 after v11, so no TPS credit yet
 ```
 
 155 requires a compound win. There is no single safe env flag left.
@@ -125,6 +125,7 @@ usable speculative decode. The heldout iterative accept ladder is:
 | iterative v8 | `fc_mtp_layer`, step1 only | 31/94, 32.98% | heldout step1 improves to 3/8 |
 | iterative v9 | `fc_mtp_layer`, steps 1-2 | 32/94, 34.04% | preserves step1/2, adds one later token |
 | iterative v10 | `fc_mtp_layer`, steps 3-5 | 34/94, 36.17% | improves step4 and step8; still below multiplier bar |
+| iterative v11 | `fc_mtp_layer`, late steps | 29/116, 25.00% | diagnostic: different case set; not a promotion |
 
 A100 v5 exposes the next bottleneck: heldout step 0 is 8/8, but heldout step 1
 is still 0/8. The trainer now has explicit `--step1-weight` and
@@ -152,6 +153,14 @@ A100 v10 targets steps 3/4/5 and raises total heldout accept to 34/94. The
 direct gain lands on step4 (`1/8 -> 2/8`) with spillover to step8
 (`1/6 -> 2/6`); step11/14/15 remain at 0 accepted. A100 v11 is now targeting
 late low-accept steps 7/8/10/11/12/14/15 from the v10 sidecar.
+
+Saved-sidecar eval is now the authoritative handoff gate. Reloading saved
+sidecars `fc_v3` through `v11` on one shared 116-case heldout set shows the
+best saved sidecar is v11 at `29/116 = 25.00%`; all saved sidecars have
+`0/8` accept for steps 0-4 and only recover at later token positions. This
+means the previous in-memory ladder is useful for training direction, but not
+enough to hand a sidecar to serving. A100 v12 is therefore a front-restore run
+from v11 targeting steps 0-4 before any more late-step curriculum.
 
 If fc-only cannot clear 55-70%, unfreeze in this order:
 
@@ -257,6 +266,13 @@ mode.
 collapse into an exclamation-loop. This is a useful kernel signal but a RED
 serving candidate; do not promote it until the CUDA tile down path passes the
 generation/preview gate.
+
+2026-05-17 P50 first-divergence follow-up on the P25 prompt: with graphs off and
+both backends fed the Triton greedy stream, `cuda_tile` first flips top-1 at
+step 28 (`主流` vs `核心`) on a low-margin choice. The first visible hidden
+drift is already at step 0/layer 11. The down tile path is therefore a real
+speed lever, but its accumulation-order drift is large enough to flip semantic
+tokens in long decode.
 
 Required native path:
 

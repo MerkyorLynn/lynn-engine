@@ -236,3 +236,23 @@ it is not usable: both sampled generations collapse into an exclamation loop.
 This rules out down-backend swapping as an immediate promotion path. The useful
 next step is a numerical/semantic gate for the CUDA tile kernel itself, not a
 larger server benchmark.
+
+Follow-up first-divergence probes:
+
+```text
+reports/p16_155/p50_down_tile_first_divergence_r6000_v2_service_20260517_124952.json
+reports/p16_155/p50_down_tile_first_divergence_r6000_v2_p25prompt_20260517_125245.json
+```
+
+The short diagnostic prompt stays top-1 matched for 8 steps, but hidden drift is
+visible from step 2/layer 21 and logits rel_l2 reaches roughly `0.10`. The P25
+service prompt diverges at step 28: Triton chooses `主流`, while cuda_tile
+chooses `核心`; the Triton margin is only `0.4297`, and the cuda_tile margin is
+`0.0547`. The first layer below the hidden cosine threshold appears at
+step 0/layer 11.
+
+This explains the service failure without contradicting the local speed win:
+the down tile kernel is numerically close enough for local contracts, but its
+accumulation-order drift survives through the decode stack and flips low-margin
+semantic tokens. Promotion requires a drift-reduced kernel or a full decode
+quality gate, not just faster down projection timing.
