@@ -151,6 +151,7 @@ R6000 live OpenAI HTTP smoke confirms the JSON path is not just an offline gate:
 ```text
 reports/a100/server_guard_http_smoke_20260517_1051.json
 reports/a100/server_guard_chat_smoke_metrics_20260517_1055.json
+reports/a100/server_guard_repeated_bench_20260517_110648.json
 ```
 
 | Endpoint | Guard | Result | Decode TPS | Notes |
@@ -158,6 +159,7 @@ reports/a100/server_guard_chat_smoke_metrics_20260517_1055.json
 | `/v1/completions` | `response_format={"type":"json_object"}` | parseable JSON | 96.14 | first token forced from raw newline to `{` |
 | `/v1/chat/completions` | `response_format={"type":"json_object"}` | parseable JSON, `finish_reason=stop` | 96.59 | `stopped_reason=stop_token`, no markdown |
 | `/v1/completions` | private bullet guard | not sufficient | 98.48 | only the first prefix is forced; content quality can still drift |
+| `/v1/chat/completions` repeated bench | `response_format={"type":"json_object"}` | 8/8 parseable JSON, 8/8 stop | 98.99 mean | min/max 95.62/101.07 |
 
 This validates the low-risk serving escape hatch for JSON/tool-call style
 outputs, but also draws the boundary: format guard fixes entry-domain and
@@ -168,17 +170,27 @@ serving gate:
 
 ```text
 reports/a100/a100_w4a8_serving_guard12_gate_structured_v16_chat_template_12prompt_48tok.json
+reports/a100/w4a8_structured_recovery_prompts_v2_teacher_clean_guard_specs.json
+reports/a100/a100_w4a8_teacher_clean_v2_gate_structured_v16_12prompt_48tok.json
 ```
 
 | Gate | Served Exact | Min Prefix | Mean Prefix | Ref Format | Cand Format | Raw Prefix | Decision |
 |---|---:|---:|---:|---:|---:|---:|---|
 | serving guard12 v16, raw prompts | 8/12 | 12 | 34.75 | 12/12 | 12/12 | 4/12 | RED, format-clean |
 | serving guard12 v16, chat template | 5/12 | 8 | 28.42 | 12/12 | 12/12 | 7/12 | RED, regression |
+| teacher-clean v2 prompts, raw template | 10/12 | 9 | 32.33 | 12/12 | 12/12 | 0/12 | RED, improved |
 
 The chat template makes the teacher format clean, but shifts the teacher token
 path and worsens parity on this prompt set. Keep raw structured prompts as the
 current gate baseline; teacher cleanup needs prompt rewrites, not just wrapping
 the same prompts in chat format.
+
+The first prompt-rewrite pass is useful: `teacher_clean_v2` improves served
+text exactness to 10/12. The remaining failures are `moe_router_expert_clean`
+at prefix 9 and `normalize_city_code_clean` at prefix 39. Both are style or
+implementation-choice drift, not JSON/YAML/tool-call format collapse. This is
+evidence for a serving-template strategy on structured outputs, but it is not
+yet enough to promote full-active W4A8.
 
 ## Full-Token Graph Slot Trigger
 
