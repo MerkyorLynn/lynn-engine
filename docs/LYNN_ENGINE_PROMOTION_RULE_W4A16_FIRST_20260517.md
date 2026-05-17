@@ -62,6 +62,12 @@ layers, 0.33 ms/token in norm + native FP4 lm_head, and only 0.14 ms/token host
 gap. Prioritize linear-block replay/fusion and full-attention layer fusion before
 large service-loop rewrites.
 
+Full-attention graph slots are not yet a reusable cross-request solution. P9-V
+passed strict parity when captured on the same prompt state, but P9-W failed
+cross-prompt reuse. Keep the promoted serving profile on reusable linear-block
+graphs plus eager full-attention until full-attention slots are state-safe across
+requests or cheap enough to capture per request.
+
 ## Tonight's Objective
 
 The R6000 official 35B pipeline should answer:

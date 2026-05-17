@@ -133,12 +133,23 @@ Supporting micro-profiles:
 - Linear-attention layer 0 core: recomposed core 0.42 ms; top segments are gated
   RMSNorm 0.078 ms, native FP4 fused in-proj 0.074 ms, recurrent update 0.038 ms,
   conv update 0.033 ms.
+- Full-attention graph slots are exact only under the same captured prompt state:
+  P9-V passed strict logit parity at 11.18 ms/token, but P9-W cross-prompt reuse
+  failed with graph next id 0 versus eager next id 248068. Do not promote
+  reusable full-attention graph slots across requests; treat them as a
+  per-request capture or future state-parametrized graph research branch.
 
 Copied reports:
 
 - `reports/qwen36_35b/r6000_qwen36_w4a16_graph_inplace_p26_phase_20260518_014002.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_graph_inplace_p27_full_layer31_20260518_014148.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p10c_linear_layer0_20260518_014332.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p9v_real_state_full_attn_slots_20260518_014801.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p9w_cross_prompt_full_attn_slots_20260518_021815.json`
+
+Spark also now has the R6000 W4A16 artifact finalized at:
+
+- `/home/merkyor/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-from-r6000`
 
 ## W4A8 Matrix
 
