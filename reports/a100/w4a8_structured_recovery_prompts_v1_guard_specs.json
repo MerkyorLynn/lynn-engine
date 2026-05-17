@@ -1,0 +1,74 @@
+[
+  {
+    "id": "w4a8_explain",
+    "prompt": "用一句话解释 W4A8 为什么可能比 W4A4 更稳。"
+  },
+  {
+    "id": "palindrome_code",
+    "prompt": "请写一个 Python 函数,判断字符串是否是回文。",
+    "forced_prefix": "```python\n",
+    "expected_start": "```python",
+    "forbid": ["<think>", "</think>"]
+  },
+  {
+    "id": "train_math",
+    "prompt": "If a train travels 60 mph for 2.5 hours, how far does it go?"
+  },
+  {
+    "id": "json_city",
+    "prompt": "请给出一个 JSON: {\"city\":\"Tokyo\",\"unit\":\"celsius\"}",
+    "forced_prefix": "{\n  \"",
+    "expected_start": "{",
+    "forbid": ["```", "<think>", "</think>"]
+  },
+  {
+    "id": "moe_router_expert",
+    "prompt": "总结一下 MoE 模型里 router 和 expert 的分工。"
+  },
+  {
+    "id": "linear_attention_explain",
+    "prompt": "解释长上下文推理里 linear attention 的优势。"
+  },
+  {
+    "id": "tool_json",
+    "prompt": "请只输出 JSON,不要解释: {\"tool\":\"get_weather\",\"arguments\":{\"city\":\"Tokyo\",\"unit\":\"celsius\"}}",
+    "forced_prefix": "{\n  \"",
+    "expected_start": "{",
+    "forbid": ["```", "<think>", "</think>"]
+  },
+  {
+    "id": "openapi_yaml",
+    "prompt": "把 {\"city\":\"Tokyo\",\"unit\":\"celsius\"} 转成 OpenAPI 3.0 requestBody schema,只输出 yaml。",
+    "forced_prefix": "```yaml\n",
+    "expected_start": "```yaml",
+    "forbid": ["<think>", "</think>"]
+  },
+  {
+    "id": "normalize_city_code",
+    "prompt": "写一个 Python 函数 normalize_city(payload),输入 dict,返回 city 小写和 unit 默认 celsius。",
+    "forced_prefix": "```python\n",
+    "expected_start": "```python",
+    "forbid": ["<think>", "</think>"]
+  },
+  {
+    "id": "repair_json",
+    "prompt": "请修复这个 JSON 并只输出修复后的 JSON: {'city':'Tokyo','unit':'celsius',}",
+    "forced_prefix": "{\n  \"",
+    "expected_start": "{",
+    "forbid": ["```", "<think>", "</think>"]
+  },
+  {
+    "id": "function_args",
+    "prompt": "给出一个 function call: get_weather(city=\"Tokyo\", unit=\"celsius\"),只输出 JSON arguments。",
+    "forced_prefix": "{\n  \"",
+    "expected_start": "{",
+    "forbid": ["```", "<think>", "</think>", "get_weather"]
+  },
+  {
+    "id": "linear_attention_bullets",
+    "prompt": "解释 linear attention 的优势,要求用三条 bullet,不要出现 <think> 标签。",
+    "forced_prefix": "- ",
+    "expected_start": "-",
+    "forbid": ["<think>", "</think>"]
+  }
+]

@@ -49,6 +49,10 @@ reports/a100/a100_w4a8_generation_gate_structured_v16_top6_damped075_12prompt_48
 reports/a100/a100_w4a8_generation_gate_structured_v17_top6_damped050_12prompt_48tok.json
 reports/a100/a100_w4a8_prefix_margin_recovery_structured_v19_top6_expert_20260517_100551.json
 reports/a100/a100_w4a8_generation_gate_structured_v19_prefix_margin_top6_expert_12prompt_48tok.json
+reports/a100/a100_w4a8_generation_gate_structured_v20_v16_plus_prefix025_12prompt_48tok.json
+reports/a100/a100_w4a8_generation_gate_structured_v21_v16_plus_prefix050_12prompt_48tok.json
+reports/a100/a100_w4a8_prefix_margin_recovery_structured_v22_guarded12_expert_20260517_103453.json
+reports/a100/a100_w4a8_generation_gate_structured_v22_guarded12_prefix_margin_expert_12prompt_48tok.json
 ```
 
 | Candidate | Damping | Exact | Min Prefix | Mean Prefix | Decision |
@@ -56,6 +60,9 @@ reports/a100/a100_w4a8_generation_gate_structured_v19_prefix_margin_top6_expert_
 | structured_v16_top6_damped075 | 0.75 | 9/12 | 12 | 35.92 | RED |
 | structured_v17_top6_damped050 | 0.50 | 6/12 | 7 | 29.58 | RED |
 | structured_v19_prefix_margin_top6_expert | n/a | 6/12 | 7 | 31.50 | local GREEN, generation regression |
+| structured_v20_v16_plus_prefix025 | v16 + 0.25 prefix | 7/12 | 7 | 30.67 | regression |
+| structured_v21_v16_plus_prefix050 | v16 + 0.50 prefix | 5/12 | 1 | 23.75 | severe regression |
+| structured_v22_guarded12_prefix_margin_expert | guarded12 conservative expert | 5/12 | 1 | 23.75 | local AMBER, generation regression |
 | structured_v10_top6 | 1.00 | 8/12 | 13 | 33.33 | previous best handoff |
 
 Interpretation: 0.75 damping is useful and is now the highest-exact Recovery
@@ -68,6 +75,13 @@ over the first 8 guarded structured tokens reduces local active-MoE drift from
 4.03% to 2.76%, but the folded artifact regresses the unguarded 12-prompt
 generation gate to 6/12. Treat it as evidence for the first-token repair
 mechanism, not as a replacement for v16.
+
+Follow-up blends close this branch for now: multiplying v19 back into v16 at
+0.25 and 0.50 damping regresses to 7/12 and 5/12 respectively. A more
+conservative guarded12 prefix-margin alpha (`v22`, alpha range 0.9-1.1) improves
+local drift from 3.92% to 3.15%, but still regresses generation to 5/12. The
+lesson is that prefix-margin information must enter a broader teacher-cleanup
+or QAT objective; post-hoc multiplicative alpha is too brittle.
 
 ## Format Guard Evidence
 
@@ -87,6 +101,7 @@ reports/a100/a100_w4a8_format_anchor_gate_structured_v16_guard_v3_6prompt_32tok.
 | guard v2 | key-specific | 4/6 | 3 | 24.33 | 4/6 | 5/6 | 0/6 | RED |
 | guard v3 | generic JSON-entry | 6/6 | 22 | 27.00 | 6/6 | 6/6 | 0/6 | GREEN |
 | guard v3 on v19 | generic JSON-entry | 6/6 | 22 | 27.00 | 6/6 | 6/6 | 0/6 | GREEN |
+| serving guard12 on v16 | structured stops | 8/12 served text | 12 | 34.75 | 12/12 | 12/12 | 4/12 | RED, format-clean |
 
 Interpretation: prompt cleanup alone is insufficient because the raw teacher
 and candidate can both enter the wrong format domain. A small format-start
@@ -102,6 +117,17 @@ Bullets: "- "
 The raw prefix match stays 0/6 under guarded runs, which means the guard is
 actively correcting first-token/few-token drift rather than merely confirming
 what the model already wanted.
+
+The original 12-prompt serving guard gate on v16 is more nuanced:
+
+```text
+reports/a100/a100_w4a8_serving_guard12_gate_structured_v16_12prompt_48tok.json
+```
+
+Balanced JSON/code/bullet stops improve the service-facing result to 8/12
+served-text exact with 12/12 reference and candidate format clean. This rescues
+the structured JSON/YAML/tool-call failures, but leaves natural-language
+wording, `normalize_city` implementation style, and bullet wording drift.
 
 ## Full-Token Graph Slot Trigger
 

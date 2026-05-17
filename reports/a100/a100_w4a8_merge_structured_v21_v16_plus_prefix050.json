@@ -1,0 +1,170 @@
+{
+  "schema_version": "lynn-a100-w4a8-alpha-merged-overlay-v1",
+  "base_alpha_dir": "/mnt/data2/lynn-a100/artifacts/w4a8_alpha_overlay_structured_v16_top6_damped075",
+  "correction_alpha_dir": "/mnt/data2/lynn-a100/artifacts/w4a8_alpha_overlay_structured_v19_prefix_margin_top6_expert",
+  "out_alpha_dir": "/mnt/data2/lynn-a100/artifacts/w4a8_alpha_overlay_structured_v21_v16_plus_prefix050",
+  "correction_damping": 0.5,
+  "alpha_min": 0.75,
+  "alpha_max": 1.25,
+  "layers": [
+    2,
+    3,
+    24,
+    26,
+    29,
+    30
+  ],
+  "rows": [
+    {
+      "layer": 2,
+      "alpha_mode": "expert",
+      "base_alpha_path": "/mnt/data2/lynn-a100/artifacts/w4a8_alpha_overlay_structured_v16_top6_damped075/layer_02_expert_alpha.pt",
+      "correction_alpha_path": "/mnt/data2/lynn-a100/artifacts/w4a8_alpha_overlay_structured_v19_prefix_margin_top6_expert/layer_02_expert_alpha.pt",
+      "out_alpha_path": "/mnt/data2/lynn-a100/artifacts/w4a8_alpha_overlay_structured_v21_v16_plus_prefix050/layer_02_expert_alpha.pt",
+      "base_stats": {
+        "min": 0.9474999904632568,
+        "max": 1.0525000095367432,
+        "mean": 1.0000241994857788,
+        "std": 0.012858755886554718
+      },
+      "correction_stats": {
+        "min": 0.75,
+        "max": 1.25,
+        "mean": 1.0002726316452026,
+        "std": 0.08133886009454727
+      },
+      "merged_stats": {
+        "min": 0.8290624618530273,
+        "max": 1.1840624809265137,
+        "mean": 1.0001626014709473,
+        "std": 0.042716700583696365
+      }
+    },
+    {
+      "layer": 3,
+      "alpha_mode": "expert",
+      "base_alpha_path": "/mnt/data2/lynn-a100/artifacts/w4a8_alpha_overlay_structured_v16_top6_damped075/layer_03_expert_alpha.pt",
+      "correction_alpha_path": "/mnt/data2/lynn-a100/artifacts/w4a8_alpha_overlay_structured_v19_prefix_margin_top6_expert/layer_03_expert_alpha.pt",
+      "out_alpha_path": "/mnt/data2/lynn-a100/artifacts/w4a8_alpha_overlay_structured_v21_v16_plus_prefix050/layer_03_expert_alpha.pt",
+      "base_stats": {
+        "min": 0.9474999904632568,
+        "max": 1.0525000095367432,
+        "mean": 1.0000466108322144,
+        "std": 0.014913004823029041
+      },
+      "correction_stats": {
+        "min": 0.75,
+        "max": 1.25,
+        "mean": 1.0007102489471436,
+        "std": 0.08275263011455536
+      },
+      "merged_stats": {
+        "min": 0.8290624618530273,
+        "max": 1.1840624809265137,
+        "mean": 1.0004040002822876,
+        "std": 0.044053398072719574
+      }
+    },
+    {
+      "layer": 24,
+      "alpha_mode": "expert",
+      "base_alpha_path": "/mnt/data2/lynn-a100/artifacts/w4a8_alpha_overlay_structured_v16_top6_damped075/layer_24_expert_alpha.pt",
+      "correction_alpha_path": "/mnt/data2/lynn-a100/artifacts/w4a8_alpha_overlay_structured_v19_prefix_margin_top6_expert/layer_24_expert_alpha.pt",
+      "out_alpha_path": "/mnt/data2/lynn-a100/artifacts/w4a8_alpha_overlay_structured_v21_v16_plus_prefix050/layer_24_expert_alpha.pt",
+      "base_stats": {
+        "min": 0.9474999904632568,
+        "max": 1.0525000095367432,
+        "mean": 1.000044822692871,
+        "std": 0.013239189982414246
+      },
+      "correction_stats": {
+        "min": 0.75,
+        "max": 1.25,
+        "mean": 1.000557780265808,
+        "std": 0.07362549006938934
+      },
+      "merged_stats": {
+        "min": 0.8290624618530273,
+        "max": 1.1840624809265137,
+        "mean": 1.0003230571746826,
+        "std": 0.039114776998758316
+      }
+    },
+    {
+      "layer": 26,
+      "alpha_mode": "expert",
+      "base_alpha_path": "/mnt/data2/lynn-a100/artifacts/w4a8_alpha_overlay_structured_v16_top6_damped075/layer_26_expert_alpha.pt",
+      "correction_alpha_path": "/mnt/data2/lynn-a100/artifacts/w4a8_alpha_overlay_structured_v19_prefix_margin_top6_expert/layer_26_expert_alpha.pt",
+      "out_alpha_path": "/mnt/data2/lynn-a100/artifacts/w4a8_alpha_overlay_structured_v21_v16_plus_prefix050/layer_26_expert_alpha.pt",
+      "base_stats": {
+        "min": 0.9474999904632568,
+        "max": 1.0525000095367432,
+        "mean": 1.0000591278076172,
+        "std": 0.013894557021558285
+      },
+      "correction_stats": {
+        "min": 0.75,
+        "max": 1.25,
+        "mean": 1.0006073713302612,
+        "std": 0.07549412548542023
+      },
+      "merged_stats": {
+        "min": 0.8290624618530273,
+        "max": 1.1840624809265137,
+        "mean": 1.0003618001937866,
+        "std": 0.04020458459854126
+      }
+    },
+    {
+      "layer": 29,
+      "alpha_mode": "expert",
+      "base_alpha_path": "/mnt/data2/lynn-a100/artifacts/w4a8_alpha_overlay_structured_v16_top6_damped075/layer_29_expert_alpha.pt",
+      "correction_alpha_path": "/mnt/data2/lynn-a100/artifacts/w4a8_alpha_overlay_structured_v19_prefix_margin_top6_expert/layer_29_expert_alpha.pt",
+      "out_alpha_path": "/mnt/data2/lynn-a100/artifacts/w4a8_alpha_overlay_structured_v21_v16_plus_prefix050/layer_29_expert_alpha.pt",
+      "base_stats": {
+        "min": 0.9474999904632568,
+        "max": 1.0525000095367432,
+        "mean": 1.0000699758529663,
+        "std": 0.014680101536214352
+      },
+      "correction_stats": {
+        "min": 0.75,
+        "max": 1.25,
+        "mean": 1.0002338886260986,
+        "std": 0.07527777552604675
+      },
+      "merged_stats": {
+        "min": 0.8290624618530273,
+        "max": 1.1840624809265137,
+        "mean": 1.0001872777938843,
+        "std": 0.04041523113846779
+      }
+    },
+    {
+      "layer": 30,
+      "alpha_mode": "expert",
+      "base_alpha_path": "/mnt/data2/lynn-a100/artifacts/w4a8_alpha_overlay_structured_v16_top6_damped075/layer_30_expert_alpha.pt",
+      "correction_alpha_path": "/mnt/data2/lynn-a100/artifacts/w4a8_alpha_overlay_structured_v19_prefix_margin_top6_expert/layer_30_expert_alpha.pt",
+      "out_alpha_path": "/mnt/data2/lynn-a100/artifacts/w4a8_alpha_overlay_structured_v21_v16_plus_prefix050/layer_30_expert_alpha.pt",
+      "base_stats": {
+        "min": 0.9474999904632568,
+        "max": 1.0525000095367432,
+        "mean": 0.9999593496322632,
+        "std": 0.015553114004433155
+      },
+      "correction_stats": {
+        "min": 0.75,
+        "max": 1.25,
+        "mean": 1.0006152391433716,
+        "std": 0.07758507877588272
+      },
+      "merged_stats": {
+        "min": 0.8290624618530273,
+        "max": 1.1840624809265137,
+        "mean": 1.0002672672271729,
+        "std": 0.04179755970835686
+      }
+    }
+  ],
+  "decision": "GREEN: merged alpha overlay written; fold and run local/generation gates before promotion."
+}

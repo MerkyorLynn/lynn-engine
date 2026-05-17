@@ -52,6 +52,87 @@ def _format_eval(text: str, spec: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _trim_before(text: str, needles: list[str]) -> str:
+    hits = [text.find(item) for item in needles if item and text.find(item) >= 0]
+    return text if not hits else text[: min(hits)].rstrip()
+
+
+def _balanced_json(text: str) -> str:
+    start = text.find("{")
+    if start < 0:
+        return text
+    depth = 0
+    in_string = False
+    escape = False
+    for idx in range(start, len(text)):
+        ch = text[idx]
+        if in_string:
+            if escape:
+                escape = False
+            elif ch == "\\":
+                escape = True
+            elif ch == '"':
+                in_string = False
+            continue
+        if ch == '"':
+            in_string = True
+        elif ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return text[: idx + 1]
+    return text
+
+
+def _closed_code_fence(text: str) -> str:
+    stripped = text.lstrip()
+    offset = len(text) - len(stripped)
+    if not stripped.startswith("```"):
+        return text
+    first_newline = text.find("\n", offset)
+    if first_newline < 0:
+        return text
+    close = text.find("```", first_newline + 1)
+    if close < 0:
+        return text
+    return text[: close + 3]
+
+
+def _first_bullets(text: str, count: int) -> str:
+    lines = text.splitlines()
+    out: list[str] = []
+    bullet_count = 0
+    started = False
+    for line in lines:
+        if line.lstrip().startswith("-"):
+            started = True
+            bullet_count += 1
+        elif started and bullet_count >= count:
+            break
+        if started:
+            out.append(line)
+        if bullet_count >= count:
+            # Keep continuation lines only out of scope for this terse gate.
+            break
+    return "\n".join(out).rstrip() if out else text
+
+
+def _serving_text(text: str, spec: dict[str, Any]) -> str:
+    served = text
+    stop_before = list(spec.get("stop_before") or [])
+    if stop_before:
+        served = _trim_before(served, stop_before)
+    stop_after = spec.get("stop_after")
+    if stop_after == "balanced_json":
+        served = _balanced_json(served)
+    elif stop_after == "code_fence":
+        served = _closed_code_fence(served)
+    elif stop_after == "bullet_count":
+        served = _first_bullets(served, int(spec.get("bullet_count", 3)))
+    return served.strip() if spec.get("strip_serving_text", True) else served
+
+
 def _load_specs(path: str) -> list[dict[str, Any]]:
     raw = json.loads(Path(path).read_text(encoding="utf-8"))
     specs = []
@@ -102,10 +183,12 @@ def _run_model(
                 per_prompt[mode] = {
                     "new_ids": out["new_ids"],
                     "completion_text": out["completion_text"],
+                    "serving_text": _serving_text(out["completion_text"], spec),
                     "completion_text_raw": out["completion_text_raw"],
                     "stopped_reason": out["stopped_reason"],
                     "decode_tps": out["timings"].get("decode_tps"),
                     "format": _format_eval(out["completion_text"], spec),
+                    "serving_format": _format_eval(_serving_text(out["completion_text"], spec), spec),
                     "forced_prefix": out.get("forced_prefix"),
                     "topk_trace": out.get("topk_trace", []),
                 }
@@ -166,9 +249,14 @@ def _cross_compare(reference: dict[str, Any], candidate: dict[str, Any], max_new
                 "first_diff_index": None if prefix == max_new else prefix,
                 "reference_format": ref["off"]["format"],
                 "candidate_format": cand["full"]["format"],
+                "reference_serving_format": ref["off"]["serving_format"],
+                "candidate_serving_format": cand["full"]["serving_format"],
                 "candidate_forced_prefix": cand["full"].get("forced_prefix"),
                 "reference_off_text": ref["off"]["completion_text"],
                 "candidate_full_text": cand["full"]["completion_text"],
+                "reference_serving_text": ref["off"]["serving_text"],
+                "candidate_serving_text": cand["full"]["serving_text"],
+                "serving_text_exact": ref["off"]["serving_text"] == cand["full"]["serving_text"],
             }
         )
     prefixes = [row["same_prefix_tokens"] for row in rows]
@@ -180,6 +268,9 @@ def _cross_compare(reference: dict[str, Any], candidate: dict[str, Any], max_new
         "mean_same_prefix_tokens": sum(prefixes) / len(prefixes) if prefixes else None,
         "reference_format_ok": sum(1 for row in rows if row["reference_format"]["ok"]),
         "candidate_format_ok": sum(1 for row in rows if row["candidate_format"]["ok"]),
+        "reference_serving_format_ok": sum(1 for row in rows if row["reference_serving_format"]["ok"]),
+        "candidate_serving_format_ok": sum(1 for row in rows if row["candidate_serving_format"]["ok"]),
+        "serving_text_exact": sum(1 for row in rows if row["serving_text_exact"]),
         "candidate_raw_prefix_match": sum(
             1
             for row in rows
@@ -190,10 +281,12 @@ def _cross_compare(reference: dict[str, Any], candidate: dict[str, Any], max_new
     }
 
 
-def _decision(cross: dict[str, Any], total: int, max_new: int) -> str:
-    if cross["candidate_format_ok"] < total:
+def _decision(cross: dict[str, Any], total: int, max_new: int, compare_serving_text: bool) -> str:
+    format_key = "candidate_serving_format_ok" if compare_serving_text else "candidate_format_ok"
+    exact_key = "serving_text_exact" if compare_serving_text else "exact"
+    if cross[format_key] < total:
         return "RED: candidate still violates structured format under this gate."
-    if cross["exact"] == total:
+    if cross[exact_key] == total:
         return "GREEN: W4A8 is token-exact and format-clean under this gate."
     if cross["min_same_prefix_tokens"] is not None and cross["min_same_prefix_tokens"] >= max_new * 0.75:
         return "AMBER: format is clean and W4A8 diverges late under this gate."
@@ -210,6 +303,7 @@ def main() -> int:
     parser.add_argument("--top-k", type=int, default=5)
     parser.add_argument("--force-prefix", action="store_true")
     parser.add_argument("--use-chat-template", action="store_true")
+    parser.add_argument("--compare-serving-text", action="store_true")
     parser.add_argument("--device", default="cuda")
     args = parser.parse_args()
 
@@ -244,9 +338,10 @@ def main() -> int:
     cross = _cross_compare(original, folded, args.max_new)
     result = {
         "schema_version": "lynn-a100-w4a8-format-guard-gate-v1",
-        "decision": _decision(cross, len(specs), args.max_new),
+        "decision": _decision(cross, len(specs), args.max_new, args.compare_serving_text),
         "force_prefix": args.force_prefix,
         "use_chat_template": args.use_chat_template,
+        "compare_serving_text": args.compare_serving_text,
         "max_new": args.max_new,
         "top_k": args.top_k,
         "env": {

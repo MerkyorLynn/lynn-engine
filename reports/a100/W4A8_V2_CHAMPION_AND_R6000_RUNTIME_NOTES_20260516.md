@@ -16,6 +16,9 @@ promotion bar.
 | structured_v16_top6_damped075 | **9/12** | 12 | **35.92** | 3 | best exact-count research candidate, still RED |
 | structured_v17_top6_damped050 | 6/12 | 7 | 29.58 | 6 | damping too weak, regression |
 | structured_v19_prefix_margin_top6_expert | 6/12 | 7 | 31.50 | 6 | local prefix-margin GREEN, generation regression |
+| structured_v20_v16_plus_prefix025 | 7/12 | 7 | 30.67 | 5 | v16 + small prefix alpha regresses |
+| structured_v21_v16_plus_prefix050 | 5/12 | 1 | 23.75 | 7 | v16 + larger prefix alpha severe regression |
+| structured_v22_guarded12_prefix_margin_expert | 5/12 | 1 | 23.75 | 7 | conservative guarded12 local AMBER, generation regression |
 | **structured_v10_top6** | **8/12** | **13** | 33.33 | 4 | current v2 handoff |
 | structured_v9_top5 | 8/12 | 7 | **34.25** | 4 | previous v1 handoff |
 | structured_v11_top4_alt30 | 7/12 | 12 | 32.42 | 5 | not promoted |
@@ -136,6 +139,23 @@ that expert alpha can reduce local first-8-token structured drift from 4.03% to
 2.76%, but it overfits the guarded format-anchor domain and regresses the
 ungarded 12-prompt generation gate to 6/12. Keep v16 as the better general
 Recovery baseline and use v19 only as a local repair signal.
+
+2026-05-17 follow-up: v20/v21 blended the v19 prefix alpha back into v16 at
+0.25/0.50 and both regressed. v22 trained a more conservative expert alpha on
+the original 12 prompts with serving guard specs and improved local drift from
+3.92% to 3.15%, but still regressed generation to 5/12. Stop sweeping post-hoc
+prefix alpha overlays for now; the signal needs a broader teacher-cleanup or
+QAT objective.
+
+The useful serving-side result is `serving_guard12` on v16:
+
+```text
+reports/a100/a100_w4a8_serving_guard12_gate_structured_v16_12prompt_48tok.json
+```
+
+It reaches 8/12 served-text exact with 12/12 format-clean outputs after
+balanced JSON/code/bullet stops. That makes format guard a practical structured
+mode fallback, but not a full generation parity fix.
 
 ## Whole-Decode Graph Slot Boundary
 
