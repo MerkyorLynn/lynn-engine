@@ -55,7 +55,22 @@ PY"
 log "watching R6000 artifact: $R6000_HOST:$R6000_MODEL"
 while true; do
     if READY_JSON="$(remote_ready 2>/dev/null)"; then
-        if ssh "$R6000_HOST" "pgrep -af 'a100_pack_lynn_native_nvfp4' | grep -F '$R6000_MODEL' >/dev/null 2>&1"; then
+        if ssh "$R6000_HOST" "MODEL_DIR='$R6000_MODEL' python3 - <<'PY'
+import os
+import subprocess
+
+model = os.environ['MODEL_DIR']
+out = subprocess.run(['ps', '-eo', 'pid=,args='], text=True, capture_output=True, check=False).stdout
+for line in out.splitlines():
+    # Use a strict Python-script shape so the checker command itself does not
+    # look like the packer.
+    parts = line.strip().split(maxsplit=1)
+    args = parts[1] if len(parts) == 2 else ''
+    argv0 = args.split(maxsplit=1)[0] if args else ''
+    if 'python' in argv0 and 'a100_pack_lynn_native_nvfp4.py' in args and model in args:
+        raise SystemExit(0)
+raise SystemExit(1)
+PY"; then
             log "artifact index exists but packer is still active; waiting"
         else
             log "artifact ready: $READY_JSON"
