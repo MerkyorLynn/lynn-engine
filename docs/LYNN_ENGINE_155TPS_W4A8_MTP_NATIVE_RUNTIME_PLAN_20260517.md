@@ -283,6 +283,18 @@ initial 15 GiB temporary OOM by quantizing the lm_head in row chunks, but this
 surrogate also fails to add accept (`64/121` before and after). Treat
 fake-native lm_head as a closed first attempt, not the next promotion path.
 
+P108 isolates why v31 did not convert. Along the real R6000 resident greedy
+path, fake-native-FP4 lm_head reaches `111/118 = 94.07%` top-1 parity against
+the true native `_scaled_mm` head, with `118/118` top-5 containment. BF16
+lm_head is lower at `109/118 = 92.37%`. The remaining seven fake-native
+top-1 flips are exactly the risky margin cases (`{` vs `{"`, code fence vs
+`<think>`, `def` vs `import`, Chinese semantic word choice, and JSON repair
+quote/colon choices). This keeps the diagnosis narrow: the sidecar is close,
+but MTP credit is still gated by last-rank native lm_head ordering under
+structured/code first-token margins. Next work should add an activation-aware
+native lm_head surrogate or broaden native-labeled calibration cases, not repeat
+weight-only fake FP4 training.
+
 A100 v19 uses the new targeted v4 calibration set and `fc_norms` from v18.
 Saved-sidecar eval confirms another real but narrow high:
 `60/116 = 51.72%`. The gain lands on step9 (`1/8 -> 2/8`); step0 remains

@@ -349,6 +349,10 @@ R6000 v30 with native FP4 lm_head: 62/121 = 51.24%
 
 reports/mtp/r6000_mtp_iterative_train_w4a8_v2_v29_fake_native_v31_20260517_161411.json
 fake-native-FP4 lm_head v31 proxy eval: 64/121 -> 64/121
+
+reports/mtp/r6000_p108_lm_head_native_surrogate_parity_w4a8_v2_20260517_162000.json
+P108 fake-native lm_head parity: 111/118 top-1 = 94.07%, 118/118 top-5
+P108 BF16 lm_head parity: 109/118 top-1 = 92.37%, 118/118 top-5
 ```
 
 This is a GREEN-CREDIT serving-shadow result, not a final TPS claim. It proves
@@ -372,9 +376,14 @@ backprop.
 v30 and v31 test both ideas in minimal form. Runtime-env collection changes the
 case distribution but does not move native accept. The first fake-native-FP4
 lm_head surrogate is memory-safe after row chunking, but it lowers loss without
-adding accept. The next useful route is therefore not another low-LR replay; it
-needs either broader native-labeled calibration coverage or a more faithful
-native lm_head surrogate validated by top-k parity against `_scaled_mm`.
+adding accept. P108 explains the miss: the fake-native head has perfect top-5
+containment against the real native `_scaled_mm` head, but still only reaches
+`94.07%` top-1 parity, and the few flips land on structured/code first-token
+margin cases (`{`/`{"`, code fence/`<think>`, `def`/`import`, JSON repair
+quote/colon choices). The next useful route is therefore not another low-LR
+replay; it needs either broader native-labeled calibration coverage or an
+activation-aware native lm_head surrogate that pushes those rank-1/rank-2
+flips across the final boundary.
 
 Report:
 
