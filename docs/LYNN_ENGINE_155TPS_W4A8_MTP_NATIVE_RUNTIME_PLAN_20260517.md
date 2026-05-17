@@ -117,10 +117,10 @@ usable speculative decode. The heldout iterative accept ladder is:
 | iterative v1 | `fc` | 15/94, 15.96% | clear gain |
 | iterative v2 | `fc_norms` | 21/94, 22.34% | best ROI so far |
 | iterative v3 | `fc_mtp_layer` | 22/94, 23.40% | loss improves, accept barely moves |
+| iterative v4 | `fc_mtp_layer` | 25/94, 26.60% | 16-token curriculum keeps moving |
 
-A100 v4 is a 16-token curriculum continuation from v3 with a lower LR. The
-accept target remains >=55% heldout before this can be counted as a runtime
-multiplier.
+A100 v5 continues from v4 with `fc_norms` at a lower-risk LR. The accept target
+remains >=55% heldout before this can be counted as a runtime multiplier.
 
 If fc-only cannot clear 55-70%, unfreeze in this order:
 
