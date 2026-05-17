@@ -11,6 +11,12 @@ MoE artifact is not confused with dense Qwen3.6 27B-family checkpoints.
 research candidate, but it is still RED and does not replace the production
 promotion bar.
 
+2026-05-17 teacher-clean v4 update: `structured_v16_top6_damped075` reaches
+`12/12` token-exact and served-text exact on the structured serving-template
+gate, with 12/12 format-clean reference and candidate outputs. This promotes
+v16 as the best A100 quality baseline for opt-in structured/template routes,
+while raw full-active W4A8 still stays out of default promotion.
+
 | Candidate | Exact | Min Prefix | Mean Prefix | High-Risk Divergences | Decision |
 |---|---:|---:|---:|---:|---|
 | structured_v16_top6_damped075 | **9/12** | 12 | **35.92** | 3 | best exact-count research candidate, still RED |

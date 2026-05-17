@@ -26,7 +26,10 @@ if str(ROOT) not in sys.path:
 from engine.full_forward import _prefill_layer, _rms_norm  # noqa: E402
 from engine.inference_state import LAYER_TYPES, LynnInferenceState  # noqa: E402
 from engine.resident_runner import LynnIncrementalRunner, _encode_prompt  # noqa: E402
-from scripts.a100_mtp_iterative_train import _fake_native_fp4_lm_head_weight  # noqa: E402
+from scripts.a100_mtp_iterative_train import (  # noqa: E402
+    _fake_native_fp4_activation,
+    _fake_native_fp4_lm_head_weight,
+)
 
 
 DEFAULT_PROMPTS = [
@@ -76,13 +79,16 @@ def _row(
     runner.native_fp4_lm_head_enabled = False
     bf16_logits = runner._lm_head_logits(hidden)
     fake_logits = F.linear(h2d, fake_weight)
+    fake_act_logits = F.linear(_fake_native_fp4_activation(h2d), fake_weight)
     runner.native_fp4_lm_head_enabled = True
     native_logits = runner._lm_head_logits(hidden)
     native_id = int(native_logits[0].argmax().item())
     bf16_id = int(bf16_logits[0].argmax().item())
     fake_id = int(fake_logits[0].argmax().item())
+    fake_act_id = int(fake_act_logits[0].argmax().item())
     native_top = set(_top_ids(native_logits, top_k))
     fake_top = set(_top_ids(fake_logits, top_k))
+    fake_act_top = set(_top_ids(fake_act_logits, top_k))
     bf16_top = set(_top_ids(bf16_logits, top_k))
     return {
         "step": int(step),
@@ -95,13 +101,19 @@ def _row(
         "bf16_text": runner.tokenizer.decode([bf16_id]),
         "fake_id": fake_id,
         "fake_text": runner.tokenizer.decode([fake_id]),
+        "fake_act_id": fake_act_id,
+        "fake_act_text": runner.tokenizer.decode([fake_act_id]),
         "bf16_matches_native": bf16_id == native_id,
         "fake_matches_native": fake_id == native_id,
+        "fake_act_matches_native": fake_act_id == native_id,
         "native_in_fake_topk": native_id in fake_top,
+        "native_in_fake_act_topk": native_id in fake_act_top,
         "native_in_bf16_topk": native_id in bf16_top,
         "fake_rank_of_native": _rank_of(fake_logits, native_id),
+        "fake_act_rank_of_native": _rank_of(fake_act_logits, native_id),
         "bf16_rank_of_native": _rank_of(bf16_logits, native_id),
         "topk_overlap_fake_native": len(fake_top & native_top),
+        "topk_overlap_fake_act_native": len(fake_act_top & native_top),
         "topk_overlap_bf16_native": len(bf16_top & native_top),
     }
 
@@ -180,20 +192,29 @@ def _summary(prompts: list[dict[str, Any]]) -> dict[str, Any]:
     rows = [row for prompt in prompts for row in prompt["rows"]]
     total = len(rows)
     fake_matches = sum(1 for row in rows if row["fake_matches_native"])
+    fake_act_matches = sum(1 for row in rows if row["fake_act_matches_native"])
     bf16_matches = sum(1 for row in rows if row["bf16_matches_native"])
     fake_topk = sum(1 for row in rows if row["native_in_fake_topk"])
+    fake_act_topk = sum(1 for row in rows if row["native_in_fake_act_topk"])
     bf16_topk = sum(1 for row in rows if row["native_in_bf16_topk"])
     return {
         "events": total,
         "fake_top1_matches_native": fake_matches,
         "fake_top1_match_rate": fake_matches / total if total else None,
+        "fake_act_top1_matches_native": fake_act_matches,
+        "fake_act_top1_match_rate": fake_act_matches / total if total else None,
         "bf16_top1_matches_native": bf16_matches,
         "bf16_top1_match_rate": bf16_matches / total if total else None,
         "native_in_fake_topk": fake_topk,
         "native_in_fake_topk_rate": fake_topk / total if total else None,
+        "native_in_fake_act_topk": fake_act_topk,
+        "native_in_fake_act_topk_rate": fake_act_topk / total if total else None,
         "native_in_bf16_topk": bf16_topk,
         "native_in_bf16_topk_rate": bf16_topk / total if total else None,
         "mean_fake_rank_of_native": statistics.fmean(row["fake_rank_of_native"] for row in rows) if rows else None,
+        "mean_fake_act_rank_of_native": (
+            statistics.fmean(row["fake_act_rank_of_native"] for row in rows) if rows else None
+        ),
         "mean_bf16_rank_of_native": statistics.fmean(row["bf16_rank_of_native"] for row in rows) if rows else None,
     }
 
@@ -232,11 +253,11 @@ def main() -> int:
     ]
     summary = _summary(prompts)
     report = {
-        "schema_version": "lynn-p108-lm-head-native-surrogate-parity-v1",
+        "schema_version": "lynn-p108-lm-head-native-surrogate-parity-v2",
         "decision": (
-            "GREEN: fake-native lm_head top-1 parity is at least 95%."
-            if summary["fake_top1_match_rate"] is not None and summary["fake_top1_match_rate"] >= 0.95
-            else "AMBER: fake-native lm_head top-1 parity is below promotion threshold."
+            "GREEN: activation-aware fake-native lm_head top-1 parity is at least 95%."
+            if summary["fake_act_top1_match_rate"] is not None and summary["fake_act_top1_match_rate"] >= 0.95
+            else "AMBER: activation-aware fake-native lm_head top-1 parity is below promotion threshold."
         ),
         "model": args.model,
         "use_chat_template": args.use_chat_template,

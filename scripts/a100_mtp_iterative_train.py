@@ -38,24 +38,31 @@ from scripts.a100_mtp_forward_smoke import _load_sidecar, _mtp_layer_weights, _t
 _E2M1_TABLE = torch.tensor([0.0, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0], dtype=torch.float32)
 
 
-def _fake_native_fp4_lm_head_weight(weight: torch.Tensor, *, chunk_rows: int = 4096) -> torch.Tensor:
-    """Return a differentiable-training surrogate for native FP4 lm_head.
+def _maybe_fp8_scale(scale: torch.Tensor) -> torch.Tensor:
+    if hasattr(torch, "float8_e4m3fn"):
+        return scale.to(torch.float8_e4m3fn).float()
+    return scale
 
-    Native serving uses torch FP4 packed weights and `_scaled_mm`, but the pack
-    path is not a useful training boundary. This fixed fake-quantized BF16
-    matrix mirrors the per-16 E2M1 quantization used by the resident runner while
-    keeping `F.linear(hidden, weight)` differentiable with respect to `hidden`.
-    """
-    if weight.ndim != 2 or weight.shape[1] % 16 != 0:
-        raise ValueError(f"expected lm_head [N, K] with K divisible by 16, got {tuple(weight.shape)}")
-    table = _E2M1_TABLE.to(device=weight.device)
-    out_features, in_features = weight.shape
-    groups = in_features // 16
-    out = torch.empty_like(weight)
-    for start in range(0, out_features, chunk_rows):
-        end = min(start + chunk_rows, out_features)
-        block = weight[start:end].float().reshape(end - start, groups, 16)
+
+def _fake_native_fp4_tensor(
+    x: torch.Tensor,
+    *,
+    chunk_rows: int = 4096,
+    ste: bool = False,
+) -> torch.Tensor:
+    if x.shape[-1] % 16 != 0:
+        raise ValueError(f"expected last dim divisible by 16, got {tuple(x.shape)}")
+    table = _E2M1_TABLE.to(device=x.device)
+    orig_shape = x.shape
+    x2d = x.reshape(-1, orig_shape[-1])
+    rows, width = x2d.shape
+    groups = width // 16
+    out = torch.empty_like(x2d)
+    for start in range(0, rows, chunk_rows):
+        end = min(start + chunk_rows, rows)
+        block = x2d[start:end].float().reshape(end - start, groups, 16)
         scale = (block.abs().amax(dim=-1) / float(table[-1])).clamp_min(1e-8)
+        scale = _maybe_fp8_scale(scale)
         normalized = block.abs() / scale.unsqueeze(-1)
         magnitude = torch.argmin(
             (normalized.unsqueeze(-1) - table.view(1, 1, 1, -1)).abs(),
@@ -63,8 +70,30 @@ def _fake_native_fp4_lm_head_weight(weight: torch.Tensor, *, chunk_rows: int = 4
         )
         dequant = table[magnitude] * scale.unsqueeze(-1)
         dequant = torch.where(block < 0, -dequant, dequant)
-        out[start:end] = dequant.reshape(end - start, in_features).to(dtype=weight.dtype)
-    return out.contiguous()
+        out[start:end] = dequant.reshape(end - start, width).to(dtype=x.dtype)
+    out = out.reshape(orig_shape).contiguous()
+    if ste:
+        return x + (out - x).detach()
+    return out
+
+
+def _fake_native_fp4_activation(hidden: torch.Tensor) -> torch.Tensor:
+    """Fake native FP4 activation quantization with straight-through gradients."""
+    return _fake_native_fp4_tensor(hidden, ste=True)
+
+
+def _fake_native_fp4_lm_head_weight(weight: torch.Tensor, *, chunk_rows: int = 4096) -> torch.Tensor:
+    """Return a differentiable-training surrogate for native FP4 lm_head.
+
+    Native serving uses torch FP4 packed weights and `_scaled_mm`, but the pack
+    path is not a useful training boundary. This fixed fake-quantized BF16
+    matrix mirrors the per-16 E2M1 quantization and FP8 scale rounding used by
+    the resident runner while keeping `F.linear(hidden, weight)` differentiable
+    with respect to `hidden`.
+    """
+    if weight.ndim != 2 or weight.shape[1] % 16 != 0:
+        raise ValueError(f"expected lm_head [N, K] with K divisible by 16, got {tuple(weight.shape)}")
+    return _fake_native_fp4_tensor(weight, chunk_rows=chunk_rows)
 
 
 def _load_prompts(path: str | None, inline: list[str]) -> list[dict[str, Any]]:
@@ -461,7 +490,7 @@ def main() -> int:
     ap.add_argument(
         "--train-lm-head",
         default="current",
-        choices=["current", "bf16", "fake_native_fp4"],
+        choices=["current", "bf16", "fake_native_fp4", "fake_native_fp4_act"],
         help="lm_head used for differentiable MTP training/eval after labels are collected.",
     )
     ap.add_argument("--steps", type=int, default=6)
@@ -512,6 +541,15 @@ def main() -> int:
         runner.outside["lm_head.weight"] = _fake_native_fp4_lm_head_weight(
             runner.outside["lm_head.weight"]
         )
+    elif args.train_lm_head == "fake_native_fp4_act":
+        runner.native_fp4_lm_head_enabled = False
+        fake_weight = _fake_native_fp4_lm_head_weight(runner.outside["lm_head.weight"])
+
+        def _fake_act_lm_head(hidden: torch.Tensor) -> torch.Tensor:
+            h2d = hidden[:, -1, :] if hidden.ndim == 3 else hidden
+            return F.linear(_fake_native_fp4_activation(h2d), fake_weight)
+
+        runner._lm_head_logits = _fake_act_lm_head  # type: ignore[method-assign]
 
     train_before = _evaluate(runner, sidecar, mtp_w, cfg, train_cases)
     eval_before = _evaluate(runner, sidecar, mtp_w, cfg, eval_cases) if eval_cases else None

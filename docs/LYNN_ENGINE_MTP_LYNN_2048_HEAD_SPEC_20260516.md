@@ -353,6 +353,13 @@ fake-native-FP4 lm_head v31 proxy eval: 64/121 -> 64/121
 reports/mtp/r6000_p108_lm_head_native_surrogate_parity_w4a8_v2_20260517_162000.json
 P108 fake-native lm_head parity: 111/118 top-1 = 94.07%, 118/118 top-5
 P108 BF16 lm_head parity: 109/118 top-1 = 92.37%, 118/118 top-5
+
+reports/mtp/r6000_p108_lm_head_native_surrogate_parity_v2_w4a8_20260517_162436.json
+P108 v2 activation-aware fake-native parity: 114/118 top-1 = 96.61%, 118/118 top-5
+P108 v2 weight-only fake-native parity: 113/118 top-1 = 95.76%, 118/118 top-5
+
+reports/mtp/r6000_mtp_iterative_train_w4a8_v2_v29_fake_act_v32_20260517_162607.json
+activation-aware fake-native v32 proxy eval: 60/121 -> 59/121
 ```
 
 This is a GREEN-CREDIT serving-shadow result, not a final TPS claim. It proves
@@ -384,6 +391,14 @@ quote/colon choices). The next useful route is therefore not another low-LR
 replay; it needs either broader native-labeled calibration coverage or an
 activation-aware native lm_head surrogate that pushes those rank-1/rank-2
 flips across the final boundary.
+
+P108 v2 validates the activation-aware surrogate itself: adding FP8 scale
+rounding plus fake activation quantization raises top-1 parity against native
+`_scaled_mm` to `96.61%`, with native top-5 still fully contained. v32 then
+tests whether this improved boundary is sufficient as a small continuation
+training target from v29. It is not: eval accept moves `60/121 -> 59/121`
+despite lower loss. Treat `fake_native_fp4_act` as a validated probe and a
+future loss component, but not as a standalone continuation recipe.
 
 Report:
 

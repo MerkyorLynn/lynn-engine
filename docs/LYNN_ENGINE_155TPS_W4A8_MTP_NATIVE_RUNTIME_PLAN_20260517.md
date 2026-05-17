@@ -83,6 +83,14 @@ or very late divergence, but for the plan threshold this is the first AMBER
 quality signal. NVFP4 v2 is still a runtime package, not the best quality
 candidate.
 
+2026-05-17 v4 update: the remaining `moe_router_expert_v3` style drift is
+closed by making the serving template explicit. Teacher-clean v4 on
+`structured_v16_top6_damped075` reaches `12/12` token-exact and `12/12`
+served-text exact, with `12/12` reference/candidate format clean. This is a
+GREEN structured serving-template gate, not a default full-active promotion:
+it proves v16 can be made reliable for structured/template routes while open
+prose and code-style parity remain separate gates.
+
 ## Workstream B: MTP Training
 
 Stage B0 is complete:
@@ -294,6 +302,16 @@ but MTP credit is still gated by last-rank native lm_head ordering under
 structured/code first-token margins. Next work should add an activation-aware
 native lm_head surrogate or broaden native-labeled calibration cases, not repeat
 weight-only fake FP4 training.
+
+P108 v2 adds FP8 scale rounding and activation fake-quantization to the
+surrogate. Weight-only parity improves to `113/118 = 95.76%`, and
+activation-aware parity reaches `114/118 = 96.61%`, still with `118/118`
+top-5 containment. That validates the surrogate as a better diagnostic/training
+boundary. However, v32 training from v29 with `fake_native_fp4_act` lowers loss
+but regresses eval accept from `60/121` to `59/121`, so simple continuation
+training is closed. Next MTP work should target the remaining rank-flip cases
+directly or broaden native-labeled calibration, rather than adding more small
+steps on v29.
 
 A100 v19 uses the new targeted v4 calibration set and `fc_norms` from v18.
 Saved-sidecar eval confirms another real but narrow high:

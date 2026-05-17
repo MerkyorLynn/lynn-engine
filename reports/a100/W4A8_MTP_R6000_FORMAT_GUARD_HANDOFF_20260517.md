@@ -9,7 +9,8 @@ The useful new signal is narrower and actionable:
 
 - R6000 v2 active-MoE interval work now has a clean P97 serial result.
 - A100 `structured_v16_top6_damped075` is the best exact-count Recovery
-  candidate so far, but still RED.
+  candidate so far; with teacher-clean v4 serving templates it reaches GREEN
+  on the 12-prompt structured gate.
 - A100 format-start guard v3 turns the structured-anchor mini gate GREEN,
   proving first-token/few-token format correction is a high-ROI path.
 - Qwen3.6-35B-A3B MTP sidecar is now a Lynn-shape-aligned warm-start asset.
@@ -184,6 +185,7 @@ reports/a100/a100_w4a8_teacher_clean_v3_gate_structured_v16_12prompt_48tok.json
 | serving guard12 v16, chat template | 5/12 | 8 | 28.42 | 12/12 | 12/12 | 7/12 | RED, regression |
 | teacher-clean v2 prompts, raw template | 10/12 | 9 | 32.33 | 12/12 | 12/12 | 0/12 | RED, improved |
 | teacher-clean v3 prompts, raw template | 11/12 | 16 | 34.33 | 12/12 | 12/12 | 0/12 | AMBER by plan threshold |
+| teacher-clean v4 prompts, raw template | 12/12 | 16 | 34.58 | 12/12 | 12/12 | 0/12 | GREEN, structured-template gate |
 
 The chat template makes the teacher format clean, but shifts the teacher token
 path and worsens parity on this prompt set. Keep raw structured prompts as the
@@ -202,6 +204,13 @@ AMBER threshold (`>=11/12` served exact and min prefix `>=16`). Only
 `moe_router_expert_v3` remains divergent, at prefix 24. This makes v16 the
 current quality baseline to keep improving; NVFP4 v2 remains a runtime research
 artifact, not the best quality artifact.
+
+The v4 rewrite closes that remaining `moe_router_expert` style gap by making
+the router/expert serving template explicit and forbidding the candidate's
+previous "final answer" wording. The result is the first 12/12 structured gate:
+token-exact, served-text exact, and format-clean for both reference and
+candidate. This should be used as evidence for opt-in structured serving
+templates on v16, not as a claim that open-ended full-active W4A8 is ready.
 
 ## Full-Token Graph Slot Trigger
 
