@@ -315,6 +315,10 @@ Follow-up isolation narrows the failure mode:
   but it no longer collapses into repeated punctuation. The remaining issue is
   long-run greedy sensitivity from tiny down-order differences, not an obviously
   broken down tile kernel.
+- Single-layer graph-on allowlist is also closed: layers 0/8/16/24/28/32/36 all
+  fail 3/3 greedy parity with `LYNN_NATIVE_DOWN_BACKEND=cuda_tile` and
+  `LYNN_NATIVE_DOWN_TILE_HIDDEN=1`, while speed is flat to negative
+  (`0.99x-1.004x`). There is no safe selective down-tile promotion.
 - Triton scale-hoist is numerically clean but not a speed lever: P53 keeps
   active cosine at `1.0`, but down slows from `0.025 ms` to `0.078 ms` and
   combined active MoE falls to `0.16x`. Do not add it as a runtime backend.
@@ -357,6 +361,13 @@ Copied reports:
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p49_down_tile1_true_decode_20260518_055633.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p50_down_tile1_first_divergence_20260518_055633.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p37_down_cuda_tile1_graphoff_gate_20260518_055939.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p37_down_tile1_layer0_20260518_062756.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p37_down_tile1_layer8_20260518_062756.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p37_down_tile1_layer16_20260518_062756.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p37_down_tile1_layer24_20260518_062756.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p37_down_tile1_layer28_20260518_062756.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p37_down_tile1_layer32_20260518_062756.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p37_down_tile1_layer36_20260518_062756.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p53_triton_scale_hoist_20260518_062117.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p37_down_cuda_tile_gate_20260518_040259.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p37_grouped_per16_nonatomic_gate_20260518_040522.json`
