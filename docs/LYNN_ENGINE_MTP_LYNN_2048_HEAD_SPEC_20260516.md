@@ -375,6 +375,12 @@ R6000 v34 with native FP4 lm_head: 65/121 = 53.72%
 
 reports/mtp/r6000_mtp_iterative_train_w4a8_v2_v34_fake_act_rankflip_v35_20260517_164129.json
 rank-flip filtered v35 proxy eval: 63/121 -> 62/121
+
+reports/mtp/mtp_fc_calibration_prompts_v8_native_semantic_code.json
+semantic/code/native-format calibration set for miss-not-in-topk cases
+
+reports/mtp/r6000_mtp_iterative_train_w4a8_v2_v34_v8_missnotopk_v36_20260517_164518.json
+v8 miss-not-in-topk v36 proxy eval: 63/121 -> 63/121
 ```
 
 This is a GREEN-CREDIT serving-shadow result, not a final TPS claim. It proves
@@ -422,6 +428,12 @@ filter produces the first native R6000 MTP improvement after the v29 plateau:
 warm-start sidecar for native W4A8 serving-shadow credit. The next jump to
 GREEN-CREDIT needs either more top-k rank-flip cases or new calibration that
 brings semantic/code labels into top-5 before rank training.
+
+v36 tries the second route with a targeted v8 semantic/code prompt set and
+`miss_not_in_topk` filtering. It is a useful negative: 67 hard cases train with
+lower loss, but heldout proxy accept stays `63/121`. The remaining gap is not
+fixed by a tiny `fc_norms` pass alone; use a wider surface (`fc_mtp_layer` or a
+merged specialist) or a larger native-labeled set before re-running P107.
 
 Report:
 

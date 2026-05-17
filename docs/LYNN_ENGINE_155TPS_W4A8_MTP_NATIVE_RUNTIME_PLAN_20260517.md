@@ -322,6 +322,12 @@ is the current best native MTP candidate. The rank-flip path is validated, but
 the remaining gap to the 55% credit bar is now about two accepted tokens and
 mostly requires semantic/code cases whose labels are not in top-5 yet.
 
+v36 tests that next hypothesis with a v8 semantic/code calibration set and
+`miss_not_in_topk` filtering. It lowers loss on 67 hard cases but leaves heldout
+accept unchanged at `63/121`, so small `fc_norms` continuation is not enough to
+pull semantic/code labels into top-k. Keep v34 as best and move the next attempt
+to a wider trainable surface or larger native-labeled calibration.
+
 A100 v19 uses the new targeted v4 calibration set and `fc_norms` from v18.
 Saved-sidecar eval confirms another real but narrow high:
 `60/116 = 51.72%`. The gain lands on step9 (`1/8 -> 2/8`); step0 remains

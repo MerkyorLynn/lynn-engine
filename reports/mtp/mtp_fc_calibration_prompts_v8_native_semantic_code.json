@@ -1,0 +1,57 @@
+[
+  {
+    "id": "moe_router_exact_native_v8",
+    "prompt": "用一句中文短句说明 MoE router 的作用。必须以 MoE router 负责将输入动态分配给不同的专家 开头。",
+    "weight": 6.0
+  },
+  {
+    "id": "moe_router_input_dispatch_v8",
+    "prompt": "用一句中文短句回答: MoE router 如何处理输入。必须包含 输入、动态分配、专家,不要 bullet。",
+    "weight": 5.0
+  },
+  {
+    "id": "linear_attention_exact_native_v8",
+    "prompt": "用一句中文短句说明 linear attention 适合长上下文的原因。必须以 linear attention 通过线性化注意力机制 开头。",
+    "weight": 6.0
+  },
+  {
+    "id": "linear_attention_cache_v8",
+    "prompt": "用一句中文短句说明 linear attention 如何降低长上下文计算开销。必须包含 线性化注意力机制、计算、开销。",
+    "weight": 5.0
+  },
+  {
+    "id": "python_slugify_codeblock_v8",
+    "prompt": "Only output a Python code block defining slugify(text: str) -> str. It must lowercase, replace spaces with hyphens, and return the result. No explanation.",
+    "weight": 6.0
+  },
+  {
+    "id": "python_slugify_plain_v8",
+    "prompt": "Only output Python code, no markdown. Define slugify(text: str) -> str that lowercases text and replaces spaces with hyphens.",
+    "weight": 5.0
+  },
+  {
+    "id": "json_status_ready_pretty_v8",
+    "prompt": "Return one JSON object with key status and value ready. No markdown.",
+    "weight": 5.0
+  },
+  {
+    "id": "json_status_ready_compact_v8",
+    "prompt": "Return exactly one compact JSON object: status is ready. No markdown, no explanation.",
+    "weight": 4.0
+  },
+  {
+    "id": "json_translate_text_v8",
+    "prompt": "Output exactly one JSON arguments object for translate_text with text hello and target_language Japanese. No markdown.",
+    "weight": 5.0
+  },
+  {
+    "id": "math_distance_native_v8",
+    "prompt": "Answer only with the distance and unit: a car travels 45 mph for 3 hours.",
+    "weight": 4.0
+  },
+  {
+    "id": "repair_json_berlin_metric_v8",
+    "prompt": "Repair this invalid JSON and output exactly one valid JSON object: {'city':'Berlin','unit':'metric',}. No markdown.",
+    "weight": 4.0
+  }
+]
