@@ -25,7 +25,7 @@ remote_ready() {
 log "watching R6000 artifact: $R6000_HOST:$R6000_MODEL"
 while true; do
     if READY_JSON="$(remote_ready 2>/dev/null)"; then
-        if ssh -n "$R6000_HOST" "pgrep -af 'a100_pack_lynn_native_nvfp4.py' | grep -F '$R6000_MODEL' >/dev/null"; then
+        if ssh -n "$R6000_HOST" "pgrep -af '[a]100_pack_lynn_native_nvfp4.py' | grep -F '$R6000_MODEL' >/dev/null"; then
             log "artifact index exists but packer is still active; waiting"
         else
             log "artifact ready: $READY_JSON"
