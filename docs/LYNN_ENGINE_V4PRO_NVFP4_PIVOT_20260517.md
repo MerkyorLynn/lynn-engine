@@ -4,10 +4,10 @@ Date: 2026-05-17
 
 ## Question
 
-If Lynn V4-Pro 35B keeps its quality after NVFP4 and the disk/VRAM delta versus
-27B A3B is only a few GiB, pruning should stop being the default quality route.
-The 27B model would remain the speed/edge/runtime specialization, while V4-Pro
-35B NVFP4 could become the high-quality single-card default.
+If Lynn V4-Pro 35B keeps its quality after W4A16 NVFP4 and the disk/VRAM delta
+versus 27B A3B is only a few GiB, pruning should stop being the default quality
+route. The 27B model remains a speed/edge/runtime specialization, while
+V4-Pro 35B W4A16 NVFP4 becomes the primary quality-serving candidate.
 
 ## Starting Signal
 
@@ -43,6 +43,23 @@ NVFP4: quantize weights to per-16 E2M1 NVFP4 while keeping runtime activations
 in BF16. If W4A16 holds quality, test a separate W4A8 recovery bridge. W4A4 is
 now an extreme compression candidate, not the main quality route.
 
+## Route Decision
+
+As of the V8-RTN result, V4-Pro W4A16 is no longer a side experiment. It is the
+primary candidate for the default high-quality Lynn serving artifact.
+
+The 155 TPS work becomes a race between two branches instead of a commitment to
+27B:
+
+| Branch | Purpose | Continue Condition |
+|---|---|---|
+| V4-Pro 35B W4A16 NVFP4 | quality-first default if it preserves distillation gain | MMLU stays near the Q4_K_M band, size delta over 27B is small, smoke gates pass |
+| Lynn 27B W4A8+MTP | smallest/fastest runtime specialization | only if it gives a decisive TPS win without unacceptable structured quality loss |
+
+Do not spend more time making V4-Pro W4A4 look good unless W4A16 is impossible
+to serve. Do not start a 35B W4A8 bridge until W4A16 has a measured quality and
+speed baseline.
+
 ## Runner
 
 R6000 Lynn-native pivot runner:
@@ -61,7 +78,7 @@ Default source/target:
 
 ```text
 BF16_MODEL=/root/autodl-tmp/models/Lynn-V4-Pro-Distill-Qwen-35B-A3B-BF16-merged
-OUT_MODEL=/root/autodl-tmp/models/Lynn-V4-Pro-Distill-Qwen-35B-A3B-lynn-native-nvfp4-v0
+OUT_MODEL=/root/autodl-tmp/models/Lynn-V4-Pro-Distill-Qwen-35B-A3B-lynn-native-w4a16-nvfp4-v0
 COMPARE_27B_MODEL=/root/autodl-tmp/models/lynn-27b-a3b-w4a8-nvfp4-v2
 ```
 
@@ -124,10 +141,11 @@ running.
 
 | Machine | Continue Now | Why |
 |---|---|---|
-| R6000 | P118 verify/commit state parity, native K=2/K=3 verifier prep, 27B serving speed probes | This is the path to cashing out MTP and 155 TPS. V4 download/quant is mostly I/O. |
+| R6000 | V4-Pro W4A16 pack/smoke/size/TPS plus P118/P119 native verifier prep | V4-Pro W4A16 is now the quality-first serving candidate; 27B remains the smaller speed branch. |
 | A100 | 27B W4A8 quality/MTP label construction and sidecar training | These labels remain useful even if 35B becomes the quality default; they also keep the 27B speed route alive. |
 | Spark | V4-Pro/Flash BF16 and v8-RTN MMLU/GPQA | This decides whether 35B NVFP4 should become the quality-first route. |
 
-Only start a 35B W4A8/MTP conversion line if the four-way Spark matrix says
-35B NVFP4 keeps a decisive quality lead after quantization. Until then, 35B
-NVFP4 is a measured pivot candidate, not a blocker.
+Only start a 35B W4A8 conversion line if W4A16 quality passes and W4A16 speed
+is too slow. MTP work should be tested against the V4-Pro W4A16 artifact once it
+loads, because quality-preserving 35B may be the better default even if the 27B
+branch remains the most aggressive TPS candidate.
