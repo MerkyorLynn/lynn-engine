@@ -1148,7 +1148,13 @@ class LynnIncrementalRunner:
             elapsed = time.time() - mtp_t0
             draft_id = int(draft_logits[0].argmax().item())
             base_score = float(draft_logits[0, int(base_next_id)].float().item())
-            draft_top2 = _logit_topk(draft_logits, 2)
+            shadow_topk = max(2, int(os.environ.get("LYNN_MTP_SHADOW_TOPK", "2")))
+            draft_topk = _logit_topk(draft_logits, shadow_topk)
+            draft_top2 = {
+                "ids": draft_topk["ids"][:2],
+                "values": draft_topk["values"][:2],
+                "top1_margin": draft_topk["top1_margin"],
+            }
             mtp_shadow_step_seconds.append(elapsed)
             mtp_shadow_trace.append(
                 {
@@ -1164,6 +1170,7 @@ class LynnIncrementalRunner:
                     "draft_seconds": elapsed,
                     "base_score_in_draft_logits": base_score,
                     "draft_top2": draft_top2,
+                    "draft_topk": draft_topk,
                 }
             )
 

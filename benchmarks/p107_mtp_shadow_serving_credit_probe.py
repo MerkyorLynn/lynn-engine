@@ -56,6 +56,11 @@ def _load_prompt_specs(path: str | None, inline: list[str]) -> list[dict[str, st
 def _summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
     events = sum(int(row["mtp_shadow"]["events"]) for row in rows)
     accepted = sum(int(row["mtp_shadow"]["accepted"]) for row in rows)
+    trace = [
+        event
+        for row in rows
+        for event in row["mtp_shadow"].get("trace", [])
+    ]
     draft_seconds = [
         float(x)
         for row in rows
@@ -71,6 +76,23 @@ def _summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
         for row in rows
         if row["mtp_shadow"].get("accept_rate") is not None
     ]
+    topk_ceiling: dict[str, Any] = {}
+    for k in (2, 4, 8, 16):
+        covered = 0
+        usable = 0
+        for event in trace:
+            topk = event.get("draft_topk") or event.get("draft_top2") or {}
+            ids = list(topk.get("ids") or [])
+            if len(ids) < k:
+                continue
+            usable += 1
+            covered += int(int(event["base_next_id"]) in {int(x) for x in ids[:k]})
+        if usable:
+            topk_ceiling[f"top{k}"] = {
+                "events": usable,
+                "covered": covered,
+                "rate": covered / usable,
+            }
     return {
         "prompt_count": len(rows),
         "events": events,
@@ -93,6 +115,7 @@ def _summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
             if events
             else None
         ),
+        "topk_ceiling": topk_ceiling,
     }
 
 

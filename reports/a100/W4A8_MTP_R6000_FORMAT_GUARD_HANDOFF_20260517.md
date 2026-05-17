@@ -186,6 +186,7 @@ reports/a100/a100_w4a8_teacher_clean_v3_gate_structured_v16_12prompt_48tok.json
 | teacher-clean v2 prompts, raw template | 10/12 | 9 | 32.33 | 12/12 | 12/12 | 0/12 | RED, improved |
 | teacher-clean v3 prompts, raw template | 11/12 | 16 | 34.33 | 12/12 | 12/12 | 0/12 | AMBER by plan threshold |
 | teacher-clean v4 prompts, raw template | 12/12 | 16 | 34.58 | 12/12 | 12/12 | 0/12 | GREEN, structured-template gate |
+| teacher-clean v5 heldout prompts | 9/12 | 3 | 21.50 | 12/12 | 12/12 | 0/12 | RED, format-clean heldout drift |
 
 The chat template makes the teacher format clean, but shifts the teacher token
 path and worsens parity on this prompt set. Keep raw structured prompts as the
@@ -211,6 +212,15 @@ previous "final answer" wording. The result is the first 12/12 structured gate:
 token-exact, served-text exact, and format-clean for both reference and
 candidate. This should be used as evidence for opt-in structured serving
 templates on v16, not as a claim that open-ended full-active W4A8 is ready.
+
+The v5 heldout rewrite intentionally changes the structured tasks instead of
+reusing the v4 templates. It keeps both teacher and candidate format-clean
+(`12/12`) but exposes real heldout drift: served-text exact falls to `9/12`,
+token exact to `8/12`, with misses in `normalize_unit` code style, an MTP
+Chinese short-answer synonym, and linear-attention bullet expansion. This is a
+healthy boundary: v16 remains the best quality baseline, but the next A100 work
+should target heldout semantic/code-style stability rather than count v4 as a
+general promotion gate.
 
 ## Full-Token Graph Slot Trigger
 
@@ -319,10 +329,25 @@ already in the sidecar top-k. Real R6000 P107 native shadow moves:
 | v33 rank-flip | 63/121 = 52.07% | first native positive move |
 | v34 rank-flip | **65/121 = 53.72%** | current best, 2 accepts short of 55% |
 | v35 rank-flip | not promoted | proxy regresses 63/121 -> 62/121 |
+| v37 wider `fc_mtp_layer` | not promoted | `miss_not_in_topk` proxy regresses 63/121 -> 62/121 |
+| v38 conservative rank-flip | not promoted | proxy stays 63/121 but loss worsens |
 
 This is still below GREEN-CREDIT, but it is the clearest MTP-native direction:
 fix top-k rank flips first, then add calibration for semantic/code labels that
 are not yet in top-5.
+
+P107 now supports `LYNN_MTP_SHADOW_TOPK` for containment ceilings. On the
+current v34 sidecar under native FP4 lm_head:
+
+| Draft set | Covered | Rate |
+|---|---:|---:|
+| top1 | 65/121 | 53.72% |
+| top2 | 73/121 | 60.33% |
+| top4 | 80/121 | 66.12% |
+| top8 | 87/121 | 71.90% |
+
+This says the next R6000 runtime ROI is multi-candidate MTP verification or a
+small reranker, not another blind low-LR single-candidate continuation.
 
 The fc-only train smoke confirms gradient wiring:
 

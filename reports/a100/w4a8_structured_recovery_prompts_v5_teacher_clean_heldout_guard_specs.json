@@ -1,0 +1,96 @@
+[
+  {
+    "id": "json_status_v5_heldout",
+    "prompt": "Output exactly one JSON object with keys status and retry for a successful request. retry must be false. No markdown, no explanation.",
+    "forced_prefix": "{\n  \"",
+    "expected_start": "{",
+    "stop_after": "balanced_json",
+    "stop_before": ["<think>", "</think>", "```"]
+  },
+  {
+    "id": "tool_args_route_v5_heldout",
+    "prompt": "Output exactly one JSON arguments object for route_ticket with priority high and queue billing. No function name, no markdown.",
+    "forced_prefix": "{\n  \"",
+    "expected_start": "{",
+    "stop_after": "balanced_json",
+    "stop_before": ["<think>", "</think>", "```"]
+  },
+  {
+    "id": "repair_json_user_v5_heldout",
+    "prompt": "Repair this invalid JSON and output exactly one valid JSON object: {'user':'Lynn','active':true,}. No markdown.",
+    "forced_prefix": "{\n  \"",
+    "expected_start": "{",
+    "stop_after": "balanced_json",
+    "stop_before": ["<think>", "</think>", "```"]
+  },
+  {
+    "id": "yaml_response_schema_v5_heldout",
+    "prompt": "Output only an OpenAPI 3.0 response YAML schema for JSON fields ok:boolean and message:string. No markdown.",
+    "forced_prefix": "responses:\n  '200':\n    description: OK\n    content:\n      application/json:\n",
+    "expected_start": "responses:",
+    "stop_before": ["<think>", "</think>", "```"]
+  },
+  {
+    "id": "python_slugify_v5_heldout",
+    "prompt": "Only output a Python code block defining slugify(text: str) -> str. It must lowercase text and replace spaces with hyphens. No explanation.",
+    "forced_prefix": "```python\ndef slugify(text: str) -> str:\n    ",
+    "expected_start": "```python",
+    "stop_after": "code_fence",
+    "stop_before": ["<think>", "</think>"]
+  },
+  {
+    "id": "python_normalize_unit_v5_heldout",
+    "prompt": "Only output a Python code block defining normalize_unit(payload: dict) -> dict. It must default unit to celsius and return payload. No explanation.",
+    "forced_prefix": "```python\ndef normalize_unit(payload: dict) -> dict:\n    ",
+    "expected_start": "```python",
+    "stop_after": "code_fence",
+    "stop_before": ["<think>", "</think>"]
+  },
+  {
+    "id": "router_expert_bullets_v5_heldout",
+    "prompt": "只输出两条中文 bullet。第一条必须说明 gate: 计算路由分数。第二条必须说明 expert: 处理被路由的 token。不要标题,不要解释。",
+    "forced_prefix": "- gate: ",
+    "expected_start": "- gate:",
+    "stop_after": "bullet_count",
+    "bullet_count": 2,
+    "stop_before": ["<think>", "</think>"]
+  },
+  {
+    "id": "w4a8_short_v5_heldout",
+    "prompt": "用一句中文短句回答: W4A8 的主要优势是什么。必须以 W4A8 开头,不超过 30 个汉字。",
+    "forced_prefix": "W4A8 ",
+    "expected_start": "W4A8",
+    "stop_before": ["<think>", "</think>", "\n\n"]
+  },
+  {
+    "id": "mtp_short_v5_heldout",
+    "prompt": "用一句中文短句回答: MTP 为什么能提升解码吞吐。必须以 MTP 开头,不超过 34 个汉字。",
+    "forced_prefix": "MTP ",
+    "expected_start": "MTP",
+    "stop_before": ["<think>", "</think>", "\n\n"]
+  },
+  {
+    "id": "linear_attention_bullets_v5_heldout",
+    "prompt": "Output exactly three terse bullets about linear attention in long-context decoding. Each bullet must start with '- '. No heading.",
+    "forced_prefix": "- ",
+    "expected_start": "-",
+    "stop_after": "bullet_count",
+    "bullet_count": 3,
+    "stop_before": ["<think>", "</think>"]
+  },
+  {
+    "id": "math_rate_v5_heldout",
+    "prompt": "Answer only with the total and unit: a worker processes 18 files per hour for 4 hours.",
+    "forced_prefix": "72 ",
+    "expected_start": "72",
+    "stop_before": ["<think>", "</think>", "\n"]
+  },
+  {
+    "id": "function_call_minimal_v5_heldout",
+    "prompt": "Output exactly one JSON object for a function call with name=lookup_order and arguments order_id=1234. No markdown.",
+    "forced_prefix": "{\n  \"",
+    "expected_start": "{",
+    "stop_after": "balanced_json",
+    "stop_before": ["<think>", "</think>", "```"]
+  }
+]

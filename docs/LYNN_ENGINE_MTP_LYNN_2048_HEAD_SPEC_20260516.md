@@ -435,6 +435,21 @@ lower loss, but heldout proxy accept stays `63/121`. The remaining gap is not
 fixed by a tiny `fc_norms` pass alone; use a wider surface (`fc_mtp_layer` or a
 merged specialist) or a larger native-labeled set before re-running P107.
 
+v37 tests that wider-surface hypothesis directly by training `fc_mtp_layer` on
+the same `miss_not_in_topk` v8 cases. It lowers train loss but regresses heldout
+proxy accept from `63/121` to `62/121`, so it is not a promotion candidate.
+v38 returns to a conservative `fc_norms` rank-flip pass from the v34 sidecar;
+it preserves `63/121` proxy accept but worsens loss, so the v34 sidecar remains
+the best native R6000 warm-start.
+
+P107 now records configurable draft containment through
+`LYNN_MTP_SHADOW_TOPK`. On v34 under the native FP4 lm_head, top1 accept is
+`65/121 = 53.72%`, while the sidecar contains the verified next token in top2,
+top4, and top8 at `73/121`, `80/121`, and `87/121`. This changes the next MTP
+runtime question: single-candidate sidecar tuning is near a plateau, but a
+multi-candidate verifier/reranker has a measured `71.90%` top8 ceiling to
+convert into real speculative throughput.
+
 Report:
 
 ```text

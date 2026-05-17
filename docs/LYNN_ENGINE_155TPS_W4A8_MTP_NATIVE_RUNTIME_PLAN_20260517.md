@@ -27,12 +27,14 @@ R6000 hybrid graph token: greedy pass, 9.53 ms one-shot, strict logits not yet e
 A100 best W4A8 recovery baseline: structured_v16_top6_damped075
 A100 teacher-clean v2 serving gate: 10/12 served exact, still RED
 A100 teacher-clean v3 serving gate: 11/12 served exact, min prefix 16, AMBER by plan threshold
-MTP: aligned sidecar forward works; best saved sidecar is now v24 at
-     69/116 = 59.48%, GREEN-CREDIT but not promotion-ready.
-     P107 runner shadow-verifier now wires the sidecar into the actual
-     `LynnIncrementalRunner.generate()` path without changing output; on A100
-     structured_v10_top6 and structured_v16_top6_damped075 both score
-     68/116 = 58.62% shadow accept with the v24 sidecar.
+A100 teacher-clean v4 structured-template gate: 12/12 exact, GREEN
+A100 teacher-clean v5 heldout gate: format-clean 12/12, served exact 9/12, RED
+MTP: aligned sidecar forward works; best native R6000 sidecar is v34 at
+     65/121 = 53.72% shadow accept under native FP4 lm_head. P107 now has a
+     `LYNN_MTP_SHADOW_TOPK` ceiling mode: v34 top2/top4/top8 containment is
+     73/121, 80/121, and 87/121 respectively. The next runtime lever is no
+     longer only single-candidate sidecar tuning; multi-candidate verification
+     and reranking are now justified.
 ```
 
 155 requires a compound win. There is no single safe env flag left.
@@ -90,6 +92,16 @@ served-text exact, with `12/12` reference/candidate format clean. This is a
 GREEN structured serving-template gate, not a default full-active promotion:
 it proves v16 can be made reliable for structured/template routes while open
 prose and code-style parity remain separate gates.
+
+2026-05-17 v5 heldout update: a new teacher-clean heldout set checks whether
+v16 is merely memorizing the v4 template. It is not a format failure:
+reference and candidate are both `12/12` format-clean, but parity drops to
+`8/12` token-exact and `9/12` served-text exact, with min prefix `3` and mean
+prefix `21.50`. The remaining misses are `normalize_unit` code style, an MTP
+Chinese short-answer synonym, and linear-attention bullet expansion. Therefore
+v16 remains the best quality baseline, while the next A100 quality work should
+train/guard against heldout semantic and code-style drift rather than declaring
+v4 a full promotion gate.
 
 ## Workstream B: MTP Training
 
