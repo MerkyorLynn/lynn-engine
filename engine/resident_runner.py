@@ -162,6 +162,38 @@ class FullTokenGraphSlot:
         return self.logits_buf
 
 
+class FullAttentionLayerGraphSlot:
+    """One fixed-position full-attention layer CUDA graph slot.
+
+    P9J validates the serving prerequisite for this wrapper: `input_buf` can be
+    changed between replays and the graph still matches eager output/KV writes.
+    The slot is intentionally not wired into `generate()` yet because the
+    position/KV ownership ABI must be explicit before promotion.
+    """
+
+    def __init__(
+        self,
+        *,
+        layer_idx: int,
+        seq_len: int,
+        input_buf: torch.Tensor,
+        output_buf: torch.Tensor,
+        graph: torch.cuda.CUDAGraph,
+    ) -> None:
+        self.layer_idx = int(layer_idx)
+        self.seq_len = int(seq_len)
+        self.input_buf = input_buf
+        self.output_buf = output_buf
+        self.graph = graph
+        self.replays = 0
+
+    def replay(self, hidden: torch.Tensor) -> torch.Tensor:
+        self.input_buf.copy_(hidden)
+        self.graph.replay()
+        self.replays += 1
+        return self.output_buf
+
+
 class LynnIncrementalRunner:
     """Single-model resident incremental decode runner."""
 
@@ -575,6 +607,24 @@ class LynnIncrementalRunner:
         for i, t in snap["conv"].items():
             state.conv_state[i].copy_(t)
 
+    @staticmethod
+    def _snapshot_full_attn_layer_kv(
+        state: LynnInferenceState,
+        layer_idx: int,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        k, v = state.kv_cache[layer_idx]
+        return k.clone(), v.clone()
+
+    @staticmethod
+    def _restore_full_attn_layer_kv(
+        state: LynnInferenceState,
+        layer_idx: int,
+        snap: tuple[torch.Tensor, torch.Tensor],
+    ) -> None:
+        k, v = state.kv_cache[layer_idx]
+        k.copy_(snap[0])
+        v.copy_(snap[1])
+
     def _capture_full_token_graph_slot(
         self,
         state: LynnInferenceState,
@@ -619,6 +669,54 @@ class LynnIncrementalRunner:
             torch.cuda.synchronize()
         self._restore_state(state, snap)
         return FullTokenGraphSlot(seq_len=seq_len, token_buf=token_buf, logits_buf=logits_buf, graph=graph)
+
+    def _capture_full_attn_layer_graph_slot(
+        self,
+        state: LynnInferenceState,
+        h_seed: torch.Tensor,
+        pos_tensor: torch.Tensor,
+        layer_idx: int,
+    ) -> FullAttentionLayerGraphSlot:
+        """Capture one fixed-position full-attention layer graph slot.
+
+        This is a scaffold for `LYNN_FULL_ATTN_LAYER_GRAPH`. It deliberately
+        captures only one layer and restores only that layer's KV cache, so a
+        future graph-family path can compose it with existing linear-block
+        graphs without paying the full-token snapshot cost.
+        """
+        if not self.device.startswith("cuda"):
+            raise RuntimeError("full-attention layer graph slots require CUDA")
+        if LAYER_TYPES[layer_idx] != "full_attention":
+            raise ValueError(f"layer {layer_idx} is {LAYER_TYPES[layer_idx]!r}, expected full_attention")
+
+        seq_len = int(state.seq_len)
+        input_buf = torch.empty_like(h_seed)
+        output_buf = torch.empty_like(h_seed)
+        kv_snap = self._snapshot_full_attn_layer_kv(state, layer_idx)
+
+        def graph_body() -> None:
+            state.seq_len = seq_len
+            out = self._decode_layer_fast(input_buf, pos_tensor, state, layer_idx)
+            output_buf.copy_(out)
+
+        input_buf.copy_(h_seed)
+        graph_body()
+        torch.cuda.synchronize()
+        self._restore_full_attn_layer_kv(state, layer_idx, kv_snap)
+        input_buf.copy_(h_seed)
+
+        graph = torch.cuda.CUDAGraph()
+        with torch.cuda.graph(graph):
+            graph_body()
+        torch.cuda.synchronize()
+        self._restore_full_attn_layer_kv(state, layer_idx, kv_snap)
+        return FullAttentionLayerGraphSlot(
+            layer_idx=layer_idx,
+            seq_len=seq_len,
+            input_buf=input_buf,
+            output_buf=output_buf,
+            graph=graph,
+        )
 
     def _decode_layer_fast(
         self,
