@@ -25,6 +25,24 @@ The important asymmetry: V4-Pro has about `+11.6pp` MMLU over 27B BF16, while
 GPQA is clustered in the low-mid 40s. If V4-Pro NVFP4 loses only a few MMLU
 points, it may still dominate the 27B line on factual coverage.
 
+## 2026-05-17 V8-RTN W4A4 Result
+
+Spark V8-RTN compressed-tensors NVFP4 results were strongly negative:
+
+| Candidate | Q4_K_M / W4A16 | V8-RTN / W4A4 | Delta |
+|---|---:|---:|---:|
+| V4-Pro | 83.60% / 42.42% | 63.40% / 35.86% | -20.2pp / -6.6pp |
+| V4-Flash | 80.60% / 43.94% | 63.00% / 37.88% | -17.6pp / -6.1pp |
+
+Decision: do not treat V8-RTN W4A4 as the quality pivot route. The data says
+activation quantization erased most of Lynn's distillation gain and pulled the
+35B candidates back toward the Qwen base band.
+
+The next 35B quantization gate is therefore Lynn-native **W4A16 weight-only**
+NVFP4: quantize weights to per-16 E2M1 NVFP4 while keeping runtime activations
+in BF16. If W4A16 holds quality, test a separate W4A8 recovery bridge. W4A4 is
+now an extreme compression candidate, not the main quality route.
+
 ## Runner
 
 R6000 Lynn-native pivot runner:
@@ -77,7 +95,7 @@ log for manual or follow-up cleanup.
 ## Probe Steps
 
 1. Ensure or download V4-Pro BF16 oracle.
-2. Pack Lynn-native per16 NVFP4 from BF16 with
+2. Pack Lynn-native per16 W4A16/weight-only NVFP4 from BF16 with
    `scripts/a100_pack_lynn_native_nvfp4.py`.
 3. Scan BF16/native-NVFP4/existing-v8 manifests.
 4. Run resident BF16-vs-native-NVFP4 top-k/logit smoke.
