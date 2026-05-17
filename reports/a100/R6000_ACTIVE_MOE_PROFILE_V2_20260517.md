@@ -89,3 +89,23 @@ almost no speed and quickly diverges. Skipping shared expert gives a larger
 speed signal, but all tested outputs diverge near the first token. The 155 TPS
 route should therefore keep exact top-k/shared semantics and focus on real
 kernel/runtime replacement plus MTP, not approximation by dropping experts.
+
+## P97 v2 Layer-28 Rerun
+
+Follow-up serial P97 report:
+
+```text
+reports/p16_155/p97_r6000_v2_layer28_serial_20260517_121948.json
+```
+
+| Variant | Gate ms | Down ms | Total ms | Speedup | Contract |
+|---|---:|---:|---:|---:|---|
+| triton_gateup_triton_down | 0.05589 | 0.03174 | 0.08774 | 1.000x | timing ref |
+| p93_gateup_triton_down | 0.05838 | 0.02662 | 0.08501 | 1.032x | pass |
+| p93_gateup_native_down_scalar | 0.05776 | 0.03174 | 0.08925 | 0.983x | pass |
+| p93_gateup_native_down_tile1 | 0.05774 | 0.02253 | 0.08022 | 1.094x | pass |
+
+This confirms the v2 local active-MoE micro-gain is real, but it is not large
+enough to explain a server jump from ~100 TPS to 155 TPS. R6000 is now running a
+serial 5-layer P97 summary so the next kernel decision is based on layer spread,
+not a single favorable layer.

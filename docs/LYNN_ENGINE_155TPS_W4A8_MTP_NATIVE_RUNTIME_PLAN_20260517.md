@@ -179,6 +179,13 @@ only improved median TPS from `100.77` to `107.90` at the most aggressive
 setting, and every approximation variant diverged early. The next speed work
 must preserve top-k/shared semantics and replace the real runtime boundary.
 
+2026-05-17 P97 v2 layer-28 rerun: `p93_gateup_native_down_tile1` passes the
+quantized-activation contract and is the best local active-MoE interval:
+`0.08774 ms` baseline -> `0.08022 ms`, or `1.094x`. This validates the local
+micro-gain on the v2 package, but it is still far below the full-server delta
+needed for 155 TPS. A serial 5-layer P97 job is running to avoid repeating the
+earlier parallel OOM.
+
 Required native path:
 
 ```text
