@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 import sys
 from typing import Callable
@@ -28,7 +29,10 @@ from engine.qwen36_linear_attn_block import (  # noqa: E402
     V_PER_K,
 )
 from engine.resident_runner import LynnIncrementalRunner, _encode_prompt  # noqa: E402
-from triton_kernels.gated_delta import recurrent_gated_delta_fused_prepare  # noqa: E402
+from triton_kernels.gated_delta import (  # noqa: E402
+    recurrent_gated_delta_fused_prepare,
+    recurrent_gated_delta_fused_prepare_gqa,
+)
 
 
 def _bench(fn: Callable[[], torch.Tensor | tuple], warmup: int, iters: int) -> float:
@@ -91,6 +95,10 @@ def main() -> int:
 
     mixed_new, z, b, a = fused_inproj()
     mixed_new_t = mixed_new.transpose(1, 2)
+    use_gqa_recurrent = (
+        V_PER_K > 1
+        and os.environ.get("LYNN_LINEAR_ATTN_GQA_RECURRENT", "0") == "1"
+    )
 
     def conv_update():
         conv_input = torch.cat([state.conv_state[args.layer], mixed_new_t], dim=-1)
@@ -110,7 +118,7 @@ def main() -> int:
         q = q.reshape(B, 1, NUM_K_HEADS, HEAD_K_DIM)
         k = k.reshape(B, 1, NUM_K_HEADS, HEAD_K_DIM)
         v = v.reshape(B, 1, NUM_V_HEADS, HEAD_V_DIM)
-        if V_PER_K > 1:
+        if V_PER_K > 1 and not use_gqa_recurrent:
             q = q.repeat_interleave(V_PER_K, dim=2)
             k = k.repeat_interleave(V_PER_K, dim=2)
         return q, k, v
@@ -121,6 +129,8 @@ def main() -> int:
     g = -w["linear_attn.A_log"].float().exp() * F.softplus(a.float() + w["linear_attn.dt_bias"].float())
 
     def recurrent():
+        if use_gqa_recurrent:
+            return recurrent_gated_delta_fused_prepare_gqa(q, k, v, g, beta, state.recurrent_state[args.layer])
         return recurrent_gated_delta_fused_prepare(q, k, v, g, beta, state.recurrent_state[args.layer])
 
     core_attn_out, _ = recurrent()
@@ -152,13 +162,18 @@ def main() -> int:
         q0 = q0.reshape(B, 1, NUM_K_HEADS, HEAD_K_DIM)
         k0 = k0.reshape(B, 1, NUM_K_HEADS, HEAD_K_DIM)
         v0 = v0.reshape(B, 1, NUM_V_HEADS, HEAD_V_DIM)
-        if V_PER_K > 1:
+        if V_PER_K > 1 and not use_gqa_recurrent:
             q0 = q0.repeat_interleave(V_PER_K, dim=2)
             k0 = k0.repeat_interleave(V_PER_K, dim=2)
         z0 = z0.reshape(B, 1, NUM_V_HEADS, HEAD_V_DIM)
         beta0 = b0.sigmoid()
         g0 = -w["linear_attn.A_log"].float().exp() * F.softplus(a0.float() + w["linear_attn.dt_bias"].float())
-        attn, _ = recurrent_gated_delta_fused_prepare(q0, k0, v0, g0, beta0, state.recurrent_state[args.layer])
+        if use_gqa_recurrent:
+            attn, _ = recurrent_gated_delta_fused_prepare_gqa(
+                q0, k0, v0, g0, beta0, state.recurrent_state[args.layer]
+            )
+        else:
+            attn, _ = recurrent_gated_delta_fused_prepare(q0, k0, v0, g0, beta0, state.recurrent_state[args.layer])
         flat_x = attn.reshape(-1, HEAD_V_DIM)
         flat_z = z0.reshape(-1, HEAD_V_DIM)
         normed = _rms_norm_gated_decode(flat_x, w["linear_attn.norm.weight"], flat_z)
@@ -178,6 +193,7 @@ def main() -> int:
         "schema_version": "lynn-engine-p10c-linear-attn-core-segment-profile-v1",
         "model": args.model,
         "layer": args.layer,
+        "use_gqa_recurrent": use_gqa_recurrent,
         "timing_ms": timing,
         "top_segments": sorted(
             [{"segment": k, "latency_ms": v} for k, v in timing.items() if not k.endswith("recomposed")],

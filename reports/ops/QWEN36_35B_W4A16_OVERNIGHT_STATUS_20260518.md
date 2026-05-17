@@ -232,6 +232,21 @@ Follow-up P10-C still shows the fused native FP4 in-proj as the largest isolated
 linear-core segment at about 0.080 ms/layer, with recurrent and conv each around
 0.033-0.036 ms.
 
+P10-C was then aligned with the promoted GQA recurrent path and rerun with a
+cached fused-FP4 weight transpose. This is not a large runtime lever, but it
+removes a stale measurement artifact: q/k split-repeat is now only about
+`0.007 ms/layer`, so the next fused boundary should target the native FP4
+in-proj plus the conv/recurrent setup rather than repeat materialization.
+
+| GQA P10-C Segment | Layer 0 | Layer 28 |
+|---|---:|---:|
+| Fused native FP4 in-proj | 0.0767 ms | 0.0786 ms |
+| Recurrent fused prepare | 0.0364 ms | 0.0363 ms |
+| Conv update | 0.0328 ms | 0.0327 ms |
+| Gated RMSNorm | 0.0200 ms | 0.0199 ms |
+| QKV split/no-repeat | 0.0072 ms | 0.0072 ms |
+| Full recomposed core | 0.3111 ms | 0.3101 ms |
+
 ### Fast Dispatch Pin
 
 P36 was rerun after the GQA recurrent promotion to make sure the runner-fixed
@@ -253,6 +268,8 @@ Copied reports:
 - `reports/qwen36_35b/r6000_qwen36_w4a16_gqa_recurrent_p28_hybrid_block_20260518_052206.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_gqa_recurrent_p25_server_20260518_052455.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_gqa_recurrent_openai_structured_gate_20260518_052455.json`
+- `reports/qwen36_35b/p10c_gqa_fused_cache_layer0_20260518_072610.json`
+- `reports/qwen36_35b/p10c_gqa_fused_cache_layer28_20260518_072610.json`
 - `reports/qwen36_35b/p36_fast_dispatch_gqa_20260518_072216.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_gqa_recurrent_p10c_linear_layer0_20260518_052949.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_gqa_recurrent_p10c_linear_layer28_20260518_052949.json`
