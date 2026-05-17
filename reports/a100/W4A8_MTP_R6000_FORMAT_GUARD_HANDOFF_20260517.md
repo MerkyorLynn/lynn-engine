@@ -187,6 +187,7 @@ reports/a100/a100_w4a8_teacher_clean_v3_gate_structured_v16_12prompt_48tok.json
 | teacher-clean v3 prompts, raw template | 11/12 | 16 | 34.33 | 12/12 | 12/12 | 0/12 | AMBER by plan threshold |
 | teacher-clean v4 prompts, raw template | 12/12 | 16 | 34.58 | 12/12 | 12/12 | 0/12 | GREEN, structured-template gate |
 | teacher-clean v5 heldout prompts | 9/12 | 3 | 21.50 | 12/12 | 12/12 | 0/12 | RED, format-clean heldout drift |
+| teacher-clean v6 heldout-template prompts | 12/12 | 4 | 23.17 | 12/12 | 12/12 | 0/12 | GREEN, explicit heldout templates |
 
 The chat template makes the teacher format clean, but shifts the teacher token
 path and worsens parity on this prompt set. Keep raw structured prompts as the
@@ -221,6 +222,12 @@ Chinese short-answer synonym, and linear-attention bullet expansion. This is a
 healthy boundary: v16 remains the best quality baseline, but the next A100 work
 should target heldout semantic/code-style stability rather than count v4 as a
 general promotion gate.
+
+The v6 heldout-template pass tightens those ambiguous tasks into explicit
+service templates and turns the heldout check GREEN: `12/12` token-exact,
+`12/12` served-text exact, and `12/12` format-clean. The quality rule is now
+clear: use v16 plus explicit structured templates for JSON/code/tool routes;
+do not treat raw open-ended W4A8 as promoted.
 
 ## Full-Token Graph Slot Trigger
 
@@ -348,6 +355,13 @@ current v34 sidecar under native FP4 lm_head:
 
 This says the next R6000 runtime ROI is multi-candidate MTP verification or a
 small reranker, not another blind low-LR single-candidate continuation.
+
+There is one more serving-shaped caveat: when P107 is run on the v4
+structured-template prompts with `--force-prefix-from-spec` and forced-prefix
+events skipped, v34 falls to `54/271 = 19.93%` accept and top8 containment is
+only `109/271 = 40.22%`. So the quality guard path is not yet MTP-friendly.
+The next R6000/A100 MTP calibration must explicitly include guard-forced hidden
+states before MTP can be enabled on structured/template routes.
 
 The fc-only train smoke confirms gradient wiring:
 

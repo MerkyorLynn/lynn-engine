@@ -29,6 +29,7 @@ A100 teacher-clean v2 serving gate: 10/12 served exact, still RED
 A100 teacher-clean v3 serving gate: 11/12 served exact, min prefix 16, AMBER by plan threshold
 A100 teacher-clean v4 structured-template gate: 12/12 exact, GREEN
 A100 teacher-clean v5 heldout gate: format-clean 12/12, served exact 9/12, RED
+A100 teacher-clean v6 heldout-template gate: 12/12 exact, GREEN
 MTP: aligned sidecar forward works; best native R6000 sidecar is v34 at
      65/121 = 53.72% shadow accept under native FP4 lm_head. P107 now has a
      `LYNN_MTP_SHADOW_TOPK` ceiling mode: v34 top2/top4/top8 containment is
@@ -102,6 +103,12 @@ Chinese short-answer synonym, and linear-attention bullet expansion. Therefore
 v16 remains the best quality baseline, while the next A100 quality work should
 train/guard against heldout semantic and code-style drift rather than declaring
 v4 a full promotion gate.
+
+2026-05-17 v6 heldout-template update: tightening the v5 ambiguous tasks into
+explicit service templates turns the heldout check GREEN on v16:
+`12/12` token-exact, `12/12` served-text exact, `12/12` format-clean. This is
+the quality split to preserve: v16 plus explicit structured templates is
+serviceable; raw open-ended W4A8 remains a separate gate.
 
 ## Workstream B: MTP Training
 

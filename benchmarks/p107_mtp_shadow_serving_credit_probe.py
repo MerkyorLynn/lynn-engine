@@ -47,35 +47,62 @@ def _load_prompt_specs(path: str | None, inline: list[str]) -> list[dict[str, st
         if isinstance(item, str):
             specs.append({"id": str(idx), "prompt": item})
         elif isinstance(item, dict):
-            specs.append({"id": str(item.get("id", idx)), "prompt": str(item["prompt"])})
+            specs.append(
+                {
+                    "id": str(item.get("id", idx)),
+                    "prompt": str(item["prompt"]),
+                    "forced_prefix": item.get("forced_prefix"),
+                }
+            )
         else:
             raise TypeError(f"prompt spec must be string or object, got {type(item)}")
     return specs
 
 
-def _summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
-    events = sum(int(row["mtp_shadow"]["events"]) for row in rows)
-    accepted = sum(int(row["mtp_shadow"]["accepted"]) for row in rows)
-    trace = [
-        event
-        for row in rows
-        for event in row["mtp_shadow"].get("trace", [])
-    ]
+def _summarize(rows: list[dict[str, Any]], *, skip_forced_prefix_events: bool) -> dict[str, Any]:
+    trace: list[dict[str, Any]] = []
+    skipped_forced_prefix_events = 0
+    prompt_rates: list[float] = []
+    for row in rows:
+        row_trace = list(row["mtp_shadow"].get("trace", []))
+        if skip_forced_prefix_events:
+            forced_len = len((row.get("forced_prefix_report") or {}).get("ids") or [])
+            skipped_forced_prefix_events += sum(1 for event in row_trace if int(event["step"]) < forced_len)
+            row_trace = [event for event in row_trace if int(event["step"]) >= forced_len]
+        trace.extend(row_trace)
+        if row_trace:
+            prompt_rates.append(
+                sum(1 for event in row_trace if event.get("accepted")) / len(row_trace)
+            )
+
+    events = len(trace) if trace else sum(int(row["mtp_shadow"]["events"]) for row in rows)
+    accepted = (
+        sum(1 for event in trace if event.get("accepted"))
+        if trace
+        else sum(int(row["mtp_shadow"]["accepted"]) for row in rows)
+    )
     draft_seconds = [
-        float(x)
-        for row in rows
-        for x in row["mtp_shadow"].get("draft_step_seconds", [])
+        float(event["draft_seconds"])
+        for event in trace
+        if "draft_seconds" in event
     ]
+    if not draft_seconds:
+        draft_seconds = [
+            float(x)
+            for row in rows
+            for x in row["mtp_shadow"].get("draft_step_seconds", [])
+        ]
     decode_step_seconds = [
         float(x)
         for row in rows
         for x in row["timings"].get("decode_step_seconds", [])
     ]
-    prompt_rates = [
-        float(row["mtp_shadow"]["accept_rate"])
-        for row in rows
-        if row["mtp_shadow"].get("accept_rate") is not None
-    ]
+    if not prompt_rates:
+        prompt_rates = [
+            float(row["mtp_shadow"]["accept_rate"])
+            for row in rows
+            if row["mtp_shadow"].get("accept_rate") is not None
+        ]
     topk_ceiling: dict[str, Any] = {}
     for k in (2, 4, 8, 16):
         covered = 0
@@ -98,6 +125,7 @@ def _summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "events": events,
         "accepted": accepted,
         "accept_rate": accepted / events if events else None,
+        "skipped_forced_prefix_events": skipped_forced_prefix_events,
         "mean_prompt_accept_rate": statistics.fmean(prompt_rates) if prompt_rates else None,
         "decode_tps": (
             len(decode_step_seconds) / sum(decode_step_seconds)
@@ -128,6 +156,12 @@ def main() -> int:
     ap.add_argument("--prompts", nargs="*", default=DEFAULT_PROMPTS)
     ap.add_argument("--max-new", type=int, default=16)
     ap.add_argument("--use-chat-template", action="store_true")
+    ap.add_argument("--force-prefix-from-spec", action="store_true")
+    ap.add_argument(
+        "--skip-forced-prefix-events",
+        action="store_true",
+        help="When using forced prefixes, report MTP credit only after the forced span.",
+    )
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--dtype", default="bfloat16", choices=["bfloat16", "float16"])
     ap.add_argument("--top-k", type=int, default=0)
@@ -146,11 +180,18 @@ def main() -> int:
             max_new=args.max_new,
             top_k=args.top_k,
             use_chat_template=args.use_chat_template,
+            forced_prefix_text=(
+                str(spec["forced_prefix"])
+                if args.force_prefix_from_spec and spec.get("forced_prefix") is not None
+                else None
+            ),
         )
         rows.append(
             {
                 "id": spec["id"],
                 "prompt": spec["prompt"],
+                "forced_prefix": spec.get("forced_prefix") if args.force_prefix_from_spec else None,
+                "forced_prefix_report": out.get("forced_prefix"),
                 "completion_text": out["completion_text"],
                 "new_ids": out["new_ids"],
                 "timings": out["timings"],
@@ -159,7 +200,7 @@ def main() -> int:
             }
         )
 
-    summary = _summarize(rows)
+    summary = _summarize(rows, skip_forced_prefix_events=args.skip_forced_prefix_events)
     report = {
         "schema_version": "lynn-p107-mtp-shadow-serving-credit-v1",
         "decision": (
@@ -170,6 +211,8 @@ def main() -> int:
         "model": args.model,
         "sidecar_file": args.sidecar_file,
         "use_chat_template": args.use_chat_template,
+        "force_prefix_from_spec": args.force_prefix_from_spec,
+        "skip_forced_prefix_events": args.skip_forced_prefix_events,
         "dtype": args.dtype,
         "max_new": args.max_new,
         "summary": summary,

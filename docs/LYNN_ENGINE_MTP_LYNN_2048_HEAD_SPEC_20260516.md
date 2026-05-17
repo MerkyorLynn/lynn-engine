@@ -450,6 +450,17 @@ runtime question: single-candidate sidecar tuning is near a plateau, but a
 multi-candidate verifier/reranker has a measured `71.90%` top8 ceiling to
 convert into real speculative throughput.
 
+P107 also now supports `--force-prefix-from-spec` and
+`--skip-forced-prefix-events`, which makes it possible to measure the same MTP
+sidecar on service-shaped structured prompts after the format guard has already
+injected the prefix tokens. The result is a sharp warning: on the v4
+structured-template route, v34 drops to `54/271 = 19.93%` accept after skipping
+130 forced-prefix events, with top8 containment only `109/271 = 40.22%`.
+Quality guard and MTP are therefore not automatically composable; the next MTP
+training set must include guard-forced hidden states, or serving should disable
+MTP until the forced prefix span is past and the route has re-entered a state
+distribution the sidecar has seen.
+
 Report:
 
 ```text
