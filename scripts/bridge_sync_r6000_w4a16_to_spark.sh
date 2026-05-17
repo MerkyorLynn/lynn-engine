@@ -19,58 +19,13 @@ log() {
 }
 
 remote_ready() {
-    ssh -n "$R6000_HOST" "MODEL_DIR='$R6000_MODEL' python3 - <<'PY'
-import json
-import os
-import pathlib
-import sys
-
-d = pathlib.Path(os.environ['MODEL_DIR'])
-index_path = d / 'model.safetensors.index.json'
-manifest_path = d / 'lynn_quant_manifest.json'
-if not index_path.exists() or not manifest_path.exists():
-    sys.exit(1)
-try:
-    index = json.loads(index_path.read_text())
-    manifest = json.loads(manifest_path.read_text())
-except Exception:
-    sys.exit(2)
-files = set(index.get('weight_map', {}).values())
-if not files:
-    sys.exit(3)
-missing = [name for name in files if not (d / name).exists() or (d / name).stat().st_size <= 0]
-if missing:
-    sys.exit(4)
-if int(manifest.get('quantized_count', 0)) <= 0:
-    sys.exit(5)
-print(json.dumps({
-    'dir': str(d),
-    'shards': len(files),
-    'quantized_count': manifest.get('quantized_count'),
-    'kept_count': manifest.get('kept_count'),
-}, ensure_ascii=False))
-PY"
+    ssh -n "$R6000_HOST" "MODEL_DIR='$R6000_MODEL' python3 -c 'import json, os, pathlib, sys; d=pathlib.Path(os.environ[\"MODEL_DIR\"]); index_path=d/\"model.safetensors.index.json\"; manifest_path=d/\"lynn_quant_manifest.json\"; index=json.loads(index_path.read_text()); manifest=json.loads(manifest_path.read_text()); files=set(index.get(\"weight_map\", {}).values()); missing=[name for name in files if not (d/name).exists() or (d/name).stat().st_size <= 0]; bad=(not files or missing or int(manifest.get(\"quantized_count\", 0)) <= 0); bad and sys.exit(3); print(json.dumps({\"dir\": str(d), \"shards\": len(files), \"quantized_count\": manifest.get(\"quantized_count\"), \"kept_count\": manifest.get(\"kept_count\")}, ensure_ascii=False))'"
 }
 
 log "watching R6000 artifact: $R6000_HOST:$R6000_MODEL"
 while true; do
     if READY_JSON="$(remote_ready 2>/dev/null)"; then
-        if ssh -n "$R6000_HOST" "MODEL_DIR='$R6000_MODEL' python3 - <<'PY'
-import os
-import subprocess
-
-model = os.environ['MODEL_DIR']
-out = subprocess.run(['ps', '-eo', 'pid=,args='], text=True, capture_output=True, check=False).stdout
-for line in out.splitlines():
-    # Use a strict Python-script shape so the checker command itself does not
-    # look like the packer.
-    parts = line.strip().split(maxsplit=1)
-    args = parts[1] if len(parts) == 2 else ''
-    argv0 = args.split(maxsplit=1)[0] if args else ''
-    if 'python' in argv0 and 'a100_pack_lynn_native_nvfp4.py' in args and model in args:
-        raise SystemExit(0)
-raise SystemExit(1)
-PY"; then
+        if ssh -n "$R6000_HOST" "pgrep -af 'a100_pack_lynn_native_nvfp4.py' | grep -F '$R6000_MODEL' >/dev/null"; then
             log "artifact index exists but packer is still active; waiting"
         else
             log "artifact ready: $READY_JSON"
@@ -90,28 +45,7 @@ log "streaming artifact through local bridge; this can take a while"
 ssh -n "$R6000_HOST" "tar -C '$R6000_MODEL' -cf - ." | ssh "$SPARK_HOST" "tar -C '$TMP_DST' -xf -"
 
 log "validating Spark copy"
-ssh -n "$SPARK_HOST" "MODEL_DIR='$TMP_DST' python3 - <<'PY'
-import json
-import os
-import pathlib
-import sys
-
-d = pathlib.Path(os.environ['MODEL_DIR'])
-index_path = d / 'model.safetensors.index.json'
-manifest_path = d / 'lynn_quant_manifest.json'
-index = json.loads(index_path.read_text())
-manifest = json.loads(manifest_path.read_text())
-files = set(index.get('weight_map', {}).values())
-missing = [name for name in files if not (d / name).exists() or (d / name).stat().st_size <= 0]
-if missing:
-    raise SystemExit(f'missing copied shards: {missing[:5]}')
-print(json.dumps({
-    'dir': str(d),
-    'shards': len(files),
-    'quantized_count': manifest.get('quantized_count'),
-    'kept_count': manifest.get('kept_count'),
-}, ensure_ascii=False))
-PY"
+ssh -n "$SPARK_HOST" "MODEL_DIR='$TMP_DST' python3 -c 'import json, os, pathlib, sys; d=pathlib.Path(os.environ[\"MODEL_DIR\"]); index=json.loads((d/\"model.safetensors.index.json\").read_text()); manifest=json.loads((d/\"lynn_quant_manifest.json\").read_text()); files=set(index.get(\"weight_map\", {}).values()); missing=[name for name in files if not (d/name).exists() or (d/name).stat().st_size <= 0]; missing and sys.exit(4); print(json.dumps({\"dir\": str(d), \"shards\": len(files), \"quantized_count\": manifest.get(\"quantized_count\"), \"kept_count\": manifest.get(\"kept_count\")}, ensure_ascii=False))'"
 
 ssh -n "$SPARK_HOST" "rm -rf '$SPARK_MODEL' && mv '$TMP_DST' '$SPARK_MODEL' && du -sh '$SPARK_MODEL'"
 log "Spark copy complete: $SPARK_HOST:$SPARK_MODEL"
