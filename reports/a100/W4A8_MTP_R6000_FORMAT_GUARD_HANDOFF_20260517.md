@@ -369,7 +369,10 @@ after the service template has injected its prefix. A conservative `fc_norms`
 rank-flip pass on v4 templates moves train accept `0/44 -> 3/44`, but v6
 heldout stays flat at `22/172 = 12.79%`. This makes the boundary concrete:
 quality templates are solved for W4A8 v16, but MTP needs a separate
-guard-aware specialist or a multi-candidate runtime path.
+guard-aware specialist or a multi-candidate runtime path. v40 widens the same
+guard-forced test to `fc_mtp_layer`; it also leaves heldout flat at `22/172`
+and worsens eval loss, so the tiny rank-flip continuation branch is closed for
+guarded structured routes.
 
 The fc-only train smoke confirms gradient wiring:
 
