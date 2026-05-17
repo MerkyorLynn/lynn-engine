@@ -416,6 +416,12 @@ draft throughput improves from `131.45` to `362.30` draft tok/s
 make the exact decode-active MTP path the serving default after one more parity
 gate, then chase overlap or a parity-safe grouped/BMM expert kernel.
 
+The first full P107 `decode_bmm` run confirms that grouped/BMM is the speed
+target but not the safe path yet: draft throughput rises to `513.77` draft
+tok/s (`1.95 ms` mean draft), but accept drops to `64/121` and event-level
+comparison finds four draft-id mismatches versus the baseline. Treat BMM as a
+kernel-design target, not a runtime default.
+
 The fc-only train smoke confirms gradient wiring:
 
 | Field | Value |

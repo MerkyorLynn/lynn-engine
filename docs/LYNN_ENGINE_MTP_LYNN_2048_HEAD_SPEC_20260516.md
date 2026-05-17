@@ -529,9 +529,20 @@ draft_tps: 362.30
 top2/top4/top8: 73/121, 80/121, 87/121
 ```
 
+An end-to-end `decode_bmm` P107 run shows why the faster path is not a default:
+
+```text
+reports/mtp/r6000_p107_mtp_shadow_v34_rankflip_w4a8_v2_decodebmm_20260517_182805.json
+accept: 64/121 = 52.89%
+mean draft: 1.95 ms
+draft_tps: 513.77
+baseline comparison: 4 draft-id mismatches, 3 accepted-flag mismatches
+```
+
 This does not close 155 by itself, but it changes the MTP runtime problem from
-`~7.6 ms` serial draft to `~2.8 ms`. The next viable cuts are overlap/inline
-execution, a parity-safe batched/grouped expert path, or multi-token credit.
+`~7.6 ms` serial draft to `~2.8 ms` on the exact path. The next viable cuts are
+overlap/inline execution, a parity-safe batched/grouped expert path, or
+multi-token credit.
 
 Report:
 

@@ -86,7 +86,9 @@ layer median from `6.70 ms` to `1.89 ms` (`3.54x`). The faster decode-bmm path
 hits `1.09 ms` but has top1 drift (`60/64`), so it stays research-only. The
 runtime now exposes `LYNN_MTP_LAYER_MOE=decode_active`; P107 with that setting
 keeps v34 accept at `65/121 = 53.72%` and raises draft throughput from
-`131.45` to `362.30` draft tok/s. This is a real MTP cost cut, but still not
+`131.45` to `362.30` draft tok/s. A full P107 `decode_bmm` run reaches
+`513.77` draft tok/s, but drops accept to `64/121` and has four draft-id
+mismatches against the exact path. This is a real MTP cost cut, but still not
 enough by itself: top1 zero-overhead remains below 155 from a 100 tok/s base,
 and top2/top4/top8 still need sub-millisecond effective draft or overlap.
 
