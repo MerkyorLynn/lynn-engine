@@ -23,8 +23,8 @@ R6000 v2 active-MoE micro gain: ~1.12x interval, not enough alone
 A100 best W4A8 recovery baseline: structured_v16_top6_damped075
 A100 teacher-clean v2 serving gate: 10/12 served exact, still RED
 A100 teacher-clean v3 serving gate: 11/12 served exact, min prefix 16, AMBER by plan threshold
-MTP: aligned sidecar forward works; best saved/interpolated sidecar is now
-     42/116 after v13/v14 alpha sweep, still below serving multiplier credit
+MTP: aligned sidecar forward works; best saved sidecar is now v15 at
+     56/116 = 48.28%, still AMBER and below serving multiplier credit
 ```
 
 155 requires a compound win. There is no single safe env flag left.
@@ -177,6 +177,15 @@ alpha sweep recovers a small new best at `alpha=0.65`, `42/116 = 36.21%`.
 Reloaded saved-sidecar eval confirms this `interp065` result. A subset grid over
 `mtp.fc.weight`, pre-fc norms, and `mtp.norm.weight` does not beat v13, so the
 useful v14 direction is distributed rather than a clean tensor-block swap.
+
+A100 v15 starts from the `interp065` sidecar and applies a conservative
+`fc_norms` front repair on steps 0/1/4. The saved-sidecar eval confirms a new
+best at `56/116 = 48.28%`, not an in-memory artifact. Its by-step shape is now:
+step2/3/4/5 are `8/8`, step0 is `3/8`, and the weakest remaining positions are
+step1 `1/8`, step8 `2/8`, step9 `1/8`, step12 `0/6`, and step15 `1/5`.
+A100 v16 is running from v15 with a lower LR and `fc_norms` only on those weak
+positions; the goal is to cross the `>=55%` saved heldout gate without damaging
+the restored 8/8 front positions.
 
 If fc-only cannot clear 55-70%, unfreeze in this order:
 

@@ -97,11 +97,25 @@ accepted: 8
 accept_rate: 8.51%
 ```
 
+Current saved-sidecar best:
+
+```text
+reports/mtp/a100_mtp_iterative_train_interp_front014_v15_20260517_131902.json
+reports/mtp/a100_mtp_saved_sidecar_eval_interp_v15_20260517_132219.json
+decision: AMBER
+best_label: v15
+best_accept: 56/116 = 48.28%
+sidecar:
+/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-interp-front014-v15-20260517_131902/mtp.safetensors
+```
+
 The weighted-math v3 sidecar is a GREEN first-token draft candidate, but it is
 not yet a speculative decode candidate. It accepts the first token for each
-heldout prompt and then diverges on later positions. Stage 1 must therefore
-train and evaluate token+1..N positions, not only the prompt-boundary next
-token.
+heldout prompt and then diverges on later positions. Stage 1 has now moved from
+prompt-boundary training into saved iterative sidecar repair. v15 is the first
+saved sidecar to approach the 55% serving-credit bar, with steps 2/3/4/5 at
+8/8 and the remaining weakness concentrated at steps 1/8/9/12/15. v16 is a
+low-LR `fc_norms` repair run from v15 targeting only those weak positions.
 
 This changes the initialization and wiring path, not the serving state: MTP can
 now run a real draft forward pass and backpropagate through a frozen-base,
