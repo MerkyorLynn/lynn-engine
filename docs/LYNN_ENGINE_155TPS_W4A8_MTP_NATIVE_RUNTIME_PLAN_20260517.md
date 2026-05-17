@@ -514,6 +514,16 @@ confirms v27 as the new best at `70/116 = 60.34%`. The gain lands on step10
 first clean post-v24 improvement and validates the near-miss filter; it is
 still an A100 BF16-side saved gate.
 
+The v27 diagnostic sharpens the next A100 target. Saved eval remains GREEN at
+`70/116 = 60.34%`, but the remaining `46` misses contain only `10` near misses
+with label rank <=5 and `32` hard misses with label rank >20. Miss buckets are
+dominated by semantic/code drift (`21`), followed by generic structured keys
+(`7`), stop-token mistakes (`6`), special tokens (`5`), whitespace (`4`), and
+JSON punctuation (`3`). Steps 2/3/4/5 are saturated at `8/8`; weak bands are now
+step8 (`2/8`), steps 12/13/14 (`2/6` each), step10 (`3/7`), and semantic
+step11/15. This says the next A100 calibration needs a new semantic/code target
+construction or partial-head objective, not another tiny near-miss-only pass.
+
 R6000 transfer check for this A100 v27 confirms the native boundary. The
 sidecar copies cleanly to R6000 (sha256 matched), but under W4A8 NVFP4 v2 with
 the exact slot-sorted MTP runtime it reaches only `62/121 = 51.24%`, below the

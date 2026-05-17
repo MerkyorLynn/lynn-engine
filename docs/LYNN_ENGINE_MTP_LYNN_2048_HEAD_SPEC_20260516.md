@@ -315,6 +315,25 @@ authoritative A100 saved best at `70/116 = 60.34%`. The improvement is narrow
 but clean: step10 moves `2/7 -> 3/7`, while step2/3/4/5 remain `8/8`. This
 validates the miss-in-topk curriculum.
 
+The v27 diagnostic confirms that the remaining A100 miss set is now dominated
+by hard semantic/code drift, not easy JSON punctuation:
+
+```text
+reports/mtp/a100_mtp_v27_saved_sidecar_diagnostic_20260517_1947.json
+accept: 70/116 = 60.34%
+misses: 46
+near misses, label rank <=5: 10
+hard misses, label rank >20: 32
+largest bucket: semantic_token 21
+other buckets: generic_structured_key 7, stop_token 6, special_token 5,
+               whitespace 4, json_punctuation 3
+```
+
+Steps 2/3/4/5 are already saturated at `8/8`; weak bands are step8, step10,
+late step12/13/14, and semantic step11/15. The next A100 run should build a
+semantic/code hard-miss target or try a partial-head objective. Another tiny
+near-miss-only `fc_norms` sweep is unlikely to move the saved gate much.
+
 The R6000 transfer check for this A100 v27 sidecar is a useful negative. The
 1.6 GiB sidecar was copied from A100 to R6000 and sha256 matched, but native
 W4A8 P107 reaches only `62/121 = 51.24%`:

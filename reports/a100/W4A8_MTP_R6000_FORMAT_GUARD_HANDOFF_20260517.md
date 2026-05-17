@@ -351,6 +351,22 @@ That is a small improvement over the older A100 v24 transfer (`61/121`) but
 still below the native-trained v34 (`65/121`). Keep v27 as the A100 BF16
 calibration best; keep v34 as the R6000 native serving-credit best.
 
+The v27 diagnostic is now saved:
+
+```text
+reports/mtp/a100_mtp_v27_saved_sidecar_diagnostic_20260517_1947.json
+accept: 70/116 = 60.34%
+misses: 46
+near misses, label rank <=5: 10
+hard misses, label rank >20: 32
+miss buckets: semantic_token 21, generic_structured_key 7, stop_token 6,
+              special_token 5, whitespace 4, json_punctuation 3
+```
+
+So A100's next quality target is no longer primarily punctuation or simple
+near-miss rank flipping. It needs a semantic/code hard-miss construction or a
+partial-head objective while preserving the saturated step2/3/4/5 band.
+
 2026-05-17 R6000 native update: activation-aware fake-native training plus a
 rank-flip filter is now the productive MTP repair path. The broad v32
 continuation regresses, but v33/v34 train only misses where the native label is
