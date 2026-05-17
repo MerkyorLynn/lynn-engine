@@ -65,3 +65,27 @@ The next runtime milestones should be:
 
 The useful engineering target is no longer just "faster active experts"; it is
 "reduce the whole 8.12 ms/token MoE budget while preserving structured gates."
+
+## Budget Ladder Check
+
+Follow-up one-run service-budget probe:
+
+```text
+reports/a100/r6000_moe_budget_one_runner_v2_20260517_121109.json
+```
+
+| Candidate | Median TPS | Speedup | Exact vs baseline | Min prefix |
+|---|---:|---:|---:|---:|
+| baseline_top8_shared | 100.77 | 1.000x | 3/3 | 96 |
+| top6_shared | 100.95 | 1.002x | 1/3 | 10 |
+| top4_shared | 101.98 | 1.012x | 0/3 | 1 |
+| top2_shared | 102.98 | 1.022x | 0/3 | 1 |
+| top1_shared | 103.04 | 1.023x | 0/3 | 1 |
+| top8_skip_shared | 105.26 | 1.045x | 0/3 | 1 |
+| top1_skip_shared | 107.90 | 1.071x | 0/3 | 1 |
+
+This closes the "just reduce active experts" shortcut. Top-k reduction gives
+almost no speed and quickly diverges. Skipping shared expert gives a larger
+speed signal, but all tested outputs diverge near the first token. The 155 TPS
+route should therefore keep exact top-k/shared semantics and focus on real
+kernel/runtime replacement plus MTP, not approximation by dropping experts.
