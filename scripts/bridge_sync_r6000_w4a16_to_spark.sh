@@ -19,7 +19,7 @@ log() {
 }
 
 remote_ready() {
-    ssh "$R6000_HOST" "MODEL_DIR='$R6000_MODEL' python3 - <<'PY'
+    ssh -n "$R6000_HOST" "MODEL_DIR='$R6000_MODEL' python3 - <<'PY'
 import json
 import os
 import pathlib
@@ -55,7 +55,7 @@ PY"
 log "watching R6000 artifact: $R6000_HOST:$R6000_MODEL"
 while true; do
     if READY_JSON="$(remote_ready 2>/dev/null)"; then
-        if ssh "$R6000_HOST" "MODEL_DIR='$R6000_MODEL' python3 - <<'PY'
+        if ssh -n "$R6000_HOST" "MODEL_DIR='$R6000_MODEL' python3 - <<'PY'
 import os
 import subprocess
 
@@ -84,13 +84,13 @@ done
 
 TMP_DST="${SPARK_MODEL}.tmp"
 log "preparing Spark destination: $SPARK_HOST:$SPARK_MODEL"
-ssh "$SPARK_HOST" "rm -rf '$TMP_DST' && mkdir -p '$TMP_DST'"
+ssh -n "$SPARK_HOST" "rm -rf '$TMP_DST' && mkdir -p '$TMP_DST'"
 
 log "streaming artifact through local bridge; this can take a while"
-ssh "$R6000_HOST" "tar -C '$R6000_MODEL' -cf - ." | ssh "$SPARK_HOST" "tar -C '$TMP_DST' -xf -"
+ssh -n "$R6000_HOST" "tar -C '$R6000_MODEL' -cf - ." | ssh "$SPARK_HOST" "tar -C '$TMP_DST' -xf -"
 
 log "validating Spark copy"
-ssh "$SPARK_HOST" "MODEL_DIR='$TMP_DST' python3 - <<'PY'
+ssh -n "$SPARK_HOST" "MODEL_DIR='$TMP_DST' python3 - <<'PY'
 import json
 import os
 import pathlib
@@ -113,5 +113,5 @@ print(json.dumps({
 }, ensure_ascii=False))
 PY"
 
-ssh "$SPARK_HOST" "rm -rf '$SPARK_MODEL' && mv '$TMP_DST' '$SPARK_MODEL' && du -sh '$SPARK_MODEL'"
+ssh -n "$SPARK_HOST" "rm -rf '$SPARK_MODEL' && mv '$TMP_DST' '$SPARK_MODEL' && du -sh '$SPARK_MODEL'"
 log "Spark copy complete: $SPARK_HOST:$SPARK_MODEL"
