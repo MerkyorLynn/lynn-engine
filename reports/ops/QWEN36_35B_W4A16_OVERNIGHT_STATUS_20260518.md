@@ -1,0 +1,150 @@
+# Qwen3.6 35B W4A16 Overnight Status
+
+Date: 2026-05-18 01:30 CST
+
+## Route Decision
+
+The default promotion route is now:
+
+```text
+official Qwen/Qwen3.6-35B-A3B
+  -> Lynn-native W4A16 NVFP4
+  -> quality-safe serving profile
+```
+
+W4A8 stays as a speed experiment. MTP stays as a gated accelerator: useful only
+after iterative accept is real on the exact W4A16 runtime.
+
+## Official 35B Quality Anchor
+
+Spark evaluation on the official N5 package:
+
+| Candidate | MMLU 500 5-shot | GPQA Diamond 198 0-shot |
+|---|---:|---:|
+| Qwen3.6-35B-A3B BF16 official | 86.40% | 45.45% |
+| Qwen3.6-35B-A3B Lynn-native W4A16 NVFP4 | 84.40% | 49.49% |
+| Delta W4A16 vs BF16 | -2.00pp | +4.04pp |
+
+This validates the pivot away from custom 27B recovery as the primary quality
+route. The model quality problem is no longer broad repair; it is preserving the
+official model through native quantization and runtime optimization.
+
+## W4A16 Artifact
+
+R6000 and Spark both produced the Lynn-native W4A16 NVFP4 package from the
+official BF16 base.
+
+| Machine | Path | Size | Quantized / kept |
+|---|---|---:|---:|
+| R6000 | `/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0` | 23G | 553 / 492 |
+| Spark | `/home/merkyor/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-official-n5` | 23G | 553 / 492 |
+
+Spark W4A16 MMLU/GPQA was run under the quality-safe profile:
+
+```text
+LYNN_PACKED_DECODE=0
+LYNN_PACKED_SHARED_EXPERT=0
+LYNN_LINEAR_BLOCK_GRAPH=0
+LYNN_MOE_FAST_FIXED=0
+```
+
+Copied summaries:
+
+- `reports/qwen36_35b/spark_qwen36_official_bf16_mmlu_n500_20260518.json`
+- `reports/qwen36_35b/spark_qwen36_official_bf16_gpqa_20260518.json`
+- `reports/qwen36_35b/spark_qwen36_official_w4a16_nvfp4_mmlu_n500_20260518.json`
+- `reports/qwen36_35b/spark_qwen36_official_w4a16_nvfp4_gpqa_20260518.json`
+
+## R6000 Serving Snapshot
+
+Quality-safe W4A16 server path:
+
+| Max tokens | Wall TPS | Decode TPS |
+|---:|---:|---:|
+| 128 | 17.64 | 23.00 |
+| 256 | 21.97 | 23.41 |
+
+Fast graph path:
+
+| Profile | Decode TPS | Status |
+|---|---:|---|
+| Graph reuse with default assign-state update | ~82 | Not promotable: long generation degenerates to repeated `!` |
+| Graph reuse with `LYNN_LINEAR_STATE_UPDATE=inplace` | 81-82 | Promising: long Chinese server prompt is coherent |
+
+Native FP4 `lm_head` is not the failure source. Direct runner A/B with
+`LYNN_NATIVE_FP4_LM_HEAD=0/1` produced normal JSON and Chinese text. The current
+speed blocker narrowed to graph-safe state ownership. The first fix is to make
+linear block CUDA graph default to in-place recurrent/conv state updates, because
+graph replay is address-bound and should not depend on Python dict tensor
+replacement.
+
+R6000 graph+in-place P25:
+
+| Max tokens | Wall TPS | Decode TPS | Preview |
+|---:|---:|---:|---|
+| 128 | 52.51 | 81.32 | coherent Chinese technical text |
+| 256 | 65.70 | 82.10 | coherent Chinese technical text |
+
+Copied report:
+
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p25_graph_inplace_20260518.json`
+
+## W4A8 Matrix
+
+R6000 W4A8 comparison:
+
+| Mode | Exact | Min prefix | Mean prefix | Decision |
+|---|---:|---:|---:|---|
+| Quality-safe gateup | 4/6 | 1 | 9.50 | Experimental only |
+| Quality-safe full | 3/6 | 1 | 8.67 | RED |
+| Graph+in-place gateup | 5/6 | 4 | 17.17 | Experimental only |
+| Graph+in-place full | 5/6 | 4 | 18.83 | Still not default; one structured Chinese prompt paraphrased |
+
+W4A16 remains the quality route. W4A8 should not be promoted until structured,
+code, and tool-call parity holds.
+
+Copied report:
+
+- `reports/qwen36_35b/r6000_qwen36_w4a16_w4a8_matrix_graph_inplace_20260518.json`
+
+## MTP Status
+
+Official Qwen3.6-35B MTP sidecar on Lynn-native W4A16:
+
+| Probe | Result |
+|---|---|
+| Shape audit | GREEN |
+| Forward smoke | GREEN, finite logits |
+| Iterative accept | RED, 0/24 accepted |
+
+Atlas/Qwen3.6 external framing is mixed and should not be treated as a free
+multiplier. Atlas README pins 131 tok/s to Qwen3.5-35B-A3B MTP, while its public
+site currently lists Qwen3.6-35B-A3B around 71 tok/s. Independent reports suggest
+MTP can help Qwen3.6 MoE in some llama.cpp/IQ quant settings, but local Lynn
+accept is currently zero. Treat MTP as an empirical branch until it passes our
+gate.
+
+The Qwen3.6 hybrid-SSM detail is now part of the gate. Atlas has shipped
+Qwen3.6 support, but its public docs also warn that speculative decoding on
+hybrid SSM models can be slower than regular decode, and public issue traffic
+has reported Qwen3.6 MTP not engaging in some NVFP4 settings. That matches the
+local result: shape and forward compatibility are not enough; Lynn must measure
+accept rate and end-to-end TPS on the exact W4A16 runtime before counting MTP
+credit.
+
+References:
+
+- <https://github.com/Avarok-Cybersecurity/atlas>
+- <https://atlasinference.io/>
+- <https://arxiv.org/abs/2605.01106>
+- <https://njannasch.dev/blog/mtp-speculative-decoding-qwen-3-6-5060ti/>
+
+## Immediate Work
+
+1. Stop open-ended A100 quality repair for 27B/W4A8 unless a concrete 35B
+   W4A16 blocker appears.
+2. Make graph+in-place the next R6000 speed baseline candidate and run a broader
+   structured/tool-call gate before default serving promotion.
+3. Push native-kernel work from 82 decode TPS toward the 155 target: packed
+   prefill/decode parity, MoE grouped kernel, and Python serving overhead.
+4. Keep MTP as a trained/calibrated sidecar project, not default promote credit.

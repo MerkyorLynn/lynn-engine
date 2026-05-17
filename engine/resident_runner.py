@@ -222,7 +222,9 @@ class LynnIncrementalRunner:
         self.moe_impl = impl
         self.decode_moe_fn = _resolve_decode_moe_impl(impl)
         self.decode_recurrent_backend = os.environ.get("LYNN_LINEAR_ATTN_RECURRENT_BACKEND", "torch")
-        self.decode_linear_state_update = os.environ.get("LYNN_LINEAR_STATE_UPDATE", "assign")
+        linear_graph_enabled = os.environ.get("LYNN_LINEAR_BLOCK_GRAPH", "0") == "1"
+        state_update_default = "inplace" if linear_graph_enabled else "assign"
+        self.decode_linear_state_update = os.environ.get("LYNN_LINEAR_STATE_UPDATE", state_update_default)
         self.decode_fast_dispatch = os.environ.get("LYNN_DECODE_FAST_DISPATCH", "1") != "0"
         self.shared_expert_gate_up_fused_attached = 0
         self.packed_nvfp4_moe_aliases_attached = 0

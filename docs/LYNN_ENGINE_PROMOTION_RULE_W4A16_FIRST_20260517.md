@@ -9,10 +9,12 @@ Default promotion only considers:
 ```text
 official Qwen/Qwen3.6-35B-A3B
   + Lynn-native W4A16 NVFP4
-  + official 35B MTP sidecar
+  + quality-safe runtime profile
 ```
 
-W4A8 is a speed experiment, not the default quality route.
+MTP is a gated acceleration add-on, not assumed default credit. A sidecar may be
+attached only after it clears an iterative accept gate on the exact W4A16 runtime
+profile. W4A8 is a speed experiment, not the default quality route.
 
 ## Rationale
 
@@ -30,6 +32,24 @@ W4A8 should still be measured in the matrix, but only as a later acceleration
 branch. If W4A16 lands close to the Q4_K_M/FP8 quality band, do not trade that
 stability away for W4A8.
 
+The official Qwen3.6 MTP sidecar is useful as a compatibility probe, but it must
+earn runtime credit empirically. On 2026-05-18 the official sidecar passed shape
+and forward smoke on the Lynn-native W4A16 package, then failed iterative accept
+at 0/24. Until that changes, 155 TPS planning should not count MTP as a free
+multiplier.
+
+External Atlas numbers should be read with the same caution. The pinned 131 TPS
+benchmark is for Qwen3.5-35B-A3B MTP on Spark, while Qwen3.6-35B-A3B is a hybrid
+SSM target and Atlas documentation warns that speculative decoding can be slower
+on hybrid SSM models. Treat any Qwen3.6 MTP claim as a hypothesis until the local
+accept-rate and end-to-end TPS gate proves it.
+
+Spark quality on the official 35B package now supports the W4A16-first rule:
+BF16 scored 86.40% MMLU / 45.45% GPQA, while Lynn-native W4A16 NVFP4 scored
+84.40% MMLU / 49.49% GPQA. The MMLU delta is about -2pp and GPQA is within the
+expected sample-noise band, so the next primary risk is runtime speed, not broad
+quality rescue.
+
 ## Tonight's Objective
 
 The R6000 official 35B pipeline should answer:
@@ -37,8 +57,8 @@ The R6000 official 35B pipeline should answer:
 1. Can official 35B BF16 download and validate cleanly?
 2. Can Lynn-native W4A16 pack and load cleanly?
 3. Does W4A16 stay close enough to BF16/Q4_K_M on generation gates?
-4. Does the official 35B MTP sidecar attach and produce useful P107 credit?
+4. Does the official 35B MTP sidecar attach and produce useful accept credit?
 
 If these are positive, A100 is no longer needed for open-ended 27B quality
 recovery. The next workstream becomes R6000 efficiency: native kernels, MTP
-runtime integration, and serving overhead.
+runtime integration after accept is real, and serving overhead.

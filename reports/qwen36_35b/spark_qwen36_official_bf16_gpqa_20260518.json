@@ -1,0 +1,9 @@
+{
+  "model": "Qwen3.6-35B-A3B-BF16-official",
+  "endpoint": "http://127.0.0.1:18098/v1",
+  "n": 198,
+  "correct": 90,
+  "accuracy": 0.45454545454545453,
+  "elapsed_sec": 202.5,
+  "qps": 0.98
+}
