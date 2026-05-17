@@ -319,6 +319,27 @@ reports/mtp/r6000_p107_mtp_shadow_v24_w4a8_v2_20260517_155539.json
 R6000 W4A8 NVFP4 v2 + v24: 61/121 = 50.41%
 draft_tps: 130.51
 max_one_token_speculative_multiplier: 1.504x
+
+reports/mtp/r6000_mtp_iterative_train_w4a8_v2_v24_v7_fcnorms_v27_20260517_155838.json
+R6000 W4A8-aware v27 proxy eval: 63/116 -> 64/116
+
+reports/mtp/r6000_p107_mtp_shadow_v27_w4a8_v2_bf16_lmhead_20260517_160100.json
+R6000 v27 with BF16 lm_head: 64/115 = 55.65%
+
+reports/mtp/r6000_p107_mtp_shadow_v27_w4a8_v2_20260517_160001.json
+R6000 v27 with native FP4 lm_head: 61/121 = 50.41%
+
+reports/mtp/r6000_mtp_iterative_train_w4a8_v2_v27_native_label_v28_20260517_160254.json
+native-label v28 proxy eval: 65/121 -> 67/121
+
+reports/mtp/r6000_p107_mtp_shadow_v28_native_label_w4a8_v2_20260517_160422.json
+R6000 v28 with native FP4 lm_head: 62/121 = 51.24%
+
+reports/mtp/r6000_mtp_iterative_train_w4a8_v2_v28_native_label_v29_20260517_160531.json
+native-label v29 proxy eval: 67/121 -> 68/121
+
+reports/mtp/r6000_p107_mtp_shadow_v29_native_label_w4a8_v2_20260517_160659.json
+R6000 v29 with native FP4 lm_head: 62/121 = 51.24%
 ```
 
 This is a GREEN-CREDIT serving-shadow result, not a final TPS claim. It proves
@@ -328,6 +349,16 @@ the sidecar runs and is fast enough to measure, but quantized-runtime accept is
 below the 55% credit bar. It also shows v16 is not better than v10 for MTP
 credit on this heldout gate; v16's value remains quality conservatism, not
 higher draft acceptance.
+
+The v27/v28 follow-up narrows the failure boundary. A W4A8-aware `fc_norms`
+repair can cross the credit bar when `p107` uses the BF16 lm_head, but the
+credit disappears under `LYNN_NATIVE_FP4_LM_HEAD=1`. Collecting labels from the
+native FP4 lm_head recovers one native accept in v28, so the direction is valid.
+v29 improves the proxy again but leaves native `p107` flat, so the current
+native-label/BF16-backprop proxy is saturated. The next sidecar training loop
+must either collect full runtime-native hidden states/labels or train against a
+native-lm-head-aware target while retaining a BF16 differentiable projection for
+backprop.
 
 Report:
 

@@ -251,6 +251,28 @@ train script). Treat v26 as a closed diagnostic, not a new sidecar candidate.
 The next MTP quality work should build a different target set or a
 specialist/merge candidate instead of repeating v7 tail tuning.
 
+2026-05-17 R6000 W4A8-aware repair update: v27 trains `fc_norms` directly on
+R6000 W4A8 v2 with v7 prompts and weak heldout steps. In the train script it
+crosses the proxy bar (`63/116 -> 64/116`), and with BF16 lm_head in `p107` it
+is GREEN-CREDIT (`64/115 = 55.65%`). With the real native FP4 lm_head enabled,
+however, v27 stays at `61/121 = 50.41%`. This isolates a new boundary:
+sidecar training must target the native FP4 lm_head argmax, not only the BF16
+projection.
+
+v28 adds a trainer mode that collects labels with native FP4 lm_head and then
+switches back to BF16 lm_head for differentiable training. The proxy eval moves
+`65/121 -> 67/121`, and real native `p107` moves one accepted token
+(`61/121 -> 62/121`). Direction is positive but not enough; the remaining
+gap is native-runtime hidden/label alignment, especially Chinese semantic tails
+and code continuation.
+
+v29 extends the same native-label route from v28. The proxy eval improves again
+(`67/121 -> 68/121`), but real native `p107` stays flat at `62/121`. That
+marks the current proxy as saturated. The next useful engineering step is a
+runtime-native case collector that records hidden states/labels under the exact
+R6000 env, or a differentiable approximation of the native FP4 lm_head so the
+training objective no longer optimizes the wrong projection boundary.
+
 A100 v19 uses the new targeted v4 calibration set and `fc_norms` from v18.
 Saved-sidecar eval confirms another real but narrow high:
 `60/116 = 51.72%`. The gain lands on step9 (`1/8 -> 2/8`); step0 remains

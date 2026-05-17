@@ -420,6 +420,18 @@ def main() -> int:
     ap.add_argument("--margin", type=float, default=1.0)
     ap.add_argument("--margin-alpha", type=float, default=0.25)
     ap.add_argument("--hard-negative-top-k", type=int, default=8)
+    ap.add_argument(
+        "--collect-label-lm-head",
+        default="current",
+        choices=["current", "native_fp4"],
+        help="lm_head used only while collecting base greedy labels.",
+    )
+    ap.add_argument(
+        "--train-lm-head",
+        default="current",
+        choices=["current", "bf16"],
+        help="lm_head used for differentiable MTP training/eval after labels are collected.",
+    )
     ap.add_argument("--steps", type=int, default=6)
     ap.add_argument("--lr", type=float, default=5e-5)
     ap.add_argument("--weight-decay", type=float, default=0.0)
@@ -430,6 +442,8 @@ def main() -> int:
     eval_specs = _load_prompts(args.eval_prompts_file, []) if args.eval_prompts_file else []
 
     runner = LynnIncrementalRunner(args.base_model, device=args.device, dtype=dtype, max_seq_len=4096, verbose=True)
+    if args.collect_label_lm_head == "native_fp4" and not runner.native_fp4_lm_head_enabled:
+        runner._prepare_native_fp4_lm_head()
     sidecar, sidecar_inventory = _load_sidecar(Path(args.sidecar_file), args.device, dtype)
     mtp_w = _mtp_layer_weights(sidecar)
     cfg = _mtp_cfg(runner, mtp_w)
@@ -459,6 +473,8 @@ def main() -> int:
         if eval_specs
         else []
     )
+    if args.train_lm_head == "bf16":
+        runner.native_fp4_lm_head_enabled = False
 
     train_before = _evaluate(runner, sidecar, mtp_w, cfg, train_cases)
     eval_before = _evaluate(runner, sidecar, mtp_w, cfg, eval_cases) if eval_cases else None
@@ -497,6 +513,8 @@ def main() -> int:
         "margin": args.margin,
         "margin_alpha": args.margin_alpha,
         "hard_negative_top_k": args.hard_negative_top_k,
+        "collect_label_lm_head": args.collect_label_lm_head,
+        "train_lm_head": args.train_lm_head,
         "steps": args.steps,
         "lr": args.lr,
         "weight_decay": args.weight_decay,
