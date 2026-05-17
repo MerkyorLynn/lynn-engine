@@ -86,16 +86,47 @@ def summarize(paths: list[Path], model: str | None) -> dict[str, Any]:
     }
 
 
+def _select_paths(paths: list[Path], layers: set[int] | None, latest_per_layer: bool) -> list[Path]:
+    selected: list[tuple[Path, dict[str, Any]]] = []
+    for path in paths:
+        report = _read_json(path)
+        layer = int(report["layer"])
+        if layers is not None and layer not in layers:
+            continue
+        selected.append((path, report))
+
+    if not latest_per_layer:
+        return [path for path, _ in selected]
+
+    latest: dict[int, tuple[Path, dict[str, Any], float]] = {}
+    for path, report in selected:
+        layer = int(report["layer"])
+        mtime = path.stat().st_mtime
+        prev = latest.get(layer)
+        if prev is None or mtime > prev[2]:
+            latest[layer] = (path, report, mtime)
+    return [item[0] for _, item in sorted(latest.items())]
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--glob", required=True, help="Glob for per-layer P97 JSON reports")
     ap.add_argument("--out", required=True)
     ap.add_argument("--model", default=None)
+    ap.add_argument("--layers", type=int, nargs="*", default=None, help="Optional layer filter")
+    ap.add_argument(
+        "--latest-per-layer",
+        action="store_true",
+        help="When multiple reports exist for a layer, summarize only the newest one",
+    )
     args = ap.parse_args()
 
     paths = sorted(Path(p) for p in glob.glob(args.glob))
     if not paths:
         raise FileNotFoundError(f"no reports matched: {args.glob}")
+    paths = _select_paths(paths, set(args.layers) if args.layers else None, args.latest_per_layer)
+    if not paths:
+        raise FileNotFoundError(f"no reports matched after filters: {args.glob}")
 
     result = summarize(paths, args.model)
     out = Path(args.out)
