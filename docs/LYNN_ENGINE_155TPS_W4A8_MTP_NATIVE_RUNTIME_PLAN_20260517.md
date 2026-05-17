@@ -190,6 +190,12 @@ micro-gain on the v2 package, but it is still far below the full-server delta
 needed for 155 TPS. A serial 5-layer P97 job is running to avoid repeating the
 earlier parallel OOM.
 
+2026-05-17 P97 v2 5-layer summary: layers 4/12/20/28/36 all pass contract, and
+all choose `p93_gateup_native_down_tile1`. The speedup range is `1.094-1.120x`,
+mean `1.105x`. The best down interval is stable at about `0.02253 ms`, while
+the best gate/up interval still averages `0.05797 ms`; the next R6000 speed
+lever is therefore gate/up scheduling/fusion, not more down-only work.
+
 Required native path:
 
 ```text

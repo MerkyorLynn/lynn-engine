@@ -109,3 +109,27 @@ This confirms the v2 local active-MoE micro-gain is real, but it is not large
 enough to explain a server jump from ~100 TPS to 155 TPS. R6000 is now running a
 serial 5-layer P97 summary so the next kernel decision is based on layer spread,
 not a single favorable layer.
+
+## P97 v2 5-Layer Summary
+
+Follow-up summary:
+
+```text
+reports/p16_155/p97_r6000_v2_5layer_summary_local_20260517_122158.json
+```
+
+| Metric | Value |
+|---|---:|
+| Layers | 4, 12, 20, 28, 36 |
+| Contract pass | 5/5 |
+| Best variant set | p93_gateup_native_down_tile1 |
+| Speedup min | 1.094x |
+| Speedup mean | 1.105x |
+| Speedup max | 1.120x |
+| Best gate median mean | 0.05797 ms |
+| Best down median mean | 0.02253 ms |
+
+Decision: the native-down tile path is consistently the local winner, but the
+gate/up interval is now the larger remaining active-MoE cost. This shifts the
+next speed work from "prove native down" to "reduce or fuse gate/up scheduling
+without triggering split16 activation-quant drift in generation."
