@@ -190,6 +190,15 @@ Negative probes from the same loop:
   0.046 ms to 0.052 ms.
 - `tl.dot` gate/up is not a win on layer 28: 0.080 ms versus 0.033 ms current.
 - Active MoE tile sweep did not beat the current default enough to promote.
+- `LYNN_FULL_ATTN_DECODE_BACKEND=manual_gqa` is slower than SDPA on the current
+  rmsgated fast profile: P26 decode drops from 99.18 to 87.65 TPS, full-attn
+  layers rise from 3.09 to 3.94 ms/token, and host gap rises from 0.16 to
+  0.30 ms/token.
+
+Copied reports:
+
+- `reports/qwen36_35b/r6000_qwen36_w4a16_manualgqa_p26_phase_20260518_041631.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_manualgqa_p28_hybrid_block_20260518_041631.json`
 
 ### Native Kernel Island Readiness
 
