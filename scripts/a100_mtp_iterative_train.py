@@ -277,6 +277,35 @@ def _filter_cases_by_step(cases: list[dict[str, Any]], steps: set[int] | None) -
     return [case for case in cases if int(case["step"]) in steps]
 
 
+def _label_rank(row: dict[str, Any]) -> int | None:
+    label_id = int(row["label_id"])
+    for item in row.get("mtp_topk", []):
+        if int(item["token_id"]) == label_id:
+            return int(item["rank"])
+    return None
+
+
+def _filter_cases_by_eval(
+    cases: list[dict[str, Any]],
+    eval_rows: list[dict[str, Any]],
+    *,
+    mode: str,
+) -> list[dict[str, Any]]:
+    if mode == "all":
+        return cases
+    keep: set[int] = set()
+    for row in eval_rows:
+        accepted = bool(row["accepted"])
+        rank = _label_rank(row)
+        if mode == "miss" and not accepted:
+            keep.add(int(row["case_idx"]))
+        elif mode == "miss_in_topk" and not accepted and rank is not None:
+            keep.add(int(row["case_idx"]))
+        elif mode == "miss_not_in_topk" and not accepted and rank is None:
+            keep.add(int(row["case_idx"]))
+    return [case for idx, case in enumerate(cases) if idx in keep]
+
+
 def _mtp_logits_for_case(
     runner: LynnIncrementalRunner,
     sidecar: dict[str, torch.Tensor],
@@ -476,6 +505,12 @@ def main() -> int:
     ap.add_argument("--step1-weight", type=float, default=1.0)
     ap.add_argument("--later-token-weight", type=float, default=1.0)
     ap.add_argument("--train-steps", type=int, nargs="*", default=None)
+    ap.add_argument(
+        "--train-case-filter",
+        default="all",
+        choices=["all", "miss", "miss_in_topk", "miss_not_in_topk"],
+        help="Optionally filter train cases after the pre-train eval under the selected train lm_head.",
+    )
     ap.add_argument("--trainable", default="fc", choices=["fc", "fc_norms", "fc_mtp_layer"])
     ap.add_argument("--loss-mode", default="ce", choices=["ce", "ce_margin"])
     ap.add_argument("--margin", type=float, default=1.0)
@@ -552,6 +587,12 @@ def main() -> int:
         runner._lm_head_logits = _fake_act_lm_head  # type: ignore[method-assign]
 
     train_before = _evaluate(runner, sidecar, mtp_w, cfg, train_cases)
+    train_case_count_before_eval_filter = len(train_cases)
+    if args.train_case_filter != "all":
+        train_cases = _filter_cases_by_eval(train_cases, train_before["rows"], mode=args.train_case_filter)
+        if not train_cases:
+            raise ValueError(f"no training cases left after --train-case-filter {args.train_case_filter}")
+        train_before = _evaluate(runner, sidecar, mtp_w, cfg, train_cases)
     eval_before = _evaluate(runner, sidecar, mtp_w, cfg, eval_cases) if eval_cases else None
     trainable_keys, history = _train(
         runner,
@@ -599,6 +640,8 @@ def main() -> int:
         "step1_weight": args.step1_weight,
         "later_token_weight": args.later_token_weight,
         "train_steps": args.train_steps,
+        "train_case_filter": args.train_case_filter,
+        "train_case_count_before_eval_filter": train_case_count_before_eval_filter,
         "weights_saved": bool(args.out_sidecar_dir),
         "train_case_count_before_filter": len(train_cases_all),
         "train_case_count": len(train_cases),

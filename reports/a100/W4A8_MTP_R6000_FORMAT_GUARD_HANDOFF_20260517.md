@@ -308,6 +308,22 @@ Forward smoke now runs the aligned sidecar through the MTP `fc -> decoder layer
 This upgrades MTP from a shape-only asset to a real forward-wired draft head,
 but it is not useful for speculative decode yet.
 
+2026-05-17 R6000 native update: activation-aware fake-native training plus a
+rank-flip filter is now the productive MTP repair path. The broad v32
+continuation regresses, but v33/v34 train only misses where the native label is
+already in the sidecar top-k. Real R6000 P107 native shadow moves:
+
+| Sidecar | Native Shadow Accept | Note |
+|---|---:|---|
+| v29/v30 plateau | 62/121 = 51.24% | native-label proxy saturated |
+| v33 rank-flip | 63/121 = 52.07% | first native positive move |
+| v34 rank-flip | **65/121 = 53.72%** | current best, 2 accepts short of 55% |
+| v35 rank-flip | not promoted | proxy regresses 63/121 -> 62/121 |
+
+This is still below GREEN-CREDIT, but it is the clearest MTP-native direction:
+fix top-k rank flips first, then add calibration for semantic/code labels that
+are not yet in top-5.
+
 The fc-only train smoke confirms gradient wiring:
 
 | Field | Value |

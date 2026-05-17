@@ -360,6 +360,21 @@ P108 v2 weight-only fake-native parity: 113/118 top-1 = 95.76%, 118/118 top-5
 
 reports/mtp/r6000_mtp_iterative_train_w4a8_v2_v29_fake_act_v32_20260517_162607.json
 activation-aware fake-native v32 proxy eval: 60/121 -> 59/121
+
+reports/mtp/r6000_mtp_iterative_train_w4a8_v2_v29_fake_act_rankflip_v33_20260517_163654.json
+rank-flip filtered v33 proxy eval: 60/121 -> 61/121
+
+reports/mtp/r6000_p107_mtp_shadow_v33_rankflip_w4a8_v2_20260517_163823.json
+R6000 v33 with native FP4 lm_head: 63/121 = 52.07%
+
+reports/mtp/r6000_mtp_iterative_train_w4a8_v2_v33_fake_act_rankflip_v34_20260517_163912.json
+rank-flip filtered v34 proxy eval: 61/121 -> 63/121
+
+reports/mtp/r6000_p107_mtp_shadow_v34_rankflip_w4a8_v2_20260517_164039.json
+R6000 v34 with native FP4 lm_head: 65/121 = 53.72%
+
+reports/mtp/r6000_mtp_iterative_train_w4a8_v2_v34_fake_act_rankflip_v35_20260517_164129.json
+rank-flip filtered v35 proxy eval: 63/121 -> 62/121
 ```
 
 This is a GREEN-CREDIT serving-shadow result, not a final TPS claim. It proves
@@ -399,6 +414,14 @@ tests whether this improved boundary is sufficient as a small continuation
 training target from v29. It is not: eval accept moves `60/121 -> 59/121`
 despite lower loss. Treat `fake_native_fp4_act` as a validated probe and a
 future loss component, but not as a standalone continuation recipe.
+
+v33/v34 add a more selective use of that probe: train only the cases where the
+native label is already in the sidecar top-k but not top-1. That rank-flip
+filter produces the first native R6000 MTP improvement after the v29 plateau:
+`62/121 -> 63/121 -> 65/121`. v35 regresses, so v34 is the current best
+warm-start sidecar for native W4A8 serving-shadow credit. The next jump to
+GREEN-CREDIT needs either more top-k rank-flip cases or new calibration that
+brings semantic/code labels into top-5 before rank training.
 
 Report:
 

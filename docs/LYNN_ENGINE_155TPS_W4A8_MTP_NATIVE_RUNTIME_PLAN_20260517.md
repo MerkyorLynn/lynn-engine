@@ -313,6 +313,15 @@ training is closed. Next MTP work should target the remaining rank-flip cases
 directly or broaden native-labeled calibration, rather than adding more small
 steps on v29.
 
+v33/v34 add exactly that rank-flip filter: after the pre-train eval, train only
+cases where the sidecar is wrong but the native label is already inside top-k.
+This reduces the training set to 16 then 15 high-margin-fix cases. The real
+R6000 native P107 shadow moves from `62/121` on v29/v30 to `63/121` on v33 and
+`65/121 = 53.72%` on v34. v35 regresses the proxy (`63/121 -> 62/121`), so v34
+is the current best native MTP candidate. The rank-flip path is validated, but
+the remaining gap to the 55% credit bar is now about two accepted tokens and
+mostly requires semantic/code cases whose labels are not in top-5 yet.
+
 A100 v19 uses the new targeted v4 calibration set and `fc_norms` from v18.
 Saved-sidecar eval confirms another real but narrow high:
 `60/116 = 51.72%`. The gain lands on step9 (`1/8 -> 2/8`); step0 remains
