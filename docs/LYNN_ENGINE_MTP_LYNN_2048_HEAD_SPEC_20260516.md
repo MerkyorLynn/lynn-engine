@@ -489,6 +489,14 @@ v38 returns to a conservative `fc_norms` rank-flip pass from the v34 sidecar;
 it preserves `63/121` proxy accept but worsens loss, so the v34 sidecar remains
 the best native R6000 warm-start.
 
+v41 is the narrowest follow-up from v34: only steps `7/10/14`, only four
+rank-flip cases from the semantic/code-tail v7 set, and only `fc_norms`
+trainable. It is another useful negative. Train accept stays `0/4`, train loss
+barely moves (`2.5167 -> 2.4928`), and eval regresses from `63/121` to
+`62/121` with slightly worse loss. Do not spend more cycles on tiny low-LR
+rank-flip subsets unless the case construction changes; v34 remains the native
+R6000 sidecar for runtime work.
+
 P107 now records configurable draft containment through
 `LYNN_MTP_SHADOW_TOPK`. On v34 under the native FP4 lm_head, top1 accept is
 `65/121 = 53.72%`, while the sidecar contains the verified next token in top2,
@@ -594,6 +602,25 @@ This does not close 155 by itself, but it changes the MTP runtime problem from
 `~7.6 ms` serial draft to `~2.8 ms` on the exact path. The next viable cuts are
 overlap/inline execution, a parity-safe batched/grouped expert path, or
 multi-token credit.
+
+P114 adds a continuity diagnostic over the P107 shadow traces:
+
+```text
+reports/mtp/r6000_p114_mtp_shadow_streak_v34_slotsorted_20260517_1924.json
+raw v34 top1: 65/121, max run 8, 13 runs >=2, 9 runs >=3
+raw v34 top1 accepted-token share in runs >=2: 81.5%
+raw v34 top8: 87/121, max run 12, 16 runs >=2, 10 runs >=3
+raw v34 top8 covered-token share in runs >=2: 96.6%
+```
+
+The same analysis on the A100 v27 transfer keeps long runs but has lower raw
+top1 coverage (`62/121`), so it is still below v34 for native serving. The
+guarded structured v4 trace is weaker after forced-prefix skipping (`54/271`
+top1, `109/271` top8), but its covered tokens still cluster. These are
+base-state trace upper bounds, not recursive MTP rollout results. They are
+enough to prioritize the next runtime prototype: measure how much of those
+contiguous spans can be cashed in by continuous-credit verification or by
+overlapping the exact slot-sorted draft with base decode.
 
 Report:
 

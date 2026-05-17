@@ -1,0 +1,468 @@
+{
+  "schema_version": "lynn-p114-mtp-shadow-streak-analysis-v1",
+  "source_report": "reports/mtp/r6000_p107_mtp_shadow_a100v27_weak_missintopk_w4a8_v2_slotsorted_20260517_190539.json",
+  "skip_forced_prefix_events": false,
+  "decision": "GREEN-STREAK: trace has top1 runs >=3; multi-token credit is worth a runtime prototype.",
+  "note": "Streaks are P107 base-state shadow upper bounds, not recursive MTP rollout measurements.",
+  "analysis": {
+    "top1": {
+      "run_count": 26,
+      "max_run": 8,
+      "mean_run": 2.3846153846153846,
+      "median_run": 1.0,
+      "runs_ge2": 12,
+      "runs_ge3": 9,
+      "covered_tokens_in_runs_ge2": 48,
+      "covered_tokens_in_runs_ge3": 42,
+      "events": 121,
+      "covered": 62,
+      "coverage": 0.512396694214876,
+      "covered_token_share_in_runs_ge2": 0.7741935483870968,
+      "covered_token_share_in_runs_ge3": 0.6774193548387096,
+      "per_prompt": [
+        {
+          "id": "heldout_json_berlin_metric",
+          "events": 16,
+          "covered": 11,
+          "coverage": 0.6875,
+          "runs": [
+            1,
+            5,
+            1,
+            4
+          ],
+          "max_run": 5
+        },
+        {
+          "id": "heldout_json_status_ready",
+          "events": 16,
+          "covered": 8,
+          "coverage": 0.5,
+          "runs": [
+            5,
+            1,
+            2
+          ],
+          "max_run": 5
+        },
+        {
+          "id": "heldout_tool_translate",
+          "events": 16,
+          "covered": 10,
+          "coverage": 0.625,
+          "runs": [
+            1,
+            4,
+            2,
+            1,
+            2
+          ],
+          "max_run": 4
+        },
+        {
+          "id": "heldout_math_distance",
+          "events": 10,
+          "covered": 5,
+          "coverage": 0.5,
+          "runs": [
+            1,
+            4
+          ],
+          "max_run": 4
+        },
+        {
+          "id": "heldout_python_slug",
+          "events": 16,
+          "covered": 7,
+          "coverage": 0.4375,
+          "runs": [
+            1,
+            4,
+            1,
+            1
+          ],
+          "max_run": 4
+        },
+        {
+          "id": "heldout_moe_short",
+          "events": 16,
+          "covered": 3,
+          "coverage": 0.1875,
+          "runs": [
+            1,
+            1,
+            1
+          ],
+          "max_run": 1
+        },
+        {
+          "id": "heldout_linear_short",
+          "events": 16,
+          "covered": 5,
+          "coverage": 0.3125,
+          "runs": [
+            1,
+            2,
+            1,
+            1
+          ],
+          "max_run": 2
+        },
+        {
+          "id": "heldout_repair_json",
+          "events": 15,
+          "covered": 13,
+          "coverage": 0.8666666666666667,
+          "runs": [
+            8,
+            5
+          ],
+          "max_run": 8
+        }
+      ]
+    },
+    "top2": {
+      "run_count": 20,
+      "max_run": 9,
+      "mean_run": 3.6,
+      "median_run": 3.5,
+      "runs_ge2": 14,
+      "runs_ge3": 11,
+      "covered_tokens_in_runs_ge2": 66,
+      "covered_tokens_in_runs_ge3": 60,
+      "events": 121,
+      "covered": 72,
+      "coverage": 0.5950413223140496,
+      "covered_token_share_in_runs_ge2": 0.9166666666666666,
+      "covered_token_share_in_runs_ge3": 0.8333333333333334,
+      "per_prompt": [
+        {
+          "id": "heldout_json_berlin_metric",
+          "events": 16,
+          "covered": 14,
+          "coverage": 0.875,
+          "runs": [
+            9,
+            5
+          ],
+          "max_run": 9
+        },
+        {
+          "id": "heldout_json_status_ready",
+          "events": 16,
+          "covered": 8,
+          "coverage": 0.5,
+          "runs": [
+            5,
+            1,
+            2
+          ],
+          "max_run": 5
+        },
+        {
+          "id": "heldout_tool_translate",
+          "events": 16,
+          "covered": 12,
+          "coverage": 0.75,
+          "runs": [
+            6,
+            2,
+            2,
+            2
+          ],
+          "max_run": 6
+        },
+        {
+          "id": "heldout_math_distance",
+          "events": 10,
+          "covered": 5,
+          "coverage": 0.5,
+          "runs": [
+            1,
+            4
+          ],
+          "max_run": 4
+        },
+        {
+          "id": "heldout_python_slug",
+          "events": 16,
+          "covered": 8,
+          "coverage": 0.5,
+          "runs": [
+            6,
+            1,
+            1
+          ],
+          "max_run": 6
+        },
+        {
+          "id": "heldout_moe_short",
+          "events": 16,
+          "covered": 5,
+          "coverage": 0.3125,
+          "runs": [
+            4,
+            1
+          ],
+          "max_run": 4
+        },
+        {
+          "id": "heldout_linear_short",
+          "events": 16,
+          "covered": 7,
+          "coverage": 0.4375,
+          "runs": [
+            5,
+            1,
+            1
+          ],
+          "max_run": 5
+        },
+        {
+          "id": "heldout_repair_json",
+          "events": 15,
+          "covered": 13,
+          "coverage": 0.8666666666666667,
+          "runs": [
+            8,
+            5
+          ],
+          "max_run": 8
+        }
+      ]
+    },
+    "top4": {
+      "run_count": 22,
+      "max_run": 11,
+      "mean_run": 3.590909090909091,
+      "median_run": 2.0,
+      "runs_ge2": 14,
+      "runs_ge3": 10,
+      "covered_tokens_in_runs_ge2": 71,
+      "covered_tokens_in_runs_ge3": 63,
+      "events": 121,
+      "covered": 79,
+      "coverage": 0.6528925619834711,
+      "covered_token_share_in_runs_ge2": 0.8987341772151899,
+      "covered_token_share_in_runs_ge3": 0.7974683544303798,
+      "per_prompt": [
+        {
+          "id": "heldout_json_berlin_metric",
+          "events": 16,
+          "covered": 15,
+          "coverage": 0.9375,
+          "runs": [
+            9,
+            6
+          ],
+          "max_run": 9
+        },
+        {
+          "id": "heldout_json_status_ready",
+          "events": 16,
+          "covered": 10,
+          "coverage": 0.625,
+          "runs": [
+            5,
+            1,
+            2,
+            2
+          ],
+          "max_run": 5
+        },
+        {
+          "id": "heldout_tool_translate",
+          "events": 16,
+          "covered": 12,
+          "coverage": 0.75,
+          "runs": [
+            6,
+            2,
+            2,
+            2
+          ],
+          "max_run": 6
+        },
+        {
+          "id": "heldout_math_distance",
+          "events": 10,
+          "covered": 6,
+          "coverage": 0.6,
+          "runs": [
+            1,
+            5
+          ],
+          "max_run": 5
+        },
+        {
+          "id": "heldout_python_slug",
+          "events": 16,
+          "covered": 9,
+          "coverage": 0.5625,
+          "runs": [
+            6,
+            1,
+            1,
+            1
+          ],
+          "max_run": 6
+        },
+        {
+          "id": "heldout_moe_short",
+          "events": 16,
+          "covered": 7,
+          "coverage": 0.4375,
+          "runs": [
+            5,
+            1,
+            1
+          ],
+          "max_run": 5
+        },
+        {
+          "id": "heldout_linear_short",
+          "events": 16,
+          "covered": 7,
+          "coverage": 0.4375,
+          "runs": [
+            5,
+            1,
+            1
+          ],
+          "max_run": 5
+        },
+        {
+          "id": "heldout_repair_json",
+          "events": 15,
+          "covered": 13,
+          "coverage": 0.8666666666666667,
+          "runs": [
+            8,
+            5
+          ],
+          "max_run": 8
+        }
+      ]
+    },
+    "top8": {
+      "run_count": 21,
+      "max_run": 12,
+      "mean_run": 4.0476190476190474,
+      "median_run": 2,
+      "runs_ge2": 15,
+      "runs_ge3": 9,
+      "covered_tokens_in_runs_ge2": 79,
+      "covered_tokens_in_runs_ge3": 67,
+      "events": 121,
+      "covered": 85,
+      "coverage": 0.7024793388429752,
+      "covered_token_share_in_runs_ge2": 0.9294117647058824,
+      "covered_token_share_in_runs_ge3": 0.788235294117647,
+      "per_prompt": [
+        {
+          "id": "heldout_json_berlin_metric",
+          "events": 16,
+          "covered": 15,
+          "coverage": 0.9375,
+          "runs": [
+            9,
+            6
+          ],
+          "max_run": 9
+        },
+        {
+          "id": "heldout_json_status_ready",
+          "events": 16,
+          "covered": 11,
+          "coverage": 0.6875,
+          "runs": [
+            6,
+            1,
+            2,
+            2
+          ],
+          "max_run": 6
+        },
+        {
+          "id": "heldout_tool_translate",
+          "events": 16,
+          "covered": 12,
+          "coverage": 0.75,
+          "runs": [
+            6,
+            2,
+            2,
+            2
+          ],
+          "max_run": 6
+        },
+        {
+          "id": "heldout_math_distance",
+          "events": 10,
+          "covered": 8,
+          "coverage": 0.8,
+          "runs": [
+            8
+          ],
+          "max_run": 8
+        },
+        {
+          "id": "heldout_python_slug",
+          "events": 16,
+          "covered": 9,
+          "coverage": 0.5625,
+          "runs": [
+            6,
+            1,
+            1,
+            1
+          ],
+          "max_run": 6
+        },
+        {
+          "id": "heldout_moe_short",
+          "events": 16,
+          "covered": 9,
+          "coverage": 0.5625,
+          "runs": [
+            5,
+            2,
+            2
+          ],
+          "max_run": 5
+        },
+        {
+          "id": "heldout_linear_short",
+          "events": 16,
+          "covered": 8,
+          "coverage": 0.5,
+          "runs": [
+            6,
+            1,
+            1
+          ],
+          "max_run": 6
+        },
+        {
+          "id": "heldout_repair_json",
+          "events": 15,
+          "covered": 13,
+          "coverage": 0.8666666666666667,
+          "runs": [
+            8,
+            5
+          ],
+          "max_run": 8
+        }
+      ]
+    }
+  },
+  "summary": {
+    "top1_max_run": 8,
+    "top1_runs_ge2": 12,
+    "top1_covered_token_share_in_runs_ge2": 0.7741935483870968,
+    "top8_max_run": 12,
+    "top8_runs_ge2": 15,
+    "top8_covered_token_share_in_runs_ge2": 0.9294117647058824
+  }
+}

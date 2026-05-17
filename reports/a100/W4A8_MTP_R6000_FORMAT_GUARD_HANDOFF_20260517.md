@@ -450,6 +450,25 @@ tok/s (`1.95 ms` mean draft), but accept drops to `64/121` and event-level
 comparison finds four draft-id mismatches versus the baseline. Treat BMM as a
 kernel-design target, not a runtime default.
 
+P114 then checks whether v34's accepted events are contiguous enough to justify
+multi-token credit work:
+
+| Trace | top1 | top1 max run | top1 share in runs >=2 | top8 | top8 max run | top8 share in runs >=2 |
+|---|---:|---:|---:|---:|---:|---:|
+| v34 raw slot-sorted | 65/121 | 8 | 81.5% | 87/121 | 12 | 96.6% |
+| A100 v27 transfer | 62/121 | 8 | 77.4% | 85/121 | 12 | 92.9% |
+| v34 structured v4, forced-prefix skipped | 54/271 | 4 | 77.8% | 109/271 | 8 | 79.8% |
+
+This is a trace upper bound, not recursive MTP rollout, but it is enough to
+move the R6000 speed lane toward continuous-credit/overlap prototypes. The
+single-token serial sidecar is still insufficient for 155, but v34 has useful
+bursts that are currently being left on the table.
+
+v41 tried one last narrow v34 continuation on steps `7/10/14` from the
+semantic/code-tail set. It is a negative: train stays `0/4 -> 0/4`, heldout
+proxy regresses `63/121 -> 62/121`, and eval loss slightly worsens. Keep v34
+as the native serving-credit sidecar; do not promote v41.
+
 The fc-only train smoke confirms gradient wiring:
 
 | Field | Value |
@@ -488,7 +507,9 @@ small partial-head unfreeze before iterative accept-rate eval.
    1-8 decode tokens on structured JSON/code/tool prompts.
 4. Convert format-start guard into a serving-side option for structured modes,
    with balanced JSON stop for object-only outputs.
-5. Test whether the full-token graph-slot primitive can be turned into a
+5. Prototype R6000 continuous-credit or overlap around v34 slot-sorted MTP;
+   P114 shows the accepted tokens are clustered enough to be worth measuring.
+6. Test whether the full-token graph-slot primitive can be turned into a
    reusable current-position slot lifecycle without capture-per-token overhead.
-6. Start Lynn MTP wiring from the aligned 2048-hidden sidecar only after W4A8
+7. Start Lynn MTP wiring from the aligned 2048-hidden sidecar only after W4A8
    structured/tool-call generation gates reach AMBER/GREEN.

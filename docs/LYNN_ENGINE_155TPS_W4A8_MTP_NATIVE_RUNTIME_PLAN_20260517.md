@@ -35,9 +35,11 @@ MTP: aligned sidecar forward works; best native R6000 sidecar is v34 at
      `LYNN_MTP_SHADOW_TOPK` ceiling mode: v34 top2/top4/top8 containment is
      73/121, 80/121, and 87/121 respectively. The next runtime lever is no
      longer only single-candidate sidecar tuning; multi-candidate verification
-     and reranking are now justified. Guarded structured routes are a separate
-     MTP distribution: v39 guard-forced calibration improves train accept but
-     leaves v6 heldout flat at 22/172.
+     and reranking are now justified. P114 adds the missing continuity view:
+     raw v34 top1 has max run 8 and 81.5% of accepted tokens in runs >=2;
+     top8 has max run 12 and 96.6% of covered tokens in runs >=2. Guarded
+     structured routes are a separate MTP distribution: v39 guard-forced
+     calibration improves train accept but leaves v6 heldout flat at 22/172.
 P111 budget: with a 100 tok/s production baseline, raw v34 top1 is only
      153.72 tok/s even with zero draft overhead; top2/top4/top8 can clear 155
      only if draft overhead is <=0.34/0.72/1.09 ms, while the current draft head
@@ -94,6 +96,16 @@ tok/s, but drops accept to `64/121` and has four draft-id mismatches against
 the exact path. This is a real MTP cost cut, but still not enough by itself:
 top1 zero-overhead remains below 155 from a 100 tok/s base, and top2/top4/top8
 still need sub-millisecond effective draft or overlap.
+
+2026-05-17 P114 continuity update: accepted MTP events are not just isolated
+one-off hits. On the exact slot-sorted v34 P107 trace, top1 covers
+`65/121 = 53.72%`, but those hits form 13 runs of length >=2 and 9 runs of
+length >=3; the longest top1 run is 8 tokens. `81.5%` of accepted top1 tokens
+are inside runs >=2. Top8 containment is stronger: `87/121`, max run 12,
+and `96.6%` of covered tokens inside runs >=2. This validates a runtime
+prototype for continuous credit/overlap. It does not prove recursive MTP rollout
+yet because P114 is a base-state trace upper bound, but it changes the next
+speed task from "more scalar top1 tuning" to "cash in contiguous covered spans".
 
 ## Workstream A: Quality Floor
 
@@ -387,6 +399,13 @@ accept unchanged at `63/121`, so small `fc_norms` continuation is not enough to
 pull semantic/code labels into top-k. Keep v34 as best and move the next attempt
 to a wider trainable surface or larger native-labeled calibration.
 
+v41 narrows the v34 continuation even further to late steps `7/10/14` on the v7
+semantic/code-tail set with only four rank-flip cases. It lowers the tiny train
+loss (`2.5167 -> 2.4928`) but adds no train accepts (`0/4 -> 0/4`) and regresses
+heldout proxy accept from `63/121` to `62/121`, with eval loss slightly worse.
+This closes the "keep sweeping tiny low-LR rank-flip subsets from v34" route
+for now. v34 remains the R6000 native sidecar to benchmark.
+
 A100 v19 uses the new targeted v4 calibration set and `fc_norms` from v18.
 Saved-sidecar eval confirms another real but narrow high:
 `60/116 = 51.72%`. The gain lands on step9 (`1/8 -> 2/8`); step0 remains
@@ -493,6 +512,18 @@ old `7.6 ms`, but a 100 tok/s production baseline still projects to only
 usable. The top8 zero-overhead ceiling is `171.90 tok/s`, so the remaining TPS
 work is overlap/inline draft execution, multi-token credit, or a higher native
 baseline, not another plain one-token serial sidecar.
+
+P114 then checks whether multi-token credit is even worth prototyping. It is.
+On raw v34 with the exact slot-sorted path, top1 accepted tokens are clustered:
+max run 8, 13 runs >=2, 9 runs >=3, and `81.5%` of accepted top1 tokens live
+inside runs >=2. Top8 containment has max run 12 and `96.6%` of covered tokens
+inside runs >=2. A100 v27 transferred to R6000 shows similar continuity but
+lower top1 coverage (`62/121`), so it is not a promotion. The guarded
+structured trace remains weak (`54/271` top1 after forced-prefix skip), but even
+there the covered tokens still cluster; it needs guard-aware training before
+serving MTP is enabled on structured routes. The immediate R6000 speed
+prototype should therefore measure a continuous-credit or overlapped verifier
+path around v34 rather than running another single-token rank-flip sweep.
 
 If fc-only cannot clear 55-70%, unfreeze in this order:
 
