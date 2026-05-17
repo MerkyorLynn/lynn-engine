@@ -1,0 +1,64 @@
+{
+  "schema_version": "r6000-server-decode-sweep-summary-v1",
+  "baseline_config": "configD",
+  "min_promote_speedup": 1.03,
+  "sweep_count": 1,
+  "rows": [
+    {
+      "sweep": "reports/p16_155/r6000_p25_server_decode_sweep_20260517_124605.json",
+      "timestamp": "20260517_124605",
+      "config": "configD",
+      "max_tokens": 256,
+      "decode_tps": 99.77630577079765,
+      "baseline_config": "configD",
+      "baseline_decode_tps": 99.77630577079765,
+      "speedup_vs_baseline": 1.0,
+      "all_preview_exclamation_loop": false
+    },
+    {
+      "sweep": "reports/p16_155/r6000_p25_server_decode_sweep_20260517_124605.json",
+      "timestamp": "20260517_124605",
+      "config": "configD",
+      "max_tokens": 512,
+      "decode_tps": 99.04950471073246,
+      "baseline_config": "configD",
+      "baseline_decode_tps": 99.04950471073246,
+      "speedup_vs_baseline": 1.0,
+      "all_preview_exclamation_loop": false
+    },
+    {
+      "sweep": "reports/p16_155/r6000_p25_server_decode_sweep_20260517_124605.json",
+      "timestamp": "20260517_124605",
+      "config": "cudaTileDown",
+      "max_tokens": 256,
+      "decode_tps": 108.16648707141755,
+      "baseline_config": "configD",
+      "baseline_decode_tps": 99.77630577079765,
+      "speedup_vs_baseline": 1.0840899172985368,
+      "all_preview_exclamation_loop": true
+    },
+    {
+      "sweep": "reports/p16_155/r6000_p25_server_decode_sweep_20260517_124605.json",
+      "timestamp": "20260517_124605",
+      "config": "cudaTileDown",
+      "max_tokens": 512,
+      "decode_tps": 108.84180651179193,
+      "baseline_config": "configD",
+      "baseline_decode_tps": 99.04950471073246,
+      "speedup_vs_baseline": 1.0988627033487672,
+      "all_preview_exclamation_loop": true
+    }
+  ],
+  "best_candidate": {
+    "sweep": "reports/p16_155/r6000_p25_server_decode_sweep_20260517_124605.json",
+    "timestamp": "20260517_124605",
+    "config": "cudaTileDown",
+    "max_tokens": 512,
+    "decode_tps": 108.84180651179193,
+    "baseline_config": "configD",
+    "baseline_decode_tps": 99.04950471073246,
+    "speedup_vs_baseline": 1.0988627033487672,
+    "all_preview_exclamation_loop": true
+  },
+  "decision": "RED: no candidate cleared 1.030x without preview loop."
+}

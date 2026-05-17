@@ -216,3 +216,23 @@ The 1024-token run also reports wall `88.70 tok/s`, median decode step
 Longer generation does not expose a hidden throughput jump; the remaining 155
 TPS gap still requires a runtime multiplier, most likely MTP plus a native
 decode-loop boundary.
+
+## Down Backend Service Sweep
+
+Service-path report:
+
+```text
+reports/p16_155/r6000_p25_server_decode_sweep_20260517_124605.json
+reports/p16_155/r6000_server_decode_sweep_summary_20260517_124605.json
+```
+
+| Config | 256 decode TPS | 512 decode TPS | Preview Gate |
+|---|---:|---:|---|
+| configD / triton down | 99.78 | 99.05 | pass |
+| cudaTileDown | 108.17 | 108.84 | fail: exclamation loop |
+
+The CUDA tile down backend has a real service-speed signal (`1.08-1.10x`), but
+it is not usable: both sampled generations collapse into an exclamation loop.
+This rules out down-backend swapping as an immediate promotion path. The useful
+next step is a numerical/semantic gate for the CUDA tile kernel itself, not a
+larger server benchmark.

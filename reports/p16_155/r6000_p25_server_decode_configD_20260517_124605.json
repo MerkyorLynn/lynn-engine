@@ -1,0 +1,112 @@
+{
+  "schema_version": "lynn-engine-p25-server-decode-tps-probe-v1",
+  "url": "http://127.0.0.1:18162/v1",
+  "model": "Lynn-27B-A3B-W4A8-V2-configD-20260517_124605",
+  "prompt_chars": 66,
+  "results": [
+    {
+      "wall_s": 3.265209197998047,
+      "completion_tokens": 256,
+      "wall_tps": 78.40232722514618,
+      "metrics_tokens_per_second": 78.6980811521003,
+      "decode_tps": 99.77630577079765,
+      "prefill_seconds": 0.6742703914642334,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.10522198677062988,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 255,
+      "decode_step_ms_mean": 10.022419574213963,
+      "decode_step_ms_median": 9.958028793334961,
+      "preview": "\n\n<think>\n\n</think>\n\n在大型语言模型推理优化的前沿，混合专家架构（MoE）因其卓越的参数效率与推理吞吐量而成为主流选择，但其固有的稀疏激活特性也带来了独特的性能挑战。MoE 模型在每次前向传播中仅激活少数专家，这导致计算图高度动态且不可预测，传统基于静态计算图的优化手段难以奏效。为应对这一挑战，业界",
+      "max_tokens": 256,
+      "run_idx": 0
+    },
+    {
+      "wall_s": 5.832376956939697,
+      "completion_tokens": 512,
+      "wall_tps": 87.7858210777671,
+      "metrics_tokens_per_second": 87.87810422303849,
+      "decode_tps": 99.04950471073246,
+      "prefill_seconds": 0.6399424076080322,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.10522198677062988,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 511,
+      "decode_step_ms_mean": 10.095961639792485,
+      "decode_step_ms_median": 9.969949722290039,
+      "preview": "\n\n<think>\n\n</think>\n\n在大型语言模型推理优化的前沿，混合专家架构（MoE）因其卓越的参数效率与推理吞吐量而成为主流选择，但其固有的稀疏激活特性也带来了独特的性能挑战。MoE 模型在每次前向传播中仅激活少数专家，这导致计算图高度动态且不可预测，传统基于静态计算图的优化手段难以奏效。为应对这一挑战，业界",
+      "max_tokens": 512,
+      "run_idx": 0
+    }
+  ],
+  "summary_by_max_tokens": {
+    "256": {
+      "runs": 1,
+      "wall_tps": {
+        "mean": 78.40232722514618,
+        "median": 78.40232722514618,
+        "min": 78.40232722514618,
+        "max": 78.40232722514618
+      },
+      "metrics_tokens_per_second": {
+        "mean": 78.6980811521003,
+        "median": 78.6980811521003,
+        "min": 78.6980811521003,
+        "max": 78.6980811521003
+      },
+      "decode_tps": {
+        "mean": 99.77630577079765,
+        "median": 99.77630577079765,
+        "min": 99.77630577079765,
+        "max": 99.77630577079765
+      },
+      "prefill_seconds": {
+        "mean": 0.6742703914642334,
+        "median": 0.6742703914642334,
+        "min": 0.6742703914642334,
+        "max": 0.6742703914642334
+      },
+      "decode_step_ms_median": {
+        "mean": 9.958028793334961,
+        "median": 9.958028793334961,
+        "min": 9.958028793334961,
+        "max": 9.958028793334961
+      }
+    },
+    "512": {
+      "runs": 1,
+      "wall_tps": {
+        "mean": 87.7858210777671,
+        "median": 87.7858210777671,
+        "min": 87.7858210777671,
+        "max": 87.7858210777671
+      },
+      "metrics_tokens_per_second": {
+        "mean": 87.87810422303849,
+        "median": 87.87810422303849,
+        "min": 87.87810422303849,
+        "max": 87.87810422303849
+      },
+      "decode_tps": {
+        "mean": 99.04950471073246,
+        "median": 99.04950471073246,
+        "min": 99.04950471073246,
+        "max": 99.04950471073246
+      },
+      "prefill_seconds": {
+        "mean": 0.6399424076080322,
+        "median": 0.6399424076080322,
+        "min": 0.6399424076080322,
+        "max": 0.6399424076080322
+      },
+      "decode_step_ms_median": {
+        "mean": 9.969949722290039,
+        "median": 9.969949722290039,
+        "min": 9.969949722290039,
+        "max": 9.969949722290039
+      }
+    }
+  }
+}

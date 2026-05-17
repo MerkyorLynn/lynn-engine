@@ -251,6 +251,13 @@ linear block graph reuse enabled, and native FP4 lm_head enabled. The long run
 keeps the safe serving line near 100 TPS rather than revealing a hidden 155 TPS
 mode.
 
+2026-05-17 down-backend service sweep: switching only
+`LYNN_NATIVE_DOWN_BACKEND` from `triton` to `cuda_tile` gives real raw speed
+(`108.17 / 108.84 tok/s` at `256 / 512`, about `1.08-1.10x`), but both previews
+collapse into an exclamation-loop. This is a useful kernel signal but a RED
+serving candidate; do not promote it until the CUDA tile down path passes the
+generation/preview gate.
+
 Required native path:
 
 ```text
