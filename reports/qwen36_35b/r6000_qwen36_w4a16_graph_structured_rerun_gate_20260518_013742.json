@@ -1,0 +1,327 @@
+{
+  "schema_version": "lynn-openai-structured-tps-gate-v1",
+  "decision": "GREEN: structured serving meets target 75.00 decode TPS.",
+  "base_url": "http://127.0.0.1:18168",
+  "model": "Qwen3.6-35B-A3B-W4A16-graph-structured-rerun-20260518_013742",
+  "target_decode_tps": 75.0,
+  "max_tokens": 96,
+  "temperature": 0.0,
+  "summary": {
+    "request_count": 14,
+    "format_ok": 14,
+    "all_format_ok": true,
+    "all_finish_stop": true,
+    "decode_tps_mean": 82.0543993473001,
+    "decode_tps_min": 80.0441876886251,
+    "decode_tps_max": 82.60948804474849,
+    "http_tps_mean": 20.63939709791303
+  },
+  "rows": [
+    {
+      "idx": 0,
+      "id": "json_city_metric",
+      "prompt": "Return one JSON object with keys city and unit for Tokyo in celsius. No markdown.",
+      "elapsed_seconds": 1.3254821300506592,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 22,
+      "decode_tps": 80.0441876886251,
+      "tokens_per_second_http": 17.804451948077006,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "city",
+          "unit"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"city\": \"Tokyo\",\n  \"unit\": \"celsius\"\n}"
+    },
+    {
+      "idx": 1,
+      "id": "tool_args_weather",
+      "prompt": "Return one JSON object with keys tool and arguments for get_weather city Tokyo unit celsius. No markdown.",
+      "elapsed_seconds": 1.237346887588501,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 40,
+      "decode_tps": 81.1740749691462,
+      "tokens_per_second_http": 32.41989141592154,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "arguments",
+          "tool"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"tool\": \"get_weather\",\n  \"arguments\": {\n    \"city\": \"Tokyo\",\n    \"unit\": \"celsius\"\n  }\n}"
+    },
+    {
+      "idx": 2,
+      "id": "python_slugify",
+      "prompt": "Only output Python code, no markdown. Define slugify(text: str) -> str that lowercases and replaces spaces with hyphens.",
+      "elapsed_seconds": 1.0035390853881836,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 21,
+      "decode_tps": 82.37046347211312,
+      "tokens_per_second_http": 20.9969963555781,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def slugify(text: str) -> str:\n    return text.lower().replace(' ', '-')"
+    },
+    {
+      "idx": 3,
+      "id": "yaml_request_body",
+      "prompt": "Output only an OpenAPI YAML requestBody for JSON object {name: string}. No explanation.",
+      "elapsed_seconds": 1.336242914199829,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 48,
+      "decode_tps": 82.19876667838359,
+      "tokens_per_second_http": 35.99606938367421,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "```yaml\nrequestBody:\n  content:\n    application/json:\n      schema:\n        type: object\n        properties:\n          name:\n            type: string\n        required:\n          - name\n```"
+    },
+    {
+      "idx": 4,
+      "id": "router_zh",
+      "prompt": "用一句中文短句说明 MoE router 的作用。必须以 router 开头,必须包含 动态分配、专家。",
+      "elapsed_seconds": 0.8166182041168213,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 6,
+      "decode_tps": 82.50462259919901,
+      "tokens_per_second_http": 7.379039756372112,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "router 动态分配专家"
+    },
+    {
+      "idx": 5,
+      "id": "linear_attention_zh",
+      "prompt": "用一句中文短句说明 linear attention 适合长上下文的原因。必须包含 计算复杂度、线性。",
+      "elapsed_seconds": 0.9978322982788086,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 22,
+      "decode_tps": 82.55366386521543,
+      "tokens_per_second_http": 22.134459469994543,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "Linear attention 将自注意力的二次方计算复杂度降低为线性，从而高效处理长上下文。"
+    },
+    {
+      "idx": 6,
+      "id": "short_math",
+      "prompt": "Answer only with the number: 45 miles per hour for 3 hours is how many miles?",
+      "elapsed_seconds": 0.7650196552276611,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 4,
+      "decode_tps": 81.5933080439646,
+      "tokens_per_second_http": 5.25246081680866,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "135"
+    },
+    {
+      "idx": 7,
+      "id": "json_city_metric",
+      "prompt": "Return one JSON object with keys city and unit for Tokyo in celsius. No markdown.",
+      "elapsed_seconds": 0.9900529384613037,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 22,
+      "decode_tps": 82.34212592830806,
+      "tokens_per_second_http": 22.2922765908924,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "city",
+          "unit"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"city\": \"Tokyo\",\n  \"unit\": \"celsius\"\n}"
+    },
+    {
+      "idx": 8,
+      "id": "tool_args_weather",
+      "prompt": "Return one JSON object with keys tool and arguments for get_weather city Tokyo unit celsius. No markdown.",
+      "elapsed_seconds": 1.2333450317382812,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 40,
+      "decode_tps": 82.39191321687773,
+      "tokens_per_second_http": 32.523539861711306,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "arguments",
+          "tool"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"tool\": \"get_weather\",\n  \"arguments\": {\n    \"city\": \"Tokyo\",\n    \"unit\": \"celsius\"\n  }\n}"
+    },
+    {
+      "idx": 9,
+      "id": "python_slugify",
+      "prompt": "Only output Python code, no markdown. Define slugify(text: str) -> str that lowercases and replaces spaces with hyphens.",
+      "elapsed_seconds": 0.994818925857544,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 21,
+      "decode_tps": 82.4198312029004,
+      "tokens_per_second_http": 21.17626931442608,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def slugify(text: str) -> str:\n    return text.lower().replace(' ', '-')"
+    },
+    {
+      "idx": 10,
+      "id": "yaml_request_body",
+      "prompt": "Output only an OpenAPI YAML requestBody for JSON object {name: string}. No explanation.",
+      "elapsed_seconds": 1.3336398601531982,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 48,
+      "decode_tps": 81.79481287573914,
+      "tokens_per_second_http": 36.09956569692456,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "```yaml\nrequestBody:\n  content:\n    application/json:\n      schema:\n        type: object\n        properties:\n          name:\n            type: string\n        required:\n          - name\n```"
+    },
+    {
+      "idx": 11,
+      "id": "router_zh",
+      "prompt": "用一句中文短句说明 MoE router 的作用。必须以 router 开头,必须包含 动态分配、专家。",
+      "elapsed_seconds": 0.8138473033905029,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 6,
+      "decode_tps": 82.20579357924032,
+      "tokens_per_second_http": 7.408134050307723,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "router 动态分配专家"
+    },
+    {
+      "idx": 12,
+      "id": "linear_attention_zh",
+      "prompt": "用一句中文短句说明 linear attention 适合长上下文的原因。必须包含 计算复杂度、线性。",
+      "elapsed_seconds": 0.99656081199646,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 22,
+      "decode_tps": 82.60948804474849,
+      "tokens_per_second_http": 22.150745122138577,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "Linear attention 将自注意力的二次方计算复杂度降低为线性，从而高效处理长上下文。"
+    },
+    {
+      "idx": 13,
+      "id": "short_math",
+      "prompt": "Answer only with the number: 45 miles per hour for 3 hours is how many miles?",
+      "elapsed_seconds": 0.7551321983337402,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 4,
+      "decode_tps": 82.55853869774033,
+      "tokens_per_second_http": 5.317659587955626,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "135"
+    }
+  ]
+}

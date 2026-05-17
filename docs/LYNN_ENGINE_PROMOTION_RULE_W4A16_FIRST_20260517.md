@@ -50,6 +50,12 @@ BF16 scored 86.40% MMLU / 45.45% GPQA, while Lynn-native W4A16 NVFP4 scored
 expected sample-noise band, so the next primary risk is runtime speed, not broad
 quality rescue.
 
+R6000 graph+in-place serving is the current speed baseline candidate. On
+2026-05-18 it held 81-82 decode TPS through 128/256/512-token P25 server probes,
+with 72.76 wall TPS at 512 tokens, and passed a 14-request OpenAI structured
+gate covering JSON, tool-call JSON, Python, YAML, Chinese constraints, and a
+numeric answer.
+
 ## Tonight's Objective
 
 The R6000 official 35B pipeline should answer:

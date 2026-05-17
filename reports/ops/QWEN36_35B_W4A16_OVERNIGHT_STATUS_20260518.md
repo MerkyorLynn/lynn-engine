@@ -89,6 +89,26 @@ Copied report:
 
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p25_graph_inplace_20260518.json`
 
+Follow-up service-path gate on the same graph+in-place profile:
+
+| Gate | Result |
+|---|---:|
+| P25 128-token wall / decode TPS | 51.66 / 81.23 |
+| P25 256-token wall / decode TPS | 65.69 / 81.77 |
+| P25 512-token wall / decode TPS | 72.76 / 81.79 |
+| OpenAI structured gate | GREEN, 14/14 format-clean |
+| Structured gate decode TPS | mean 82.05, min 80.04 |
+
+This covers JSON, tool-call JSON, Python code, OpenAPI YAML, short Chinese
+format constraints, and a numeric answer over the real OpenAI-compatible server
+path. The graph+in-place profile is now a speed baseline candidate, not just a
+runner-only optimization.
+
+Copied reports:
+
+- `reports/qwen36_35b/r6000_qwen36_w4a16_graph_structured_p25_20260518_013525.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_graph_structured_rerun_gate_20260518_013742.json`
+
 ## W4A8 Matrix
 
 R6000 W4A8 comparison:
