@@ -271,5 +271,17 @@ The first P118 harness uses synthetic accept/reject drafts rather than a real
 sidecar. That is deliberate: it tests the verifier state contract in isolation
 before proposer quality and runtime cost enter the loop.
 
+R6000 wrapper:
+
+```bash
+scripts/r6000_p118_mtp_verify_state_parity.sh
+```
+
+Default output:
+
+```text
+/root/autodl-tmp/reports/p118/p118_mtp_verify_state_parity_r6000_${TS}.json
+```
+
 This sequence keeps each failure diagnosable. It also avoids the false shortcut
 of moving the token loop to C++ before the costly math and state ABI are ready.
