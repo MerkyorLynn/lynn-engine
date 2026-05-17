@@ -102,6 +102,15 @@ requests with mean decode TPS 96.43, min 96.03, and P25 512-token wall/decode
 TPS of 83.38 / 95.88. This backend is now part of the promoted fast W4A16
 profile.
 
+The third safe W4A16 speed win is `LYNN_RMSNORM_GATED_BACKEND=triton`. It
+targets gated RMSNorm inside the linear-attention blocks and leaves the normal
+block RMSNorm path untouched. With gate/up fastdecode and triton-pair QK/RoPE
+already enabled, P26 improved from 93.07 to 99.18 decode TPS and linear graph
+blocks dropped from 7.10 to 6.45 ms/token. The service gate passed 14/14
+structured requests with mean decode TPS 102.61, min 101.84, and P25 512-token
+wall/decode TPS of 85.23 / 102.22. This backend is now part of the promoted
+fast W4A16 profile.
+
 Several tempting small fusions are closed for now. A Triton router top-k softmax
 kernel is faster only after logits are already computed, but the full router path
 regresses from 0.046 ms to 0.052 ms on sampled layers. A `tl.dot` gate/up rewrite

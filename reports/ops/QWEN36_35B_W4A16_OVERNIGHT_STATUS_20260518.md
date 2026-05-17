@@ -160,6 +160,30 @@ Copied reports:
 - `reports/qwen36_35b/r6000_qwen36_w4a16_fastdecode_tritonpair_p25_20260518_034915.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_fastdecode_tritonpair_structured_gate_20260518_034915.json`
 
+### Fastdecode + Triton Pair + Gated RMSNorm
+
+The current promoted fast profile adds `LYNN_RMSNORM_GATED_BACKEND=triton` on
+top of gate/up fastdecode and triton-pair QK/RoPE. This is the first official
+35B W4A16 service profile above 100 decode TPS.
+
+| Probe | Result |
+|---|---:|
+| P26 linear graph blocks | 7.10 -> 6.45 ms/token |
+| P26 full-attention layers | 3.11 -> 3.09 ms/token |
+| P26 decode TPS | 93.07 -> 99.18 |
+| P25 128-token wall / decode TPS | 60.69 / 100.64 |
+| P25 256-token wall / decode TPS | 78.64 / 102.11 |
+| P25 512-token wall / decode TPS | 85.23 / 102.22 |
+| Structured OpenAI gate | GREEN, 14/14 format-clean |
+| Structured gate decode TPS | mean 102.61, min 101.84 |
+
+Copied reports:
+
+- `reports/qwen36_35b/r6000_qwen36_w4a16_fastdecode_tritonpair_rmsgated_p26_phase_20260518_040928.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_fastdecode_tritonpair_rmsgated_p28_hybrid_block_20260518_040928.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_fastdecode_tritonpair_rmsgated_p25_20260518_041200.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_fastdecode_tritonpair_rmsgated_structured_gate_20260518_041200.json`
+
 Negative probes from the same loop:
 
 - Router Triton top-k is not a full-path win: sampled full router regressed from

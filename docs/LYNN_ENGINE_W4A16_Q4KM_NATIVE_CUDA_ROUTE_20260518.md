@@ -85,6 +85,19 @@ This is now part of the default W4A16 fast profile. It moves the official 35B
 service path close to 96 decode TPS without touching W4A8 activation quantization
 or MTP credit.
 
+`LYNN_RMSNORM_GATED_BACKEND=triton` is the next default W4A16 win. It fuses the
+gated RMSNorm used inside linear-attention blocks while preserving BF16
+activations.
+
+| Probe | Result |
+|---|---:|
+| P26 linear graph blocks | 7.10 -> 6.45 ms/token |
+| P26 decode TPS | 93.07 -> 99.18 |
+| P25 512-token service wall / decode TPS | 85.23 / 102.22 |
+| Structured OpenAI gate | GREEN, 14/14 format-clean, mean 102.61 decode TPS |
+
+This is the first official 35B W4A16 service profile above 100 decode TPS.
+
 ## Closed Micro-Paths
 
 - Triton router top-k softmax is not useful as a standalone full router path:
