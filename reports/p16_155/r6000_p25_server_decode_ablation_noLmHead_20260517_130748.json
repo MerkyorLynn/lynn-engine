@@ -1,0 +1,163 @@
+{
+  "schema_version": "lynn-engine-p25-server-decode-tps-probe-v1",
+  "url": "http://127.0.0.1:18163/v1",
+  "model": "Lynn-27B-A3B-W4A8-V2-ablation-noLmHead-20260517_130748",
+  "prompt_chars": 66,
+  "results": [
+    {
+      "wall_s": 3.335712194442749,
+      "completion_tokens": 256,
+      "wall_tps": 76.7452301270153,
+      "metrics_tokens_per_second": 77.04680376928391,
+      "decode_tps": 96.69318747881117,
+      "prefill_seconds": 0.6624746322631836,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.11738276481628418,
+      "native_fp4_lm_head_enabled": false,
+      "decode_step_count": 255,
+      "decode_step_ms_mean": 10.341990227792776,
+      "decode_step_ms_median": 10.284185409545898,
+      "preview": "\n\n<think>\n\n</think>\n\nMixture of Experts 架构在推理阶段的核心挑战在于如何高效调度稀疏激活的专家，同时避免频繁上下文切换与内存碎片化。传统实现中，每个 token 需动态路由至对应专家，这导致 GPU 内核启动开销显著，且专家间数据依赖关系复杂，难以利用连续内存块进行批量处理。为缓",
+      "max_tokens": 256,
+      "run_idx": 0
+    },
+    {
+      "wall_s": 5.924563646316528,
+      "completion_tokens": 512,
+      "wall_tps": 86.41986660373294,
+      "metrics_tokens_per_second": 86.48320789380433,
+      "decode_tps": 97.19999952835113,
+      "prefill_seconds": 0.6368587017059326,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.11738276481628418,
+      "native_fp4_lm_head_enabled": false,
+      "decode_step_count": 511,
+      "decode_step_ms_mean": 10.288065893542743,
+      "decode_step_ms_median": 10.293722152709961,
+      "preview": "\n\n<think>\n\n</think>\n\nMixture of Experts 架构在推理阶段的核心挑战在于如何高效调度稀疏激活的专家，同时避免频繁上下文切换与内存碎片化。传统实现中，每个 token 需动态路由至对应专家，这导致 GPU 内核启动开销显著，且专家间数据依赖关系复杂，难以利用连续内存块进行批量处理。为缓",
+      "max_tokens": 512,
+      "run_idx": 0
+    },
+    {
+      "wall_s": 10.488327026367188,
+      "completion_tokens": 953,
+      "wall_tps": 90.86291813786893,
+      "metrics_tokens_per_second": 90.91217342449967,
+      "decode_tps": 97.23106868969472,
+      "prefill_seconds": 0.6442677974700928,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.11738276481628418,
+      "native_fp4_lm_head_enabled": false,
+      "decode_step_count": 952,
+      "decode_step_ms_mean": 10.284778450717445,
+      "decode_step_ms_median": 10.271310806274414,
+      "preview": "\n\n<think>\n\n</think>\n\nMixture of Experts 架构在推理阶段的核心挑战在于如何高效调度稀疏激活的专家，同时避免频繁上下文切换与内存碎片化。传统实现中，每个 token 需动态路由至对应专家，这导致 GPU 内核启动开销显著，且专家间数据依赖关系复杂，难以利用连续内存块进行批量处理。为缓",
+      "max_tokens": 1024,
+      "run_idx": 0
+    }
+  ],
+  "summary_by_max_tokens": {
+    "256": {
+      "runs": 1,
+      "wall_tps": {
+        "mean": 76.7452301270153,
+        "median": 76.7452301270153,
+        "min": 76.7452301270153,
+        "max": 76.7452301270153
+      },
+      "metrics_tokens_per_second": {
+        "mean": 77.04680376928391,
+        "median": 77.04680376928391,
+        "min": 77.04680376928391,
+        "max": 77.04680376928391
+      },
+      "decode_tps": {
+        "mean": 96.69318747881117,
+        "median": 96.69318747881117,
+        "min": 96.69318747881117,
+        "max": 96.69318747881117
+      },
+      "prefill_seconds": {
+        "mean": 0.6624746322631836,
+        "median": 0.6624746322631836,
+        "min": 0.6624746322631836,
+        "max": 0.6624746322631836
+      },
+      "decode_step_ms_median": {
+        "mean": 10.284185409545898,
+        "median": 10.284185409545898,
+        "min": 10.284185409545898,
+        "max": 10.284185409545898
+      }
+    },
+    "512": {
+      "runs": 1,
+      "wall_tps": {
+        "mean": 86.41986660373294,
+        "median": 86.41986660373294,
+        "min": 86.41986660373294,
+        "max": 86.41986660373294
+      },
+      "metrics_tokens_per_second": {
+        "mean": 86.48320789380433,
+        "median": 86.48320789380433,
+        "min": 86.48320789380433,
+        "max": 86.48320789380433
+      },
+      "decode_tps": {
+        "mean": 97.19999952835113,
+        "median": 97.19999952835113,
+        "min": 97.19999952835113,
+        "max": 97.19999952835113
+      },
+      "prefill_seconds": {
+        "mean": 0.6368587017059326,
+        "median": 0.6368587017059326,
+        "min": 0.6368587017059326,
+        "max": 0.6368587017059326
+      },
+      "decode_step_ms_median": {
+        "mean": 10.293722152709961,
+        "median": 10.293722152709961,
+        "min": 10.293722152709961,
+        "max": 10.293722152709961
+      }
+    },
+    "1024": {
+      "runs": 1,
+      "wall_tps": {
+        "mean": 90.86291813786893,
+        "median": 90.86291813786893,
+        "min": 90.86291813786893,
+        "max": 90.86291813786893
+      },
+      "metrics_tokens_per_second": {
+        "mean": 90.91217342449967,
+        "median": 90.91217342449967,
+        "min": 90.91217342449967,
+        "max": 90.91217342449967
+      },
+      "decode_tps": {
+        "mean": 97.23106868969472,
+        "median": 97.23106868969472,
+        "min": 97.23106868969472,
+        "max": 97.23106868969472
+      },
+      "prefill_seconds": {
+        "mean": 0.6442677974700928,
+        "median": 0.6442677974700928,
+        "min": 0.6442677974700928,
+        "max": 0.6442677974700928
+      },
+      "decode_step_ms_median": {
+        "mean": 10.271310806274414,
+        "median": 10.271310806274414,
+        "min": 10.271310806274414,
+        "max": 10.271310806274414
+      }
+    }
+  }
+}

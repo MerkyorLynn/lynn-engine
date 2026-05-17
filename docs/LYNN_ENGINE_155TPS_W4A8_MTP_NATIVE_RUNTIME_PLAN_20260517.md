@@ -23,8 +23,8 @@ R6000 v2 active-MoE micro gain: ~1.12x interval, not enough alone
 A100 best W4A8 recovery baseline: structured_v16_top6_damped075
 A100 teacher-clean v2 serving gate: 10/12 served exact, still RED
 A100 teacher-clean v3 serving gate: 11/12 served exact, min prefix 16, AMBER by plan threshold
-MTP: aligned sidecar forward works; first-token fc calibration is GREEN, but
-     saved-sidecar eval is still only 29/116 after v11, so no TPS credit yet
+MTP: aligned sidecar forward works; best saved/interpolated sidecar is now
+     42/116 after v13/v14 alpha sweep, still below serving multiplier credit
 ```
 
 155 requires a compound win. There is no single safe env flag left.
@@ -165,8 +165,18 @@ from v11 targeting steps 0-4 before any more late-step curriculum.
 
 A100 v12 confirms that low-LR `fc_mtp_layer` tuning is not enough to restore
 front tokens: train steps 0-4 remain `0/130` accepted and saved-sidecar eval
-still selects v11 over v12. A100 v13 is now testing the smaller `fc_norms`
-surface with higher LR on the same front-token target.
+still selects v11 over v12. A100 v13 switches to the smaller `fc_norms` surface
+on steps 0-4 and breaks the front-token wall: saved eval selects v13 at
+`41/116 = 35.34%`, with step2 restored to `8/8` and step4 to `3/8`, though
+step1/3 remain `0/8`.
+
+A100 v14 proves step1/3 are trainable but not yet compositional: targeting only
+steps 1 and 3 reaches `52/52` train accept and heldout step1/3 `8/8`, but it
+damages step0/2/4 and drops total heldout accept to `40/116`. A v13/v14 sidecar
+alpha sweep recovers a small new best at `alpha=0.65`, `42/116 = 36.21%`.
+Reloaded saved-sidecar eval confirms this `interp065` result. A subset grid over
+`mtp.fc.weight`, pre-fc norms, and `mtp.norm.weight` does not beat v13, so the
+useful v14 direction is distributed rather than a clean tensor-block swap.
 
 If fc-only cannot clear 55-70%, unfreeze in this order:
 
@@ -265,6 +275,17 @@ usable serving baseline; 155 still requires a real multiplier.
 linear block graph reuse enabled, and native FP4 lm_head enabled. The long run
 keeps the safe serving line near 100 TPS rather than revealing a hidden 155 TPS
 mode.
+
+2026-05-17 service-path ablation: Config D decode is `99.9-100.2 tok/s` at
+256/512/1024 tokens. Disabling native FP4 lm_head drops only to
+`96.7-97.2 tok/s`, so lm_head is a ~3% lever. Disabling linear-block graph drops
+the service path to `27.6-27.9 tok/s`; graph reuse is therefore the main current
+runtime pillar. Graph capture without prewarm costs about `0.10s` on the first
+request but keeps steady decode near 100 tok/s. Per-request graph capture also
+keeps decode near 100 tok/s for long requests, with the same ~0.08-0.10s wall
+overhead per request. The next runtime bridge should preserve linear-block graph
+semantics while reducing host/Python decode-loop boundaries; eager/no-graph
+paths are not viable for 155.
 
 2026-05-17 down-backend service sweep: switching only
 `LYNN_NATIVE_DOWN_BACKEND` from `triton` to `cuda_tile` gives real raw speed

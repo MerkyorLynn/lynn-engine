@@ -217,6 +217,31 @@ Longer generation does not expose a hidden throughput jump; the remaining 155
 TPS gap still requires a runtime multiplier, most likely MTP plus a native
 decode-loop boundary.
 
+## Service Decode Ablation
+
+Follow-up service ablation reports:
+
+```text
+reports/p16_155/r6000_p25_server_decode_ablation_summary_20260517_130748.json
+reports/p16_155/r6000_p25_server_decode_ablation_summary_20260517_131504.json
+```
+
+| Config | Graph | Reuse | Prewarm | Native LM Head | 256 Decode TPS | 512 Decode TPS | 1024 Decode TPS |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| configD | 1 | 1 | 1 | 1 | 99.92 | 100.21 | 100.24 |
+| noLmHead | 1 | 1 | 1 | 0 | 96.69 | 97.20 | 97.23 |
+| graphNoPrewarm | 1 | 1 | 0 | 1 | 99.77 | 99.92 | 99.23 |
+| graphNoReuse | 1 | 0 | 0 | 1 | 99.58 | 100.11 | - |
+| noGraphLmHead | 0 | 0 | 0 | 1 | 27.55 | 27.56 | 27.90 |
+| noGraphNoLmHead | 0 | 0 | 0 | 0 | 26.62 | 26.70 | 27.04 |
+
+This pins the service-speed stack: linear-block graph is the real pillar
+(`~27 -> ~100 tok/s`), native FP4 lm_head is only a small steady-state lever
+(`~3 tok/s`), and prewarm mainly avoids the first-request capture cost
+(`~0.10s`). Per-request linear-block capture is acceptable for long requests but
+still adds wall overhead; preserving graph semantics while reducing host/Python
+decode-loop boundaries is the next practical runtime bridge.
+
 ## Down Backend Service Sweep
 
 Service-path report:

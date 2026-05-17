@@ -1,0 +1,28 @@
+{
+  "schema_version": "r6000-p25-server-decode-ablation-summary-v1",
+  "timestamp": "20260517_131504",
+  "reports": [
+    "/root/autodl-tmp/reports/p16_155/r6000_p25_server_decode_ablation_graphNoReuse_20260517_131504.json"
+  ],
+  "summary": {
+    "graphNoReuse": {
+      "decode_tps_mean_by_max_tokens": {
+        "256": 99.58301013355262,
+        "512": 100.1105151221438
+      },
+      "wall_tps_mean_by_max_tokens": {
+        "256": 76.16200873179696,
+        "512": 87.1079513230166
+      },
+      "decode_step_ms_median_by_max_tokens": {
+        "256": 9.96708869934082,
+        "512": 9.98234748840332
+      },
+      "linear_block_graph_reused": false,
+      "linear_block_graph_capture_seconds": 0.1026923656463623,
+      "linear_block_graph_prewarm_seconds": null,
+      "native_fp4_lm_head_enabled": true,
+      "preview_sample": "\n\n<think>\n\n</think>\n\n在大型语言模型推理优化的前沿，混合专家架构（MoE）因其卓越的参数效率与推理吞吐量而成为主流选择，但其固有的稀疏激活特性也带来了独特的性能挑战。MoE 模型在每次前向传播中仅激活少数专家，这导致计算图高度动态且不可预测，传统基于静态计算图的优化手段难以奏效。为应对这一挑战，业界"
+    }
+  }
+}

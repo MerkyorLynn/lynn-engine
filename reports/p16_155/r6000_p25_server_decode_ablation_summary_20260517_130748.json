@@ -1,0 +1,123 @@
+{
+  "schema_version": "r6000-p25-server-decode-ablation-summary-v1",
+  "timestamp": "20260517_130748",
+  "reports": [
+    "/root/autodl-tmp/reports/p16_155/r6000_p25_server_decode_ablation_configD_20260517_130748.json",
+    "/root/autodl-tmp/reports/p16_155/r6000_p25_server_decode_ablation_graphNoPrewarm_20260517_130748.json",
+    "/root/autodl-tmp/reports/p16_155/r6000_p25_server_decode_ablation_noGraphLmHead_20260517_130748.json",
+    "/root/autodl-tmp/reports/p16_155/r6000_p25_server_decode_ablation_noGraphNoLmHead_20260517_130748.json",
+    "/root/autodl-tmp/reports/p16_155/r6000_p25_server_decode_ablation_noLmHead_20260517_130748.json"
+  ],
+  "summary": {
+    "configD": {
+      "decode_tps_mean_by_max_tokens": {
+        "256": 99.91769837966758,
+        "512": 100.2139203078186,
+        "1024": 100.24387941525616
+      },
+      "wall_tps_mean_by_max_tokens": {
+        "256": 78.67948937776671,
+        "512": 88.80484875271554,
+        "1024": 90.51501659206805
+      },
+      "decode_step_ms_median_by_max_tokens": {
+        "256": 9.946107864379883,
+        "512": 9.963512420654297,
+        "1024": 9.970307350158691
+      },
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.10797715187072754,
+      "native_fp4_lm_head_enabled": true,
+      "preview_sample": "\n\n<think>\n\n</think>\n\n在大型语言模型推理优化的前沿，混合专家架构（MoE）因其卓越的参数效率与推理吞吐量而成为主流选择，但其固有的稀疏激活特性也带来了独特的性能挑战。MoE 模型在每次前向传播中仅激活少数专家，这导致计算图高度动态且不可预测，传统基于静态计算图的优化手段难以奏效。为应对这一挑战，业界"
+    },
+    "graphNoPrewarm": {
+      "decode_tps_mean_by_max_tokens": {
+        "256": 99.77273164016098,
+        "512": 99.9226342372368,
+        "1024": 99.22630318927128
+      },
+      "wall_tps_mean_by_max_tokens": {
+        "256": 75.66807750386958,
+        "512": 87.98736348436383,
+        "1024": 89.55183956054408
+      },
+      "decode_step_ms_median_by_max_tokens": {
+        "256": 9.964942932128906,
+        "512": 9.981870651245117,
+        "1024": 9.991049766540527
+      },
+      "linear_block_graph_reused": false,
+      "linear_block_graph_capture_seconds": 0.10315632820129395,
+      "linear_block_graph_prewarm_seconds": null,
+      "native_fp4_lm_head_enabled": true,
+      "preview_sample": "\n\n<think>\n\n</think>\n\n在大型语言模型推理优化的前沿，混合专家架构（MoE）因其卓越的参数效率与推理吞吐量而成为主流选择，但其固有的稀疏激活特性也带来了独特的性能挑战。MoE 模型在每次前向传播中仅激活少数专家，这导致计算图高度动态且不可预测，传统基于静态计算图的优化手段难以奏效。为应对这一挑战，业界"
+    },
+    "noGraphLmHead": {
+      "decode_tps_mean_by_max_tokens": {
+        "256": 27.55458689548676,
+        "512": 27.562476122389782,
+        "1024": 27.903366020733458
+      },
+      "wall_tps_mean_by_max_tokens": {
+        "256": 25.631870070840463,
+        "512": 26.597665146903523,
+        "1024": 27.07766389009713
+      },
+      "decode_step_ms_median_by_max_tokens": {
+        "256": 35.47549247741699,
+        "512": 35.5069637298584,
+        "1024": 35.291433334350586
+      },
+      "linear_block_graph_reused": null,
+      "linear_block_graph_capture_seconds": null,
+      "linear_block_graph_prewarm_seconds": null,
+      "native_fp4_lm_head_enabled": true,
+      "preview_sample": "\n\n<think>\n\n</think>\n\n在大型语言模型推理优化的前沿，混合专家架构（MoE）因其卓越的参数效率与推理吞吐量而成为主流选择，但其固有的稀疏激活特性也带来了独特的性能挑战。MoE 模型在每次前向传播中仅激活少数专家，这导致计算图高度动态且不可预测，传统基于静态计算图的优化手段难以奏效。为应对这一挑战，业界"
+    },
+    "noGraphNoLmHead": {
+      "decode_tps_mean_by_max_tokens": {
+        "256": 26.615588905144538,
+        "512": 26.695439676812313,
+        "1024": 27.04235975634703
+      },
+      "wall_tps_mean_by_max_tokens": {
+        "256": 24.87409843592563,
+        "512": 25.79513149971694,
+        "1024": 26.50451598454033
+      },
+      "decode_step_ms_median_by_max_tokens": {
+        "256": 37.12320327758789,
+        "512": 37.07242012023926,
+        "1024": 36.81755065917969
+      },
+      "linear_block_graph_reused": null,
+      "linear_block_graph_capture_seconds": null,
+      "linear_block_graph_prewarm_seconds": null,
+      "native_fp4_lm_head_enabled": false,
+      "preview_sample": "\n\n<think>\n\n</think>\n\nMixture of Experts 架构在推理阶段的核心挑战在于如何高效调度稀疏激活的专家，同时避免频繁上下文切换与内存碎片化。传统实现中，每个 token 需动态路由至对应专家，这导致 GPU 内核启动开销显著，且专家间数据依赖关系复杂，难以利用连续内存块进行批量处理。为缓"
+    },
+    "noLmHead": {
+      "decode_tps_mean_by_max_tokens": {
+        "256": 96.69318747881117,
+        "512": 97.19999952835113,
+        "1024": 97.23106868969472
+      },
+      "wall_tps_mean_by_max_tokens": {
+        "256": 76.7452301270153,
+        "512": 86.41986660373294,
+        "1024": 90.86291813786893
+      },
+      "decode_step_ms_median_by_max_tokens": {
+        "256": 10.284185409545898,
+        "512": 10.293722152709961,
+        "1024": 10.271310806274414
+      },
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.11738276481628418,
+      "native_fp4_lm_head_enabled": false,
+      "preview_sample": "\n\n<think>\n\n</think>\n\nMixture of Experts 架构在推理阶段的核心挑战在于如何高效调度稀疏激活的专家，同时避免频繁上下文切换与内存碎片化。传统实现中，每个 token 需动态路由至对应专家，这导致 GPU 内核启动开销显著，且专家间数据依赖关系复杂，难以利用连续内存块进行批量处理。为缓"
+    }
+  }
+}
