@@ -1,0 +1,170 @@
+# R6000 Full-Attention Graph Runtime ABI
+
+Date: 2026-05-17
+
+## Why This Exists
+
+The R6000 Config D service path is now pinned:
+
+```text
+safe decode: ~98-101 tok/s
+token wall: 10.17 ms
+linear-block graph replay: 6.55 ms
+10 eager full-attention layers: 3.11 ms
+host gap: 0.15 ms
+```
+
+The remaining gap is not mostly Python overhead. A C++ token loop alone cannot
+recover the missing `~3.5 ms/token`.
+
+P9H/P9I/P9J changed the full-attention decision:
+
+| Probe | Result |
+|---|---:|
+| P9H layer31 fixed-position graph | 3.90x replay speedup, exact output/KV parity |
+| P9I layers 3/15/31/39, positions 10/14/32 | 12/12 exact parity, 4.09x mean replay speedup |
+| P9J mutable input buffer | 4/4 exact parity after swapping graph input, 4.21x mean replay speedup |
+
+This makes full-attention reusable graphing the strongest non-MTP R6000 speed
+lever found today.
+
+## Non-Goal
+
+Do not revive `LYNN_FULL_TOKEN_GRAPH_SLOT=1` as the serving path. Spark already
+measured that strict-slot mode at about `10 tok/s` because it captures a whole
+decode graph every token:
+
+```text
+capture every token -> ~80 ms capture + ~10 ms replay
+```
+
+That is a diagnostic path only.
+
+## Required ABI
+
+The serving graph path needs a resident graph state, not per-request graph
+state copies:
+
+```text
+runner owns:
+  LynnInferenceState graph_state
+  per-layer graph slots for full-attention layers
+  mutable input/output buffers per slot
+  static pos tensors or position-keyed graph families
+
+request path:
+  reset graph_state
+  prefill writes KV/recurrent/conv state directly into graph_state
+  decode replays graph slots against graph_state
+  unsupported position/backend -> eager fallback
+```
+
+Copying full-attention KV prefixes into a separate graph state at every token is
+not acceptable; it would erase the replay win.
+
+## Slot Shape
+
+Minimum Python-side slot:
+
+```text
+FullAttentionLayerGraphSlot:
+  layer_idx: int
+  seq_len: int
+  input_buf:  [1, 1, 2048] bf16
+  output_buf: [1, 1, 2048] bf16
+  pos_tensor: [1, 1] int64
+  graph: torch.cuda.CUDAGraph
+```
+
+Replay contract:
+
+```text
+input_buf.copy_(h)
+graph.replay()
+h = output_buf
+```
+
+P9J verifies that this input buffer is genuinely mutable: changing `input_buf`
+changes graph output while preserving exact eager parity for both inputs.
+
+## Graph Key
+
+Graph slots must be invalidated by:
+
+```text
+model fingerprint
+layer_idx
+seq_len / position family key
+dtype
+LYNN_MOE_IMPL
+LYNN_MOE_FAST_FIXED
+LYNN_NATIVE_DOWN_BACKEND
+LYNN_PACKED_DECODE*
+LYNN_QK_NORM_ROPE_BACKEND
+LYNN_FULL_ATTN_DECODE_BACKEND
+native FP4 lm_head is irrelevant for per-layer slots
+```
+
+The first implementation should be conservative: if any key is not exactly
+recognized, run the existing eager full-attention layer.
+
+## Position Problem
+
+Current `_decode_layer` calls `decode_full_attn(... cached_seq_len=state.seq_len)`.
+That Python integer fixes the KV slice length during CUDA graph capture:
+
+```text
+K_used = K_cache_full[:, :, :cached_seq_len + 1, :]
+```
+
+Therefore a graph captured at position `P` is not a general graph for position
+`P+1`. There are two viable paths:
+
+1. position-keyed graph family for common serving positions;
+2. static-window/native full-attention kernel where write position and mask are
+   dynamic graph inputs.
+
+Path 1 is faster to wire and should be used for proof-of-service on repeated
+bench prompts. Path 2 is the production architecture.
+
+## Expected Speed Envelope
+
+P26 measured ten eager full-attention layers at `3.11 ms/token`. P9I/P9J show
+about `4.1x` replay speedup for the full-layer boundary. If this transfers to
+the service path:
+
+```text
+full-attn budget: 3.11 ms -> ~0.76 ms
+saved:            ~2.35 ms/token
+base token wall:  10.17 ms -> ~7.82 ms
+base TPS:         ~98 TPS -> ~128 TPS
+```
+
+That still does not close 155 alone. It makes the required MTP multiplier much
+smaller:
+
+```text
+128 TPS x 1.22 accepted-token multiplier = 156 TPS effective
+```
+
+So the merged target is now clear:
+
+```text
+R6000 base runtime: full-attn graph/static boundary to ~125-130 tok/s
+A100 MTP: saved sidecar accept >=55%, then serving verifier >=1.20x effective
+combined: >155 effective tok/s
+```
+
+## Implementation Order
+
+1. Add opt-in `LYNN_FULL_ATTN_LAYER_GRAPH=1` with eager fallback.
+2. Reuse the existing `LynnInferenceState` as the resident graph state for
+   single-stream serving.
+3. Capture per-layer slots for one or more positions after prefill warmup.
+4. Add a parity gate comparing eager full-attn layers vs graph slots for the
+   same request.
+5. Run repeated-prompt service TPS with position-family hits.
+6. Only after that, start the static-window/native kernel refactor.
+
+No full-active W4A8 promotion depends on this path until generation gates stay
+AMBER/GREEN.
