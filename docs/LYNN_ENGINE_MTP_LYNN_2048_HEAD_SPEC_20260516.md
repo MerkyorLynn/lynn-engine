@@ -70,6 +70,39 @@ trained_sidecar:
 heldout_accept: 5/8
 ```
 
+Weighted fc-only update:
+
+```text
+reports/mtp/a100_mtp_fc_calibration_weighted_v2_20260517_115058.json
+train_accept: 0/22 -> 21/22
+
+reports/mtp/a100_mtp_fc_calibration_weighted_v2_heldout_20260517_115058.json
+heldout_accept: 7/8
+
+reports/mtp/a100_mtp_fc_calibration_weighted_math_v3_20260517_115509.json
+train_accept: 0/26 -> 26/26
+
+reports/mtp/a100_mtp_fc_calibration_weighted_math_v3_heldout_20260517_115509.json
+heldout_accept: 8/8
+trained_sidecar:
+/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-fc-weighted-math-v3-20260517_115509/mtp.safetensors
+```
+
+Iterative accept boundary:
+
+```text
+reports/mtp/a100_mtp_iterative_accept_weighted_math_v3_heldout16_20260517_115852.json
+events: 94
+accepted: 8
+accept_rate: 8.51%
+```
+
+The weighted-math v3 sidecar is a GREEN first-token draft candidate, but it is
+not yet a speculative decode candidate. It accepts the first token for each
+heldout prompt and then diverges on later positions. Stage 1 must therefore
+train and evaluate token+1..N positions, not only the prompt-boundary next
+token.
+
 This changes the initialization and wiring path, not the serving state: MTP can
 now run a real draft forward pass and backpropagate through a frozen-base,
 frozen-MTP-layer fc-only calibration set. The warm-start head is still not an
@@ -170,11 +203,11 @@ num_speculative_tokens = 2
 
 2026-05-17 status: Stage 0 shape mapping, forward smoke, and fc-only
 calibration training are complete for the official 2048-hidden Qwen3.6-35B-A3B
-sidecar. The 12-prompt training gate reaches 100% one-token accept on its
-training set, and the saved sidecar reaches 5/8 one-token accept on heldout.
-This is promising but below the 70% GREEN threshold; Stage 1 now needs either
-format-start weighted calibration or partial MTP head unfreeze before iterative
-accept-rate evaluation.
+sidecar. Weighted fc-only calibration now reaches 8/8 on the heldout first-token
+gate, but iterative 16-token probing reaches only 8/94 accepts. This is a
+useful first-token bridge, not a complete draft model. Stage 1 now needs
+token-position training and likely partial MTP layer unfreeze before serving
+integration.
 
 Stage 1: short head-only training
 

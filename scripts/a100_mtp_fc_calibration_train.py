@@ -47,11 +47,17 @@ def _load_prompts(path: str | None, inline: list[str]) -> list[dict[str, Any]]:
     prompts: list[dict[str, Any]] = []
     for idx, item in enumerate(raw):
         if isinstance(item, str):
-            prompts.append({"id": str(idx), "prompt": item})
+            prompts.append({"id": str(idx), "prompt": item, "weight": 1.0})
         elif isinstance(item, dict):
             if "prompt" not in item:
                 raise KeyError(f"prompt spec {idx} is missing `prompt`")
-            prompts.append({"id": str(item.get("id", idx)), "prompt": str(item["prompt"])})
+            prompts.append(
+                {
+                    "id": str(item.get("id", idx)),
+                    "prompt": str(item["prompt"]),
+                    "weight": float(item.get("weight", 1.0)),
+                }
+            )
         else:
             raise TypeError(f"prompt spec must be string or object, got {type(item)}")
     return prompts
@@ -90,6 +96,7 @@ def _collect_cases(
                 "id": spec["id"],
                 "prompt": spec["prompt"],
                 "prompt_tokens": int(ids.numel()),
+                "weight": float(spec.get("weight", 1.0)),
                 "last_token_id": last_token_id,
                 "last_token_text": runner.tokenizer.decode([last_token_id]),
                 "last_pos": last_pos,
@@ -182,12 +189,14 @@ def _train_fc(
     for step in range(steps):
         opt.zero_grad(set_to_none=True)
         total_loss = 0.0
+        total_weight = sum(float(case.get("weight", 1.0)) for case in cases) or 1.0
         accepted = 0
         for case in cases:
             logits = _mtp_logits_for_case(runner, sidecar, mtp_w, cfg, case)
             label = torch.tensor([case["label_id"]], device=runner.device, dtype=torch.long)
             loss = F.cross_entropy(logits.float(), label)
-            (loss / max(1, len(cases))).backward()
+            weight = float(case.get("weight", 1.0))
+            (loss * (weight / total_weight)).backward()
             total_loss += float(loss.detach().item())
             accepted += int(int(logits[0].argmax().item()) == case["label_id"])
             del logits, loss, label
@@ -284,6 +293,7 @@ def main() -> int:
                 "id": case["id"],
                 "prompt": case["prompt"],
                 "prompt_tokens": case["prompt_tokens"],
+                "weight": case.get("weight", 1.0),
                 "label_id": case["label_id"],
                 "label_text": case["label_text"],
                 "base_topk": case["base_topk"],

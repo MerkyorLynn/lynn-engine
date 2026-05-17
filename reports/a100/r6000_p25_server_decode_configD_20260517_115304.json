@@ -1,0 +1,217 @@
+{
+  "schema_version": "lynn-engine-p25-server-decode-tps-probe-v1",
+  "url": "http://127.0.0.1:18162/v1",
+  "model": "Lynn-27B-A3B-W4A8-V2-configD-20260517_115304",
+  "prompt_chars": 66,
+  "results": [
+    {
+      "wall_s": 1.9636256694793701,
+      "completion_tokens": 128,
+      "wall_tps": 65.18554019205583,
+      "metrics_tokens_per_second": 65.5345120337844,
+      "decode_tps": 99.49638980538421,
+      "prefill_seconds": 0.6635093688964844,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.10505867004394531,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 127,
+      "decode_step_ms_mean": 10.050615926427165,
+      "decode_step_ms_median": 9.927749633789062,
+      "preview": "\n\n<think>\n\n</think>\n\n在大型语言模型推理优化的前沿，混合专家架构（MoE）因其卓越的参数效率与推理吞吐量而成为主流选择，但其固有的稀疏激活特性也带来了独特的性能挑战。MoE 模型在每次前向传播中仅激活少数专家，这导致计算图高度动态且不可预测，传统基于静态计算图的优化手段难以奏效。为应对这一挑战，业界",
+      "max_tokens": 128,
+      "run_idx": 0
+    },
+    {
+      "wall_s": 1.9185864925384521,
+      "completion_tokens": 128,
+      "wall_tps": 66.71578294635296,
+      "metrics_tokens_per_second": 66.80088686123712,
+      "decode_tps": 100.34276801473844,
+      "prefill_seconds": 0.6423084735870361,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.10505867004394531,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 127,
+      "decode_step_ms_mean": 9.965840287095919,
+      "decode_step_ms_median": 9.954452514648438,
+      "preview": "\n\n<think>\n\n</think>\n\n在大型语言模型推理优化的前沿，混合专家架构（MoE）因其卓越的参数效率与推理吞吐量而成为主流选择，但其固有的稀疏激活特性也带来了独特的性能挑战。MoE 模型在每次前向传播中仅激活少数专家，这导致计算图高度动态且不可预测，传统基于静态计算图的优化手段难以奏效。为应对这一挑战，业界",
+      "max_tokens": 128,
+      "run_idx": 1
+    },
+    {
+      "wall_s": 3.201653242111206,
+      "completion_tokens": 256,
+      "wall_tps": 79.95869028939272,
+      "metrics_tokens_per_second": 80.06068060484954,
+      "decode_tps": 100.4508601573895,
+      "prefill_seconds": 0.643395185470581,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.10505867004394531,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 255,
+      "decode_step_ms_mean": 9.955116346770641,
+      "decode_step_ms_median": 9.964227676391602,
+      "preview": "\n\n<think>\n\n</think>\n\n在大型语言模型推理优化的前沿，混合专家架构（MoE）因其卓越的参数效率与推理吞吐量而成为主流选择，但其固有的稀疏激活特性也带来了独特的性能挑战。MoE 模型在每次前向传播中仅激活少数专家，这导致计算图高度动态且不可预测，传统基于静态计算图的优化手段难以奏效。为应对这一挑战，业界",
+      "max_tokens": 256,
+      "run_idx": 0
+    },
+    {
+      "wall_s": 3.193983793258667,
+      "completion_tokens": 256,
+      "wall_tps": 80.15068847259728,
+      "metrics_tokens_per_second": 80.28409638262342,
+      "decode_tps": 100.61764163291178,
+      "prefill_seconds": 0.6392679214477539,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.10505867004394531,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 255,
+      "decode_step_ms_mean": 9.938614976172353,
+      "decode_step_ms_median": 9.958982467651367,
+      "preview": "\n\n<think>\n\n</think>\n\n在大型语言模型推理优化的前沿，混合专家架构（MoE）因其卓越的参数效率与推理吞吐量而成为主流选择，但其固有的稀疏激活特性也带来了独特的性能挑战。MoE 模型在每次前向传播中仅激活少数专家，这导致计算图高度动态且不可预测，传统基于静态计算图的优化手段难以奏效。为应对这一挑战，业界",
+      "max_tokens": 256,
+      "run_idx": 1
+    },
+    {
+      "wall_s": 5.756840229034424,
+      "completion_tokens": 512,
+      "wall_tps": 88.93767755056771,
+      "metrics_tokens_per_second": 89.00214584875081,
+      "decode_tps": 100.50693317463228,
+      "prefill_seconds": 0.64174485206604,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.10505867004394531,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 511,
+      "decode_step_ms_mean": 9.949562367627765,
+      "decode_step_ms_median": 9.963750839233398,
+      "preview": "\n\n<think>\n\n</think>\n\n在大型语言模型推理优化的前沿，混合专家架构（MoE）因其卓越的参数效率与推理吞吐量而成为主流选择，但其固有的稀疏激活特性也带来了独特的性能挑战。MoE 模型在每次前向传播中仅激活少数专家，这导致计算图高度动态且不可预测，传统基于静态计算图的优化手段难以奏效。为应对这一挑战，业界",
+      "max_tokens": 512,
+      "run_idx": 0
+    },
+    {
+      "wall_s": 5.762587070465088,
+      "completion_tokens": 512,
+      "wall_tps": 88.84898288550761,
+      "metrics_tokens_per_second": 88.91023409508007,
+      "decode_tps": 100.38752616140135,
+      "prefill_seconds": 0.6409275531768799,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.10505867004394531,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 511,
+      "decode_step_ms_mean": 9.961396980658902,
+      "decode_step_ms_median": 9.96851921081543,
+      "preview": "\n\n<think>\n\n</think>\n\n在大型语言模型推理优化的前沿，混合专家架构（MoE）因其卓越的参数效率与推理吞吐量而成为主流选择，但其固有的稀疏激活特性也带来了独特的性能挑战。MoE 模型在每次前向传播中仅激活少数专家，这导致计算图高度动态且不可预测，传统基于静态计算图的优化手段难以奏效。为应对这一挑战，业界",
+      "max_tokens": 512,
+      "run_idx": 1
+    }
+  ],
+  "summary_by_max_tokens": {
+    "128": {
+      "runs": 2,
+      "wall_tps": {
+        "mean": 65.95066156920439,
+        "median": 65.95066156920439,
+        "min": 65.18554019205583,
+        "max": 66.71578294635296
+      },
+      "metrics_tokens_per_second": {
+        "mean": 66.16769944751076,
+        "median": 66.16769944751076,
+        "min": 65.5345120337844,
+        "max": 66.80088686123712
+      },
+      "decode_tps": {
+        "mean": 99.91957891006132,
+        "median": 99.91957891006132,
+        "min": 99.49638980538421,
+        "max": 100.34276801473844
+      },
+      "prefill_seconds": {
+        "mean": 0.6529089212417603,
+        "median": 0.6529089212417603,
+        "min": 0.6423084735870361,
+        "max": 0.6635093688964844
+      },
+      "decode_step_ms_median": {
+        "mean": 9.94110107421875,
+        "median": 9.94110107421875,
+        "min": 9.927749633789062,
+        "max": 9.954452514648438
+      }
+    },
+    "256": {
+      "runs": 2,
+      "wall_tps": {
+        "mean": 80.054689380995,
+        "median": 80.054689380995,
+        "min": 79.95869028939272,
+        "max": 80.15068847259728
+      },
+      "metrics_tokens_per_second": {
+        "mean": 80.17238849373648,
+        "median": 80.17238849373648,
+        "min": 80.06068060484954,
+        "max": 80.28409638262342
+      },
+      "decode_tps": {
+        "mean": 100.53425089515065,
+        "median": 100.53425089515065,
+        "min": 100.4508601573895,
+        "max": 100.61764163291178
+      },
+      "prefill_seconds": {
+        "mean": 0.6413315534591675,
+        "median": 0.6413315534591675,
+        "min": 0.6392679214477539,
+        "max": 0.643395185470581
+      },
+      "decode_step_ms_median": {
+        "mean": 9.961605072021484,
+        "median": 9.961605072021484,
+        "min": 9.958982467651367,
+        "max": 9.964227676391602
+      }
+    },
+    "512": {
+      "runs": 2,
+      "wall_tps": {
+        "mean": 88.89333021803766,
+        "median": 88.89333021803766,
+        "min": 88.84898288550761,
+        "max": 88.93767755056771
+      },
+      "metrics_tokens_per_second": {
+        "mean": 88.95618997191545,
+        "median": 88.95618997191545,
+        "min": 88.91023409508007,
+        "max": 89.00214584875081
+      },
+      "decode_tps": {
+        "mean": 100.44722966801682,
+        "median": 100.44722966801682,
+        "min": 100.38752616140135,
+        "max": 100.50693317463228
+      },
+      "prefill_seconds": {
+        "mean": 0.64133620262146,
+        "median": 0.64133620262146,
+        "min": 0.6409275531768799,
+        "max": 0.64174485206604
+      },
+      "decode_step_ms_median": {
+        "mean": 9.966135025024414,
+        "median": 9.966135025024414,
+        "min": 9.963750839233398,
+        "max": 9.96851921081543
+      }
+    }
+  }
+}

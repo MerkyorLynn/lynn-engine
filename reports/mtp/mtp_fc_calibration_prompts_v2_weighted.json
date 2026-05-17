@@ -1,0 +1,112 @@
+[
+  {
+    "id": "w4a8_explain_v3",
+    "prompt": "用一句中文短句回答: W4A8 比 W4A4 更稳的原因。必须以 W4A8 开头,不超过 28 个汉字。",
+    "weight": 1.0
+  },
+  {
+    "id": "palindrome_code_v3",
+    "prompt": "只输出 Python 代码块,实现 is_palindrome(s: str) -> bool。忽略大小写、空格和非字母数字字符,不要解释。",
+    "weight": 1.25
+  },
+  {
+    "id": "train_math_v3",
+    "prompt": "Answer only with the distance and unit: a train travels 60 mph for 2.5 hours.",
+    "weight": 1.0
+  },
+  {
+    "id": "json_city_v3",
+    "prompt": "Output exactly one JSON object with keys city and unit for Tokyo in celsius. No markdown, no explanation.",
+    "weight": 3.0
+  },
+  {
+    "id": "moe_router_expert_v3",
+    "prompt": "只输出两条中文 bullet。第一条必须是 router 的作用,第二条必须是 expert 的作用。不要标题,不要解释。",
+    "weight": 2.0
+  },
+  {
+    "id": "linear_attention_explain_v3",
+    "prompt": "用一句中文短句说明 linear attention 对长上下文推理的主要优势。必须以 linear attention 开头,不超过 36 个汉字。",
+    "weight": 1.25
+  },
+  {
+    "id": "tool_json_v3",
+    "prompt": "Output exactly one JSON object for a tool call with tool=get_weather and arguments city=Tokyo, unit=celsius. No markdown.",
+    "weight": 3.0
+  },
+  {
+    "id": "openapi_yaml_v3",
+    "prompt": "Output only an OpenAPI 3.0 requestBody YAML schema for JSON fields city:string and unit:string. No markdown.",
+    "weight": 1.25
+  },
+  {
+    "id": "normalize_city_code_v3",
+    "prompt": "Only output a Python code block defining normalize_city(payload: dict) -> dict. It must lowercase city and default unit to celsius. Keep the return statement on one line. No explanation.",
+    "weight": 1.25
+  },
+  {
+    "id": "repair_json_v3",
+    "prompt": "Repair this invalid JSON and output exactly one valid JSON object: {'city':'Tokyo','unit':'celsius',}. No markdown.",
+    "weight": 3.0
+  },
+  {
+    "id": "function_args_v3",
+    "prompt": "Output exactly one JSON arguments object for get_weather with city Tokyo and unit celsius. No function name, no markdown.",
+    "weight": 3.0
+  },
+  {
+    "id": "linear_attention_bullets_v3",
+    "prompt": "Output exactly three terse bullets about linear attention benefits. Each bullet must start with '- '. No markdown heading.",
+    "weight": 1.0
+  },
+  {
+    "id": "json_city_seoul_metric_weighted",
+    "prompt": "Return exactly one JSON object with keys city and unit for Seoul in metric units. No markdown, no explanation.",
+    "weight": 3.0
+  },
+  {
+    "id": "json_status_ok_weighted",
+    "prompt": "Return exactly one JSON object with key status and value ok. No markdown, no explanation.",
+    "weight": 3.0
+  },
+  {
+    "id": "json_health_ready_weighted",
+    "prompt": "Output exactly one JSON object with key health and value ready. No markdown.",
+    "weight": 3.0
+  },
+  {
+    "id": "tool_convert_temp_args_weighted",
+    "prompt": "Output exactly one JSON arguments object for convert_temperature with value 20 and target_unit fahrenheit. No function name, no markdown.",
+    "weight": 3.0
+  },
+  {
+    "id": "tool_summarize_text_args_weighted",
+    "prompt": "Output exactly one JSON arguments object for summarize_text with text hello and max_words 5. No function name, no markdown.",
+    "weight": 3.0
+  },
+  {
+    "id": "repair_json_osaka_weighted",
+    "prompt": "Repair this invalid JSON and output exactly one valid JSON object: {'city':'Osaka','unit':'metric',}. No markdown.",
+    "weight": 3.0
+  },
+  {
+    "id": "router_short_prefix_weighted",
+    "prompt": "用一句中文短句说明 MoE router 如何选择专家。必须以 router 开头,不要解释。",
+    "weight": 4.0
+  },
+  {
+    "id": "router_route_prefix_weighted",
+    "prompt": "用一句中文短句说明 router 在 MoE 解码中的作用。必须以 router 开头。",
+    "weight": 4.0
+  },
+  {
+    "id": "linear_attention_prefix_weighted",
+    "prompt": "用一句中文短句说明 linear attention 为什么适合长上下文。必须以 linear attention 开头。",
+    "weight": 1.5
+  },
+  {
+    "id": "python_parse_city_code_weighted",
+    "prompt": "Only output a Python code block defining parse_city(payload: dict) -> str. It must lowercase city. No explanation.",
+    "weight": 1.25
+  }
+]

@@ -1,0 +1,20 @@
+{
+  "schema_version": "r6000-p25-server-decode-env-sweep-v1",
+  "timestamp": "20260517_115304",
+  "reports": [
+    "/root/autodl-tmp/reports/p16_155/r6000_p25_server_decode_configD_20260517_115304.json",
+    "/root/autodl-tmp/reports/p16_155/r6000_p25_server_decode_cudaTileDown_20260517_115304.json"
+  ],
+  "decode_tps_mean_by_config": {
+    "configD": {
+      "128": 99.91957891006132,
+      "256": 100.53425089515065,
+      "512": 100.44722966801682
+    },
+    "cudaTileDown": {
+      "128": 108.12401663192753,
+      "256": 108.89397844578781,
+      "512": 108.89356873406406
+    }
+  }
+}
