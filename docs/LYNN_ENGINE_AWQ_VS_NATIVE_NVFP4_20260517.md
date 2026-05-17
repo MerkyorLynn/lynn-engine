@@ -71,3 +71,31 @@ So the matrix is:
 | Lynn-native W4A16 NVFP4 | Default promotion candidate |
 | Lynn-native W4A8 NVFP4 | Speed experiment only until structured/tool-call gates hold |
 
+## 2026-05-17 Spark Findings
+
+The Spark-local 67G path named `Qwen3.6-35B-A3B-BF16` is not a canonical
+official download layout. It is an internal layer-split artifact with
+`layers-*.safetensors` and no official `model-000xx-of-00026.safetensors`
+layout. A derived Lynn-native W4A16 package can be packed from it, and the
+result is useful as a size/manifest preview:
+
+- output size: about 20G;
+- output shards: 7;
+- quantized tensors: 31070;
+- kept tensors: 260;
+- pack time: about 439.5s on Spark CPU/Docker.
+
+However, this derived package is not runnable as a full model because the source
+artifact lacks outside tensors such as `model.language_model.embed_tokens.weight`
+and lm_head. Do not treat the derived layer-split package as quality evidence.
+
+The existing AWQ package also cannot currently produce a clean MMLU/GPQA signal
+in the Lynn/Spark stack:
+
+- Lynn engine loader correctly fails loud on `quant_method='awq'`.
+- SGLang accepts the package only with `dtype=float16`, then fails during weight
+  loading on Qwen3.6-MoE AWQ key mapping (`w2_qweight`).
+
+So the quality decision must use the official 26-shard BF16 package and the
+official-source Lynn-native W4A16 pack, not the Spark layer-split derivative and
+not the AWQ package.
