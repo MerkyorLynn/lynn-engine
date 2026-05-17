@@ -43,8 +43,9 @@ P111 budget: with a 100 tok/s production baseline, raw v34 top1 is only
      only if draft overhead is <=0.34/0.72/1.09 ms, while the current draft head
      costs about 7.6 ms in the original P107 path. P113 identifies the main
      runtime miss: the MTP sidecar was using full-forward MoE for a one-token
-     decode layer. `LYNN_MTP_LAYER_MOE=decode_active` is exact on 64/64 sampled
-     states and moves P107 draft cost from 7.61 ms to 2.76 ms.
+     decode layer. The new default `LYNN_MTP_LAYER_MOE=decode_slot_sorted` is
+     exact on 64/64 sampled states and 121/121 P107 shadow events, and moves
+     P107 draft cost from 7.61 ms to 2.24 ms.
 ```
 
 155 requires a compound win. There is no single safe env flag left.
@@ -84,13 +85,15 @@ v34 states, replacing the MTP layer's full-forward MoE with the decode
 active-expert MoE is bit-exact/top1-exact on `64/64` cases and cuts the MTP
 layer median from `6.70 ms` to `1.89 ms` (`3.54x`). The faster decode-bmm path
 hits `1.09 ms` but has top1 drift (`60/64`), so it stays research-only. The
-runtime now exposes `LYNN_MTP_LAYER_MOE=decode_active`; P107 with that setting
-keeps v34 accept at `65/121 = 53.72%` and raises draft throughput from
-`131.45` to `362.30` draft tok/s. A full P107 `decode_bmm` run reaches
-`513.77` draft tok/s, but drops accept to `64/121` and has four draft-id
-mismatches against the exact path. This is a real MTP cost cut, but still not
-enough by itself: top1 zero-overhead remains below 155 from a 100 tok/s base,
-and top2/top4/top8 still need sub-millisecond effective draft or overlap.
+runtime now defaults to `LYNN_MTP_LAYER_MOE=decode_slot_sorted`; P107 with that
+setting keeps v34 accept at `65/121 = 53.72%`, matches the old baseline on
+`121/121` draft ids, and raises draft throughput from `131.45` to `447.24`
+draft tok/s. The simpler `decode_active` path is also exact but slower at
+`362.30` draft tok/s. A full P107 `decode_bmm` run reaches `513.77` draft
+tok/s, but drops accept to `64/121` and has four draft-id mismatches against
+the exact path. This is a real MTP cost cut, but still not enough by itself:
+top1 zero-overhead remains below 155 from a 100 tok/s base, and top2/top4/top8
+still need sub-millisecond effective draft or overlap.
 
 ## Workstream A: Quality Floor
 

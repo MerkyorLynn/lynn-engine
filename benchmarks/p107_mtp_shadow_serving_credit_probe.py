@@ -213,7 +213,7 @@ def main() -> int:
         "use_chat_template": args.use_chat_template,
         "force_prefix_from_spec": args.force_prefix_from_spec,
         "skip_forced_prefix_events": args.skip_forced_prefix_events,
-        "mtp_layer_moe": os.environ.get("LYNN_MTP_LAYER_MOE", "baseline"),
+        "mtp_layer_moe": os.environ.get("LYNN_MTP_LAYER_MOE", "decode_slot_sorted"),
         "dtype": args.dtype,
         "max_new": args.max_new,
         "summary": summary,

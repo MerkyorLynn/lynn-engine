@@ -1,0 +1,73 @@
+{
+  "schema_version": "lynn-p113-mtp-layer-moe-variant-profile-v1",
+  "decision": "AMBER: MTP layer MoE variant profile collected.",
+  "model": "/root/autodl-tmp/models/lynn-27b-w4a8-nvfp4-v2",
+  "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-v33-fake-act-rankflip-v34-20260517_163912/mtp.safetensors",
+  "prompts_file": "reports/mtp/mtp_fc_calibration_heldout_prompts_v1.json",
+  "lm_head": "native_fp4",
+  "case_count": 64,
+  "repeats": 1,
+  "summary": {
+    "baseline_full_forward": {
+      "count": 64,
+      "mean_ms": 6.75678625702858,
+      "median_ms": 6.756901741027832,
+      "p90_ms": 6.784200668334961,
+      "median_speedup_vs_baseline": 1.0
+    },
+    "decode_active_experts": {
+      "count": 64,
+      "mean_ms": 1.9011236727237701,
+      "median_ms": 1.89971923828125,
+      "p90_ms": 1.918792724609375,
+      "median_speedup_vs_baseline": 3.556789658634538
+    },
+    "decode_slot_sorted": {
+      "count": 64,
+      "mean_ms": 1.3960078358650208,
+      "median_ms": 1.395583152770996,
+      "p90_ms": 1.4104843139648438,
+      "median_speedup_vs_baseline": 4.841633210899462
+    },
+    "decode_bmm": {
+      "count": 64,
+      "mean_ms": 1.055944710969925,
+      "median_ms": 1.0558366775512695,
+      "p90_ms": 1.0654926300048828,
+      "median_speedup_vs_baseline": 6.399570960821949
+    }
+  },
+  "accepted": {
+    "baseline_full_forward": 42,
+    "decode_active_experts": 42,
+    "decode_slot_sorted": 42,
+    "decode_bmm": 41
+  },
+  "accept_rate": {
+    "baseline_full_forward": 0.65625,
+    "decode_active_experts": 0.65625,
+    "decode_slot_sorted": 0.65625,
+    "decode_bmm": 0.640625
+  },
+  "parity_vs_baseline": {
+    "decode_active_experts": {
+      "max_abs_vs_baseline": 0.0,
+      "max_rel_l2_vs_baseline": 0.0,
+      "top1_match_baseline": 64,
+      "top1_match_rate_baseline": 1.0
+    },
+    "decode_slot_sorted": {
+      "max_abs_vs_baseline": 0.0,
+      "max_rel_l2_vs_baseline": 0.0,
+      "top1_match_baseline": 64,
+      "top1_match_rate_baseline": 1.0
+    },
+    "decode_bmm": {
+      "max_abs_vs_baseline": 0.0625,
+      "max_rel_l2_vs_baseline": 0.0015211929567158222,
+      "top1_match_baseline": 60,
+      "top1_match_rate_baseline": 0.9375
+    }
+  },
+  "sidecar_tensor_count": 19
+}

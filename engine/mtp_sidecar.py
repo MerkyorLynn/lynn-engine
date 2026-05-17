@@ -16,7 +16,11 @@ import torch.nn.functional as F
 from safetensors import safe_open
 
 from engine.full_forward import _full_attn_forward, _layer_forward, _rms_norm
-from engine.moe_optimized import moe_forward_decode_bmm, moe_forward_decode_optimized
+from engine.moe_optimized import (
+    moe_forward_decode_bmm,
+    moe_forward_decode_optimized,
+    moe_forward_decode_slot_sorted,
+)
 
 
 def load_mtp_sidecar(
@@ -101,6 +105,8 @@ def _mtp_decode_layer_forward(
     h_norm = _rms_norm(h, mtp_w["post_attention_layernorm.weight"])
     if moe_mode in {"decode_active", "active", "optimized"}:
         moe_out = moe_forward_decode_optimized(h_norm, mtp_w, mtp_cfg)
+    elif moe_mode in {"decode_slot_sorted", "slot_sorted"}:
+        moe_out = moe_forward_decode_slot_sorted(h_norm, mtp_w, mtp_cfg)
     elif moe_mode in {"decode_bmm", "bmm"}:
         moe_out = moe_forward_decode_bmm(h_norm, mtp_w, mtp_cfg)
     else:
@@ -117,11 +123,11 @@ def mtp_layer_forward(
     """Run the one-token MTP layer, optionally with decode-only MoE.
 
     `baseline` preserves the original full-forward implementation. P113 showed
-    `decode_active` is bit-exact on sampled v34 states while avoiding the
+    `decode_slot_sorted` is bit-exact on sampled v34 states while avoiding the
     256-expert empty-mask scan in the MTP layer. `decode_bmm` is left as an
     explicit research mode because it was faster but not top-1 exact.
     """
-    moe_mode = os.environ.get("LYNN_MTP_LAYER_MOE", "baseline").strip().lower()
+    moe_mode = os.environ.get("LYNN_MTP_LAYER_MOE", "decode_slot_sorted").strip().lower()
     if moe_mode in {"", "baseline", "full_forward", "full"}:
         return _layer_forward(h, pos, "full_attention", mtp_w, mtp_cfg)
     return _mtp_decode_layer_forward(h, pos, mtp_w, mtp_cfg, moe_mode=moe_mode)

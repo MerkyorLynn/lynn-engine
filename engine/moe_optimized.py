@@ -229,8 +229,47 @@ def moe_forward_decode_bmm(h, w, cfg):
     return moe_out.view(B, T, D)
 
 
+def moe_forward_decode_slot_sorted(h, w, cfg):
+    """One-token MoE path that preserves expert-id accumulation order.
+
+    This sits between `decode_optimized` and `decode_bmm`: it avoids the
+    mask/nonzero/index_add overhead for B=T=1, while still accumulating experts
+    in ascending expert-id order like the generic full-forward implementation.
+    """
+    B, T, D = h.shape
+    K = cfg["num_experts_per_tok"]
+    h_flat = h.view(B * T, D)
+    if h_flat.shape[0] != 1:
+        return moe_forward_decode_optimized(h, w, cfg)
+
+    router_logits = F.linear(h_flat, w["mlp.gate.weight"])
+    routing_weights, expert_indices = torch.topk(router_logits, K, dim=-1)
+    routing_weights = F.softmax(routing_weights, dim=-1, dtype=torch.float32).to(h.dtype)
+    expert_ids = [int(x) for x in expert_indices[0].tolist()]
+    slot_order = sorted(range(K), key=lambda idx: (expert_ids[idx], idx))
+    w4a8_mode = _w4a8_fake_quant_mode()
+
+    moe_out = torch.zeros_like(h_flat)
+    for slot_idx in slot_order:
+        expert_id = expert_ids[slot_idx]
+        ffn_e = _expert_ffn(h_flat, w, expert_id, w4a8_mode=w4a8_mode)
+        moe_out = moe_out + ffn_e * routing_weights[0, slot_idx].view(1, 1)
+
+    if "mlp.shared_expert.gate_proj.weight" in w:
+        gate_s = F.linear(h_flat, w["mlp.shared_expert.gate_proj.weight"])
+        up_s = F.linear(h_flat, w["mlp.shared_expert.up_proj.weight"])
+        shared_ffn = F.linear(F.silu(gate_s) * up_s, w["mlp.shared_expert.down_proj.weight"])
+        if "mlp.shared_expert_gate.weight" in w:
+            shared_gate = torch.sigmoid(F.linear(h_flat, w["mlp.shared_expert_gate.weight"]))
+            shared_ffn = shared_ffn * shared_gate
+        moe_out = moe_out + shared_ffn
+
+    return moe_out.view(B, T, D)
+
+
 __all__ = [
     "moe_forward_decode_optimized",      # Phase 3.2.1 — active-experts only
     "moe_forward_prefill_optimized",
     "moe_forward_decode_bmm",            # Phase 3.2.2 — batched matmul
+    "moe_forward_decode_slot_sorted",
 ]

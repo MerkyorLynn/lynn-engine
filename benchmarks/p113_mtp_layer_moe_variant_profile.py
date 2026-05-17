@@ -30,7 +30,11 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from engine.full_forward import _full_attn_forward, _layer_forward, _rms_norm  # noqa: E402
-from engine.moe_optimized import moe_forward_decode_bmm, moe_forward_decode_optimized  # noqa: E402
+from engine.moe_optimized import (  # noqa: E402
+    moe_forward_decode_bmm,
+    moe_forward_decode_optimized,
+    moe_forward_decode_slot_sorted,
+)
 from engine.resident_runner import LynnIncrementalRunner  # noqa: E402
 from scripts.a100_mtp_fc_calibration_train import _mtp_cfg  # noqa: E402
 from scripts.a100_mtp_forward_smoke import _load_sidecar, _mtp_layer_weights  # noqa: E402
@@ -104,6 +108,9 @@ def _variant_fns() -> dict[str, LayerFn]:
         "baseline_full_forward": lambda h, pos, w, cfg: _layer_forward(h, pos, "full_attention", w, cfg),
         "decode_active_experts": lambda h, pos, w, cfg: _layer_forward_decode_moe(
             h, pos, w, cfg, moe_forward_decode_optimized
+        ),
+        "decode_slot_sorted": lambda h, pos, w, cfg: _layer_forward_decode_moe(
+            h, pos, w, cfg, moe_forward_decode_slot_sorted
         ),
         "decode_bmm": lambda h, pos, w, cfg: _layer_forward_decode_moe(h, pos, w, cfg, moe_forward_decode_bmm),
     }

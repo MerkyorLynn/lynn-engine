@@ -502,31 +502,35 @@ lighter predictor architecture before expecting one-token MTP to help 155 TPS.
 P113 finds the first low-risk MTP runtime cut. The MTP sidecar is always a
 one-token decode layer, but it was calling the generic full-forward MoE path,
 which scans empty expert masks. On v34 sampled states, swapping only that MoE
-step to the decode active-expert path gives exact parity:
+step to decode-only MoE gives exact parity:
 
 ```text
-reports/mtp/r6000_p113_mtp_layer_moe_variant_v34_raw_native_20260517_182304.json
+reports/mtp/r6000_p113_mtp_layer_moe_variant_v34_slot_sorted_20260517_183103.json
 baseline_full_forward layer median: 6.696 ms
 decode_active_experts median:       1.890 ms, 64/64 top1 match
+decode_slot_sorted median:          1.396 ms, 64/64 top1 match
 decode_bmm median:                  1.086 ms, 60/64 top1 match
 ```
 
-`decode_bmm` is faster but not exact, so it stays a research probe. The runtime
-now exposes the exact path through:
+`decode_slot_sorted` preserves expert-id accumulation order and is now the
+default MTP layer path. `decode_bmm` is faster but not exact, so it stays a
+research probe. The runtime switch is:
 
 ```text
-LYNN_MTP_LAYER_MOE=decode_active
+LYNN_MTP_LAYER_MOE=decode_slot_sorted
+# set LYNN_MTP_LAYER_MOE=baseline to force the old full-forward layer
 ```
 
 P107 with that setting preserves v34 acceptance and cuts the real shadow draft
 cost:
 
 ```text
-reports/mtp/r6000_p107_mtp_shadow_v34_rankflip_w4a8_v2_decodeactive_20260517_182518.json
+reports/mtp/r6000_p107_mtp_shadow_v34_rankflip_w4a8_v2_slotsorted_20260517_183146.json
 accept: 65/121 = 53.72%
-mean draft: 2.76 ms
-draft_tps: 362.30
+mean draft: 2.24 ms
+draft_tps: 447.24
 top2/top4/top8: 73/121, 80/121, 87/121
+baseline comparison: 0 draft-id mismatches, 0 accepted-flag mismatches
 ```
 
 An end-to-end `decode_bmm` P107 run shows why the faster path is not a default:

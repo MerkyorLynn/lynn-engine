@@ -395,26 +395,28 @@ fuse/graph/overlap it, or replace it with a lighter predictor.
 
 P113 turns that diagnosis into the first runtime win. The sidecar MTP layer was
 using full-forward MoE even though it is always a single decode token. Reusing
-the decode active-expert MoE path is exact on the v34 sampled states and cuts
-the layer median from `6.70 ms` to `1.89 ms`:
+decode-only MoE is exact on the v34 sampled states and cuts the layer median
+from `6.70 ms` to `1.40 ms`:
 
 | Variant | Layer Median | Parity |
 |---|---:|---:|
 | baseline full-forward MoE | 6.696 ms | reference |
-| decode active-expert MoE | 1.890 ms | 64/64 top1, max_abs 0 |
+| decode active-expert MoE | 1.900 ms | 64/64 top1, max_abs 0 |
+| decode slot-sorted MoE | 1.396 ms | 64/64 top1, max_abs 0 |
 | decode bmm | 1.086 ms | 60/64 top1, research only |
 
-Runtime hook:
+Runtime default:
 
 ```text
-LYNN_MTP_LAYER_MOE=decode_active
+LYNN_MTP_LAYER_MOE=decode_slot_sorted
 ```
 
-P107 with the hook keeps v34 acceptance unchanged at `65/121 = 53.72%`, while
-draft throughput improves from `131.45` to `362.30` draft tok/s
-(`7.61 ms -> 2.76 ms` mean draft). This is the right next native-serving branch:
-make the exact decode-active MTP path the serving default after one more parity
-gate, then chase overlap or a parity-safe grouped/BMM expert kernel.
+P107 with this path keeps v34 acceptance unchanged at `65/121 = 53.72%`, while
+draft throughput improves from `131.45` to `447.24` draft tok/s
+(`7.61 ms -> 2.24 ms` mean draft). Event-level comparison against the old
+baseline finds `0/121` draft-id mismatches and `0/121` accept mismatches, so
+slot-sorted is now the default exact MTP layer path. The old full-forward layer
+is still available with `LYNN_MTP_LAYER_MOE=baseline`.
 
 The first full P107 `decode_bmm` run confirms that grouped/BMM is the speed
 target but not the safe path yet: draft throughput rises to `513.77` draft
