@@ -622,6 +622,26 @@ enough to prioritize the next runtime prototype: measure how much of those
 contiguous spans can be cashed in by continuous-credit verification or by
 overlapping the exact slot-sorted draft with base decode.
 
+P115 simulates that continuous-credit ceiling from the same base-state trace:
+
+```text
+reports/mtp/r6000_p115_mtp_continuous_credit_v34_slotsorted_20260517_1938.json
+top1 depth1 zero-overhead: 151.25 tok/s
+top1 depth2 zero-overhead: 180.60 tok/s
+top1 depth2 with current 2.24 ms draft once per iteration: 147.60 tok/s
+top1 depth2 max draft budget for 155: 1.65 ms per iteration
+top1 depth4 optimistic same-cost: 159.50 tok/s
+top8 depth2 optimistic same-cost: 179.80 tok/s
+top8 depth2 serial per-draft-token: 152.02 tok/s
+```
+
+This is the most precise runtime target so far. Multi-token credit is valuable
+only if the draft side can be overlapped or kept close to constant cost per
+iteration. Naive serial recursive MTP does not clear 155 even with the v34
+continuity signal. Guarded structured routes remain below target in this model:
+top8 depth2 zero-overhead is only `150.56 tok/s`, so structured serving still
+needs guard-aware MTP calibration before speculation should be enabled there.
+
 Report:
 
 ```text

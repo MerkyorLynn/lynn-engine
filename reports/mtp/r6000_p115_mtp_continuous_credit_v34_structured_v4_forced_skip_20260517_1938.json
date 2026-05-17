@@ -1,0 +1,644 @@
+{
+  "schema_version": "lynn-p115-mtp-continuous-credit-sim-v1",
+  "source_report": "reports/mtp/r6000_p107_mtp_shadow_v34_structured_v4_forced_skip_top8_20260517_173549.json",
+  "skip_forced_prefix_events": true,
+  "production_baseline_tps": 100.0,
+  "draft_ms": 7.537373757450343,
+  "decision": "AMBER-CREDIT-SIM: top1 needs overlap, higher accept, or top-k verification to clear 155 TPS.",
+  "note": "Upper-bound simulation from base-state P107 trace flags; not a recursive MTP rollout measurement.",
+  "summary": {
+    "top1_depth1_zero_overhead_tps": 113.8655462184874,
+    "top1_depth2_zero_overhead_tps": 122.07207207207207,
+    "top8_depth2_zero_overhead_tps": 150.55555555555554
+  },
+  "analysis": {
+    "top1": {
+      "events": 271,
+      "covered": 54,
+      "coverage": 0.1992619926199262,
+      "by_depth": {
+        "depth1": {
+          "events": 271,
+          "iterations": 238,
+          "accepted_drafts": 33,
+          "accepted_drafts_per_iteration": 0.13865546218487396,
+          "full_depth_iterations": 33,
+          "zero_overhead_multiplier": 1.138655462184874,
+          "projection": {
+            "zero_overhead_tps": 113.8655462184874,
+            "zero_overhead_multiplier": 1.138655462184874,
+            "max_draft_ms_per_iteration_for_155": null,
+            "draft_ms": 7.537373757450343,
+            "optimistic_same_draft_cost_tps": 64.92736472022459,
+            "serial_per_draft_token_tps": 64.92736472022459
+          }
+        },
+        "depth2": {
+          "events": 271,
+          "iterations": 222,
+          "accepted_drafts": 49,
+          "accepted_drafts_per_iteration": 0.22072072072072071,
+          "full_depth_iterations": 16,
+          "zero_overhead_multiplier": 1.2207207207207207,
+          "projection": {
+            "zero_overhead_tps": 122.07207207207207,
+            "zero_overhead_multiplier": 1.2207207207207207,
+            "max_draft_ms_per_iteration_for_155": null,
+            "draft_ms": 7.537373757450343,
+            "optimistic_same_draft_cost_tps": 69.60681442979032,
+            "serial_per_draft_token_tps": 48.68327068877988
+          }
+        },
+        "depth4": {
+          "events": 271,
+          "iterations": 217,
+          "accepted_drafts": 54,
+          "accepted_drafts_per_iteration": 0.2488479262672811,
+          "full_depth_iterations": 5,
+          "zero_overhead_multiplier": 1.2488479262672811,
+          "projection": {
+            "zero_overhead_tps": 124.88479262672811,
+            "zero_overhead_multiplier": 1.2488479262672811,
+            "max_draft_ms_per_iteration_for_155": null,
+            "draft_ms": 7.537373757450343,
+            "optimistic_same_draft_cost_tps": 71.21065808024632,
+            "serial_per_draft_token_tps": 31.10494728116284
+          }
+        },
+        "depth8": {
+          "events": 271,
+          "iterations": 217,
+          "accepted_drafts": 54,
+          "accepted_drafts_per_iteration": 0.2488479262672811,
+          "full_depth_iterations": 0,
+          "zero_overhead_multiplier": 1.2488479262672811,
+          "projection": {
+            "zero_overhead_tps": 124.88479262672811,
+            "zero_overhead_multiplier": 1.2488479262672811,
+            "max_draft_ms_per_iteration_for_155": null,
+            "draft_ms": 7.537373757450343,
+            "optimistic_same_draft_cost_tps": 71.21065808024632,
+            "serial_per_draft_token_tps": 17.764806083393943
+          }
+        }
+      },
+      "per_prompt_depth1": [
+        {
+          "id": "w4a8_explain_v3",
+          "events": 24,
+          "covered": 2,
+          "depth1_iterations": 22,
+          "depth1_multiplier": 1.0909090909090908
+        },
+        {
+          "id": "palindrome_code_v3",
+          "events": 27,
+          "covered": 1,
+          "depth1_iterations": 26,
+          "depth1_multiplier": 1.0384615384615385
+        },
+        {
+          "id": "train_math_v3",
+          "events": 22,
+          "covered": 9,
+          "depth1_iterations": 15,
+          "depth1_multiplier": 1.4666666666666666
+        },
+        {
+          "id": "json_city_v3",
+          "events": 18,
+          "covered": 8,
+          "depth1_iterations": 14,
+          "depth1_multiplier": 1.2857142857142858
+        },
+        {
+          "id": "moe_router_expert_v4",
+          "events": 1,
+          "covered": 0,
+          "depth1_iterations": 1,
+          "depth1_multiplier": 1.0
+        },
+        {
+          "id": "linear_attention_explain_v3",
+          "events": 23,
+          "covered": 0,
+          "depth1_iterations": 23,
+          "depth1_multiplier": 1.0
+        },
+        {
+          "id": "tool_json_v3",
+          "events": 36,
+          "covered": 13,
+          "depth1_iterations": 28,
+          "depth1_multiplier": 1.2857142857142858
+        },
+        {
+          "id": "openapi_yaml_v3",
+          "events": 30,
+          "covered": 0,
+          "depth1_iterations": 30,
+          "depth1_multiplier": 1.0
+        },
+        {
+          "id": "normalize_city_code_v3",
+          "events": 8,
+          "covered": 4,
+          "depth1_iterations": 6,
+          "depth1_multiplier": 1.3333333333333333
+        },
+        {
+          "id": "repair_json_v3",
+          "events": 18,
+          "covered": 8,
+          "depth1_iterations": 14,
+          "depth1_multiplier": 1.2857142857142858
+        },
+        {
+          "id": "function_args_v3",
+          "events": 18,
+          "covered": 8,
+          "depth1_iterations": 14,
+          "depth1_multiplier": 1.2857142857142858
+        },
+        {
+          "id": "linear_attention_bullets_v3",
+          "events": 46,
+          "covered": 1,
+          "depth1_iterations": 45,
+          "depth1_multiplier": 1.0222222222222221
+        }
+      ]
+    },
+    "top2": {
+      "events": 271,
+      "covered": 68,
+      "coverage": 0.25092250922509224,
+      "by_depth": {
+        "depth1": {
+          "events": 271,
+          "iterations": 226,
+          "accepted_drafts": 45,
+          "accepted_drafts_per_iteration": 0.19911504424778761,
+          "full_depth_iterations": 45,
+          "zero_overhead_multiplier": 1.1991150442477876,
+          "projection": {
+            "zero_overhead_tps": 119.91150442477876,
+            "zero_overhead_multiplier": 1.1991150442477876,
+            "max_draft_ms_per_iteration_for_155": null,
+            "draft_ms": 7.537373757450343,
+            "optimistic_same_draft_cost_tps": 68.37483541333386,
+            "serial_per_draft_token_tps": 68.37483541333386
+          }
+        },
+        "depth2": {
+          "events": 271,
+          "iterations": 212,
+          "accepted_drafts": 59,
+          "accepted_drafts_per_iteration": 0.2783018867924528,
+          "full_depth_iterations": 17,
+          "zero_overhead_multiplier": 1.278301886792453,
+          "projection": {
+            "zero_overhead_tps": 127.8301886792453,
+            "zero_overhead_multiplier": 1.278301886792453,
+            "max_draft_ms_per_iteration_for_155": null,
+            "draft_ms": 7.537373757450343,
+            "optimistic_same_draft_cost_tps": 72.89015473308233,
+            "serial_per_draft_token_tps": 50.97965138164685
+          }
+        },
+        "depth4": {
+          "events": 271,
+          "iterations": 204,
+          "accepted_drafts": 67,
+          "accepted_drafts_per_iteration": 0.3284313725490196,
+          "full_depth_iterations": 7,
+          "zero_overhead_multiplier": 1.3284313725490196,
+          "projection": {
+            "zero_overhead_tps": 132.84313725490196,
+            "zero_overhead_multiplier": 1.3284313725490196,
+            "max_draft_ms_per_iteration_for_155": null,
+            "draft_ms": 7.537373757450343,
+            "optimistic_same_draft_cost_tps": 75.74859217359536,
+            "serial_per_draft_token_tps": 33.08712529417812
+          }
+        },
+        "depth8": {
+          "events": 271,
+          "iterations": 203,
+          "accepted_drafts": 68,
+          "accepted_drafts_per_iteration": 0.33497536945812806,
+          "full_depth_iterations": 0,
+          "zero_overhead_multiplier": 1.3349753694581281,
+          "projection": {
+            "zero_overhead_tps": 133.4975369458128,
+            "zero_overhead_multiplier": 1.3349753694581281,
+            "max_draft_ms_per_iteration_for_155": null,
+            "draft_ms": 7.537373757450343,
+            "optimistic_same_draft_cost_tps": 76.12173794784951,
+            "serial_per_draft_token_tps": 18.989965123628007
+          }
+        }
+      },
+      "per_prompt_depth1": [
+        {
+          "id": "w4a8_explain_v3",
+          "events": 24,
+          "covered": 4,
+          "depth1_iterations": 21,
+          "depth1_multiplier": 1.1428571428571428
+        },
+        {
+          "id": "palindrome_code_v3",
+          "events": 27,
+          "covered": 1,
+          "depth1_iterations": 26,
+          "depth1_multiplier": 1.0384615384615385
+        },
+        {
+          "id": "train_math_v3",
+          "events": 22,
+          "covered": 10,
+          "depth1_iterations": 14,
+          "depth1_multiplier": 1.5714285714285714
+        },
+        {
+          "id": "json_city_v3",
+          "events": 18,
+          "covered": 10,
+          "depth1_iterations": 12,
+          "depth1_multiplier": 1.5
+        },
+        {
+          "id": "moe_router_expert_v4",
+          "events": 1,
+          "covered": 0,
+          "depth1_iterations": 1,
+          "depth1_multiplier": 1.0
+        },
+        {
+          "id": "linear_attention_explain_v3",
+          "events": 23,
+          "covered": 1,
+          "depth1_iterations": 23,
+          "depth1_multiplier": 1.0
+        },
+        {
+          "id": "tool_json_v3",
+          "events": 36,
+          "covered": 15,
+          "depth1_iterations": 27,
+          "depth1_multiplier": 1.3333333333333333
+        },
+        {
+          "id": "openapi_yaml_v3",
+          "events": 30,
+          "covered": 2,
+          "depth1_iterations": 28,
+          "depth1_multiplier": 1.0714285714285714
+        },
+        {
+          "id": "normalize_city_code_v3",
+          "events": 8,
+          "covered": 4,
+          "depth1_iterations": 6,
+          "depth1_multiplier": 1.3333333333333333
+        },
+        {
+          "id": "repair_json_v3",
+          "events": 18,
+          "covered": 9,
+          "depth1_iterations": 13,
+          "depth1_multiplier": 1.3846153846153846
+        },
+        {
+          "id": "function_args_v3",
+          "events": 18,
+          "covered": 8,
+          "depth1_iterations": 14,
+          "depth1_multiplier": 1.2857142857142858
+        },
+        {
+          "id": "linear_attention_bullets_v3",
+          "events": 46,
+          "covered": 4,
+          "depth1_iterations": 43,
+          "depth1_multiplier": 1.069767441860465
+        }
+      ]
+    },
+    "top4": {
+      "events": 271,
+      "covered": 86,
+      "coverage": 0.3173431734317343,
+      "by_depth": {
+        "depth1": {
+          "events": 271,
+          "iterations": 211,
+          "accepted_drafts": 60,
+          "accepted_drafts_per_iteration": 0.2843601895734597,
+          "full_depth_iterations": 60,
+          "zero_overhead_multiplier": 1.2843601895734598,
+          "projection": {
+            "zero_overhead_tps": 128.43601895734596,
+            "zero_overhead_multiplier": 1.2843601895734598,
+            "max_draft_ms_per_iteration_for_155": null,
+            "draft_ms": 7.537373757450343,
+            "optimistic_same_draft_cost_tps": 73.23560570338128,
+            "serial_per_draft_token_tps": 73.23560570338128
+          }
+        },
+        "depth2": {
+          "events": 271,
+          "iterations": 197,
+          "accepted_drafts": 74,
+          "accepted_drafts_per_iteration": 0.3756345177664975,
+          "full_depth_iterations": 19,
+          "zero_overhead_multiplier": 1.3756345177664975,
+          "projection": {
+            "zero_overhead_tps": 137.56345177664974,
+            "zero_overhead_multiplier": 1.3756345177664975,
+            "max_draft_ms_per_iteration_for_155": null,
+            "draft_ms": 7.537373757450343,
+            "optimistic_same_draft_cost_tps": 78.44016651478908,
+            "serial_per_draft_token_tps": 54.86135072542707
+          }
+        },
+        "depth4": {
+          "events": 271,
+          "iterations": 186,
+          "accepted_drafts": 85,
+          "accepted_drafts_per_iteration": 0.45698924731182794,
+          "full_depth_iterations": 8,
+          "zero_overhead_multiplier": 1.456989247311828,
+          "projection": {
+            "zero_overhead_tps": 145.69892473118279,
+            "zero_overhead_multiplier": 1.456989247311828,
+            "max_draft_ms_per_iteration_for_155": null,
+            "draft_ms": 7.537373757450343,
+            "optimistic_same_draft_cost_tps": 83.07910109362071,
+            "serial_per_draft_token_tps": 36.289105161356645
+          }
+        },
+        "depth8": {
+          "events": 271,
+          "iterations": 185,
+          "accepted_drafts": 86,
+          "accepted_drafts_per_iteration": 0.4648648648648649,
+          "full_depth_iterations": 0,
+          "zero_overhead_multiplier": 1.4648648648648648,
+          "projection": {
+            "zero_overhead_tps": 146.48648648648648,
+            "zero_overhead_multiplier": 1.4648648648648648,
+            "max_draft_ms_per_iteration_for_155": null,
+            "draft_ms": 7.537373757450343,
+            "optimistic_same_draft_cost_tps": 83.52817731574838,
+            "serial_per_draft_token_tps": 20.837637405926948
+          }
+        }
+      },
+      "per_prompt_depth1": [
+        {
+          "id": "w4a8_explain_v3",
+          "events": 24,
+          "covered": 6,
+          "depth1_iterations": 19,
+          "depth1_multiplier": 1.263157894736842
+        },
+        {
+          "id": "palindrome_code_v3",
+          "events": 27,
+          "covered": 3,
+          "depth1_iterations": 25,
+          "depth1_multiplier": 1.08
+        },
+        {
+          "id": "train_math_v3",
+          "events": 22,
+          "covered": 12,
+          "depth1_iterations": 12,
+          "depth1_multiplier": 1.8333333333333333
+        },
+        {
+          "id": "json_city_v3",
+          "events": 18,
+          "covered": 10,
+          "depth1_iterations": 12,
+          "depth1_multiplier": 1.5
+        },
+        {
+          "id": "moe_router_expert_v4",
+          "events": 1,
+          "covered": 1,
+          "depth1_iterations": 1,
+          "depth1_multiplier": 1.0
+        },
+        {
+          "id": "linear_attention_explain_v3",
+          "events": 23,
+          "covered": 1,
+          "depth1_iterations": 23,
+          "depth1_multiplier": 1.0
+        },
+        {
+          "id": "tool_json_v3",
+          "events": 36,
+          "covered": 19,
+          "depth1_iterations": 23,
+          "depth1_multiplier": 1.565217391304348
+        },
+        {
+          "id": "openapi_yaml_v3",
+          "events": 30,
+          "covered": 5,
+          "depth1_iterations": 25,
+          "depth1_multiplier": 1.2
+        },
+        {
+          "id": "normalize_city_code_v3",
+          "events": 8,
+          "covered": 4,
+          "depth1_iterations": 6,
+          "depth1_multiplier": 1.3333333333333333
+        },
+        {
+          "id": "repair_json_v3",
+          "events": 18,
+          "covered": 10,
+          "depth1_iterations": 12,
+          "depth1_multiplier": 1.5
+        },
+        {
+          "id": "function_args_v3",
+          "events": 18,
+          "covered": 10,
+          "depth1_iterations": 12,
+          "depth1_multiplier": 1.5
+        },
+        {
+          "id": "linear_attention_bullets_v3",
+          "events": 46,
+          "covered": 5,
+          "depth1_iterations": 42,
+          "depth1_multiplier": 1.0952380952380953
+        }
+      ]
+    },
+    "top8": {
+      "events": 271,
+      "covered": 109,
+      "coverage": 0.4022140221402214,
+      "by_depth": {
+        "depth1": {
+          "events": 271,
+          "iterations": 202,
+          "accepted_drafts": 70,
+          "accepted_drafts_per_iteration": 0.3465346534653465,
+          "full_depth_iterations": 70,
+          "zero_overhead_multiplier": 1.3415841584158417,
+          "projection": {
+            "zero_overhead_tps": 134.15841584158417,
+            "zero_overhead_multiplier": 1.3415841584158417,
+            "max_draft_ms_per_iteration_for_155": null,
+            "draft_ms": 7.537373757450343,
+            "optimistic_same_draft_cost_tps": 76.49857823472006,
+            "serial_per_draft_token_tps": 76.49857823472006
+          }
+        },
+        "depth2": {
+          "events": 271,
+          "iterations": 180,
+          "accepted_drafts": 92,
+          "accepted_drafts_per_iteration": 0.5111111111111111,
+          "full_depth_iterations": 32,
+          "zero_overhead_multiplier": 1.5055555555555555,
+          "projection": {
+            "zero_overhead_tps": 150.55555555555554,
+            "zero_overhead_multiplier": 1.5055555555555555,
+            "max_draft_ms_per_iteration_for_155": null,
+            "draft_ms": 7.537373757450343,
+            "optimistic_same_draft_cost_tps": 85.84840446340806,
+            "serial_per_draft_token_tps": 60.04270051616185
+          }
+        },
+        "depth4": {
+          "events": 271,
+          "iterations": 165,
+          "accepted_drafts": 107,
+          "accepted_drafts_per_iteration": 0.6484848484848484,
+          "full_depth_iterations": 8,
+          "zero_overhead_multiplier": 1.6424242424242423,
+          "projection": {
+            "zero_overhead_tps": 164.24242424242422,
+            "zero_overhead_multiplier": 1.6424242424242423,
+            "max_draft_ms_per_iteration_for_155": 0.5962854349951113,
+            "draft_ms": 7.537373757450343,
+            "optimistic_same_draft_cost_tps": 93.65280486917243,
+            "serial_per_draft_token_tps": 40.90771854552931
+          }
+        },
+        "depth8": {
+          "events": 271,
+          "iterations": 163,
+          "accepted_drafts": 109,
+          "accepted_drafts_per_iteration": 0.6687116564417178,
+          "full_depth_iterations": 1,
+          "zero_overhead_multiplier": 1.6625766871165644,
+          "projection": {
+            "zero_overhead_tps": 166.25766871165644,
+            "zero_overhead_multiplier": 1.6625766871165644,
+            "max_draft_ms_per_iteration_for_155": 0.72630120720364,
+            "draft_ms": 7.537373757450343,
+            "optimistic_same_draft_cost_tps": 94.80191903934633,
+            "serial_per_draft_token_tps": 23.650079264395618
+          }
+        }
+      },
+      "per_prompt_depth1": [
+        {
+          "id": "w4a8_explain_v3",
+          "events": 24,
+          "covered": 7,
+          "depth1_iterations": 19,
+          "depth1_multiplier": 1.263157894736842
+        },
+        {
+          "id": "palindrome_code_v3",
+          "events": 27,
+          "covered": 5,
+          "depth1_iterations": 23,
+          "depth1_multiplier": 1.173913043478261
+        },
+        {
+          "id": "train_math_v3",
+          "events": 22,
+          "covered": 15,
+          "depth1_iterations": 12,
+          "depth1_multiplier": 1.8333333333333333
+        },
+        {
+          "id": "json_city_v3",
+          "events": 18,
+          "covered": 12,
+          "depth1_iterations": 11,
+          "depth1_multiplier": 1.6363636363636365
+        },
+        {
+          "id": "moe_router_expert_v4",
+          "events": 1,
+          "covered": 1,
+          "depth1_iterations": 1,
+          "depth1_multiplier": 1.0
+        },
+        {
+          "id": "linear_attention_explain_v3",
+          "events": 23,
+          "covered": 1,
+          "depth1_iterations": 23,
+          "depth1_multiplier": 1.0
+        },
+        {
+          "id": "tool_json_v3",
+          "events": 36,
+          "covered": 21,
+          "depth1_iterations": 23,
+          "depth1_multiplier": 1.565217391304348
+        },
+        {
+          "id": "openapi_yaml_v3",
+          "events": 30,
+          "covered": 10,
+          "depth1_iterations": 22,
+          "depth1_multiplier": 1.3636363636363635
+        },
+        {
+          "id": "normalize_city_code_v3",
+          "events": 8,
+          "covered": 4,
+          "depth1_iterations": 6,
+          "depth1_multiplier": 1.3333333333333333
+        },
+        {
+          "id": "repair_json_v3",
+          "events": 18,
+          "covered": 12,
+          "depth1_iterations": 11,
+          "depth1_multiplier": 1.6363636363636365
+        },
+        {
+          "id": "function_args_v3",
+          "events": 18,
+          "covered": 12,
+          "depth1_iterations": 11,
+          "depth1_multiplier": 1.6363636363636365
+        },
+        {
+          "id": "linear_attention_bullets_v3",
+          "events": 46,
+          "covered": 9,
+          "depth1_iterations": 41,
+          "depth1_multiplier": 1.1219512195121952
+        }
+      ]
+    }
+  }
+}

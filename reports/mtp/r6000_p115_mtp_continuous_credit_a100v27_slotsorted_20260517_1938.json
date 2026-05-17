@@ -1,0 +1,532 @@
+{
+  "schema_version": "lynn-p115-mtp-continuous-credit-sim-v1",
+  "source_report": "reports/mtp/r6000_p107_mtp_shadow_a100v27_weak_missintopk_w4a8_v2_slotsorted_20260517_190539.json",
+  "skip_forced_prefix_events": false,
+  "production_baseline_tps": 100.0,
+  "draft_ms": 2.2520684013681964,
+  "decision": "GREEN-CREDIT-SIM: top1 depth2 zero-overhead can clear 155 TPS; build a runtime prototype.",
+  "note": "Upper-bound simulation from base-state P107 trace flags; not a recursive MTP rollout measurement.",
+  "summary": {
+    "top1_depth1_zero_overhead_tps": 149.3827160493827,
+    "top1_depth2_zero_overhead_tps": 175.36231884057972,
+    "top8_depth2_zero_overhead_tps": 216.07142857142856
+  },
+  "analysis": {
+    "top1": {
+      "events": 121,
+      "covered": 62,
+      "coverage": 0.512396694214876,
+      "by_depth": {
+        "depth1": {
+          "events": 121,
+          "iterations": 81,
+          "accepted_drafts": 40,
+          "accepted_drafts_per_iteration": 0.49382716049382713,
+          "full_depth_iterations": 40,
+          "zero_overhead_multiplier": 1.4938271604938271,
+          "projection": {
+            "zero_overhead_tps": 149.3827160493827,
+            "zero_overhead_multiplier": 1.4938271604938271,
+            "max_draft_ms_per_iteration_for_155": null,
+            "draft_ms": 2.2520684013681964,
+            "optimistic_same_draft_cost_tps": 121.92448748710956,
+            "serial_per_draft_token_tps": 121.92448748710956
+          }
+        },
+        "depth2": {
+          "events": 121,
+          "iterations": 69,
+          "accepted_drafts": 52,
+          "accepted_drafts_per_iteration": 0.7536231884057971,
+          "full_depth_iterations": 17,
+          "zero_overhead_multiplier": 1.7536231884057971,
+          "projection": {
+            "zero_overhead_tps": 175.36231884057972,
+            "zero_overhead_multiplier": 1.7536231884057971,
+            "max_draft_ms_per_iteration_for_155": 1.3136979897148195,
+            "draft_ms": 2.2520684013681964,
+            "optimistic_same_draft_cost_tps": 143.12874618051993,
+            "serial_per_draft_token_tps": 120.90503642208844
+          }
+        },
+        "depth4": {
+          "events": 121,
+          "iterations": 63,
+          "accepted_drafts": 58,
+          "accepted_drafts_per_iteration": 0.9206349206349206,
+          "full_depth_iterations": 8,
+          "zero_overhead_multiplier": 1.9206349206349207,
+          "projection": {
+            "zero_overhead_tps": 192.06349206349208,
+            "zero_overhead_multiplier": 1.9206349206349207,
+            "max_draft_ms_per_iteration_for_155": 2.3911930363543257,
+            "draft_ms": 2.2520684013681964,
+            "optimistic_same_draft_cost_tps": 156.76005534056944,
+            "serial_per_draft_token_tps": 101.04204939905428
+          }
+        },
+        "depth8": {
+          "events": 121,
+          "iterations": 59,
+          "accepted_drafts": 62,
+          "accepted_drafts_per_iteration": 1.0508474576271187,
+          "full_depth_iterations": 1,
+          "zero_overhead_multiplier": 2.0508474576271185,
+          "projection": {
+            "zero_overhead_tps": 205.08474576271186,
+            "zero_overhead_multiplier": 2.0508474576271185,
+            "max_draft_ms_per_iteration_for_155": 3.2312739201749587,
+            "draft_ms": 2.2520684013681964,
+            "optimistic_same_draft_cost_tps": 167.38785570264193,
+            "serial_per_draft_token_tps": 73.20129215729656
+          }
+        }
+      },
+      "per_prompt_depth1": [
+        {
+          "id": "heldout_json_berlin_metric",
+          "events": 16,
+          "covered": 11,
+          "depth1_iterations": 9,
+          "depth1_multiplier": 1.7777777777777777
+        },
+        {
+          "id": "heldout_json_status_ready",
+          "events": 16,
+          "covered": 8,
+          "depth1_iterations": 11,
+          "depth1_multiplier": 1.4545454545454546
+        },
+        {
+          "id": "heldout_tool_translate",
+          "events": 16,
+          "covered": 10,
+          "depth1_iterations": 10,
+          "depth1_multiplier": 1.6
+        },
+        {
+          "id": "heldout_math_distance",
+          "events": 10,
+          "covered": 5,
+          "depth1_iterations": 7,
+          "depth1_multiplier": 1.4285714285714286
+        },
+        {
+          "id": "heldout_python_slug",
+          "events": 16,
+          "covered": 7,
+          "depth1_iterations": 11,
+          "depth1_multiplier": 1.4545454545454546
+        },
+        {
+          "id": "heldout_moe_short",
+          "events": 16,
+          "covered": 3,
+          "depth1_iterations": 13,
+          "depth1_multiplier": 1.2307692307692308
+        },
+        {
+          "id": "heldout_linear_short",
+          "events": 16,
+          "covered": 5,
+          "depth1_iterations": 12,
+          "depth1_multiplier": 1.3333333333333333
+        },
+        {
+          "id": "heldout_repair_json",
+          "events": 15,
+          "covered": 13,
+          "depth1_iterations": 8,
+          "depth1_multiplier": 1.875
+        }
+      ]
+    },
+    "top2": {
+      "events": 121,
+      "covered": 72,
+      "coverage": 0.5950413223140496,
+      "by_depth": {
+        "depth1": {
+          "events": 121,
+          "iterations": 79,
+          "accepted_drafts": 42,
+          "accepted_drafts_per_iteration": 0.5316455696202531,
+          "full_depth_iterations": 42,
+          "zero_overhead_multiplier": 1.5316455696202531,
+          "projection": {
+            "zero_overhead_tps": 153.1645569620253,
+            "zero_overhead_multiplier": 1.5316455696202531,
+            "max_draft_ms_per_iteration_for_155": null,
+            "draft_ms": 2.2520684013681964,
+            "optimistic_same_draft_cost_tps": 125.01118337285916,
+            "serial_per_draft_token_tps": 125.01118337285916
+          }
+        },
+        "depth2": {
+          "events": 121,
+          "iterations": 65,
+          "accepted_drafts": 56,
+          "accepted_drafts_per_iteration": 0.8615384615384616,
+          "full_depth_iterations": 24,
+          "zero_overhead_multiplier": 1.8615384615384616,
+          "projection": {
+            "zero_overhead_tps": 186.15384615384616,
+            "zero_overhead_multiplier": 1.8615384615384616,
+            "max_draft_ms_per_iteration_for_155": 2.009925558312654,
+            "draft_ms": 2.2520684013681964,
+            "optimistic_same_draft_cost_tps": 151.93666902239806,
+            "serial_per_draft_token_tps": 128.34534635575542
+          }
+        },
+        "depth4": {
+          "events": 121,
+          "iterations": 57,
+          "accepted_drafts": 64,
+          "accepted_drafts_per_iteration": 1.1228070175438596,
+          "full_depth_iterations": 11,
+          "zero_overhead_multiplier": 2.1228070175438596,
+          "projection": {
+            "zero_overhead_tps": 212.28070175438597,
+            "zero_overhead_multiplier": 2.1228070175438596,
+            "max_draft_ms_per_iteration_for_155": 3.695529145444255,
+            "draft_ms": 2.2520684013681964,
+            "optimistic_same_draft_cost_tps": 173.26111379747147,
+            "serial_per_draft_token_tps": 111.67805459895473
+          }
+        },
+        "depth8": {
+          "events": 121,
+          "iterations": 50,
+          "accepted_drafts": 71,
+          "accepted_drafts_per_iteration": 1.42,
+          "full_depth_iterations": 2,
+          "zero_overhead_multiplier": 2.42,
+          "projection": {
+            "zero_overhead_tps": 242.0,
+            "zero_overhead_multiplier": 2.42,
+            "max_draft_ms_per_iteration_for_155": 5.61290322580645,
+            "draft_ms": 2.2520684013681964,
+            "optimistic_same_draft_cost_tps": 197.5176697291175,
+            "serial_per_draft_token_tps": 86.37752474560993
+          }
+        }
+      },
+      "per_prompt_depth1": [
+        {
+          "id": "heldout_json_berlin_metric",
+          "events": 16,
+          "covered": 14,
+          "depth1_iterations": 8,
+          "depth1_multiplier": 2.0
+        },
+        {
+          "id": "heldout_json_status_ready",
+          "events": 16,
+          "covered": 8,
+          "depth1_iterations": 11,
+          "depth1_multiplier": 1.4545454545454546
+        },
+        {
+          "id": "heldout_tool_translate",
+          "events": 16,
+          "covered": 12,
+          "depth1_iterations": 10,
+          "depth1_multiplier": 1.6
+        },
+        {
+          "id": "heldout_math_distance",
+          "events": 10,
+          "covered": 5,
+          "depth1_iterations": 7,
+          "depth1_multiplier": 1.4285714285714286
+        },
+        {
+          "id": "heldout_python_slug",
+          "events": 16,
+          "covered": 8,
+          "depth1_iterations": 11,
+          "depth1_multiplier": 1.4545454545454546
+        },
+        {
+          "id": "heldout_moe_short",
+          "events": 16,
+          "covered": 5,
+          "depth1_iterations": 13,
+          "depth1_multiplier": 1.2307692307692308
+        },
+        {
+          "id": "heldout_linear_short",
+          "events": 16,
+          "covered": 7,
+          "depth1_iterations": 11,
+          "depth1_multiplier": 1.4545454545454546
+        },
+        {
+          "id": "heldout_repair_json",
+          "events": 15,
+          "covered": 13,
+          "depth1_iterations": 8,
+          "depth1_multiplier": 1.875
+        }
+      ]
+    },
+    "top4": {
+      "events": 121,
+      "covered": 79,
+      "coverage": 0.6528925619834711,
+      "by_depth": {
+        "depth1": {
+          "events": 121,
+          "iterations": 74,
+          "accepted_drafts": 47,
+          "accepted_drafts_per_iteration": 0.6351351351351351,
+          "full_depth_iterations": 47,
+          "zero_overhead_multiplier": 1.635135135135135,
+          "projection": {
+            "zero_overhead_tps": 163.51351351351352,
+            "zero_overhead_multiplier": 1.635135135135135,
+            "max_draft_ms_per_iteration_for_155": 0.5492589363557103,
+            "draft_ms": 2.2520684013681964,
+            "optimistic_same_draft_cost_tps": 133.4578849521064,
+            "serial_per_draft_token_tps": 133.4578849521064
+          }
+        },
+        "depth2": {
+          "events": 121,
+          "iterations": 59,
+          "accepted_drafts": 62,
+          "accepted_drafts_per_iteration": 1.0508474576271187,
+          "full_depth_iterations": 27,
+          "zero_overhead_multiplier": 2.0508474576271185,
+          "projection": {
+            "zero_overhead_tps": 205.08474576271186,
+            "zero_overhead_multiplier": 2.0508474576271185,
+            "max_draft_ms_per_iteration_for_155": 3.2312739201749587,
+            "draft_ms": 2.2520684013681964,
+            "optimistic_same_draft_cost_tps": 167.38785570264193,
+            "serial_per_draft_token_tps": 141.39741547667973
+          }
+        },
+        "depth4": {
+          "events": 121,
+          "iterations": 52,
+          "accepted_drafts": 69,
+          "accepted_drafts_per_iteration": 1.3269230769230769,
+          "full_depth_iterations": 11,
+          "zero_overhead_multiplier": 2.326923076923077,
+          "projection": {
+            "zero_overhead_tps": 232.6923076923077,
+            "zero_overhead_multiplier": 2.326923076923077,
+            "max_draft_ms_per_iteration_for_155": 5.012406947890819,
+            "draft_ms": 2.2520684013681964,
+            "optimistic_same_draft_cost_tps": 189.92083627799758,
+            "serial_per_draft_token_tps": 122.41632907962344
+          }
+        },
+        "depth8": {
+          "events": 121,
+          "iterations": 44,
+          "accepted_drafts": 77,
+          "accepted_drafts_per_iteration": 1.75,
+          "full_depth_iterations": 3,
+          "zero_overhead_multiplier": 2.75,
+          "projection": {
+            "zero_overhead_tps": 275.0,
+            "zero_overhead_multiplier": 2.75,
+            "max_draft_ms_per_iteration_for_155": 7.741935483870968,
+            "draft_ms": 2.2520684013681964,
+            "optimistic_same_draft_cost_tps": 224.4518974194517,
+            "serial_per_draft_token_tps": 98.15627812001131
+          }
+        }
+      },
+      "per_prompt_depth1": [
+        {
+          "id": "heldout_json_berlin_metric",
+          "events": 16,
+          "covered": 15,
+          "depth1_iterations": 8,
+          "depth1_multiplier": 2.0
+        },
+        {
+          "id": "heldout_json_status_ready",
+          "events": 16,
+          "covered": 10,
+          "depth1_iterations": 10,
+          "depth1_multiplier": 1.6
+        },
+        {
+          "id": "heldout_tool_translate",
+          "events": 16,
+          "covered": 12,
+          "depth1_iterations": 10,
+          "depth1_multiplier": 1.6
+        },
+        {
+          "id": "heldout_math_distance",
+          "events": 10,
+          "covered": 6,
+          "depth1_iterations": 6,
+          "depth1_multiplier": 1.6666666666666667
+        },
+        {
+          "id": "heldout_python_slug",
+          "events": 16,
+          "covered": 9,
+          "depth1_iterations": 10,
+          "depth1_multiplier": 1.6
+        },
+        {
+          "id": "heldout_moe_short",
+          "events": 16,
+          "covered": 7,
+          "depth1_iterations": 11,
+          "depth1_multiplier": 1.4545454545454546
+        },
+        {
+          "id": "heldout_linear_short",
+          "events": 16,
+          "covered": 7,
+          "depth1_iterations": 11,
+          "depth1_multiplier": 1.4545454545454546
+        },
+        {
+          "id": "heldout_repair_json",
+          "events": 15,
+          "covered": 13,
+          "depth1_iterations": 8,
+          "depth1_multiplier": 1.875
+        }
+      ]
+    },
+    "top8": {
+      "events": 121,
+      "covered": 85,
+      "coverage": 0.7024793388429752,
+      "by_depth": {
+        "depth1": {
+          "events": 121,
+          "iterations": 74,
+          "accepted_drafts": 47,
+          "accepted_drafts_per_iteration": 0.6351351351351351,
+          "full_depth_iterations": 47,
+          "zero_overhead_multiplier": 1.635135135135135,
+          "projection": {
+            "zero_overhead_tps": 163.51351351351352,
+            "zero_overhead_multiplier": 1.635135135135135,
+            "max_draft_ms_per_iteration_for_155": 0.5492589363557103,
+            "draft_ms": 2.2520684013681964,
+            "optimistic_same_draft_cost_tps": 133.4578849521064,
+            "serial_per_draft_token_tps": 133.4578849521064
+          }
+        },
+        "depth2": {
+          "events": 121,
+          "iterations": 56,
+          "accepted_drafts": 65,
+          "accepted_drafts_per_iteration": 1.1607142857142858,
+          "full_depth_iterations": 29,
+          "zero_overhead_multiplier": 2.1607142857142856,
+          "projection": {
+            "zero_overhead_tps": 216.07142857142856,
+            "zero_overhead_multiplier": 2.1607142857142856,
+            "max_draft_ms_per_iteration_for_155": 3.940092165898617,
+            "draft_ms": 2.2520684013681964,
+            "optimistic_same_draft_cost_tps": 176.3550622581406,
+            "serial_per_draft_token_tps": 148.97227702007328
+          }
+        },
+        "depth4": {
+          "events": 121,
+          "iterations": 47,
+          "accepted_drafts": 74,
+          "accepted_drafts_per_iteration": 1.574468085106383,
+          "full_depth_iterations": 12,
+          "zero_overhead_multiplier": 2.574468085106383,
+          "projection": {
+            "zero_overhead_tps": 257.4468085106383,
+            "zero_overhead_multiplier": 2.574468085106383,
+            "max_draft_ms_per_iteration_for_155": 6.609471516815372,
+            "draft_ms": 2.2520684013681964,
+            "optimistic_same_draft_cost_tps": 210.12518056289096,
+            "serial_per_draft_token_tps": 135.43934281149828
+          }
+        },
+        "depth8": {
+          "events": 121,
+          "iterations": 39,
+          "accepted_drafts": 82,
+          "accepted_drafts_per_iteration": 2.1025641025641026,
+          "full_depth_iterations": 4,
+          "zero_overhead_multiplier": 3.1025641025641026,
+          "projection": {
+            "zero_overhead_tps": 310.2564102564103,
+            "zero_overhead_multiplier": 3.1025641025641026,
+            "max_draft_ms_per_iteration_for_155": 10.01654259718776,
+            "draft_ms": 2.2520684013681964,
+            "optimistic_same_draft_cost_tps": 253.22778170399678,
+            "serial_per_draft_token_tps": 110.74041634052556
+          }
+        }
+      },
+      "per_prompt_depth1": [
+        {
+          "id": "heldout_json_berlin_metric",
+          "events": 16,
+          "covered": 15,
+          "depth1_iterations": 8,
+          "depth1_multiplier": 2.0
+        },
+        {
+          "id": "heldout_json_status_ready",
+          "events": 16,
+          "covered": 11,
+          "depth1_iterations": 10,
+          "depth1_multiplier": 1.6
+        },
+        {
+          "id": "heldout_tool_translate",
+          "events": 16,
+          "covered": 12,
+          "depth1_iterations": 10,
+          "depth1_multiplier": 1.6
+        },
+        {
+          "id": "heldout_math_distance",
+          "events": 10,
+          "covered": 8,
+          "depth1_iterations": 6,
+          "depth1_multiplier": 1.6666666666666667
+        },
+        {
+          "id": "heldout_python_slug",
+          "events": 16,
+          "covered": 9,
+          "depth1_iterations": 10,
+          "depth1_multiplier": 1.6
+        },
+        {
+          "id": "heldout_moe_short",
+          "events": 16,
+          "covered": 9,
+          "depth1_iterations": 11,
+          "depth1_multiplier": 1.4545454545454546
+        },
+        {
+          "id": "heldout_linear_short",
+          "events": 16,
+          "covered": 8,
+          "depth1_iterations": 11,
+          "depth1_multiplier": 1.4545454545454546
+        },
+        {
+          "id": "heldout_repair_json",
+          "events": 15,
+          "covered": 13,
+          "depth1_iterations": 8,
+          "depth1_multiplier": 1.875
+        }
+      ]
+    }
+  }
+}

@@ -37,9 +37,13 @@ MTP: aligned sidecar forward works; best native R6000 sidecar is v34 at
      longer only single-candidate sidecar tuning; multi-candidate verification
      and reranking are now justified. P114 adds the missing continuity view:
      raw v34 top1 has max run 8 and 81.5% of accepted tokens in runs >=2;
-     top8 has max run 12 and 96.6% of covered tokens in runs >=2. Guarded
-     structured routes are a separate MTP distribution: v39 guard-forced
-     calibration improves train accept but leaves v6 heldout flat at 22/172.
+     top8 has max run 12 and 96.6% of covered tokens in runs >=2. P115 turns
+     that into a depth budget: raw v34 top1 depth2 has a 180.6 TPS zero-overhead
+     ceiling but only 147.6 TPS with the current 2.24 ms serial draft; top1
+     depth4 reaches 159.5 TPS only if the per-iteration draft cost stays near
+     today's one-token cost. Guarded structured routes are a separate MTP
+     distribution: v39 guard-forced calibration improves train accept but
+     leaves v6 heldout flat at 22/172.
 P111 budget: with a 100 tok/s production baseline, raw v34 top1 is only
      153.72 tok/s even with zero draft overhead; top2/top4/top8 can clear 155
      only if draft overhead is <=0.34/0.72/1.09 ms, while the current draft head
@@ -106,6 +110,19 @@ and `96.6%` of covered tokens inside runs >=2. This validates a runtime
 prototype for continuous credit/overlap. It does not prove recursive MTP rollout
 yet because P114 is a base-state trace upper bound, but it changes the next
 speed task from "more scalar top1 tuning" to "cash in contiguous covered spans".
+
+2026-05-17 P115 continuous-credit simulation: the continuity is useful but
+does not forgive draft cost. On raw v34, top1 depth1 zero-overhead projects to
+`151.25 tok/s`, just under the target. Top1 depth2 raises the zero-overhead
+ceiling to `180.60 tok/s`, but with the current exact slot-sorted draft cost
+paid once per iteration it projects to only `147.60 tok/s`; its budget for 155
+is `<=1.65 ms` per iteration. Top1 depth4 reaches `195.16 tok/s`
+zero-overhead and `159.50 tok/s` only in the optimistic same-draft-cost model,
+while serial per-draft-token cost collapses to `103.02 tok/s`. Top8 depth2 is
+the nearest runtime target: optimistic same-cost projection `179.80 tok/s`,
+serial per-draft-token projection `152.02 tok/s`. Therefore the next R6000
+prototype must either overlap draft work or compute multiple draft tokens for
+roughly one current draft cost; naive serial recursive MTP is not enough.
 
 ## Workstream A: Quality Floor
 
@@ -524,6 +541,16 @@ there the covered tokens still cluster; it needs guard-aware training before
 serving MTP is enabled on structured routes. The immediate R6000 speed
 prototype should therefore measure a continuous-credit or overlapped verifier
 path around v34 rather than running another single-token rank-flip sweep.
+
+P115 quantifies that prototype target. For raw v34 at a 100 tok/s baseline:
+top1 depth2 has a `180.60 tok/s` zero-overhead ceiling but only `147.60 tok/s`
+if the current `2.24 ms` draft cost is paid once per iteration; it needs
+`<=1.65 ms` per iteration to clear 155. Top1 depth4 clears 155 only in the
+optimistic same-cost model (`159.50 tok/s`) and fails badly if draft cost scales
+linearly with depth. Top8 depth2 is closer: same-cost projection `179.80 tok/s`,
+serial-per-token projection `152.02 tok/s`. The engineering target is therefore
+multi-token/overlapped MTP with near-constant per-iteration cost, not recursive
+serial draft generation.
 
 If fc-only cannot clear 55-70%, unfreeze in this order:
 
