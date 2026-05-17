@@ -130,6 +130,36 @@ Copied reports:
 - `reports/qwen36_35b/r6000_qwen36_w4a16_fastdecode_graph_p25_20260518_033637.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_fastdecode_graph_structured_gate_20260518_033637.json`
 
+### Fastdecode + Triton Pair QK/RoPE
+
+The current promoted fast profile adds `LYNN_QK_NORM_ROPE_BACKEND=triton_pair`
+on top of graph reuse, in-place state update, and gate/up fastdecode.
+
+| Probe | Result |
+|---|---:|
+| P27 layer 3 `attn.qk_norm_rope` | 0.361 ms -> 0.129 ms |
+| P27 layer 31 `attn.qk_norm_rope` | 0.353 ms -> 0.136 ms |
+| P27 layer 3 full decode | 1.027 ms -> 0.758 ms |
+| P27 layer 31 full decode | 1.015 ms -> 0.788 ms |
+| P26 full-attention layers | 4.08 -> 3.11 ms/token |
+| P26 decode TPS | 85.48 -> 93.07 |
+| P25 512-token wall / decode TPS | 83.38 / 95.88 |
+| Structured OpenAI gate | GREEN, 14/14 format-clean |
+| Structured gate decode TPS | mean 96.43, min 96.03 |
+
+Copied reports:
+
+- `reports/qwen36_35b/r6000_qwen36_w4a16_fastdecode_p26_phase_20260518_034111.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_fastdecode_p27_full_layer3_20260518_034254.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_fastdecode_p27_full_layer31_20260518_034254.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_fastdecode_p28_hybrid_block_20260518_034111.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_fastdecode_tritonpair_p27_full_layer3_20260518_034549.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_fastdecode_tritonpair_p27_full_layer31_20260518_034549.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_fastdecode_tritonpair_p26_phase_20260518_034713.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_fastdecode_tritonpair_p28_hybrid_block_20260518_034713.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_fastdecode_tritonpair_p25_20260518_034915.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_fastdecode_tritonpair_structured_gate_20260518_034915.json`
+
 Negative probes from the same loop:
 
 - Router Triton top-k is not a full-path win: sampled full router regressed from

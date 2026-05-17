@@ -68,6 +68,23 @@ existing Triton gate/up kernel.
 This is not the 155 TPS breakthrough by itself, but it is the first validated
 official-35B W4A16 serving gain after the route pivot.
 
+The next safe W4A16 gain is `LYNN_QK_NORM_ROPE_BACKEND=triton_pair`, which
+fuses the Q/K norm plus RoPE pair in full-attention layers while keeping the same
+BF16 activation contract.
+
+| Probe | Result |
+|---|---:|
+| P27 layer 3 `attn.qk_norm_rope` | 0.361 ms -> 0.129 ms |
+| P27 layer 31 `attn.qk_norm_rope` | 0.353 ms -> 0.136 ms |
+| P26 full-attention layers | 4.08 -> 3.11 ms/token |
+| P26 decode TPS | 85.48 -> 93.07 |
+| P25 512-token service wall / decode TPS | 83.38 / 95.88 |
+| Structured OpenAI gate | GREEN, 14/14 format-clean, mean 96.43 decode TPS |
+
+This is now part of the default W4A16 fast profile. It moves the official 35B
+service path close to 96 decode TPS without touching W4A8 activation quantization
+or MTP credit.
+
 ## Closed Micro-Paths
 
 - Triton router top-k softmax is not useful as a standalone full router path:

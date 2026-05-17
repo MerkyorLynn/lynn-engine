@@ -92,6 +92,16 @@ structured OpenAI requests with mean decode TPS 87.71, min 86.99, and P25
 512-token wall/decode TPS of 76.58 / 86.60. This is now part of the promoted
 fast W4A16 profile.
 
+The second safe W4A16 speed win is `LYNN_QK_NORM_ROPE_BACKEND=triton_pair`.
+It also keeps BF16 activations and only fuses the full-attention Q/K RMSNorm and
+RoPE pair. P27 segment profiling dropped `attn.qk_norm_rope` from 0.361 to
+0.129 ms on layer 3 and from 0.353 to 0.136 ms on layer 31. End-to-end P26
+decode improved from 85.48 to 93.07 TPS, with full-attention layers dropping
+from 4.08 to 3.11 ms/token. The OpenAI service gate then passed 14/14 structured
+requests with mean decode TPS 96.43, min 96.03, and P25 512-token wall/decode
+TPS of 83.38 / 95.88. This backend is now part of the promoted fast W4A16
+profile.
+
 Several tempting small fusions are closed for now. A Triton router top-k softmax
 kernel is faster only after logits are already computed, but the full router path
 regresses from 0.046 ms to 0.052 ms on sampled layers. A `tl.dot` gate/up rewrite
