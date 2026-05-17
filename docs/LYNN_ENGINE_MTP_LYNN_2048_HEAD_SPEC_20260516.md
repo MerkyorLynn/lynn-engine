@@ -492,6 +492,13 @@ structured routes are lower still: even zero-overhead top8 reaches only
 execution, multi-token acceptance, or a higher native baseline before it can
 close the 155 TPS target.
 
+P112 profiles that draft cost. On R6000 v34, median total draft time is
+`7.47 ms`. The breakdown is decisive: pre-fc norms `0.16 ms`, fc `0.05 ms`,
+MTP decoder layer `6.64 ms`, MTP norm `0.09 ms`, native FP4 lm_head `0.44 ms`.
+So the expensive part is not the lm_head; it is the full MTP decoder layer.
+Future runtime work should target that layer with graph/fusion/overlap or a
+lighter predictor architecture before expecting one-token MTP to help 155 TPS.
+
 Report:
 
 ```text

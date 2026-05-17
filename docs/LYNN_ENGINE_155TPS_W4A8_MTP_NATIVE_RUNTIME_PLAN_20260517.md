@@ -70,6 +70,12 @@ reranker existed. To make 155 real, the runtime needs one of:
 - multi-token credit, not just one-token MTP;
 - a higher native baseline before MTP is counted.
 
+2026-05-17 P112 component update: the draft cost is not mainly lm_head.
+Profiling v34 on R6000 shows total MTP draft median `7.47 ms`, with the MTP
+decoder layer at `6.64 ms`, native FP4 lm_head at `0.44 ms`, pre-fc norms at
+`0.16 ms`, and fc at `0.05 ms`. The next runtime engineering target is the
+MTP layer itself: simplify it, graph/fuse it, or overlap it with base decode.
+
 ## Workstream A: Quality Floor
 
 Purpose: keep W4A8 from entering the wrong output domain, especially structured

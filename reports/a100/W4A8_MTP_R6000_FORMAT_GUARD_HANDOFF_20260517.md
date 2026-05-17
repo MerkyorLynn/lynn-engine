@@ -388,6 +388,11 @@ Guarded structured top8 is only `140.22` tok/s even at zero overhead. So MTP
 must either become hidden/near-free, move to multi-token credit, or wait for a
 higher native serving baseline; one-token serial sidecar MTP is not enough.
 
+P112 shows where the `~7.6 ms` goes: total median draft time is `7.47 ms`, and
+the MTP decoder layer alone is `6.64 ms`. Native FP4 lm_head is only `0.44 ms`;
+fc is `0.05 ms`. The runtime target is therefore the MTP layer, not the head:
+fuse/graph/overlap it, or replace it with a lighter predictor.
+
 The fc-only train smoke confirms gradient wiring:
 
 | Field | Value |
