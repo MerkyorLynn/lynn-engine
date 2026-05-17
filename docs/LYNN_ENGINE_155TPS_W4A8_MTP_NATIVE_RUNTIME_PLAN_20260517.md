@@ -453,6 +453,16 @@ drift is still full-attn slot layer3 with the same `max_abs=0.02124`, while
 linear block0 remains exact. This pins the next graph task to the full-attn slot
 capture contract.
 
+2026-05-17 P9Q/P9R/P9S refine the graph task again. P9Q shows layer3 alone is
+exact for both real-KV capture and empty-KV pre-capture (`max_abs=0`), so the
+layer kernel itself is not the culprit. P9R shows a stale pre-captured slot can
+drift after other CUDA graphs are captured, while a fresh pre-slot after linear
+graph capture is exact. P9S tries the simple linear-first capture order for the
+whole token; it remains greedy-safe (`103.38 one-shot tok/s`) but strict logits
+get worse (`max_abs=3.53125`). The actionable runtime conclusion is now graph
+pool/state ownership: mixed linear/full-attn graph families need explicit
+capture isolation, not just reordered ad hoc capture.
+
 2026-05-17 down-backend service sweep: switching only
 `LYNN_NATIVE_DOWN_BACKEND` from `triton` to `cuda_tile` gives real raw speed
 (`108.17 / 108.84 tok/s` at `256 / 512`, about `1.08-1.10x`), but both previews

@@ -1,0 +1,25 @@
+{
+  "schema_version": "lynn-engine-p9q-full-attn-slot-capture-mode-probe-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-a3b-w4a8-nvfp4-v2",
+  "layer": 3,
+  "position": 7,
+  "next_id": 271,
+  "real_capture_diff": {
+    "max_abs": 0.0,
+    "mean_abs": 0.0,
+    "rel_l2": 0.0
+  },
+  "precapture_diff": {
+    "max_abs": 0.0,
+    "mean_abs": 0.0,
+    "rel_l2": 0.0
+  },
+  "real_vs_precapture_diff": {
+    "max_abs": 0.0,
+    "mean_abs": 0.0,
+    "rel_l2": 0.0
+  },
+  "real_capture_exact": true,
+  "precapture_exact": true,
+  "decision": "GREEN: both capture modes are exact."
+}

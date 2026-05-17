@@ -29,6 +29,9 @@ P9H/P9I/P9J changed the full-attention decision:
 | P9N hybrid token probe | 10 linear graphs + 10 full-attn slots, greedy pass, 9.53 ms one-shot |
 | P9O layerwise diff | first strict drift at full-attn slot layer3; linear block0 is exact |
 | P9P single-state layerwise diff | confirms P9O drift is not a two-prefill artifact |
+| P9Q layer3 capture-mode probe | layer3 alone is exact for real-capture and pre-capture |
+| P9R graph-pool/order probe | fresh full slot after linear capture is exact; stale slot drifts |
+| P9S capture-order token probe | linear-first capture stays greedy-safe but not strict-exact |
 
 This makes full-attention reusable graphing the strongest non-MTP R6000 speed
 lever found today.
@@ -150,6 +153,41 @@ layer3 slot diff: max_abs 0.02124, rel_l2 0.1479
 So the layer3 drift is a real composition issue, not an artifact of comparing
 two independently-prefilled states.
 
+P9Q/P9R narrow the bug further. Layer3 alone is exact when tested as a single
+slot:
+
+```text
+reports/p16_155/p9q_r6000_full_attn_slot_capture_mode_layer3_configd_20260517_150212.json
+real_capture_exact: true
+precapture_exact: true
+```
+
+But the graph-pool/order probe shows stale captured slots can drift after other
+graphs are captured, while a fresh slot captured after the linear graph capture
+is exact:
+
+```text
+reports/p16_155/p9r_r6000_full_attn_slot_graph_pool_order_layer3_configd_20260517_150435.json
+pre_slot_before_linear_capture_diff.max_abs: 0.02490
+same_pre_slot_after_linear_capture_diff.max_abs: 0.046875
+fresh_pre_slot_after_linear_capture_diff.max_abs: 0
+```
+
+P9S then tests the naive "capture linear first, full-attn second" whole-token
+order. It remains greedy-safe but strict logits get worse:
+
+```text
+reports/p16_155/p9s_r6000_hybrid_full_attn_graph_slots_order_configd_20260517_150629.json
+one_shot_graph_ms: 9.6734
+greedy_pass: true
+strict_logit_pass: false
+logit_diff.max_abs: 3.53125
+```
+
+Current read: full-attn slots are individually viable, but the mixed graph
+family needs explicit graph-pool/state ownership rather than ad hoc capture
+ordering.
+
 ## Graph Key
 
 Graph slots must be invalidated by:
@@ -220,7 +258,8 @@ combined: >155 effective tok/s
 
 ## Implementation Order
 
-1. Tighten the full-attn slot state contract until P9O is strict at layer3.
+1. Give linear-block and full-attn graph families explicit graph-pool/state
+   ownership; then make P9P/P9S strict at layer3.
 2. Add opt-in `LYNN_FULL_ATTN_LAYER_GRAPH=1` with eager fallback.
 3. Reuse the existing `LynnInferenceState` as the resident graph state for
    single-stream serving.

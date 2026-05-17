@@ -1,0 +1,25 @@
+{
+  "schema_version": "lynn-engine-p9s-hybrid-full-attn-graph-slots-order-probe-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-a3b-w4a8-nvfp4-v2",
+  "decode_position": 7,
+  "capture_order": "linear_blocks_then_full_attn_slots",
+  "full_attn_graph_slots": 10,
+  "linear_block_graphs": 10,
+  "linear_capture_s": 0.07365298271179199,
+  "eager_ms": 37.85966796875,
+  "graph_ms": 9.644944458007812,
+  "speedup": 3.925338101591309,
+  "one_shot_graph_ms": 9.673407554626465,
+  "one_shot_graph_tps": 103.3761882100929,
+  "logit_diff": {
+    "max_abs": 3.53125,
+    "mean_abs": 0.5222031474113464,
+    "rel_l2": 0.26092935636875053,
+    "cosine": 0.9692370295524597
+  },
+  "graph_next_id": 248068,
+  "eager_next_id": 248068,
+  "greedy_pass": true,
+  "strict_logit_pass": false,
+  "pass": true
+}

@@ -1,0 +1,30 @@
+{
+  "schema_version": "lynn-engine-p9r-full-attn-slot-graph-pool-order-probe-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-a3b-w4a8-nvfp4-v2",
+  "layer": 3,
+  "position": 7,
+  "next_id": 271,
+  "linear_capture_s": 0.06940507888793945,
+  "linear_block_graphs": 10,
+  "pre_slot_before_linear_capture_diff": {
+    "max_abs": 0.02490234375,
+    "mean_abs": 0.003758844919502735,
+    "rel_l2": 0.15955275817456535
+  },
+  "same_pre_slot_after_linear_capture_diff": {
+    "max_abs": 0.046875,
+    "mean_abs": 0.008395173586905003,
+    "rel_l2": 0.3562178685594116
+  },
+  "fresh_pre_slot_after_linear_capture_diff": {
+    "max_abs": 0.0,
+    "mean_abs": 0.0,
+    "rel_l2": 0.0
+  },
+  "before_vs_after_same_slot_diff": {
+    "max_abs": 0.041961669921875,
+    "mean_abs": 0.0075399987399578094,
+    "rel_l2": 0.32331359475974825
+  },
+  "decision": "Inspect whether same_pre_slot_after_linear_capture_diff changes after linear graph capture."
+}

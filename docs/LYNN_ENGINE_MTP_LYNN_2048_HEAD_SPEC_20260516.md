@@ -183,6 +183,12 @@ best_label: v22
 best_accept: 64/116 = 55.17%
 sidecar:
 /mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v19-margin-v5-fcnorms-v22-20260517_145317/mtp.safetensors
+
+reports/mtp/a100_mtp_v19_v22_saved_sidecar_diagnostic_20260517_150044.json
+v22_miss_count: 52
+v22_near_misses_label_rank_le_5: 16
+v22_largest_miss_buckets: semantic_token 22, generic_structured_key 7,
+json_punctuation 7, stop_token 7, special_token 5
 ```
 
 The weighted-math v3 sidecar is a GREEN first-token draft candidate, but it is
@@ -243,6 +249,13 @@ already-restored step2/3/4/5 band remains `8/8`. Step10 regresses from `4/7`
 to `2/7`, so v22 is a serving-credit candidate, not yet a final promotion
 candidate. The next MTP move should preserve v22 and recover step10/step1
 without losing the new step0/late-tail accepts.
+
+The v22 diagnostic shows the remaining easy wins are still near misses:
+16 misses keep the teacher label in rank <=5. The most obvious low-margin cases
+are JSON punctuation (`":` vs `":"`, `","` vs `",`) and step1 `<think>` versus
+format-open tokens. The hard failures are now concentrated in Python code-body
+continuation and semantic Chinese MoE tails, so the next rescue should be
+targeted rather than a broad replay of v5.
 
 This changes the initialization and wiring path, not the serving state: MTP can
 now run a real draft forward pass and backpropagate through a frozen-base,
