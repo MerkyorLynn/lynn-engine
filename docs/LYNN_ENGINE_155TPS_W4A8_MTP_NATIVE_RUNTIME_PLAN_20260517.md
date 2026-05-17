@@ -18,12 +18,13 @@ Current confirmed state:
 R6000 safe serving: ~99-101 tok/s decode class
 R6000 JSON guarded serving: 8/8 parseable, mean decode 98.99 tok/s
 R6000 long decode serving: 512-token wall 88.23 tok/s, decode 100.11 tok/s
+R6000 1024-token serving: wall 88.70 tok/s, decode 98.85 tok/s
 R6000 v2 active-MoE micro gain: ~1.12x interval, not enough alone
 A100 best W4A8 recovery baseline: structured_v16_top6_damped075
 A100 teacher-clean v2 serving gate: 10/12 served exact, still RED
 A100 teacher-clean v3 serving gate: 11/12 served exact, min prefix 16, AMBER by plan threshold
 MTP: aligned sidecar forward works; first-token fc calibration is GREEN, but
-     iterative accept is still 22/94 heldout after v3, so no TPS credit yet
+     iterative accept is still only 34/94 heldout after v10, so no TPS credit yet
 ```
 
 155 requires a compound win. There is no single safe env flag left.
@@ -123,6 +124,7 @@ usable speculative decode. The heldout iterative accept ladder is:
 | iterative v7 | `fc_mtp_layer`, step1 only | 28/94, 29.79% | first heldout step1 accept: 1/8 |
 | iterative v8 | `fc_mtp_layer`, step1 only | 31/94, 32.98% | heldout step1 improves to 3/8 |
 | iterative v9 | `fc_mtp_layer`, steps 1-2 | 32/94, 34.04% | preserves step1/2, adds one later token |
+| iterative v10 | `fc_mtp_layer`, steps 3-5 | 34/94, 36.17% | improves step4 and step8; still below multiplier bar |
 
 A100 v5 exposes the next bottleneck: heldout step 0 is 8/8, but heldout step 1
 is still 0/8. The trainer now has explicit `--step1-weight` and
@@ -146,8 +148,10 @@ steps 1 and 2 together to keep the format-key fix while improving the next
 token.
 
 A100 v9 holds step1 at 3/8 and step2 at 4/8, with total heldout accept 32/94.
-A100 v10 is now targeting steps 3/4/5, where the current heldout rates are
-3/8, 1/8, and 2/7.
+A100 v10 targets steps 3/4/5 and raises total heldout accept to 34/94. The
+direct gain lands on step4 (`1/8 -> 2/8`) with spillover to step8
+(`1/6 -> 2/6`); step11/14/15 remain at 0 accepted. A100 v11 is now targeting
+late low-accept steps 7/8/10/11/12/14/15 from the v10 sidecar.
 
 If fc-only cannot clear 55-70%, unfreeze in this order:
 
@@ -240,6 +244,12 @@ it is too small to be the whole 155 TPS lever.
 2026-05-17 Config D service anchor: the R6000 OpenAI server confirms decode TPS
 `99.42 / 100.01 / 100.35` at max tokens `128 / 256 / 512`. This is the current
 usable serving baseline; 155 still requires a real multiplier.
+
+2026-05-17 1024-token follow-up: the same Config D server path reports wall
+`88.70 tok/s` and decode `98.85 tok/s`, with `9.97 ms` median decode step,
+linear block graph reuse enabled, and native FP4 lm_head enabled. The long run
+keeps the safe serving line near 100 TPS rather than revealing a hidden 155 TPS
+mode.
 
 Required native path:
 

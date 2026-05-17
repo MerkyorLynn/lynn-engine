@@ -198,6 +198,7 @@ Follow-up service probe:
 
 ```text
 reports/p16_155/r6000_p25_server_decode_sweep_20260517_123947.json
+reports/p16_155/r6000_p25_server_decode_sweep_20260517_124155.json
 ```
 
 | Max Tokens | Decode TPS |
@@ -205,6 +206,13 @@ reports/p16_155/r6000_p25_server_decode_sweep_20260517_123947.json
 | 128 | 99.42 |
 | 256 | 100.01 |
 | 512 | 100.35 |
+| 1024 | 98.85 |
 
 This reconfirms the safe serving line is still ~100 TPS. The preview is normal
 text, not the rejected exclamation-loop failure mode.
+
+The 1024-token run also reports wall `88.70 tok/s`, median decode step
+`9.97 ms`, linear block graph reuse enabled, and native FP4 lm_head enabled.
+Longer generation does not expose a hidden throughput jump; the remaining 155
+TPS gap still requires a runtime multiplier, most likely MTP plus a native
+decode-loop boundary.
