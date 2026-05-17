@@ -1,0 +1,6016 @@
+{
+  "schema_version": "lynn-a100-mtp-iterative-ladder-summary-v1",
+  "report_count": 21,
+  "best_eval_after_path": "reports/mtp/a100_mtp_iterative_train_v18_targeted_v4_fcnorms_v19_20260517_135834.json",
+  "best_eval_after_accept_rate": 0.5172413793103449,
+  "rows": [
+    {
+      "path": "reports/mtp/a100_mtp_iterative_train_fc_v1_20260517_120606.json",
+      "trainable": "fc",
+      "steps": 6,
+      "lr": 5e-05,
+      "first_token_weight": 2.0,
+      "step1_weight": null,
+      "later_token_weight": null,
+      "train_steps": null,
+      "max_new_train": 12,
+      "max_new_eval": 16,
+      "source_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-fc-weighted-math-v3-20260517_115509/mtp.safetensors",
+      "trained_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-fc-v1-20260517_120606/mtp.safetensors",
+      "train_before": {
+        "accepted": 26,
+        "total": 264,
+        "accept_rate": 0.09848484848484848,
+        "mean_loss": 14.265487228766798,
+        "by_step": {
+          "0": {
+            "events": 26,
+            "accepted": 26,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "3": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "4": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "5": {
+            "events": 21,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "6": {
+            "events": 21,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "7": {
+            "events": 19,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "8": {
+            "events": 19,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "9": {
+            "events": 19,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "10": {
+            "events": 18,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "11": {
+            "events": 17,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "train_after": {
+        "accepted": 41,
+        "total": 264,
+        "accept_rate": 0.1553030303030303,
+        "mean_loss": 7.799122289631861,
+        "by_step": {
+          "0": {
+            "events": 26,
+            "accepted": 26,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "3": {
+            "events": 26,
+            "accepted": 6,
+            "accept_rate": 0.23076923076923078
+          },
+          "4": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "5": {
+            "events": 21,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "6": {
+            "events": 21,
+            "accepted": 2,
+            "accept_rate": 0.09523809523809523
+          },
+          "7": {
+            "events": 19,
+            "accepted": 3,
+            "accept_rate": 0.15789473684210525
+          },
+          "8": {
+            "events": 19,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "9": {
+            "events": 19,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "10": {
+            "events": 18,
+            "accepted": 3,
+            "accept_rate": 0.16666666666666666
+          },
+          "11": {
+            "events": 17,
+            "accepted": 1,
+            "accept_rate": 0.058823529411764705
+          }
+        }
+      },
+      "eval_before": {
+        "accepted": 8,
+        "total": 94,
+        "accept_rate": 0.0851063829787234,
+        "mean_loss": 14.652724388827993,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "5": {
+            "events": 7,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "6": {
+            "events": 7,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "7": {
+            "events": 6,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "8": {
+            "events": 6,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "9": {
+            "events": 6,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "10": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "11": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "12": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "13": {
+            "events": 3,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "14": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "15": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "eval_after": {
+        "accepted": 15,
+        "total": 94,
+        "accept_rate": 0.1595744680851064,
+        "mean_loss": 8.080936876920726,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "4": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "5": {
+            "events": 7,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "6": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "7": {
+            "events": 6,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "8": {
+            "events": 6,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "9": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "10": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "11": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "12": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "13": {
+            "events": 3,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "14": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "15": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "eval_accept_delta": 0.07446808510638299
+    },
+    {
+      "path": "reports/mtp/a100_mtp_iterative_train_fc_norms_v2_20260517_120933.json",
+      "trainable": "fc_norms",
+      "steps": 6,
+      "lr": 3e-05,
+      "first_token_weight": 2.0,
+      "step1_weight": null,
+      "later_token_weight": null,
+      "train_steps": null,
+      "max_new_train": 12,
+      "max_new_eval": 16,
+      "source_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-fc-v1-20260517_120606/mtp.safetensors",
+      "trained_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-fc-norms-v2-20260517_120933/mtp.safetensors",
+      "train_before": {
+        "accepted": 41,
+        "total": 264,
+        "accept_rate": 0.1553030303030303,
+        "mean_loss": 7.799122289631861,
+        "by_step": {
+          "0": {
+            "events": 26,
+            "accepted": 26,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "3": {
+            "events": 26,
+            "accepted": 6,
+            "accept_rate": 0.23076923076923078
+          },
+          "4": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "5": {
+            "events": 21,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "6": {
+            "events": 21,
+            "accepted": 2,
+            "accept_rate": 0.09523809523809523
+          },
+          "7": {
+            "events": 19,
+            "accepted": 3,
+            "accept_rate": 0.15789473684210525
+          },
+          "8": {
+            "events": 19,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "9": {
+            "events": 19,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "10": {
+            "events": 18,
+            "accepted": 3,
+            "accept_rate": 0.16666666666666666
+          },
+          "11": {
+            "events": 17,
+            "accepted": 1,
+            "accept_rate": 0.058823529411764705
+          }
+        }
+      },
+      "train_after": {
+        "accepted": 65,
+        "total": 264,
+        "accept_rate": 0.24621212121212122,
+        "mean_loss": 6.20442653999723,
+        "by_step": {
+          "0": {
+            "events": 26,
+            "accepted": 26,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 26,
+            "accepted": 6,
+            "accept_rate": 0.23076923076923078
+          },
+          "3": {
+            "events": 26,
+            "accepted": 6,
+            "accept_rate": 0.23076923076923078
+          },
+          "4": {
+            "events": 26,
+            "accepted": 6,
+            "accept_rate": 0.23076923076923078
+          },
+          "5": {
+            "events": 21,
+            "accepted": 2,
+            "accept_rate": 0.09523809523809523
+          },
+          "6": {
+            "events": 21,
+            "accepted": 2,
+            "accept_rate": 0.09523809523809523
+          },
+          "7": {
+            "events": 19,
+            "accepted": 5,
+            "accept_rate": 0.2631578947368421
+          },
+          "8": {
+            "events": 19,
+            "accepted": 1,
+            "accept_rate": 0.05263157894736842
+          },
+          "9": {
+            "events": 19,
+            "accepted": 4,
+            "accept_rate": 0.21052631578947367
+          },
+          "10": {
+            "events": 18,
+            "accepted": 4,
+            "accept_rate": 0.2222222222222222
+          },
+          "11": {
+            "events": 17,
+            "accepted": 3,
+            "accept_rate": 0.17647058823529413
+          }
+        }
+      },
+      "eval_before": {
+        "accepted": 15,
+        "total": 94,
+        "accept_rate": 0.1595744680851064,
+        "mean_loss": 8.080936876920726,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "4": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "5": {
+            "events": 7,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "6": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "7": {
+            "events": 6,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "8": {
+            "events": 6,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "9": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "10": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "11": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "12": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "13": {
+            "events": 3,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "14": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "15": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "eval_after": {
+        "accepted": 21,
+        "total": 94,
+        "accept_rate": 0.22340425531914893,
+        "mean_loss": 6.675568567737541,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "3": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "4": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "5": {
+            "events": 7,
+            "accepted": 1,
+            "accept_rate": 0.14285714285714285
+          },
+          "6": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "7": {
+            "events": 6,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "8": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "9": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "10": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "11": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "12": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "13": {
+            "events": 3,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "14": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "15": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "eval_accept_delta": 0.06382978723404253
+    },
+    {
+      "path": "reports/mtp/a100_mtp_iterative_train_layer_v3_20260517_121223.json",
+      "trainable": "fc_mtp_layer",
+      "steps": 3,
+      "lr": 1e-05,
+      "first_token_weight": 2.0,
+      "step1_weight": null,
+      "later_token_weight": null,
+      "train_steps": null,
+      "max_new_train": 10,
+      "max_new_eval": 16,
+      "source_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-fc-norms-v2-20260517_120933/mtp.safetensors",
+      "trained_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-layer-v3-20260517_121223/mtp.safetensors",
+      "train_before": {
+        "accepted": 58,
+        "total": 229,
+        "accept_rate": 0.25327510917030566,
+        "mean_loss": 6.147943260407179,
+        "by_step": {
+          "0": {
+            "events": 26,
+            "accepted": 26,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 26,
+            "accepted": 6,
+            "accept_rate": 0.23076923076923078
+          },
+          "3": {
+            "events": 26,
+            "accepted": 6,
+            "accept_rate": 0.23076923076923078
+          },
+          "4": {
+            "events": 26,
+            "accepted": 6,
+            "accept_rate": 0.23076923076923078
+          },
+          "5": {
+            "events": 21,
+            "accepted": 2,
+            "accept_rate": 0.09523809523809523
+          },
+          "6": {
+            "events": 21,
+            "accepted": 2,
+            "accept_rate": 0.09523809523809523
+          },
+          "7": {
+            "events": 19,
+            "accepted": 5,
+            "accept_rate": 0.2631578947368421
+          },
+          "8": {
+            "events": 19,
+            "accepted": 1,
+            "accept_rate": 0.05263157894736842
+          },
+          "9": {
+            "events": 19,
+            "accepted": 4,
+            "accept_rate": 0.21052631578947367
+          }
+        }
+      },
+      "train_after": {
+        "accepted": 61,
+        "total": 229,
+        "accept_rate": 0.2663755458515284,
+        "mean_loss": 5.628970944157936,
+        "by_step": {
+          "0": {
+            "events": 26,
+            "accepted": 26,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 26,
+            "accepted": 7,
+            "accept_rate": 0.2692307692307692
+          },
+          "3": {
+            "events": 26,
+            "accepted": 6,
+            "accept_rate": 0.23076923076923078
+          },
+          "4": {
+            "events": 26,
+            "accepted": 7,
+            "accept_rate": 0.2692307692307692
+          },
+          "5": {
+            "events": 21,
+            "accepted": 3,
+            "accept_rate": 0.14285714285714285
+          },
+          "6": {
+            "events": 21,
+            "accepted": 2,
+            "accept_rate": 0.09523809523809523
+          },
+          "7": {
+            "events": 19,
+            "accepted": 5,
+            "accept_rate": 0.2631578947368421
+          },
+          "8": {
+            "events": 19,
+            "accepted": 1,
+            "accept_rate": 0.05263157894736842
+          },
+          "9": {
+            "events": 19,
+            "accepted": 4,
+            "accept_rate": 0.21052631578947367
+          }
+        }
+      },
+      "eval_before": {
+        "accepted": 21,
+        "total": 94,
+        "accept_rate": 0.22340425531914893,
+        "mean_loss": 6.675568567737541,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "3": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "4": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "5": {
+            "events": 7,
+            "accepted": 1,
+            "accept_rate": 0.14285714285714285
+          },
+          "6": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "7": {
+            "events": 6,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "8": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "9": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "10": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "11": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "12": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "13": {
+            "events": 3,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "14": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "15": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "eval_after": {
+        "accepted": 22,
+        "total": 94,
+        "accept_rate": 0.23404255319148937,
+        "mean_loss": 6.189247405218416,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "3": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "4": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "5": {
+            "events": 7,
+            "accepted": 1,
+            "accept_rate": 0.14285714285714285
+          },
+          "6": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "7": {
+            "events": 6,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "8": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "9": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "10": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "11": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "12": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "13": {
+            "events": 3,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "14": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "15": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "eval_accept_delta": 0.010638297872340441
+    },
+    {
+      "path": "reports/mtp/a100_mtp_iterative_train_layer_curriculum_v4_20260517_121659.json",
+      "trainable": "fc_mtp_layer",
+      "steps": 5,
+      "lr": 5e-06,
+      "first_token_weight": 2.0,
+      "step1_weight": null,
+      "later_token_weight": null,
+      "train_steps": null,
+      "max_new_train": 16,
+      "max_new_eval": 16,
+      "source_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-layer-v3-20260517_121223/mtp.safetensors",
+      "trained_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-layer-curriculum-v4-20260517_121659/mtp.safetensors",
+      "train_before": {
+        "accepted": 69,
+        "total": 319,
+        "accept_rate": 0.21630094043887146,
+        "mean_loss": 6.089626712218032,
+        "by_step": {
+          "0": {
+            "events": 26,
+            "accepted": 26,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 26,
+            "accepted": 7,
+            "accept_rate": 0.2692307692307692
+          },
+          "3": {
+            "events": 26,
+            "accepted": 6,
+            "accept_rate": 0.23076923076923078
+          },
+          "4": {
+            "events": 26,
+            "accepted": 7,
+            "accept_rate": 0.2692307692307692
+          },
+          "5": {
+            "events": 21,
+            "accepted": 3,
+            "accept_rate": 0.14285714285714285
+          },
+          "6": {
+            "events": 21,
+            "accepted": 2,
+            "accept_rate": 0.09523809523809523
+          },
+          "7": {
+            "events": 19,
+            "accepted": 5,
+            "accept_rate": 0.2631578947368421
+          },
+          "8": {
+            "events": 19,
+            "accepted": 1,
+            "accept_rate": 0.05263157894736842
+          },
+          "9": {
+            "events": 19,
+            "accepted": 4,
+            "accept_rate": 0.21052631578947367
+          },
+          "10": {
+            "events": 18,
+            "accepted": 4,
+            "accept_rate": 0.2222222222222222
+          },
+          "11": {
+            "events": 17,
+            "accepted": 3,
+            "accept_rate": 0.17647058823529413
+          },
+          "12": {
+            "events": 16,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "13": {
+            "events": 15,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "14": {
+            "events": 13,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "15": {
+            "events": 11,
+            "accepted": 1,
+            "accept_rate": 0.09090909090909091
+          }
+        }
+      },
+      "train_after": {
+        "accepted": 78,
+        "total": 319,
+        "accept_rate": 0.2445141065830721,
+        "mean_loss": 5.8524811049103285,
+        "by_step": {
+          "0": {
+            "events": 26,
+            "accepted": 26,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 26,
+            "accepted": 7,
+            "accept_rate": 0.2692307692307692
+          },
+          "3": {
+            "events": 26,
+            "accepted": 6,
+            "accept_rate": 0.23076923076923078
+          },
+          "4": {
+            "events": 26,
+            "accepted": 7,
+            "accept_rate": 0.2692307692307692
+          },
+          "5": {
+            "events": 21,
+            "accepted": 3,
+            "accept_rate": 0.14285714285714285
+          },
+          "6": {
+            "events": 21,
+            "accepted": 5,
+            "accept_rate": 0.23809523809523808
+          },
+          "7": {
+            "events": 19,
+            "accepted": 5,
+            "accept_rate": 0.2631578947368421
+          },
+          "8": {
+            "events": 19,
+            "accepted": 2,
+            "accept_rate": 0.10526315789473684
+          },
+          "9": {
+            "events": 19,
+            "accepted": 4,
+            "accept_rate": 0.21052631578947367
+          },
+          "10": {
+            "events": 18,
+            "accepted": 5,
+            "accept_rate": 0.2777777777777778
+          },
+          "11": {
+            "events": 17,
+            "accepted": 4,
+            "accept_rate": 0.23529411764705882
+          },
+          "12": {
+            "events": 16,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "13": {
+            "events": 15,
+            "accepted": 1,
+            "accept_rate": 0.06666666666666667
+          },
+          "14": {
+            "events": 13,
+            "accepted": 1,
+            "accept_rate": 0.07692307692307693
+          },
+          "15": {
+            "events": 11,
+            "accepted": 2,
+            "accept_rate": 0.18181818181818182
+          }
+        }
+      },
+      "eval_before": {
+        "accepted": 22,
+        "total": 94,
+        "accept_rate": 0.23404255319148937,
+        "mean_loss": 6.189247405218416,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "3": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "4": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "5": {
+            "events": 7,
+            "accepted": 1,
+            "accept_rate": 0.14285714285714285
+          },
+          "6": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "7": {
+            "events": 6,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "8": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "9": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "10": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "11": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "12": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "13": {
+            "events": 3,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "14": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "15": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "eval_after": {
+        "accepted": 25,
+        "total": 94,
+        "accept_rate": 0.26595744680851063,
+        "mean_loss": 5.9789263287787024,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "3": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "4": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "5": {
+            "events": 7,
+            "accepted": 1,
+            "accept_rate": 0.14285714285714285
+          },
+          "6": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "7": {
+            "events": 6,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "8": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "9": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "10": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "11": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "12": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "13": {
+            "events": 3,
+            "accepted": 1,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "15": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "eval_accept_delta": 0.03191489361702127
+    },
+    {
+      "path": "reports/mtp/a100_mtp_iterative_train_norms_curriculum_v5_20260517_122050.json",
+      "trainable": "fc_norms",
+      "steps": 6,
+      "lr": 1e-05,
+      "first_token_weight": 2.0,
+      "step1_weight": null,
+      "later_token_weight": null,
+      "train_steps": null,
+      "max_new_train": 16,
+      "max_new_eval": 16,
+      "source_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-layer-curriculum-v4-20260517_121659/mtp.safetensors",
+      "trained_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-norms-curriculum-v5-20260517_122050/mtp.safetensors",
+      "train_before": {
+        "accepted": 78,
+        "total": 319,
+        "accept_rate": 0.2445141065830721,
+        "mean_loss": 5.8524811049103285,
+        "by_step": {
+          "0": {
+            "events": 26,
+            "accepted": 26,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 26,
+            "accepted": 7,
+            "accept_rate": 0.2692307692307692
+          },
+          "3": {
+            "events": 26,
+            "accepted": 6,
+            "accept_rate": 0.23076923076923078
+          },
+          "4": {
+            "events": 26,
+            "accepted": 7,
+            "accept_rate": 0.2692307692307692
+          },
+          "5": {
+            "events": 21,
+            "accepted": 3,
+            "accept_rate": 0.14285714285714285
+          },
+          "6": {
+            "events": 21,
+            "accepted": 5,
+            "accept_rate": 0.23809523809523808
+          },
+          "7": {
+            "events": 19,
+            "accepted": 5,
+            "accept_rate": 0.2631578947368421
+          },
+          "8": {
+            "events": 19,
+            "accepted": 2,
+            "accept_rate": 0.10526315789473684
+          },
+          "9": {
+            "events": 19,
+            "accepted": 4,
+            "accept_rate": 0.21052631578947367
+          },
+          "10": {
+            "events": 18,
+            "accepted": 5,
+            "accept_rate": 0.2777777777777778
+          },
+          "11": {
+            "events": 17,
+            "accepted": 4,
+            "accept_rate": 0.23529411764705882
+          },
+          "12": {
+            "events": 16,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "13": {
+            "events": 15,
+            "accepted": 1,
+            "accept_rate": 0.06666666666666667
+          },
+          "14": {
+            "events": 13,
+            "accepted": 1,
+            "accept_rate": 0.07692307692307693
+          },
+          "15": {
+            "events": 11,
+            "accepted": 2,
+            "accept_rate": 0.18181818181818182
+          }
+        }
+      },
+      "train_after": {
+        "accepted": 86,
+        "total": 319,
+        "accept_rate": 0.26959247648902823,
+        "mean_loss": 5.549887225530906,
+        "by_step": {
+          "0": {
+            "events": 26,
+            "accepted": 26,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 26,
+            "accepted": 7,
+            "accept_rate": 0.2692307692307692
+          },
+          "3": {
+            "events": 26,
+            "accepted": 6,
+            "accept_rate": 0.23076923076923078
+          },
+          "4": {
+            "events": 26,
+            "accepted": 7,
+            "accept_rate": 0.2692307692307692
+          },
+          "5": {
+            "events": 21,
+            "accepted": 5,
+            "accept_rate": 0.23809523809523808
+          },
+          "6": {
+            "events": 21,
+            "accepted": 7,
+            "accept_rate": 0.3333333333333333
+          },
+          "7": {
+            "events": 19,
+            "accepted": 7,
+            "accept_rate": 0.3684210526315789
+          },
+          "8": {
+            "events": 19,
+            "accepted": 2,
+            "accept_rate": 0.10526315789473684
+          },
+          "9": {
+            "events": 19,
+            "accepted": 4,
+            "accept_rate": 0.21052631578947367
+          },
+          "10": {
+            "events": 18,
+            "accepted": 5,
+            "accept_rate": 0.2777777777777778
+          },
+          "11": {
+            "events": 17,
+            "accepted": 4,
+            "accept_rate": 0.23529411764705882
+          },
+          "12": {
+            "events": 16,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "13": {
+            "events": 15,
+            "accepted": 1,
+            "accept_rate": 0.06666666666666667
+          },
+          "14": {
+            "events": 13,
+            "accepted": 3,
+            "accept_rate": 0.23076923076923078
+          },
+          "15": {
+            "events": 11,
+            "accepted": 2,
+            "accept_rate": 0.18181818181818182
+          }
+        }
+      },
+      "eval_before": {
+        "accepted": 25,
+        "total": 94,
+        "accept_rate": 0.26595744680851063,
+        "mean_loss": 5.9789263287787024,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "3": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "4": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "5": {
+            "events": 7,
+            "accepted": 1,
+            "accept_rate": 0.14285714285714285
+          },
+          "6": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "7": {
+            "events": 6,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "8": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "9": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "10": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "11": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "12": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "13": {
+            "events": 3,
+            "accepted": 1,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "15": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "eval_after": {
+        "accepted": 26,
+        "total": 94,
+        "accept_rate": 0.2765957446808511,
+        "mean_loss": 5.716597556283926,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "3": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "4": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "5": {
+            "events": 7,
+            "accepted": 1,
+            "accept_rate": 0.14285714285714285
+          },
+          "6": {
+            "events": 7,
+            "accepted": 3,
+            "accept_rate": 0.42857142857142855
+          },
+          "7": {
+            "events": 6,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "8": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "9": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "10": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "11": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "12": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "13": {
+            "events": 3,
+            "accepted": 1,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "15": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "eval_accept_delta": 0.010638297872340441
+    },
+    {
+      "path": "reports/mtp/a100_mtp_iterative_train_step1_layer_v6_20260517_122534.json",
+      "trainable": "fc_mtp_layer",
+      "steps": 6,
+      "lr": 3e-06,
+      "first_token_weight": 0.5,
+      "step1_weight": 4.0,
+      "later_token_weight": 1.5,
+      "train_steps": null,
+      "max_new_train": 16,
+      "max_new_eval": 16,
+      "source_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-norms-curriculum-v5-20260517_122050/mtp.safetensors",
+      "trained_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-step1-layer-v6-20260517_122534/mtp.safetensors",
+      "train_before": {
+        "accepted": 86,
+        "total": 319,
+        "accept_rate": 0.26959247648902823,
+        "mean_loss": 5.549887225530906,
+        "by_step": {
+          "0": {
+            "events": 26,
+            "accepted": 26,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 26,
+            "accepted": 7,
+            "accept_rate": 0.2692307692307692
+          },
+          "3": {
+            "events": 26,
+            "accepted": 6,
+            "accept_rate": 0.23076923076923078
+          },
+          "4": {
+            "events": 26,
+            "accepted": 7,
+            "accept_rate": 0.2692307692307692
+          },
+          "5": {
+            "events": 21,
+            "accepted": 5,
+            "accept_rate": 0.23809523809523808
+          },
+          "6": {
+            "events": 21,
+            "accepted": 7,
+            "accept_rate": 0.3333333333333333
+          },
+          "7": {
+            "events": 19,
+            "accepted": 7,
+            "accept_rate": 0.3684210526315789
+          },
+          "8": {
+            "events": 19,
+            "accepted": 2,
+            "accept_rate": 0.10526315789473684
+          },
+          "9": {
+            "events": 19,
+            "accepted": 4,
+            "accept_rate": 0.21052631578947367
+          },
+          "10": {
+            "events": 18,
+            "accepted": 5,
+            "accept_rate": 0.2777777777777778
+          },
+          "11": {
+            "events": 17,
+            "accepted": 4,
+            "accept_rate": 0.23529411764705882
+          },
+          "12": {
+            "events": 16,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "13": {
+            "events": 15,
+            "accepted": 1,
+            "accept_rate": 0.06666666666666667
+          },
+          "14": {
+            "events": 13,
+            "accepted": 3,
+            "accept_rate": 0.23076923076923078
+          },
+          "15": {
+            "events": 11,
+            "accepted": 2,
+            "accept_rate": 0.18181818181818182
+          }
+        }
+      },
+      "train_after": {
+        "accepted": 88,
+        "total": 319,
+        "accept_rate": 0.27586206896551724,
+        "mean_loss": 5.474504379378953,
+        "by_step": {
+          "0": {
+            "events": 26,
+            "accepted": 26,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 26,
+            "accepted": 7,
+            "accept_rate": 0.2692307692307692
+          },
+          "3": {
+            "events": 26,
+            "accepted": 6,
+            "accept_rate": 0.23076923076923078
+          },
+          "4": {
+            "events": 26,
+            "accepted": 7,
+            "accept_rate": 0.2692307692307692
+          },
+          "5": {
+            "events": 21,
+            "accepted": 5,
+            "accept_rate": 0.23809523809523808
+          },
+          "6": {
+            "events": 21,
+            "accepted": 7,
+            "accept_rate": 0.3333333333333333
+          },
+          "7": {
+            "events": 19,
+            "accepted": 7,
+            "accept_rate": 0.3684210526315789
+          },
+          "8": {
+            "events": 19,
+            "accepted": 3,
+            "accept_rate": 0.15789473684210525
+          },
+          "9": {
+            "events": 19,
+            "accepted": 4,
+            "accept_rate": 0.21052631578947367
+          },
+          "10": {
+            "events": 18,
+            "accepted": 5,
+            "accept_rate": 0.2777777777777778
+          },
+          "11": {
+            "events": 17,
+            "accepted": 4,
+            "accept_rate": 0.23529411764705882
+          },
+          "12": {
+            "events": 16,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "13": {
+            "events": 15,
+            "accepted": 2,
+            "accept_rate": 0.13333333333333333
+          },
+          "14": {
+            "events": 13,
+            "accepted": 3,
+            "accept_rate": 0.23076923076923078
+          },
+          "15": {
+            "events": 11,
+            "accepted": 2,
+            "accept_rate": 0.18181818181818182
+          }
+        }
+      },
+      "eval_before": {
+        "accepted": 26,
+        "total": 94,
+        "accept_rate": 0.2765957446808511,
+        "mean_loss": 5.716597556283926,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "3": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "4": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "5": {
+            "events": 7,
+            "accepted": 1,
+            "accept_rate": 0.14285714285714285
+          },
+          "6": {
+            "events": 7,
+            "accepted": 3,
+            "accept_rate": 0.42857142857142855
+          },
+          "7": {
+            "events": 6,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "8": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "9": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "10": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "11": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "12": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "13": {
+            "events": 3,
+            "accepted": 1,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "15": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "eval_after": {
+        "accepted": 27,
+        "total": 94,
+        "accept_rate": 0.2872340425531915,
+        "mean_loss": 5.64636693228695,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "3": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "4": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "5": {
+            "events": 7,
+            "accepted": 1,
+            "accept_rate": 0.14285714285714285
+          },
+          "6": {
+            "events": 7,
+            "accepted": 3,
+            "accept_rate": 0.42857142857142855
+          },
+          "7": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "8": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "9": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "10": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "11": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "12": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "13": {
+            "events": 3,
+            "accepted": 1,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "15": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "eval_accept_delta": 0.010638297872340441
+    },
+    {
+      "path": "reports/mtp/a100_mtp_iterative_train_step1only_v7_20260517_123111.json",
+      "trainable": "fc_mtp_layer",
+      "steps": 12,
+      "lr": 5e-06,
+      "first_token_weight": 0.1,
+      "step1_weight": 1.0,
+      "later_token_weight": 0.1,
+      "train_steps": [
+        1
+      ],
+      "max_new_train": 16,
+      "max_new_eval": 16,
+      "source_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-step1-layer-v6-20260517_122534/mtp.safetensors",
+      "trained_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-step1only-v7-20260517_123111/mtp.safetensors",
+      "train_before": {
+        "accepted": 0,
+        "total": 26,
+        "accept_rate": 0.0,
+        "mean_loss": 6.348744621643653,
+        "by_step": {
+          "1": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "train_after": {
+        "accepted": 3,
+        "total": 26,
+        "accept_rate": 0.11538461538461539,
+        "mean_loss": 5.160950491061578,
+        "by_step": {
+          "1": {
+            "events": 26,
+            "accepted": 3,
+            "accept_rate": 0.11538461538461539
+          }
+        }
+      },
+      "eval_before": {
+        "accepted": 27,
+        "total": 94,
+        "accept_rate": 0.2872340425531915,
+        "mean_loss": 5.64636693228695,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "3": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "4": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "5": {
+            "events": 7,
+            "accepted": 1,
+            "accept_rate": 0.14285714285714285
+          },
+          "6": {
+            "events": 7,
+            "accepted": 3,
+            "accept_rate": 0.42857142857142855
+          },
+          "7": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "8": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "9": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "10": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "11": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "12": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "13": {
+            "events": 3,
+            "accepted": 1,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "15": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "eval_after": {
+        "accepted": 28,
+        "total": 94,
+        "accept_rate": 0.2978723404255319,
+        "mean_loss": 5.446833077405747,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "2": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "3": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "4": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "5": {
+            "events": 7,
+            "accepted": 1,
+            "accept_rate": 0.14285714285714285
+          },
+          "6": {
+            "events": 7,
+            "accepted": 3,
+            "accept_rate": 0.42857142857142855
+          },
+          "7": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "8": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "9": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "10": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "11": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "12": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "13": {
+            "events": 3,
+            "accepted": 1,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "15": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "eval_accept_delta": 0.010638297872340385
+    },
+    {
+      "path": "reports/mtp/a100_mtp_iterative_train_step1only_v8_20260517_123348.json",
+      "trainable": "fc_mtp_layer",
+      "steps": 20,
+      "lr": 3e-06,
+      "first_token_weight": 0.1,
+      "step1_weight": 1.0,
+      "later_token_weight": 0.1,
+      "train_steps": [
+        1
+      ],
+      "max_new_train": 16,
+      "max_new_eval": 16,
+      "source_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-step1only-v7-20260517_123111/mtp.safetensors",
+      "trained_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-step1only-v8-20260517_123348/mtp.safetensors",
+      "train_before": {
+        "accepted": 3,
+        "total": 26,
+        "accept_rate": 0.11538461538461539,
+        "mean_loss": 5.160950491061578,
+        "by_step": {
+          "1": {
+            "events": 26,
+            "accepted": 3,
+            "accept_rate": 0.11538461538461539
+          }
+        }
+      },
+      "train_after": {
+        "accepted": 5,
+        "total": 26,
+        "accept_rate": 0.19230769230769232,
+        "mean_loss": 4.611858730132763,
+        "by_step": {
+          "1": {
+            "events": 26,
+            "accepted": 5,
+            "accept_rate": 0.19230769230769232
+          }
+        }
+      },
+      "eval_before": {
+        "accepted": 28,
+        "total": 94,
+        "accept_rate": 0.2978723404255319,
+        "mean_loss": 5.446833077405747,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "2": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "3": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "4": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "5": {
+            "events": 7,
+            "accepted": 1,
+            "accept_rate": 0.14285714285714285
+          },
+          "6": {
+            "events": 7,
+            "accepted": 3,
+            "accept_rate": 0.42857142857142855
+          },
+          "7": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "8": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "9": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "10": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "11": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "12": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "13": {
+            "events": 3,
+            "accepted": 1,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "15": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "eval_after": {
+        "accepted": 31,
+        "total": 94,
+        "accept_rate": 0.32978723404255317,
+        "mean_loss": 5.3596946434452235,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "2": {
+            "events": 8,
+            "accepted": 4,
+            "accept_rate": 0.5
+          },
+          "3": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "4": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "5": {
+            "events": 7,
+            "accepted": 1,
+            "accept_rate": 0.14285714285714285
+          },
+          "6": {
+            "events": 7,
+            "accepted": 3,
+            "accept_rate": 0.42857142857142855
+          },
+          "7": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "8": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "9": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "10": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "11": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "12": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "13": {
+            "events": 3,
+            "accepted": 1,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "15": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "eval_accept_delta": 0.03191489361702127
+    },
+    {
+      "path": "reports/mtp/a100_mtp_iterative_train_step12_v9_20260517_123703.json",
+      "trainable": "fc_mtp_layer",
+      "steps": 16,
+      "lr": 2e-06,
+      "first_token_weight": 0.1,
+      "step1_weight": 1.0,
+      "later_token_weight": 1.0,
+      "train_steps": [
+        1,
+        2
+      ],
+      "max_new_train": 16,
+      "max_new_eval": 16,
+      "source_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-step1only-v8-20260517_123348/mtp.safetensors",
+      "trained_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-step12-v9-20260517_123703/mtp.safetensors",
+      "train_before": {
+        "accepted": 17,
+        "total": 52,
+        "accept_rate": 0.3269230769230769,
+        "mean_loss": 3.6970976017988644,
+        "by_step": {
+          "1": {
+            "events": 26,
+            "accepted": 5,
+            "accept_rate": 0.19230769230769232
+          },
+          "2": {
+            "events": 26,
+            "accepted": 12,
+            "accept_rate": 0.46153846153846156
+          }
+        }
+      },
+      "train_after": {
+        "accepted": 19,
+        "total": 52,
+        "accept_rate": 0.36538461538461536,
+        "mean_loss": 3.4626448716108618,
+        "by_step": {
+          "1": {
+            "events": 26,
+            "accepted": 6,
+            "accept_rate": 0.23076923076923078
+          },
+          "2": {
+            "events": 26,
+            "accepted": 13,
+            "accept_rate": 0.5
+          }
+        }
+      },
+      "eval_before": {
+        "accepted": 31,
+        "total": 94,
+        "accept_rate": 0.32978723404255317,
+        "mean_loss": 5.3596946434452235,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "2": {
+            "events": 8,
+            "accepted": 4,
+            "accept_rate": 0.5
+          },
+          "3": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "4": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "5": {
+            "events": 7,
+            "accepted": 1,
+            "accept_rate": 0.14285714285714285
+          },
+          "6": {
+            "events": 7,
+            "accepted": 3,
+            "accept_rate": 0.42857142857142855
+          },
+          "7": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "8": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "9": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "10": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "11": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "12": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "13": {
+            "events": 3,
+            "accepted": 1,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "15": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "eval_after": {
+        "accepted": 32,
+        "total": 94,
+        "accept_rate": 0.3404255319148936,
+        "mean_loss": 5.292065256561321,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "2": {
+            "events": 8,
+            "accepted": 4,
+            "accept_rate": 0.5
+          },
+          "3": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "4": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "5": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "6": {
+            "events": 7,
+            "accepted": 3,
+            "accept_rate": 0.42857142857142855
+          },
+          "7": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "8": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "9": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "10": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "11": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "12": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "13": {
+            "events": 3,
+            "accepted": 1,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "15": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "eval_accept_delta": 0.010638297872340441
+    },
+    {
+      "path": "reports/mtp/a100_mtp_iterative_train_step345_v10_20260517_124017.json",
+      "trainable": "fc_mtp_layer",
+      "steps": 16,
+      "lr": 2e-06,
+      "first_token_weight": 0.1,
+      "step1_weight": 0.1,
+      "later_token_weight": 1.0,
+      "train_steps": [
+        3,
+        4,
+        5
+      ],
+      "max_new_train": 16,
+      "max_new_eval": 16,
+      "source_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-step12-v9-20260517_123703/mtp.safetensors",
+      "trained_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-step345-v10-20260517_124017/mtp.safetensors",
+      "train_before": {
+        "accepted": 20,
+        "total": 73,
+        "accept_rate": 0.273972602739726,
+        "mean_loss": 6.607571200352826,
+        "by_step": {
+          "3": {
+            "events": 26,
+            "accepted": 6,
+            "accept_rate": 0.23076923076923078
+          },
+          "4": {
+            "events": 26,
+            "accepted": 8,
+            "accept_rate": 0.3076923076923077
+          },
+          "5": {
+            "events": 21,
+            "accepted": 6,
+            "accept_rate": 0.2857142857142857
+          }
+        }
+      },
+      "train_after": {
+        "accepted": 20,
+        "total": 73,
+        "accept_rate": 0.273972602739726,
+        "mean_loss": 6.368229720486354,
+        "by_step": {
+          "3": {
+            "events": 26,
+            "accepted": 6,
+            "accept_rate": 0.23076923076923078
+          },
+          "4": {
+            "events": 26,
+            "accepted": 8,
+            "accept_rate": 0.3076923076923077
+          },
+          "5": {
+            "events": 21,
+            "accepted": 6,
+            "accept_rate": 0.2857142857142857
+          }
+        }
+      },
+      "eval_before": {
+        "accepted": 32,
+        "total": 94,
+        "accept_rate": 0.3404255319148936,
+        "mean_loss": 5.292065256561321,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "2": {
+            "events": 8,
+            "accepted": 4,
+            "accept_rate": 0.5
+          },
+          "3": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "4": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "5": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "6": {
+            "events": 7,
+            "accepted": 3,
+            "accept_rate": 0.42857142857142855
+          },
+          "7": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "8": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "9": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "10": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "11": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "12": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "13": {
+            "events": 3,
+            "accepted": 1,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "15": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "eval_after": {
+        "accepted": 34,
+        "total": 94,
+        "accept_rate": 0.3617021276595745,
+        "mean_loss": 5.215403823985748,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "2": {
+            "events": 8,
+            "accepted": 4,
+            "accept_rate": 0.5
+          },
+          "3": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "4": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "5": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "6": {
+            "events": 7,
+            "accepted": 3,
+            "accept_rate": 0.42857142857142855
+          },
+          "7": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "8": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "9": {
+            "events": 6,
+            "accepted": 3,
+            "accept_rate": 0.5
+          },
+          "10": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "11": {
+            "events": 5,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "12": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          },
+          "13": {
+            "events": 3,
+            "accepted": 1,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "15": {
+            "events": 2,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "eval_accept_delta": 0.021276595744680882
+    },
+    {
+      "path": "reports/mtp/a100_mtp_iterative_train_late_steps_v11_20260517_124545.json",
+      "trainable": "fc_mtp_layer",
+      "steps": 20,
+      "lr": 2e-06,
+      "first_token_weight": 0.05,
+      "step1_weight": 0.1,
+      "later_token_weight": 1.0,
+      "train_steps": [
+        7,
+        8,
+        10,
+        11,
+        12,
+        14,
+        15
+      ],
+      "max_new_train": 16,
+      "max_new_eval": 16,
+      "source_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-step345-v10-20260517_124017/mtp.safetensors",
+      "trained_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-late-steps-v11-20260517_124545/mtp.safetensors",
+      "train_before": {
+        "accepted": 48,
+        "total": 149,
+        "accept_rate": 0.3221476510067114,
+        "mean_loss": 5.3883547605384114,
+        "by_step": {
+          "7": {
+            "events": 26,
+            "accepted": 12,
+            "accept_rate": 0.46153846153846156
+          },
+          "8": {
+            "events": 26,
+            "accepted": 5,
+            "accept_rate": 0.19230769230769232
+          },
+          "10": {
+            "events": 20,
+            "accepted": 7,
+            "accept_rate": 0.35
+          },
+          "11": {
+            "events": 20,
+            "accepted": 7,
+            "accept_rate": 0.35
+          },
+          "12": {
+            "events": 19,
+            "accepted": 8,
+            "accept_rate": 0.42105263157894735
+          },
+          "14": {
+            "events": 19,
+            "accepted": 5,
+            "accept_rate": 0.2631578947368421
+          },
+          "15": {
+            "events": 19,
+            "accepted": 4,
+            "accept_rate": 0.21052631578947367
+          }
+        }
+      },
+      "train_after": {
+        "accepted": 51,
+        "total": 149,
+        "accept_rate": 0.3422818791946309,
+        "mean_loss": 5.187032995007982,
+        "by_step": {
+          "7": {
+            "events": 26,
+            "accepted": 12,
+            "accept_rate": 0.46153846153846156
+          },
+          "8": {
+            "events": 26,
+            "accepted": 5,
+            "accept_rate": 0.19230769230769232
+          },
+          "10": {
+            "events": 20,
+            "accepted": 8,
+            "accept_rate": 0.4
+          },
+          "11": {
+            "events": 20,
+            "accepted": 8,
+            "accept_rate": 0.4
+          },
+          "12": {
+            "events": 19,
+            "accepted": 8,
+            "accept_rate": 0.42105263157894735
+          },
+          "14": {
+            "events": 19,
+            "accepted": 5,
+            "accept_rate": 0.2631578947368421
+          },
+          "15": {
+            "events": 19,
+            "accepted": 5,
+            "accept_rate": 0.2631578947368421
+          }
+        }
+      },
+      "eval_before": {
+        "accepted": 25,
+        "total": 116,
+        "accept_rate": 0.21551724137931033,
+        "mean_loss": 7.6902108437227135,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "10": {
+            "events": 7,
+            "accepted": 3,
+            "accept_rate": 0.42857142857142855
+          },
+          "11": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "12": {
+            "events": 6,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "13": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          }
+        }
+      },
+      "eval_after": {
+        "accepted": 29,
+        "total": 116,
+        "accept_rate": 0.25,
+        "mean_loss": 7.5202863279164065,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "10": {
+            "events": 7,
+            "accepted": 4,
+            "accept_rate": 0.5714285714285714
+          },
+          "11": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "12": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          }
+        }
+      },
+      "eval_accept_delta": 0.03448275862068967
+    },
+    {
+      "path": "reports/mtp/a100_mtp_iterative_train_front_restore_v12_20260517_125551.json",
+      "trainable": "fc_mtp_layer",
+      "steps": 20,
+      "lr": 2e-06,
+      "first_token_weight": 1.0,
+      "step1_weight": 1.0,
+      "later_token_weight": 1.0,
+      "train_steps": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "max_new_train": 16,
+      "max_new_eval": 16,
+      "source_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-late-steps-v11-20260517_124545/mtp.safetensors",
+      "trained_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-front-restore-v12-20260517_125551/mtp.safetensors",
+      "train_before": {
+        "accepted": 0,
+        "total": 130,
+        "accept_rate": 0.0,
+        "mean_loss": 11.45595801793612,
+        "by_step": {
+          "0": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "1": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "3": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "4": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "train_after": {
+        "accepted": 0,
+        "total": 130,
+        "accept_rate": 0.0,
+        "mean_loss": 10.540374834720906,
+        "by_step": {
+          "0": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "1": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "3": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "4": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "eval_before": {
+        "accepted": 29,
+        "total": 116,
+        "accept_rate": 0.25,
+        "mean_loss": 7.5202863279164065,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "10": {
+            "events": 7,
+            "accepted": 4,
+            "accept_rate": 0.5714285714285714
+          },
+          "11": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "12": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          }
+        }
+      },
+      "eval_after": {
+        "accepted": 29,
+        "total": 116,
+        "accept_rate": 0.25,
+        "mean_loss": 7.184498885797,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "10": {
+            "events": 7,
+            "accepted": 4,
+            "accept_rate": 0.5714285714285714
+          },
+          "11": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "12": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          }
+        }
+      },
+      "eval_accept_delta": 0.0
+    },
+    {
+      "path": "reports/mtp/a100_mtp_iterative_train_front_norms_v13_20260517_130238.json",
+      "trainable": "fc_norms",
+      "steps": 40,
+      "lr": 1e-05,
+      "first_token_weight": 1.0,
+      "step1_weight": 1.0,
+      "later_token_weight": 1.0,
+      "train_steps": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "max_new_train": 16,
+      "max_new_eval": 16,
+      "source_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-late-steps-v11-20260517_124545/mtp.safetensors",
+      "trained_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-front-norms-v13-20260517_130238/mtp.safetensors",
+      "train_before": {
+        "accepted": 0,
+        "total": 130,
+        "accept_rate": 0.0,
+        "mean_loss": 11.45595801793612,
+        "by_step": {
+          "0": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "1": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "3": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "4": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "train_after": {
+        "accepted": 38,
+        "total": 130,
+        "accept_rate": 0.2923076923076923,
+        "mean_loss": 6.201616851412333,
+        "by_step": {
+          "0": {
+            "events": 26,
+            "accepted": 3,
+            "accept_rate": 0.11538461538461539
+          },
+          "1": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 26,
+            "accepted": 25,
+            "accept_rate": 0.9615384615384616
+          },
+          "3": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "4": {
+            "events": 26,
+            "accepted": 10,
+            "accept_rate": 0.38461538461538464
+          }
+        }
+      },
+      "eval_before": {
+        "accepted": 29,
+        "total": 116,
+        "accept_rate": 0.25,
+        "mean_loss": 7.5202863279164065,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "10": {
+            "events": 7,
+            "accepted": 4,
+            "accept_rate": 0.5714285714285714
+          },
+          "11": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "12": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          }
+        }
+      },
+      "eval_after": {
+        "accepted": 41,
+        "total": 116,
+        "accept_rate": 0.35344827586206895,
+        "mean_loss": 5.63431894458461,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "1": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "10": {
+            "events": 7,
+            "accepted": 4,
+            "accept_rate": 0.5714285714285714
+          },
+          "11": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "12": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          }
+        }
+      },
+      "eval_accept_delta": 0.10344827586206895
+    },
+    {
+      "path": "reports/mtp/a100_mtp_iterative_train_step13_v14_20260517_130926.json",
+      "trainable": "fc_norms",
+      "steps": 60,
+      "lr": 2e-05,
+      "first_token_weight": 1.0,
+      "step1_weight": 2.0,
+      "later_token_weight": 2.0,
+      "train_steps": [
+        1,
+        3
+      ],
+      "max_new_train": 16,
+      "max_new_eval": 16,
+      "source_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-front-norms-v13-20260517_130238/mtp.safetensors",
+      "trained_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-step13-v14-20260517_130926/mtp.safetensors",
+      "train_before": {
+        "accepted": 0,
+        "total": 52,
+        "accept_rate": 0.0,
+        "mean_loss": 12.245595601888803,
+        "by_step": {
+          "1": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "3": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "train_after": {
+        "accepted": 52,
+        "total": 52,
+        "accept_rate": 1.0,
+        "mean_loss": 0.10974118715295425,
+        "by_step": {
+          "1": {
+            "events": 26,
+            "accepted": 26,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 26,
+            "accepted": 26,
+            "accept_rate": 1.0
+          }
+        }
+      },
+      "eval_before": {
+        "accepted": 41,
+        "total": 116,
+        "accept_rate": 0.35344827586206895,
+        "mean_loss": 5.63431894458461,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "1": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "10": {
+            "events": 7,
+            "accepted": 4,
+            "accept_rate": 0.5714285714285714
+          },
+          "11": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "12": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          }
+        }
+      },
+      "eval_after": {
+        "accepted": 40,
+        "total": 116,
+        "accept_rate": 0.3448275862068966,
+        "mean_loss": 4.531510711069508,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "2": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "3": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 7,
+            "accept_rate": 0.875
+          },
+          "6": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "7": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "10": {
+            "events": 7,
+            "accepted": 2,
+            "accept_rate": 0.2857142857142857
+          },
+          "11": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "12": {
+            "events": 6,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          }
+        }
+      },
+      "eval_accept_delta": -0.008620689655172376
+    },
+    {
+      "path": "reports/mtp/a100_mtp_iterative_train_interp_front014_v15_20260517_131902.json",
+      "trainable": "fc_norms",
+      "steps": 40,
+      "lr": 5e-06,
+      "first_token_weight": 2.0,
+      "step1_weight": 2.0,
+      "later_token_weight": 2.0,
+      "train_steps": [
+        0,
+        1,
+        4
+      ],
+      "max_new_train": 16,
+      "max_new_eval": 16,
+      "source_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-interp-v13-v14-20260517_131414/mtp.safetensors",
+      "trained_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-interp-front014-v15-20260517_131902/mtp.safetensors",
+      "train_before": {
+        "accepted": 4,
+        "total": 78,
+        "accept_rate": 0.05128205128205128,
+        "mean_loss": 3.1057120668582425,
+        "by_step": {
+          "0": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "1": {
+            "events": 26,
+            "accepted": 4,
+            "accept_rate": 0.15384615384615385
+          },
+          "4": {
+            "events": 26,
+            "accepted": 0,
+            "accept_rate": 0.0
+          }
+        }
+      },
+      "train_after": {
+        "accepted": 41,
+        "total": 78,
+        "accept_rate": 0.5256410256410257,
+        "mean_loss": 1.978597940542759,
+        "by_step": {
+          "0": {
+            "events": 26,
+            "accepted": 8,
+            "accept_rate": 0.3076923076923077
+          },
+          "1": {
+            "events": 26,
+            "accepted": 8,
+            "accept_rate": 0.3076923076923077
+          },
+          "4": {
+            "events": 26,
+            "accepted": 25,
+            "accept_rate": 0.9615384615384616
+          }
+        }
+      },
+      "eval_before": {
+        "accepted": 42,
+        "total": 116,
+        "accept_rate": 0.3620689655172414,
+        "mean_loss": 4.436342176692239,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "1": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "2": {
+            "events": 8,
+            "accepted": 7,
+            "accept_rate": 0.875
+          },
+          "3": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "10": {
+            "events": 7,
+            "accepted": 4,
+            "accept_rate": 0.5714285714285714
+          },
+          "11": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "12": {
+            "events": 6,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          }
+        }
+      },
+      "eval_after": {
+        "accepted": 56,
+        "total": 116,
+        "accept_rate": 0.4827586206896552,
+        "mean_loss": 4.1279928535544155,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "1": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "10": {
+            "events": 7,
+            "accepted": 4,
+            "accept_rate": 0.5714285714285714
+          },
+          "11": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "12": {
+            "events": 6,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          }
+        }
+      },
+      "eval_accept_delta": 0.12068965517241381
+    },
+    {
+      "path": "reports/mtp/a100_mtp_iterative_train_v15_weaksteps_v16_20260517_132509.json",
+      "trainable": "fc_norms",
+      "steps": 40,
+      "lr": 3e-06,
+      "first_token_weight": 1.0,
+      "step1_weight": 2.0,
+      "later_token_weight": 1.5,
+      "train_steps": [
+        1,
+        8,
+        9,
+        12,
+        15
+      ],
+      "max_new_train": 16,
+      "max_new_eval": 16,
+      "source_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-interp-front014-v15-20260517_131902/mtp.safetensors",
+      "trained_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v15-weaksteps-v16-20260517_132509/mtp.safetensors",
+      "train_before": {
+        "accepted": 29,
+        "total": 115,
+        "accept_rate": 0.25217391304347825,
+        "mean_loss": 5.750325480492219,
+        "by_step": {
+          "1": {
+            "events": 26,
+            "accepted": 8,
+            "accept_rate": 0.3076923076923077
+          },
+          "8": {
+            "events": 26,
+            "accepted": 6,
+            "accept_rate": 0.23076923076923078
+          },
+          "9": {
+            "events": 25,
+            "accepted": 2,
+            "accept_rate": 0.08
+          },
+          "12": {
+            "events": 19,
+            "accepted": 8,
+            "accept_rate": 0.42105263157894735
+          },
+          "15": {
+            "events": 19,
+            "accepted": 5,
+            "accept_rate": 0.2631578947368421
+          }
+        }
+      },
+      "train_after": {
+        "accepted": 31,
+        "total": 115,
+        "accept_rate": 0.26956521739130435,
+        "mean_loss": 5.515302512373613,
+        "by_step": {
+          "1": {
+            "events": 26,
+            "accepted": 9,
+            "accept_rate": 0.34615384615384615
+          },
+          "8": {
+            "events": 26,
+            "accepted": 6,
+            "accept_rate": 0.23076923076923078
+          },
+          "9": {
+            "events": 25,
+            "accepted": 2,
+            "accept_rate": 0.08
+          },
+          "12": {
+            "events": 19,
+            "accepted": 8,
+            "accept_rate": 0.42105263157894735
+          },
+          "15": {
+            "events": 19,
+            "accepted": 6,
+            "accept_rate": 0.3157894736842105
+          }
+        }
+      },
+      "eval_before": {
+        "accepted": 56,
+        "total": 116,
+        "accept_rate": 0.4827586206896552,
+        "mean_loss": 4.1279928535544155,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "1": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "10": {
+            "events": 7,
+            "accepted": 4,
+            "accept_rate": 0.5714285714285714
+          },
+          "11": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "12": {
+            "events": 6,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          }
+        }
+      },
+      "eval_after": {
+        "accepted": 57,
+        "total": 116,
+        "accept_rate": 0.49137931034482757,
+        "mean_loss": 4.045281092082311,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "1": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "10": {
+            "events": 7,
+            "accepted": 4,
+            "accept_rate": 0.5714285714285714
+          },
+          "11": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "12": {
+            "events": 6,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          }
+        }
+      },
+      "eval_accept_delta": 0.008620689655172376
+    },
+    {
+      "path": "reports/mtp/a100_mtp_iterative_train_v16_late_mtplow_v17_20260517_133334.json",
+      "trainable": "fc_mtp_layer",
+      "steps": 30,
+      "lr": 1e-06,
+      "first_token_weight": 1.0,
+      "step1_weight": 1.0,
+      "later_token_weight": 1.5,
+      "train_steps": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "max_new_train": 16,
+      "max_new_eval": 16,
+      "source_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v15-weaksteps-v16-20260517_132509/mtp.safetensors",
+      "trained_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v16-late-mtplow-v17-20260517_133334/mtp.safetensors",
+      "train_before": {
+        "accepted": 63,
+        "total": 219,
+        "accept_rate": 0.2876712328767123,
+        "mean_loss": 5.463771100491965,
+        "by_step": {
+          "6": {
+            "events": 26,
+            "accepted": 9,
+            "accept_rate": 0.34615384615384615
+          },
+          "7": {
+            "events": 26,
+            "accepted": 10,
+            "accept_rate": 0.38461538461538464
+          },
+          "8": {
+            "events": 26,
+            "accepted": 6,
+            "accept_rate": 0.23076923076923078
+          },
+          "9": {
+            "events": 25,
+            "accepted": 2,
+            "accept_rate": 0.08
+          },
+          "10": {
+            "events": 20,
+            "accepted": 6,
+            "accept_rate": 0.3
+          },
+          "11": {
+            "events": 20,
+            "accepted": 7,
+            "accept_rate": 0.35
+          },
+          "12": {
+            "events": 19,
+            "accepted": 8,
+            "accept_rate": 0.42105263157894735
+          },
+          "13": {
+            "events": 19,
+            "accepted": 4,
+            "accept_rate": 0.21052631578947367
+          },
+          "14": {
+            "events": 19,
+            "accepted": 5,
+            "accept_rate": 0.2631578947368421
+          },
+          "15": {
+            "events": 19,
+            "accepted": 6,
+            "accept_rate": 0.3157894736842105
+          }
+        }
+      },
+      "train_after": {
+        "accepted": 70,
+        "total": 219,
+        "accept_rate": 0.319634703196347,
+        "mean_loss": 5.3634877604640785,
+        "by_step": {
+          "6": {
+            "events": 26,
+            "accepted": 9,
+            "accept_rate": 0.34615384615384615
+          },
+          "7": {
+            "events": 26,
+            "accepted": 12,
+            "accept_rate": 0.46153846153846156
+          },
+          "8": {
+            "events": 26,
+            "accepted": 6,
+            "accept_rate": 0.23076923076923078
+          },
+          "9": {
+            "events": 25,
+            "accepted": 2,
+            "accept_rate": 0.08
+          },
+          "10": {
+            "events": 20,
+            "accepted": 9,
+            "accept_rate": 0.45
+          },
+          "11": {
+            "events": 20,
+            "accepted": 8,
+            "accept_rate": 0.4
+          },
+          "12": {
+            "events": 19,
+            "accepted": 8,
+            "accept_rate": 0.42105263157894735
+          },
+          "13": {
+            "events": 19,
+            "accepted": 4,
+            "accept_rate": 0.21052631578947367
+          },
+          "14": {
+            "events": 19,
+            "accepted": 6,
+            "accept_rate": 0.3157894736842105
+          },
+          "15": {
+            "events": 19,
+            "accepted": 6,
+            "accept_rate": 0.3157894736842105
+          }
+        }
+      },
+      "eval_before": {
+        "accepted": 57,
+        "total": 116,
+        "accept_rate": 0.49137931034482757,
+        "mean_loss": 4.045281092082311,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "1": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "10": {
+            "events": 7,
+            "accepted": 4,
+            "accept_rate": 0.5714285714285714
+          },
+          "11": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "12": {
+            "events": 6,
+            "accepted": 0,
+            "accept_rate": 0.0
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          }
+        }
+      },
+      "eval_after": {
+        "accepted": 58,
+        "total": 116,
+        "accept_rate": 0.5,
+        "mean_loss": 3.9974485330990164,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "1": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "10": {
+            "events": 7,
+            "accepted": 4,
+            "accept_rate": 0.5714285714285714
+          },
+          "11": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "12": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          }
+        }
+      },
+      "eval_accept_delta": 0.008620689655172431
+    },
+    {
+      "path": "reports/mtp/a100_mtp_iterative_train_v17_weakall_mtplow_v18_20260517_134200.json",
+      "trainable": "fc_mtp_layer",
+      "steps": 40,
+      "lr": 5e-07,
+      "first_token_weight": 1.5,
+      "step1_weight": 1.5,
+      "later_token_weight": 1.5,
+      "train_steps": [
+        0,
+        1,
+        6,
+        7,
+        8,
+        9,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "max_new_train": 16,
+      "max_new_eval": 16,
+      "source_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v16-late-mtplow-v17-20260517_133334/mtp.safetensors",
+      "trained_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v17-weakall-mtplow-v18-20260517_134200/mtp.safetensors",
+      "train_before": {
+        "accepted": 81,
+        "total": 251,
+        "accept_rate": 0.32270916334661354,
+        "mean_loss": 4.745397805662981,
+        "by_step": {
+          "0": {
+            "events": 26,
+            "accepted": 11,
+            "accept_rate": 0.4230769230769231
+          },
+          "1": {
+            "events": 26,
+            "accepted": 9,
+            "accept_rate": 0.34615384615384615
+          },
+          "6": {
+            "events": 26,
+            "accepted": 9,
+            "accept_rate": 0.34615384615384615
+          },
+          "7": {
+            "events": 26,
+            "accepted": 12,
+            "accept_rate": 0.46153846153846156
+          },
+          "8": {
+            "events": 26,
+            "accepted": 6,
+            "accept_rate": 0.23076923076923078
+          },
+          "9": {
+            "events": 25,
+            "accepted": 2,
+            "accept_rate": 0.08
+          },
+          "11": {
+            "events": 20,
+            "accepted": 8,
+            "accept_rate": 0.4
+          },
+          "12": {
+            "events": 19,
+            "accepted": 8,
+            "accept_rate": 0.42105263157894735
+          },
+          "13": {
+            "events": 19,
+            "accepted": 4,
+            "accept_rate": 0.21052631578947367
+          },
+          "14": {
+            "events": 19,
+            "accepted": 6,
+            "accept_rate": 0.3157894736842105
+          },
+          "15": {
+            "events": 19,
+            "accepted": 6,
+            "accept_rate": 0.3157894736842105
+          }
+        }
+      },
+      "train_after": {
+        "accepted": 83,
+        "total": 251,
+        "accept_rate": 0.33067729083665337,
+        "mean_loss": 4.712257670691288,
+        "by_step": {
+          "0": {
+            "events": 26,
+            "accepted": 13,
+            "accept_rate": 0.5
+          },
+          "1": {
+            "events": 26,
+            "accepted": 9,
+            "accept_rate": 0.34615384615384615
+          },
+          "6": {
+            "events": 26,
+            "accepted": 9,
+            "accept_rate": 0.34615384615384615
+          },
+          "7": {
+            "events": 26,
+            "accepted": 12,
+            "accept_rate": 0.46153846153846156
+          },
+          "8": {
+            "events": 26,
+            "accepted": 6,
+            "accept_rate": 0.23076923076923078
+          },
+          "9": {
+            "events": 25,
+            "accepted": 2,
+            "accept_rate": 0.08
+          },
+          "11": {
+            "events": 20,
+            "accepted": 8,
+            "accept_rate": 0.4
+          },
+          "12": {
+            "events": 19,
+            "accepted": 8,
+            "accept_rate": 0.42105263157894735
+          },
+          "13": {
+            "events": 19,
+            "accepted": 4,
+            "accept_rate": 0.21052631578947367
+          },
+          "14": {
+            "events": 19,
+            "accepted": 6,
+            "accept_rate": 0.3157894736842105
+          },
+          "15": {
+            "events": 19,
+            "accepted": 6,
+            "accept_rate": 0.3157894736842105
+          }
+        }
+      },
+      "eval_before": {
+        "accepted": 58,
+        "total": 116,
+        "accept_rate": 0.5,
+        "mean_loss": 3.9974485330990164,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "1": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "10": {
+            "events": 7,
+            "accepted": 4,
+            "accept_rate": 0.5714285714285714
+          },
+          "11": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "12": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          }
+        }
+      },
+      "eval_after": {
+        "accepted": 59,
+        "total": 116,
+        "accept_rate": 0.5086206896551724,
+        "mean_loss": 3.974281522011834,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 4,
+            "accept_rate": 0.5
+          },
+          "1": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "10": {
+            "events": 7,
+            "accepted": 4,
+            "accept_rate": 0.5714285714285714
+          },
+          "11": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "12": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          }
+        }
+      },
+      "eval_accept_delta": 0.008620689655172376
+    },
+    {
+      "path": "reports/mtp/a100_mtp_iterative_train_v18_targeted_v4_fcnorms_v19_20260517_135834.json",
+      "trainable": "fc_norms",
+      "steps": 60,
+      "lr": 1e-06,
+      "first_token_weight": 1.5,
+      "step1_weight": 2.0,
+      "later_token_weight": 1.75,
+      "train_steps": [
+        0,
+        1,
+        6,
+        7,
+        8,
+        9,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "max_new_train": 16,
+      "max_new_eval": 16,
+      "source_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v17-weakall-mtplow-v18-20260517_134200/mtp.safetensors",
+      "trained_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v18-targeted-v4-fcnorms-v19-20260517_135834/mtp.safetensors",
+      "train_before": {
+        "accepted": 134,
+        "total": 404,
+        "accept_rate": 0.3316831683168317,
+        "mean_loss": 4.890367983480786,
+        "by_step": {
+          "0": {
+            "events": 41,
+            "accepted": 17,
+            "accept_rate": 0.4146341463414634
+          },
+          "1": {
+            "events": 41,
+            "accepted": 17,
+            "accept_rate": 0.4146341463414634
+          },
+          "6": {
+            "events": 41,
+            "accepted": 15,
+            "accept_rate": 0.36585365853658536
+          },
+          "7": {
+            "events": 41,
+            "accepted": 20,
+            "accept_rate": 0.4878048780487805
+          },
+          "8": {
+            "events": 41,
+            "accepted": 12,
+            "accept_rate": 0.2926829268292683
+          },
+          "9": {
+            "events": 40,
+            "accepted": 5,
+            "accept_rate": 0.125
+          },
+          "11": {
+            "events": 35,
+            "accepted": 12,
+            "accept_rate": 0.34285714285714286
+          },
+          "12": {
+            "events": 32,
+            "accepted": 10,
+            "accept_rate": 0.3125
+          },
+          "13": {
+            "events": 32,
+            "accepted": 9,
+            "accept_rate": 0.28125
+          },
+          "14": {
+            "events": 31,
+            "accepted": 9,
+            "accept_rate": 0.2903225806451613
+          },
+          "15": {
+            "events": 29,
+            "accepted": 8,
+            "accept_rate": 0.27586206896551724
+          }
+        }
+      },
+      "train_after": {
+        "accepted": 135,
+        "total": 404,
+        "accept_rate": 0.3341584158415842,
+        "mean_loss": 4.849365401137067,
+        "by_step": {
+          "0": {
+            "events": 41,
+            "accepted": 18,
+            "accept_rate": 0.43902439024390244
+          },
+          "1": {
+            "events": 41,
+            "accepted": 17,
+            "accept_rate": 0.4146341463414634
+          },
+          "6": {
+            "events": 41,
+            "accepted": 15,
+            "accept_rate": 0.36585365853658536
+          },
+          "7": {
+            "events": 41,
+            "accepted": 20,
+            "accept_rate": 0.4878048780487805
+          },
+          "8": {
+            "events": 41,
+            "accepted": 12,
+            "accept_rate": 0.2926829268292683
+          },
+          "9": {
+            "events": 40,
+            "accepted": 5,
+            "accept_rate": 0.125
+          },
+          "11": {
+            "events": 35,
+            "accepted": 12,
+            "accept_rate": 0.34285714285714286
+          },
+          "12": {
+            "events": 32,
+            "accepted": 10,
+            "accept_rate": 0.3125
+          },
+          "13": {
+            "events": 32,
+            "accepted": 9,
+            "accept_rate": 0.28125
+          },
+          "14": {
+            "events": 31,
+            "accepted": 9,
+            "accept_rate": 0.2903225806451613
+          },
+          "15": {
+            "events": 29,
+            "accepted": 8,
+            "accept_rate": 0.27586206896551724
+          }
+        }
+      },
+      "eval_before": {
+        "accepted": 59,
+        "total": 116,
+        "accept_rate": 0.5086206896551724,
+        "mean_loss": 3.974281522011834,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 4,
+            "accept_rate": 0.5
+          },
+          "1": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "10": {
+            "events": 7,
+            "accepted": 4,
+            "accept_rate": 0.5714285714285714
+          },
+          "11": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "12": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          }
+        }
+      },
+      "eval_after": {
+        "accepted": 60,
+        "total": 116,
+        "accept_rate": 0.5172413793103449,
+        "mean_loss": 3.9417206291510754,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 4,
+            "accept_rate": 0.5
+          },
+          "1": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "10": {
+            "events": 7,
+            "accepted": 4,
+            "accept_rate": 0.5714285714285714
+          },
+          "11": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "12": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          }
+        }
+      },
+      "eval_accept_delta": 0.008620689655172487
+    },
+    {
+      "path": "reports/mtp/a100_mtp_iterative_train_v19_step1_late_mtplow_v20_20260517_141105.json",
+      "trainable": "fc_mtp_layer",
+      "steps": 50,
+      "lr": 7e-07,
+      "first_token_weight": 1.0,
+      "step1_weight": 3.0,
+      "later_token_weight": 2.0,
+      "train_steps": [
+        1,
+        8,
+        9,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "max_new_train": 16,
+      "max_new_eval": 16,
+      "source_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v18-targeted-v4-fcnorms-v19-20260517_135834/mtp.safetensors",
+      "trained_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v19-step1-late-mtplow-v20-20260517_141105/mtp.safetensors",
+      "train_before": {
+        "accepted": 82,
+        "total": 281,
+        "accept_rate": 0.2918149466192171,
+        "mean_loss": 5.638406397993561,
+        "by_step": {
+          "1": {
+            "events": 41,
+            "accepted": 17,
+            "accept_rate": 0.4146341463414634
+          },
+          "8": {
+            "events": 41,
+            "accepted": 12,
+            "accept_rate": 0.2926829268292683
+          },
+          "9": {
+            "events": 40,
+            "accepted": 5,
+            "accept_rate": 0.125
+          },
+          "11": {
+            "events": 35,
+            "accepted": 12,
+            "accept_rate": 0.34285714285714286
+          },
+          "12": {
+            "events": 32,
+            "accepted": 10,
+            "accept_rate": 0.3125
+          },
+          "13": {
+            "events": 32,
+            "accepted": 9,
+            "accept_rate": 0.28125
+          },
+          "14": {
+            "events": 31,
+            "accepted": 9,
+            "accept_rate": 0.2903225806451613
+          },
+          "15": {
+            "events": 29,
+            "accepted": 8,
+            "accept_rate": 0.27586206896551724
+          }
+        }
+      },
+      "train_after": {
+        "accepted": 82,
+        "total": 281,
+        "accept_rate": 0.2918149466192171,
+        "mean_loss": 5.59812612892576,
+        "by_step": {
+          "1": {
+            "events": 41,
+            "accepted": 17,
+            "accept_rate": 0.4146341463414634
+          },
+          "8": {
+            "events": 41,
+            "accepted": 12,
+            "accept_rate": 0.2926829268292683
+          },
+          "9": {
+            "events": 40,
+            "accepted": 5,
+            "accept_rate": 0.125
+          },
+          "11": {
+            "events": 35,
+            "accepted": 12,
+            "accept_rate": 0.34285714285714286
+          },
+          "12": {
+            "events": 32,
+            "accepted": 10,
+            "accept_rate": 0.3125
+          },
+          "13": {
+            "events": 32,
+            "accepted": 9,
+            "accept_rate": 0.28125
+          },
+          "14": {
+            "events": 31,
+            "accepted": 9,
+            "accept_rate": 0.2903225806451613
+          },
+          "15": {
+            "events": 29,
+            "accepted": 8,
+            "accept_rate": 0.27586206896551724
+          }
+        }
+      },
+      "eval_before": {
+        "accepted": 60,
+        "total": 116,
+        "accept_rate": 0.5172413793103449,
+        "mean_loss": 3.9417206291510754,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 4,
+            "accept_rate": 0.5
+          },
+          "1": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "10": {
+            "events": 7,
+            "accepted": 4,
+            "accept_rate": 0.5714285714285714
+          },
+          "11": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "12": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          }
+        }
+      },
+      "eval_after": {
+        "accepted": 60,
+        "total": 116,
+        "accept_rate": 0.5172413793103449,
+        "mean_loss": 3.922060331538448,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 4,
+            "accept_rate": 0.5
+          },
+          "1": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "10": {
+            "events": 7,
+            "accepted": 4,
+            "accept_rate": 0.5714285714285714
+          },
+          "11": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "12": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          }
+        }
+      },
+      "eval_accept_delta": 0.0
+    },
+    {
+      "path": "reports/mtp/a100_mtp_iterative_train_v19_step1only_fcnorms_v21_20260517_143251.json",
+      "trainable": "fc_norms",
+      "steps": 80,
+      "lr": 7e-07,
+      "first_token_weight": 1.0,
+      "step1_weight": 4.0,
+      "later_token_weight": 1.0,
+      "train_steps": [
+        1
+      ],
+      "max_new_train": 16,
+      "max_new_eval": 16,
+      "source_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v18-targeted-v4-fcnorms-v19-20260517_135834/mtp.safetensors",
+      "trained_sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v19-step1only-fcnorms-v21-20260517_143251/mtp.safetensors",
+      "train_before": {
+        "accepted": 17,
+        "total": 41,
+        "accept_rate": 0.4146341463414634,
+        "mean_loss": 2.1444382340442845,
+        "by_step": {
+          "1": {
+            "events": 41,
+            "accepted": 17,
+            "accept_rate": 0.4146341463414634
+          }
+        }
+      },
+      "train_after": {
+        "accepted": 17,
+        "total": 41,
+        "accept_rate": 0.4146341463414634,
+        "mean_loss": 2.109766341564132,
+        "by_step": {
+          "1": {
+            "events": 41,
+            "accepted": 17,
+            "accept_rate": 0.4146341463414634
+          }
+        }
+      },
+      "eval_before": {
+        "accepted": 60,
+        "total": 116,
+        "accept_rate": 0.5172413793103449,
+        "mean_loss": 3.9417206291510754,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 4,
+            "accept_rate": 0.5
+          },
+          "1": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "10": {
+            "events": 7,
+            "accepted": 4,
+            "accept_rate": 0.5714285714285714
+          },
+          "11": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "12": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          }
+        }
+      },
+      "eval_after": {
+        "accepted": 59,
+        "total": 116,
+        "accept_rate": 0.5086206896551724,
+        "mean_loss": 3.9434715290875015,
+        "by_step": {
+          "0": {
+            "events": 8,
+            "accepted": 4,
+            "accept_rate": 0.5
+          },
+          "1": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "2": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "4": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 8,
+            "accepted": 8,
+            "accept_rate": 1.0
+          },
+          "6": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "7": {
+            "events": 8,
+            "accepted": 3,
+            "accept_rate": 0.375
+          },
+          "8": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "9": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "10": {
+            "events": 7,
+            "accepted": 4,
+            "accept_rate": 0.5714285714285714
+          },
+          "11": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "12": {
+            "events": 6,
+            "accepted": 1,
+            "accept_rate": 0.16666666666666666
+          },
+          "13": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "14": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          },
+          "15": {
+            "events": 5,
+            "accepted": 1,
+            "accept_rate": 0.2
+          }
+        }
+      },
+      "eval_accept_delta": -0.008620689655172487
+    }
+  ],
+  "decision": "MTP iterative accept is improving but remains below serving multiplier threshold."
+}
