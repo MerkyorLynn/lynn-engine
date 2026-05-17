@@ -146,6 +146,23 @@ Supported `stop_after` modes are `balanced_json`, `code_fence`, and
 `bullet_count`. The hook is intentionally opt-in and should be used only for
 structured modes while v16 remains the general Recovery baseline.
 
+R6000 live OpenAI HTTP smoke confirms the JSON path is not just an offline gate:
+
+```text
+reports/a100/server_guard_http_smoke_20260517_1051.json
+reports/a100/server_guard_chat_smoke_metrics_20260517_1055.json
+```
+
+| Endpoint | Guard | Result | Decode TPS | Notes |
+|---|---|---|---:|---|
+| `/v1/completions` | `response_format={"type":"json_object"}` | parseable JSON | 96.14 | first token forced from raw newline to `{` |
+| `/v1/chat/completions` | `response_format={"type":"json_object"}` | parseable JSON, `finish_reason=stop` | 96.59 | `stopped_reason=stop_token`, no markdown |
+| `/v1/completions` | private bullet guard | not sufficient | 98.48 | only the first prefix is forced; content quality can still drift |
+
+This validates the low-risk serving escape hatch for JSON/tool-call style
+outputs, but also draws the boundary: format guard fixes entry-domain and
+service-facing trimming, not semantic parity for prose or code.
+
 ## Full-Token Graph Slot Trigger
 
 The existing whole-decode graph-slot path is opt-in:

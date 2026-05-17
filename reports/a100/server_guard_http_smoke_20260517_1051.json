@@ -1,0 +1,108 @@
+{
+  "url": "http://127.0.0.1:18156/v1/completions",
+  "model": "Lynn-27B-A3B-W4A8-V2-GuardSmoke",
+  "results": [
+    {
+      "name": "json_response_format",
+      "status": "ok",
+      "elapsed_seconds": 0.883094072341919,
+      "text": "{\n  \"city\": \"Tokyo\",\n  \"unit\": \"celsius\"\n}",
+      "finish_reason": "length",
+      "format_guard": {
+        "enabled": true,
+        "stopped": false,
+        "forced_prefix": {
+          "text": "{\n  \"",
+          "ids": [
+            90,
+            198,
+            220,
+            328
+          ],
+          "trace": [
+            {
+              "index": 0,
+              "raw_id": 271,
+              "raw_text": "\n\n",
+              "forced_id": 90,
+              "forced_text": "{",
+              "raw_matched": false
+            },
+            {
+              "index": 1,
+              "raw_id": 198,
+              "raw_text": "\n",
+              "forced_id": 198,
+              "forced_text": "\n",
+              "raw_matched": true
+            },
+            {
+              "index": 2,
+              "raw_id": 220,
+              "raw_text": " ",
+              "forced_id": 220,
+              "forced_text": " ",
+              "raw_matched": true
+            },
+            {
+              "index": 3,
+              "raw_id": 328,
+              "raw_text": " \"",
+              "forced_id": 328,
+              "forced_text": " \"",
+              "raw_matched": true
+            }
+          ],
+          "raw_all_matched": false
+        },
+        "stop_after": "balanced_json"
+      },
+      "decode_tps": 96.13568956428064,
+      "completion_tokens": 22,
+      "starts_json": true,
+      "has_markdown": false,
+      "json_parse": true
+    },
+    {
+      "name": "private_bullet_guard",
+      "status": "ok",
+      "elapsed_seconds": 1.591024398803711,
+      "text": "- 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "finish_reason": "length",
+      "format_guard": {
+        "enabled": true,
+        "stopped": false,
+        "forced_prefix": {
+          "text": "- ",
+          "ids": [
+            12,
+            220
+          ],
+          "trace": [
+            {
+              "index": 0,
+              "raw_id": 271,
+              "raw_text": "\n\n",
+              "forced_id": 12,
+              "forced_text": "-",
+              "raw_matched": false
+            },
+            {
+              "index": 1,
+              "raw_id": 271,
+              "raw_text": "\n\n",
+              "forced_id": 220,
+              "forced_text": " ",
+              "raw_matched": false
+            }
+          ],
+          "raw_all_matched": false
+        },
+        "stop_after": "bullet_count"
+      },
+      "decode_tps": 98.48485252935696,
+      "completion_tokens": 96,
+      "bullet_lines": 1
+    }
+  ]
+}

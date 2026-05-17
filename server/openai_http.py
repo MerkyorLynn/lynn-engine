@@ -152,6 +152,17 @@ def apply_format_guard(text: str, guard: Optional[dict[str, Any]]) -> tuple[str,
         served = served.strip()
     return served, served != text
 
+
+def finish_reason_from_result(result: dict[str, Any], *, has_stop: bool, tool_calls: bool = False) -> str:
+    if tool_calls:
+        return "tool_calls"
+    if has_stop or result["format_guard"]["stopped"]:
+        return "stop"
+    if result.get("stopped_reason") == "stop_token":
+        return "stop"
+    return "length"
+
+
 @dataclass
 class EngineConfig:
     model_dir: str
@@ -237,6 +248,7 @@ class LynnEngineHandle:
                 "forced_prefix": result.get("forced_prefix"),
                 "stop_after": None if not format_guard else format_guard.get("stop_after"),
             },
+            "stopped_reason": result.get("stopped_reason"),
             "release_decode_shadows_after_prefill": self.release_decode_shadows_after_prefill,
             "release_decode_shadows_consumed": self.release_decode_shadows_consumed,
         }
@@ -400,7 +412,7 @@ def make_app(handle: LynnEngineHandle):
             "choices": [{
                 "index": 0,
                 "text": result["completion"],
-                "finish_reason": "stop" if req.stop or result["format_guard"]["stopped"] else "length",
+                "finish_reason": finish_reason_from_result(result, has_stop=bool(req.stop)),
                 "logprobs": None,
             }],
             "usage": {
@@ -413,6 +425,7 @@ def make_app(handle: LynnEngineHandle):
                 "tokens_per_second": result["completion_tokens"] / max(elapsed, 1e-6),
                 "timings": result["timings"],
                 "format_guard": result["format_guard"],
+                "stopped_reason": result.get("stopped_reason"),
             },
         }
 
@@ -467,8 +480,10 @@ def make_app(handle: LynnEngineHandle):
 
         content, tool_calls = parse_qwen_tool_calls(result["completion"])
         message: dict[str, Any] = {"role": "assistant", "content": content}
-        finish_reason = "tool_calls" if tool_calls else (
-            "stop" if req.stop or result["format_guard"]["stopped"] else "length"
+        finish_reason = finish_reason_from_result(
+            result,
+            has_stop=bool(req.stop),
+            tool_calls=bool(tool_calls),
         )
         if tool_calls:
             message["tool_calls"] = tool_calls
@@ -493,6 +508,7 @@ def make_app(handle: LynnEngineHandle):
                 "tokens_per_second": result["completion_tokens"] / max(elapsed, 1e-6),
                 "timings": result["timings"],
                 "format_guard": result["format_guard"],
+                "stopped_reason": result.get("stopped_reason"),
             },
         }
 
