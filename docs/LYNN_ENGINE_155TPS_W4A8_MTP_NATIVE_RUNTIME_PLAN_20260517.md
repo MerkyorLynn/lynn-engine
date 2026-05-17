@@ -22,7 +22,8 @@ R6000 v2 active-MoE micro gain: ~1.12x interval, not enough alone
 A100 best W4A8 recovery baseline: structured_v16_top6_damped075
 A100 teacher-clean v2 serving gate: 10/12 served exact, still RED
 A100 teacher-clean v3 serving gate: 11/12 served exact, min prefix 16, AMBER by plan threshold
-MTP: aligned sidecar forward works; fc-only calibration train 12/12, heldout 5/8
+MTP: aligned sidecar forward works; first-token fc calibration is GREEN, but
+     iterative accept is still 22/94 heldout after v3, so no TPS credit yet
 ```
 
 155 requires a compound win. There is no single safe env flag left.
@@ -107,6 +108,20 @@ the final GREEN bar. The next calibration pass should overweight format-start
 tokens (`{`, code fence, router prefix) or unfreeze the small MTP norm/attention
 surface.
 
+2026-05-17 iterative update: first-token success did not automatically become
+usable speculative decode. The heldout iterative accept ladder is:
+
+| Stage | Trainable | Heldout Accept | Note |
+|---|---|---:|---|
+| weighted-math v3 sidecar | `mtp.fc.weight` | 8/94, 8.51% | first token works, later tokens drift |
+| iterative v1 | `fc` | 15/94, 15.96% | clear gain |
+| iterative v2 | `fc_norms` | 21/94, 22.34% | best ROI so far |
+| iterative v3 | `fc_mtp_layer` | 22/94, 23.40% | loss improves, accept barely moves |
+
+A100 v4 is a 16-token curriculum continuation from v3 with a lower LR. The
+accept target remains >=55% heldout before this can be counted as a runtime
+multiplier.
+
 If fc-only cannot clear 55-70%, unfreeze in this order:
 
 1. `mtp.fc.weight`
@@ -153,6 +168,16 @@ Short-term rejected shortcuts:
 - scale-hoist gate/up: slower;
 - down-only native tile: local win but not enough and not a promotion by itself;
 - plain `_scaled_mm` selected-expert composition: speed/quality fail.
+- top-k reduction or skipping shared expert: small speed gain, immediate quality
+  divergence.
+
+2026-05-17 profile update: the safe Config D MoE budget is about
+`8.12 ms/token` across 40 layers. Router/top-k is `1.91 ms` (23.5%), active
+routed experts are `2.58 ms` (31.8%), shared expert is `2.29 ms` (28.2%), and
+residual composition/dispatch is `1.34 ms` (16.5%). The one-run budget ladder
+only improved median TPS from `100.77` to `107.90` at the most aggressive
+setting, and every approximation variant diverged early. The next speed work
+must preserve top-k/shared semantics and replace the real runtime boundary.
 
 Required native path:
 
