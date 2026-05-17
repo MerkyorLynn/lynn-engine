@@ -159,6 +159,12 @@ reports/mtp/a100_mtp_subset_grid_v19_v14_20260517_142927.json
 decision: AMBER
 best_groups_from_b: []
 best_accept: 60/116 = 51.72%
+
+reports/mtp/a100_mtp_iterative_train_v19_step1only_fcnorms_v21_20260517_143251.json
+reports/mtp/a100_mtp_saved_sidecar_eval_v19_v21_20260517_143629.json
+decision: AMBER
+best_label: v19
+v21_accept: 59/116 = 50.86%
 ```
 
 The weighted-math v3 sidecar is a GREEN first-token draft candidate, but it is
@@ -193,7 +199,10 @@ different trainable surface for step1. v19/v14 merge tests then close the old
 v14 rescue route: interpolation is best at alpha `0.0`, and subset grid is best
 with no v14 groups. Importing v14 `fc` drops to `41/116`, so the v14
 step1-specialist direction is not composable with v19 by simple linear or
-small-block merge.
+small-block merge. v21 then tests step1-only `fc_norms` from v19; it fails to
+move step1 and drops the saved total to `59/116` by losing the v19 step9 gain.
+The next path needs a different target construction, not another low-LR run on
+the same heldout-shaped step positions.
 
 This changes the initialization and wiring path, not the serving state: MTP can
 now run a real draft forward pass and backpropagate through a frozen-base,

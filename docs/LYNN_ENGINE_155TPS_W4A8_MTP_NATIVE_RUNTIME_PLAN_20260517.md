@@ -238,6 +238,12 @@ candidate that imports v14 `fc` collapses to `41/116`. v14's specialist signal
 is therefore not composable with the v19 saved sidecar by linear or small-block
 merge.
 
+A100 v21 tests step1-only `fc_norms` from v19. It does not break the step1
+wall: saved eval keeps v19 as best at `60/116`, while v21 reloads at `59/116`
+and loses the v19 step9 gain. This closes the simple step1-only `fc_norms`
+route. The remaining MTP work needs a different target construction, not more
+low-LR tuning on the same heldout-shaped positions.
+
 If fc-only cannot clear 55-70%, unfreeze in this order:
 
 1. `mtp.fc.weight`
