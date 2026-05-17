@@ -282,6 +282,21 @@ activation reference domain, not the W4A16 BF16-activation serving contract:
 | P93 split16 gate/up + Triton down | 0.0582 | 0.0266 | 0.0848 | 1.06x |
 | P93 split16 gate/up + native down tile1 | 0.0578 | 0.0225 | 0.0803 | 1.12x |
 
+The same P97 probe was repeated on seven linear-attention layers. All layers
+passed the quantized-activation contract, and `native_down_tile1` stayed the
+best interval variant:
+
+| Layer | Triton total ms | Tile total ms | Speedup |
+|---:|---:|---:|---:|
+| 0 | 0.0879 | 0.0784 | 1.12x |
+| 8 | 0.0908 | 0.0878 | 1.03x |
+| 16 | 0.0882 | 0.0803 | 1.10x |
+| 24 | 0.0922 | 0.0841 | 1.10x |
+| 28 | 0.0885 | 0.0804 | 1.10x |
+| 32 | 0.0907 | 0.0801 | 1.13x |
+| 36 | 0.0899 | 0.0809 | 1.11x |
+| Mean | 0.0897 | 0.0817 | 1.10x |
+
 That confirms the next native kernel should borrow the down-tile lesson while
 preserving the W4A16 numerical contract. Directly promoting the quantized
 activation composition would repeat the W4A8 quality failure mode.
@@ -313,6 +328,13 @@ Copied reports:
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p39_active_moe_inner_fastdecode_20260518_035645.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p74_active_moe_budget_fastdecode_20260518_040044.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p97_active_moe_interval_layer28_20260518_053300.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p97_active_moe_interval_layer0_20260518_053622.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p97_active_moe_interval_layer8_20260518_053622.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p97_active_moe_interval_layer16_20260518_053622.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p97_active_moe_interval_layer24_20260518_053622.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p97_active_moe_interval_layer28_20260518_053622.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p97_active_moe_interval_layer32_20260518_053622.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p97_active_moe_interval_layer36_20260518_053622.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p37_down_cuda_tile_gate_20260518_040259.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p37_grouped_per16_nonatomic_gate_20260518_040522.json`
 
