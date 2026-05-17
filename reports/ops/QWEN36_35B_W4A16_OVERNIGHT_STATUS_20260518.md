@@ -167,6 +167,34 @@ Negative probes from the same loop:
 - `tl.dot` gate/up is not a win on layer 28: 0.080 ms versus 0.033 ms current.
 - Active MoE tile sweep did not beat the current default enough to promote.
 
+### Native Kernel Island Readiness
+
+The next target is a Lynn-owned grouped active/shared MoE kernel, not another
+Python service-loop rewrite. Toolchain and ABI gates are now checked on R6000:
+
+| Probe | Result |
+|---|---:|
+| P76 CUTLASS/CuTe SM120 smoke | GREEN, headers found, compile ok |
+| P70 grouped-per16 fused ABI | GREEN, shape/layout checks pass and fail-loud replacement point is reserved |
+| P38 current full MoE | 0.213 ms/layer sampled mean |
+| P39 router top-k | 0.038 ms/layer sampled mean |
+| P39 gate/up fastdecode | 0.031 ms/layer sampled mean |
+| P39 down | 0.026 ms/layer sampled mean |
+| P39 shared BF16 | 0.060 ms/layer sampled mean |
+
+This confirms the remaining MoE opportunity is mostly boundary fusion: one
+kernel boundary for routed active experts and, later, a shared-expert fusion.
+The individual gate/up and down kernels are already small enough that more tile
+sweeps are low ROI unless they remove launches, intermediate tensors, or
+separate scheduling boundaries.
+
+Copied reports:
+
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p76_cutlass_cute_20260518_035340.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p70_grouped_fused_guard_20260518_035519.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p38_moe_multilayer_fastdecode_20260518_035645.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p39_active_moe_inner_fastdecode_20260518_035645.json`
+
 ## Speed Profile
 
 R6000 P26 phase profile on graph+in-place narrows the 155 TPS gap:

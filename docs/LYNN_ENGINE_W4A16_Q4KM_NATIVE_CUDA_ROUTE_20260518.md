@@ -103,3 +103,18 @@ extension against the current manifest layout and promotion gates.
 The expected first target is a Lynn-owned W4A16 grouped active/shared MoE kernel
 that preserves BF16 activation semantics. W4A8 remains a separate
 activation-aware artifact line for later tensor-core acceleration.
+
+R6000 native-kernel readiness checks now pass for this route:
+
+| Probe | Result |
+|---|---:|
+| P76 CUTLASS/CuTe SM120 smoke | GREEN, compile ok |
+| P70 grouped-per16 fused ABI | GREEN, fail-loud replacement point reserved |
+| P39 gate/up fastdecode | 0.031 ms/layer sampled mean |
+| P39 down | 0.026 ms/layer sampled mean |
+| P39 shared BF16 | 0.060 ms/layer sampled mean |
+| P38 current full MoE | 0.213 ms/layer sampled mean |
+
+This means the native CUDA work should target boundary fusion first: remove
+separate routed-expert launches and intermediate tensors before spending time on
+another scalar tile sweep.
