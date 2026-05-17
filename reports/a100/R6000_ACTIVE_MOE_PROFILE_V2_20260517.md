@@ -150,3 +150,23 @@ reports/p16_155/p37_r6000_v2_split16_tile1_generate_gate_20260517_122904.json
 The local P97 winner is therefore not a promotable serving switch. It requires
 graph-off activation quantization and changes greedy IDs. Treat split16 as an
 offline kernel research artifact, not the next runtime bridge.
+
+## Full-Token Diagnostic Profile
+
+Follow-up diagnostic profile:
+
+```text
+reports/p16_155/p6_full_token_profile_r6000_v2_configd_20260517_123301.json
+```
+
+This profile uses the older `_decode_layer` benchmark path, so its absolute
+`27.33 TPS` estimate is not the service number. The relative layer shape is
+still useful:
+
+| Type | Count | Avg ms/layer | Sum ms |
+|---|---:|---:|---:|
+| linear_attention | 30 | 0.905 | 27.154 |
+| full_attention | 10 | 0.791 | 7.908 |
+
+The next R6000 profile is therefore layer-34 linear-attention segmentation, not
+another active-MoE approximation.

@@ -214,6 +214,12 @@ down tile1 falls to `25.15 tok/s` median and `0/3` exact IDs because it must run
 with graph reuse disabled and activation quantization changes the generated
 path. Do not pursue this as a serving flag combination.
 
+2026-05-17 full-token diagnostic profile: the older `_decode_layer` benchmark
+path estimates `36.59 ms/token`, so it is not the service TPS number. Its
+relative shape is still useful: 30 linear-attention layers average `0.905 ms`
+each, 10 full-attention layers average `0.791 ms` each. R6000 is now profiling
+layer-34 linear-attention segments to choose the next runtime boundary.
+
 Required native path:
 
 ```text

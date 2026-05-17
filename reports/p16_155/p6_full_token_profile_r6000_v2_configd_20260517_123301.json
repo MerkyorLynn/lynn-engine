@@ -1,0 +1,278 @@
+{
+  "schema_version": "lynn-engine-p6-full-token-profile-v1",
+  "model": "/root/autodl-tmp/models/lynn-27b-a3b-w4a8-nvfp4-v2",
+  "recurrent_backend": "triton_fused_prepare",
+  "moe_impl": "packed_nvfp4",
+  "device": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+  "load_seconds": 16.087066173553467,
+  "full_token_ms": 36.59269409179687,
+  "estimated_tps": 27.327859421648157,
+  "by_type": {
+    "linear_attention": {
+      "count": 30,
+      "sum_ms": 27.15435228347778,
+      "max_ms": 0.9158032417297364,
+      "avg_ms": 0.905145076115926
+    },
+    "full_attention": {
+      "count": 10,
+      "sum_ms": 7.908284759521484,
+      "max_ms": 0.7987103939056397,
+      "avg_ms": 0.7908284759521484
+    }
+  },
+  "top_layers": [
+    {
+      "layer": 34,
+      "type": "linear_attention",
+      "latency_ms": 0.9158032417297364
+    },
+    {
+      "layer": 29,
+      "type": "linear_attention",
+      "latency_ms": 0.9105423927307129
+    },
+    {
+      "layer": 1,
+      "type": "linear_attention",
+      "latency_ms": 0.9101344108581543
+    },
+    {
+      "layer": 4,
+      "type": "linear_attention",
+      "latency_ms": 0.9100336074829102
+    },
+    {
+      "layer": 28,
+      "type": "linear_attention",
+      "latency_ms": 0.9097120285034179
+    },
+    {
+      "layer": 2,
+      "type": "linear_attention",
+      "latency_ms": 0.9081055641174316
+    },
+    {
+      "layer": 36,
+      "type": "linear_attention",
+      "latency_ms": 0.9076959609985351
+    },
+    {
+      "layer": 0,
+      "type": "linear_attention",
+      "latency_ms": 0.9076175689697266
+    },
+    {
+      "layer": 37,
+      "type": "linear_attention",
+      "latency_ms": 0.9063856124877929
+    },
+    {
+      "layer": 25,
+      "type": "linear_attention",
+      "latency_ms": 0.9059231758117676
+    }
+  ],
+  "layers": [
+    {
+      "layer": 0,
+      "type": "linear_attention",
+      "latency_ms": 0.9076175689697266
+    },
+    {
+      "layer": 1,
+      "type": "linear_attention",
+      "latency_ms": 0.9101344108581543
+    },
+    {
+      "layer": 2,
+      "type": "linear_attention",
+      "latency_ms": 0.9081055641174316
+    },
+    {
+      "layer": 3,
+      "type": "full_attention",
+      "latency_ms": 0.7987103939056397
+    },
+    {
+      "layer": 4,
+      "type": "linear_attention",
+      "latency_ms": 0.9100336074829102
+    },
+    {
+      "layer": 5,
+      "type": "linear_attention",
+      "latency_ms": 0.9015279769897461
+    },
+    {
+      "layer": 6,
+      "type": "linear_attention",
+      "latency_ms": 0.9046544075012207
+    },
+    {
+      "layer": 7,
+      "type": "full_attention",
+      "latency_ms": 0.7961103916168213
+    },
+    {
+      "layer": 8,
+      "type": "linear_attention",
+      "latency_ms": 0.9049839973449707
+    },
+    {
+      "layer": 9,
+      "type": "linear_attention",
+      "latency_ms": 0.9008208274841308
+    },
+    {
+      "layer": 10,
+      "type": "linear_attention",
+      "latency_ms": 0.9014016151428222
+    },
+    {
+      "layer": 11,
+      "type": "full_attention",
+      "latency_ms": 0.7865664005279541
+    },
+    {
+      "layer": 12,
+      "type": "linear_attention",
+      "latency_ms": 0.9043472290039063
+    },
+    {
+      "layer": 13,
+      "type": "linear_attention",
+      "latency_ms": 0.9040927886962891
+    },
+    {
+      "layer": 14,
+      "type": "linear_attention",
+      "latency_ms": 0.9042240142822265
+    },
+    {
+      "layer": 15,
+      "type": "full_attention",
+      "latency_ms": 0.7930223941802979
+    },
+    {
+      "layer": 16,
+      "type": "linear_attention",
+      "latency_ms": 0.9031904220581055
+    },
+    {
+      "layer": 17,
+      "type": "linear_attention",
+      "latency_ms": 0.902337646484375
+    },
+    {
+      "layer": 18,
+      "type": "linear_attention",
+      "latency_ms": 0.9008928298950195
+    },
+    {
+      "layer": 19,
+      "type": "full_attention",
+      "latency_ms": 0.7876255989074707
+    },
+    {
+      "layer": 20,
+      "type": "linear_attention",
+      "latency_ms": 0.90371675491333
+    },
+    {
+      "layer": 21,
+      "type": "linear_attention",
+      "latency_ms": 0.9057200431823731
+    },
+    {
+      "layer": 22,
+      "type": "linear_attention",
+      "latency_ms": 0.901030445098877
+    },
+    {
+      "layer": 23,
+      "type": "full_attention",
+      "latency_ms": 0.7945807933807373
+    },
+    {
+      "layer": 24,
+      "type": "linear_attention",
+      "latency_ms": 0.9054464340209961
+    },
+    {
+      "layer": 25,
+      "type": "linear_attention",
+      "latency_ms": 0.9059231758117676
+    },
+    {
+      "layer": 26,
+      "type": "linear_attention",
+      "latency_ms": 0.9046480178833007
+    },
+    {
+      "layer": 27,
+      "type": "full_attention",
+      "latency_ms": 0.7871823787689209
+    },
+    {
+      "layer": 28,
+      "type": "linear_attention",
+      "latency_ms": 0.9097120285034179
+    },
+    {
+      "layer": 29,
+      "type": "linear_attention",
+      "latency_ms": 0.9105423927307129
+    },
+    {
+      "layer": 30,
+      "type": "linear_attention",
+      "latency_ms": 0.8983632087707519
+    },
+    {
+      "layer": 31,
+      "type": "full_attention",
+      "latency_ms": 0.789137601852417
+    },
+    {
+      "layer": 32,
+      "type": "linear_attention",
+      "latency_ms": 0.904145622253418
+    },
+    {
+      "layer": 33,
+      "type": "linear_attention",
+      "latency_ms": 0.9048272132873535
+    },
+    {
+      "layer": 34,
+      "type": "linear_attention",
+      "latency_ms": 0.9158032417297364
+    },
+    {
+      "layer": 35,
+      "type": "full_attention",
+      "latency_ms": 0.783680009841919
+    },
+    {
+      "layer": 36,
+      "type": "linear_attention",
+      "latency_ms": 0.9076959609985351
+    },
+    {
+      "layer": 37,
+      "type": "linear_attention",
+      "latency_ms": 0.9063856124877929
+    },
+    {
+      "layer": 38,
+      "type": "linear_attention",
+      "latency_ms": 0.9020272254943847
+    },
+    {
+      "layer": 39,
+      "type": "full_attention",
+      "latency_ms": 0.7916687965393067
+    }
+  ]
+}
