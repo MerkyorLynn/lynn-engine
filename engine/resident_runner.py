@@ -55,12 +55,16 @@ def _logit_topk(logits: torch.Tensor, k: int) -> dict[str, Any]:
 
 
 def _native_cuda_scalar_can_enter_linear_graph() -> bool:
-    """Return whether cuda_scalar MoE may be captured inside linear block graphs.
+    """Return whether the native active-MoE allowlist reaches linear graphs.
 
     P32 showed that `cuda_scalar` inside reusable linear-block CUDA graphs can
-    silently replay token-0 / `!` loops. A full-attention-only allowlist is safe
-    from that specific graph-capture hazard because full-attention layers are
-    executed eagerly between captured linear blocks.
+    silently replay token-0 / `!` loops. P121/P125 extend that result: the same
+    graph-capture hazard applies to multiple native active-MoE research
+    backends when they run inside captured linear-attention blocks.
+
+    A full-attention-only allowlist is safe from that specific graph-capture
+    hazard because full-attention layers are executed eagerly between captured
+    linear blocks.
     """
     spec = os.environ.get("LYNN_NATIVE_ACTIVE_MOE_LAYERS")
     if not spec:
@@ -77,6 +81,32 @@ def _native_cuda_scalar_can_enter_linear_graph() -> bool:
         else:
             selected.add(int(item))
     return any(LAYER_TYPES[i] == "linear_attention" for i in selected)
+
+
+def _native_active_moe_backend_is_unsafe_with_linear_graph() -> str | None:
+    """Return backend name if the current native MoE backend is graph-unsafe.
+
+    These backends are valid local/runtime research paths, but P32/P121/P125
+    showed they can silently collapse into token-0 / zero / `!` loops when the
+    reusable linear-attention CUDA graphs capture their linear-attention MoE
+    calls.
+    """
+    backend = os.environ.get("LYNN_NATIVE_ACTIVE_MOE_BACKEND", "")
+    if backend not in {
+        "cuda_scalar",
+        "cuda_scalar_contract",
+        "strict_fused_boundary",
+        "grouped_per16_nonatomic",
+    }:
+        return None
+    if not _native_cuda_scalar_can_enter_linear_graph():
+        return None
+    if (
+        os.environ.get("LYNN_ALLOW_UNSAFE_CUDA_SCALAR_GRAPH", "0") == "1"
+        or os.environ.get("LYNN_ALLOW_UNSAFE_NATIVE_ACTIVE_MOE_GRAPH", "0") == "1"
+    ):
+        return None
+    return backend
 
 
 def _runtime_config(model_dir: str) -> tuple[dict[str, Any], int]:
@@ -1290,16 +1320,16 @@ class LynnIncrementalRunner:
             and max_new > 1
             and not full_token_graph_slot_enabled
         ):
-            if (
-                os.environ.get("LYNN_NATIVE_ACTIVE_MOE_BACKEND") == "cuda_scalar"
-                and _native_cuda_scalar_can_enter_linear_graph()
-                and os.environ.get("LYNN_ALLOW_UNSAFE_CUDA_SCALAR_GRAPH", "0") != "1"
-            ):
+            unsafe_native_moe_backend = _native_active_moe_backend_is_unsafe_with_linear_graph()
+            if unsafe_native_moe_backend is not None:
                 raise RuntimeError(
-                    "LYNN_NATIVE_ACTIVE_MOE_BACKEND=cuda_scalar is not graph-safe with "
-                    "LYNN_LINEAR_BLOCK_GRAPH=1 yet. P32 showed this combination can "
-                    "silently replay token-0 / '!' loops. Set "
-                    "LYNN_ALLOW_UNSAFE_CUDA_SCALAR_GRAPH=1 only for explicit diagnostics."
+                    f"LYNN_NATIVE_ACTIVE_MOE_BACKEND={unsafe_native_moe_backend} is not graph-safe with "
+                    "LYNN_LINEAR_BLOCK_GRAPH=1 when the native allowlist reaches linear_attention. "
+                    "P32/P121/P125 showed this combination can silently replay token-0 / zero / '!' loops. "
+                    "Use full_attention-only allowlists for diagnostics, or set "
+                    "LYNN_ALLOW_UNSAFE_NATIVE_ACTIVE_MOE_GRAPH=1 "
+                    "(LYNN_ALLOW_UNSAFE_CUDA_SCALAR_GRAPH=1 is kept as a legacy alias) "
+                    "only for explicit diagnostics."
                 )
             new_token_tensor.fill_(next_id)
             h_seed = F.embedding(new_token_tensor, self.outside["model.language_model.embed_tokens.weight"])

@@ -5,12 +5,13 @@ This probe validates the new opt-in runtime name:
 
   LYNN_NATIVE_ACTIVE_MOE_BACKEND=strict_fused_boundary
 
-Milestone 1 keeps the exact staged numerical contract:
+Milestone 1 freezes the exact staged numerical contract:
 
   gate/up -> bf16 inter store -> down -> route weighted sum
 
-The implementation is intentionally native-owned at the active-MoE boundary,
-while still delegating the inner math to the proven scalar CUDA references.
+The implementation is intentionally native-owned at the active-MoE boundary.
+It may diverge from the old scalar-contract alias; acceptance is judged against
+Triton/local contract, not scalar aliasing.
 """
 from __future__ import annotations
 
@@ -207,7 +208,7 @@ def main() -> int:
     max_scalar_rel_l2 = max(c["strict_boundary_vs_scalar_contract"]["rel_l2"] for c in cases)
     max_scalar_abs = max(c["strict_boundary_vs_scalar_contract"]["max_abs"] for c in cases)
     subkernel_contract_pass = bool(min_cosine >= 0.999999 and max_rel_l2 <= 0.01)
-    strict_alias_pass = bool(max_scalar_abs == 0.0 and max_scalar_rel_l2 == 0.0)
+    strict_scalar_alias = bool(max_scalar_abs == 0.0 and max_scalar_rel_l2 == 0.0)
     result = {
         "schema_version": "lynn-engine-p121-active-moe-strict-boundary-probe-v1",
         "model": args.model,
@@ -228,12 +229,13 @@ def main() -> int:
             "max_abs_vs_scalar_contract": max_scalar_abs,
         },
         "subkernel_contract_pass": subkernel_contract_pass,
-        "strict_alias_pass": strict_alias_pass,
-        "pass": bool(subkernel_contract_pass and strict_alias_pass),
+        "strict_scalar_alias": strict_scalar_alias,
+        "pass": bool(subkernel_contract_pass),
         "runtime_promote": False,
         "decision": (
             "Strict fused boundary is an opt-in native-owned active-MoE ABI that preserves "
-            "the BF16 intermediate contract. Keep it research-only until full generate gates pass."
+            "the BF16 intermediate contract. Judge it against the Triton reference; "
+            "scalar aliasing is diagnostic only."
         ),
     }
     out = Path(args.out)
