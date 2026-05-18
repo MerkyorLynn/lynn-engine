@@ -124,6 +124,13 @@ def _apply_shared_expert_gate(h_flat: torch.Tensor, shared: torch.Tensor, w: dic
     raise ValueError("LYNN_SHARED_EXPERT_GATE_BACKEND must be 'torch', 'torch_inplace', or 'triton', got " f"{backend!r}")
 
 
+def _add_shared_expert_output(moe_out: torch.Tensor, shared: torch.Tensor) -> torch.Tensor:
+    if _env_bool("LYNN_MOE_ADD_SHARED_INPLACE", False):
+        moe_out.add_(shared)
+        return moe_out
+    return moe_out + shared
+
+
 def _layer_selected_for_native_cuda(cfg: dict) -> bool:
     spec = os.environ.get("LYNN_NATIVE_ACTIVE_MOE_LAYERS")
     if not spec:
@@ -474,7 +481,7 @@ def _moe_forward_decode_packed_nvfp4_fixed_triton(h: torch.Tensor, w: dict, cfg:
             up_s = F.linear(h_flat, w["mlp.shared_expert.up_proj.weight"])
         shared = F.linear(F.silu(gate_s) * up_s, w["mlp.shared_expert.down_proj.weight"])
         shared = _apply_shared_expert_gate(h_flat, shared, w)
-        moe_out = moe_out + shared
+        moe_out = _add_shared_expert_output(moe_out, shared)
     return moe_out.to(h.dtype).reshape_as(h)
 
 
@@ -678,6 +685,6 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
             up_s = F.linear(h_flat, w["mlp.shared_expert.up_proj.weight"])
             shared = F.linear(F.silu(gate_s) * up_s, w["mlp.shared_expert.down_proj.weight"])
         shared = _apply_shared_expert_gate(h_flat, shared, w)
-        moe_out = moe_out + shared
+        moe_out = _add_shared_expert_output(moe_out, shared)
 
     return moe_out.to(h.dtype).reshape_as(h)

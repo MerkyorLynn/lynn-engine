@@ -436,6 +436,22 @@ This is a safe opt-in fallback, but not a default promotion: service TPS is
 effectively flat versus the current default P25 `104.73` decode TPS, and the
 structured mean is slightly below the default `104.76` run.
 
+`LYNN_MOE_ADD_SHARED_INPLACE=1` then checked the narrower MoE boundary idea of
+adding active-MoE output and shared-expert output in-place while keeping all
+router, gate/up, down, and shared-expert math unchanged:
+
+| Probe | Result |
+|---|---:|
+| P37 greedy exact match | GREEN, 3/3 exact |
+| P37 median decode TPS | 104.81 -> 105.25 |
+| P37 median speedup | 1.004x |
+| P25 512-token wall / decode TPS | 86.45 / 104.35 |
+
+This is safe but not useful enough to promote. It confirms that pure allocation
+cleanup at the final MoE add boundary is below the noise floor; the remaining
+TPS gap needs real shared-expert or active-expert fusion, not only in-place
+bookkeeping.
+
 Copied reports:
 
 - `reports/qwen36_35b/p43_shared_gate_torch_20260518_083212.json`
@@ -451,6 +467,8 @@ Copied reports:
 - `reports/qwen36_35b/p37_shared_gate_torch_inplace_20260518_090215.json`
 - `reports/qwen36_35b/p25_shared_gate_torch_inplace_20260518_091020.json`
 - `reports/qwen36_35b/structured_gate_shared_gate_torch_inplace_20260518_091050.json`
+- `reports/qwen36_35b/p37_moe_add_shared_inplace_20260518_091905.json`
+- `reports/qwen36_35b/p25_moe_add_shared_inplace_20260518_092010.json`
 
 Negative probes from the same loop:
 
