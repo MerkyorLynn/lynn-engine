@@ -1,0 +1,86 @@
+[
+  {
+    "id": "json_nested_weather_args",
+    "system": "You output JSON only. No markdown, no prose.",
+    "prompt": "Return exactly one JSON object for a get_weather tool call. Keys: tool, arguments. arguments must contain city=\"Tokyo\", unit=\"celsius\", days=3.",
+    "response_format": "json_object",
+    "starts_with": "{",
+    "parse_json": true,
+    "must_contain": ["get_weather", "Tokyo", "celsius", "days"],
+    "forbid": ["```", "<think>"]
+  },
+  {
+    "id": "json_schema_user_profile",
+    "system": "You output JSON only. No markdown, no explanation.",
+    "prompt": "Return one JSON Schema object for a user profile with required string name and integer age. Include type, properties, required.",
+    "response_format": "json_object",
+    "starts_with": "{",
+    "parse_json": true,
+    "must_contain": ["properties", "required", "name", "age", "integer"],
+    "forbid": ["```", "<think>"]
+  },
+  {
+    "id": "json_function_args_normalize_city",
+    "system": "You output JSON only. No markdown, no prose.",
+    "prompt": "Return only the JSON arguments object for function normalize_city. Use city=\"New York\", country=\"US\", lowercase=false.",
+    "response_format": "json_object",
+    "starts_with": "{",
+    "parse_json": true,
+    "must_contain": ["New York", "US", "lowercase"],
+    "forbid": ["```", "<think>", "function", "normalize_city"]
+  },
+  {
+    "id": "python_palindrome_code_only",
+    "system": "You output Python code only.",
+    "prompt": "Only output Python code, no markdown. Define is_palindrome(s: str) -> bool. It should ignore case and non-alphanumeric characters.",
+    "starts_with_any": ["def is_palindrome", "import re\n\ndef is_palindrome"],
+    "must_contain": ["def is_palindrome", "return"],
+    "forbid": ["```", "<think>", "Here"]
+  },
+  {
+    "id": "python_normalize_city_code_only",
+    "system": "You output Python code only.",
+    "prompt": "Only output Python code, no markdown. Define normalize_city(city: str) -> str that strips whitespace and title-cases words.",
+    "starts_with_any": ["def normalize_city"],
+    "must_contain": ["def normalize_city", "strip", "title", "return"],
+    "forbid": ["```", "<think>", "Here"]
+  },
+  {
+    "id": "yaml_openapi_request_body",
+    "system": "You output YAML only.",
+    "prompt": "Output only an OpenAPI YAML requestBody for application/json with object properties email:string and subscribed:boolean. No explanation.",
+    "starts_with_any": ["requestBody:", "content:", "```yaml"],
+    "must_contain": ["application/json", "email", "subscribed", "boolean"],
+    "forbid": ["<think>"]
+  },
+  {
+    "id": "router_zh_prefix",
+    "system": "严格遵守用户给定的格式要求。不要输出思考过程。",
+    "prompt": "用一句中文短句说明 MoE router 的作用。必须以 router 开头，必须包含 动态分配、专家、token。",
+    "starts_with": "router",
+    "must_contain": ["动态分配", "专家", "token"],
+    "forbid": ["<think>", "```"]
+  },
+  {
+    "id": "linear_attention_zh_exact_terms",
+    "system": "严格遵守用户给定的格式要求。不要输出思考过程。",
+    "prompt": "用一句中文短句说明 linear attention 适合长上下文的原因。必须包含 计算复杂度、线性、长上下文。",
+    "must_contain": ["计算复杂度", "线性", "长上下文"],
+    "forbid": ["<think>", "```"]
+  },
+  {
+    "id": "short_math_number_only",
+    "system": "Answer with the final value only.",
+    "prompt": "Answer only with the number: 17 multiplied by 23.",
+    "starts_with": "391",
+    "forbid": ["\n", "<think>", " "]
+  },
+  {
+    "id": "json_patch_ops",
+    "system": "You output JSON only. No markdown, no prose.",
+    "prompt": "Return one JSON array of JSON Patch operations to replace /name with \"Lynn\" and add /active true.",
+    "starts_with": "[",
+    "must_contain": ["replace", "/name", "Lynn", "add", "/active", "true"],
+    "forbid": ["```", "<think>"]
+  }
+]
