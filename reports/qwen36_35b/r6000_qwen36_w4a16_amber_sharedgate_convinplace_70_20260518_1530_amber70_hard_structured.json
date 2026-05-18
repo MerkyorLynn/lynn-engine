@@ -1,0 +1,1548 @@
+{
+  "schema_version": "lynn-openai-structured-tps-gate-v1",
+  "decision": "RED: structured serving is below target 107.00 decode TPS or failed format checks.",
+  "base_url": "http://127.0.0.1:18212",
+  "model": "Qwen36-35B-W4A16-amber_sharedgate_convinplace_70-20260518_1530_amber70",
+  "prompt_specs_file": "scripts/qwen36_structured_hard_prompts_70.json",
+  "prompt_spec_count": 70,
+  "request_count": 70,
+  "target_decode_tps": 107.0,
+  "max_tokens": 128,
+  "temperature": 0.0,
+  "summary": {
+    "request_count": 70,
+    "format_ok": 69,
+    "all_format_ok": false,
+    "all_finish_stop": false,
+    "decode_tps_mean": 113.6047127128789,
+    "decode_tps_min": 105.72542956770155,
+    "decode_tps_max": 114.72273051412049,
+    "http_tps_mean": 27.458057666045786
+  },
+  "rows": [
+    {
+      "idx": 0,
+      "id": "json_weather_tokyo",
+      "prompt": "Return exactly one JSON object for a get_weather tool call. Keys: tool, arguments. arguments must contain city=\"Tokyo\", unit=\"celsius\", days=3.",
+      "elapsed_seconds": 1.2980122566223145,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 47,
+      "decode_tps": 113.76717758455382,
+      "tokens_per_second_http": 38.149243806891555,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "arguments",
+          "tool"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"tool\": \"get_weather\",\n  \"arguments\": {\n    \"city\": \"Tokyo\",\n    \"unit\": \"celsius\",\n    \"days\": 3\n  }\n}"
+    },
+    {
+      "idx": 1,
+      "id": "json_weather_paris",
+      "prompt": "Return exactly one JSON object for a get_weather tool call. Keys: tool, arguments. arguments must contain city=\"Paris\", unit=\"celsius\", days=2.",
+      "elapsed_seconds": 1.2175042629241943,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 46,
+      "decode_tps": 113.88604256433494,
+      "tokens_per_second_http": 37.92899022788496,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "arguments",
+          "tool"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"tool\": \"get_weather\",\n  \"arguments\": {\n    \"city\": \"Paris\",\n    \"unit\": \"celsius\",\n    \"days\": 2\n  }\n}"
+    },
+    {
+      "idx": 2,
+      "id": "json_weather_seattle",
+      "prompt": "Return exactly one JSON object for a get_weather tool call. Keys: tool, arguments. arguments must contain city=\"Seattle\", unit=\"fahrenheit\", days=5.",
+      "elapsed_seconds": 1.211435317993164,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 46,
+      "decode_tps": 113.51405576598542,
+      "tokens_per_second_http": 38.08420736390537,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "arguments",
+          "tool"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"tool\": \"get_weather\",\n  \"arguments\": {\n    \"city\": \"Seattle\",\n    \"unit\": \"fahrenheit\",\n    \"days\": 5\n  }\n}"
+    },
+    {
+      "idx": 3,
+      "id": "json_args_normalize_city",
+      "prompt": "Return only the JSON arguments object for function normalize_city. Use city=\"New York\", country=\"US\", lowercase=false.",
+      "elapsed_seconds": 1.009788990020752,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 28,
+      "decode_tps": 113.84640625376987,
+      "tokens_per_second_http": 27.810308192472828,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "city",
+          "country",
+          "lowercase"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"city\": \"New York\",\n  \"country\": \"US\",\n  \"lowercase\": false\n}"
+    },
+    {
+      "idx": 4,
+      "id": "json_args_create_ticket",
+      "prompt": "Return only the JSON arguments object for function create_ticket. Use title=\"GPU issue\", priority=\"high\", assignee=\"Lynn\".",
+      "elapsed_seconds": 1.0513408184051514,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 31,
+      "decode_tps": 113.03847719046708,
+      "tokens_per_second_http": 29.58943947444058,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "assignee",
+          "priority",
+          "title"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"title\": \"GPU issue\",\n  \"priority\": \"high\",\n  \"assignee\": \"Lynn\"\n}"
+    },
+    {
+      "idx": 5,
+      "id": "json_args_search_docs",
+      "prompt": "Return only the JSON arguments object for function search_docs. Use query=\"NVFP4 MoE\", limit=5, exact=false.",
+      "elapsed_seconds": 1.044426679611206,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 30,
+      "decode_tps": 113.6710240547259,
+      "tokens_per_second_http": 28.838327305730118,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "exact",
+          "limit",
+          "query"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"query\": \"NVFP4 MoE\",\n  \"limit\": 5,\n  \"exact\": false\n}"
+    },
+    {
+      "idx": 6,
+      "id": "json_schema_profile",
+      "prompt": "Return one JSON Schema object for a user profile with required string name and integer age. Include type, properties, required.",
+      "elapsed_seconds": 1.3942670822143555,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 74,
+      "decode_tps": 113.87544314041693,
+      "tokens_per_second_http": 53.23244811106046,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "properties",
+          "required",
+          "type"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"name\": {\n      \"type\": \"string\"\n    },\n    \"age\": {\n      \"type\": \"integer\"\n    }\n  },\n  \"required\": [\n    \"name\",\n    \"age\"\n  ]\n}"
+    },
+    {
+      "idx": 7,
+      "id": "json_schema_order",
+      "prompt": "Return one JSON Schema object for an order with required string id and number total. Include type, properties, required.",
+      "elapsed_seconds": 1.3940303325653076,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 74,
+      "decode_tps": 114.24629818405424,
+      "tokens_per_second_http": 53.27135120884915,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "properties",
+          "required",
+          "type"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"id\": {\n      \"type\": \"string\"\n    },\n    \"total\": {\n      \"type\": \"number\"\n    }\n  },\n  \"required\": [\n    \"id\",\n    \"total\"\n  ]\n}"
+    },
+    {
+      "idx": 8,
+      "id": "json_schema_event",
+      "prompt": "Return one JSON Schema object for an event with required string title and string date. Include type, properties, required.",
+      "elapsed_seconds": 1.4033377170562744,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 74,
+      "decode_tps": 113.23379881656805,
+      "tokens_per_second_http": 52.930982698350604,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "properties",
+          "required",
+          "type"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"title\": {\n      \"type\": \"string\"\n    },\n    \"date\": {\n      \"type\": \"string\"\n    }\n  },\n  \"required\": [\n    \"title\",\n    \"date\"\n  ]\n}"
+    },
+    {
+      "idx": 9,
+      "id": "json_patch_ops_name",
+      "prompt": "Return one JSON array of JSON Patch operations to replace /name with \"Lynn\" and add /active true.",
+      "elapsed_seconds": 1.3405578136444092,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 63,
+      "decode_tps": 112.96458546642276,
+      "tokens_per_second_http": 47.15025420057257,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "[\n  {\n    \"op\": \"replace\",\n    \"path\": \"/name\",\n    \"value\": \"Lynn\"\n  },\n  {\n    \"op\": \"add\",\n    \"path\": \"/active\",\n    \"value\": true\n  }\n]"
+    },
+    {
+      "idx": 10,
+      "id": "json_patch_ops_email",
+      "prompt": "Return one JSON array of JSON Patch operations to replace /email with \"a@example.com\" and add /verified false.",
+      "elapsed_seconds": 1.3425743579864502,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 64,
+      "decode_tps": 113.15098336528501,
+      "tokens_per_second_http": 47.81200891850483,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "[\n  {\n    \"op\": \"replace\",\n    \"path\": \"/email\",\n    \"value\": \"a@example.com\"\n  },\n  {\n    \"op\": \"add\",\n    \"path\": \"/verified\",\n    \"value\": false\n  }\n]"
+    },
+    {
+      "idx": 11,
+      "id": "json_patch_ops_status",
+      "prompt": "Return one JSON array of JSON Patch operations to replace /status with \"ready\" and add /retries 0.",
+      "elapsed_seconds": 1.3362410068511963,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 64,
+      "decode_tps": 113.26161157917477,
+      "tokens_per_second_http": 48.03957766547753,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "[\n  {\n    \"op\": \"replace\",\n    \"path\": \"/status\",\n    \"value\": \"ready\"\n  },\n  {\n    \"op\": \"add\",\n    \"path\": \"/retries\",\n    \"value\": 0\n  }\n]"
+    },
+    {
+      "idx": 12,
+      "id": "json_tool_email",
+      "prompt": "Return exactly one JSON object for a send_email tool call. Keys: tool, arguments. arguments must contain to=\"ops@example.com\", subject=\"Done\", urgent=false.",
+      "elapsed_seconds": 1.2096002101898193,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 46,
+      "decode_tps": 113.10252255534569,
+      "tokens_per_second_http": 38.146365420454686,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "arguments",
+          "tool"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"tool\": \"send_email\",\n  \"arguments\": {\n    \"to\": \"ops@example.com\",\n    \"subject\": \"Done\",\n    \"urgent\": false\n  }\n}"
+    },
+    {
+      "idx": 13,
+      "id": "json_tool_timer",
+      "prompt": "Return exactly one JSON object for a set_timer tool call. Keys: tool, arguments. arguments must contain minutes=25 and label=\"focus\".",
+      "elapsed_seconds": 1.1515588760375977,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 39,
+      "decode_tps": 112.99254271509258,
+      "tokens_per_second_http": 33.98186460631687,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "arguments",
+          "tool"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"tool\": \"set_timer\",\n  \"arguments\": {\n    \"minutes\": 25,\n    \"label\": \"focus\"\n  }\n}"
+    },
+    {
+      "idx": 14,
+      "id": "json_tool_calendar",
+      "prompt": "Return exactly one JSON object for a create_calendar_event tool call. Keys: tool, arguments. arguments must contain title=\"Review\", date=\"2026-05-19\", duration_minutes=30.",
+      "elapsed_seconds": 1.3662700653076172,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 57,
+      "decode_tps": 112.99739781905582,
+      "tokens_per_second_http": 41.81667294885193,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "arguments",
+          "tool"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"tool\": \"create_calendar_event\",\n  \"arguments\": {\n    \"title\": \"Review\",\n    \"date\": \"2026-05-19\",\n    \"duration_minutes\": 30\n  }\n}"
+    },
+    {
+      "idx": 15,
+      "id": "json_array_tags",
+      "prompt": "Return one JSON array containing exactly these strings: nvfp4, moe, qwen, serving.",
+      "elapsed_seconds": 0.9281351566314697,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 18,
+      "decode_tps": 112.70341509368352,
+      "tokens_per_second_http": 19.484711989538294,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "[\"nvfp4\", \"moe\", \"qwen\", \"serving\"]"
+    },
+    {
+      "idx": 16,
+      "id": "json_array_numbers",
+      "prompt": "Return one JSON array containing exactly the numbers 2, 3, 5, 8, 13.",
+      "elapsed_seconds": 0.9260659217834473,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 17,
+      "decode_tps": 113.01460575574218,
+      "tokens_per_second_http": 18.457050823748432,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "[2, 3, 5, 8, 13]"
+    },
+    {
+      "idx": 17,
+      "id": "json_object_flags",
+      "prompt": "Return one JSON object with keys enabled=true, mode=\"safe\", retries=2.",
+      "elapsed_seconds": 0.9971659183502197,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 27,
+      "decode_tps": 113.06644105613928,
+      "tokens_per_second_http": 27.186871890209854,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "enabled",
+          "mode",
+          "retries"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"enabled\": true,\n  \"mode\": \"safe\",\n  \"retries\": 2\n}"
+    },
+    {
+      "idx": 18,
+      "id": "json_object_metrics",
+      "prompt": "Return one JSON object with keys tps=155, unit=\"tok/s\", hardware=\"R6000\".",
+      "elapsed_seconds": 1.1130931377410889,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 35,
+      "decode_tps": 112.42353883485195,
+      "tokens_per_second_http": 31.600985481477018,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "hardware",
+          "tps",
+          "unit"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"tps\": 155,\n  \"unit\": \"tok/s\",\n  \"hardware\": \"R6000\"\n}"
+    },
+    {
+      "idx": 19,
+      "id": "json_object_route",
+      "prompt": "Return one JSON object with keys route=\"w4a16\", quality=\"stable\", mtp=false.",
+      "elapsed_seconds": 1.0644142627716064,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 31,
+      "decode_tps": 112.73939930436715,
+      "tokens_per_second_http": 29.25695852650698,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "mtp",
+          "quality",
+          "route"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"route\": \"w4a16\",\n  \"quality\": \"stable\",\n  \"mtp\": false\n}"
+    },
+    {
+      "idx": 20,
+      "id": "python_palindrome",
+      "prompt": "Only output Python code, no markdown. Define is_palindrome(s: str) -> bool. It should ignore case and non-alphanumeric characters.",
+      "elapsed_seconds": 1.1077656745910645,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 39,
+      "decode_tps": 113.54935489616358,
+      "tokens_per_second_http": 35.353951771200435,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def is_palindrome(s: str) -> bool:\n    cleaned = ''.join(c.lower() for c in s if c.isalnum())\n    return cleaned == cleaned[::-1]"
+    },
+    {
+      "idx": 21,
+      "id": "python_normalize_city",
+      "prompt": "Only output Python code, no markdown. Define normalize_city(city: str) -> str that strips whitespace and title-cases words.",
+      "elapsed_seconds": 0.924177885055542,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 19,
+      "decode_tps": 113.54078957856157,
+      "tokens_per_second_http": 20.625275894768663,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def normalize_city(city: str) -> str:\n    return city.strip().title()"
+    },
+    {
+      "idx": 22,
+      "id": "python_slugify",
+      "prompt": "Only output Python code, no markdown. Define slugify(text: str) -> str that lowercases and replaces spaces with hyphens.",
+      "elapsed_seconds": 0.9321553707122803,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 21,
+      "decode_tps": 114.36037539330682,
+      "tokens_per_second_http": 22.61637096643738,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def slugify(text: str) -> str:\n    return text.lower().replace(' ', '-')"
+    },
+    {
+      "idx": 23,
+      "id": "python_clamp",
+      "prompt": "Only output Python code, no markdown. Define clamp(x: float, lo: float, hi: float) -> float.",
+      "elapsed_seconds": 0.9942944049835205,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 29,
+      "decode_tps": 113.11412302263044,
+      "tokens_per_second_http": 29.274288719267485,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def clamp(x: float, lo: float, hi: float) -> float:\n    return max(lo, min(x, hi))"
+    },
+    {
+      "idx": 24,
+      "id": "python_flatten",
+      "prompt": "Only output Python code, no markdown. Define flatten(items: list[list[int]]) -> list[int].",
+      "elapsed_seconds": 0.9471678733825684,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 27,
+      "decode_tps": 113.06515155442429,
+      "tokens_per_second_http": 28.63331168169513,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def flatten(items: list[list[int]]) -> list[int]:\n    return [item for sublist in items for item in sublist]"
+    },
+    {
+      "idx": 25,
+      "id": "python_count_words",
+      "prompt": "Only output Python code, no markdown. Define count_words(text: str) -> dict[str, int].",
+      "elapsed_seconds": 1.4221878051757812,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 80,
+      "decode_tps": 113.57657926623398,
+      "tokens_per_second_http": 56.40442158980289,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def count_words(text: str) -> dict[str, int]:\n    words = text.split()\n    word_count = {}\n    for word in words:\n        word = word.lower().strip('.,!?;:\"\\'()[]{}')\n        if word:\n            word_count[word] = word_count.get(word, 0) + 1\n    return word_count"
+    },
+    {
+      "idx": 26,
+      "id": "python_safe_div",
+      "prompt": "Only output Python code, no markdown. Define safe_div(a: float, b: float) -> float | None that returns None when b is zero.",
+      "elapsed_seconds": 1.0871868133544922,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 35,
+      "decode_tps": 112.98719482532132,
+      "tokens_per_second_http": 32.328719096808236,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def safe_div(a: float, b: float) -> float | None:\n    if b == 0:\n        return None\n    return a / b"
+    },
+    {
+      "idx": 27,
+      "id": "python_dedupe",
+      "prompt": "Only output Python code, no markdown. Define dedupe(items: list[str]) -> list[str] preserving order.",
+      "elapsed_seconds": 1.2314789295196533,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 55,
+      "decode_tps": 113.54426168692818,
+      "tokens_per_second_http": 44.85582213282949,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def dedupe(items: list[str]) -> list[str]:\n    seen = set()\n    result = []\n    for item in items:\n        if item not in seen:\n            seen.add(item)\n            result.append(item)\n    return result"
+    },
+    {
+      "idx": 28,
+      "id": "python_parse_bool",
+      "prompt": "Only output Python code, no markdown. Define parse_bool(value: str) -> bool for yes/no/true/false.",
+      "elapsed_seconds": 0.9441568851470947,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 24,
+      "decode_tps": 114.62393285274824,
+      "tokens_per_second_http": 25.548002963329182,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def parse_bool(value: str) -> bool:\n    return value.lower() in ('yes', 'true')"
+    },
+    {
+      "idx": 29,
+      "id": "python_retry_delays",
+      "prompt": "Only output Python code, no markdown. Define retry_delays(n: int) -> list[int] returning powers of two starting at 1.",
+      "elapsed_seconds": 1.0034120082855225,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 26,
+      "decode_tps": 113.92067306647661,
+      "tokens_per_second_http": 25.996869940919836,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def retry_delays(n: int) -> list[int]:\n    return [2**i for i in range(n)]"
+    },
+    {
+      "idx": 30,
+      "id": "python_is_even",
+      "prompt": "Only output Python code, no markdown. Define is_even(n: int) -> bool.",
+      "elapsed_seconds": 0.8928623199462891,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 21,
+      "decode_tps": 113.80370961265045,
+      "tokens_per_second_http": 23.63112426568909,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def is_even(n: int) -> bool:\n    return n % 2 == 0"
+    },
+    {
+      "idx": 31,
+      "id": "python_merge_dicts",
+      "prompt": "Only output Python code, no markdown. Define merge_dicts(a: dict, b: dict) -> dict where b overrides a.",
+      "elapsed_seconds": 0.9741220474243164,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 25,
+      "decode_tps": 113.37156861199271,
+      "tokens_per_second_http": 25.767786286142016,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def merge_dicts(a: dict, b: dict) -> dict:\n    return {**a, **b}"
+    },
+    {
+      "idx": 32,
+      "id": "python_initials",
+      "prompt": "Only output Python code, no markdown. Define initials(name: str) -> str.",
+      "elapsed_seconds": 0.9766979217529297,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 31,
+      "decode_tps": 113.58735626580874,
+      "tokens_per_second_http": 31.899690113539986,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def initials(name: str) -> str:\n    return ''.join([word[0].upper() for word in name.split() if word])"
+    },
+    {
+      "idx": 33,
+      "id": "python_window",
+      "prompt": "Only output Python code, no markdown. Define window2(items: list[int]) -> list[tuple[int, int]].",
+      "elapsed_seconds": 1.0840122699737549,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 39,
+      "decode_tps": 113.8218169093545,
+      "tokens_per_second_http": 36.133384698576734,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def window2(items: list[int]) -> list[tuple[int, int]]:\n    return [(items[i], items[i+1]) for i in range(len(items)-1)]"
+    },
+    {
+      "idx": 34,
+      "id": "python_strip_none",
+      "prompt": "Only output Python code, no markdown. Define strip_none(items: list[object | None]) -> list[object].",
+      "elapsed_seconds": 1.0098533630371094,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 32,
+      "decode_tps": 114.43376842601826,
+      "tokens_per_second_http": 31.822424923103988,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def strip_none(items: list[object | None]) -> list[object]:\n    return [item for item in items if item is not None]"
+    },
+    {
+      "idx": 35,
+      "id": "yaml_request_body_email",
+      "prompt": "Output only an OpenAPI YAML requestBody for application/json with object properties email:string and subscribed:boolean. No explanation.",
+      "elapsed_seconds": 1.1524367332458496,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 49,
+      "decode_tps": 114.26947688179183,
+      "tokens_per_second_http": 42.655730199116626,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "```yaml\nrequestBody:\n  content:\n    application/json:\n      schema:\n        type: object\n        properties:\n          email:\n            type: string\n          subscribed:\n            type: boolean\n```"
+    },
+    {
+      "idx": 36,
+      "id": "yaml_request_body_name",
+      "prompt": "Output only an OpenAPI YAML requestBody for application/json with object property name:string. No explanation.",
+      "elapsed_seconds": 1.037503719329834,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 40,
+      "decode_tps": 114.37683178036676,
+      "tokens_per_second_http": 38.65860492552721,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "```yaml\nrequestBody:\n  content:\n    application/json:\n      schema:\n        type: object\n        properties:\n          name:\n            type: string\n```"
+    },
+    {
+      "idx": 37,
+      "id": "yaml_response_200",
+      "prompt": "Output only an OpenAPI YAML 200 response for application/json with object property ok:boolean. No explanation.",
+      "elapsed_seconds": 1.167271375656128,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 52,
+      "decode_tps": 114.00474865441467,
+      "tokens_per_second_http": 44.67603638503639,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "```yaml\nresponses:\n  \"200\":\n    description: Successful response\n    content:\n      application/json:\n        schema:\n          type: object\n          properties:\n            ok:\n              type: boolean\n```"
+    },
+    {
+      "idx": 38,
+      "id": "yaml_parameter_limit",
+      "prompt": "Output only an OpenAPI YAML query parameter named limit with integer schema. No explanation.",
+      "elapsed_seconds": 0.9146196842193604,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 27,
+      "decode_tps": 114.5936530620823,
+      "tokens_per_second_http": 29.64649668772751,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "```yaml\nlimit:\n  name: limit\n  in: query\n  schema:\n    type: integer\n```"
+    },
+    {
+      "idx": 39,
+      "id": "yaml_security_bearer",
+      "prompt": "Output only an OpenAPI YAML securitySchemes object for bearerAuth using http bearer. No explanation.",
+      "elapsed_seconds": 0.9625470638275146,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 31,
+      "decode_tps": 114.41163928121019,
+      "tokens_per_second_http": 32.32400116942084,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "```yaml\nsecuritySchemes:\n  bearerAuth:\n    type: http\n    scheme: bearer\n    bearerFormat: JWT\n```"
+    },
+    {
+      "idx": 40,
+      "id": "yaml_path_health",
+      "prompt": "Output only an OpenAPI YAML path item for GET /health returning 200. No explanation.",
+      "elapsed_seconds": 0.9105179309844971,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 24,
+      "decode_tps": 114.5905746574838,
+      "tokens_per_second_http": 26.454752448810968,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "```yaml\nget:\n  responses:\n    '200':\n      description: OK\n```"
+    },
+    {
+      "idx": 41,
+      "id": "yaml_schema_city",
+      "prompt": "Output only a YAML schema object with type object and properties city:string and days:integer. No explanation.",
+      "elapsed_seconds": 0.9767277240753174,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 30,
+      "decode_tps": 113.92270459007058,
+      "tokens_per_second_http": 30.846617230345164,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "```yaml\ntype: object\nproperties:\n  city:\n    type: string\n  days:\n    type: integer\n```"
+    },
+    {
+      "idx": 42,
+      "id": "yaml_schema_metric",
+      "prompt": "Output only a YAML schema object with type object and properties tps:number and unit:string. No explanation.",
+      "elapsed_seconds": 0.9887948036193848,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 31,
+      "decode_tps": 114.30905358018859,
+      "tokens_per_second_http": 31.496640640594084,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "```yaml\ntype: object\nproperties:\n  tps:\n    type: number\n  unit:\n    type: string\n```"
+    },
+    {
+      "idx": 43,
+      "id": "yaml_content_json",
+      "prompt": "Output only an OpenAPI YAML content block for application/json with schema type object. No explanation.",
+      "elapsed_seconds": 1.8086094856262207,
+      "finish_reason": "length",
+      "stopped_reason": "max_new",
+      "completion_tokens": 128,
+      "decode_tps": 113.98672500281396,
+      "tokens_per_second_http": 70.97622544402205,
+      "format": {
+        "starts_ok": false,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": false
+      },
+      "text": "openapi: \"3.0.3\"\ninfo:\n  title: Sample API\n  version: \"1.0.0\"\npaths:\n  /example:\n    get:\n      summary: Get an example object\n      responses:\n        \"200\":\n          description: A JSON object\n          content:\n            application/json:\n              schema:\n                type: object\n                properties:\n                  id:\n                    type: integer\n                    example: 1\n                  name:\n                    type: string\n                    example: \"Sample Name\"\n                  active:\n                   "
+    },
+    {
+      "idx": 44,
+      "id": "yaml_required_fields",
+      "prompt": "Output only a YAML object schema with required fields id and name. No explanation.",
+      "elapsed_seconds": 1.0467088222503662,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 41,
+      "decode_tps": 114.41473426212414,
+      "tokens_per_second_http": 39.33325907351653,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "```yaml\ntype: object\nproperties:\n  id:\n    type: string\n  name:\n    type: string\nrequired:\n  - id\n  - name\n```"
+    },
+    {
+      "idx": 45,
+      "id": "zh_router",
+      "prompt": "用一句中文短句说明 MoE router 的作用。必须以 router 开头，必须包含 动态分配、专家、token。",
+      "elapsed_seconds": 0.8906004428863525,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 13,
+      "decode_tps": 114.40701012649596,
+      "tokens_per_second_http": 14.669249377997021,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "router 负责将 token 动态分配给不同的专家。"
+    },
+    {
+      "idx": 46,
+      "id": "zh_linear_attention",
+      "prompt": "用一句中文短句说明 linear attention 适合长上下文的原因。必须包含 计算复杂度、线性、长上下文。",
+      "elapsed_seconds": 0.9124815464019775,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 17,
+      "decode_tps": 114.34015024117303,
+      "tokens_per_second_http": 18.70961552792358,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "Linear attention 将计算复杂度降低为线性，从而高效处理长上下文。"
+    },
+    {
+      "idx": 47,
+      "id": "zh_nvfp4",
+      "prompt": "用一句中文短句说明 NVFP4 的优势。必须包含 低显存、权重量化、推理。",
+      "elapsed_seconds": 0.9493072032928467,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 19,
+      "decode_tps": 113.12550308820488,
+      "tokens_per_second_http": 20.092307079449448,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "NVFP4 通过权重量化降低显存占用，从而提升推理效率。"
+    },
+    {
+      "idx": 48,
+      "id": "zh_w4a16",
+      "prompt": "用一句中文短句说明 W4A16 为什么质量稳定。必须包含 权重4比特、激活高精度、稳定。",
+      "elapsed_seconds": 0.9759292602539062,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 19,
+      "decode_tps": 113.55547633981148,
+      "tokens_per_second_http": 19.54193010329356,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "W4A16采用权重4比特与激活高精度设计，确保模型稳定。"
+    },
+    {
+      "idx": 49,
+      "id": "zh_w4a8",
+      "prompt": "用一句中文短句说明 W4A8 的风险。必须包含 激活量化、格式漂移、结构化任务。",
+      "elapsed_seconds": 0.9001784324645996,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 13,
+      "decode_tps": 114.37659185732595,
+      "tokens_per_second_http": 14.505626036193066,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "激活量化引发的格式漂移会显著降低结构化任务的性能。"
+    },
+    {
+      "idx": 50,
+      "id": "zh_mtp",
+      "prompt": "用一句中文短句说明 MTP 加速的前提。必须包含 接受率、验证、端到端。",
+      "elapsed_seconds": 0.8950819969177246,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 13,
+      "decode_tps": 114.29763191599524,
+      "tokens_per_second_http": 14.58576144236685,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "MTP 加速的前提是端到端验证接受率。"
+    },
+    {
+      "idx": 51,
+      "id": "zh_cuda_graph",
+      "prompt": "用一句中文短句说明 CUDA graph 的收益。必须包含 launch、复用、decode。",
+      "elapsed_seconds": 0.9400520324707031,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 22,
+      "decode_tps": 114.50699545250086,
+      "tokens_per_second_http": 23.499787348807548,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "CUDA Graph 通过复用预编译的 launch 序列显著降低开销，从而加速 decode 过程。"
+    },
+    {
+      "idx": 52,
+      "id": "zh_repack",
+      "prompt": "用一句中文短句说明离线 repack 的价值。必须包含 布局、kernel、加载。",
+      "elapsed_seconds": 0.9491519927978516,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 21,
+      "decode_tps": 112.79907809438775,
+      "tokens_per_second_http": 22.19846622574038,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "离线 repack 通过重新布局、替换 kernel 并优化加载流程，显著提升系统性能。"
+    },
+    {
+      "idx": 53,
+      "id": "zh_topk",
+      "prompt": "用一句中文短句说明 top-k MoE 路由。必须包含 选择、专家、权重。",
+      "elapsed_seconds": 0.8430347442626953,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 9,
+      "decode_tps": 114.44837371752892,
+      "tokens_per_second_http": 10.722604461548164,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "根据权重选择前k个专家。"
+    },
+    {
+      "idx": 54,
+      "id": "zh_gdn",
+      "prompt": "用一句中文短句说明 Gated DeltaNet 的作用。必须包含 状态、线性注意力、长上下文。",
+      "elapsed_seconds": 0.9903364181518555,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 26,
+      "decode_tps": 113.67047166845535,
+      "tokens_per_second_http": 26.355458723190345,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "Gated DeltaNet 通过引入门控机制，结合线性注意力与状态空间模型，高效处理长上下文序列。"
+    },
+    {
+      "idx": 55,
+      "id": "zh_shared_expert",
+      "prompt": "用一句中文短句说明 shared expert 的作用。必须包含 共享、补充、MoE。",
+      "elapsed_seconds": 0.8438990116119385,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 11,
+      "decode_tps": 114.24325458002168,
+      "tokens_per_second_http": 13.092671597937063,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "共享专家为MoE模型提供补充能力。"
+    },
+    {
+      "idx": 56,
+      "id": "zh_full_attn",
+      "prompt": "用一句中文短句说明 full attention 层的作用。必须包含 精确、局部、注意力。",
+      "elapsed_seconds": 0.8715436458587646,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 15,
+      "decode_tps": 114.72273051412049,
+      "tokens_per_second_http": 17.27113831639058,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "full attention 层通过全局精确的注意力机制取代局部处理。"
+    },
+    {
+      "idx": 57,
+      "id": "zh_tool_call",
+      "prompt": "用一句中文短句说明工具调用输出为什么要稳定。必须包含 JSON、首 token、格式。",
+      "elapsed_seconds": 0.823737382888794,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 10,
+      "decode_tps": 114.37520565502071,
+      "tokens_per_second_http": 12.198793936760499,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "JSON 首 token 决定格式稳定性。"
+    },
+    {
+      "idx": 58,
+      "id": "zh_quality_gate",
+      "prompt": "用一句中文短句说明质量门控的意义。必须包含 默认、回归、发布。",
+      "elapsed_seconds": 0.8900563716888428,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 17,
+      "decode_tps": 114.56990572705575,
+      "tokens_per_second_http": 19.178143589768418,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "质量门控通过默认拦截缺陷、回归验证稳定性，确保发布质量。"
+    },
+    {
+      "idx": 59,
+      "id": "zh_r6000",
+      "prompt": "用一句中文短句说明 R6000 路线的重点。必须包含 native kernel、W4A16、TPS。",
+      "elapsed_seconds": 1.018549919128418,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 25,
+      "decode_tps": 113.6458578649142,
+      "tokens_per_second_http": 24.621459292770787,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "R6000 路线重点在于利用 native kernel 和 W4A16 技术显著提升 TPS。"
+    },
+    {
+      "idx": 60,
+      "id": "math_17_23",
+      "prompt": "Answer only with the number: 17 multiplied by 23.",
+      "elapsed_seconds": 0.7245314121246338,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 4,
+      "decode_tps": 113.69553274540986,
+      "tokens_per_second_http": 5.548542257275485,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "391"
+    },
+    {
+      "idx": 61,
+      "id": "math_18_24",
+      "prompt": "Answer only with the number: 18 multiplied by 24.",
+      "elapsed_seconds": 0.7246992588043213,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 4,
+      "decode_tps": 113.74486549030952,
+      "tokens_per_second_http": 5.546792212042966,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "432"
+    },
+    {
+      "idx": 62,
+      "id": "math_19_21",
+      "prompt": "Answer only with the number: 19 multiplied by 21.",
+      "elapsed_seconds": 0.7200736999511719,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 4,
+      "decode_tps": 113.5252530720511,
+      "tokens_per_second_http": 5.585315705930605,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "399"
+    },
+    {
+      "idx": 63,
+      "id": "math_45_3",
+      "prompt": "Answer only with the number: 45 miles per hour for 3 hours is how many miles?",
+      "elapsed_seconds": 0.7473242282867432,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 4,
+      "decode_tps": 105.72542956770155,
+      "tokens_per_second_http": 5.378010927700551,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "135"
+    },
+    {
+      "idx": 64,
+      "id": "math_144_12",
+      "prompt": "Answer only with the number: 144 divided by 12.",
+      "elapsed_seconds": 0.7168636322021484,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 3,
+      "decode_tps": 113.489927619563,
+      "tokens_per_second_http": 4.208783618575773,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "12"
+    },
+    {
+      "idx": 65,
+      "id": "math_37_58",
+      "prompt": "Answer only with the number: 37 plus 58.",
+      "elapsed_seconds": 0.7035701274871826,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 3,
+      "decode_tps": 113.5160356166608,
+      "tokens_per_second_http": 4.285595760898663,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "95"
+    },
+    {
+      "idx": 66,
+      "id": "math_200_47",
+      "prompt": "Answer only with the number: 200 minus 47.",
+      "elapsed_seconds": 0.7216269969940186,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 4,
+      "decode_tps": 114.01799581366268,
+      "tokens_per_second_http": 5.566240293128766,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "153"
+    },
+    {
+      "idx": 67,
+      "id": "math_9_9",
+      "prompt": "Answer only with the number: 9 squared.",
+      "elapsed_seconds": 0.686382532119751,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 3,
+      "decode_tps": 112.7213211679813,
+      "tokens_per_second_http": 4.392111526834024,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "81"
+    },
+    {
+      "idx": 68,
+      "id": "math_7_8",
+      "prompt": "Answer only with the number: 7 times 8.",
+      "elapsed_seconds": 0.6929545402526855,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 3,
+      "decode_tps": 113.35803570222023,
+      "tokens_per_second_http": 4.345234263739573,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "56"
+    },
+    {
+      "idx": 69,
+      "id": "math_1024_2",
+      "prompt": "Answer only with the number: 1024 divided by 2.",
+      "elapsed_seconds": 0.7670361995697021,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 4,
+      "decode_tps": 113.77469144174691,
+      "tokens_per_second_http": 5.235966887468889,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "512"
+    }
+  ]
+}

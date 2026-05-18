@@ -1,0 +1,47 @@
+{
+  "schema_version": "lynn-qwen36-candidate-promotion-summary-v1",
+  "candidate_name": "amber_sharedgate_convinplace_70",
+  "stamp": "20260518_1530_amber70",
+  "candidate_env": [
+    "LYNN_SHARED_EXPERT_GATE_BACKEND=triton",
+    "LYNN_LINEAR_ATTN_CONV_BACKEND=triton_inplace"
+  ],
+  "thresholds": {
+    "safe_default_tps": 107.0,
+    "default_threshold": 108.0,
+    "amber_threshold": 118.0,
+    "default_requires_structured": "40/40",
+    "amber_requires_structured": "70/70"
+  },
+  "returncodes": {
+    "p37": 1,
+    "p25": 0,
+    "hard_structured": 1
+  },
+  "metrics": {
+    "p37_exact": false,
+    "p37_median_speedup": 1.0590125178585184,
+    "p25_512_decode_tps": 113.07736159178769,
+    "hard_structured_ok": false,
+    "hard_structured_decode_tps_mean": 113.6047127128789,
+    "structured_prompt_file": "scripts/qwen36_structured_hard_prompts_70.json",
+    "structured_prompt_count": 70,
+    "structured_request_count": 70,
+    "structured_pass_count": 69,
+    "structured_pass_rate": 0.9857142857142858,
+    "structured_pass_rate_40": null,
+    "structured_pass_rate_70": 0.9857142857142858,
+    "structured_40_exact": false,
+    "structured_70_exact": false
+  },
+  "reports": {
+    "p37": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_amber_sharedgate_convinplace_70_20260518_1530_amber70_p37.json",
+    "p25": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_amber_sharedgate_convinplace_70_20260518_1530_amber70_p25.json",
+    "hard_structured": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_amber_sharedgate_convinplace_70_20260518_1530_amber70_hard_structured.json",
+    "p26": null,
+    "p28": null
+  },
+  "promote_default": false,
+  "promote_amber": false,
+  "decision": "CLOSED: hard structured gate failed."
+}

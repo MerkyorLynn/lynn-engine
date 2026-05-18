@@ -1,0 +1,164 @@
+{
+  "schema_version": "lynn-engine-p25-server-decode-tps-probe-v1",
+  "url": "http://127.0.0.1:18169/v1",
+  "model": "Qwen36-35B-W4A16-strict_fused_boundary_fullattn-20260518_152023",
+  "chat": false,
+  "prompt_chars": 66,
+  "results": [
+    {
+      "wall_s": 2.5795881748199463,
+      "completion_tokens": 128,
+      "wall_tps": 49.6203236041483,
+      "metrics_tokens_per_second": 49.877646078627926,
+      "decode_tps": 69.2361563524266,
+      "prefill_seconds": 0.7153983116149902,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.1015632152557373,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 127,
+      "decode_step_ms_mean": 14.443320552195152,
+      "decode_step_ms_median": 10.349750518798828,
+      "preview": "\n\n<think>\nHere's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Topic:** MoE (Mixture of Experts) inference optimization, NVFP4 (NVIDIA FP4 quantizatio",
+      "max_tokens": 128,
+      "run_idx": 0
+    },
+    {
+      "wall_s": 3.3441381454467773,
+      "completion_tokens": 256,
+      "wall_tps": 76.55186145601003,
+      "metrics_tokens_per_second": 76.6406906458388,
+      "decode_tps": 96.47098913863397,
+      "prefill_seconds": 0.6828861236572266,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.1015632152557373,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 255,
+      "decode_step_ms_mean": 10.365810581282075,
+      "decode_step_ms_median": 10.354280471801758,
+      "preview": "\n\n<think>\nHere's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Topic:** MoE (Mixture of Experts) inference optimization, NVFP4 (NVIDIA FP4 quantizatio",
+      "max_tokens": 256,
+      "run_idx": 0
+    },
+    {
+      "wall_s": 6.013576507568359,
+      "completion_tokens": 512,
+      "wall_tps": 85.14068114966605,
+      "metrics_tokens_per_second": 85.20932760182662,
+      "decode_tps": 96.27962693109937,
+      "prefill_seconds": 0.6743788719177246,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.1015632152557373,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 511,
+      "decode_step_ms_mean": 10.386413324135857,
+      "decode_step_ms_median": 10.365009307861328,
+      "preview": "\n\n<think>\nHere's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Topic:** MoE (Mixture of Experts) inference optimization, NVFP4 (NVIDIA FP4 quantizatio",
+      "max_tokens": 512,
+      "run_idx": 0
+    }
+  ],
+  "summary_by_max_tokens": {
+    "128": {
+      "runs": 1,
+      "wall_tps": {
+        "mean": 49.6203236041483,
+        "median": 49.6203236041483,
+        "min": 49.6203236041483,
+        "max": 49.6203236041483
+      },
+      "metrics_tokens_per_second": {
+        "mean": 49.877646078627926,
+        "median": 49.877646078627926,
+        "min": 49.877646078627926,
+        "max": 49.877646078627926
+      },
+      "decode_tps": {
+        "mean": 69.2361563524266,
+        "median": 69.2361563524266,
+        "min": 69.2361563524266,
+        "max": 69.2361563524266
+      },
+      "prefill_seconds": {
+        "mean": 0.7153983116149902,
+        "median": 0.7153983116149902,
+        "min": 0.7153983116149902,
+        "max": 0.7153983116149902
+      },
+      "decode_step_ms_median": {
+        "mean": 10.349750518798828,
+        "median": 10.349750518798828,
+        "min": 10.349750518798828,
+        "max": 10.349750518798828
+      }
+    },
+    "256": {
+      "runs": 1,
+      "wall_tps": {
+        "mean": 76.55186145601003,
+        "median": 76.55186145601003,
+        "min": 76.55186145601003,
+        "max": 76.55186145601003
+      },
+      "metrics_tokens_per_second": {
+        "mean": 76.6406906458388,
+        "median": 76.6406906458388,
+        "min": 76.6406906458388,
+        "max": 76.6406906458388
+      },
+      "decode_tps": {
+        "mean": 96.47098913863397,
+        "median": 96.47098913863397,
+        "min": 96.47098913863397,
+        "max": 96.47098913863397
+      },
+      "prefill_seconds": {
+        "mean": 0.6828861236572266,
+        "median": 0.6828861236572266,
+        "min": 0.6828861236572266,
+        "max": 0.6828861236572266
+      },
+      "decode_step_ms_median": {
+        "mean": 10.354280471801758,
+        "median": 10.354280471801758,
+        "min": 10.354280471801758,
+        "max": 10.354280471801758
+      }
+    },
+    "512": {
+      "runs": 1,
+      "wall_tps": {
+        "mean": 85.14068114966605,
+        "median": 85.14068114966605,
+        "min": 85.14068114966605,
+        "max": 85.14068114966605
+      },
+      "metrics_tokens_per_second": {
+        "mean": 85.20932760182662,
+        "median": 85.20932760182662,
+        "min": 85.20932760182662,
+        "max": 85.20932760182662
+      },
+      "decode_tps": {
+        "mean": 96.27962693109937,
+        "median": 96.27962693109937,
+        "min": 96.27962693109937,
+        "max": 96.27962693109937
+      },
+      "prefill_seconds": {
+        "mean": 0.6743788719177246,
+        "median": 0.6743788719177246,
+        "min": 0.6743788719177246,
+        "max": 0.6743788719177246
+      },
+      "decode_step_ms_median": {
+        "mean": 10.365009307861328,
+        "median": 10.365009307861328,
+        "min": 10.365009307861328,
+        "max": 10.365009307861328
+      }
+    }
+  }
+}
