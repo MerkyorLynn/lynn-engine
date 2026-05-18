@@ -1,0 +1,57 @@
+{
+  "schema": "lynn-native-moe-risk-gate-v1",
+  "created": "2026-05-18T22:28:08",
+  "gate": "p140_native_moe_candidate_risk_gate",
+  "inputs": {
+    "p136": {
+      "report": "reports/qwen36_35b/p136_slot_repack_contract_slotorder_report_20260518.json",
+      "verdict": "GREEN",
+      "passed": 18,
+      "total": 18,
+      "max_abs_max": 0.0
+    },
+    "candidate": {
+      "report": "reports/qwen36_35b/native_slot_output_owned_bf16_slotorder_routebf16_report_20260518.json",
+      "name": "native_slot_output_owned_bf16",
+      "slot_max_abs": 0.0029296875,
+      "unique_max_abs": 0.001953125,
+      "cosine_min": 0.9999796748161316,
+      "avg_latency_ms": 0.05228286239835951
+    },
+    "p137": {
+      "report": "reports/qwen36_35b/p137_moe_slot_stage_diagnostics_slotorder_routebf16_20260518.json",
+      "native_full_vs_torch_slot_max_abs": 0.0029296875,
+      "native_full_vs_torch_slot_cosine_min": 0.9999796748161316,
+      "native_full_ms_mean": 0.05168983115090264
+    },
+    "strict_oracle": {
+      "report": "reports/qwen36_35b/native_slot_strict_bf16_slotorder_report_20260518.json",
+      "all_exact": true,
+      "avg_latency_ms": 0.46667126125759545
+    }
+  },
+  "thresholds": {
+    "default": {
+      "slot_max_abs": 0.001,
+      "cosine_min": 0.999999,
+      "latency_ms": 0.059
+    },
+    "amber": {
+      "slot_max_abs": 0.003,
+      "unique_max_abs": 0.002,
+      "latency_ms": 0.055
+    }
+  },
+  "verdict": "AMBER",
+  "recommend_p37_exploratory": true,
+  "reasons": [
+    "slot_max_abs 2.929688e-03 > 0.001",
+    "cosine_min 0.9999796748 < 0.999999"
+  ],
+  "annotations": [
+    "NO default promote — P37 exploratory only",
+    "slot_max_abs=2.929688e-03 exceeds DEFAULT threshold 0.001",
+    "unique_max_abs=1.953125e-03 (ref, not blocking)",
+    "strict cuBLAS oracle latency=0.4667ms (too slow for serving)"
+  ]
+}
