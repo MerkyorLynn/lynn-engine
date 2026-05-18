@@ -25,7 +25,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from benchmarks.p148_qwen35_9b_nvfp4_fast_profile import (  # noqa: E402
-    FAST_ENV,
+    BASELINE_ENV,
     PROMPTS,
     _compare_modes,
     _run_mode,
@@ -42,6 +42,17 @@ def _candidate_decision(comparison: dict[str, Any]) -> str:
     return "DENSE_GATEUP_RESIDENT_CANDIDATE"
 
 
+def _linear_graph_env() -> dict[str, str]:
+    env = dict(BASELINE_ENV)
+    env.update({
+        "LYNN_LINEAR_STATE_UPDATE": "inplace",
+        "LYNN_LINEAR_BLOCK_GRAPH": "1",
+        "LYNN_LINEAR_BLOCK_GRAPH_REUSE": "1",
+        "LYNN_LINEAR_BLOCK_GRAPH_PREWARM": "1",
+    })
+    return env
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Gate resident dense FFN fused gate/up.")
     ap.add_argument("--model", required=True)
@@ -52,9 +63,9 @@ def main() -> int:
     args = ap.parse_args()
 
     prompts = args.prompt or PROMPTS
-    baseline_env = dict(FAST_ENV)
+    baseline_env = _linear_graph_env()
     baseline_env["LYNN_DENSE_FFN_GATE_UP_FUSED"] = "0"
-    candidate_env = dict(FAST_ENV)
+    candidate_env = _linear_graph_env()
     candidate_env["LYNN_DENSE_FFN_GATE_UP_FUSED"] = "1"
 
     baseline = _run_mode(
