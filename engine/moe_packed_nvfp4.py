@@ -14,6 +14,7 @@ from triton_kernels.nvfp4_moe import (
 )
 from triton_kernels.shared_expert_gate import (
     HAS_TRITON as HAS_SHARED_EXPERT_GATE_TRITON,
+    add_shared_expert_gate_from_scalar_triton,
     apply_shared_expert_gate_triton,
 )
 
@@ -129,6 +130,17 @@ def _add_shared_expert_output(moe_out: torch.Tensor, shared: torch.Tensor) -> to
         moe_out.add_(shared)
         return moe_out
     return moe_out + shared
+
+
+def _finalize_shared_expert_output(h_flat: torch.Tensor, moe_out: torch.Tensor, shared: torch.Tensor, w: dict) -> torch.Tensor:
+    backend = os.environ.get("LYNN_SHARED_EXPERT_GATE_BACKEND", "torch")
+    if backend == "torch_scalar_add_triton" and "mlp.shared_expert_gate.weight" in w:
+        if not HAS_SHARED_EXPERT_GATE_TRITON:
+            raise RuntimeError("LYNN_SHARED_EXPERT_GATE_BACKEND=torch_scalar_add_triton requires Triton")
+        gate = torch.sigmoid(F.linear(h_flat, w["mlp.shared_expert_gate.weight"]))
+        return add_shared_expert_gate_from_scalar_triton(moe_out, shared, gate)
+    shared = _apply_shared_expert_gate(h_flat, shared, w)
+    return _add_shared_expert_output(moe_out, shared)
 
 
 def _layer_selected_for_native_cuda(cfg: dict) -> bool:
@@ -480,8 +492,7 @@ def _moe_forward_decode_packed_nvfp4_fixed_triton(h: torch.Tensor, w: dict, cfg:
             gate_s = F.linear(h_flat, w["mlp.shared_expert.gate_proj.weight"])
             up_s = F.linear(h_flat, w["mlp.shared_expert.up_proj.weight"])
         shared = F.linear(F.silu(gate_s) * up_s, w["mlp.shared_expert.down_proj.weight"])
-        shared = _apply_shared_expert_gate(h_flat, shared, w)
-        moe_out = _add_shared_expert_output(moe_out, shared)
+        moe_out = _finalize_shared_expert_output(h_flat, moe_out, shared, w)
     return moe_out.to(h.dtype).reshape_as(h)
 
 
@@ -684,7 +695,6 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
             gate_s = F.linear(h_flat, w["mlp.shared_expert.gate_proj.weight"])
             up_s = F.linear(h_flat, w["mlp.shared_expert.up_proj.weight"])
             shared = F.linear(F.silu(gate_s) * up_s, w["mlp.shared_expert.down_proj.weight"])
-        shared = _apply_shared_expert_gate(h_flat, shared, w)
-        moe_out = _add_shared_expert_output(moe_out, shared)
+        moe_out = _finalize_shared_expert_output(h_flat, moe_out, shared, w)
 
     return moe_out.to(h.dtype).reshape_as(h)
