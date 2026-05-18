@@ -1,0 +1,96 @@
+{
+  "schema": "lynn-native-moe-candidate-summary-v1",
+  "created": "2026-05-18T22:35:24",
+  "report_dir": "reports/qwen36_35b",
+  "p136": {
+    "report": "reports/qwen36_35b/p136_slot_repack_contract_slotorder_report_20260518.json",
+    "verdict": "GREEN",
+    "passed": 18,
+    "total": 18
+  },
+  "p140_gate": {
+    "report": "reports/qwen36_35b/p140_native_moe_risk_gate.json",
+    "verdict": "AMBER",
+    "recommend_p37_exploratory": true
+  },
+  "p137_diagnostics": {
+    "report": "reports/qwen36_35b/p137_moe_slot_stage_diagnostics_slotorder_routebf16_20260518.json",
+    "native_full_vs_torch_slot_max_abs": 0.0029296875,
+    "native_full_ms_mean": 0.05168983115090264
+  },
+  "candidates": [
+    {
+      "id": "native_slot_output_owned_bf16_fast",
+      "label": "native_slot_output_owned_bf16 (fast, default ref)",
+      "report": "reports/qwen36_35b/native_slot_output_owned_bf16_report_20260518.json",
+      "slot_max_abs": 0.00390625,
+      "unique_max_abs": null,
+      "cosine_min": 0.9999802112579346,
+      "avg_latency_ms": 0.05201722648408678,
+      "verdict": "CLOSED",
+      "recommend_next_step": "no further action"
+    },
+    {
+      "id": "native_slot_output_owned_bf16_slotorder",
+      "label": "native_slot_output_owned_bf16 (slot-order + route-bf16)",
+      "report": "reports/qwen36_35b/native_slot_output_owned_bf16_slotorder_routebf16_report_20260518.json",
+      "slot_max_abs": 0.0029296875,
+      "unique_max_abs": 0.001953125,
+      "cosine_min": 0.9999796748161316,
+      "avg_latency_ms": 0.05228286239835951,
+      "verdict": "AMBER_FAST",
+      "recommend_next_step": "P37 exploratory"
+    },
+    {
+      "id": "native_slot_output_owned_bf16_dualref",
+      "label": "native_slot_output_owned_bf16 (dual-ref)",
+      "report": "reports/qwen36_35b/native_slot_output_owned_bf16_dualref_report_20260518.json",
+      "slot_max_abs": 0.00390625,
+      "unique_max_abs": 0.00390625,
+      "cosine_min": 0.9999786615371704,
+      "avg_latency_ms": 0.05199183993869358,
+      "verdict": "CLOSED",
+      "recommend_next_step": "no further action"
+    },
+    {
+      "id": "native_slot_strict_bf16",
+      "label": "native_slot_strict_bf16 (cuBLAS oracle)",
+      "report": "reports/qwen36_35b/native_slot_strict_bf16_slotorder_report_20260518.json",
+      "slot_max_abs": 0.0,
+      "unique_max_abs": null,
+      "cosine_min": 0.9999998807907104,
+      "avg_latency_ms": 0.46667126125759545,
+      "verdict": "EXACT_SLOW",
+      "recommend_next_step": "research artifact — too slow for serving"
+    },
+    {
+      "id": "native_slot_tc_bf16",
+      "label": "native_slot_tc_bf16 (TensorCore probe)",
+      "report": null,
+      "status": "MISSING",
+      "slot_max_abs": null,
+      "unique_max_abs": null,
+      "cosine_min": null,
+      "avg_latency_ms": null,
+      "verdict": "MISSING",
+      "recommend_next_step": "no report found"
+    },
+    {
+      "id": "native_slot_fused_bf16",
+      "label": "native_slot_fused_bf16 (fused probe)",
+      "report": null,
+      "status": "MISSING",
+      "slot_max_abs": null,
+      "unique_max_abs": null,
+      "cosine_min": null,
+      "avg_latency_ms": null,
+      "verdict": "MISSING",
+      "recommend_next_step": "no report found"
+    }
+  ],
+  "summary": {
+    "has_default_candidate": false,
+    "has_amber_candidate": true,
+    "best_verdict": "AMBER_FAST"
+  }
+}
