@@ -19,20 +19,23 @@ from benchmarks.p37_moe_config_generate_gate import BASE_ENV, PROMPTS  # noqa: E
 from engine.resident_runner import LynnIncrementalRunner  # noqa: E402
 
 
-STRICT_ENV = {
-    **BASE_ENV,
-    "LYNN_MOE_FAST_FIXED": "0",
-    "LYNN_NATIVE_ACTIVE_MOE_BACKEND": "strict_fused_boundary",
-}
-
-TRITON_ENV = {
-    **BASE_ENV,
-    "LYNN_MOE_FAST_FIXED": "0",
-    "LYNN_NATIVE_ACTIVE_MOE_BACKEND": "triton",
-}
-
-
-def _set_env(updates: dict[str, str]) -> dict[str, str | None]:
+def _set_runtime_env(
+    backend: str,
+    *,
+    linear_block_graph: bool,
+    native_layers: str | None,
+) -> dict[str, str | None]:
+    graph_flag = "1" if linear_block_graph else "0"
+    updates = {
+        **BASE_ENV,
+        "LYNN_MOE_FAST_FIXED": "0",
+        "LYNN_LINEAR_BLOCK_GRAPH": graph_flag,
+        "LYNN_LINEAR_BLOCK_GRAPH_REUSE": graph_flag,
+        "LYNN_LINEAR_BLOCK_GRAPH_PREWARM": graph_flag,
+        "LYNN_NATIVE_ACTIVE_MOE_BACKEND": backend,
+    }
+    if native_layers is not None:
+        updates["LYNN_NATIVE_ACTIVE_MOE_LAYERS"] = native_layers
     old = {k: os.environ.get(k) for k in updates}
     os.environ.update(updates)
     return old
@@ -61,11 +64,13 @@ def _run_mode(
     model: str,
     *,
     label: str,
-    env: dict[str, str],
+    backend: str,
     max_new: int,
     prompts: list[str],
+    linear_block_graph: bool,
+    native_layers: str | None,
 ) -> list[dict[str, Any]]:
-    old = _set_env(env)
+    old = _set_runtime_env(backend, linear_block_graph=linear_block_graph, native_layers=native_layers)
     try:
         runner = LynnIncrementalRunner(model, device="cuda", dtype=torch.bfloat16, verbose=False)
         rows = []
@@ -75,6 +80,9 @@ def _run_mode(
                 "prompt_id": f"prompt_{idx:03d}",
                 "prompt": prompt,
                 "label": label,
+                "backend": backend,
+                "linear_block_graph": linear_block_graph,
+                "native_active_moe_layers": native_layers,
                 "new_ids": out["new_ids"],
                 "completion_text": out["completion_text"],
                 "timings": out["timings"],
@@ -91,7 +99,21 @@ def main() -> int:
     ap.add_argument("--out", required=True)
     ap.add_argument("--max-new", type=int, default=128)
     ap.add_argument("--prompts-jsonl")
+    ap.add_argument("--baseline-backend", default="triton")
+    ap.add_argument("--candidate-backend", default="strict_fused_boundary")
+    ap.add_argument(
+        "--linear-block-graph",
+        choices=("0", "1"),
+        default="1",
+        help="Enable the production reusable linear-block CUDA graph path.",
+    )
+    ap.add_argument(
+        "--native-active-moe-layers",
+        default=None,
+        help="Optional native backend allowlist, e.g. 'full_attention', 'linear_attention', or comma-separated layer ids.",
+    )
     args = ap.parse_args()
+    linear_block_graph = args.linear_block_graph == "1"
 
     prompts = PROMPTS
     if args.prompts_jsonl:
@@ -107,38 +129,46 @@ def main() -> int:
         if not prompts:
             raise ValueError(f"No prompts found in {args.prompts_jsonl}")
 
-    triton_rows = _run_mode(
+    baseline_rows = _run_mode(
         args.model,
-        label="triton",
-        env=TRITON_ENV,
+        label="baseline",
+        backend=args.baseline_backend,
         max_new=args.max_new,
         prompts=prompts,
+        linear_block_graph=linear_block_graph,
+        native_layers=args.native_active_moe_layers,
     )
-    strict_rows = _run_mode(
+    candidate_rows = _run_mode(
         args.model,
-        label="strict_fused_boundary",
-        env=STRICT_ENV,
+        label="candidate",
+        backend=args.candidate_backend,
         max_new=args.max_new,
         prompts=prompts,
+        linear_block_graph=linear_block_graph,
+        native_layers=args.native_active_moe_layers,
     )
-    for ref, cand in zip(triton_rows, strict_rows, strict=True):
+    for ref, cand in zip(baseline_rows, candidate_rows, strict=True):
         cand["new_ids_match_reference"] = cand["new_ids"] == ref["new_ids"]
         cand["reference_new_ids"] = ref["new_ids"]
 
-    all_match = all(row["new_ids_match_reference"] for row in strict_rows)
-    triton_summary = _summary(triton_rows)
-    strict_summary = _summary(strict_rows)
+    all_match = all(row["new_ids_match_reference"] for row in candidate_rows)
+    baseline_summary = _summary(baseline_rows)
+    candidate_summary = _summary(candidate_rows)
     speedup = None
-    if triton_summary["decode_tps_median"] and strict_summary["decode_tps_median"]:
-        speedup = strict_summary["decode_tps_median"] / triton_summary["decode_tps_median"]
+    if baseline_summary["decode_tps_median"] and candidate_summary["decode_tps_median"]:
+        speedup = candidate_summary["decode_tps_median"] / baseline_summary["decode_tps_median"]
 
     result = {
-        "schema_version": "lynn-engine-p122-active-moe-strict-boundary-generate-gate-v1",
+        "schema_version": "lynn-engine-p122-active-moe-strict-boundary-generate-gate-v2",
         "model": args.model,
+        "baseline_backend": args.baseline_backend,
+        "candidate_backend": args.candidate_backend,
+        "linear_block_graph": linear_block_graph,
+        "native_active_moe_layers": args.native_active_moe_layers,
         "max_new": args.max_new,
         "prompt_count": len(prompts),
-        "triton": {"rows": triton_rows, "summary": triton_summary},
-        "strict_fused_boundary": {"rows": strict_rows, "summary": strict_summary},
+        "baseline": {"rows": baseline_rows, "summary": baseline_summary},
+        "candidate": {"rows": candidate_rows, "summary": candidate_summary},
         "new_ids_all_match": all_match,
         "median_speedup": speedup,
         "promote_default": False,

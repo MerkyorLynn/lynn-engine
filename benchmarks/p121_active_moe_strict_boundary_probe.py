@@ -177,10 +177,14 @@ def main() -> int:
     ap.add_argument("--iters", type=int, default=40)
     args = ap.parse_args()
 
+    applied_env: dict[str, str] = {}
     for key, value in BEST_R6000_ENV.items():
         os.environ.setdefault(key, value)
+        applied_env[key] = os.environ[key]
     os.environ["LYNN_MOE_FAST_FIXED"] = "0"
     os.environ.setdefault("LYNN_NATIVE_CUDA_BUILD_DIR", "/tmp/lynn_engine_native_build/p121_strict_boundary")
+    applied_env["LYNN_MOE_FAST_FIXED"] = os.environ["LYNN_MOE_FAST_FIXED"]
+    applied_env["LYNN_NATIVE_CUDA_BUILD_DIR"] = os.environ["LYNN_NATIVE_CUDA_BUILD_DIR"]
 
     ext = load_lynn_native_extension(verbose=False)
     runner = LynnIncrementalRunner(args.model, device="cuda", dtype=torch.bfloat16, verbose=False)
@@ -199,11 +203,17 @@ def main() -> int:
     min_cosine = min(c["strict_boundary_vs_triton"]["cosine"] for c in cases)
     max_rel_l2 = max(c["strict_boundary_vs_triton"]["rel_l2"] for c in cases)
     max_abs = max(c["strict_boundary_vs_triton"]["max_abs"] for c in cases)
+    min_scalar_cosine = min(c["strict_boundary_vs_scalar_contract"]["cosine"] for c in cases)
+    max_scalar_rel_l2 = max(c["strict_boundary_vs_scalar_contract"]["rel_l2"] for c in cases)
+    max_scalar_abs = max(c["strict_boundary_vs_scalar_contract"]["max_abs"] for c in cases)
+    subkernel_contract_pass = bool(min_cosine >= 0.999999 and max_rel_l2 <= 0.01)
+    strict_alias_pass = bool(max_scalar_abs == 0.0 and max_scalar_rel_l2 == 0.0)
     result = {
         "schema_version": "lynn-engine-p121-active-moe-strict-boundary-probe-v1",
         "model": args.model,
         "layers": args.layers,
         "prompt": args.prompt,
+        "applied_env": applied_env,
         "cases": cases,
         "summary": {
             "mean_triton_active_ms": mean(c["timings_ms"]["triton_active_ms"] for c in cases),
@@ -213,8 +223,13 @@ def main() -> int:
             "min_cosine_vs_triton": min_cosine,
             "max_rel_l2_vs_triton": max_rel_l2,
             "max_abs_vs_triton": max_abs,
+            "min_cosine_vs_scalar_contract": min_scalar_cosine,
+            "max_rel_l2_vs_scalar_contract": max_scalar_rel_l2,
+            "max_abs_vs_scalar_contract": max_scalar_abs,
         },
-        "subkernel_contract_pass": bool(min_cosine >= 0.999999 and max_rel_l2 <= 0.01),
+        "subkernel_contract_pass": subkernel_contract_pass,
+        "strict_alias_pass": strict_alias_pass,
+        "pass": bool(subkernel_contract_pass and strict_alias_pass),
         "runtime_promote": False,
         "decision": (
             "Strict fused boundary is an opt-in native-owned active-MoE ABI that preserves "
@@ -225,7 +240,7 @@ def main() -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(result, ensure_ascii=False, indent=2))
-    return 0 if result["subkernel_contract_pass"] else 1
+    return 0 if result["pass"] else 1
 
 
 if __name__ == "__main__":
