@@ -1,0 +1,47 @@
+{
+  "schema_version": "lynn-qwen36-candidate-promotion-summary-v1",
+  "candidate_name": "moe_effective_scale_rerun",
+  "stamp": "20260519_0658_moe_eff_routertopk",
+  "candidate_env": [
+    "LYNN_MOE_REPACK_SIDECAR_DIR=/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-v0",
+    "LYNN_MOE_EFFECTIVE_SCALE=1"
+  ],
+  "thresholds": {
+    "safe_default_tps": 108.0,
+    "default_threshold": 109.0,
+    "amber_threshold": 118.0,
+    "default_requires_structured": "40/40",
+    "amber_requires_structured": "70/70"
+  },
+  "returncodes": {
+    "p37": 0,
+    "p25": 0,
+    "hard_structured": 0
+  },
+  "metrics": {
+    "p37_exact": true,
+    "p37_median_speedup": 1.0094482468332329,
+    "p25_512_decode_tps": 105.94205480068233,
+    "hard_structured_ok": true,
+    "hard_structured_decode_tps_mean": 108.10234774117771,
+    "structured_prompt_file": "scripts/qwen36_structured_hard_prompts.json",
+    "structured_prompt_count": 10,
+    "structured_request_count": 40,
+    "structured_pass_count": 40,
+    "structured_pass_rate": 1.0,
+    "structured_pass_rate_40": 1.0,
+    "structured_pass_rate_70": null,
+    "structured_40_exact": true,
+    "structured_70_exact": false
+  },
+  "reports": {
+    "p37": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_moe_effective_scale_rerun_20260519_0658_moe_eff_routertopk_p37.json",
+    "p25": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_moe_effective_scale_rerun_20260519_0658_moe_eff_routertopk_p25.json",
+    "hard_structured": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_moe_effective_scale_rerun_20260519_0658_moe_eff_routertopk_hard_structured.json",
+    "p26": null,
+    "p28": null
+  },
+  "promote_default": false,
+  "promote_amber": false,
+  "decision": "CLOSED: P25 512 decode TPS is below safe default."
+}

@@ -1,0 +1,132 @@
+{
+  "schema_version": "p130-moe-effective-scale-probe-v1",
+  "sidecar_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-v0",
+  "layers": [
+    {
+      "layer": 0,
+      "diff_effective_vs_ref": {
+        "exact": true,
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "ref_active_ms": 0.055162400007247925,
+      "effective_active_ms": 0.051058000326156615,
+      "speedup_ref_over_effective": 1.080387004090888
+    },
+    {
+      "layer": 4,
+      "diff_effective_vs_ref": {
+        "exact": true,
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      },
+      "ref_active_ms": 0.05523959994316101,
+      "effective_active_ms": 0.0509552001953125,
+      "speedup_ref_over_effective": 1.0840816978723722
+    },
+    {
+      "layer": 8,
+      "diff_effective_vs_ref": {
+        "exact": true,
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "ref_active_ms": 0.055067598819732666,
+      "effective_active_ms": 0.05064799785614014,
+      "speedup_ref_over_effective": 1.0872611189122598
+    },
+    {
+      "layer": 16,
+      "diff_effective_vs_ref": {
+        "exact": true,
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "ref_active_ms": 0.05562559962272644,
+      "effective_active_ms": 0.050869202613830565,
+      "speedup_ref_over_effective": 1.0935024880378739
+    },
+    {
+      "layer": 20,
+      "diff_effective_vs_ref": {
+        "exact": true,
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "ref_active_ms": 0.055301201343536374,
+      "effective_active_ms": 0.05061200261116028,
+      "speedup_ref_over_effective": 1.092649934609426
+    },
+    {
+      "layer": 28,
+      "diff_effective_vs_ref": {
+        "exact": true,
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "ref_active_ms": 0.05531799793243408,
+      "effective_active_ms": 0.05099400281906128,
+      "speedup_ref_over_effective": 1.0847941890091537
+    },
+    {
+      "layer": 32,
+      "diff_effective_vs_ref": {
+        "exact": true,
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "ref_active_ms": 0.05555639863014221,
+      "effective_active_ms": 0.05059639811515808,
+      "speedup_ref_over_effective": 1.098030703760673
+    },
+    {
+      "layer": 36,
+      "diff_effective_vs_ref": {
+        "exact": true,
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "ref_active_ms": 0.05523999929428101,
+      "effective_active_ms": 0.05066999793052673,
+      "speedup_ref_over_effective": 1.0901914653720761
+    },
+    {
+      "layer": 39,
+      "diff_effective_vs_ref": {
+        "exact": true,
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      },
+      "ref_active_ms": 0.055188000202178955,
+      "effective_active_ms": 0.05121999979019165,
+      "speedup_ref_over_effective": 1.077469746744262
+    }
+  ],
+  "summary": {
+    "all_exact": true,
+    "max_abs": 0.0,
+    "max_rel_l2": 0.0,
+    "min_cosine": 0.9999999403953552,
+    "mean_ref_active_ms": 0.055299866199493404,
+    "mean_effective_active_ms": 0.05084697802861531,
+    "mean_speedup_ref_over_effective": 1.0875964831565539
+  }
+}
