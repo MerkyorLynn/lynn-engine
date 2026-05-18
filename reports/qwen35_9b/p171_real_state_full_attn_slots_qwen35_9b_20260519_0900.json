@@ -1,0 +1,25 @@
+{
+  "schema_version": "lynn-engine-p9v-hybrid-real-state-full-attn-slots-probe-v1",
+  "model": "/root/autodl-tmp/models/Qwen3.5-9B-lynn-native-w4a16-nvfp4-v0",
+  "decode_position": 7,
+  "full_slot_capture_mode": "real_per_layer_state",
+  "full_attn_graph_slots": 8,
+  "linear_block_graphs": 8,
+  "linear_capture_s": 0.05170392990112305,
+  "eager_ms": 23.880044555664064,
+  "graph_ms": 16.178338623046876,
+  "speedup": 1.4760504840494382,
+  "one_shot_graph_ms": 16.06595230102539,
+  "one_shot_graph_tps": 62.243431404696516,
+  "logit_diff": {
+    "max_abs": 0.0,
+    "mean_abs": 0.0,
+    "rel_l2": 0.0,
+    "cosine": 1.0000001192092896
+  },
+  "graph_next_id": 95793,
+  "eager_next_id": 95793,
+  "greedy_pass": true,
+  "strict_logit_pass": true,
+  "pass": true
+}

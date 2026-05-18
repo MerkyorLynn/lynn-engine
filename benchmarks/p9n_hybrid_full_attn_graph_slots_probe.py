@@ -23,7 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from engine.full_forward import _decode_layer, _prefill_layer, _rms_norm  # noqa: E402
-from engine.inference_state import FULL_ATTN_INDICES, LAYER_TYPES, LynnInferenceState  # noqa: E402
+from engine.inference_state import LynnInferenceState  # noqa: E402
 from engine.resident_runner import LynnIncrementalRunner, _encode_prompt  # noqa: E402
 
 
@@ -69,7 +69,7 @@ def _prefill_into_state(runner: LynnIncrementalRunner, state: LynnInferenceState
     h = F.embedding(ids, runner.outside["model.language_model.embed_tokens.weight"])
     pos = torch.arange(ids.shape[1], device=runner.device, dtype=torch.long).unsqueeze(0)
     for i in range(runner.n_layers):
-        h = _prefill_layer(h, pos, LAYER_TYPES[i], runner.layer_weights[i], runner.layer_cfgs[i], state, i)
+        h = _prefill_layer(h, pos, runner.layer_types[i], runner.layer_weights[i], runner.layer_cfgs[i], state, i)
     state.seq_len = ids.shape[1]
     h_final = _rms_norm(h, runner.outside["model.language_model.norm.weight"])
     logits = F.linear(h_final[:, -1, :], runner.outside["lm_head.weight"])
@@ -83,7 +83,8 @@ def _capture_full_attn_slots(
 ) -> dict[int, dict[str, Any]]:
     slots: dict[int, dict[str, Any]] = {}
     pos_tensor = torch.tensor([[position]], device=runner.device, dtype=torch.long)
-    for layer in FULL_ATTN_INDICES:
+    full_attn_indices = [i for i, layer_type in enumerate(runner.layer_types) if layer_type == "full_attention"]
+    for layer in full_attn_indices:
         input_buf = torch.zeros((1, 1, int(runner.cfg["hidden_size"])), device=runner.device, dtype=runner.dtype)
         output_buf = torch.empty_like(input_buf)
 
@@ -92,7 +93,7 @@ def _capture_full_attn_slots(
             out = _decode_layer(
                 input_buf,
                 pos_tensor,
-                LAYER_TYPES[layer],
+                runner.layer_types[layer],
                 runner.layer_weights[layer],
                 runner.layer_cfgs[layer],
                 state,
@@ -136,7 +137,13 @@ def main() -> int:
     args = ap.parse_args()
 
     runner = LynnIncrementalRunner(args.model, device="cuda", dtype=torch.bfloat16, verbose=False)
-    state = LynnInferenceState(batch=1, max_seq_len=runner.max_seq_len, device=runner.device, dtype=runner.dtype)
+    state = LynnInferenceState.from_config(
+        runner.cfg,
+        batch=1,
+        max_seq_len=runner.max_seq_len,
+        device=runner.device,
+        dtype=runner.dtype,
+    )
     # Tokenize first so graph slots know the first decode position. Capture
     # before real KV values exist, then reset and run prefill into the same state.
     ids = _encode_prompt(runner.tokenizer, args.prompt, runner.device, use_chat_template=False)
@@ -153,7 +160,7 @@ def main() -> int:
         _restore_state(state, base)
         h = h_seed
         for i in range(runner.n_layers):
-            h = _decode_layer(h, pos_tensor, LAYER_TYPES[i], runner.layer_weights[i], runner.layer_cfgs[i], state, i)
+            h = _decode_layer(h, pos_tensor, runner.layer_types[i], runner.layer_weights[i], runner.layer_cfgs[i], state, i)
         state.seq_len = decode_position + 1
         h_final = _rms_norm(h, runner.outside["model.language_model.norm.weight"])
         return F.linear(h_final[:, -1, :], runner.outside["lm_head.weight"])

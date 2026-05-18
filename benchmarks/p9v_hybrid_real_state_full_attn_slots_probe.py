@@ -22,7 +22,7 @@ from benchmarks.p9n_hybrid_full_attn_graph_slots_probe import (  # noqa: E402
     _snapshot_state,
 )
 from engine.full_forward import _decode_layer, _rms_norm  # noqa: E402
-from engine.inference_state import LAYER_TYPES, LynnInferenceState  # noqa: E402
+from engine.inference_state import LynnInferenceState  # noqa: E402
 from engine.resident_runner import LynnIncrementalRunner, _encode_prompt  # noqa: E402
 
 
@@ -42,7 +42,7 @@ def _capture_real_state_full_slots(
             h = _decode_layer(
                 h,
                 pos_tensor,
-                LAYER_TYPES[layer],
+                runner.layer_types[layer],
                 runner.layer_weights[layer],
                 runner.layer_cfgs[layer],
                 state,
@@ -55,7 +55,7 @@ def _capture_real_state_full_slots(
         h = _decode_layer(
             h,
             pos_tensor,
-            LAYER_TYPES[full_layer],
+            runner.layer_types[full_layer],
             runner.layer_weights[full_layer],
             runner.layer_cfgs[full_layer],
             state,
@@ -75,7 +75,13 @@ def main() -> int:
     args = ap.parse_args()
 
     runner = LynnIncrementalRunner(args.model, device="cuda", dtype=torch.bfloat16, verbose=False)
-    state = LynnInferenceState(batch=1, max_seq_len=runner.max_seq_len, device=runner.device, dtype=runner.dtype)
+    state = LynnInferenceState.from_config(
+        runner.cfg,
+        batch=1,
+        max_seq_len=runner.max_seq_len,
+        device=runner.device,
+        dtype=runner.dtype,
+    )
     ids = _encode_prompt(runner.tokenizer, args.prompt, runner.device, use_chat_template=False)
     decode_position = int(ids.shape[1])
     next_id, _ = _prefill_into_state(runner, state, args.prompt)
@@ -90,7 +96,7 @@ def main() -> int:
         _restore_state(state, base)
         h = h_seed
         for i in range(runner.n_layers):
-            h = _decode_layer(h, pos_tensor, LAYER_TYPES[i], runner.layer_weights[i], runner.layer_cfgs[i], state, i)
+            h = _decode_layer(h, pos_tensor, runner.layer_types[i], runner.layer_weights[i], runner.layer_cfgs[i], state, i)
         h_final = _rms_norm(h, runner.outside["model.language_model.norm.weight"])
         return F.linear(h_final[:, -1, :], runner.outside["lm_head.weight"])
 

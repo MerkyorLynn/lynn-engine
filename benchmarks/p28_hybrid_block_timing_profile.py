@@ -25,7 +25,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from engine.full_forward import _prefill_layer, _rms_norm  # noqa: E402
-from engine.inference_state import LAYER_TYPES, LynnInferenceState  # noqa: E402
+from engine.inference_state import LynnInferenceState  # noqa: E402
 from engine.resident_runner import LynnIncrementalRunner, _encode_prompt  # noqa: E402
 
 
@@ -98,14 +98,20 @@ def main() -> int:
         args.device,
         use_chat_template=args.use_chat_template,
     )
-    state = LynnInferenceState(batch=1, max_seq_len=args.max_seq_len, device=args.device, dtype=dtype)
+    state = LynnInferenceState.from_config(
+        runner.cfg,
+        batch=1,
+        max_seq_len=args.max_seq_len,
+        device=args.device,
+        dtype=dtype,
+    )
     h = F.embedding(ids, runner.outside["model.language_model.embed_tokens.weight"])
     pos = torch.arange(ids.shape[1], device=args.device, dtype=torch.long).unsqueeze(0)
     for layer_idx in range(runner.n_layers):
         h = _prefill_layer(
             h,
             pos,
-            LAYER_TYPES[layer_idx],
+            runner.layer_types[layer_idx],
             runner.layer_weights[layer_idx],
             runner.layer_cfgs[layer_idx],
             state,
@@ -156,7 +162,7 @@ def main() -> int:
                 return block["output"]
 
             h = timed("linear_block", int(block["start_layer"]), replay_block)
-            full_layer = bi * 4 + 3
+            full_layer = int(block["start_layer"]) + 3
             h = timed(
                 "full_layer",
                 full_layer,

@@ -1,0 +1,296 @@
+{
+  "schema_version": "lynn-engine-p28-hybrid-block-timing-profile-v1",
+  "model": "/root/autodl-tmp/models/Qwen3.5-9B-lynn-native-w4a16-nvfp4-v0",
+  "device": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+  "env": {
+    "LYNN_MOE_IMPL": null,
+    "LYNN_LINEAR_BLOCK_GRAPH": "1",
+    "LYNN_LINEAR_BLOCK_GRAPH_REUSE": "1",
+    "LYNN_LINEAR_BLOCK_GRAPH_PREWARM": "1",
+    "LYNN_LINEAR_STATE_UPDATE": "inplace",
+    "LYNN_NATIVE_FP4_LM_HEAD": null,
+    "LYNN_NATIVE_DOWN_BACKEND": null,
+    "LYNN_NATIVE_GATEUP_BACKEND": null,
+    "LYNN_LINEAR_ATTN_RECURRENT_BACKEND": null,
+    "LYNN_LINEAR_ATTN_RECURRENT_INPLACE": null,
+    "LYNN_LINEAR_ATTN_GQA_RECURRENT": null,
+    "LYNN_LINEAR_ATTN_CONV_BACKEND": null,
+    "LYNN_FULL_ATTN_QKV_FUSED": null,
+    "LYNN_QK_NORM_ROPE_BACKEND": null,
+    "LYNN_RMSNORM_GATED_BACKEND": null,
+    "LYNN_SHARED_EXPERT_GATE_BACKEND": null,
+    "LYNN_DECODE_FAST_DISPATCH": null,
+    "LYNN_MOE_FAST_FIXED": null,
+    "LYNN_NATIVE_ACTIVE_MOE": null
+  },
+  "prompt_tokens": 36,
+  "max_new": 128,
+  "skip_steps": 16,
+  "steps": 127,
+  "analyzed_steps": 111,
+  "linear_graph_capture_seconds": 0.0,
+  "linear_graph_created": false,
+  "linear_blocks": [
+    {
+      "kind": "linear_block",
+      "layer": 12,
+      "mean": 1.3566327964937366,
+      "median": 1.3565759658813477,
+      "min": 1.3440320491790771,
+      "max": 1.370911955833435
+    },
+    {
+      "kind": "linear_block",
+      "layer": 0,
+      "mean": 1.3501298781987783,
+      "median": 1.3494720458984375,
+      "min": 1.3453760147094727,
+      "max": 1.3746240139007568
+    },
+    {
+      "kind": "linear_block",
+      "layer": 28,
+      "mean": 1.3340309879801295,
+      "median": 1.3331520557403564,
+      "min": 1.3269439935684204,
+      "max": 1.3391679525375366
+    },
+    {
+      "kind": "linear_block",
+      "layer": 8,
+      "mean": 1.3330773351428744,
+      "median": 1.3321280479431152,
+      "min": 1.3279680013656616,
+      "max": 1.3382400274276733
+    },
+    {
+      "kind": "linear_block",
+      "layer": 16,
+      "mean": 1.3330182363321115,
+      "median": 1.3321280479431152,
+      "min": 1.327936053276062,
+      "max": 1.3381439447402954
+    },
+    {
+      "kind": "linear_block",
+      "layer": 4,
+      "mean": 1.3302907396007229,
+      "median": 1.3307520151138306,
+      "min": 1.3260159492492676,
+      "max": 1.3350720405578613
+    },
+    {
+      "kind": "linear_block",
+      "layer": 24,
+      "mean": 1.3293330411653261,
+      "median": 1.328927993774414,
+      "min": 1.3247679471969604,
+      "max": 1.3350720405578613
+    },
+    {
+      "kind": "linear_block",
+      "layer": 20,
+      "mean": 1.3274816650528092,
+      "median": 1.3277759552001953,
+      "min": 1.3234879970550537,
+      "max": 1.334015965461731
+    }
+  ],
+  "full_layers": [
+    {
+      "kind": "full_layer",
+      "layer": 3,
+      "mean": 0.5731419104713578,
+      "median": 0.53302401304245,
+      "min": 0.5247359871864319,
+      "max": 4.977536201477051
+    },
+    {
+      "kind": "full_layer",
+      "layer": 15,
+      "mean": 0.5351262012043515,
+      "median": 0.5358719825744629,
+      "min": 0.527616024017334,
+      "max": 0.5401600003242493
+    },
+    {
+      "kind": "full_layer",
+      "layer": 11,
+      "mean": 0.5348379123318303,
+      "median": 0.5355520248413086,
+      "min": 0.5251520276069641,
+      "max": 0.5401279926300049
+    },
+    {
+      "kind": "full_layer",
+      "layer": 7,
+      "mean": 0.5337248288833343,
+      "median": 0.533951997756958,
+      "min": 0.5232639908790588,
+      "max": 0.5401279926300049
+    },
+    {
+      "kind": "full_layer",
+      "layer": 19,
+      "mean": 0.533386956464063,
+      "median": 0.5339199900627136,
+      "min": 0.5255680084228516,
+      "max": 0.5378559827804565
+    },
+    {
+      "kind": "full_layer",
+      "layer": 31,
+      "mean": 0.5323998541445345,
+      "median": 0.532480001449585,
+      "min": 0.5222079753875732,
+      "max": 0.5366079807281494
+    },
+    {
+      "kind": "full_layer",
+      "layer": 27,
+      "mean": 0.5322075706344467,
+      "median": 0.5328320264816284,
+      "min": 0.5246080160140991,
+      "max": 0.5371519923210144
+    },
+    {
+      "kind": "full_layer",
+      "layer": 23,
+      "mean": 0.5316635654853271,
+      "median": 0.5318719744682312,
+      "min": 0.523360013961792,
+      "max": 0.5340800285339355
+    }
+  ],
+  "top_hotspots": [
+    {
+      "kind": "norm_lm_head",
+      "layer": -1,
+      "mean": 1.3643286518148474,
+      "median": 1.3635519742965698,
+      "min": 1.3614399433135986,
+      "max": 1.369696021080017
+    },
+    {
+      "kind": "linear_block",
+      "layer": 12,
+      "mean": 1.3566327964937366,
+      "median": 1.3565759658813477,
+      "min": 1.3440320491790771,
+      "max": 1.370911955833435
+    },
+    {
+      "kind": "linear_block",
+      "layer": 0,
+      "mean": 1.3501298781987783,
+      "median": 1.3494720458984375,
+      "min": 1.3453760147094727,
+      "max": 1.3746240139007568
+    },
+    {
+      "kind": "linear_block",
+      "layer": 28,
+      "mean": 1.3340309879801295,
+      "median": 1.3331520557403564,
+      "min": 1.3269439935684204,
+      "max": 1.3391679525375366
+    },
+    {
+      "kind": "linear_block",
+      "layer": 8,
+      "mean": 1.3330773351428744,
+      "median": 1.3321280479431152,
+      "min": 1.3279680013656616,
+      "max": 1.3382400274276733
+    },
+    {
+      "kind": "linear_block",
+      "layer": 16,
+      "mean": 1.3330182363321115,
+      "median": 1.3321280479431152,
+      "min": 1.327936053276062,
+      "max": 1.3381439447402954
+    },
+    {
+      "kind": "linear_block",
+      "layer": 4,
+      "mean": 1.3302907396007229,
+      "median": 1.3307520151138306,
+      "min": 1.3260159492492676,
+      "max": 1.3350720405578613
+    },
+    {
+      "kind": "linear_block",
+      "layer": 24,
+      "mean": 1.3293330411653261,
+      "median": 1.328927993774414,
+      "min": 1.3247679471969604,
+      "max": 1.3350720405578613
+    },
+    {
+      "kind": "linear_block",
+      "layer": 20,
+      "mean": 1.3274816650528092,
+      "median": 1.3277759552001953,
+      "min": 1.3234879970550537,
+      "max": 1.334015965461731
+    },
+    {
+      "kind": "full_layer",
+      "layer": 3,
+      "mean": 0.5731419104713578,
+      "median": 0.53302401304245,
+      "min": 0.5247359871864319,
+      "max": 4.977536201477051
+    },
+    {
+      "kind": "full_layer",
+      "layer": 15,
+      "mean": 0.5351262012043515,
+      "median": 0.5358719825744629,
+      "min": 0.527616024017334,
+      "max": 0.5401600003242493
+    },
+    {
+      "kind": "full_layer",
+      "layer": 11,
+      "mean": 0.5348379123318303,
+      "median": 0.5355520248413086,
+      "min": 0.5251520276069641,
+      "max": 0.5401279926300049
+    },
+    {
+      "kind": "full_layer",
+      "layer": 7,
+      "mean": 0.5337248288833343,
+      "median": 0.533951997756958,
+      "min": 0.5232639908790588,
+      "max": 0.5401279926300049
+    },
+    {
+      "kind": "full_layer",
+      "layer": 19,
+      "mean": 0.533386956464063,
+      "median": 0.5339199900627136,
+      "min": 0.5255680084228516,
+      "max": 0.5378559827804565
+    },
+    {
+      "kind": "full_layer",
+      "layer": 31,
+      "mean": 0.5323998541445345,
+      "median": 0.532480001449585,
+      "min": 0.5222079753875732,
+      "max": 0.5366079807281494
+    },
+    {
+      "kind": "full_layer",
+      "layer": 27,
+      "mean": 0.5322075706344467,
+      "median": 0.5328320264816284,
+      "min": 0.5246080160140991,
+      "max": 0.5371519923210144
+    }
+  ],
+  "completion_preview": "\n\n<think>\nThinking Process:\n\n1.  **Analyze the Request:**\n    *   **Topic:** MoE (Mixture of Experts) inference optimization, NVFP4 (NVIDIA FP4), CUDA Graph, and Tool Call Service (Function Calling) service-ification.\n    *   **Format"
+}
