@@ -1,0 +1,1835 @@
+{
+  "schema": "lynn-p155-native-packed-moe-gateup-raw-accum-v1",
+  "created": "2026-05-19T04:18:46",
+  "packed_fixtures": "/root/autodl-tmp/reports/qwen36_35b/p138_packed_slot_fixtures_kimi_20260518",
+  "p147_reference_dir": "/root/autodl-tmp/reports/qwen36_35b/p147_triton_stage_reference_20260519_0318",
+  "kernel_config": {
+    "gate_block_inter": 8,
+    "gate_block_hidden": 256,
+    "gate_num_warps": 4
+  },
+  "total": 18,
+  "native_diagnosis": "RAW_ACCUM_DRIFT",
+  "triton_order_diagnosis": "RAW_ACCUM_DRIFT",
+  "native_raw_gate_exact": 0,
+  "native_raw_up_exact": 0,
+  "native_inter_exact": 6,
+  "triton_order_raw_gate_exact": 0,
+  "triton_order_raw_up_exact": 0,
+  "triton_order_inter_exact": 10,
+  "native_raw_gate_max_abs_max": 9.5367431640625e-07,
+  "native_raw_up_max_abs_max": 9.5367431640625e-07,
+  "native_inter_max_abs_max": 0.000244140625,
+  "triton_order_raw_gate_max_abs_max": 9.5367431640625e-07,
+  "triton_order_raw_up_max_abs_max": 9.5367431640625e-07,
+  "triton_order_inter_max_abs_max": 0.000244140625,
+  "triton_raw_ms_mean": 0.03439182208644019,
+  "native_raw_ms_mean": 0.04122648851739036,
+  "native_inter_ms_mean": 0.041207288702329,
+  "triton_order_raw_ms_mean": 0.0657533327738444,
+  "triton_order_inter_ms_mean": 0.06574337813589308,
+  "results": [
+    {
+      "fixture_file": "layer_00_prompt_00_slot_packed.safetensors",
+      "layer_id": 0,
+      "prompt_id": 0,
+      "triton_raw_ms": 0.05108799934387207,
+      "native_raw_ms": 0.041407999396324155,
+      "native_inter_ms": 0.04147840142250061,
+      "triton_order_raw_ms": 0.06594560146331788,
+      "triton_order_inter_ms": 0.06585440039634705,
+      "native_raw_gate_vs_triton": {
+        "max_abs": 7.152557373046875e-07,
+        "mean_abs": 1.9428171071922407e-08,
+        "rel_l2": 7.787151190541408e-08,
+        "cosine": 1.0000001192092896,
+        "exact": 0,
+        "max_index": [
+          4067
+        ]
+      },
+      "native_raw_up_vs_triton": {
+        "max_abs": 2.384185791015625e-07,
+        "mean_abs": 1.6369767763535492e-08,
+        "rel_l2": 9.777737375316065e-08,
+        "cosine": 0.9999999403953552,
+        "exact": 0,
+        "max_index": [
+          634
+        ]
+      },
+      "native_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "native_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_gate_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 1.7023467080434784e-08,
+        "rel_l2": 6.828250320722873e-08,
+        "cosine": 1.0000001192092896,
+        "exact": 0,
+        "max_index": [
+          3710
+        ]
+      },
+      "triton_order_raw_up_vs_triton": {
+        "max_abs": 2.384185791015625e-07,
+        "mean_abs": 1.466082721890416e-08,
+        "rel_l2": 9.116380539353486e-08,
+        "cosine": 0.9999999403953552,
+        "exact": 0,
+        "max_index": [
+          1003
+        ]
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      }
+    },
+    {
+      "fixture_file": "layer_04_prompt_00_slot_packed.safetensors",
+      "layer_id": 4,
+      "prompt_id": 0,
+      "triton_raw_ms": 0.03351840078830719,
+      "native_raw_ms": 0.041145598888397215,
+      "native_inter_ms": 0.04120000004768372,
+      "triton_order_raw_ms": 0.06568639874458312,
+      "triton_order_inter_ms": 0.06579359769821166,
+      "native_raw_gate_vs_triton": {
+        "max_abs": 9.5367431640625e-07,
+        "mean_abs": 5.887250154046342e-08,
+        "rel_l2": 7.448258543263364e-08,
+        "cosine": 1.0000001192092896,
+        "exact": 0,
+        "max_index": [
+          1537
+        ]
+      },
+      "native_raw_up_vs_triton": {
+        "max_abs": 2.384185791015625e-07,
+        "mean_abs": 3.4532149584265426e-08,
+        "rel_l2": 1.1617807871289187e-07,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          1971
+        ]
+      },
+      "native_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "native_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_gate_vs_triton": {
+        "max_abs": 9.5367431640625e-07,
+        "mean_abs": 4.8580204747850075e-08,
+        "rel_l2": 6.443827516022793e-08,
+        "cosine": 1.0000001192092896,
+        "exact": 0,
+        "max_index": [
+          1559
+        ]
+      },
+      "triton_order_raw_up_vs_triton": {
+        "max_abs": 2.384185791015625e-07,
+        "mean_abs": 3.3182004699483514e-08,
+        "rel_l2": 1.1415986023166624e-07,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          1632
+        ]
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 3.0517578125e-05,
+        "mean_abs": 7.450580596923828e-09,
+        "rel_l2": 5.87615340919001e-06,
+        "cosine": 1.0000001192092896,
+        "exact": 0,
+        "max_index": [
+          3081
+        ]
+      },
+      "triton_order_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      }
+    },
+    {
+      "fixture_file": "layer_08_prompt_00_slot_packed.safetensors",
+      "layer_id": 8,
+      "prompt_id": 0,
+      "triton_raw_ms": 0.03346880078315735,
+      "native_raw_ms": 0.04122079908847809,
+      "native_inter_ms": 0.041196799278259276,
+      "triton_order_raw_ms": 0.06568959951400757,
+      "triton_order_inter_ms": 0.06567839980125427,
+      "native_raw_gate_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 3.509239832055755e-08,
+        "rel_l2": 1.1916744568907234e-07,
+        "cosine": 1.0000001192092896,
+        "exact": 0,
+        "max_index": [
+          566
+        ]
+      },
+      "native_raw_up_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 3.1289573598769493e-08,
+        "rel_l2": 1.2371268098831933e-07,
+        "cosine": 0.9999998807907104,
+        "exact": 0,
+        "max_index": [
+          789
+        ]
+      },
+      "native_inter_vs_triton": {
+        "max_abs": 2.384185791015625e-07,
+        "mean_abs": 6.320988177321851e-11,
+        "rel_l2": 6.611918479393353e-08,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          2157
+        ]
+      },
+      "native_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_gate_vs_triton": {
+        "max_abs": 3.5762786865234375e-07,
+        "mean_abs": 3.304194251541048e-08,
+        "rel_l2": 1.128524047544488e-07,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          3556
+        ]
+      },
+      "triton_order_raw_up_vs_triton": {
+        "max_abs": 3.5762786865234375e-07,
+        "mean_abs": 2.8480599212343805e-08,
+        "rel_l2": 1.1301040814259977e-07,
+        "cosine": 0.9999998807907104,
+        "exact": 0,
+        "max_index": [
+          598
+        ]
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 1.862645149230957e-09,
+        "mean_abs": 4.547473508864641e-13,
+        "rel_l2": 5.154092153070167e-10,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          900
+        ]
+      },
+      "triton_order_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      }
+    },
+    {
+      "fixture_file": "layer_16_prompt_00_slot_packed.safetensors",
+      "layer_id": 16,
+      "prompt_id": 0,
+      "triton_raw_ms": 0.03290880024433136,
+      "native_raw_ms": 0.04121919870376587,
+      "native_inter_ms": 0.04113599956035614,
+      "triton_order_raw_ms": 0.06576799750328063,
+      "triton_order_inter_ms": 0.06574559807777405,
+      "native_raw_gate_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 3.6628534871852025e-08,
+        "rel_l2": 1.5082970605817536e-07,
+        "cosine": 1.000000238418579,
+        "exact": 0,
+        "max_index": [
+          2404
+        ]
+      },
+      "native_raw_up_vs_triton": {
+        "max_abs": 3.5762786865234375e-07,
+        "mean_abs": 3.45951320923632e-08,
+        "rel_l2": 1.5307057310565142e-07,
+        "cosine": 1.0000001192092896,
+        "exact": 0,
+        "max_index": [
+          4079
+        ]
+      },
+      "native_inter_vs_triton": {
+        "max_abs": 5.960464477539063e-08,
+        "mean_abs": 1.4551915228366852e-11,
+        "rel_l2": 1.709867980537183e-08,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          2751
+        ]
+      },
+      "native_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_gate_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 3.382115210115444e-08,
+        "rel_l2": 1.3969665246804652e-07,
+        "cosine": 1.000000238418579,
+        "exact": 0,
+        "max_index": [
+          437
+        ]
+      },
+      "triton_order_raw_up_vs_triton": {
+        "max_abs": 5.364418029785156e-07,
+        "mean_abs": 3.170453055645339e-08,
+        "rel_l2": 1.432213849739128e-07,
+        "cosine": 1.0000001192092896,
+        "exact": 0,
+        "max_index": [
+          3730
+        ]
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      }
+    },
+    {
+      "fixture_file": "layer_20_prompt_00_slot_packed.safetensors",
+      "layer_id": 20,
+      "prompt_id": 0,
+      "triton_raw_ms": 0.033451199531555176,
+      "native_raw_ms": 0.0412304013967514,
+      "native_inter_ms": 0.04119200110435486,
+      "triton_order_raw_ms": 0.06578720211982728,
+      "triton_order_inter_ms": 0.06568800210952759,
+      "native_raw_gate_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 3.68040673492942e-08,
+        "rel_l2": 1.3300837053975556e-07,
+        "cosine": 1.0000001192092896,
+        "exact": 0,
+        "max_index": [
+          3590
+        ]
+      },
+      "native_raw_up_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 3.2598222787783016e-08,
+        "rel_l2": 1.3753165717389493e-07,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          2460
+        ]
+      },
+      "native_inter_vs_triton": {
+        "max_abs": 7.62939453125e-06,
+        "mean_abs": 1.8627588360686786e-09,
+        "rel_l2": 1.8211285350844264e-06,
+        "cosine": 0.9999998807907104,
+        "exact": 0,
+        "max_index": [
+          1341
+        ]
+      },
+      "native_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_gate_vs_triton": {
+        "max_abs": 3.5762786865234375e-07,
+        "mean_abs": 3.316205265946337e-08,
+        "rel_l2": 1.2072328559042944e-07,
+        "cosine": 1.0000001192092896,
+        "exact": 0,
+        "max_index": [
+          713
+        ]
+      },
+      "triton_order_raw_up_vs_triton": {
+        "max_abs": 9.5367431640625e-07,
+        "mean_abs": 3.077138899243437e-08,
+        "rel_l2": 1.3923367703227996e-07,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          1491
+        ]
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 9.5367431640625e-07,
+        "mean_abs": 2.3305801732931286e-10,
+        "rel_l2": 2.2764118057239102e-07,
+        "cosine": 0.9999998807907104,
+        "exact": 0,
+        "max_index": [
+          1890
+        ]
+      },
+      "triton_order_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      }
+    },
+    {
+      "fixture_file": "layer_28_prompt_00_slot_packed.safetensors",
+      "layer_id": 28,
+      "prompt_id": 0,
+      "triton_raw_ms": 0.03344799876213074,
+      "native_raw_ms": 0.04120959937572479,
+      "native_inter_ms": 0.041198399662971494,
+      "triton_order_raw_ms": 0.06578239798545837,
+      "triton_order_inter_ms": 0.06569600105285645,
+      "native_raw_gate_vs_triton": {
+        "max_abs": 3.5762786865234375e-07,
+        "mean_abs": 3.900538558809785e-08,
+        "rel_l2": 1.4538306913891574e-07,
+        "cosine": 1.0000001192092896,
+        "exact": 0,
+        "max_index": [
+          2227
+        ]
+      },
+      "native_raw_up_vs_triton": {
+        "max_abs": 5.960464477539062e-07,
+        "mean_abs": 3.770537659875117e-08,
+        "rel_l2": 1.5562338262498088e-07,
+        "cosine": 0.9999998807907104,
+        "exact": 0,
+        "max_index": [
+          2722
+        ]
+      },
+      "native_inter_vs_triton": {
+        "max_abs": 0.000244140625,
+        "mean_abs": 5.960464477539063e-08,
+        "rel_l2": 6.395877426257357e-05,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          3569
+        ]
+      },
+      "native_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_gate_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 3.664024461613735e-08,
+        "rel_l2": 1.3751763106029102e-07,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          2829
+        ]
+      },
+      "triton_order_raw_up_vs_triton": {
+        "max_abs": 3.5762786865234375e-07,
+        "mean_abs": 3.485183697193861e-08,
+        "rel_l2": 1.4354151289808215e-07,
+        "cosine": 0.9999998807907104,
+        "exact": 0,
+        "max_index": [
+          2722
+        ]
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 7.450580596923828e-09,
+        "mean_abs": 1.8189894035458565e-12,
+        "rel_l2": 1.951866890337328e-09,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          3941
+        ]
+      },
+      "triton_order_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      }
+    },
+    {
+      "fixture_file": "layer_32_prompt_00_slot_packed.safetensors",
+      "layer_id": 32,
+      "prompt_id": 0,
+      "triton_raw_ms": 0.03345920145511627,
+      "native_raw_ms": 0.041231998801231386,
+      "native_inter_ms": 0.04118559956550598,
+      "triton_order_raw_ms": 0.06569280028343201,
+      "triton_order_inter_ms": 0.06578080058097839,
+      "native_raw_gate_vs_triton": {
+        "max_abs": 5.960464477539062e-07,
+        "mean_abs": 5.925903678871691e-08,
+        "rel_l2": 1.00689803161913e-07,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          1098
+        ]
+      },
+      "native_raw_up_vs_triton": {
+        "max_abs": 3.5762786865234375e-07,
+        "mean_abs": 5.2960785978939384e-08,
+        "rel_l2": 1.1334564220533139e-07,
+        "cosine": 1.0000001192092896,
+        "exact": 0,
+        "max_index": [
+          3829
+        ]
+      },
+      "native_inter_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 1.1641532182693481e-10,
+        "rel_l2": 3.794447067662077e-08,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          3129
+        ]
+      },
+      "native_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_gate_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 5.6287717598024756e-08,
+        "rel_l2": 9.994557359505052e-08,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          47
+        ]
+      },
+      "triton_order_raw_up_vs_triton": {
+        "max_abs": 3.5762786865234375e-07,
+        "mean_abs": 5.090851118438877e-08,
+        "rel_l2": 1.118733408134176e-07,
+        "cosine": 1.0000001192092896,
+        "exact": 0,
+        "max_index": [
+          2625
+        ]
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      }
+    },
+    {
+      "fixture_file": "layer_36_prompt_00_slot_packed.safetensors",
+      "layer_id": 36,
+      "prompt_id": 0,
+      "triton_raw_ms": 0.03397760093212128,
+      "native_raw_ms": 0.04115999937057495,
+      "native_inter_ms": 0.04121919870376587,
+      "triton_order_raw_ms": 0.06579520106315613,
+      "triton_order_inter_ms": 0.06582720279693603,
+      "native_raw_gate_vs_triton": {
+        "max_abs": 9.5367431640625e-07,
+        "mean_abs": 7.277685654116794e-08,
+        "rel_l2": 1.0075175538304393e-07,
+        "cosine": 1.0000001192092896,
+        "exact": 0,
+        "max_index": [
+          3917
+        ]
+      },
+      "native_raw_up_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 6.621849024668336e-08,
+        "rel_l2": 1.1530080712418567e-07,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          174
+        ]
+      },
+      "native_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "native_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_gate_vs_triton": {
+        "max_abs": 7.152557373046875e-07,
+        "mean_abs": 6.442678568419069e-08,
+        "rel_l2": 9.382964805126903e-08,
+        "cosine": 1.0000001192092896,
+        "exact": 0,
+        "max_index": [
+          3857
+        ]
+      },
+      "triton_order_raw_up_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 6.123627827037126e-08,
+        "rel_l2": 1.1065915828112338e-07,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          3336
+        ]
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      }
+    },
+    {
+      "fixture_file": "layer_39_prompt_00_slot_packed.safetensors",
+      "layer_id": 39,
+      "prompt_id": 0,
+      "triton_raw_ms": 0.033478400111198424,
+      "native_raw_ms": 0.04121919870376587,
+      "native_inter_ms": 0.04118239879608154,
+      "triton_order_raw_ms": 0.06574400067329407,
+      "triton_order_inter_ms": 0.06575040221214294,
+      "native_raw_gate_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 6.829941412433982e-08,
+        "rel_l2": 8.99633221251861e-08,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          41
+        ]
+      },
+      "native_raw_up_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 6.24477252131328e-08,
+        "rel_l2": 9.476663365148852e-08,
+        "cosine": 0.9999999403953552,
+        "exact": 0,
+        "max_index": [
+          1035
+        ]
+      },
+      "native_inter_vs_triton": {
+        "max_abs": 7.62939453125e-06,
+        "mean_abs": 1.862645149230957e-09,
+        "rel_l2": 1.3201128012951813e-07,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          2273
+        ]
+      },
+      "native_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_gate_vs_triton": {
+        "max_abs": 7.152557373046875e-07,
+        "mean_abs": 6.241816663532518e-08,
+        "rel_l2": 8.553146813028434e-08,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          2343
+        ]
+      },
+      "triton_order_raw_up_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 5.8048499340657145e-08,
+        "rel_l2": 9.078075891011395e-08,
+        "cosine": 0.9999999403953552,
+        "exact": 0,
+        "max_index": [
+          2582
+        ]
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 0.000244140625,
+        "mean_abs": 6.170012056827545e-08,
+        "rel_l2": 4.226455530442763e-06,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          2335
+        ]
+      },
+      "triton_order_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      }
+    },
+    {
+      "fixture_file": "layer_00_prompt_01_slot_packed.safetensors",
+      "layer_id": 0,
+      "prompt_id": 1,
+      "triton_raw_ms": 0.03368639945983887,
+      "native_raw_ms": 0.04119519889354706,
+      "native_inter_ms": 0.041198399662971494,
+      "triton_order_raw_ms": 0.0657696008682251,
+      "triton_order_inter_ms": 0.06567360162734985,
+      "native_raw_gate_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 1.3980638868815731e-08,
+        "rel_l2": 7.619726005714256e-08,
+        "cosine": 0.9999999403953552,
+        "exact": 0,
+        "max_index": [
+          512
+        ]
+      },
+      "native_raw_up_vs_triton": {
+        "max_abs": 1.1920928955078125e-07,
+        "mean_abs": 9.490349839325063e-09,
+        "rel_l2": 1.0368727743070849e-07,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          20
+        ]
+      },
+      "native_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "native_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_gate_vs_triton": {
+        "max_abs": 9.5367431640625e-07,
+        "mean_abs": 1.2065072496625362e-08,
+        "rel_l2": 6.911922412200511e-08,
+        "cosine": 0.9999998211860657,
+        "exact": 0,
+        "max_index": [
+          661
+        ]
+      },
+      "triton_order_raw_up_vs_triton": {
+        "max_abs": 1.1920928955078125e-07,
+        "mean_abs": 8.693973541085143e-09,
+        "rel_l2": 9.79475629492299e-08,
+        "cosine": 0.9999999403953552,
+        "exact": 0,
+        "max_index": [
+          41
+        ]
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      }
+    },
+    {
+      "fixture_file": "layer_04_prompt_01_slot_packed.safetensors",
+      "layer_id": 4,
+      "prompt_id": 1,
+      "triton_raw_ms": 0.03319199979305267,
+      "native_raw_ms": 0.041193601489067075,
+      "native_inter_ms": 0.041264000535011294,
+      "triton_order_raw_ms": 0.06575359702110291,
+      "triton_order_inter_ms": 0.06575999855995178,
+      "native_raw_gate_vs_triton": {
+        "max_abs": 2.384185791015625e-07,
+        "mean_abs": 2.820661393343471e-08,
+        "rel_l2": 9.293852798464286e-08,
+        "cosine": 1.0000001192092896,
+        "exact": 0,
+        "max_index": [
+          54
+        ]
+      },
+      "native_raw_up_vs_triton": {
+        "max_abs": 2.384185791015625e-07,
+        "mean_abs": 2.5660483515821397e-08,
+        "rel_l2": 1.0650381199184267e-07,
+        "cosine": 0.9999999403953552,
+        "exact": 0,
+        "max_index": [
+          54
+        ]
+      },
+      "native_inter_vs_triton": {
+        "max_abs": 1.4901161193847656e-08,
+        "mean_abs": 3.637978807091713e-12,
+        "rel_l2": 3.9026266662745e-09,
+        "cosine": 0.9999999403953552,
+        "exact": 0,
+        "max_index": [
+          2661
+        ]
+      },
+      "native_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_gate_vs_triton": {
+        "max_abs": 2.384185791015625e-07,
+        "mean_abs": 2.6253474061377347e-08,
+        "rel_l2": 9.032989112256473e-08,
+        "cosine": 1.0000001192092896,
+        "exact": 0,
+        "max_index": [
+          355
+        ]
+      },
+      "triton_order_raw_up_vs_triton": {
+        "max_abs": 2.384185791015625e-07,
+        "mean_abs": 2.4015662347665057e-08,
+        "rel_l2": 1.02673872959258e-07,
+        "cosine": 0.9999999403953552,
+        "exact": 0,
+        "max_index": [
+          904
+        ]
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 1.4901161193847656e-08,
+        "mean_abs": 3.637978807091713e-12,
+        "rel_l2": 3.9026266662745e-09,
+        "cosine": 0.9999999403953552,
+        "exact": 0,
+        "max_index": [
+          2661
+        ]
+      },
+      "triton_order_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      }
+    },
+    {
+      "fixture_file": "layer_08_prompt_01_slot_packed.safetensors",
+      "layer_id": 8,
+      "prompt_id": 1,
+      "triton_raw_ms": 0.03362880051136017,
+      "native_raw_ms": 0.04133920073509216,
+      "native_inter_ms": 0.04118080139160156,
+      "triton_order_raw_ms": 0.06574879884719849,
+      "triton_order_inter_ms": 0.06565759778022766,
+      "native_raw_gate_vs_triton": {
+        "max_abs": 2.384185791015625e-07,
+        "mean_abs": 4.8341007641283795e-08,
+        "rel_l2": 8.892704528307149e-08,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          132
+        ]
+      },
+      "native_raw_up_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 4.00023054680787e-08,
+        "rel_l2": 1.091726957724859e-07,
+        "cosine": 0.9999998807907104,
+        "exact": 0,
+        "max_index": [
+          1796
+        ]
+      },
+      "native_inter_vs_triton": {
+        "max_abs": 0.000244140625,
+        "mean_abs": 5.960464477539063e-08,
+        "rel_l2": 2.2239099052967504e-05,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          1994
+        ]
+      },
+      "native_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_gate_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 4.560752131510526e-08,
+        "rel_l2": 8.880873991756744e-08,
+        "cosine": 0.9999998807907104,
+        "exact": 0,
+        "max_index": [
+          291
+        ]
+      },
+      "triton_order_raw_up_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 3.784884938795585e-08,
+        "rel_l2": 1.0639799796763327e-07,
+        "cosine": 0.9999998807907104,
+        "exact": 0,
+        "max_index": [
+          1796
+        ]
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      }
+    },
+    {
+      "fixture_file": "layer_16_prompt_01_slot_packed.safetensors",
+      "layer_id": 16,
+      "prompt_id": 1,
+      "triton_raw_ms": 0.03293119966983795,
+      "native_raw_ms": 0.04122720062732697,
+      "native_inter_ms": 0.04116159975528717,
+      "triton_order_raw_ms": 0.0657263994216919,
+      "triton_order_inter_ms": 0.06574079990386963,
+      "native_raw_gate_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 4.7959701987565495e-08,
+        "rel_l2": 9.728415761856013e-08,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          472
+        ]
+      },
+      "native_raw_up_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 4.1088696889346465e-08,
+        "rel_l2": 1.077734452792356e-07,
+        "cosine": 1.0000001192092896,
+        "exact": 0,
+        "max_index": [
+          4018
+        ]
+      },
+      "native_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998211860657,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "native_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998211860657,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_gate_vs_triton": {
+        "max_abs": 3.5762786865234375e-07,
+        "mean_abs": 4.405615072755609e-08,
+        "rel_l2": 9.256400090862371e-08,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          2382
+        ]
+      },
+      "triton_order_raw_up_vs_triton": {
+        "max_abs": 3.5762786865234375e-07,
+        "mean_abs": 3.94479684473481e-08,
+        "rel_l2": 1.0747970691227238e-07,
+        "cosine": 1.0000001192092896,
+        "exact": 0,
+        "max_index": [
+          938
+        ]
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998211860657,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998211860657,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998211860657,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      }
+    },
+    {
+      "fixture_file": "layer_20_prompt_01_slot_packed.safetensors",
+      "layer_id": 20,
+      "prompt_id": 1,
+      "triton_raw_ms": 0.033348798751831055,
+      "native_raw_ms": 0.041222399473190306,
+      "native_inter_ms": 0.0411871999502182,
+      "triton_order_raw_ms": 0.06581599712371826,
+      "triton_order_inter_ms": 0.06581119894981384,
+      "native_raw_gate_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 5.1619281293824315e-08,
+        "rel_l2": 8.501964288143427e-08,
+        "cosine": 0.9999999403953552,
+        "exact": 0,
+        "max_index": [
+          202
+        ]
+      },
+      "native_raw_up_vs_triton": {
+        "max_abs": 2.384185791015625e-07,
+        "mean_abs": 4.192952474113554e-08,
+        "rel_l2": 1.0908336633974614e-07,
+        "cosine": 0.9999998807907104,
+        "exact": 0,
+        "max_index": [
+          126
+        ]
+      },
+      "native_inter_vs_triton": {
+        "max_abs": 2.384185791015625e-07,
+        "mean_abs": 5.820766091346741e-11,
+        "rel_l2": 2.0478413631508374e-08,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          1863
+        ]
+      },
+      "native_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_gate_vs_triton": {
+        "max_abs": 7.152557373046875e-07,
+        "mean_abs": 4.7005869419081137e-08,
+        "rel_l2": 8.306196974672275e-08,
+        "cosine": 0.9999999403953552,
+        "exact": 0,
+        "max_index": [
+          2956
+        ]
+      },
+      "triton_order_raw_up_vs_triton": {
+        "max_abs": 2.384185791015625e-07,
+        "mean_abs": 3.9332007872872055e-08,
+        "rel_l2": 1.0548961171252813e-07,
+        "cosine": 0.9999998807907104,
+        "exact": 0,
+        "max_index": [
+          110
+        ]
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      }
+    },
+    {
+      "fixture_file": "layer_28_prompt_01_slot_packed.safetensors",
+      "layer_id": 28,
+      "prompt_id": 1,
+      "triton_raw_ms": 0.03329919874668121,
+      "native_raw_ms": 0.04120959937572479,
+      "native_inter_ms": 0.041196799278259276,
+      "triton_order_raw_ms": 0.06574400067329407,
+      "triton_order_inter_ms": 0.06576480269432068,
+      "native_raw_gate_vs_triton": {
+        "max_abs": 9.5367431640625e-07,
+        "mean_abs": 4.5507931645261124e-08,
+        "rel_l2": 9.676971757244246e-08,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          1137
+        ]
+      },
+      "native_raw_up_vs_triton": {
+        "max_abs": 3.5762786865234375e-07,
+        "mean_abs": 4.27639861300122e-08,
+        "rel_l2": 1.0378016668255441e-07,
+        "cosine": 1.0000001192092896,
+        "exact": 0,
+        "max_index": [
+          3318
+        ]
+      },
+      "native_inter_vs_triton": {
+        "max_abs": 7.62939453125e-06,
+        "mean_abs": 1.864464138634503e-09,
+        "rel_l2": 6.979848308219516e-07,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          2800
+        ]
+      },
+      "native_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_gate_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 4.235380401951261e-08,
+        "rel_l2": 9.275613166437324e-08,
+        "cosine": 1.0000001192092896,
+        "exact": 0,
+        "max_index": [
+          1137
+        ]
+      },
+      "triton_order_raw_up_vs_triton": {
+        "max_abs": 2.384185791015625e-07,
+        "mean_abs": 4.054754754179157e-08,
+        "rel_l2": 1.0149433649075945e-07,
+        "cosine": 1.0000001192092896,
+        "exact": 0,
+        "max_index": [
+          75
+        ]
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 7.450580596923828e-09,
+        "mean_abs": 1.8189894035458565e-12,
+        "rel_l2": 6.816254782826547e-10,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          2431
+        ]
+      },
+      "triton_order_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      }
+    },
+    {
+      "fixture_file": "layer_32_prompt_01_slot_packed.safetensors",
+      "layer_id": 32,
+      "prompt_id": 1,
+      "triton_raw_ms": 0.03368639945983887,
+      "native_raw_ms": 0.041198399662971494,
+      "native_inter_ms": 0.04118239879608154,
+      "triton_order_raw_ms": 0.0656719982624054,
+      "triton_order_inter_ms": 0.06576160192489625,
+      "native_raw_gate_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 5.887613951927051e-08,
+        "rel_l2": 8.90848923518206e-08,
+        "cosine": 1.0000001192092896,
+        "exact": 0,
+        "max_index": [
+          111
+        ]
+      },
+      "native_raw_up_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 5.054744178778492e-08,
+        "rel_l2": 9.705441783580682e-08,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          171
+        ]
+      },
+      "native_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "native_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_gate_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 5.3842995839659125e-08,
+        "rel_l2": 8.562870590367311e-08,
+        "cosine": 1.0000001192092896,
+        "exact": 0,
+        "max_index": [
+          102
+        ]
+      },
+      "triton_order_raw_up_vs_triton": {
+        "max_abs": 7.152557373046875e-07,
+        "mean_abs": 4.7697994887130335e-08,
+        "rel_l2": 9.670439027331668e-08,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          293
+        ]
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      }
+    },
+    {
+      "fixture_file": "layer_36_prompt_01_slot_packed.safetensors",
+      "layer_id": 36,
+      "prompt_id": 1,
+      "triton_raw_ms": 0.03301919996738434,
+      "native_raw_ms": 0.04123519957065582,
+      "native_inter_ms": 0.04121119976043701,
+      "triton_order_raw_ms": 0.0657584011554718,
+      "triton_order_inter_ms": 0.06567680239677429,
+      "native_raw_gate_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 7.164589987951331e-08,
+        "rel_l2": 8.561588771272e-08,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          470
+        ]
+      },
+      "native_raw_up_vs_triton": {
+        "max_abs": 3.5762786865234375e-07,
+        "mean_abs": 5.902802513446659e-08,
+        "rel_l2": 1.0245649662010692e-07,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          812
+        ]
+      },
+      "native_inter_vs_triton": {
+        "max_abs": 2.384185791015625e-07,
+        "mean_abs": 5.820766091346741e-11,
+        "rel_l2": 1.395688808969453e-08,
+        "cosine": 0.9999998807907104,
+        "exact": 0,
+        "max_index": [
+          2134
+        ]
+      },
+      "native_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_gate_vs_triton": {
+        "max_abs": 7.152557373046875e-07,
+        "mean_abs": 6.445816325140186e-08,
+        "rel_l2": 8.064424150688865e-08,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          3429
+        ]
+      },
+      "triton_order_raw_up_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 5.470792530104518e-08,
+        "rel_l2": 9.855921945245427e-08,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          494
+        ]
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 2.384185791015625e-07,
+        "mean_abs": 5.820766091346741e-11,
+        "rel_l2": 1.395688808969453e-08,
+        "cosine": 0.9999998807907104,
+        "exact": 0,
+        "max_index": [
+          2134
+        ]
+      },
+      "triton_order_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      }
+    },
+    {
+      "fixture_file": "layer_39_prompt_01_slot_packed.safetensors",
+      "layer_id": 39,
+      "prompt_id": 1,
+      "triton_raw_ms": 0.03346239924430847,
+      "native_raw_ms": 0.04121119976043701,
+      "native_inter_ms": 0.04115999937057495,
+      "triton_order_raw_ms": 0.06567999720573425,
+      "triton_order_inter_ms": 0.06571999788284302,
+      "native_raw_gate_vs_triton": {
+        "max_abs": 9.5367431640625e-07,
+        "mean_abs": 7.706421456532553e-08,
+        "rel_l2": 7.934951185006867e-08,
+        "cosine": 1.0000001192092896,
+        "exact": 0,
+        "max_index": [
+          1562
+        ]
+      },
+      "native_raw_up_vs_triton": {
+        "max_abs": 9.5367431640625e-07,
+        "mean_abs": 6.651362127740867e-08,
+        "rel_l2": 8.688654418165243e-08,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          1597
+        ]
+      },
+      "native_inter_vs_triton": {
+        "max_abs": 9.5367431640625e-07,
+        "mean_abs": 2.3283064365386963e-10,
+        "rel_l2": 3.910775703275249e-08,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          2411
+        ]
+      },
+      "native_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_gate_vs_triton": {
+        "max_abs": 9.5367431640625e-07,
+        "mean_abs": 6.592063073185273e-08,
+        "rel_l2": 7.396405266035799e-08,
+        "cosine": 1.0000001192092896,
+        "exact": 0,
+        "max_index": [
+          1911
+        ]
+      },
+      "triton_order_raw_up_vs_triton": {
+        "max_abs": 7.152557373046875e-07,
+        "mean_abs": 5.872334440937266e-08,
+        "rel_l2": 8.078043123305179e-08,
+        "cosine": 1.0,
+        "exact": 0,
+        "max_index": [
+          3464
+        ]
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_order_raw_to_inter_vs_native_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      },
+      "triton_inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1,
+        "max_index": [
+          0
+        ]
+      }
+    }
+  ],
+  "triton_inter_vs_p147_exact": 18,
+  "triton_inter_vs_p147_max_abs_max": 0.0
+}

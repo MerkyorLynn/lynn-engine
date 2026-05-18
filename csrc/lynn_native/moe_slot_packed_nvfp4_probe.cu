@@ -253,6 +253,202 @@ __global__ void gate_up_packed_nvfp4_triton_order_kernel(
     }
 }
 
+template <int TILE_I, int THREADS>
+__global__ void gate_up_packed_nvfp4_raw_accum_kernel(
+    const __nv_bfloat16* __restrict__ x,            // [hidden]
+    const uint8_t* __restrict__ gate_up_packed,     // [top_k, 1024, 1024]
+    const __half* __restrict__ gate_up_scale,       // [top_k, 1024, 128]
+    const __half* __restrict__ gate_up_global_scale,// scalar
+    float* __restrict__ raw,                        // [top_k, 2, 512]
+    int64_t packed_stride_k, int64_t packed_stride_r, int64_t packed_stride_c,
+    int64_t scale_stride_k, int64_t scale_stride_r, int64_t scale_stride_g
+) {
+    const int slot = blockIdx.x;
+    const int tile_start = blockIdx.y * TILE_I;
+    const int tid = threadIdx.x;
+    const float inv_global = 1.0f / __half2float(gate_up_global_scale[0]);
+
+    __shared__ float x_shared[kHidden];
+    for (int h = tid; h < kHidden; h += THREADS) {
+        x_shared[h] = __bfloat162float(x[h]);
+    }
+    __syncthreads();
+
+    float gate_acc[TILE_I];
+    float up_acc[TILE_I];
+    #pragma unroll
+    for (int r = 0; r < TILE_I; ++r) {
+        gate_acc[r] = 0.0f;
+        up_acc[r] = 0.0f;
+    }
+
+    for (int h = tid; h < kHidden; h += THREADS) {
+        const float xh = x_shared[h];
+        const int packed_col = h >> 1;
+        const int scale_group = h >> 4;
+        const bool is_low = (h & 1) == 0;
+
+        #pragma unroll
+        for (int r = 0; r < TILE_I; ++r) {
+            const int gate_row = tile_start + r;
+            const int up_row = kIntermediate + tile_start + r;
+            if (gate_row < kIntermediate) {
+                const uint8_t g_byte = gate_up_packed[
+                    slot * packed_stride_k + gate_row * packed_stride_r + packed_col * packed_stride_c];
+                const unsigned char g_nib = is_low ? (g_byte & 0x0F) : ((g_byte >> 4) & 0x0F);
+                const float g_scale = __half2float(gate_up_scale[
+                    slot * scale_stride_k + gate_row * scale_stride_r + scale_group * scale_stride_g]);
+                gate_acc[r] += e2m1_decode(g_nib) * g_scale * inv_global * xh;
+
+                const uint8_t u_byte = gate_up_packed[
+                    slot * packed_stride_k + up_row * packed_stride_r + packed_col * packed_stride_c];
+                const unsigned char u_nib = is_low ? (u_byte & 0x0F) : ((u_byte >> 4) & 0x0F);
+                const float u_scale = __half2float(gate_up_scale[
+                    slot * scale_stride_k + up_row * scale_stride_r + scale_group * scale_stride_g]);
+                up_acc[r] += e2m1_decode(u_nib) * u_scale * inv_global * xh;
+            }
+        }
+    }
+
+    #pragma unroll
+    for (int r = 0; r < TILE_I; ++r) {
+        for (int offset = 16; offset > 0; offset >>= 1) {
+            gate_acc[r] += __shfl_down_sync(0xFFFFFFFF, gate_acc[r], offset);
+            up_acc[r] += __shfl_down_sync(0xFFFFFFFF, up_acc[r], offset);
+        }
+    }
+
+    const int warp_id = tid / 32;
+    const int lane_id = tid % 32;
+    const int num_warps = THREADS / 32;
+
+    __shared__ float warp_gate[TILE_I][32];
+    __shared__ float warp_up[TILE_I][32];
+
+    if (lane_id == 0) {
+        #pragma unroll
+        for (int r = 0; r < TILE_I; ++r) {
+            warp_gate[r][warp_id] = gate_acc[r];
+            warp_up[r][warp_id] = up_acc[r];
+        }
+    }
+    __syncthreads();
+
+    if (warp_id == 0 && lane_id < num_warps) {
+        #pragma unroll
+        for (int r = 0; r < TILE_I; ++r) {
+            float g = warp_gate[r][lane_id];
+            float u = warp_up[r][lane_id];
+            for (int offset = num_warps / 2; offset > 0; offset >>= 1) {
+                g += __shfl_down_sync(0xFFFFFFFF, g, offset);
+                u += __shfl_down_sync(0xFFFFFFFF, u, offset);
+            }
+            if (lane_id == 0) {
+                const int row = tile_start + r;
+                if (row < kIntermediate) {
+                    const int64_t base = (static_cast<int64_t>(slot) * 2) * kIntermediate + row;
+                    raw[base] = g;
+                    raw[base + kIntermediate] = u;
+                }
+            }
+        }
+    }
+}
+
+template <int TILE_I, int THREADS>
+__global__ void gate_up_packed_nvfp4_raw_accum_triton_order_kernel(
+    const __nv_bfloat16* __restrict__ x,            // [hidden]
+    const uint8_t* __restrict__ gate_up_packed,     // [top_k, 1024, 1024]
+    const __half* __restrict__ gate_up_scale,       // [top_k, 1024, 128]
+    const __half* __restrict__ gate_up_global_scale,// scalar
+    float* __restrict__ raw,                        // [top_k, 2, 512]
+    int64_t packed_stride_k, int64_t packed_stride_r, int64_t packed_stride_c,
+    int64_t scale_stride_k, int64_t scale_stride_r, int64_t scale_stride_g
+) {
+    const int slot = blockIdx.x;
+    const int tile_start = blockIdx.y * TILE_I;
+    const int tid = threadIdx.x;
+    const float global_scale = __half2float(gate_up_global_scale[0]);
+
+    float gate_acc[TILE_I];
+    float up_acc[TILE_I];
+    #pragma unroll
+    for (int r = 0; r < TILE_I; ++r) {
+        gate_acc[r] = 0.0f;
+        up_acc[r] = 0.0f;
+    }
+
+    __shared__ float reduce_gate[TILE_I * THREADS];
+    __shared__ float reduce_up[TILE_I * THREADS];
+
+    for (int h0 = 0; h0 < kHidden; h0 += THREADS) {
+        const int h = h0 + tid;
+        const bool col_valid = h < kHidden;
+        const int packed_col = h >> 1;
+        const int scale_group = h >> 4;
+        const bool is_low = (h & 1) == 0;
+        const float xh = col_valid ? __bfloat162float(x[h]) : 0.0f;
+
+        #pragma unroll
+        for (int r = 0; r < TILE_I; ++r) {
+            const int gate_row = tile_start + r;
+            const int up_row = kIntermediate + tile_start + r;
+            float g_part = 0.0f;
+            float u_part = 0.0f;
+            if (col_valid && gate_row < kIntermediate) {
+                const uint8_t g_byte = gate_up_packed[
+                    slot * packed_stride_k + gate_row * packed_stride_r + packed_col * packed_stride_c];
+                const unsigned char g_nib = is_low ? (g_byte & 0x0F) : ((g_byte >> 4) & 0x0F);
+                const float g_scale = __half2float(gate_up_scale[
+                    slot * scale_stride_k + gate_row * scale_stride_r + scale_group * scale_stride_g]);
+                g_part = e2m1_decode(g_nib) * (g_scale / global_scale) * xh;
+
+                const uint8_t u_byte = gate_up_packed[
+                    slot * packed_stride_k + up_row * packed_stride_r + packed_col * packed_stride_c];
+                const unsigned char u_nib = is_low ? (u_byte & 0x0F) : ((u_byte >> 4) & 0x0F);
+                const float u_scale = __half2float(gate_up_scale[
+                    slot * scale_stride_k + up_row * scale_stride_r + scale_group * scale_stride_g]);
+                u_part = e2m1_decode(u_nib) * (u_scale / global_scale) * xh;
+            }
+            reduce_gate[r * THREADS + tid] = g_part;
+            reduce_up[r * THREADS + tid] = u_part;
+        }
+        __syncthreads();
+
+        for (int stride = THREADS / 2; stride > 0; stride >>= 1) {
+            if (tid < stride) {
+                #pragma unroll
+                for (int r = 0; r < TILE_I; ++r) {
+                    reduce_gate[r * THREADS + tid] += reduce_gate[r * THREADS + tid + stride];
+                    reduce_up[r * THREADS + tid] += reduce_up[r * THREADS + tid + stride];
+                }
+            }
+            __syncthreads();
+        }
+
+        if (tid == 0) {
+            #pragma unroll
+            for (int r = 0; r < TILE_I; ++r) {
+                gate_acc[r] += reduce_gate[r * THREADS];
+                up_acc[r] += reduce_up[r * THREADS];
+            }
+        }
+        __syncthreads();
+    }
+
+    if (tid == 0) {
+        #pragma unroll
+        for (int r = 0; r < TILE_I; ++r) {
+            const int row = tile_start + r;
+            if (row < kIntermediate) {
+                const int64_t base = (static_cast<int64_t>(slot) * 2) * kIntermediate + row;
+                raw[base] = gate_acc[r];
+                raw[base + kIntermediate] = up_acc[r];
+            }
+        }
+    }
+}
+
 // ── Stage 2: down weighted sum packed NVFP4 kernel (output-owned) ──
 // Grid: (hidden / TILE_H,)
 // Block: THREADS
@@ -417,6 +613,78 @@ torch::Tensor lynn_native_moe_slot_packed_nvfp4_inter_triton_order_probe(
     cudaError_t err = cudaGetLastError();
     TORCH_CHECK(err == cudaSuccess, "moe_slot_packed_nvfp4_inter_triton_order_probe failed: ", cudaGetErrorString(err));
     return inter;
+}
+
+torch::Tensor lynn_native_moe_slot_packed_nvfp4_raw_accum_probe(
+    torch::Tensor x,                        // [2048] BF16
+    torch::Tensor slot_gate_up_packed,      // [top_k, 1024, 1024] uint8
+    torch::Tensor slot_gate_up_scale,       // [top_k, 1024, 128] fp16
+    torch::Tensor slot_gate_up_global_scale // scalar fp16
+) {
+    TORCH_CHECK(x.is_cuda() && x.scalar_type() == torch::kBFloat16);
+    TORCH_CHECK(x.dim() == 1 && x.numel() == kHidden);
+    TORCH_CHECK(slot_gate_up_packed.is_cuda() && slot_gate_up_packed.scalar_type() == torch::kUInt8);
+    TORCH_CHECK(slot_gate_up_scale.is_cuda() && slot_gate_up_scale.scalar_type() == torch::kFloat16);
+    TORCH_CHECK(slot_gate_up_global_scale.is_cuda() && slot_gate_up_global_scale.scalar_type() == torch::kFloat16);
+    const int top_k = slot_gate_up_packed.size(0);
+    TORCH_CHECK(slot_gate_up_packed.size(1) == kGateUpRows && slot_gate_up_packed.size(2) == kHidden / 2);
+    TORCH_CHECK(slot_gate_up_scale.size(0) == top_k && slot_gate_up_scale.size(1) == kGateUpRows);
+    TORCH_CHECK(slot_gate_up_scale.size(2) == kHidden / kGroupSize);
+
+    auto raw = torch::empty({top_k, 2, kIntermediate},
+        torch::TensorOptions().device(x.device()).dtype(torch::kFloat32));
+
+    constexpr int TILE_I = 4;
+    constexpr int THREADS_S1 = 256;
+    dim3 grid_s1(top_k, (kIntermediate + TILE_I - 1) / TILE_I);
+    gate_up_packed_nvfp4_raw_accum_kernel<TILE_I, THREADS_S1><<<grid_s1, THREADS_S1>>>(
+        reinterpret_cast<const __nv_bfloat16*>(x.data_ptr<at::BFloat16>()),
+        slot_gate_up_packed.data_ptr<uint8_t>(),
+        reinterpret_cast<const __half*>(slot_gate_up_scale.data_ptr<at::Half>()),
+        reinterpret_cast<const __half*>(slot_gate_up_global_scale.data_ptr<at::Half>()),
+        raw.data_ptr<float>(),
+        slot_gate_up_packed.stride(0), slot_gate_up_packed.stride(1), slot_gate_up_packed.stride(2),
+        slot_gate_up_scale.stride(0), slot_gate_up_scale.stride(1), slot_gate_up_scale.stride(2)
+    );
+    cudaError_t err = cudaGetLastError();
+    TORCH_CHECK(err == cudaSuccess, "moe_slot_packed_nvfp4_raw_accum_probe failed: ", cudaGetErrorString(err));
+    return raw;
+}
+
+torch::Tensor lynn_native_moe_slot_packed_nvfp4_raw_accum_triton_order_probe(
+    torch::Tensor x,                        // [2048] BF16
+    torch::Tensor slot_gate_up_packed,      // [top_k, 1024, 1024] uint8
+    torch::Tensor slot_gate_up_scale,       // [top_k, 1024, 128] fp16
+    torch::Tensor slot_gate_up_global_scale // scalar fp16
+) {
+    TORCH_CHECK(x.is_cuda() && x.scalar_type() == torch::kBFloat16);
+    TORCH_CHECK(x.dim() == 1 && x.numel() == kHidden);
+    TORCH_CHECK(slot_gate_up_packed.is_cuda() && slot_gate_up_packed.scalar_type() == torch::kUInt8);
+    TORCH_CHECK(slot_gate_up_scale.is_cuda() && slot_gate_up_scale.scalar_type() == torch::kFloat16);
+    TORCH_CHECK(slot_gate_up_global_scale.is_cuda() && slot_gate_up_global_scale.scalar_type() == torch::kFloat16);
+    const int top_k = slot_gate_up_packed.size(0);
+    TORCH_CHECK(slot_gate_up_packed.size(1) == kGateUpRows && slot_gate_up_packed.size(2) == kHidden / 2);
+    TORCH_CHECK(slot_gate_up_scale.size(0) == top_k && slot_gate_up_scale.size(1) == kGateUpRows);
+    TORCH_CHECK(slot_gate_up_scale.size(2) == kHidden / kGroupSize);
+
+    auto raw = torch::empty({top_k, 2, kIntermediate},
+        torch::TensorOptions().device(x.device()).dtype(torch::kFloat32));
+
+    constexpr int TILE_I = 8;
+    constexpr int THREADS_S1 = 256;
+    dim3 grid_s1(top_k, (kIntermediate + TILE_I - 1) / TILE_I);
+    gate_up_packed_nvfp4_raw_accum_triton_order_kernel<TILE_I, THREADS_S1><<<grid_s1, THREADS_S1>>>(
+        reinterpret_cast<const __nv_bfloat16*>(x.data_ptr<at::BFloat16>()),
+        slot_gate_up_packed.data_ptr<uint8_t>(),
+        reinterpret_cast<const __half*>(slot_gate_up_scale.data_ptr<at::Half>()),
+        reinterpret_cast<const __half*>(slot_gate_up_global_scale.data_ptr<at::Half>()),
+        raw.data_ptr<float>(),
+        slot_gate_up_packed.stride(0), slot_gate_up_packed.stride(1), slot_gate_up_packed.stride(2),
+        slot_gate_up_scale.stride(0), slot_gate_up_scale.stride(1), slot_gate_up_scale.stride(2)
+    );
+    cudaError_t err = cudaGetLastError();
+    TORCH_CHECK(err == cudaSuccess, "moe_slot_packed_nvfp4_raw_accum_triton_order_probe failed: ", cudaGetErrorString(err));
+    return raw;
 }
 
 torch::Tensor lynn_native_moe_slot_packed_nvfp4_down_probe(
