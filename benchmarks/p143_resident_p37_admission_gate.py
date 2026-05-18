@@ -178,10 +178,12 @@ def gather(report_dir: Path,
         p37_file = Path(p37_path)
         p37_found = p37_file.exists()
     else:
-        p37_file = _find_latest(report_dir, "p37_*.json")
-        if p37_file is None:
-            p37_file = _find_latest(report_dir, "*p37*.json")
-        p37_found = p37_file is not None and p37_file.exists()
+        # Deliberately do not auto-discover arbitrary historical P37 files.
+        # This gate is candidate-specific; callers must pass P37_REPORT once a
+        # fresh resident graph-safe P37 probe exists. Picking up stale reports
+        # can incorrectly close or admit a new candidate.
+        p37_file = None
+        p37_found = False
     p37_data = _load_json(p37_file) if p37_found else None
 
     # ── Gate ──
