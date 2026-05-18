@@ -77,6 +77,43 @@ def moe_forward_fixture(
     return out.view(1, -1)
 
 
+def moe_slot_torch_reference(
+    hidden_in: torch.Tensor,
+    routing_weights: torch.Tensor,
+    slot_gate_up: torch.Tensor,
+    slot_down: torch.Tensor,
+) -> torch.Tensor:
+    """PyTorch slot-order reference for the pre-gathered fixture layout."""
+    h = hidden_in.to(torch.bfloat16)
+    out = torch.zeros_like(h)
+    for k in range(slot_gate_up.shape[0]):
+        gate_up = F.linear(h, slot_gate_up[k])
+        gate, up = gate_up.chunk(2, dim=-1)
+        ffn = F.linear(F.silu(gate) * up, slot_down[k])
+        out += ffn * routing_weights[k].to(h.dtype)
+    return out
+
+
+def compute_metrics(ref: torch.Tensor, candidate: torch.Tensor) -> dict[str, float]:
+    rf = ref.float().flatten()
+    cf = candidate.float().flatten()
+    diff = rf - cf
+    return {
+        "max_abs": float(diff.abs().max()),
+        "mean_abs": float(diff.abs().mean()),
+        "rel_l2": float(
+            torch.linalg.vector_norm(diff) / torch.linalg.vector_norm(rf).clamp_min(1e-12)
+        ),
+        "cosine": float(
+            torch.dot(rf, cf)
+            / (
+                torch.linalg.vector_norm(rf).clamp_min(1e-12)
+                * torch.linalg.vector_norm(cf).clamp_min(1e-12)
+            )
+        ),
+    }
+
+
 def benchmark_kernel(
     hidden_in: torch.Tensor,
     routing_weights: torch.Tensor,
@@ -156,18 +193,14 @@ def main() -> int:
         candidate_out = moe_forward_fixture(
             hidden_in, expert_ids, routing_weights, slot_gate_up, slot_down
         )
+        slot_ref = moe_slot_torch_reference(
+            hidden_in, routing_weights, slot_gate_up, slot_down
+        )
 
         # Metrics
-        rf = expected.float().flatten()
-        cf = candidate_out.float().flatten()
-        diff = rf - cf
-        max_abs = float(diff.abs().max())
-        mean_abs = float(diff.abs().mean())
-        rel_l2 = float(torch.linalg.vector_norm(diff) / torch.linalg.vector_norm(rf).clamp_min(1e-12))
-        cosine = float(torch.dot(rf, cf) / (
-            torch.linalg.vector_norm(rf).clamp_min(1e-12) *
-            torch.linalg.vector_norm(cf).clamp_min(1e-12)
-        ))
+        unique_metrics = compute_metrics(expected, candidate_out)
+        slot_metrics = compute_metrics(slot_ref, candidate_out)
+        slot_vs_unique = compute_metrics(expected, slot_ref)
 
         # Benchmark
         latency_ms = benchmark_kernel(
@@ -179,35 +212,62 @@ def main() -> int:
             "fixture": fixture_file,
             "layer_id": layer_id,
             "prompt_id": prompt_id,
-            "max_abs": max_abs,
-            "mean_abs": mean_abs,
-            "rel_l2": rel_l2,
-            "cosine": cosine,
-            "exact": 1 if max_abs == 0.0 else 0,
+            "unique_ref_max_abs": unique_metrics["max_abs"],
+            "unique_ref_mean_abs": unique_metrics["mean_abs"],
+            "unique_ref_rel_l2": unique_metrics["rel_l2"],
+            "unique_ref_cosine": unique_metrics["cosine"],
+            "unique_ref_exact": 1 if unique_metrics["max_abs"] == 0.0 else 0,
+            "slot_ref_max_abs": slot_metrics["max_abs"],
+            "slot_ref_mean_abs": slot_metrics["mean_abs"],
+            "slot_ref_rel_l2": slot_metrics["rel_l2"],
+            "slot_ref_cosine": slot_metrics["cosine"],
+            "slot_ref_exact": 1 if slot_metrics["max_abs"] == 0.0 else 0,
+            "slot_vs_unique_max_abs": slot_vs_unique["max_abs"],
+            "slot_vs_unique_cosine": slot_vs_unique["cosine"],
             "candidate_ms": latency_ms,
         }
         results.append(result)
 
-        status = "GREEN" if max_abs == 0.0 else ("AMBER" if max_abs <= 1e-3 else "RED")
+        status = (
+            "GREEN"
+            if slot_metrics["max_abs"] == 0.0
+            else ("AMBER" if slot_metrics["max_abs"] <= 1e-3 else "RED")
+        )
         print(
             f"  L{layer_id:02d}/P{prompt_id:02d}: "
-            f"max_abs={max_abs:.2e} cos={cosine:.8f} rel_l2={rel_l2:.2e} "
+            f"slot_max={slot_metrics['max_abs']:.2e} "
+            f"uniq_max={unique_metrics['max_abs']:.2e} "
+            f"slot_cos={slot_metrics['cosine']:.8f} "
             f"latency={latency_ms:.4f}ms {status}"
         )
 
     # Summary
-    all_exact = all(r["exact"] == 1 for r in results)
-    all_pass = all(r["max_abs"] <= 1e-3 and r["cosine"] >= 0.999999 for r in results)
+    all_slot_exact = all(r["slot_ref_exact"] == 1 for r in results)
+    all_unique_exact = all(r["unique_ref_exact"] == 1 for r in results)
+    all_slot_pass = all(
+        r["slot_ref_max_abs"] <= 1e-3 and r["slot_ref_cosine"] >= 0.999999
+        for r in results
+    )
+    all_unique_pass = all(
+        r["unique_ref_max_abs"] <= 1e-3 and r["unique_ref_cosine"] >= 0.999999
+        for r in results
+    )
     avg_latency = sum(r["candidate_ms"] for r in results) / len(results) if results else 0
     max_latency = max(r["candidate_ms"] for r in results) if results else 0
-    max_max_abs = max(r["max_abs"] for r in results) if results else 0
+    slot_max_abs = max(r["slot_ref_max_abs"] for r in results) if results else 0
+    unique_max_abs = max(r["unique_ref_max_abs"] for r in results) if results else 0
+    slot_vs_unique_max_abs = max(r["slot_vs_unique_max_abs"] for r in results) if results else 0
 
     print(f"\n{'='*70}")
     print(f"SLOT CANDIDATE SUMMARY: native_slot_output_owned_bf16")
     print(f"  Fixtures:      {len(results)}")
-    print(f"  All exact:     {'YES' if all_exact else 'NO'}")
-    print(f"  All pass:      {'YES' if all_pass else 'NO'} (max_abs<=1e-3, cos>=0.999999)")
-    print(f"  Max max_abs:   {max_max_abs:.2e}")
+    print(f"  Slot exact:    {'YES' if all_slot_exact else 'NO'}")
+    print(f"  Slot pass:     {'YES' if all_slot_pass else 'NO'} (max_abs<=1e-3, cos>=0.999999)")
+    print(f"  Unique exact:  {'YES' if all_unique_exact else 'NO'}")
+    print(f"  Unique pass:   {'YES' if all_unique_pass else 'NO'} (serving-risk reference)")
+    print(f"  Slot max_abs:  {slot_max_abs:.2e}")
+    print(f"  Unique max_abs:{unique_max_abs:.2e}")
+    print(f"  Slot-vs-unique max_abs: {slot_vs_unique_max_abs:.2e}")
     print(f"  Avg latency:   {avg_latency:.4f} ms")
     print(f"  Max latency:   {max_latency:.4f} ms")
     print(f"  Triton active: 0.059 ms (baseline)")
@@ -224,9 +284,13 @@ def main() -> int:
     report = {
         "candidate": "native_slot_output_owned_bf16",
         "created": time.strftime("%Y-%m-%dT%H:%M:%S"),
-        "all_exact": all_exact,
-        "all_pass_1e3": all_pass,
-        "max_max_abs": max_max_abs,
+        "all_slot_exact": all_slot_exact,
+        "all_slot_pass_1e3": all_slot_pass,
+        "all_unique_exact": all_unique_exact,
+        "all_unique_pass_1e3": all_unique_pass,
+        "slot_max_abs": slot_max_abs,
+        "unique_max_abs": unique_max_abs,
+        "slot_vs_unique_max_abs": slot_vs_unique_max_abs,
         "avg_latency_ms": avg_latency,
         "max_latency_ms": max_latency,
         "triton_baseline_ms": 0.059,
@@ -236,7 +300,7 @@ def main() -> int:
     Path(out_path).write_text(json.dumps(report, indent=2) + "\n")
     print(f"\n[slot-candidate] Report: {out_path}")
 
-    return 0 if all_pass else 1
+    return 0 if all_slot_pass and all_unique_pass else 1
 
 
 if __name__ == "__main__":

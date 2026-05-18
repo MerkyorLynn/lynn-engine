@@ -29,11 +29,21 @@ This is a useful research artifact, but it is not a strict promotion candidate.
 | native slot latency mean | 0.0520 ms |
 | Triton active reference | 0.059 ms |
 
+Additional dual-reference rerun:
+
+| Dual Reference Metric | Result |
+| --- | --- |
+| native vs slot-order PyTorch max_abs | 0.00390625 |
+| native vs slot-order PyTorch cosine_min | 0.9999786615371704 |
+| native vs unique/index_add reference max_abs | 0.00390625 |
+| slot-order PyTorch vs unique/index_add max_abs | 0.00390625 |
+| native latency mean | 0.0520 ms |
+
 ## Interpretation
 
 Slot repack removes dynamic expert gather and unique-expert masking, and the native output-owned slot kernel is faster than the Triton active reference on the fixture microbench.
 
-The blocker is numerical strictness. The p136 slot-only path and native slot candidate both differ from the stored routed reference at the BF16/accumulation-order level. Late layers amplify the absolute error, with L39 reaching 0.00390625. This is too large for the exact-greedy serving path, so it must not be promoted into the resident runner.
+The blocker is numerical strictness. The p136 slot-only path and native slot candidate both differ from the stored routed reference at the BF16/accumulation-order level. Late layers amplify the absolute error, with L39 reaching 0.00390625. A dual-reference rerun also showed the native candidate differs from the slot-order PyTorch reference, so the drift is not solely from unique-expert/index_add ordering; the native BF16 intermediate and explicit reduction path are also contributing. This is too large for the exact-greedy serving path, so it must not be promoted into the resident runner.
 
 ## Next Work
 
@@ -46,3 +56,4 @@ Artifacts:
 - `reports/qwen36_35b/p135_repacked_fixtures_manifest_20260518.json`
 - `reports/qwen36_35b/p136_slot_repack_contract_report_20260518.json`
 - `reports/qwen36_35b/native_slot_output_owned_bf16_report_20260518.json`
+- `reports/qwen36_35b/native_slot_output_owned_bf16_dualref_report_20260518.json`
