@@ -84,6 +84,10 @@ def _get_passed_total(data: dict) -> tuple[int | None, int | None]:
     total = data.get("total")
     if passed is not None and total is not None:
         return int(passed), int(total)
+    passed = data.get("exact_count")
+    total = data.get("total_prompts")
+    if passed is not None and total is not None:
+        return int(passed), int(total)
     # Also check nested "summary"
     summary = data.get("summary", {})
     if isinstance(summary, dict):
@@ -123,8 +127,12 @@ def _admit(stage_verdict: str | None,
         return "WAITING_FOR_P37_REPORT", "P37 report not found"
 
     # ── Collapse check (first, because it overrides) ──
+    p37_verdict = p37_data.get("verdict")
+    if p37_verdict == "CLOSED_GRAPH_COLLAPSE":
+        return "CLOSED_GRAPH_COLLAPSE", "P37 report verdict is CLOSED_GRAPH_COLLAPSE"
+
     collapse = _get_bool(p37_data, "collapse", "token0_collapse",
-                         "repetition")
+                         "repetition", "collapse_detected")
     if collapse:
         return "CLOSED_GRAPH_COLLAPSE", (
             "P37 report indicates graph collapse (collapse/token0_collapse/"
@@ -134,12 +142,16 @@ def _admit(stage_verdict: str | None,
     exact = _get_bool(p37_data, "exact", "exact_match")
     passed, total = _get_passed_total(p37_data)
 
+    if p37_verdict == "P37_EXACT":
+        return "P25_ALLOWED", "P37 report verdict is P37_EXACT"
     if exact is True:
         return "P25_ALLOWED", "P37 exact match"
     if passed is not None and total is not None and total > 0 and passed == total:
         return "P25_ALLOWED", f"P37 all tests passed ({passed}/{total})"
 
     # ── Drift ──
+    if p37_verdict == "CLOSED_P37_DRIFT":
+        return "CLOSED_P37_DRIFT", "P37 report verdict is CLOSED_P37_DRIFT"
     if exact is False:
         return "CLOSED_P37_DRIFT", "P37 exact=false, no collapse detected"
 
@@ -210,7 +222,7 @@ def gather(report_dir: Path,
                 "exact": _get_bool(p37_data, "exact", "exact_match") if p37_data else None,
                 "collapse": (
                     _get_bool(p37_data, "collapse", "token0_collapse",
-                              "repetition") if p37_data else None),
+                              "repetition", "collapse_detected") if p37_data else None),
                 "passed": _get_passed_total(p37_data)[0] if p37_data else None,
                 "total": _get_passed_total(p37_data)[1] if p37_data else None,
             },
