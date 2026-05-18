@@ -307,6 +307,51 @@ Artifacts:
 - `reports/qwen36_35b/p132_moe_folded_scale_sidecar_triton_boundary_all40_20260518.json`
 - `scripts/qwen36_candidate_env_moe_folded_sidecar.env`
 
+### Active-MoE Fixture Contract Gate
+
+P133/P134 add a fast target for native active-MoE development.  P133 stream-loads
+the official 35B W4A16 model layer by layer, runs real prompt prefill, splits
+each target block at the attention/MoE boundary, and writes the final-token MoE
+input plus routing/output tensors into tiny safetensors fixtures.  P134 reloads
+those fixtures and verifies the reference MoE path reproduces the stored output.
+The v2 fixture schema records tensor shapes/dtypes, token position, fixture
+sha256, full MoE output, and routed-only output.  Optional debug export can also
+include router logits and slot-level routed FFN intermediates.
+
+R6000 result:
+
+| Check | Result |
+|---|---:|
+| fixture set | `reports/qwen36_35b/p133_fixtures_official_w4a16/` |
+| layers | 0, 4, 8, 16, 20, 28, 32, 36, 39 |
+| prompts | 2 |
+| fixtures | 18 |
+| fixture schema | lynn-moe-fixture-v2 |
+| export time | 16.99 s |
+| layer load time | 14.71 s |
+| fixture bytes | 268,061 |
+| P134 self-check | GREEN, 18/18 |
+| P134 candidate-output-dir self-check | GREEN, 18/18 |
+| max abs / mean abs | 0.0 / 0.0 |
+| mean reference latency | 0.963 ms |
+
+Decision: make P134 the first admission gate for Stream A native MoE kernel
+candidates.  A candidate that cannot pass the 18-fixture fast target should not
+spend R6000 time on full P37/P25/structured gates.  This keeps the mainline
+quality bar strict while making kernel iteration cheaper.  Candidate developers
+can either plug in a Python backend or write precomputed safetensors into a
+candidate-output directory and let P134 compare them without loading layer
+weights.
+
+Artifacts:
+
+- `benchmarks/p133_export_active_moe_fixtures.py`
+- `benchmarks/p134_active_moe_fixture_contract.py`
+- `scripts/r6000_export_qwen36_moe_fixtures.sh`
+- `reports/qwen36_35b/p133_fixtures_official_w4a16/manifest.json`
+- `reports/qwen36_35b/p134_triton_selfcheck_report.json`
+- `reports/qwen36_35b/p134_candidate_output_selfcheck_report.json`
+
 ## Hard Constraints
 
 1. Default promotion must preserve full top-8 active MoE plus shared expert.

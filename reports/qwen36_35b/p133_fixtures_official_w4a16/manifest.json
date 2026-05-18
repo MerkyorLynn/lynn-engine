@@ -1,0 +1,1461 @@
+{
+  "schema": "lynn-moe-fixture-v2",
+  "created": "2026-05-18T18:23:43",
+  "model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0",
+  "device": "cuda",
+  "dtype": "torch.bfloat16",
+  "export_intermediates": false,
+  "layers": [
+    0,
+    4,
+    8,
+    16,
+    20,
+    28,
+    32,
+    36,
+    39
+  ],
+  "prompts": [
+    "Hello",
+    "The capital of France is"
+  ],
+  "top_k": 8,
+  "hidden_size": 2048,
+  "num_experts": 256,
+  "num_fixtures": 18,
+  "layer_load_seconds": 14.713703155517578,
+  "export_seconds": 16.994248151779175,
+  "sidecar": {
+    "quant_method": "lynn_native",
+    "quant_format": "nvfp4_e2m1_rowwise_per_16",
+    "model_safetensors": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0/model.safetensors",
+    "sidecar_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+    "folded_scale_model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+    "uses_folded_scale": true
+  },
+  "fixtures": [
+    {
+      "fixture_file": "layer_00_prompt_00.safetensors",
+      "fixture_sha256": "2ccca38714028b37549b441a1d15535d6bace19e8e9b5668c112059cbc09b7a3",
+      "layer_id": 0,
+      "prompt_id": 0,
+      "prompt_text": "Hello",
+      "prompt_tokens": 1,
+      "token_pos": 0,
+      "top_k": 8,
+      "hidden_size": 2048,
+      "num_experts": 256,
+      "tensor_keys": [
+        "expert_ids",
+        "hidden_in",
+        "moe_output",
+        "routed_output",
+        "routing_weights"
+      ],
+      "tensor_shapes": {
+        "hidden_in": [
+          1,
+          2048
+        ],
+        "expert_ids": [
+          8
+        ],
+        "routing_weights": [
+          8
+        ],
+        "routed_output": [
+          1,
+          2048
+        ],
+        "moe_output": [
+          1,
+          2048
+        ]
+      },
+      "tensor_dtypes": {
+        "hidden_in": "torch.bfloat16",
+        "expert_ids": "torch.int32",
+        "routing_weights": "torch.float32",
+        "routed_output": "torch.bfloat16",
+        "moe_output": "torch.bfloat16"
+      },
+      "expert_ids": [
+        238,
+        112,
+        106,
+        127,
+        157,
+        66,
+        56,
+        120
+      ],
+      "routing_weights": [
+        0.216595,
+        0.191144,
+        0.151208,
+        0.125356,
+        0.100726,
+        0.08889,
+        0.064025,
+        0.062056
+      ],
+      "hidden_in_norm": 32.74089813232422,
+      "routed_output_norm": 0.5297887325286865,
+      "moe_output_norm": 0.7152009606361389,
+      "export_intermediates": false,
+      "sidecar": {
+        "quant_method": "lynn_native",
+        "quant_format": "nvfp4_e2m1_rowwise_per_16",
+        "model_safetensors": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0/model.safetensors",
+        "sidecar_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "folded_scale_model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "uses_folded_scale": true,
+        "layer_prefix": "model.language_model.layers.0."
+      }
+    },
+    {
+      "fixture_file": "layer_04_prompt_00.safetensors",
+      "fixture_sha256": "23a150ebbd01e47d8dea5af466ba9633170e7be4d5fbcbd02f805f3a0aa40e01",
+      "layer_id": 4,
+      "prompt_id": 0,
+      "prompt_text": "Hello",
+      "prompt_tokens": 1,
+      "token_pos": 0,
+      "top_k": 8,
+      "hidden_size": 2048,
+      "num_experts": 256,
+      "tensor_keys": [
+        "expert_ids",
+        "hidden_in",
+        "moe_output",
+        "routed_output",
+        "routing_weights"
+      ],
+      "tensor_shapes": {
+        "hidden_in": [
+          1,
+          2048
+        ],
+        "expert_ids": [
+          8
+        ],
+        "routing_weights": [
+          8
+        ],
+        "routed_output": [
+          1,
+          2048
+        ],
+        "moe_output": [
+          1,
+          2048
+        ]
+      },
+      "tensor_dtypes": {
+        "hidden_in": "torch.bfloat16",
+        "expert_ids": "torch.int32",
+        "routing_weights": "torch.float32",
+        "routed_output": "torch.bfloat16",
+        "moe_output": "torch.bfloat16"
+      },
+      "expert_ids": [
+        88,
+        195,
+        172,
+        206,
+        154,
+        233,
+        74,
+        27
+      ],
+      "routing_weights": [
+        0.238093,
+        0.179722,
+        0.166216,
+        0.121606,
+        0.114238,
+        0.073758,
+        0.055675,
+        0.050693
+      ],
+      "hidden_in_norm": 40.894134521484375,
+      "routed_output_norm": 0.4588547348976135,
+      "moe_output_norm": 0.5660597085952759,
+      "export_intermediates": false,
+      "sidecar": {
+        "quant_method": "lynn_native",
+        "quant_format": "nvfp4_e2m1_rowwise_per_16",
+        "model_safetensors": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0/model.safetensors",
+        "sidecar_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "folded_scale_model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "uses_folded_scale": true,
+        "layer_prefix": "model.language_model.layers.4."
+      }
+    },
+    {
+      "fixture_file": "layer_08_prompt_00.safetensors",
+      "fixture_sha256": "8620055c1af3a5d7bc3a963a2baca164bbdb229829357a303a2568d0d44537fa",
+      "layer_id": 8,
+      "prompt_id": 0,
+      "prompt_text": "Hello",
+      "prompt_tokens": 1,
+      "token_pos": 0,
+      "top_k": 8,
+      "hidden_size": 2048,
+      "num_experts": 256,
+      "tensor_keys": [
+        "expert_ids",
+        "hidden_in",
+        "moe_output",
+        "routed_output",
+        "routing_weights"
+      ],
+      "tensor_shapes": {
+        "hidden_in": [
+          1,
+          2048
+        ],
+        "expert_ids": [
+          8
+        ],
+        "routing_weights": [
+          8
+        ],
+        "routed_output": [
+          1,
+          2048
+        ],
+        "moe_output": [
+          1,
+          2048
+        ]
+      },
+      "tensor_dtypes": {
+        "hidden_in": "torch.bfloat16",
+        "expert_ids": "torch.int32",
+        "routing_weights": "torch.float32",
+        "routed_output": "torch.bfloat16",
+        "moe_output": "torch.bfloat16"
+      },
+      "expert_ids": [
+        175,
+        123,
+        127,
+        217,
+        17,
+        207,
+        78,
+        223
+      ],
+      "routing_weights": [
+        0.225483,
+        0.215158,
+        0.115166,
+        0.109892,
+        0.101633,
+        0.092538,
+        0.075527,
+        0.064602
+      ],
+      "hidden_in_norm": 47.095088958740234,
+      "routed_output_norm": 0.25308772921562195,
+      "moe_output_norm": 0.7280111312866211,
+      "export_intermediates": false,
+      "sidecar": {
+        "quant_method": "lynn_native",
+        "quant_format": "nvfp4_e2m1_rowwise_per_16",
+        "model_safetensors": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0/model.safetensors",
+        "sidecar_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "folded_scale_model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "uses_folded_scale": true,
+        "layer_prefix": "model.language_model.layers.8."
+      }
+    },
+    {
+      "fixture_file": "layer_16_prompt_00.safetensors",
+      "fixture_sha256": "94ac7d8ab6b0df690617cf8194db3b5bdd9440099f1a4811bbda5db3f61aea47",
+      "layer_id": 16,
+      "prompt_id": 0,
+      "prompt_text": "Hello",
+      "prompt_tokens": 1,
+      "token_pos": 0,
+      "top_k": 8,
+      "hidden_size": 2048,
+      "num_experts": 256,
+      "tensor_keys": [
+        "expert_ids",
+        "hidden_in",
+        "moe_output",
+        "routed_output",
+        "routing_weights"
+      ],
+      "tensor_shapes": {
+        "hidden_in": [
+          1,
+          2048
+        ],
+        "expert_ids": [
+          8
+        ],
+        "routing_weights": [
+          8
+        ],
+        "routed_output": [
+          1,
+          2048
+        ],
+        "moe_output": [
+          1,
+          2048
+        ]
+      },
+      "tensor_dtypes": {
+        "hidden_in": "torch.bfloat16",
+        "expert_ids": "torch.int32",
+        "routing_weights": "torch.float32",
+        "routed_output": "torch.bfloat16",
+        "moe_output": "torch.bfloat16"
+      },
+      "expert_ids": [
+        89,
+        245,
+        88,
+        166,
+        203,
+        16,
+        107,
+        29
+      ],
+      "routing_weights": [
+        0.850571,
+        0.030922,
+        0.027288,
+        0.026449,
+        0.023708,
+        0.01935,
+        0.011025,
+        0.010686
+      ],
+      "hidden_in_norm": 57.86992263793945,
+      "routed_output_norm": 0.039078135043382645,
+      "moe_output_norm": 0.143912672996521,
+      "export_intermediates": false,
+      "sidecar": {
+        "quant_method": "lynn_native",
+        "quant_format": "nvfp4_e2m1_rowwise_per_16",
+        "model_safetensors": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0/model.safetensors",
+        "sidecar_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "folded_scale_model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "uses_folded_scale": true,
+        "layer_prefix": "model.language_model.layers.16."
+      }
+    },
+    {
+      "fixture_file": "layer_20_prompt_00.safetensors",
+      "fixture_sha256": "d626a742ae16f8c53ac4a6ffd6ba8ec17f54fa40776af56f6ad6348f679b7430",
+      "layer_id": 20,
+      "prompt_id": 0,
+      "prompt_text": "Hello",
+      "prompt_tokens": 1,
+      "token_pos": 0,
+      "top_k": 8,
+      "hidden_size": 2048,
+      "num_experts": 256,
+      "tensor_keys": [
+        "expert_ids",
+        "hidden_in",
+        "moe_output",
+        "routed_output",
+        "routing_weights"
+      ],
+      "tensor_shapes": {
+        "hidden_in": [
+          1,
+          2048
+        ],
+        "expert_ids": [
+          8
+        ],
+        "routing_weights": [
+          8
+        ],
+        "routed_output": [
+          1,
+          2048
+        ],
+        "moe_output": [
+          1,
+          2048
+        ]
+      },
+      "tensor_dtypes": {
+        "hidden_in": "torch.bfloat16",
+        "expert_ids": "torch.int32",
+        "routing_weights": "torch.float32",
+        "routed_output": "torch.bfloat16",
+        "moe_output": "torch.bfloat16"
+      },
+      "expert_ids": [
+        17,
+        127,
+        175,
+        217,
+        18,
+        223,
+        11,
+        8
+      ],
+      "routing_weights": [
+        0.52208,
+        0.236241,
+        0.161102,
+        0.0249,
+        0.017113,
+        0.016076,
+        0.013328,
+        0.00916
+      ],
+      "hidden_in_norm": 60.67524719238281,
+      "routed_output_norm": 0.09156445413827896,
+      "moe_output_norm": 0.4328596889972687,
+      "export_intermediates": false,
+      "sidecar": {
+        "quant_method": "lynn_native",
+        "quant_format": "nvfp4_e2m1_rowwise_per_16",
+        "model_safetensors": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0/model.safetensors",
+        "sidecar_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "folded_scale_model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "uses_folded_scale": true,
+        "layer_prefix": "model.language_model.layers.20."
+      }
+    },
+    {
+      "fixture_file": "layer_28_prompt_00.safetensors",
+      "fixture_sha256": "4a39ae8a72d4f467c175a9c889121f57cef64a18036ea065f51f4c068f47a73d",
+      "layer_id": 28,
+      "prompt_id": 0,
+      "prompt_text": "Hello",
+      "prompt_tokens": 1,
+      "token_pos": 0,
+      "top_k": 8,
+      "hidden_size": 2048,
+      "num_experts": 256,
+      "tensor_keys": [
+        "expert_ids",
+        "hidden_in",
+        "moe_output",
+        "routed_output",
+        "routing_weights"
+      ],
+      "tensor_shapes": {
+        "hidden_in": [
+          1,
+          2048
+        ],
+        "expert_ids": [
+          8
+        ],
+        "routing_weights": [
+          8
+        ],
+        "routed_output": [
+          1,
+          2048
+        ],
+        "moe_output": [
+          1,
+          2048
+        ]
+      },
+      "tensor_dtypes": {
+        "hidden_in": "torch.bfloat16",
+        "expert_ids": "torch.int32",
+        "routing_weights": "torch.float32",
+        "routed_output": "torch.bfloat16",
+        "moe_output": "torch.bfloat16"
+      },
+      "expert_ids": [
+        158,
+        107,
+        88,
+        166,
+        93,
+        218,
+        18,
+        89
+      ],
+      "routing_weights": [
+        0.730652,
+        0.091095,
+        0.037385,
+        0.032993,
+        0.032481,
+        0.029574,
+        0.024518,
+        0.021302
+      ],
+      "hidden_in_norm": 66.8389663696289,
+      "routed_output_norm": 0.09718675911426544,
+      "moe_output_norm": 0.27035245299339294,
+      "export_intermediates": false,
+      "sidecar": {
+        "quant_method": "lynn_native",
+        "quant_format": "nvfp4_e2m1_rowwise_per_16",
+        "model_safetensors": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0/model.safetensors",
+        "sidecar_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "folded_scale_model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "uses_folded_scale": true,
+        "layer_prefix": "model.language_model.layers.28."
+      }
+    },
+    {
+      "fixture_file": "layer_32_prompt_00.safetensors",
+      "fixture_sha256": "7a372cf142105c7103e0b6abc3754f9441f975fd2b7c48e43583ec2f5e0ea1f4",
+      "layer_id": 32,
+      "prompt_id": 0,
+      "prompt_text": "Hello",
+      "prompt_tokens": 1,
+      "token_pos": 0,
+      "top_k": 8,
+      "hidden_size": 2048,
+      "num_experts": 256,
+      "tensor_keys": [
+        "expert_ids",
+        "hidden_in",
+        "moe_output",
+        "routed_output",
+        "routing_weights"
+      ],
+      "tensor_shapes": {
+        "hidden_in": [
+          1,
+          2048
+        ],
+        "expert_ids": [
+          8
+        ],
+        "routing_weights": [
+          8
+        ],
+        "routed_output": [
+          1,
+          2048
+        ],
+        "moe_output": [
+          1,
+          2048
+        ]
+      },
+      "tensor_dtypes": {
+        "hidden_in": "torch.bfloat16",
+        "expert_ids": "torch.int32",
+        "routing_weights": "torch.float32",
+        "routed_output": "torch.bfloat16",
+        "moe_output": "torch.bfloat16"
+      },
+      "expert_ids": [
+        191,
+        237,
+        106,
+        134,
+        185,
+        8,
+        209,
+        112
+      ],
+      "routing_weights": [
+        0.22778,
+        0.121922,
+        0.121922,
+        0.116339,
+        0.114535,
+        0.107596,
+        0.094953,
+        0.094953
+      ],
+      "hidden_in_norm": 57.19957733154297,
+      "routed_output_norm": 0.9977513551712036,
+      "moe_output_norm": 1.2663263082504272,
+      "export_intermediates": false,
+      "sidecar": {
+        "quant_method": "lynn_native",
+        "quant_format": "nvfp4_e2m1_rowwise_per_16",
+        "model_safetensors": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0/model.safetensors",
+        "sidecar_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "folded_scale_model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "uses_folded_scale": true,
+        "layer_prefix": "model.language_model.layers.32."
+      }
+    },
+    {
+      "fixture_file": "layer_36_prompt_00.safetensors",
+      "fixture_sha256": "f68c90788b68a94f9fca8c3705c40bf3244ff4f4f2738eee9c1295703518608c",
+      "layer_id": 36,
+      "prompt_id": 0,
+      "prompt_text": "Hello",
+      "prompt_tokens": 1,
+      "token_pos": 0,
+      "top_k": 8,
+      "hidden_size": 2048,
+      "num_experts": 256,
+      "tensor_keys": [
+        "expert_ids",
+        "hidden_in",
+        "moe_output",
+        "routed_output",
+        "routing_weights"
+      ],
+      "tensor_shapes": {
+        "hidden_in": [
+          1,
+          2048
+        ],
+        "expert_ids": [
+          8
+        ],
+        "routing_weights": [
+          8
+        ],
+        "routed_output": [
+          1,
+          2048
+        ],
+        "moe_output": [
+          1,
+          2048
+        ]
+      },
+      "tensor_dtypes": {
+        "hidden_in": "torch.bfloat16",
+        "expert_ids": "torch.int32",
+        "routing_weights": "torch.float32",
+        "routed_output": "torch.bfloat16",
+        "moe_output": "torch.bfloat16"
+      },
+      "expert_ids": [
+        14,
+        45,
+        73,
+        120,
+        148,
+        69,
+        55,
+        136
+      ],
+      "routing_weights": [
+        0.254072,
+        0.156529,
+        0.144766,
+        0.135995,
+        0.087805,
+        0.077488,
+        0.072793,
+        0.070553
+      ],
+      "hidden_in_norm": 67.68312072753906,
+      "routed_output_norm": 2.3754830360412598,
+      "moe_output_norm": 2.681163787841797,
+      "export_intermediates": false,
+      "sidecar": {
+        "quant_method": "lynn_native",
+        "quant_format": "nvfp4_e2m1_rowwise_per_16",
+        "model_safetensors": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0/model.safetensors",
+        "sidecar_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "folded_scale_model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "uses_folded_scale": true,
+        "layer_prefix": "model.language_model.layers.36."
+      }
+    },
+    {
+      "fixture_file": "layer_39_prompt_00.safetensors",
+      "fixture_sha256": "e4fd6c14f2a5d8083506f476bf19187231c3fdaf74b8c81881e776e5997cc263",
+      "layer_id": 39,
+      "prompt_id": 0,
+      "prompt_text": "Hello",
+      "prompt_tokens": 1,
+      "token_pos": 0,
+      "top_k": 8,
+      "hidden_size": 2048,
+      "num_experts": 256,
+      "tensor_keys": [
+        "expert_ids",
+        "hidden_in",
+        "moe_output",
+        "routed_output",
+        "routing_weights"
+      ],
+      "tensor_shapes": {
+        "hidden_in": [
+          1,
+          2048
+        ],
+        "expert_ids": [
+          8
+        ],
+        "routing_weights": [
+          8
+        ],
+        "routed_output": [
+          1,
+          2048
+        ],
+        "moe_output": [
+          1,
+          2048
+        ]
+      },
+      "tensor_dtypes": {
+        "hidden_in": "torch.bfloat16",
+        "expert_ids": "torch.int32",
+        "routing_weights": "torch.float32",
+        "routed_output": "torch.bfloat16",
+        "moe_output": "torch.bfloat16"
+      },
+      "expert_ids": [
+        75,
+        15,
+        108,
+        222,
+        201,
+        9,
+        239,
+        219
+      ],
+      "routing_weights": [
+        0.161552,
+        0.14257,
+        0.138183,
+        0.129811,
+        0.114558,
+        0.111033,
+        0.104306,
+        0.097987
+      ],
+      "hidden_in_norm": 58.478065490722656,
+      "routed_output_norm": 3.970304250717163,
+      "moe_output_norm": 8.56636905670166,
+      "export_intermediates": false,
+      "sidecar": {
+        "quant_method": "lynn_native",
+        "quant_format": "nvfp4_e2m1_rowwise_per_16",
+        "model_safetensors": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0/model.safetensors",
+        "sidecar_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "folded_scale_model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "uses_folded_scale": true,
+        "layer_prefix": "model.language_model.layers.39."
+      }
+    },
+    {
+      "fixture_file": "layer_00_prompt_01.safetensors",
+      "fixture_sha256": "83d970c2338383695a79ff79572ac840e0e6aeb52efd8c4afad6f995eec5cc7e",
+      "layer_id": 0,
+      "prompt_id": 1,
+      "prompt_text": "The capital of France is",
+      "prompt_tokens": 5,
+      "token_pos": 4,
+      "top_k": 8,
+      "hidden_size": 2048,
+      "num_experts": 256,
+      "tensor_keys": [
+        "expert_ids",
+        "hidden_in",
+        "moe_output",
+        "routed_output",
+        "routing_weights"
+      ],
+      "tensor_shapes": {
+        "hidden_in": [
+          1,
+          2048
+        ],
+        "expert_ids": [
+          8
+        ],
+        "routing_weights": [
+          8
+        ],
+        "routed_output": [
+          1,
+          2048
+        ],
+        "moe_output": [
+          1,
+          2048
+        ]
+      },
+      "tensor_dtypes": {
+        "hidden_in": "torch.bfloat16",
+        "expert_ids": "torch.int32",
+        "routing_weights": "torch.float32",
+        "routed_output": "torch.bfloat16",
+        "moe_output": "torch.bfloat16"
+      },
+      "expert_ids": [
+        127,
+        49,
+        11,
+        112,
+        153,
+        85,
+        146,
+        18
+      ],
+      "routing_weights": [
+        0.205919,
+        0.157884,
+        0.146018,
+        0.143755,
+        0.092815,
+        0.087192,
+        0.084509,
+        0.081909
+      ],
+      "hidden_in_norm": 24.702821731567383,
+      "routed_output_norm": 0.15621818602085114,
+      "moe_output_norm": 0.18822108209133148,
+      "export_intermediates": false,
+      "sidecar": {
+        "quant_method": "lynn_native",
+        "quant_format": "nvfp4_e2m1_rowwise_per_16",
+        "model_safetensors": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0/model.safetensors",
+        "sidecar_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "folded_scale_model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "uses_folded_scale": true,
+        "layer_prefix": "model.language_model.layers.0."
+      }
+    },
+    {
+      "fixture_file": "layer_04_prompt_01.safetensors",
+      "fixture_sha256": "5f2c2c82b85d6d327f96b55690cf10cc15f6bde51f3d8d589cc3465b1da7c289",
+      "layer_id": 4,
+      "prompt_id": 1,
+      "prompt_text": "The capital of France is",
+      "prompt_tokens": 5,
+      "token_pos": 4,
+      "top_k": 8,
+      "hidden_size": 2048,
+      "num_experts": 256,
+      "tensor_keys": [
+        "expert_ids",
+        "hidden_in",
+        "moe_output",
+        "routed_output",
+        "routing_weights"
+      ],
+      "tensor_shapes": {
+        "hidden_in": [
+          1,
+          2048
+        ],
+        "expert_ids": [
+          8
+        ],
+        "routing_weights": [
+          8
+        ],
+        "routed_output": [
+          1,
+          2048
+        ],
+        "moe_output": [
+          1,
+          2048
+        ]
+      },
+      "tensor_dtypes": {
+        "hidden_in": "torch.bfloat16",
+        "expert_ids": "torch.int32",
+        "routing_weights": "torch.float32",
+        "routed_output": "torch.bfloat16",
+        "moe_output": "torch.bfloat16"
+      },
+      "expert_ids": [
+        12,
+        25,
+        154,
+        204,
+        215,
+        80,
+        217,
+        160
+      ],
+      "routing_weights": [
+        0.248482,
+        0.212538,
+        0.202805,
+        0.108554,
+        0.063815,
+        0.056317,
+        0.054584,
+        0.052905
+      ],
+      "hidden_in_norm": 31.593433380126953,
+      "routed_output_norm": 0.31555527448654175,
+      "moe_output_norm": 0.3386457860469818,
+      "export_intermediates": false,
+      "sidecar": {
+        "quant_method": "lynn_native",
+        "quant_format": "nvfp4_e2m1_rowwise_per_16",
+        "model_safetensors": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0/model.safetensors",
+        "sidecar_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "folded_scale_model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "uses_folded_scale": true,
+        "layer_prefix": "model.language_model.layers.4."
+      }
+    },
+    {
+      "fixture_file": "layer_08_prompt_01.safetensors",
+      "fixture_sha256": "1ed82bf06a90954ebf31a9cd67f2b83394ba6b5830658aa550cf5db6a82ea303",
+      "layer_id": 8,
+      "prompt_id": 1,
+      "prompt_text": "The capital of France is",
+      "prompt_tokens": 5,
+      "token_pos": 4,
+      "top_k": 8,
+      "hidden_size": 2048,
+      "num_experts": 256,
+      "tensor_keys": [
+        "expert_ids",
+        "hidden_in",
+        "moe_output",
+        "routed_output",
+        "routing_weights"
+      ],
+      "tensor_shapes": {
+        "hidden_in": [
+          1,
+          2048
+        ],
+        "expert_ids": [
+          8
+        ],
+        "routing_weights": [
+          8
+        ],
+        "routed_output": [
+          1,
+          2048
+        ],
+        "moe_output": [
+          1,
+          2048
+        ]
+      },
+      "tensor_dtypes": {
+        "hidden_in": "torch.bfloat16",
+        "expert_ids": "torch.int32",
+        "routing_weights": "torch.float32",
+        "routed_output": "torch.bfloat16",
+        "moe_output": "torch.bfloat16"
+      },
+      "expert_ids": [
+        120,
+        183,
+        52,
+        82,
+        232,
+        191,
+        32,
+        72
+      ],
+      "routing_weights": [
+        0.195244,
+        0.159354,
+        0.140629,
+        0.126059,
+        0.102886,
+        0.098175,
+        0.093679,
+        0.083973
+      ],
+      "hidden_in_norm": 45.49510955810547,
+      "routed_output_norm": 0.6963597536087036,
+      "moe_output_norm": 0.758414089679718,
+      "export_intermediates": false,
+      "sidecar": {
+        "quant_method": "lynn_native",
+        "quant_format": "nvfp4_e2m1_rowwise_per_16",
+        "model_safetensors": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0/model.safetensors",
+        "sidecar_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "folded_scale_model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "uses_folded_scale": true,
+        "layer_prefix": "model.language_model.layers.8."
+      }
+    },
+    {
+      "fixture_file": "layer_16_prompt_01.safetensors",
+      "fixture_sha256": "9ef305fdc1d5a278cc8928d98b2b3c539a622a885e29fe7a7f1861937d0ac70b",
+      "layer_id": 16,
+      "prompt_id": 1,
+      "prompt_text": "The capital of France is",
+      "prompt_tokens": 5,
+      "token_pos": 4,
+      "top_k": 8,
+      "hidden_size": 2048,
+      "num_experts": 256,
+      "tensor_keys": [
+        "expert_ids",
+        "hidden_in",
+        "moe_output",
+        "routed_output",
+        "routing_weights"
+      ],
+      "tensor_shapes": {
+        "hidden_in": [
+          1,
+          2048
+        ],
+        "expert_ids": [
+          8
+        ],
+        "routing_weights": [
+          8
+        ],
+        "routed_output": [
+          1,
+          2048
+        ],
+        "moe_output": [
+          1,
+          2048
+        ]
+      },
+      "tensor_dtypes": {
+        "hidden_in": "torch.bfloat16",
+        "expert_ids": "torch.int32",
+        "routing_weights": "torch.float32",
+        "routed_output": "torch.bfloat16",
+        "moe_output": "torch.bfloat16"
+      },
+      "expert_ids": [
+        130,
+        233,
+        51,
+        132,
+        98,
+        244,
+        30,
+        137
+      ],
+      "routing_weights": [
+        0.252912,
+        0.163292,
+        0.153399,
+        0.110489,
+        0.08878,
+        0.086049,
+        0.075938,
+        0.069142
+      ],
+      "hidden_in_norm": 45.24917221069336,
+      "routed_output_norm": 0.7423516511917114,
+      "moe_output_norm": 0.8330642580986023,
+      "export_intermediates": false,
+      "sidecar": {
+        "quant_method": "lynn_native",
+        "quant_format": "nvfp4_e2m1_rowwise_per_16",
+        "model_safetensors": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0/model.safetensors",
+        "sidecar_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "folded_scale_model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "uses_folded_scale": true,
+        "layer_prefix": "model.language_model.layers.16."
+      }
+    },
+    {
+      "fixture_file": "layer_20_prompt_01.safetensors",
+      "fixture_sha256": "79a2ff94c8e2934f46f946bdba5da94239cf930e7c25c2a0bb2b3fbecf4b551f",
+      "layer_id": 20,
+      "prompt_id": 1,
+      "prompt_text": "The capital of France is",
+      "prompt_tokens": 5,
+      "token_pos": 4,
+      "top_k": 8,
+      "hidden_size": 2048,
+      "num_experts": 256,
+      "tensor_keys": [
+        "expert_ids",
+        "hidden_in",
+        "moe_output",
+        "routed_output",
+        "routing_weights"
+      ],
+      "tensor_shapes": {
+        "hidden_in": [
+          1,
+          2048
+        ],
+        "expert_ids": [
+          8
+        ],
+        "routing_weights": [
+          8
+        ],
+        "routed_output": [
+          1,
+          2048
+        ],
+        "moe_output": [
+          1,
+          2048
+        ]
+      },
+      "tensor_dtypes": {
+        "hidden_in": "torch.bfloat16",
+        "expert_ids": "torch.int32",
+        "routing_weights": "torch.float32",
+        "routed_output": "torch.bfloat16",
+        "moe_output": "torch.bfloat16"
+      },
+      "expert_ids": [
+        120,
+        82,
+        191,
+        183,
+        186,
+        232,
+        72,
+        3
+      ],
+      "routing_weights": [
+        0.205584,
+        0.190134,
+        0.126656,
+        0.126656,
+        0.095605,
+        0.095605,
+        0.089813,
+        0.069946
+      ],
+      "hidden_in_norm": 46.975791931152344,
+      "routed_output_norm": 0.8515110611915588,
+      "moe_output_norm": 0.8872954249382019,
+      "export_intermediates": false,
+      "sidecar": {
+        "quant_method": "lynn_native",
+        "quant_format": "nvfp4_e2m1_rowwise_per_16",
+        "model_safetensors": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0/model.safetensors",
+        "sidecar_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "folded_scale_model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "uses_folded_scale": true,
+        "layer_prefix": "model.language_model.layers.20."
+      }
+    },
+    {
+      "fixture_file": "layer_28_prompt_01.safetensors",
+      "fixture_sha256": "3cb99cf6226f202b29d06ea3c0c074619916e612d7806011f0770beced58e64e",
+      "layer_id": 28,
+      "prompt_id": 1,
+      "prompt_text": "The capital of France is",
+      "prompt_tokens": 5,
+      "token_pos": 4,
+      "top_k": 8,
+      "hidden_size": 2048,
+      "num_experts": 256,
+      "tensor_keys": [
+        "expert_ids",
+        "hidden_in",
+        "moe_output",
+        "routed_output",
+        "routing_weights"
+      ],
+      "tensor_shapes": {
+        "hidden_in": [
+          1,
+          2048
+        ],
+        "expert_ids": [
+          8
+        ],
+        "routing_weights": [
+          8
+        ],
+        "routed_output": [
+          1,
+          2048
+        ],
+        "moe_output": [
+          1,
+          2048
+        ]
+      },
+      "tensor_dtypes": {
+        "hidden_in": "torch.bfloat16",
+        "expert_ids": "torch.int32",
+        "routing_weights": "torch.float32",
+        "routed_output": "torch.bfloat16",
+        "moe_output": "torch.bfloat16"
+      },
+      "expert_ids": [
+        233,
+        130,
+        98,
+        30,
+        16,
+        113,
+        137,
+        132
+      ],
+      "routing_weights": [
+        0.163942,
+        0.156435,
+        0.15401,
+        0.135913,
+        0.110929,
+        0.099436,
+        0.099436,
+        0.079899
+      ],
+      "hidden_in_norm": 44.65349197387695,
+      "routed_output_norm": 0.7505305409431458,
+      "moe_output_norm": 0.9474783539772034,
+      "export_intermediates": false,
+      "sidecar": {
+        "quant_method": "lynn_native",
+        "quant_format": "nvfp4_e2m1_rowwise_per_16",
+        "model_safetensors": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0/model.safetensors",
+        "sidecar_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "folded_scale_model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "uses_folded_scale": true,
+        "layer_prefix": "model.language_model.layers.28."
+      }
+    },
+    {
+      "fixture_file": "layer_32_prompt_01.safetensors",
+      "fixture_sha256": "9becc37d05623e6ee61d009b41fc016771bcbb7a642080243e9e90d829d97ba0",
+      "layer_id": 32,
+      "prompt_id": 1,
+      "prompt_text": "The capital of France is",
+      "prompt_tokens": 5,
+      "token_pos": 4,
+      "top_k": 8,
+      "hidden_size": 2048,
+      "num_experts": 256,
+      "tensor_keys": [
+        "expert_ids",
+        "hidden_in",
+        "moe_output",
+        "routed_output",
+        "routing_weights"
+      ],
+      "tensor_shapes": {
+        "hidden_in": [
+          1,
+          2048
+        ],
+        "expert_ids": [
+          8
+        ],
+        "routing_weights": [
+          8
+        ],
+        "routed_output": [
+          1,
+          2048
+        ],
+        "moe_output": [
+          1,
+          2048
+        ]
+      },
+      "tensor_dtypes": {
+        "hidden_in": "torch.bfloat16",
+        "expert_ids": "torch.int32",
+        "routing_weights": "torch.float32",
+        "routed_output": "torch.bfloat16",
+        "moe_output": "torch.bfloat16"
+      },
+      "expert_ids": [
+        221,
+        171,
+        232,
+        41,
+        254,
+        102,
+        13,
+        130
+      ],
+      "routing_weights": [
+        0.227763,
+        0.164052,
+        0.127764,
+        0.11633,
+        0.101069,
+        0.09796,
+        0.085109,
+        0.079952
+      ],
+      "hidden_in_norm": 52.89950942993164,
+      "routed_output_norm": 1.3146997690200806,
+      "moe_output_norm": 1.4773980379104614,
+      "export_intermediates": false,
+      "sidecar": {
+        "quant_method": "lynn_native",
+        "quant_format": "nvfp4_e2m1_rowwise_per_16",
+        "model_safetensors": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0/model.safetensors",
+        "sidecar_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "folded_scale_model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "uses_folded_scale": true,
+        "layer_prefix": "model.language_model.layers.32."
+      }
+    },
+    {
+      "fixture_file": "layer_36_prompt_01.safetensors",
+      "fixture_sha256": "6d3eabf09a7ff49881ec7a6d7e6be45e6a9f6dc4b1e12528ff3d701ce74c1aad",
+      "layer_id": 36,
+      "prompt_id": 1,
+      "prompt_text": "The capital of France is",
+      "prompt_tokens": 5,
+      "token_pos": 4,
+      "top_k": 8,
+      "hidden_size": 2048,
+      "num_experts": 256,
+      "tensor_keys": [
+        "expert_ids",
+        "hidden_in",
+        "moe_output",
+        "routed_output",
+        "routing_weights"
+      ],
+      "tensor_shapes": {
+        "hidden_in": [
+          1,
+          2048
+        ],
+        "expert_ids": [
+          8
+        ],
+        "routing_weights": [
+          8
+        ],
+        "routed_output": [
+          1,
+          2048
+        ],
+        "moe_output": [
+          1,
+          2048
+        ]
+      },
+      "tensor_dtypes": {
+        "hidden_in": "torch.bfloat16",
+        "expert_ids": "torch.int32",
+        "routing_weights": "torch.float32",
+        "routed_output": "torch.bfloat16",
+        "moe_output": "torch.bfloat16"
+      },
+      "expert_ids": [
+        49,
+        61,
+        195,
+        73,
+        92,
+        14,
+        250,
+        210
+      ],
+      "routing_weights": [
+        0.201267,
+        0.154317,
+        0.114678,
+        0.114678,
+        0.11115,
+        0.10773,
+        0.09809,
+        0.09809
+      ],
+      "hidden_in_norm": 59.017845153808594,
+      "routed_output_norm": 1.3170921802520752,
+      "moe_output_norm": 1.9308830499649048,
+      "export_intermediates": false,
+      "sidecar": {
+        "quant_method": "lynn_native",
+        "quant_format": "nvfp4_e2m1_rowwise_per_16",
+        "model_safetensors": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0/model.safetensors",
+        "sidecar_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "folded_scale_model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "uses_folded_scale": true,
+        "layer_prefix": "model.language_model.layers.36."
+      }
+    },
+    {
+      "fixture_file": "layer_39_prompt_01.safetensors",
+      "fixture_sha256": "0e674ebb331255c9dd67434754f43d758d04bcecd0f160471d3d5eaaae640c18",
+      "layer_id": 39,
+      "prompt_id": 1,
+      "prompt_text": "The capital of France is",
+      "prompt_tokens": 5,
+      "token_pos": 4,
+      "top_k": 8,
+      "hidden_size": 2048,
+      "num_experts": 256,
+      "tensor_keys": [
+        "expert_ids",
+        "hidden_in",
+        "moe_output",
+        "routed_output",
+        "routing_weights"
+      ],
+      "tensor_shapes": {
+        "hidden_in": [
+          1,
+          2048
+        ],
+        "expert_ids": [
+          8
+        ],
+        "routing_weights": [
+          8
+        ],
+        "routed_output": [
+          1,
+          2048
+        ],
+        "moe_output": [
+          1,
+          2048
+        ]
+      },
+      "tensor_dtypes": {
+        "hidden_in": "torch.bfloat16",
+        "expert_ids": "torch.int32",
+        "routing_weights": "torch.float32",
+        "routed_output": "torch.bfloat16",
+        "moe_output": "torch.bfloat16"
+      },
+      "expert_ids": [
+        244,
+        146,
+        72,
+        182,
+        183,
+        14,
+        213,
+        36
+      ],
+      "routing_weights": [
+        0.165813,
+        0.144061,
+        0.144061,
+        0.133234,
+        0.127133,
+        0.105397,
+        0.090151,
+        0.090151
+      ],
+      "hidden_in_norm": 55.78763961791992,
+      "routed_output_norm": 2.7061197757720947,
+      "moe_output_norm": 11.565876960754395,
+      "export_intermediates": false,
+      "sidecar": {
+        "quant_method": "lynn_native",
+        "quant_format": "nvfp4_e2m1_rowwise_per_16",
+        "model_safetensors": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0/model.safetensors",
+        "sidecar_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "folded_scale_model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0",
+        "uses_folded_scale": true,
+        "layer_prefix": "model.language_model.layers.39."
+      }
+    }
+  ]
+}
