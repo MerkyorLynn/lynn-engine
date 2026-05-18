@@ -9,8 +9,10 @@ import torch.nn.functional as F
 from engine.nvfp4_runtime import _quantize_activation_to_fp4, dual_scalar_bridge
 from triton_kernels.nvfp4_moe import (
     nvfp4_grouped_down_weighted_sum,
+    nvfp4_grouped_down_weighted_sum_effective_scale,
     nvfp4_grouped_gate_up_silu,
     nvfp4_grouped_gate_up_silu_fast_decode,
+    nvfp4_grouped_gate_up_silu_fast_decode_effective_scale,
 )
 from triton_kernels.shared_expert_gate import (
     HAS_TRITON as HAS_SHARED_EXPERT_GATE_TRITON,
@@ -51,6 +53,14 @@ def _w4a8_fake_quant_mode() -> str:
     if mode not in {"gateup", "full"}:
         raise ValueError("LYNN_W4A8_FAKE_QUANT_ACTIVE must be off, gateup, or full")
     return mode
+
+
+def _use_moe_effective_scale(w: dict) -> bool:
+    return (
+        _env_bool("LYNN_MOE_EFFECTIVE_SCALE", False)
+        and "mlp.experts._gate_up_effective_scale" in w
+        and "mlp.experts._down_effective_scale" in w
+    )
 
 
 def _fake_quant_fp8_activation(x: torch.Tensor) -> torch.Tensor:
@@ -411,11 +421,18 @@ def _moe_forward_decode_packed_nvfp4_fixed_triton(h: torch.Tensor, w: dict, cfg:
     elif gateup_backend == "cuda_tile_inter" and _layer_selected_for_native_cuda(cfg):
         inter = _gate_up_native_cuda_tile_inter(hidden, expert_ids, w)
     elif gateup_backend == "triton_fast_decode":
-        inter = nvfp4_grouped_gate_up_silu_fast_decode(
+        gateup_fn = (
+            nvfp4_grouped_gate_up_silu_fast_decode_effective_scale
+            if _use_moe_effective_scale(w)
+            else nvfp4_grouped_gate_up_silu_fast_decode
+        )
+        inter = gateup_fn(
             hidden,
             expert_ids,
             w["mlp.experts._gate_up_packed"],
-            w["mlp.experts._gate_up_scale"],
+            w["mlp.experts._gate_up_effective_scale"]
+            if _use_moe_effective_scale(w)
+            else w["mlp.experts._gate_up_scale"],
             w["mlp.experts._gate_up_global_scale"],
             block_inter=8,
             block_hidden=256,
@@ -455,12 +472,17 @@ def _moe_forward_decode_packed_nvfp4_fixed_triton(h: torch.Tensor, w: dict, cfg:
     if down_backend == "cuda_tile" and _layer_selected_for_native_cuda(cfg):
         moe_out = _down_weighted_sum_native_cuda_tile(inter, expert_ids, routing_weights, w).reshape_as(h_flat)
     elif down_backend == "triton":
-        moe_out = nvfp4_grouped_down_weighted_sum(
+        down_fn = (
+            nvfp4_grouped_down_weighted_sum_effective_scale
+            if _use_moe_effective_scale(w)
+            else nvfp4_grouped_down_weighted_sum
+        )
+        moe_out = down_fn(
             inter,
             expert_ids,
             routing_weights,
             w["mlp.experts._down_packed"],
-            w["mlp.experts._down_scale"],
+            w["mlp.experts._down_effective_scale"] if _use_moe_effective_scale(w) else w["mlp.experts._down_scale"],
             w["mlp.experts._down_global_scale"],
             block_hidden=8,
             block_inter=512,
@@ -608,11 +630,18 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
                     if _env_bool("LYNN_MOE_ACTIVE_SCRATCH", False)
                     else None
                 )
-                inter = nvfp4_grouped_gate_up_silu_fast_decode(
+                gateup_fn = (
+                    nvfp4_grouped_gate_up_silu_fast_decode_effective_scale
+                    if _use_moe_effective_scale(w)
+                    else nvfp4_grouped_gate_up_silu_fast_decode
+                )
+                inter = gateup_fn(
                     hidden,
                     expert_ids,
                     w["mlp.experts._gate_up_packed"],
-                    w["mlp.experts._gate_up_scale"],
+                    w["mlp.experts._gate_up_effective_scale"]
+                    if _use_moe_effective_scale(w)
+                    else w["mlp.experts._gate_up_scale"],
                     w["mlp.experts._gate_up_global_scale"],
                     block_inter=_env_int("LYNN_MOE_GATE_BLOCK_INTER", 8),
                     block_hidden=_env_int("LYNN_MOE_GATE_BLOCK_HIDDEN", 256),
@@ -657,12 +686,19 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
                     if _env_bool("LYNN_MOE_ACTIVE_SCRATCH", False)
                     else None
                 )
-                moe_out = nvfp4_grouped_down_weighted_sum(
+                down_fn = (
+                    nvfp4_grouped_down_weighted_sum_effective_scale
+                    if _use_moe_effective_scale(w)
+                    else nvfp4_grouped_down_weighted_sum
+                )
+                moe_out = down_fn(
                     inter,
                     expert_ids,
                     routing_weights,
                     w["mlp.experts._down_packed"],
-                    w["mlp.experts._down_scale"],
+                    w["mlp.experts._down_effective_scale"]
+                    if _use_moe_effective_scale(w)
+                    else w["mlp.experts._down_scale"],
                     w["mlp.experts._down_global_scale"],
                     block_hidden=_env_int("LYNN_MOE_DOWN_BLOCK_HIDDEN", 8),
                     block_inter=_env_int("LYNN_MOE_DOWN_BLOCK_INTER", 512),

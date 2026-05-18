@@ -184,6 +184,42 @@ Artifacts:
 - `scripts/qwen36_candidate_env_moe_repack_scratch.env`
 - `reports/qwen36_35b/QWEN36_W4A16_MOE_REPACK_RUNTIME_P129_20260518.md`
 
+### Effective-Scale Repack Probe
+
+P130 adds the first memory-neutral scale repack candidate:
+`LYNN_MOE_EFFECTIVE_SCALE=1`.  At load time the active-MoE scale aliases are
+replaced with `scale / global_scale`, and the global scale aliases become one.
+This avoids doubling resident scale memory; the first attempted "attach another
+copy" version OOMed the 35B runner on R6000.
+
+Layer-local active-MoE probe:
+
+| Metric | Result |
+|---|---:|
+| exact output vs current active-MoE | 9/9 |
+| max abs / max rel L2 | 0.0 / 0.0 |
+| mean active boundary | 0.05594 ms -> 0.05147 ms |
+| active boundary speedup | 1.087x |
+
+Full R6000 gate stayed quality-safe but below promotion margin:
+
+| Gate | Result |
+|---|---:|
+| P37 exact | true |
+| P25 512 decode TPS | 107.98 |
+| hard structured | 40/40, mean 108.40 decode TPS |
+| decision | research-only |
+
+Decision: keep P130 as an opt-in native-MoE building block.  It is a strict
+repack win, not the 122/155 TPS breakthrough; the next step remains true
+grouped native-FP4 gate/up/down math behind the same active-MoE boundary.
+
+Artifacts:
+
+- `benchmarks/p130_moe_effective_scale_probe.py`
+- `scripts/qwen36_candidate_env_moe_effective_scale.env`
+- `reports/qwen36_35b/QWEN36_W4A16_MOE_EFFECTIVE_SCALE_P130_20260518.md`
+
 ## Hard Constraints
 
 1. Default promotion must preserve full top-8 active MoE plus shared expert.

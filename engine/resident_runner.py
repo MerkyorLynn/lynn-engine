@@ -232,6 +232,7 @@ class LynnIncrementalRunner:
         self.moe_repack_sidecar_layers_attached = 0
         self.moe_repack_sidecar_load_seconds: float | None = None
         self.moe_active_scratch_attached = 0
+        self.moe_effective_scale_attached = 0
         self.packed_decode_backend = os.environ.get("LYNN_PACKED_DECODE_BACKEND", "scalar_bridge")
         self.packed_decode_aliases_attached = 0
         self.packed_decode_native_prepared = 0
@@ -438,6 +439,7 @@ class LynnIncrementalRunner:
             w["mlp.experts._down_packed"] = down_packed
             w["mlp.experts._down_scale"] = down_scale
             w["mlp.experts._down_global_scale"] = down_global
+            self._maybe_attach_moe_effective_scale(w)
             if os.environ.get("LYNN_PACKED_SHARED_EXPERT", "0") == "1":
                 shared_base = f"model.language_model.layers.{layer_idx}.mlp.shared_expert"
                 try:
@@ -464,6 +466,7 @@ class LynnIncrementalRunner:
         if self.verbose:
             print(
                 f"[resident] packed NVFP4 MoE aliases attached={attached} "
+                f"effective_scale={self.moe_effective_scale_attached} "
                 f"scratch={self.moe_active_scratch_attached}",
                 flush=True,
             )
@@ -481,6 +484,7 @@ class LynnIncrementalRunner:
                 device=self.device,
             )
             w.update(side.active_aliases())
+            self._maybe_attach_moe_effective_scale(w)
             if os.environ.get("LYNN_PACKED_SHARED_EXPERT", "0") == "1":
                 shared_base = f"model.language_model.layers.{layer_idx}.mlp.shared_expert"
                 try:
@@ -509,11 +513,46 @@ class LynnIncrementalRunner:
         if self.verbose:
             print(
                 f"[resident] packed NVFP4 MoE sidecar aliases attached={attached} "
+                f"effective_scale={self.moe_effective_scale_attached} "
                 f"scratch={self.moe_active_scratch_attached} "
                 f"load={self.moe_repack_sidecar_load_seconds:.3f}s "
                 f"path={self.moe_repack_sidecar_dir}",
                 flush=True,
             )
+
+    def _maybe_attach_moe_effective_scale(self, w: dict[str, Any]) -> None:
+        """Replace runtime scales with `scale / global_scale` for MoE probes.
+
+        Keep this memory-neutral: the 35B active-MoE scale tensors are several
+        GiB across 40 layers, so attaching a second full copy is not viable on
+        R6000.  When enabled, the runtime scale aliases become effective scales
+        and the global-scale aliases become one.  Dedicated effective-scale
+        keys point at the same tensors for explicit kernel dispatch.
+        """
+        if os.environ.get("LYNN_MOE_EFFECTIVE_SCALE", "0") != "1":
+            return
+        required = (
+            "mlp.experts._gate_up_scale",
+            "mlp.experts._gate_up_global_scale",
+            "mlp.experts._down_scale",
+            "mlp.experts._down_global_scale",
+        )
+        missing = [key for key in required if key not in w]
+        if missing:
+            raise KeyError(f"LYNN_MOE_EFFECTIVE_SCALE missing packed MoE scale aliases: {missing}")
+        gate_up_effective = (
+            w["mlp.experts._gate_up_scale"].float() / w["mlp.experts._gate_up_global_scale"].float()
+        ).contiguous()
+        down_effective = (
+            w["mlp.experts._down_scale"].float() / w["mlp.experts._down_global_scale"].float()
+        ).contiguous()
+        w["mlp.experts._gate_up_scale"] = gate_up_effective
+        w["mlp.experts._down_scale"] = down_effective
+        w["mlp.experts._gate_up_global_scale"] = torch.ones_like(w["mlp.experts._gate_up_global_scale"].float())
+        w["mlp.experts._down_global_scale"] = torch.ones_like(w["mlp.experts._down_global_scale"].float())
+        w["mlp.experts._gate_up_effective_scale"] = w["mlp.experts._gate_up_scale"]
+        w["mlp.experts._down_effective_scale"] = w["mlp.experts._down_scale"]
+        self.moe_effective_scale_attached += 1
 
     def _maybe_attach_moe_active_scratch(self, w: dict[str, Any]) -> None:
         """Attach per-layer active-MoE scratch tensors for fixed-boundary decode."""
