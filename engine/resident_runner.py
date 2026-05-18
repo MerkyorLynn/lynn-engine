@@ -228,6 +228,10 @@ class LynnIncrementalRunner:
         self.decode_fast_dispatch = os.environ.get("LYNN_DECODE_FAST_DISPATCH", "1") != "0"
         self.shared_expert_gate_up_fused_attached = 0
         self.packed_nvfp4_moe_aliases_attached = 0
+        self.moe_repack_sidecar_dir = os.environ.get("LYNN_MOE_REPACK_SIDECAR_DIR") or None
+        self.moe_repack_sidecar_layers_attached = 0
+        self.moe_repack_sidecar_load_seconds: float | None = None
+        self.moe_active_scratch_attached = 0
         self.packed_decode_backend = os.environ.get("LYNN_PACKED_DECODE_BACKEND", "scalar_bridge")
         self.packed_decode_aliases_attached = 0
         self.packed_decode_native_prepared = 0
@@ -409,6 +413,9 @@ class LynnIncrementalRunner:
 
     def _prepare_packed_nvfp4_moe_layout(self) -> None:
         """Attach grouped packed NVFP4 expert tensors for decode MoE."""
+        if self.moe_repack_sidecar_dir:
+            self._prepare_packed_nvfp4_moe_layout_from_sidecar()
+            return
         attached = 0
         for layer_idx, w in enumerate(self.layer_weights):
             base = f"model.language_model.layers.{layer_idx}.mlp.experts"
@@ -451,10 +458,79 @@ class LynnIncrementalRunner:
                     )
                 except KeyError:
                     pass
+            self._maybe_attach_moe_active_scratch(w)
             attached += 1
         self.packed_nvfp4_moe_aliases_attached = attached
         if self.verbose:
-            print(f"[resident] packed NVFP4 MoE aliases attached={attached}", flush=True)
+            print(
+                f"[resident] packed NVFP4 MoE aliases attached={attached} "
+                f"scratch={self.moe_active_scratch_attached}",
+                flush=True,
+            )
+
+    def _prepare_packed_nvfp4_moe_layout_from_sidecar(self) -> None:
+        """Attach active-MoE packed tensors from an offline serving-layout sidecar."""
+        from engine.moe_repack_sidecar import load_moe_repack_layer
+
+        t0 = time.time()
+        attached = 0
+        for layer_idx, w in enumerate(self.layer_weights):
+            side = load_moe_repack_layer(
+                self.moe_repack_sidecar_dir,
+                layer_idx,
+                device=self.device,
+            )
+            w.update(side.active_aliases())
+            if os.environ.get("LYNN_PACKED_SHARED_EXPERT", "0") == "1":
+                shared_base = f"model.language_model.layers.{layer_idx}.mlp.shared_expert"
+                try:
+                    w["mlp.shared_expert.gate_proj.weight.packed"] = load_packed_nvfp4_linear(
+                        self.model_dir,
+                        f"{shared_base}.gate_proj",
+                        device=self.device,
+                    )
+                    w["mlp.shared_expert.up_proj.weight.packed"] = load_packed_nvfp4_linear(
+                        self.model_dir,
+                        f"{shared_base}.up_proj",
+                        device=self.device,
+                    )
+                    w["mlp.shared_expert.down_proj.weight.packed"] = load_packed_nvfp4_linear(
+                        self.model_dir,
+                        f"{shared_base}.down_proj",
+                        device=self.device,
+                    )
+                except KeyError:
+                    pass
+            self._maybe_attach_moe_active_scratch(w)
+            attached += 1
+        self.packed_nvfp4_moe_aliases_attached = attached
+        self.moe_repack_sidecar_layers_attached = attached
+        self.moe_repack_sidecar_load_seconds = time.time() - t0
+        if self.verbose:
+            print(
+                f"[resident] packed NVFP4 MoE sidecar aliases attached={attached} "
+                f"scratch={self.moe_active_scratch_attached} "
+                f"load={self.moe_repack_sidecar_load_seconds:.3f}s "
+                f"path={self.moe_repack_sidecar_dir}",
+                flush=True,
+            )
+
+    def _maybe_attach_moe_active_scratch(self, w: dict[str, Any]) -> None:
+        """Attach per-layer active-MoE scratch tensors for fixed-boundary decode."""
+        if os.environ.get("LYNN_MOE_ACTIVE_SCRATCH", "0") != "1":
+            return
+        top_k = int(self.cfg.get("num_experts_per_tok", 8))
+        w["mlp.experts._active_inter_scratch"] = torch.empty(
+            (top_k, 512),
+            device=self.device,
+            dtype=torch.bfloat16,
+        )
+        w["mlp.experts._active_out_scratch"] = torch.empty(
+            (2048,),
+            device=self.device,
+            dtype=torch.bfloat16,
+        )
+        self.moe_active_scratch_attached += 1
 
     def _prepare_shared_expert_gate_up_fused(self) -> None:
         """Attach BF16 fused shared-expert gate/up weights.

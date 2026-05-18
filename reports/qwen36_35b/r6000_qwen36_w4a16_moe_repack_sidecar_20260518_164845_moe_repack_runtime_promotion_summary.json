@@ -1,0 +1,46 @@
+{
+  "schema_version": "lynn-qwen36-candidate-promotion-summary-v1",
+  "candidate_name": "moe_repack_sidecar",
+  "stamp": "20260518_164845_moe_repack_runtime",
+  "candidate_env": [
+    "LYNN_MOE_REPACK_SIDECAR_DIR=/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-v0"
+  ],
+  "thresholds": {
+    "safe_default_tps": 107.0,
+    "default_threshold": 108.0,
+    "amber_threshold": 118.0,
+    "default_requires_structured": "40/40",
+    "amber_requires_structured": "70/70"
+  },
+  "returncodes": {
+    "p37": 0,
+    "p25": 0,
+    "hard_structured": 0
+  },
+  "metrics": {
+    "p37_exact": true,
+    "p37_median_speedup": 1.0037693741695046,
+    "p25_512_decode_tps": 107.39177800691834,
+    "hard_structured_ok": true,
+    "hard_structured_decode_tps_mean": 107.74024489717151,
+    "structured_prompt_file": "scripts/qwen36_structured_hard_prompts.json",
+    "structured_prompt_count": 10,
+    "structured_request_count": 40,
+    "structured_pass_count": 40,
+    "structured_pass_rate": 1.0,
+    "structured_pass_rate_40": 1.0,
+    "structured_pass_rate_70": null,
+    "structured_40_exact": true,
+    "structured_70_exact": false
+  },
+  "reports": {
+    "p37": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_moe_repack_sidecar_20260518_164845_moe_repack_runtime_p37.json",
+    "p25": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_moe_repack_sidecar_20260518_164845_moe_repack_runtime_p25.json",
+    "hard_structured": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_moe_repack_sidecar_20260518_164845_moe_repack_runtime_hard_structured.json",
+    "p26": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_moe_repack_sidecar_20260518_164845_moe_repack_runtime_p26.json",
+    "p28": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_moe_repack_sidecar_20260518_164845_moe_repack_runtime_p28.json"
+  },
+  "promote_default": false,
+  "promote_amber": false,
+  "decision": "RESEARCH_ONLY: below promotion margin."
+}

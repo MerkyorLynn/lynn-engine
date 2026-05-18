@@ -347,6 +347,16 @@ def make_app(handle: LynnEngineHandle):
                 "packed_nvfp4_moe_aliases_attached": getattr(
                     handle.runner, "packed_nvfp4_moe_aliases_attached", None
                 ),
+                "moe_repack_sidecar_dir": getattr(handle.runner, "moe_repack_sidecar_dir", None),
+                "moe_repack_sidecar_layers_attached": getattr(
+                    handle.runner, "moe_repack_sidecar_layers_attached", None
+                ),
+                "moe_repack_sidecar_load_seconds": getattr(
+                    handle.runner, "moe_repack_sidecar_load_seconds", None
+                ),
+                "moe_active_scratch_attached": getattr(
+                    handle.runner, "moe_active_scratch_attached", None
+                ),
                 "packed_decode_backend": getattr(handle.runner, "packed_decode_backend", None),
                 "packed_decode_aliases_attached": getattr(
                     handle.runner, "packed_decode_aliases_attached", None

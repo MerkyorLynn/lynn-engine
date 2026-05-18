@@ -603,6 +603,11 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
             elif gateup_backend == "cuda_tile_inter" and _layer_selected_for_native_cuda(cfg):
                 inter = _gate_up_native_cuda_tile_inter(hidden, expert_ids, w)
             elif gateup_backend == "triton_fast_decode":
+                inter_scratch = (
+                    w.get("mlp.experts._active_inter_scratch")
+                    if _env_bool("LYNN_MOE_ACTIVE_SCRATCH", False)
+                    else None
+                )
                 inter = nvfp4_grouped_gate_up_silu_fast_decode(
                     hidden,
                     expert_ids,
@@ -612,6 +617,7 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
                     block_inter=_env_int("LYNN_MOE_GATE_BLOCK_INTER", 8),
                     block_hidden=_env_int("LYNN_MOE_GATE_BLOCK_HIDDEN", 256),
                     num_warps=_env_int("LYNN_MOE_GATE_NUM_WARPS", 4),
+                    out=inter_scratch,
                 )
             elif gateup_backend == "triton":
                 inter = nvfp4_grouped_gate_up_silu(
@@ -646,6 +652,11 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
             if down_backend == "cuda_tile" and _layer_selected_for_native_cuda(cfg):
                 moe_out = _down_weighted_sum_native_cuda_tile(inter, expert_ids, routing_weights, w).reshape_as(h_flat)
             elif down_backend == "triton":
+                out_scratch = (
+                    w.get("mlp.experts._active_out_scratch")
+                    if _env_bool("LYNN_MOE_ACTIVE_SCRATCH", False)
+                    else None
+                )
                 moe_out = nvfp4_grouped_down_weighted_sum(
                     inter,
                     expert_ids,
@@ -656,6 +667,7 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
                     block_hidden=_env_int("LYNN_MOE_DOWN_BLOCK_HIDDEN", 8),
                     block_inter=_env_int("LYNN_MOE_DOWN_BLOCK_INTER", 512),
                     num_warps=_env_int("LYNN_MOE_DOWN_NUM_WARPS", 8),
+                    out=out_scratch,
                 ).reshape_as(h_flat)
             else:
                 raise ValueError("LYNN_NATIVE_DOWN_BACKEND must be 'triton' or 'cuda_tile', got " f"{down_backend!r}")

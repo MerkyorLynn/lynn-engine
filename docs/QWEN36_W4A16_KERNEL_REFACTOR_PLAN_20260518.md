@@ -160,6 +160,30 @@ for all 40 layers. It is GREEN with `max_abs=0.0`; mean active-MoE time is
 tensors. This confirms the sidecar is now a valid kernel-input ABI. It is not
 the fused native boundary yet; it removes layout uncertainty before that work.
 
+### Runtime Sidecar and Scratch Boundary
+
+`LYNN_MOE_REPACK_SIDECAR_DIR` wires the sidecar into the resident runner without
+changing the default path. R6000 gate `moe_repack_sidecar` attached all 40
+layers from the sidecar and passed P37 exact plus 40/40 hard structured, but it
+stayed at default-class speed:
+
+| Candidate | P37 | P25 512 decode TPS | Structured | Decision |
+|---|---:|---:|---:|---|
+| sidecar runtime | exact | 107.39 | 40/40 | research-only, below margin |
+| sidecar + active scratch | exact | 107.08 | 40/40 | research-only, below margin |
+
+`LYNN_MOE_ACTIVE_SCRATCH=1` adds per-layer active-MoE intermediate/output
+scratch tensors. This makes the runtime boundary fixed and strict, but the
+profile is flat: allocation is not the 155 TPS blocker. The next MoE step must
+replace the gate/up and down inner math with a real grouped native-FP4 kernel;
+more Python/env switch hunting around this boundary is low ROI.
+
+Artifacts:
+
+- `scripts/qwen36_candidate_env_moe_repack_sidecar.env`
+- `scripts/qwen36_candidate_env_moe_repack_scratch.env`
+- `reports/qwen36_35b/QWEN36_W4A16_MOE_REPACK_RUNTIME_P129_20260518.md`
+
 ## Hard Constraints
 
 1. Default promotion must preserve full top-8 active MoE plus shared expert.

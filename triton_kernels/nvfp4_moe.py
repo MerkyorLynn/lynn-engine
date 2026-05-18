@@ -687,6 +687,7 @@ def nvfp4_grouped_gate_up_silu_fast_decode(
     block_inter: int = 8,
     block_hidden: int = 256,
     num_warps: int = 4,
+    out: torch.Tensor | None = None,
 ) -> torch.Tensor:
     """P53 lightweight probe: same kernel shape, faster E2M1 expression only."""
     _require_triton()
@@ -697,7 +698,17 @@ def nvfp4_grouped_gate_up_silu_fast_decode(
             f"expected grouped 3D tensors, got packed={tuple(gate_up_packed.shape)} scale={tuple(gate_up_scale.shape)}"
         )
     expert_ids = expert_ids.to(device=x.device, dtype=torch.int32).contiguous()
-    inter = torch.empty((expert_ids.numel(), INTERMEDIATE_SIZE), device=x.device, dtype=torch.bfloat16)
+    if out is None:
+        inter = torch.empty((expert_ids.numel(), INTERMEDIATE_SIZE), device=x.device, dtype=torch.bfloat16)
+    else:
+        if out.ndim != 2 or out.shape[0] < expert_ids.numel() or out.shape[1] != INTERMEDIATE_SIZE:
+            raise ValueError(
+                f"out must be at least [top_k, {INTERMEDIATE_SIZE}], got {tuple(out.shape)} "
+                f"for top_k={expert_ids.numel()}"
+            )
+        if out.device != x.device or out.dtype != torch.bfloat16:
+            raise ValueError("out must be a bfloat16 tensor on the same device as x")
+        inter = out[: expert_ids.numel()]
     grid = (expert_ids.numel(), triton.cdiv(INTERMEDIATE_SIZE, block_inter))
     _grouped_gate_up_silu_fast_decode_kernel[grid](
         x.contiguous(),
@@ -786,6 +797,7 @@ def nvfp4_grouped_down_weighted_sum(
     block_hidden: int = 16,
     block_inter: int = 128,
     num_warps: int = 4,
+    out: torch.Tensor | None = None,
 ) -> torch.Tensor:
     """Compute weighted top-k down projection from grouped packed NVFP4 weights."""
     _require_triton()
@@ -799,7 +811,13 @@ def nvfp4_grouped_down_weighted_sum(
     routing_weights = routing_weights.to(device=inter.device, dtype=torch.float32).contiguous()
     if expert_ids.numel() != inter.shape[0] or routing_weights.numel() != inter.shape[0]:
         raise ValueError("expert_ids/routing_weights must match inter top_k")
-    out = torch.empty((HIDDEN_SIZE,), device=inter.device, dtype=torch.bfloat16)
+    if out is None:
+        out = torch.empty((HIDDEN_SIZE,), device=inter.device, dtype=torch.bfloat16)
+    else:
+        if out.shape != (HIDDEN_SIZE,):
+            raise ValueError(f"out must be [{HIDDEN_SIZE}], got {tuple(out.shape)}")
+        if out.device != inter.device or out.dtype != torch.bfloat16:
+            raise ValueError("out must be a bfloat16 tensor on the same device as inter")
     grid = (triton.cdiv(HIDDEN_SIZE, block_hidden),)
     _grouped_down_weighted_sum_kernel[grid](
         inter.contiguous(),
