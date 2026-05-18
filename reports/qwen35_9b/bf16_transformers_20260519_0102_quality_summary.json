@@ -1,0 +1,26 @@
+{
+  "model": "/root/autodl-tmp/models/Qwen3.5-9B-BF16",
+  "elapsed_sec": 149.237,
+  "mmlu": {
+    "model": "/root/autodl-tmp/models/Qwen3.5-9B-BF16",
+    "endpoint": "transformers-direct",
+    "n": 500,
+    "correct": 386,
+    "accuracy": 0.772,
+    "parse_fail": 3,
+    "subset": "all",
+    "shots": 5,
+    "elapsed_sec": 114.477,
+    "qps": 4.3677
+  },
+  "gpqa": {
+    "model": "/root/autodl-tmp/models/Qwen3.5-9B-BF16",
+    "endpoint": "transformers-direct",
+    "n": 198,
+    "correct": 89,
+    "accuracy": 0.4494949494949495,
+    "parse_fail": 2,
+    "elapsed_sec": 28.163,
+    "qps": 7.0304
+  }
+}

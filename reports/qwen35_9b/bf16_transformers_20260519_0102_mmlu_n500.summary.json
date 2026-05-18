@@ -1,0 +1,12 @@
+{
+  "model": "/root/autodl-tmp/models/Qwen3.5-9B-BF16",
+  "endpoint": "transformers-direct",
+  "n": 500,
+  "correct": 386,
+  "accuracy": 0.772,
+  "parse_fail": 3,
+  "subset": "all",
+  "shots": 5,
+  "elapsed_sec": 114.477,
+  "qps": 4.3677
+}
