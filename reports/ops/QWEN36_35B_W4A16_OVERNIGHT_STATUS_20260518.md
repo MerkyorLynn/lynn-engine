@@ -54,6 +54,24 @@ than the Spark llama.cpp Q4_K_M reference on the same prompt family: conservativ
 default is about `107` decode TPS and the controlled structured fast mode is now
 about `114` decode TPS.
 
+Spark then ran a direct single-stream three-way TPS baseline across the current
+official routes:
+
+| Spark route | Stack | Load | TPS mean | Median | Peak |
+|---|---|---:|---:|---:|---:|
+| BF16 official | SGLang dev-cu13 | 190s | 30.14 | 30.19 | 30.30 |
+| Q4_K_M-imatrix GGUF | llama.cpp server-cuda | 50s | 69.77 | 69.76 | 70.08 |
+| W4A16 NVFP4 Lynn-native | lynn-engine Config D | 318s | 38.96 | 38.85 | 39.18 |
+
+This makes the Spark deployment policy clearer: Q4_K_M/llama.cpp is the current
+Spark serving default, while Lynn-native W4A16 remains a deterministic fallback
+and compatibility path on `sm_121`. The 155 TPS engineering loop should stay on
+R6000, where the native FP4/W4A16/W4A8 kernel work maps to the hardware.
+
+Copied summary:
+
+- `reports/spark/SPARK_QWEN36_SINGLE_STREAM_TPS_BASELINE_20260518.md`
+
 ## W4A16 Artifact
 
 R6000 and Spark both produced the Lynn-native W4A16 NVFP4 package from the
