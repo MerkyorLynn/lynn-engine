@@ -87,6 +87,36 @@ The clean-room Lynn translation should be:
 3. Fuse GDN/SSM boundaries in Stream B before touching the HTTP service loop.
 4. Keep every candidate behind the Stream C promotion ladder.
 
+### Repack Inventory Result
+
+`scripts/qwen36_w4a16_repack_inventory.py` is the read-only inventory pass for
+the serving-layout route. It scans only `lynn_quant_manifest.json` plus
+`model.safetensors.index.json` and does not change artifacts.
+
+R6000 inventory for the current official 35B W4A16 NVFP4 artifact:
+
+| Bucket | Records | Packed GiB | Shards | Meaning |
+|---|---:|---:|---:|---|
+| active MoE | 82 | 15.3750 | 7 | first offline repack target |
+| shared MoE | 164 | 0.0601 | 7 | fuse with active MoE boundary after parity |
+| linear attention | 150 | 0.4706 | 7 | boundary/layout target for 30 SSM layers |
+| full attention | 44 | 0.1396 | 7 | cache/boundary target; weight repack is smaller ROI |
+| visual | 112 | 0.2078 | 1 | not on the text serving critical path |
+
+The language stack has 40 layers: 30 linear-attention layers and 11
+full-attention layers (`0, 3, 7, 11, 15, 19, 23, 27, 31, 35, 39`). This makes
+the next ordering concrete:
+
+1. active-MoE gate/up + down decode-tile repack;
+2. shared-expert and shared-gate co-location;
+3. linear-attention projection pack and boundary fusion;
+4. full-attention RoPE/cache/workspace cleanup.
+
+Artifacts:
+
+- `reports/qwen36_35b/qwen36_w4a16_repack_inventory_20260518.json`
+- `reports/qwen36_35b/QWEN36_W4A16_REPACK_INVENTORY_20260518.md`
+
 ## Hard Constraints
 
 1. Default promotion must preserve full top-8 active MoE plus shared expert.

@@ -1,0 +1,2765 @@
+{
+  "schema_version": "qwen36-w4a16-repack-inventory-v1",
+  "model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0",
+  "manifest_schema": "lynn-variable-nvfp4-pack-v1",
+  "quantized_count": 553,
+  "kept_count": 492,
+  "missing_index_keys": [],
+  "buckets": {
+    "active_moe": {
+      "records": 82,
+      "packed_bytes": 16508780544,
+      "packed_gib": 15.375,
+      "scale_elements": 2063597568,
+      "global_scale_count": 82,
+      "shard_count": 7,
+      "shards": [
+        "model-00001.safetensors",
+        "model-00002.safetensors",
+        "model-00003.safetensors",
+        "model-00004.safetensors",
+        "model-00005.safetensors",
+        "model-00006.safetensors",
+        "model-00007.safetensors"
+      ],
+      "top_modules": [
+        [
+          "mlp.experts.gate_up_proj",
+          41
+        ],
+        [
+          "mlp.experts.down_proj",
+          41
+        ]
+      ]
+    },
+    "full_attn": {
+      "records": 44,
+      "packed_bytes": 149946368,
+      "packed_gib": 0.1396,
+      "scale_elements": 18743296,
+      "global_scale_count": 44,
+      "shard_count": 7,
+      "shards": [
+        "model-00001.safetensors",
+        "model-00002.safetensors",
+        "model-00003.safetensors",
+        "model-00004.safetensors",
+        "model-00005.safetensors",
+        "model-00006.safetensors",
+        "model-00007.safetensors"
+      ],
+      "top_modules": [
+        [
+          "self_attn.k_proj",
+          11
+        ],
+        [
+          "self_attn.o_proj",
+          11
+        ],
+        [
+          "self_attn.q_proj",
+          11
+        ],
+        [
+          "self_attn.v_proj",
+          11
+        ]
+      ]
+    },
+    "linear_attn": {
+      "records": 150,
+      "packed_bytes": 505282560,
+      "packed_gib": 0.4706,
+      "scale_elements": 63160320,
+      "global_scale_count": 150,
+      "shard_count": 7,
+      "shards": [
+        "model-00001.safetensors",
+        "model-00002.safetensors",
+        "model-00003.safetensors",
+        "model-00004.safetensors",
+        "model-00005.safetensors",
+        "model-00006.safetensors",
+        "model-00007.safetensors"
+      ],
+      "top_modules": [
+        [
+          "linear_attn.in_proj_qkv",
+          30
+        ],
+        [
+          "linear_attn.in_proj_z",
+          30
+        ],
+        [
+          "linear_attn.out_proj",
+          30
+        ],
+        [
+          "linear_attn.in_proj_a",
+          30
+        ],
+        [
+          "linear_attn.in_proj_b",
+          30
+        ]
+      ]
+    },
+    "mtp": {
+      "records": 1,
+      "packed_bytes": 4194304,
+      "packed_gib": 0.0039,
+      "scale_elements": 524288,
+      "global_scale_count": 1,
+      "shard_count": 1,
+      "shards": [
+        "model-00007.safetensors"
+      ],
+      "top_modules": [
+        [
+          "mtp.fc",
+          1
+        ]
+      ]
+    },
+    "shared_moe": {
+      "records": 164,
+      "packed_bytes": 64529408,
+      "packed_gib": 0.0601,
+      "scale_elements": 8066176,
+      "global_scale_count": 164,
+      "shard_count": 7,
+      "shards": [
+        "model-00001.safetensors",
+        "model-00002.safetensors",
+        "model-00003.safetensors",
+        "model-00004.safetensors",
+        "model-00005.safetensors",
+        "model-00006.safetensors",
+        "model-00007.safetensors"
+      ],
+      "top_modules": [
+        [
+          "mlp.shared_expert.down_proj",
+          41
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          41
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          41
+        ],
+        [
+          "mlp.shared_expert_gate",
+          41
+        ]
+      ]
+    },
+    "visual": {
+      "records": 112,
+      "packed_bytes": 223082496,
+      "packed_gib": 0.2078,
+      "scale_elements": 27885312,
+      "global_scale_count": 112,
+      "shard_count": 1,
+      "shards": [
+        "model-00001.safetensors"
+      ],
+      "top_modules": [
+        [
+          "model.visual.blocks.0.mlp.linear_fc1",
+          1
+        ],
+        [
+          "model.visual.blocks.0.mlp.linear_fc2",
+          1
+        ],
+        [
+          "model.visual.blocks.1.mlp.linear_fc1",
+          1
+        ],
+        [
+          "model.visual.blocks.1.mlp.linear_fc2",
+          1
+        ],
+        [
+          "model.visual.blocks.10.mlp.linear_fc1",
+          1
+        ],
+        [
+          "model.visual.blocks.10.mlp.linear_fc2",
+          1
+        ],
+        [
+          "model.visual.blocks.11.mlp.linear_fc1",
+          1
+        ],
+        [
+          "model.visual.blocks.11.mlp.linear_fc2",
+          1
+        ],
+        [
+          "model.visual.blocks.12.mlp.linear_fc1",
+          1
+        ],
+        [
+          "model.visual.blocks.12.mlp.linear_fc2",
+          1
+        ],
+        [
+          "model.visual.merger.linear_fc1",
+          1
+        ],
+        [
+          "model.visual.merger.linear_fc2",
+          1
+        ]
+      ]
+    }
+  },
+  "language_layers": {
+    "count": 40,
+    "linear_attn_layers": [
+      0,
+      1,
+      2,
+      4,
+      5,
+      6,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      20,
+      21,
+      22,
+      24,
+      25,
+      26,
+      28,
+      29,
+      30,
+      32,
+      33,
+      34,
+      36,
+      37,
+      38
+    ],
+    "full_attn_layers": [
+      0,
+      3,
+      7,
+      11,
+      15,
+      19,
+      23,
+      27,
+      31,
+      35,
+      39
+    ],
+    "linear_attn_count": 30,
+    "full_attn_count": 11
+  },
+  "layers": [
+    {
+      "layer": 0,
+      "records": 21,
+      "packed_bytes": 838928384,
+      "packed_mib": 800.06,
+      "scale_elements": 104866048,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 4,
+        "shared_moe": 8,
+        "full_attn": 4
+      },
+      "shard_count": 2,
+      "shards": [
+        "model-00001.safetensors",
+        "model-00007.safetensors"
+      ],
+      "modules": [
+        [
+          "mlp.experts.gate_up_proj",
+          2
+        ],
+        [
+          "mlp.experts.down_proj",
+          2
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          2
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          2
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          2
+        ],
+        [
+          "mlp.shared_expert_gate",
+          2
+        ],
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "self_attn.k_proj",
+          1
+        ],
+        [
+          "self_attn.o_proj",
+          1
+        ],
+        [
+          "self_attn.q_proj",
+          1
+        ],
+        [
+          "self_attn.v_proj",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 1,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00001.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 2,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00001.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 3,
+      "records": 10,
+      "packed_bytes": 417858560,
+      "packed_mib": 398.5,
+      "scale_elements": 52232320,
+      "buckets": {
+        "active_moe": 2,
+        "shared_moe": 4,
+        "full_attn": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00001.safetensors"
+      ],
+      "modules": [
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ],
+        [
+          "self_attn.k_proj",
+          1
+        ],
+        [
+          "self_attn.o_proj",
+          1
+        ],
+        [
+          "self_attn.q_proj",
+          1
+        ],
+        [
+          "self_attn.v_proj",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 4,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 2,
+      "shards": [
+        "model-00001.safetensors",
+        "model-00002.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 5,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00002.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 6,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00002.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 7,
+      "records": 10,
+      "packed_bytes": 417858560,
+      "packed_mib": 398.5,
+      "scale_elements": 52232320,
+      "buckets": {
+        "active_moe": 2,
+        "shared_moe": 4,
+        "full_attn": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00002.safetensors"
+      ],
+      "modules": [
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ],
+        [
+          "self_attn.k_proj",
+          1
+        ],
+        [
+          "self_attn.o_proj",
+          1
+        ],
+        [
+          "self_attn.q_proj",
+          1
+        ],
+        [
+          "self_attn.v_proj",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 8,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 2,
+      "shards": [
+        "model-00002.safetensors",
+        "model-00003.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 9,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 2,
+      "shards": [
+        "model-00002.safetensors",
+        "model-00003.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 10,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 2,
+      "shards": [
+        "model-00002.safetensors",
+        "model-00003.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 11,
+      "records": 10,
+      "packed_bytes": 417858560,
+      "packed_mib": 398.5,
+      "scale_elements": 52232320,
+      "buckets": {
+        "active_moe": 2,
+        "full_attn": 4,
+        "shared_moe": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00003.safetensors"
+      ],
+      "modules": [
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "self_attn.k_proj",
+          1
+        ],
+        [
+          "self_attn.o_proj",
+          1
+        ],
+        [
+          "self_attn.q_proj",
+          1
+        ],
+        [
+          "self_attn.v_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 12,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00003.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 13,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00003.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 14,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00003.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 15,
+      "records": 10,
+      "packed_bytes": 417858560,
+      "packed_mib": 398.5,
+      "scale_elements": 52232320,
+      "buckets": {
+        "active_moe": 2,
+        "full_attn": 4,
+        "shared_moe": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00003.safetensors"
+      ],
+      "modules": [
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "self_attn.k_proj",
+          1
+        ],
+        [
+          "self_attn.o_proj",
+          1
+        ],
+        [
+          "self_attn.q_proj",
+          1
+        ],
+        [
+          "self_attn.v_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 16,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 2,
+      "shards": [
+        "model-00003.safetensors",
+        "model-00004.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 17,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00004.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 18,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00004.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 19,
+      "records": 10,
+      "packed_bytes": 417858560,
+      "packed_mib": 398.5,
+      "scale_elements": 52232320,
+      "buckets": {
+        "active_moe": 2,
+        "full_attn": 4,
+        "shared_moe": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00004.safetensors"
+      ],
+      "modules": [
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "self_attn.k_proj",
+          1
+        ],
+        [
+          "self_attn.o_proj",
+          1
+        ],
+        [
+          "self_attn.q_proj",
+          1
+        ],
+        [
+          "self_attn.v_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 20,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00004.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 21,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00004.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 22,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00004.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 23,
+      "records": 10,
+      "packed_bytes": 417858560,
+      "packed_mib": 398.5,
+      "scale_elements": 52232320,
+      "buckets": {
+        "active_moe": 2,
+        "full_attn": 4,
+        "shared_moe": 4
+      },
+      "shard_count": 2,
+      "shards": [
+        "model-00004.safetensors",
+        "model-00005.safetensors"
+      ],
+      "modules": [
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "self_attn.k_proj",
+          1
+        ],
+        [
+          "self_attn.o_proj",
+          1
+        ],
+        [
+          "self_attn.q_proj",
+          1
+        ],
+        [
+          "self_attn.v_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 24,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00005.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 25,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00005.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 26,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00005.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 27,
+      "records": 10,
+      "packed_bytes": 417858560,
+      "packed_mib": 398.5,
+      "scale_elements": 52232320,
+      "buckets": {
+        "active_moe": 2,
+        "full_attn": 4,
+        "shared_moe": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00005.safetensors"
+      ],
+      "modules": [
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "self_attn.k_proj",
+          1
+        ],
+        [
+          "self_attn.o_proj",
+          1
+        ],
+        [
+          "self_attn.q_proj",
+          1
+        ],
+        [
+          "self_attn.v_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 28,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00005.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 29,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 2,
+      "shards": [
+        "model-00005.safetensors",
+        "model-00006.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 30,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 2,
+      "shards": [
+        "model-00005.safetensors",
+        "model-00006.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 31,
+      "records": 10,
+      "packed_bytes": 417858560,
+      "packed_mib": 398.5,
+      "scale_elements": 52232320,
+      "buckets": {
+        "active_moe": 2,
+        "full_attn": 4,
+        "shared_moe": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00006.safetensors"
+      ],
+      "modules": [
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "self_attn.k_proj",
+          1
+        ],
+        [
+          "self_attn.o_proj",
+          1
+        ],
+        [
+          "self_attn.q_proj",
+          1
+        ],
+        [
+          "self_attn.v_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 32,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00006.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 33,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00006.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 34,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00006.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 35,
+      "records": 10,
+      "packed_bytes": 417858560,
+      "packed_mib": 398.5,
+      "scale_elements": 52232320,
+      "buckets": {
+        "active_moe": 2,
+        "shared_moe": 4,
+        "full_attn": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00006.safetensors"
+      ],
+      "modules": [
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ],
+        [
+          "self_attn.k_proj",
+          1
+        ],
+        [
+          "self_attn.o_proj",
+          1
+        ],
+        [
+          "self_attn.q_proj",
+          1
+        ],
+        [
+          "self_attn.v_proj",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 36,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 2,
+      "shards": [
+        "model-00006.safetensors",
+        "model-00007.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 37,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00007.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 38,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
+      "buckets": {
+        "linear_attn": 5,
+        "active_moe": 2,
+        "shared_moe": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00007.safetensors"
+      ],
+      "modules": [
+        [
+          "linear_attn.in_proj_a",
+          1
+        ],
+        [
+          "linear_attn.in_proj_b",
+          1
+        ],
+        [
+          "linear_attn.in_proj_qkv",
+          1
+        ],
+        [
+          "linear_attn.in_proj_z",
+          1
+        ],
+        [
+          "linear_attn.out_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ]
+      ]
+    },
+    {
+      "layer": 39,
+      "records": 10,
+      "packed_bytes": 417858560,
+      "packed_mib": 398.5,
+      "scale_elements": 52232320,
+      "buckets": {
+        "active_moe": 2,
+        "shared_moe": 4,
+        "full_attn": 4
+      },
+      "shard_count": 1,
+      "shards": [
+        "model-00007.safetensors"
+      ],
+      "modules": [
+        [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
+          "mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
+          1
+        ],
+        [
+          "self_attn.k_proj",
+          1
+        ],
+        [
+          "self_attn.o_proj",
+          1
+        ],
+        [
+          "self_attn.q_proj",
+          1
+        ],
+        [
+          "self_attn.v_proj",
+          1
+        ]
+      ]
+    }
+  ],
+  "recommended_repack_order": [
+    {
+      "name": "active_moe_gateup_down",
+      "reason": "largest repeated decode boundary; Q4_K_M llama.cpp suggests serving layout matters more than another scalar tile sweep",
+      "bucket": "active_moe"
+    },
+    {
+      "name": "shared_moe_gateup_down_gate",
+      "reason": "hot per-token shared expert path; keep BF16 activation semantics",
+      "bucket": "shared_moe"
+    },
+    {
+      "name": "linear_attn_projection_pack",
+      "reason": "30 hybrid SSM layers carry multiple projection launches per token",
+      "bucket": "linear_attn"
+    },
+    {
+      "name": "full_attn_qkvo_pack",
+      "reason": "11 full-attention layers still need exact RoPE/cache order",
+      "bucket": "full_attn"
+    }
+  ]
+}
