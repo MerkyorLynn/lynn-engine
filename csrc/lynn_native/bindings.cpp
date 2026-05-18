@@ -156,6 +156,11 @@ torch::Tensor lynn_native_moe_slot_down_weighted_sum_bf16(
     torch::Tensor inter,
     torch::Tensor routing_weights,
     torch::Tensor slot_down);
+torch::Tensor lynn_native_moe_slot_strict_bf16(
+    torch::Tensor x,
+    torch::Tensor routing_weights,
+    torch::Tensor slot_gate_up,
+    torch::Tensor slot_down);
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
   m.def("add_one", &lynn_native_add_one, "Lynn native CUDA extension smoke kernel");
@@ -235,4 +240,8 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
       "moe_slot_down_weighted_sum_bf16",
       &lynn_native_moe_slot_down_weighted_sum_bf16,
       "P137 diagnostic slot-repacked BF16 down weighted-sum kernel");
+  m.def(
+      "moe_slot_strict_bf16",
+      &lynn_native_moe_slot_strict_bf16,
+      "P138 cuBLAS-matched strict BF16 slot MoE reference");
 }

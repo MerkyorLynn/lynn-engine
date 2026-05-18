@@ -191,7 +191,10 @@ __global__ void down_weighted_sum_bf16_kernel(
     // Loop over all active experts
     for (int k = 0; k < top_k; ++k) {
         const int expert = expert_ids[k];
-        const float route_w = routing_weights[k];
+        // Match the Python slot-order reference:
+        //   out += ffn * routing_weights[k].to(torch.bfloat16)
+        // Applying the raw FP32 route changes BF16 accumulation semantics.
+        const float route_w = __bfloat162float(__float2bfloat16(routing_weights[k]));
 
         // Load inter[k, :] into shared memory (collaborative)
         for (int i = tid; i < kIntermediate; i += THREADS) {

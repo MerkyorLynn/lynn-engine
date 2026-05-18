@@ -182,6 +182,7 @@ echo ""
 NATIVE_EXIT=0
 NATIVE_ELAPSED=0
 NATIVE_REPORT="${REPORT_DIR}/native_slot_output_owned_bf16_report.json"
+SUMMARY_REPORT="${REPORT_DIR}/r6000_qwen36_moe_slot_repack_summary.json"
 
 if [ "${RUN_NATIVE_SLOT_CANDIDATE}" = "1" ] && [ "${P136_EXIT}" -eq 0 ]; then
     echo "═══════════════════════════════════════════════════════════════════════"
@@ -247,8 +248,67 @@ echo "    ${REPORT_DIR}/p136_slot_repack_contract_report.json"
 if [ "${RUN_NATIVE_SLOT_CANDIDATE}" = "1" ]; then
     echo "    ${NATIVE_REPORT}"
 fi
+echo "    ${SUMMARY_REPORT}"
 echo ""
 echo "═══════════════════════════════════════════════════════════════════════"
+
+"${PY}" - "${P135_OUT}/manifest.json" "${REPORT_DIR}/p136_slot_repack_contract_report.json" "${NATIVE_REPORT}" "${SUMMARY_REPORT}" "${RUN_NATIVE_SLOT_CANDIDATE}" "${NATIVE_EXIT}" <<'PY'
+import json
+import sys
+import time
+from pathlib import Path
+
+manifest_path = Path(sys.argv[1])
+p136_path = Path(sys.argv[2])
+native_path = Path(sys.argv[3])
+summary_path = Path(sys.argv[4])
+run_native = sys.argv[5] == "1"
+native_exit = int(sys.argv[6])
+
+def load_optional(path: Path):
+    if not path.exists():
+        return None
+    return json.loads(path.read_text())
+
+manifest = load_optional(manifest_path) or {}
+p136 = load_optional(p136_path) or {}
+native = load_optional(native_path) if run_native and native_exit == 0 else None
+summary = {
+    "schema": "lynn-r6000-qwen36-moe-slot-repack-summary-v1",
+    "created": time.strftime("%Y-%m-%dT%H:%M:%S"),
+    "p135": {
+        "manifest": str(manifest_path),
+        "num_fixtures": manifest.get("num_fixtures"),
+        "reference_mode": manifest.get("reference_mode"),
+        "secondary_reference": manifest.get("secondary_reference"),
+    },
+    "p136": {
+        "report": str(p136_path),
+        "verdict": p136.get("verdict"),
+        "passed": p136.get("passed"),
+        "total": p136.get("total"),
+        "max_abs_max": p136.get("max_abs_max"),
+        "slot_repack_ms_mean": p136.get("slot_repack_ms_mean"),
+    },
+    "native_slot_output_owned_bf16": None,
+}
+if native is not None:
+    summary["native_slot_output_owned_bf16"] = {
+        "report": str(native_path),
+        "slot_max_abs": native.get("slot_max_abs"),
+        "stored_max_abs": native.get("stored_max_abs"),
+        "unique_max_abs": native.get("unique_max_abs"),
+        "avg_latency_ms": native.get("avg_latency_ms"),
+        "verdict": (
+            "FAST_RESEARCH"
+            if native.get("avg_latency_ms", 999) < native.get("triton_baseline_ms", 0.059)
+            else "SLOW_OR_UNKNOWN"
+        ),
+    }
+summary_path.parent.mkdir(parents=True, exist_ok=True)
+summary_path.write_text(json.dumps(summary, indent=2) + "\n")
+print(f"[summary] Wrote {summary_path}")
+PY
 
 if [ "${P136_EXIT}" -ne 0 ]; then
     exit "${P136_EXIT}"

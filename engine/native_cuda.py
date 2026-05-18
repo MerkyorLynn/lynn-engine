@@ -135,6 +135,7 @@ def load_lynn_native_extension(*, build_dir: str | None = None, verbose: bool = 
             str(ROOT / "csrc" / "lynn_native" / "smoke_kernel.cu"),
             str(ROOT / "csrc" / "lynn_native" / "moe_scalar_kernel.cu"),
             str(ROOT / "csrc" / "lynn_native" / "moe_output_owned_bf16.cu"),
+            str(ROOT / "csrc" / "lynn_native" / "moe_slot_strict_bf16.cu"),
         ],
         build_directory=str(build_root),
         extra_cflags=["-O3"],

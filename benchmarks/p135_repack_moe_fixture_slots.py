@@ -118,6 +118,28 @@ def _extract_slot_weights(
     return slot_gate_up, slot_down
 
 
+def _moe_slot_order_routed_only(
+    hidden_in: torch.Tensor,
+    routing_weights: torch.Tensor,
+    slot_gate_up: torch.Tensor,
+    slot_down: torch.Tensor,
+) -> torch.Tensor:
+    """Run routed MoE in explicit top-k slot order.
+
+    This is the ground truth for slot-repacked kernel development. It matches
+    p136's `_moe_slot_only` contract and intentionally differs from the
+    unique-expert/index_add serving reference when BF16 accumulation order
+    matters.
+    """
+    routed = torch.zeros_like(hidden_in)
+    for k in range(slot_gate_up.shape[0]):
+        gate_up = F.linear(hidden_in, slot_gate_up[k])
+        gate, up = gate_up.chunk(2, dim=-1)
+        ffn = F.linear(F.silu(gate) * up, slot_down[k])
+        routed += ffn * routing_weights[k].to(hidden_in.dtype)
+    return routed
+
+
 # ─────────────────────────────────────────────────────────────
 # Main repack pipeline
 # ─────────────────────────────────────────────────────────────
@@ -181,17 +203,25 @@ def repack_fixtures(
         routing_weights = fixture_data["routing_weights"]
         layer_weights = layer_cache[layer_id]
 
-        # Compute reference routed-only output
-        t_ref = time.time()
-        routed_output = _moe_reference_routed_only(
-            hidden_in, expert_ids, routing_weights, layer_weights
-        )
-        ref_ms = (time.time() - t_ref) * 1000.0
-
         # Extract slot weights
         t_extract = time.time()
         slot_gate_up, slot_down = _extract_slot_weights(expert_ids, layer_weights)
         extract_ms = (time.time() - t_extract) * 1000.0
+
+        # Compute both references:
+        # - routed_output: slot-order ground truth for p136/kernel strict gates.
+        # - unique_routed_output: serving-style reference for drift-risk analysis.
+        t_ref = time.time()
+        routed_output = _moe_slot_order_routed_only(
+            hidden_in, routing_weights, slot_gate_up, slot_down
+        )
+        ref_ms = (time.time() - t_ref) * 1000.0
+
+        t_unique = time.time()
+        unique_routed_output = _moe_reference_routed_only(
+            hidden_in, expert_ids, routing_weights, layer_weights
+        )
+        unique_ref_ms = (time.time() - t_unique) * 1000.0
 
         # Source file sha256
         sha256 = hashlib.sha256(src_fixture_path.read_bytes()).hexdigest()
@@ -207,6 +237,7 @@ def repack_fixtures(
             "slot_gate_up_weight": slot_gate_up.contiguous().cpu(),
             "slot_down_weight": slot_down.contiguous().cpu(),
             "routed_output": routed_output.contiguous().cpu(),
+            "unique_routed_output": unique_routed_output.contiguous().cpu(),
         }
         save_file(tensors_to_save, str(repacked_path))
 
@@ -222,14 +253,17 @@ def repack_fixtures(
                 k: list(v.shape) for k, v in tensors_to_save.items()
             },
             "dtype": str(dtype),
+            "reference_mode": "slot_order",
             "ref_compute_ms": round(ref_ms, 4),
+            "unique_ref_compute_ms": round(unique_ref_ms, 4),
             "extract_ms": round(extract_ms, 4),
         }
         manifest_entries.append(entry_meta)
 
         print(
             f"  [p135] L{layer_id:02d}/P{prompt_id:02d} -> {repacked_name} "
-            f"ref={ref_ms:.3f}ms extract={extract_ms:.3f}ms",
+            f"slot_ref={ref_ms:.3f}ms unique_ref={unique_ref_ms:.3f}ms "
+            f"extract={extract_ms:.3f}ms",
             flush=True,
         )
 
@@ -243,6 +277,8 @@ def repack_fixtures(
         "model_dir": str(model_dir),
         "device": device,
         "dtype": str(dtype),
+        "reference_mode": "slot_order",
+        "secondary_reference": "unique_routed_output",
         "num_fixtures": len(manifest_entries),
         "total_repack_seconds": total_time,
         "fixtures": manifest_entries,

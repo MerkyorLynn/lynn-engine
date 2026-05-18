@@ -187,7 +187,10 @@ def main() -> int:
         routing_weights = fixture_data["routing_weights"]
         slot_gate_up = fixture_data["slot_gate_up_weight"].to(torch.bfloat16)
         slot_down = fixture_data["slot_down_weight"].to(torch.bfloat16)
-        expected = fixture_data["routed_output"].to(torch.bfloat16)
+        stored_ref = fixture_data["routed_output"].to(torch.bfloat16)
+        unique_ref = fixture_data.get("unique_routed_output")
+        if unique_ref is not None:
+            unique_ref = unique_ref.to(torch.bfloat16)
 
         # Run candidate
         candidate_out = moe_forward_fixture(
@@ -198,9 +201,14 @@ def main() -> int:
         )
 
         # Metrics
-        unique_metrics = compute_metrics(expected, candidate_out)
+        stored_metrics = compute_metrics(stored_ref, candidate_out)
         slot_metrics = compute_metrics(slot_ref, candidate_out)
-        slot_vs_unique = compute_metrics(expected, slot_ref)
+        if unique_ref is not None:
+            unique_metrics = compute_metrics(unique_ref, candidate_out)
+            slot_vs_unique = compute_metrics(unique_ref, slot_ref)
+        else:
+            unique_metrics = stored_metrics
+            slot_vs_unique = compute_metrics(stored_ref, slot_ref)
 
         # Benchmark
         latency_ms = benchmark_kernel(
@@ -212,6 +220,11 @@ def main() -> int:
             "fixture": fixture_file,
             "layer_id": layer_id,
             "prompt_id": prompt_id,
+            "stored_ref_max_abs": stored_metrics["max_abs"],
+            "stored_ref_mean_abs": stored_metrics["mean_abs"],
+            "stored_ref_rel_l2": stored_metrics["rel_l2"],
+            "stored_ref_cosine": stored_metrics["cosine"],
+            "stored_ref_exact": 1 if stored_metrics["max_abs"] == 0.0 else 0,
             "unique_ref_max_abs": unique_metrics["max_abs"],
             "unique_ref_mean_abs": unique_metrics["mean_abs"],
             "unique_ref_rel_l2": unique_metrics["rel_l2"],
@@ -243,6 +256,7 @@ def main() -> int:
 
     # Summary
     all_slot_exact = all(r["slot_ref_exact"] == 1 for r in results)
+    all_stored_exact = all(r["stored_ref_exact"] == 1 for r in results)
     all_unique_exact = all(r["unique_ref_exact"] == 1 for r in results)
     all_slot_pass = all(
         r["slot_ref_max_abs"] <= 1e-3 and r["slot_ref_cosine"] >= 0.999999
@@ -252,10 +266,15 @@ def main() -> int:
         r["unique_ref_max_abs"] <= 1e-3 and r["unique_ref_cosine"] >= 0.999999
         for r in results
     )
+    all_stored_pass = all(
+        r["stored_ref_max_abs"] <= 1e-3 and r["stored_ref_cosine"] >= 0.999999
+        for r in results
+    )
     avg_latency = sum(r["candidate_ms"] for r in results) / len(results) if results else 0
     max_latency = max(r["candidate_ms"] for r in results) if results else 0
     slot_max_abs = max(r["slot_ref_max_abs"] for r in results) if results else 0
     unique_max_abs = max(r["unique_ref_max_abs"] for r in results) if results else 0
+    stored_max_abs = max(r["stored_ref_max_abs"] for r in results) if results else 0
     slot_vs_unique_max_abs = max(r["slot_vs_unique_max_abs"] for r in results) if results else 0
 
     print(f"\n{'='*70}")
@@ -263,9 +282,12 @@ def main() -> int:
     print(f"  Fixtures:      {len(results)}")
     print(f"  Slot exact:    {'YES' if all_slot_exact else 'NO'}")
     print(f"  Slot pass:     {'YES' if all_slot_pass else 'NO'} (max_abs<=1e-3, cos>=0.999999)")
+    print(f"  Stored exact:  {'YES' if all_stored_exact else 'NO'}")
+    print(f"  Stored pass:   {'YES' if all_stored_pass else 'NO'} (p135 routed_output)")
     print(f"  Unique exact:  {'YES' if all_unique_exact else 'NO'}")
     print(f"  Unique pass:   {'YES' if all_unique_pass else 'NO'} (serving-risk reference)")
     print(f"  Slot max_abs:  {slot_max_abs:.2e}")
+    print(f"  Stored max_abs:{stored_max_abs:.2e}")
     print(f"  Unique max_abs:{unique_max_abs:.2e}")
     print(f"  Slot-vs-unique max_abs: {slot_vs_unique_max_abs:.2e}")
     print(f"  Avg latency:   {avg_latency:.4f} ms")
@@ -286,9 +308,12 @@ def main() -> int:
         "created": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "all_slot_exact": all_slot_exact,
         "all_slot_pass_1e3": all_slot_pass,
+        "all_stored_exact": all_stored_exact,
+        "all_stored_pass_1e3": all_stored_pass,
         "all_unique_exact": all_unique_exact,
         "all_unique_pass_1e3": all_unique_pass,
         "slot_max_abs": slot_max_abs,
+        "stored_max_abs": stored_max_abs,
         "unique_max_abs": unique_max_abs,
         "slot_vs_unique_max_abs": slot_vs_unique_max_abs,
         "avg_latency_ms": avg_latency,
