@@ -28,7 +28,7 @@ from engine.full_forward import (
     _with_inferred_layer_config,
     load_outside_weights,
 )
-from engine.inference_state import LAYER_TYPES, LynnInferenceState
+from engine.inference_state import LAYER_TYPES, LynnInferenceState, infer_layer_types, infer_linear_attention_dims
 from engine.loader import load_qwen36_layer
 from engine.mtp_sidecar import load_mtp_sidecar, mtp_layer_config, mtp_layer_weights, mtp_logits
 from engine.nvfp4_runtime import (
@@ -76,35 +76,31 @@ def _native_cuda_scalar_can_enter_linear_graph() -> bool:
             selected.update(i for i, t in enumerate(LAYER_TYPES) if t == "linear_attention")
         else:
             selected.add(int(item))
-    return any(LAYER_TYPES[i] == "linear_attention" for i in selected)
+    return any(0 <= i < len(LAYER_TYPES) and LAYER_TYPES[i] == "linear_attention" for i in selected)
 
 
 def _runtime_config(model_dir: str) -> tuple[dict[str, Any], int]:
     with open(Path(model_dir) / "config.json", encoding="utf-8") as f:
         full_cfg = json.load(f)
     tc = full_cfg["text_config"]
-    if not tc.get("num_experts") or not tc.get("num_experts_per_tok"):
-        model_type = tc.get("model_type") or full_cfg.get("model_type") or "unknown"
-        n_layers = tc.get("num_hidden_layers")
-        raise NotImplementedError(
-            "LynnIncrementalRunner currently supports the Qwen3.6 MoE resident "
-            "runtime only. Dense Qwen configs are recognized but not served yet: "
-            f"model_type={model_type!r}, num_hidden_layers={n_layers!r}, "
-            "num_experts=None. Use the direct Transformers or llama.cpp paths for "
-            "Qwen3.5-9B until the dense MLP runtime is implemented."
-        )
     rope_p = tc.get("rope_parameters", {})
+    num_experts = int(tc.get("num_experts", 0) or 0)
+    linear_dims = infer_linear_attention_dims(tc)
     cfg = {
         "hidden_size": tc["hidden_size"],
+        "num_hidden_layers": tc["num_hidden_layers"],
         "num_attention_heads": tc["num_attention_heads"],
         "num_key_value_heads": tc["num_key_value_heads"],
         "head_dim": tc["head_dim"],
-        "num_experts": tc["num_experts"],
-        "num_experts_per_tok": tc["num_experts_per_tok"],
+        "num_experts": num_experts,
+        "num_experts_per_tok": int(tc.get("num_experts_per_tok", 0) or 0),
+        "is_moe": num_experts > 0,
+        "layer_types": infer_layer_types(tc),
+        **linear_dims,
         "rope_theta": rope_p.get("rope_theta", tc.get("rope_theta", 1e6)),
         "partial_rotary_factor": rope_p.get("partial_rotary_factor", 1.0),
     }
-    if LAYER_TYPES != tc["layer_types"]:
+    if cfg["is_moe"] and LAYER_TYPES != cfg["layer_types"]:
         raise ValueError("layer_types config mismatch")
     return cfg, tc["num_hidden_layers"]
 
@@ -249,6 +245,10 @@ class LynnIncrementalRunner:
         self.packed_decode_aliases_skipped = 0
         self.runtime_warnings: list[str] = []
         self.cfg, self.n_layers = _runtime_config(self.model_dir)
+        self.is_moe = bool(self.cfg.get("is_moe", True))
+        self.layer_types = list(self.cfg.get("layer_types", LAYER_TYPES))
+        if not self.is_moe and verbose:
+            print("[resident] dense FFN model detected; MoE decode paths disabled", flush=True)
         if os.environ.get("LYNN_PACKED_DECODE", "0") == "1":
             self.runtime_warnings.append(
                 "LYNN_PACKED_DECODE=1 is a diagnostic path, not the current R6000 best "
@@ -298,11 +298,11 @@ class LynnIncrementalRunner:
             self.layer_cfgs.append(_with_inferred_layer_config(self.cfg, inferred, i))
             if verbose and (i % 5 == 4 or i == self.n_layers - 1):
                 print(f"  [resident] L{i:02}: {time.time() - t0:.1f}s", flush=True)
-        if impl == "triton":
+        if self.is_moe and impl == "triton":
             self._prepare_triton_moe_layout()
-        if os.environ.get("LYNN_SHARED_EXPERT_GATE_UP_FUSED", "1") != "0":
+        if self.is_moe and os.environ.get("LYNN_SHARED_EXPERT_GATE_UP_FUSED", "1") != "0":
             self._prepare_shared_expert_gate_up_fused()
-        if impl == "packed_nvfp4":
+        if self.is_moe and impl == "packed_nvfp4":
             self._prepare_packed_nvfp4_moe_layout()
         if (
             os.environ.get("LYNN_PACKED_DECODE", "0") == "1"
@@ -621,7 +621,7 @@ class LynnIncrementalRunner:
         contract while replacing those launch boundaries with one GEMM.
         """
         attached = 0
-        for layer_type, w in zip(LAYER_TYPES, self.layer_weights):
+        for layer_type, w in zip(self.layer_types, self.layer_weights):
             if layer_type != "full_attention":
                 continue
             key = "self_attn._qkv_proj.weight"
@@ -647,7 +647,7 @@ class LynnIncrementalRunner:
         weights on the 27B skeleton for replacing four small GEMMs per
         linear-attention layer with one larger GEMM.
         """
-        for layer_type, w in zip(LAYER_TYPES, self.layer_weights):
+        for layer_type, w in zip(self.layer_types, self.layer_weights):
             if layer_type != "linear_attention":
                 continue
             key = "linear_attn._in_proj_qkv_z_b_a.weight"
@@ -672,7 +672,7 @@ class LynnIncrementalRunner:
         """
         from engine.nvfp4_runtime import fuse_packed_nvfp4_linears, load_packed_nvfp4_linear
 
-        for layer_idx, (layer_type, w) in enumerate(zip(LAYER_TYPES, self.layer_weights)):
+        for layer_idx, (layer_type, w) in enumerate(zip(self.layer_types, self.layer_weights)):
             if layer_type != "linear_attention":
                 continue
             key = "linear_attn._in_proj_qkv_z_b_a.weight"
@@ -690,7 +690,7 @@ class LynnIncrementalRunner:
 
     def _prepare_linear_attn_decode_constants(self) -> None:
         """Precompute tiny static decode constants for linear-attention layers."""
-        for layer_type, w in zip(LAYER_TYPES, self.layer_weights):
+        for layer_type, w in zip(self.layer_types, self.layer_weights):
             if layer_type != "linear_attention":
                 continue
             key = "linear_attn._neg_exp_A_log"
@@ -910,8 +910,8 @@ class LynnIncrementalRunner:
         """
         if not self.device.startswith("cuda"):
             raise RuntimeError("full-attention layer graph slots require CUDA")
-        if LAYER_TYPES[layer_idx] != "full_attention":
-            raise ValueError(f"layer {layer_idx} is {LAYER_TYPES[layer_idx]!r}, expected full_attention")
+        if self.layer_types[layer_idx] != "full_attention":
+            raise ValueError(f"layer {layer_idx} is {self.layer_types[layer_idx]!r}, expected full_attention")
 
         seq_len = int(state.seq_len)
         input_buf = torch.empty_like(h_seed)
@@ -958,7 +958,7 @@ class LynnIncrementalRunner:
             return _decode_layer(
                 h,
                 pos_tensor,
-                LAYER_TYPES[layer_idx],
+                self.layer_types[layer_idx],
                 self.layer_weights[layer_idx],
                 self.layer_cfgs[layer_idx],
                 state,
@@ -967,7 +967,7 @@ class LynnIncrementalRunner:
         return _decode_layer(
             h,
             pos_tensor,
-            LAYER_TYPES[layer_idx],
+            self.layer_types[layer_idx],
             self.layer_weights[layer_idx],
             self.layer_cfgs[layer_idx],
             state,
@@ -1062,7 +1062,7 @@ class LynnIncrementalRunner:
         attached = 0
         native_prepared = 0
         skipped = 0
-        for layer_idx, (layer_type, w) in enumerate(zip(LAYER_TYPES, self.layer_weights)):
+        for layer_idx, (layer_type, w) in enumerate(zip(self.layer_types, self.layer_weights)):
             for short_key in projections_by_type.get(layer_type, []):
                 alias_key = short_key + ".packed"
                 if alias_key in w or short_key not in w:
@@ -1142,7 +1142,8 @@ class LynnIncrementalRunner:
         per-request state and is still run eagerly between graph blocks.
         """
         if self._linear_block_graph_slot is None:
-            graph_state = LynnInferenceState(
+            graph_state = LynnInferenceState.from_config(
+                self.cfg,
                 batch=1,
                 max_seq_len=self.max_seq_len,
                 device=self.device,
@@ -1179,7 +1180,7 @@ class LynnIncrementalRunner:
         blocks: list[dict[str, Any]] = []
         for start_layer in range(0, self.n_layers, 4):
             layers = [start_layer, start_layer + 1, start_layer + 2]
-            if any(LAYER_TYPES[i] != "linear_attention" for i in layers):
+            if any(self.layer_types[i] != "linear_attention" for i in layers):
                 raise RuntimeError(f"unexpected linear block layout at {layers}")
             input_buf = torch.empty_like(h_seed)
             output_buf = torch.empty_like(h_seed)
@@ -1210,7 +1211,8 @@ class LynnIncrementalRunner:
         recurrent/conv state. Prompt-specific values are copied into the slot
         before each request by `_get_reusable_linear_block_graphs`.
         """
-        graph_state = LynnInferenceState(
+        graph_state = LynnInferenceState.from_config(
+            self.cfg,
             batch=1,
             max_seq_len=self.max_seq_len,
             device=self.device,
@@ -1232,7 +1234,8 @@ class LynnIncrementalRunner:
     def _warmup_prefill_kernels(self) -> None:
         """Run one tiny prefill to compile kernels before serving requests."""
         ids = self.tokenizer("warmup", return_tensors="pt").input_ids.to(self.device)
-        state = LynnInferenceState(
+        state = LynnInferenceState.from_config(
+            self.cfg,
             batch=1,
             max_seq_len=self.max_seq_len,
             device=self.device,
@@ -1241,7 +1244,7 @@ class LynnIncrementalRunner:
         h = F.embedding(ids, self.outside["model.language_model.embed_tokens.weight"])
         pos = torch.arange(ids.shape[1], device=self.device, dtype=torch.long).unsqueeze(0)
         for i in range(self.n_layers):
-            h = _prefill_layer(h, pos, LAYER_TYPES[i], self.layer_weights[i], self.layer_cfgs[i], state, i)
+            h = _prefill_layer(h, pos, self.layer_types[i], self.layer_weights[i], self.layer_cfgs[i], state, i)
         h_final = _rms_norm(h, self.outside["model.language_model.norm.weight"])
         _ = self._lm_head_logits(h_final)
 
@@ -1267,7 +1270,8 @@ class LynnIncrementalRunner:
             ).input_ids
         forced_prefix_ids = [int(x) for x in (forced_prefix_ids or [])]
         T = ids.shape[1]
-        state = LynnInferenceState(
+        state = LynnInferenceState.from_config(
+            self.cfg,
             batch=1,
             max_seq_len=self.max_seq_len,
             device=self.device,
@@ -1280,7 +1284,7 @@ class LynnIncrementalRunner:
         h = F.embedding(ids, self.outside["model.language_model.embed_tokens.weight"])
         pos = torch.arange(T, device=self.device, dtype=torch.long).unsqueeze(0)
         for i in range(self.n_layers):
-            h = _prefill_layer(h, pos, LAYER_TYPES[i], self.layer_weights[i], self.layer_cfgs[i], state, i)
+            h = _prefill_layer(h, pos, self.layer_types[i], self.layer_weights[i], self.layer_cfgs[i], state, i)
         state.seq_len = T
         h_final = _rms_norm(h, self.outside["model.language_model.norm.weight"])
         logits = self._lm_head_logits(h_final)

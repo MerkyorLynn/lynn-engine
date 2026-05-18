@@ -507,6 +507,11 @@ def load_qwen36_layer(
         config["expert_intermediate"] = final["mlp.experts.0.gate_proj.weight"].shape[0]
     if "mlp.shared_expert.gate_proj.weight" in final:
         config["shared_intermediate"] = final["mlp.shared_expert.gate_proj.weight"].shape[0]
+    if "mlp.gate_proj.weight" in final and "mlp.gate.weight" not in final:
+        config["num_experts"] = 0
+        config["num_experts_per_tok"] = 0
+        config["is_moe"] = False
+        config["ffn_intermediate"] = final["mlp.gate_proj.weight"].shape[0]
 
     return final, config
 

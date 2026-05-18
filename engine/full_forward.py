@@ -139,7 +139,9 @@ def _full_attn_forward(h: torch.Tensor, position_ids: torch.Tensor,
 def _moe_forward(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
     """MoE forward: 256 experts, top-K=8 routing, shared expert with sigmoid gate."""
     B, M, D = h.shape
-    E = cfg["num_experts"]
+    E = int(cfg.get("num_experts", 0) or 0)
+    if E <= 0:
+        raise RuntimeError("MoE forward called for a dense FFN layer")
     K = cfg["num_experts_per_tok"]
 
     h_flat = h.view(B * M, D)
@@ -181,6 +183,19 @@ def _moe_forward(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
     return moe_out.view(B, M, D)
 
 
+def _dense_ffn_forward(h: torch.Tensor, w: dict) -> torch.Tensor:
+    """Dense Qwen FFN: down_proj(silu(gate_proj(x)) * up_proj(x))."""
+    gate = F.linear(h, w["mlp.gate_proj.weight"])
+    up = F.linear(h, w["mlp.up_proj.weight"])
+    return F.linear(F.silu(gate) * up, w["mlp.down_proj.weight"])
+
+
+def _ffn_forward(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
+    if cfg.get("is_moe", int(cfg.get("num_experts", 0) or 0) > 0):
+        return _moe_forward(h, w, cfg)
+    return _dense_ffn_forward(h, w)
+
+
 def _layer_forward(h: torch.Tensor, position_ids: torch.Tensor, layer_type: str,
                    w: dict, cfg: dict) -> torch.Tensor:
     """One transformer block."""
@@ -198,11 +213,11 @@ def _layer_forward(h: torch.Tensor, position_ids: torch.Tensor, layer_type: str,
         raise ValueError(f"Unknown layer_type: {layer_type}")
     h = residual + attn_out
 
-    # Post-norm + MoE
+    # Post-norm + FFN
     residual = h
     h_norm = _rms_norm(h, w["post_attention_layernorm.weight"])
-    moe_out = _moe_forward(h_norm, w, cfg)
-    return residual + moe_out
+    ffn_out = _ffn_forward(h_norm, w, cfg)
+    return residual + ffn_out
 
 
 def _with_inferred_layer_config(base_cfg: dict, inferred: dict | None, layer_idx: int | None = None) -> dict:
@@ -289,8 +304,8 @@ def _prefill_layer(h, position_ids, layer_type, w, cfg, state, layer_idx):
 
     residual = h
     h_norm = _rms_norm(h, w["post_attention_layernorm.weight"])
-    moe_out = _moe_forward(h_norm, w, cfg)
-    return residual + moe_out
+    ffn_out = _ffn_forward(h_norm, w, cfg)
+    return residual + ffn_out
 
 
 @lru_cache(maxsize=None)
@@ -372,10 +387,13 @@ def _decode_layer(
 
     residual = h
     h_norm = _rms_norm(h, w["post_attention_layernorm.weight"])
-    if moe_fn is None:
-        moe_fn = _resolve_decode_moe_impl(os.environ.get("LYNN_MOE_IMPL", "optimized"))
-    moe_out = moe_fn(h_norm, w, cfg)
-    return residual + moe_out
+    if cfg.get("is_moe", int(cfg.get("num_experts", 0) or 0) > 0):
+        if moe_fn is None:
+            moe_fn = _resolve_decode_moe_impl(os.environ.get("LYNN_MOE_IMPL", "optimized"))
+        ffn_out = moe_fn(h_norm, w, cfg)
+    else:
+        ffn_out = _dense_ffn_forward(h_norm, w)
+    return residual + ffn_out
 
 
 def generate_incremental(model_dir, prompt, max_new=5, device="cuda",
@@ -386,24 +404,26 @@ def generate_incremental(model_dir, prompt, max_new=5, device="cuda",
     on Spark for short generations and scale O(1) per token (vs O(T) brute).
     """
     from engine.loader import load_qwen36_layer
-    from engine.inference_state import LynnInferenceState, LAYER_TYPES
+    from engine.inference_state import LynnInferenceState, infer_layer_types
 
     with open(Path(model_dir) / "config.json") as f:
         full_cfg = json.load(f)
     tc = full_cfg["text_config"]
     rope_p = tc.get("rope_parameters", {})
+    num_experts = int(tc.get("num_experts", 0) or 0)
+    layer_types = infer_layer_types(tc)
     cfg = {
         "hidden_size": tc["hidden_size"],
         "num_attention_heads": tc["num_attention_heads"],
         "num_key_value_heads": tc["num_key_value_heads"],
         "head_dim": tc["head_dim"],
-        "num_experts": tc["num_experts"],
-        "num_experts_per_tok": tc["num_experts_per_tok"],
+        "num_experts": num_experts,
+        "num_experts_per_tok": int(tc.get("num_experts_per_tok", 0) or 0),
+        "is_moe": num_experts > 0,
         "rope_theta": rope_p.get("rope_theta", tc.get("rope_theta", 1e6)),
         "partial_rotary_factor": rope_p.get("partial_rotary_factor", 1.0),
     }
     n_layers = tc["num_hidden_layers"]
-    assert LAYER_TYPES == tc["layer_types"], "layer_types config mismatch"
 
     from transformers import AutoTokenizer
     tok = AutoTokenizer.from_pretrained(model_dir)
@@ -440,7 +460,7 @@ def generate_incremental(model_dir, prompt, max_new=5, device="cuda",
     _impl = _os.environ.get("LYNN_MOE_IMPL", "optimized")
 
     # Allocate inference state
-    state = LynnInferenceState(batch=1, max_seq_len=max_seq_len, device=device, dtype=dtype)
+    state = LynnInferenceState.from_config(tc, batch=1, max_seq_len=max_seq_len, device=device, dtype=dtype)
 
     # === PREFILL ===
     if verbose:
@@ -449,7 +469,7 @@ def generate_incremental(model_dir, prompt, max_new=5, device="cuda",
     h = F.embedding(ids, outside["model.language_model.embed_tokens.weight"])
     pos = torch.arange(T, device=device, dtype=torch.long).unsqueeze(0)
     for i in range(n_layers):
-        h = _prefill_layer(h, pos, LAYER_TYPES[i], layer_weights[i], layer_cfgs[i], state, i)
+        h = _prefill_layer(h, pos, layer_types[i], layer_weights[i], layer_cfgs[i], state, i)
     state.seq_len = T
 
     # First token from prefill last position
@@ -465,7 +485,7 @@ def generate_incremental(model_dir, prompt, max_new=5, device="cuda",
 
     # Phase 3.2 indexed decode preparation. Prefill above uses the baseline MoE
     # path, so only now can we replace per-expert weights with stacked tensors.
-    if _impl in ("indexed_bmm", "triton"):
+    if cfg["is_moe"] and _impl in ("indexed_bmm", "triton"):
         from triton_kernels.moe_expert_ffn import stack_expert_weights
         if verbose:
             print(f"Pre-stacking expert weights for {_impl} after prefill ...", flush=True)
@@ -494,7 +514,7 @@ def generate_incremental(model_dir, prompt, max_new=5, device="cuda",
         pos = state.seq_len   # new token position
 
         for i in range(n_layers):
-            h = _decode_layer(h, pos, LAYER_TYPES[i], layer_weights[i], layer_cfgs[i], state, i)
+            h = _decode_layer(h, pos, layer_types[i], layer_weights[i], layer_cfgs[i], state, i)
 
         state.seq_len += 1
         h_final = _rms_norm(h, outside["model.language_model.norm.weight"])
@@ -529,22 +549,25 @@ def generate_greedy(model_dir: str, prompt: str, max_new: int = 5,
         new_token_ids: list of generated token ids
     """
     from engine.loader import load_qwen36_layer
+    from engine.inference_state import infer_layer_types
 
     with open(Path(model_dir) / "config.json") as f:
         full_cfg = json.load(f)
     tc = full_cfg["text_config"]
     rope_p = tc.get("rope_parameters", {})
+    num_experts = int(tc.get("num_experts", 0) or 0)
     cfg = {
         "hidden_size": tc["hidden_size"],
         "num_attention_heads": tc["num_attention_heads"],
         "num_key_value_heads": tc["num_key_value_heads"],
         "head_dim": tc["head_dim"],
-        "num_experts": tc["num_experts"],
-        "num_experts_per_tok": tc["num_experts_per_tok"],
+        "num_experts": num_experts,
+        "num_experts_per_tok": int(tc.get("num_experts_per_tok", 0) or 0),
+        "is_moe": num_experts > 0,
         "rope_theta": rope_p.get("rope_theta", tc.get("rope_theta", 1e6)),
         "partial_rotary_factor": rope_p.get("partial_rotary_factor", 1.0),
     }
-    layer_types = tc["layer_types"]
+    layer_types = infer_layer_types(tc)
     n_layers = tc["num_hidden_layers"]
 
     from transformers import AutoTokenizer
@@ -611,24 +634,26 @@ def run_forward(model_dir: str, prompt: str, max_new: int = 1, device: str = "cu
                 dtype=torch.bfloat16, verbose: bool = True):
     """End-to-end Lynn-engine forward on `prompt`. Returns logits + top-1 token."""
     from engine.loader import load_qwen36_layer
+    from engine.inference_state import infer_layer_types
 
     # Config
     with open(Path(model_dir) / "config.json") as f:
         full_config = json.load(f)
     tc = full_config["text_config"]
     rope_p = tc.get("rope_parameters", {})
+    num_experts = int(tc.get("num_experts", 0) or 0)
     cfg = {
         "hidden_size": tc["hidden_size"],
         "num_attention_heads": tc["num_attention_heads"],
         "num_key_value_heads": tc["num_key_value_heads"],
         "head_dim": tc["head_dim"],
-        "num_experts": tc["num_experts"],
-        "num_experts_per_tok": tc["num_experts_per_tok"],
-        # Qwen 3.6 stores rope params under text_config.rope_parameters
+        "num_experts": num_experts,
+        "num_experts_per_tok": int(tc.get("num_experts_per_tok", 0) or 0),
+        "is_moe": num_experts > 0,
         "rope_theta": rope_p.get("rope_theta", tc.get("rope_theta", 1e6)),
         "partial_rotary_factor": rope_p.get("partial_rotary_factor", 1.0),
     }
-    layer_types = tc["layer_types"]
+    layer_types = infer_layer_types(tc)
     n_layers = tc["num_hidden_layers"]
 
     # Tokenize
@@ -672,8 +697,10 @@ def run_forward(model_dir: str, prompt: str, max_new: int = 1, device: str = "cu
         t_fwd = time.time() - t0
 
         if verbose:
+            ne = int(layer_cfg.get("num_experts", 0) or 0)
+            ffn_tag = f"E {ne:3d}" if ne > 0 else "dense"
             print(f"  L{i:2} ({layer_type[:6]}) load {t_load:5.1f}s  fwd {t_fwd*1000:5.0f}ms  "
-                  f"E {layer_cfg['num_experts']:3d}  h_mag {h.float().abs().mean().item():.3f}")
+                  f"{ffn_tag}  h_mag {h.float().abs().mean().item():.3f}")
 
         del weights
         if device.startswith("cuda"):
