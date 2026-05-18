@@ -437,81 +437,91 @@ def _moe_forward_decode_packed_nvfp4_fixed_triton(h: torch.Tensor, w: dict, cfg:
     w4a8_mode = _w4a8_fake_quant_mode()
     if w4a8_mode in {"gateup", "full"}:
         hidden = _fake_quant_fp8_activation(hidden)
-    gateup_backend = os.environ.get("LYNN_NATIVE_GATEUP_BACKEND", "triton")
-    if gateup_backend == "split16_fp4" and _layer_selected_for_native_cuda(cfg):
-        inter = _gate_up_native_split16_fp4(hidden, expert_ids, w)
-    elif gateup_backend == "cuda_tile_inter" and _layer_selected_for_native_cuda(cfg):
-        inter = _gate_up_native_cuda_tile_inter(hidden, expert_ids, w)
-    elif gateup_backend == "triton_fast_decode":
-        inter = nvfp4_grouped_gate_up_silu_fast_decode(
-            hidden,
-            expert_ids,
-            w["mlp.experts._gate_up_packed"],
-            w["mlp.experts._gate_up_scale"],
-            w["mlp.experts._gate_up_global_scale"],
-            block_inter=8,
-            block_hidden=256,
-            num_warps=4,
-        )
-    elif gateup_backend == "triton":
-        inter = nvfp4_grouped_gate_up_silu(
-            hidden,
-            expert_ids,
-            w["mlp.experts._gate_up_packed"],
-            w["mlp.experts._gate_up_scale"],
-            w["mlp.experts._gate_up_global_scale"],
-            block_inter=8,
-            block_hidden=256,
-            num_warps=4,
-        )
-    elif gateup_backend in {"cuda_tile_inter", "split16_fp4"}:
-        inter = nvfp4_grouped_gate_up_silu(
-            hidden,
-            expert_ids,
-            w["mlp.experts._gate_up_packed"],
-            w["mlp.experts._gate_up_scale"],
-            w["mlp.experts._gate_up_global_scale"],
-            block_inter=8,
-            block_hidden=256,
-            num_warps=4,
-        )
+    backend = os.environ.get("LYNN_NATIVE_ACTIVE_MOE_BACKEND", "triton")
+    if backend == "strict_fused_boundary" and _layer_selected_for_native_cuda(cfg):
+        moe_out = _active_moe_native_strict_fused_boundary(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
+    elif backend == "grouped_per16_nonatomic" and _layer_selected_for_native_cuda(cfg):
+        moe_out = _active_moe_native_grouped_per16_nonatomic(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
+    elif backend == "cuda_scalar_contract" and _layer_selected_for_native_cuda(cfg):
+        moe_out = _active_moe_native_cuda_scalar_contract(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
+    elif backend == "cuda_scalar" and _layer_selected_for_native_cuda(cfg):
+        moe_out = _active_moe_native_cuda_scalar(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
     else:
-        raise ValueError(
-            "LYNN_NATIVE_GATEUP_BACKEND must be 'triton', 'triton_fast_decode', 'cuda_tile_inter', "
-            "or 'split16_fp4', got "
-            f"{gateup_backend!r}"
-        )
-    if w4a8_mode == "full":
-        inter = _fake_quant_fp8_activation(inter)
-    down_backend = os.environ.get("LYNN_NATIVE_DOWN_BACKEND", "triton")
-    if down_backend == "cuda_tile" and _layer_selected_for_native_cuda(cfg):
-        moe_out = _down_weighted_sum_native_cuda_tile(inter, expert_ids, routing_weights, w).reshape_as(h_flat)
-    elif down_backend == "triton":
-        moe_out = nvfp4_grouped_down_weighted_sum(
-            inter,
-            expert_ids,
-            routing_weights,
-            w["mlp.experts._down_packed"],
-            w["mlp.experts._down_scale"],
-            w["mlp.experts._down_global_scale"],
-            block_hidden=8,
-            block_inter=512,
-            num_warps=8,
-        ).reshape_as(h_flat)
-    elif down_backend == "cuda_tile":
-        moe_out = nvfp4_grouped_down_weighted_sum(
-            inter,
-            expert_ids,
-            routing_weights,
-            w["mlp.experts._down_packed"],
-            w["mlp.experts._down_scale"],
-            w["mlp.experts._down_global_scale"],
-            block_hidden=8,
-            block_inter=512,
-            num_warps=8,
-        ).reshape_as(h_flat)
-    else:
-        raise ValueError("LYNN_NATIVE_DOWN_BACKEND must be 'triton' or 'cuda_tile', got " f"{down_backend!r}")
+        gateup_backend = os.environ.get("LYNN_NATIVE_GATEUP_BACKEND", "triton")
+        if gateup_backend == "split16_fp4" and _layer_selected_for_native_cuda(cfg):
+            inter = _gate_up_native_split16_fp4(hidden, expert_ids, w)
+        elif gateup_backend == "cuda_tile_inter" and _layer_selected_for_native_cuda(cfg):
+            inter = _gate_up_native_cuda_tile_inter(hidden, expert_ids, w)
+        elif gateup_backend == "triton_fast_decode":
+            inter = nvfp4_grouped_gate_up_silu_fast_decode(
+                hidden,
+                expert_ids,
+                w["mlp.experts._gate_up_packed"],
+                w["mlp.experts._gate_up_scale"],
+                w["mlp.experts._gate_up_global_scale"],
+                block_inter=8,
+                block_hidden=256,
+                num_warps=4,
+            )
+        elif gateup_backend == "triton":
+            inter = nvfp4_grouped_gate_up_silu(
+                hidden,
+                expert_ids,
+                w["mlp.experts._gate_up_packed"],
+                w["mlp.experts._gate_up_scale"],
+                w["mlp.experts._gate_up_global_scale"],
+                block_inter=8,
+                block_hidden=256,
+                num_warps=4,
+            )
+        elif gateup_backend in {"cuda_tile_inter", "split16_fp4"}:
+            inter = nvfp4_grouped_gate_up_silu(
+                hidden,
+                expert_ids,
+                w["mlp.experts._gate_up_packed"],
+                w["mlp.experts._gate_up_scale"],
+                w["mlp.experts._gate_up_global_scale"],
+                block_inter=8,
+                block_hidden=256,
+                num_warps=4,
+            )
+        else:
+            raise ValueError(
+                "LYNN_NATIVE_GATEUP_BACKEND must be 'triton', 'triton_fast_decode', 'cuda_tile_inter', "
+                "or 'split16_fp4', got "
+                f"{gateup_backend!r}"
+            )
+        if w4a8_mode == "full":
+            inter = _fake_quant_fp8_activation(inter)
+        down_backend = os.environ.get("LYNN_NATIVE_DOWN_BACKEND", "triton")
+        if down_backend == "cuda_tile" and _layer_selected_for_native_cuda(cfg):
+            moe_out = _down_weighted_sum_native_cuda_tile(inter, expert_ids, routing_weights, w).reshape_as(h_flat)
+        elif down_backend == "triton":
+            moe_out = nvfp4_grouped_down_weighted_sum(
+                inter,
+                expert_ids,
+                routing_weights,
+                w["mlp.experts._down_packed"],
+                w["mlp.experts._down_scale"],
+                w["mlp.experts._down_global_scale"],
+                block_hidden=8,
+                block_inter=512,
+                num_warps=8,
+            ).reshape_as(h_flat)
+        elif down_backend == "cuda_tile":
+            moe_out = nvfp4_grouped_down_weighted_sum(
+                inter,
+                expert_ids,
+                routing_weights,
+                w["mlp.experts._down_packed"],
+                w["mlp.experts._down_scale"],
+                w["mlp.experts._down_global_scale"],
+                block_hidden=8,
+                block_inter=512,
+                num_warps=8,
+            ).reshape_as(h_flat)
+        else:
+            raise ValueError("LYNN_NATIVE_DOWN_BACKEND must be 'triton' or 'cuda_tile', got " f"{down_backend!r}")
 
     if _skip_shared_from_env():
         return moe_out.to(h.dtype).reshape_as(h)
@@ -557,8 +567,17 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
             raise RuntimeError("LYNN_MOE_FAST_FIXED requires LYNN_ROUTER_TOPK_SORTED=0")
         if os.environ.get("LYNN_MOE_PROFILE_SKIP_ACTIVE", "0") == "1":
             raise RuntimeError("LYNN_MOE_FAST_FIXED does not support LYNN_MOE_PROFILE_SKIP_ACTIVE")
-        if os.environ.get("LYNN_NATIVE_ACTIVE_MOE_BACKEND", "triton") != "triton":
-            raise RuntimeError("LYNN_MOE_FAST_FIXED requires LYNN_NATIVE_ACTIVE_MOE_BACKEND=triton")
+        if os.environ.get("LYNN_NATIVE_ACTIVE_MOE_BACKEND", "triton") not in {
+            "triton",
+            "cuda_scalar",
+            "cuda_scalar_contract",
+            "strict_fused_boundary",
+            "grouped_per16_nonatomic",
+        }:
+            raise RuntimeError(
+                "LYNN_MOE_FAST_FIXED requires LYNN_NATIVE_ACTIVE_MOE_BACKEND to be one of "
+                "triton, cuda_scalar, cuda_scalar_contract, strict_fused_boundary, or grouped_per16_nonatomic"
+            )
         if os.environ.get("LYNN_NATIVE_GATEUP_BACKEND", "triton") not in {
             "triton",
             "triton_fast_decode",
