@@ -638,6 +638,23 @@ The grouped-per16 kernel remains a useful speed ceiling signal, but promotion
 needs a numerically stricter active-MoE implementation rather than choosing a
 subset of layers.
 
+A final MoE block-shape sweep checked whether the current Triton path had an
+easy safe retune hiding behind `LYNN_MOE_FAST_FIXED`. It does not:
+
+| Candidate | P37 exact | P37 median TPS | Service/P25 result |
+|---|---:|---:|---|
+| `LYNN_MOE_FAST_FIXED=0` | GREEN, 3/3 | `104.51 -> 105.13` | Not promoted: P25 512 decode TPS `103.88`, below current default |
+| `FAST_FIXED=0`, gate hidden block `64` | RED | `104.48 -> 98.42` | Closed |
+| `FAST_FIXED=0`, gate inter block `16` | RED | `103.64 -> 90.07` | Closed |
+| `FAST_FIXED=0`, down hidden block `16` | RED | `104.27 -> 99.03` | Closed |
+| `FAST_FIXED=0`, down inter block `256` | RED | `104.43 -> 104.35` | Closed |
+| `FAST_FIXED=0`, gate inter `16`, hidden `128` | RED | `104.23 -> 91.53` | Closed |
+
+The service result is the authority here. Even the only exact P37 candidate is
+flat-to-negative on P25, so the default stays `LYNN_MOE_FAST_FIXED=1` with the
+current block shape. The next MoE work must change the kernel boundary, not just
+retune the existing Triton block sizes.
+
 Copied reports:
 
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p76_cutlass_cute_20260518_035340.json`
@@ -677,6 +694,13 @@ Copied reports:
 - `reports/qwen36_35b/p33_grouped_per16_nonatomic_layer_24_20260518_113932.json`
 - `reports/qwen36_35b/p33_grouped_per16_nonatomic_layer_32_20260518_113953.json`
 - `reports/qwen36_35b/p37_grouped_per16_nonatomic_layers16_32_20260518_114034.json`
+- `reports/qwen36_35b/p37_moe_block_ff0_20260518_115209.json`
+- `reports/qwen36_35b/p37_moe_block_ff0_gh64_20260518_115209.json`
+- `reports/qwen36_35b/p37_moe_block_ff0_gi16_20260518_115209.json`
+- `reports/qwen36_35b/p37_moe_block_ff0_dh16_20260518_115209.json`
+- `reports/qwen36_35b/p37_moe_block_ff0_di256_20260518_115209.json`
+- `reports/qwen36_35b/p37_moe_block_ff0_gi16_gh128_20260518_115209.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p25_server_decode_tps_ff0_p25_20260518_115717.json`
 
 ## Speed Profile
 
