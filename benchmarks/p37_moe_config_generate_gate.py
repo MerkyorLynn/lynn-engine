@@ -59,6 +59,7 @@ BASE_ENV = {
     "LYNN_NATIVE_ACTIVE_MOE_BACKEND": "triton",
     "LYNN_NATIVE_GATEUP_BACKEND": "triton_fast_decode",
     "LYNN_NATIVE_DOWN_BACKEND": "triton",
+    "LYNN_SHARED_EXPERT_GATE_BACKEND": "torch",
 }
 
 

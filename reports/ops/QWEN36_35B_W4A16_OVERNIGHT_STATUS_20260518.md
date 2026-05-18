@@ -367,6 +367,42 @@ Copied reports:
 - `reports/qwen36_35b/p38_moe_conv_promoted_20260518_082209.json`
 - `reports/qwen36_35b/p39_active_moe_conv_promoted_20260518_082417.json`
 
+### Shared-Gate Triton AMBER Branch
+
+`LYNN_SHARED_EXPERT_GATE_BACKEND=triton` fuses the shared-expert scalar gate
+application into one Triton kernel:
+
+```text
+shared * sigmoid(hidden @ shared_expert_gate.T)
+```
+
+It is a useful speed signal, but not a default promotion yet.
+
+| Probe | Result |
+|---|---:|
+| P43 fused shared expert, torch gate | 0.0550 ms/layer |
+| P43 fused shared expert, Triton gate | 0.0504 ms/layer |
+| P37 greedy exact match | RED, 0/3 exact |
+| P37 median decode TPS | 104.81 -> 109.69 |
+| P25 128-token wall / decode TPS | 56.79 / 107.64 |
+| P25 256-token wall / decode TPS | 82.79 / 109.35 |
+| P25 512-token wall / decode TPS | 93.95 / 109.19 |
+| Structured OpenAI gate | GREEN, 14/14 format-clean |
+| Structured gate decode TPS | mean 108.52, min 102.54 |
+
+The P37 failures are not punctuation collapse; they are normal-looking greedy
+text divergences from the different scalar-gate reduction order. Keep this as
+an AMBER speed branch until a longer structured/code/tool-call and benchmark
+quality sweep says the drift is acceptable.
+
+Copied reports:
+
+- `reports/qwen36_35b/p43_shared_gate_torch_20260518_083212.json`
+- `reports/qwen36_35b/p43_shared_gate_triton_20260518_083233.json`
+- `reports/qwen36_35b/p37_shared_gate_triton_20260518_083325.json`
+- `reports/qwen36_35b/p25_shared_gate_triton_20260518_083519.json`
+- `reports/qwen36_35b/structured_gate_shared_gate_triton_20260518_083519.json`
+
 Negative probes from the same loop:
 
 - Router Triton top-k is not a full-path win: sampled full router regressed from

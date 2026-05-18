@@ -62,6 +62,7 @@ def _env_snapshot() -> dict[str, str | None]:
         "LYNN_LINEAR_ATTN_CONV_BACKEND",
         "LYNN_QK_NORM_ROPE_BACKEND",
         "LYNN_RMSNORM_GATED_BACKEND",
+        "LYNN_SHARED_EXPERT_GATE_BACKEND",
         "LYNN_DECODE_FAST_DISPATCH",
         "LYNN_MOE_FAST_FIXED",
         "LYNN_NATIVE_ACTIVE_MOE",
