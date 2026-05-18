@@ -1,6 +1,6 @@
 # Native MoE Candidate Summary
 
-**Generated:** 2026-05-18T22:53:30
+**Generated:** 2026-05-18T23:01:10
 
 ## Prerequisites
 
@@ -13,7 +13,7 @@
 ## Packed-Slot Readiness (p138/p139)
 
 - **p138 manifest:** `p138_packed_slot_fixtures_manifest_kimi_20260518.json`
-- **p139 contract:** `p139_slot_packed_contract_kimi_20260518.json`
+- **p139 contract:** `p139_slot_packed_contract_kimi_gz_20260518.json`
 
 | Field | Value |
 |-------|-------|

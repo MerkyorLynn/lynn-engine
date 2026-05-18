@@ -1,10 +1,8 @@
 {
   "schema": "lynn-native-moe-candidate-summary-v2",
-  "created": "2026-05-18T22:53:30",
+  "created": "2026-05-18T23:01:10",
   "report_dir": "reports/qwen36_35b",
-  "extra_report_dirs": [
-    "/Users/lynn/Downloads/Lynn/lynn-engine-main/reports/qwen36_35b"
-  ],
+  "extra_report_dirs": [],
   "p136": {
     "report": "reports/qwen36_35b/p136_slot_repack_contract_slotorder_report_20260518.json",
     "verdict": "GREEN",
@@ -23,7 +21,7 @@
   },
   "packed_slot": {
     "p138_manifest": "reports/qwen36_35b/p138_packed_slot_fixtures_manifest_kimi_20260518.json",
-    "p139_report": "reports/qwen36_35b/p139_slot_packed_contract_kimi_20260518.json",
+    "p139_report": "reports/qwen36_35b/p139_slot_packed_contract_kimi_gz_20260518.json",
     "num_fixtures": 18,
     "packed_fixture_mb": 270.08,
     "bf16_equiv_mb": 864.0,
