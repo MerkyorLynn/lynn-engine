@@ -18,6 +18,7 @@
 |---|---:|---:|---:|---:|---:|---|
 | `safe_default_full` | DEFAULT | exact | 107.43 | 40/40 | 107.86 | Publishable baseline |
 | `amber_sharedgate_convinplace` | CLOSED under new gate | drift | 113.08 | 69/70 | 113.60 | Fails 70-prompt gate and below 118 AMBER TPS |
+| `safe_default_70` | CLOSED diagnostic | exact | 107.31 | 59/70 | 107.49 | Ran against the later hard-v2 70 set, not the earlier AMBER 70 set |
 | `strict_fused_boundary_fullattn` | CLOSED | drift | 96.28 | 40/40 | 96.91 | Full-attn-only strict boundary is slower and not exact |
 
 ## Failure Detail
@@ -25,10 +26,10 @@
 - `amber_sharedgate_convinplace` failed on `yaml_content_json`.
 - It expanded the requested content block into a full OpenAPI document, hit `max_new`, and did not start with an allowed YAML block prefix.
 - This confirms the 70-prompt gate is catching exactly the structured-format drift that 40/40 could miss.
+- A later safe-default 70 run used a harder remote prompt file version and got 59/70, while keeping P37 exact. Treat that run as a diagnostic of the hard-v2 prompt set rather than as a default downgrade.
 
 ## Implication
 
 - Do not promote `LYNN_SHARED_EXPERT_GATE_BACKEND=triton + LYNN_LINEAR_ATTN_CONV_BACKEND=triton_inplace` yet.
 - Continue the kernel route through numerically strict boundaries: active MoE strict boundary, linear-attn boundary, or repacked W4A16 kernels that preserve P37 exactness.
 - The next publishable speed step needs strict parity plus a real P25 512 lift above 108, then 70/70 + 118 for AMBER.
-

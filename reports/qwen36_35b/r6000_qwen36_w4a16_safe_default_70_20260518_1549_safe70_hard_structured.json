@@ -1,0 +1,1573 @@
+{
+  "schema_version": "lynn-openai-structured-tps-gate-v1",
+  "decision": "RED: structured serving is below target 107.00 decode TPS or failed format checks.",
+  "base_url": "http://127.0.0.1:18213",
+  "model": "Qwen36-35B-W4A16-safe_default_70-20260518_1549_safe70",
+  "prompt_specs_file": "scripts/qwen36_structured_hard_prompts_70.json",
+  "prompt_spec_count": 70,
+  "request_count": 70,
+  "target_decode_tps": 107.0,
+  "max_tokens": 128,
+  "temperature": 0.0,
+  "summary": {
+    "request_count": 70,
+    "format_ok": 59,
+    "all_format_ok": false,
+    "all_finish_stop": true,
+    "decode_tps_mean": 107.49377206788631,
+    "decode_tps_min": 102.55976943963032,
+    "decode_tps_max": 108.2129751804156,
+    "http_tps_mean": 27.989740939985285
+  },
+  "rows": [
+    {
+      "idx": 0,
+      "id": "json_nested_weather_args",
+      "prompt": "Return exactly one JSON object for a get_weather tool call. Keys: tool, arguments. arguments must contain city=\"Tokyo\", unit=\"celsius\", days=3.",
+      "elapsed_seconds": 1.3538789749145508,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 47,
+      "decode_tps": 106.89967426674002,
+      "tokens_per_second_http": 36.52434965438172,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "arguments",
+          "tool"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"tool\": \"get_weather\",\n  \"arguments\": {\n    \"city\": \"Tokyo\",\n    \"unit\": \"celsius\",\n    \"days\": 3\n  }\n}"
+    },
+    {
+      "idx": 1,
+      "id": "json_schema_user_profile",
+      "prompt": "Return one JSON Schema object for a user profile with required string name and integer age. Include type, properties, required.",
+      "elapsed_seconds": 1.5074820518493652,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 74,
+      "decode_tps": 102.55976943963032,
+      "tokens_per_second_http": 49.2907681872747,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "properties",
+          "required",
+          "type"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"name\": {\n      \"type\": \"string\"\n    },\n    \"age\": {\n      \"type\": \"integer\"\n    }\n  },\n  \"required\": [\n    \"name\",\n    \"age\"\n  ]\n}"
+    },
+    {
+      "idx": 2,
+      "id": "json_function_args_normalize_city",
+      "prompt": "Return only the JSON arguments object for function normalize_city. Use city=\"New York\", country=\"US\", lowercase=false.",
+      "elapsed_seconds": 1.0695788860321045,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 28,
+      "decode_tps": 107.47603465162364,
+      "tokens_per_second_http": 26.28354096658285,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "city",
+          "country",
+          "lowercase"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"city\": \"New York\",\n  \"country\": \"US\",\n  \"lowercase\": false\n}"
+    },
+    {
+      "idx": 3,
+      "id": "python_palindrome_code_only",
+      "prompt": "Only output Python code, no markdown. Define is_palindrome(s: str) -> bool. It should ignore case and non-alphanumeric characters.",
+      "elapsed_seconds": 1.1420049667358398,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 39,
+      "decode_tps": 107.62134444680026,
+      "tokens_per_second_http": 34.277443478566994,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def is_palindrome(s: str) -> bool:\n    cleaned = ''.join(c.lower() for c in s if c.isalnum())\n    return cleaned == cleaned[::-1]"
+    },
+    {
+      "idx": 4,
+      "id": "python_normalize_city_code_only",
+      "prompt": "Only output Python code, no markdown. Define normalize_city(city: str) -> str that strips whitespace and title-cases words.",
+      "elapsed_seconds": 0.952681303024292,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 19,
+      "decode_tps": 107.77839449069792,
+      "tokens_per_second_http": 20.039145997855062,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def normalize_city(city: str) -> str:\n    return city.strip().title()"
+    },
+    {
+      "idx": 5,
+      "id": "yaml_openapi_request_body",
+      "prompt": "Output only an OpenAPI YAML requestBody for application/json with object properties email:string and subscribed:boolean. No explanation.",
+      "elapsed_seconds": 1.2013981342315674,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 49,
+      "decode_tps": 107.4025366696808,
+      "tokens_per_second_http": 40.97193817235491,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "```yaml\nrequestBody:\n  content:\n    application/json:\n      schema:\n        type: object\n        properties:\n          email:\n            type: string\n          subscribed:\n            type: boolean\n```"
+    },
+    {
+      "idx": 6,
+      "id": "router_zh_prefix",
+      "prompt": "用一句中文短句说明 MoE router 的作用。必须以 router 开头，必须包含 动态分配、专家、token。",
+      "elapsed_seconds": 0.9237926006317139,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 13,
+      "decode_tps": 107.82411084975385,
+      "tokens_per_second_http": 14.133979229569661,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "router 负责将 token 动态分配给合适的专家。"
+    },
+    {
+      "idx": 7,
+      "id": "linear_attention_zh_exact_terms",
+      "prompt": "用一句中文短句说明 linear attention 适合长上下文的原因。必须包含 计算复杂度、线性、长上下文。",
+      "elapsed_seconds": 0.9494302272796631,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 17,
+      "decode_tps": 107.59746866697772,
+      "tokens_per_second_http": 18.014211646718856,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "Linear attention 将计算复杂度降低为线性，从而高效处理长上下文。"
+    },
+    {
+      "idx": 8,
+      "id": "short_math_number_only",
+      "prompt": "Answer only with the number: 17 multiplied by 23.",
+      "elapsed_seconds": 0.7495846748352051,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 4,
+      "decode_tps": 107.1150496718339,
+      "tokens_per_second_http": 5.3726702823457675,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "391"
+    },
+    {
+      "idx": 9,
+      "id": "json_patch_ops",
+      "prompt": "Return one JSON array of JSON Patch operations to replace /name with \"Lynn\" and add /active true.",
+      "elapsed_seconds": 1.3813576698303223,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 63,
+      "decode_tps": 107.68569558017433,
+      "tokens_per_second_http": 45.741921065755804,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "[\n  {\n    \"op\": \"replace\",\n    \"path\": \"/name\",\n    \"value\": \"Lynn\"\n  },\n  {\n    \"op\": \"add\",\n    \"path\": \"/active\",\n    \"value\": true\n  }\n]"
+    },
+    {
+      "idx": 10,
+      "id": "json_h_nested_tool_array",
+      "prompt": "Return one JSON object with key tool_calls (array). Inside: two entries — first is search_web with arguments {query:\"NVFP4\", top_k:5}; second is fetch_url with arguments {url:\"https://example.com\", timeout_s:10}.",
+      "elapsed_seconds": 1.8385980129241943,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 100,
+      "decode_tps": 107.6477424974594,
+      "tokens_per_second_http": 54.506945428129214,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "tool_calls"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"tool_calls\": [\n    {\n      \"name\": \"search_web\",\n      \"arguments\": {\n        \"query\": \"NVFP4\",\n        \"top_k\": 5\n      }\n    },\n    {\n      \"name\": \"fetch_url\",\n      \"arguments\": {\n        \"url\": \"https://example.com\",\n        \"timeout_s\": 10\n      }\n    }\n  ]\n}"
+    },
+    {
+      "idx": 11,
+      "id": "json_h_unicode_keys",
+      "prompt": "Return one JSON object describing a city with keys 城市, country, 人口. Use 城市=\"北京\", country=\"China\", 人口=21893000.",
+      "elapsed_seconds": 1.1816167831420898,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 34,
+      "decode_tps": 107.44724131453067,
+      "tokens_per_second_http": 28.870005316217785,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "country",
+          "人口",
+          "城市"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"城市\": \"北京\",\n  \"country\": \"China\",\n  \"人口\": 21893000\n}"
+    },
+    {
+      "idx": 12,
+      "id": "json_h_escape_string",
+      "prompt": "Return one JSON object with key 'pattern' whose value is the literal string: She said \"hi\\nbye\" — that needs escaping.",
+      "elapsed_seconds": 1.0765633583068848,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 28,
+      "decode_tps": 107.83247842087974,
+      "tokens_per_second_http": 26.132421194760898,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "pattern"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"pattern\": \"She said \\\"hi\\\\nbye\\\" \\u2014 that needs escaping.\"\n}"
+    },
+    {
+      "idx": 13,
+      "id": "json_h_conditional_choice",
+      "prompt": "Return one JSON object representing a chat completion request: model=\"qwen3.6\", messages=[{role:\"user\", content:\"Hello\"}], stream=true, max_tokens=128.",
+      "elapsed_seconds": 1.4458091259002686,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 64,
+      "decode_tps": 107.61550350469716,
+      "tokens_per_second_http": 44.37774158372564,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "max_tokens",
+          "messages",
+          "model",
+          "stream"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"model\": \"qwen3.6\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Hello\"\n    }\n  ],\n  \"stream\": true,\n  \"max_tokens\": 128\n}"
+    },
+    {
+      "idx": 14,
+      "id": "json_h_response_schema_with_enum",
+      "prompt": "Return a JSON Schema for a record with required color (string, enum red|green|blue) and quantity (integer, minimum 1). Include type, properties, required, enum, minimum.",
+      "elapsed_seconds": 1.8191545009613037,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 105,
+      "decode_tps": 107.3265492262757,
+      "tokens_per_second_http": 57.83883077816134,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "properties",
+          "required",
+          "type"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"color\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"red\",\n        \"green\",\n        \"blue\"\n      ]\n    },\n    \"quantity\": {\n      \"type\": \"integer\",\n      \"minimum\": 1\n    }\n  },\n  \"required\": [\n    \"color\",\n    \"quantity\"\n  ]\n}"
+    },
+    {
+      "idx": 15,
+      "id": "json_h_deeply_nested_config",
+      "prompt": "Return one JSON config with keys server.host=\"0.0.0.0\", server.port=18099, runtime.dtype=\"bf16\", runtime.quant.method=\"nvfp4\", runtime.quant.bits=4. Use real nesting, not dot keys.",
+      "elapsed_seconds": 1.6582903861999512,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 83,
+      "decode_tps": 107.70191565170174,
+      "tokens_per_second_http": 50.17940248372216,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "runtime",
+          "server"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"server\": {\n    \"host\": \"0.0.0.0\",\n    \"port\": 18099\n  },\n  \"runtime\": {\n    \"dtype\": \"bf16\",\n    \"quant\": {\n      \"method\": \"nvfp4\",\n      \"bits\": 4\n    }\n  }\n}"
+    },
+    {
+      "idx": 16,
+      "id": "json_h_array_of_objects_sorted",
+      "prompt": "Return a JSON array of three user objects, each with name and age, sorted ascending by age: Alice 23, Bob 18, Carol 30.",
+      "elapsed_seconds": 1.2127344608306885,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 41,
+      "decode_tps": 107.56252869023776,
+      "tokens_per_second_http": 33.910435329259606,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": false,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": false
+      },
+      "text": "[{\"name\": \"Bob\", \"age\": 18}, {\"name\": \"Alice\", \"age\": 23}, {\"name\": \"Carol\", \"age\": 30}]"
+    },
+    {
+      "idx": 17,
+      "id": "json_h_nullable_optional",
+      "prompt": "Return one JSON object with keys id (integer 1001), name (\"Lynn\"), middle_name (null), tags (empty array).",
+      "elapsed_seconds": 1.1730523109436035,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 38,
+      "decode_tps": 107.30272458557329,
+      "tokens_per_second_http": 32.53845139368362,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "id",
+          "middle_name",
+          "name",
+          "tags"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"id\": 1001,\n  \"name\": \"Lynn\",\n  \"middle_name\": null,\n  \"tags\": []\n}"
+    },
+    {
+      "idx": 18,
+      "id": "json_h_pair_swap_args",
+      "prompt": "Return JSON arguments for function move_file: src=\"/old/path.txt\", dst=\"/new/path.txt\", overwrite=false, retries=3.",
+      "elapsed_seconds": 1.1723887920379639,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 39,
+      "decode_tps": 107.62192580748408,
+      "tokens_per_second_http": 33.4306938584652,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "dst",
+          "overwrite",
+          "retries",
+          "src"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"src\": \"/old/path.txt\",\n  \"dst\": \"/new/path.txt\",\n  \"overwrite\": false,\n  \"retries\": 3\n}"
+    },
+    {
+      "idx": 19,
+      "id": "json_h_lynn_engine_runtime",
+      "prompt": "Return a JSON object describing a Lynn engine runtime selection: model=\"Qwen3.6-35B-A3B\", quant=\"w4a16-nvfp4\", host=\"rtx-pro-6000\", port=18099.",
+      "elapsed_seconds": 1.4838552474975586,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 65,
+      "decode_tps": 107.6610344602158,
+      "tokens_per_second_http": 43.90935495726956,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "host",
+          "model",
+          "port",
+          "quant"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"model\": \"Qwen3.6-35B-A3B\",\n  \"quant\": \"w4a16-nvfp4\",\n  \"host\": \"rtx-pro-6000\",\n  \"port\": 18099\n}"
+    },
+    {
+      "idx": 20,
+      "id": "json_h_iso_timestamp_field",
+      "prompt": "Return one JSON object: event=\"deploy\", timestamp=\"2026-05-18T15:30:00Z\", actor=\"merkyor\", status=\"success\".",
+      "elapsed_seconds": 1.3929803371429443,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 57,
+      "decode_tps": 107.25533123523921,
+      "tokens_per_second_http": 41.021509774799384,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "actor",
+          "event",
+          "status",
+          "timestamp"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"event\": \"deploy\",\n  \"timestamp\": \"2026-05-18T15:30:00Z\",\n  \"actor\": \"merkyor\",\n  \"status\": \"success\"\n}"
+    },
+    {
+      "idx": 21,
+      "id": "json_h_array_only_no_object_wrap",
+      "prompt": "Return JUST a JSON array of the five small fibonacci numbers starting at 1: 1,1,2,3,5. Just the array, no object wrapper.",
+      "elapsed_seconds": 0.9820811748504639,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 16,
+      "decode_tps": 106.95171457130617,
+      "tokens_per_second_http": 16.37142965179324,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": false,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": false
+      },
+      "text": "[1, 1, 2, 3, 5]"
+    },
+    {
+      "idx": 22,
+      "id": "json_h_kv_cache_dtype_choice",
+      "prompt": "Return one JSON config: kv_cache_dtype=\"fp8\", high_precision_layers=\"auto\", max_seq_len=65536, mtp_quantization=\"bf16\".",
+      "elapsed_seconds": 1.3472247123718262,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 52,
+      "decode_tps": 107.51598544401777,
+      "tokens_per_second_http": 38.725151218098695,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "high_precision_layers",
+          "kv_cache_dtype",
+          "max_seq_len",
+          "mtp_quantization"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"kv_cache_dtype\": \"fp8\",\n  \"high_precision_layers\": \"auto\",\n  \"max_seq_len\": 65536,\n  \"mtp_quantization\": \"bf16\"\n}"
+    },
+    {
+      "idx": 23,
+      "id": "py_h_clamp_function",
+      "prompt": "Only Python code, no markdown. Define clamp(x: float, lo: float, hi: float) -> float. Behavior: return lo if x<lo else hi if x>hi else x. No imports.",
+      "elapsed_seconds": 1.1554322242736816,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 34,
+      "decode_tps": 107.58621461584022,
+      "tokens_per_second_http": 29.4950888515586,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def clamp(x: float, lo: float, hi: float) -> float:\n    return lo if x < lo else hi if x > hi else x"
+    },
+    {
+      "idx": 24,
+      "id": "py_h_rle_encode",
+      "prompt": "Only Python code, no markdown. Define rle_encode(s: str) -> list[tuple[str, int]]. Run-length encode the string into list of (char, count) tuples.",
+      "elapsed_seconds": 1.9222652912139893,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 120,
+      "decode_tps": 107.47071892154233,
+      "tokens_per_second_http": 62.54309311632225,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def rle_encode(s: str) -> list[tuple[str, int]]:\n    if not s:\n        return []\n    \n    result = []\n    current_char = s[0]\n    count = 1\n    \n    for i in range(1, len(s)):\n        if s[i] == current_char:\n            count += 1\n        else:\n            result.append((current_char, count))\n            current_char = s[i]\n            count = 1\n    \n    result.append((current_char, count))\n    \n    return result"
+    },
+    {
+      "idx": 25,
+      "id": "py_h_async_sleep_print",
+      "prompt": "Only Python code, no markdown. Define an async function tick(n: int) -> None that awaits asyncio.sleep(1) and prints n. Include the import.",
+      "elapsed_seconds": 1.047212839126587,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 27,
+      "decode_tps": 107.93990707728976,
+      "tokens_per_second_http": 25.86343557402306,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "import asyncio\n\nasync def tick(n: int) -> None:\n    await asyncio.sleep(1)\n    print(n)"
+    },
+    {
+      "idx": 26,
+      "id": "py_h_dict_invert",
+      "prompt": "Only Python code, no markdown. Define invert(d: dict) -> dict that swaps keys and values. Assume values are hashable and unique.",
+      "elapsed_seconds": 1.0101065635681152,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 25,
+      "decode_tps": 107.94007623969934,
+      "tokens_per_second_http": 24.807979806798052,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def invert(d: dict) -> dict:\n    return {v: k for k, v in d.items()}"
+    },
+    {
+      "idx": 27,
+      "id": "py_h_pathlib_read_lines",
+      "prompt": "Only Python code, no markdown. Use pathlib.Path. Define read_nonempty_lines(path: str) -> list[str] returning non-empty stripped lines.",
+      "elapsed_seconds": 1.1416079998016357,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 42,
+      "decode_tps": 107.98644129101616,
+      "tokens_per_second_http": 36.8727166320219,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "from pathlib import Path\n\ndef read_nonempty_lines(path: str) -> list[str]:\n    return [line.strip() for line in Path(path).read_text().splitlines() if line.strip()]"
+    },
+    {
+      "idx": 28,
+      "id": "py_h_typed_dataclass",
+      "prompt": "Only Python code, no markdown. Use dataclasses. Define Point with fields x:int, y:int (frozen=True, slots=True).",
+      "elapsed_seconds": 1.0650689601898193,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 32,
+      "decode_tps": 107.85232865145007,
+      "tokens_per_second_http": 30.130398454438392,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "from dataclasses import dataclass\n\n@dataclass(frozen=True, slots=True)\nclass Point:\n    x: int\n    y: int"
+    },
+    {
+      "idx": 29,
+      "id": "py_h_safe_div",
+      "prompt": "Only Python code, no markdown. Define safe_div(a: float, b: float) -> float | None. Returns None if b==0 else a/b.",
+      "elapsed_seconds": 1.1252920627593994,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 35,
+      "decode_tps": 107.96737803862426,
+      "tokens_per_second_http": 31.19863882717432,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def safe_div(a: float, b: float) -> float | None:\n    if b == 0:\n        return None\n    return a / b"
+    },
+    {
+      "idx": 30,
+      "id": "py_h_logging_basic_setup",
+      "prompt": "Only Python code, no markdown. Configure root logger to level INFO with format '%(asctime)s %(levelname)s %(message)s'. Just the setup, no function.",
+      "elapsed_seconds": 0.9985723495483398,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 22,
+      "decode_tps": 107.69971864671638,
+      "tokens_per_second_http": 22.13302068362062,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "import logging\n\nlogging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')"
+    },
+    {
+      "idx": 31,
+      "id": "py_h_sorted_by_secondary",
+      "prompt": "Only Python code, no markdown. Define sort_users(users: list[dict]) -> list[dict] returning users sorted by age ascending then name ascending.",
+      "elapsed_seconds": 1.166529655456543,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 41,
+      "decode_tps": 107.8730564517892,
+      "tokens_per_second_http": 35.28943265278482,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def sort_users(users: list[dict]) -> list[dict]:\n    return sorted(users, key=lambda u: (u.get('age', 0), u.get('name', '')))"
+    },
+    {
+      "idx": 32,
+      "id": "py_h_argparse_two_flags",
+      "prompt": "Only Python code, no markdown. Build an argparse parser with --model (required string) and --temperature (float, default 0.7). Parse args and print them.",
+      "elapsed_seconds": 1.793855905532837,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 107,
+      "decode_tps": 107.70447830109399,
+      "tokens_per_second_http": 59.7742526029586,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "import argparse\n\ndef main():\n    parser = argparse.ArgumentParser(description=\"Example argument parser\")\n    parser.add_argument(\"--model\", type=str, required=True, help=\"The model name\")\n    parser.add_argument(\"--temperature\", type=float, default=0.7, help=\"Sampling temperature\")\n    \n    args = parser.parse_args()\n    \n    print(f\"Model: {args.model}\")\n    print(f\"Temperature: {args.temperature}\")\n\nif __name__ == \"__main__\":\n    main()"
+    },
+    {
+      "idx": 33,
+      "id": "yaml_h_docker_compose_minimal",
+      "prompt": "Output a docker-compose.yml top-level with version '3.9' and services.lynn-engine with image 'lynn-engine:0.1' and ports '18099:18099'.",
+      "elapsed_seconds": 1.3140833377838135,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 53,
+      "decode_tps": 107.52017163488937,
+      "tokens_per_second_http": 40.43001900754464,
+      "format": {
+        "starts_ok": false,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": false
+      },
+      "text": "```yaml\nversion: '3.9'\nservices:\n  lynn-engine:\n    image: lynn-engine:0.1\n    ports:\n      - \"18099:18099\"\n```"
+    },
+    {
+      "idx": 34,
+      "id": "yaml_h_k8s_deployment",
+      "prompt": "Output a Kubernetes Deployment manifest snippet with apiVersion apps/v1, kind Deployment, metadata.name=lynn-engine, spec.replicas=1, spec.selector.matchLabels.app=lynn-engine.",
+      "elapsed_seconds": 1.2833914756774902,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 51,
+      "decode_tps": 107.53809454461918,
+      "tokens_per_second_http": 39.89645362583713,
+      "format": {
+        "starts_ok": false,
+        "missing": [],
+        "forbidden_hits": [
+          "```"
+        ],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": false
+      },
+      "text": "```yaml\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: lynn-engine\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: lynn-engine\n```"
+    },
+    {
+      "idx": 35,
+      "id": "yaml_h_openapi_response",
+      "prompt": "Output an OpenAPI 3.0 responses snippet with '200' description 'OK' and content application/json schema $ref '#/components/schemas/Reply'.",
+      "elapsed_seconds": 1.1384451389312744,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 41,
+      "decode_tps": 107.62338650391754,
+      "tokens_per_second_http": 36.15184127592114,
+      "format": {
+        "starts_ok": false,
+        "missing": [
+          "responses"
+        ],
+        "forbidden_hits": [
+          "```"
+        ],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": false
+      },
+      "text": "```yaml\n200:\n  description: OK\n  content:\n    application/json:\n      schema:\n        $ref: '#/components/schemas/Reply'\n```"
+    },
+    {
+      "idx": 36,
+      "id": "toml_h_pyproject_minimal",
+      "prompt": "Output a pyproject.toml [project] section with name='lynn-engine', version='0.1.0', requires-python='>=3.10'.",
+      "elapsed_seconds": 1.1002740859985352,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 33,
+      "decode_tps": 107.59643359323017,
+      "tokens_per_second_http": 30.066917405276808,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "[project]\nname = \"lynn-engine\"\nversion = \"0.1.0\"\nrequires-python = \">=3.10\""
+    },
+    {
+      "idx": 37,
+      "id": "yaml_h_github_workflow_on_push",
+      "prompt": "Output a GitHub Actions workflow snippet with name 'CI', on push to main, single job 'test' runs-on 'ubuntu-latest', steps[0] uses 'actions/checkout@v4'.",
+      "elapsed_seconds": 1.2970614433288574,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 54,
+      "decode_tps": 107.4756458988241,
+      "tokens_per_second_http": 41.72006172197078,
+      "format": {
+        "starts_ok": false,
+        "missing": [],
+        "forbidden_hits": [
+          "```"
+        ],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": false
+      },
+      "text": "```yaml\nname: CI\n\non:\n  push:\n    branches:\n      - main\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n```"
+    },
+    {
+      "idx": 38,
+      "id": "yaml_h_nginx_upstream",
+      "prompt": "Output an nginx upstream block named lynn_engine_pool with three server entries: 10.0.0.1:18099, 10.0.0.2:18099, 10.0.0.3:18099. Use exact nginx syntax.",
+      "elapsed_seconds": 1.5834569931030273,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 72,
+      "decode_tps": 107.60458594564984,
+      "tokens_per_second_http": 45.56472013800236,
+      "format": {
+        "starts_ok": false,
+        "missing": [],
+        "forbidden_hits": [
+          "```"
+        ],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": false
+      },
+      "text": "```yaml\nupstream lynn_engine_pool {\n    server 10.0.0.1:18099;\n    server 10.0.0.2:18099;\n    server 10.0.0.3:18099;\n}\n```"
+    },
+    {
+      "idx": 39,
+      "id": "math_h_decimal_two_places",
+      "prompt": "Answer only the decimal number rounded to two places: 22 divided by 7.",
+      "elapsed_seconds": 0.7647914886474609,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 5,
+      "decode_tps": 107.2835492575872,
+      "tokens_per_second_http": 6.577420539572847,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "3.14"
+    },
+    {
+      "idx": 40,
+      "id": "math_h_scientific_notation",
+      "prompt": "Answer only with the number in scientific notation: 1234567 expressed as a.bcd*10^N. Use the format like 1.23e6 (lowercase e).",
+      "elapsed_seconds": 0.8914206027984619,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 8,
+      "decode_tps": 106.98858331845364,
+      "tokens_per_second_http": 9.015268315907011,
+      "format": {
+        "starts_ok": false,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": false
+      },
+      "text": "1.235e6"
+    },
+    {
+      "idx": 41,
+      "id": "math_h_factorial_small",
+      "prompt": "Answer only the integer: 7 factorial.",
+      "elapsed_seconds": 0.7232167720794678,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 5,
+      "decode_tps": 107.64562159942511,
+      "tokens_per_second_http": 6.937345785909244,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "5040"
+    },
+    {
+      "idx": 42,
+      "id": "math_h_modulo",
+      "prompt": "Answer only the integer: 12345 modulo 7.",
+      "elapsed_seconds": 0.7235169410705566,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 2,
+      "decode_tps": 106.47333282562892,
+      "tokens_per_second_http": 2.7744142666260965,
+      "format": {
+        "starts_ok": false,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": false
+      },
+      "text": "5"
+    },
+    {
+      "idx": 43,
+      "id": "math_h_count_primes_under",
+      "prompt": "Answer only the integer count: how many primes are strictly less than 30.",
+      "elapsed_seconds": 0.7425589561462402,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 3,
+      "decode_tps": 107.16294280713856,
+      "tokens_per_second_http": 4.054805185598139,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "10"
+    },
+    {
+      "idx": 44,
+      "id": "list_h_sorted_dedup_csv",
+      "prompt": "Sort and deduplicate then output as CSV on a single line: 3,1,2,1,3,4. Output ascending without duplicates.",
+      "elapsed_seconds": 0.8611717224121094,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 8,
+      "decode_tps": 107.86075149520212,
+      "tokens_per_second_http": 9.31934754852989,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "1,2,3,4"
+    },
+    {
+      "idx": 45,
+      "id": "list_h_pipe_separated_chars",
+      "prompt": "Output the letters a through e pipe-separated, no surrounding text or markdown: a|b|c|d|e.",
+      "elapsed_seconds": 0.8514502048492432,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 10,
+      "decode_tps": 107.2462114539948,
+      "tokens_per_second_http": 11.783172747502437,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "a|b|c|d|e"
+    },
+    {
+      "idx": 46,
+      "id": "list_h_json_strings_array",
+      "prompt": "Return a JSON array of the four strings, lowercase, in this order: \"red\", \"green\", \"blue\", \"yellow\".",
+      "elapsed_seconds": 0.914299726486206,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 13,
+      "decode_tps": 108.00458355328381,
+      "tokens_per_second_http": 14.262216706054373,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": false,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": false
+      },
+      "text": "[\"red\", \"green\", \"blue\", \"yellow\"]"
+    },
+    {
+      "idx": 47,
+      "id": "list_h_kv_lines",
+      "prompt": "Output exactly two lines: first line 'host=lynn-engine', second line 'port=18099'. No other lines, no markdown.",
+      "elapsed_seconds": 0.9354445934295654,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 14,
+      "decode_tps": 107.41257330620077,
+      "tokens_per_second_http": 15.008398992662734,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "host=lynn-engine\nport=18099"
+    },
+    {
+      "idx": 48,
+      "id": "list_h_tab_separated",
+      "prompt": "Output a single line TSV with three integer fields tab-separated: 10, 20, 30.",
+      "elapsed_seconds": 0.8397185802459717,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 9,
+      "decode_tps": 108.02544621011153,
+      "tokens_per_second_http": 10.748617439482546,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "10\t20\t30"
+    },
+    {
+      "idx": 49,
+      "id": "zh_h_router_topk",
+      "prompt": "用一句中文短句解释 MoE 中的 top-k routing。必须以\"top-k\"开头，必须包含 路由、专家、稀疏。",
+      "elapsed_seconds": 1.0095388889312744,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 22,
+      "decode_tps": 107.62194657048181,
+      "tokens_per_second_http": 21.858891642069654,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "top-k 路由机制让输入数据仅激活最相关的 k 个专家，从而实现稀疏计算。"
+    },
+    {
+      "idx": 50,
+      "id": "zh_h_quant_w4a16",
+      "prompt": "用一句中文短句说明 W4A16 量化与 W4A4 的区别。必须包含 权重、激活、精度。",
+      "elapsed_seconds": 1.1390142440795898,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 34,
+      "decode_tps": 107.39255238423328,
+      "tokens_per_second_http": 29.943669347548877,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "W4A16 量化仅对权重进行低精度处理而保持激活高精度，W4A4 则同时降低权重与激活的精度。"
+    },
+    {
+      "idx": 51,
+      "id": "zh_h_cuda_graph_capture",
+      "prompt": "用一句中文短句说明 CUDA graph capture 的收益。必须以\"CUDA graph\"开头，必须包含 内核启动、开销、回放。",
+      "elapsed_seconds": 0.948021411895752,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 16,
+      "decode_tps": 107.49866298510574,
+      "tokens_per_second_http": 16.943058896241133,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "CUDA graph 通过减少内核启动开销并实现高效回放来提升性能。"
+    },
+    {
+      "idx": 52,
+      "id": "zh_h_imatrix_calibration",
+      "prompt": "用一句中文短句说明 GGUF imatrix 校准的目的。必须包含 重要性、低位量化、误差。",
+      "elapsed_seconds": 0.9553923606872559,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 17,
+      "decode_tps": 107.70401517607522,
+      "tokens_per_second_http": 17.85149815734658,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "imatrix 校准旨在通过捕捉数据的重要性来降低低位量化时的误差。"
+    },
+    {
+      "idx": 53,
+      "id": "zh_h_long_context_strict",
+      "prompt": "用一句中文短句解释为什么 64k 上下文对智能体任务有意义。必须以\"64k\"开头，必须包含 上下文、智能体、长任务。",
+      "elapsed_seconds": 1.0059871673583984,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 17,
+      "decode_tps": 106.8976753224825,
+      "tokens_per_second_http": 16.964806846530042,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "64k 上下文让智能体在长任务中保持连贯记忆。"
+    },
+    {
+      "idx": 54,
+      "id": "regex_h_uuid_v4",
+      "prompt": "Output a UUID v4 string (xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx). Use 8-4-4-4-12 hex layout with the literal '4' as the start of the third group. Use the example: 550e8400-e29b-41d4-a716-446655440000.",
+      "elapsed_seconds": 1.2468581199645996,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 34,
+      "decode_tps": 107.40930328927917,
+      "tokens_per_second_http": 27.34706097356581,
+      "format": {
+        "starts_ok": false,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": false
+      },
+      "text": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+    },
+    {
+      "idx": 55,
+      "id": "regex_h_iso_8601_date",
+      "prompt": "Output one ISO 8601 date for May 18, 2026, in YYYY-MM-DD format. Nothing else.",
+      "elapsed_seconds": 0.8919434547424316,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 11,
+      "decode_tps": 107.9598255882792,
+      "tokens_per_second_http": 12.397599445810988,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "2026-05-18"
+    },
+    {
+      "idx": 56,
+      "id": "regex_h_semver_pinned",
+      "prompt": "Output the semver string for version 1.4.7-rc.2. No prefix, no whitespace, no quotes.",
+      "elapsed_seconds": 0.8633213043212891,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 10,
+      "decode_tps": 107.63825491873396,
+      "tokens_per_second_http": 11.646586969874345,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "1.4.7-rc.2"
+    },
+    {
+      "idx": 57,
+      "id": "regex_h_email_only",
+      "prompt": "Output the email address user.name+tag@example.co.uk exactly. No prefix, no quotes.",
+      "elapsed_seconds": 0.8160405158996582,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 8,
+      "decode_tps": 107.82470482381241,
+      "tokens_per_second_http": 9.85065444622708,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "user.name+tag@example.co.uk"
+    },
+    {
+      "idx": 58,
+      "id": "regex_h_ipv4_address",
+      "prompt": "Output the IPv4 address 192.168.100.26. No other characters, no quotes.",
+      "elapsed_seconds": 0.9080283641815186,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 15,
+      "decode_tps": 108.2129751804156,
+      "tokens_per_second_http": 16.578084470166882,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "192.168.100.26"
+    },
+    {
+      "idx": 59,
+      "id": "sql_h_simple_select",
+      "prompt": "Output a SQL SELECT to fetch id and name from table users where age > 18 ordered by name. End with semicolon.",
+      "elapsed_seconds": 0.9512827396392822,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 17,
+      "decode_tps": 107.85235660825838,
+      "tokens_per_second_http": 17.938504105923545,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "SELECT id, name FROM users WHERE age > 18 ORDER BY name;"
+    },
+    {
+      "idx": 60,
+      "id": "sql_h_join_count",
+      "prompt": "Output a SQL SELECT counting orders per customer: SELECT customer_id, COUNT(*) FROM orders GROUP BY customer_id ORDER BY 2 DESC LIMIT 10;",
+      "elapsed_seconds": 1.0190343856811523,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 23,
+      "decode_tps": 107.603695212596,
+      "tokens_per_second_http": 22.665814252099025,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "SELECT customer_id, COUNT(*) FROM orders GROUP BY customer_id ORDER BY 2 DESC LIMIT 10;"
+    },
+    {
+      "idx": 61,
+      "id": "sql_h_create_table",
+      "prompt": "Output a CREATE TABLE statement for users with columns id (INTEGER PRIMARY KEY), email (TEXT NOT NULL UNIQUE), created_at (TIMESTAMP DEFAULT CURRENT_TIMESTAMP).",
+      "elapsed_seconds": 0.9997560977935791,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 23,
+      "decode_tps": 107.57371403656644,
+      "tokens_per_second_http": 23.09266125893303,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "CREATE TABLE users (id INTEGER PRIMARY KEY, email TEXT NOT NULL UNIQUE, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);"
+    },
+    {
+      "idx": 62,
+      "id": "mixed_h_md_table_only",
+      "prompt": "Output a markdown table with header 'Quant | TPS' then two rows: 'BF16 | 30' and 'Q4_K_M | 70'. Exact formatting.",
+      "elapsed_seconds": 1.1817071437835693,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 35,
+      "decode_tps": 107.44537444104141,
+      "tokens_per_second_http": 29.696770591424386,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "| Quant | TPS |\n| :--- | :--- |\n| BF16 | 30 |\n| Q4_K_M | 70 |"
+    },
+    {
+      "idx": 63,
+      "id": "mixed_h_code_block_python",
+      "prompt": "Output exactly one fenced ```python ... ``` block containing the single line: print('hello, lynn'). Triple backticks required this time.",
+      "elapsed_seconds": 0.8986003398895264,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 13,
+      "decode_tps": 107.80078604397134,
+      "tokens_per_second_http": 14.521569447311126,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "```python\nprint('hello, lynn')\n```"
+    },
+    {
+      "idx": 64,
+      "id": "mixed_h_json_then_done",
+      "prompt": "Return a JSON object with one key 'status' value 'ok' and one key 'tokens' value [1,2,3,5,8].",
+      "elapsed_seconds": 1.2224469184875488,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 45,
+      "decode_tps": 107.30719149586905,
+      "tokens_per_second_http": 36.92896468455347,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "status",
+          "tokens"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"status\": \"ok\",\n  \"tokens\": [\n    1,\n    2,\n    3,\n    5,\n    8\n  ]\n}"
+    },
+    {
+      "idx": 65,
+      "id": "mixed_h_curl_command_only",
+      "prompt": "Output exactly one curl command (single line) POSTing JSON {\"model\":\"qwen\"} to http://127.0.0.1:18099/v1/chat/completions with header Content-Type: application/json.",
+      "elapsed_seconds": 1.280371904373169,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 46,
+      "decode_tps": 107.39400781114864,
+      "tokens_per_second_http": 36.02280883383946,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "curl -X POST http://127.0.0.1:18099/v1/chat/completions -H \"Content-Type: application/json\" -d '{\"model\":\"qwen\"}'"
+    },
+    {
+      "idx": 66,
+      "id": "json_h_router_decision_field",
+      "prompt": "Return one JSON object describing a router decision: decision=\"AMBER_promote\", reasons=[\"P37 drift accepted\", \"structured 70/70\", \"P25 119 TPS\"], promote_default=false, promote_amber=true.",
+      "elapsed_seconds": 1.6151034832000732,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 75,
+      "decode_tps": 107.5920743795608,
+      "tokens_per_second_http": 46.55752378990292,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "decision",
+          "promote_amber",
+          "promote_default",
+          "reasons"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"decision\": \"AMBER_promote\",\n  \"reasons\": [\n    \"P37 drift accepted\",\n    \"structured 70/70\",\n    \"P25 119 TPS\"\n  ],\n  \"promote_default\": false,\n  \"promote_amber\": true\n}"
+    },
+    {
+      "idx": 67,
+      "id": "py_h_pytest_assert",
+      "prompt": "Only Python code, no markdown. Define test_add that asserts 1+1 == 2 and 2+2 == 4. Pytest style.",
+      "elapsed_seconds": 1.0391910076141357,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 27,
+      "decode_tps": 107.71707401875953,
+      "tokens_per_second_http": 26.075337568923512,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def test_add():\n    assert 1 + 1 == 2\n    assert 2 + 2 == 4"
+    },
+    {
+      "idx": 68,
+      "id": "math_h_percent_rounded",
+      "prompt": "Answer only the percent rounded to one decimal place with a trailing %: 23 out of 60 as percent.",
+      "elapsed_seconds": 0.804196834564209,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 6,
+      "decode_tps": 107.61247947454844,
+      "tokens_per_second_http": 7.486628928826847,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "38.3%"
+    },
+    {
+      "idx": 69,
+      "id": "json_h_lynn_quant_manifest",
+      "prompt": "Return a JSON object resembling lynn_quant_manifest: quant_method=\"lynn_native\", format=\"nvfp4_e2m1_rowwise_per_16\", weight_activation_contract=\"w4a16\", activation_dtype=\"bf16\".",
+      "elapsed_seconds": 1.4313366413116455,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 60,
+      "decode_tps": 107.62038866407325,
+      "tokens_per_second_http": 42.0319515882597,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "activation_dtype",
+          "format",
+          "quant_method",
+          "weight_activation_contract"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"quant_method\": \"lynn_native\",\n  \"format\": \"nvfp4_e2m1_rowwise_per_16\",\n  \"weight_activation_contract\": \"w4a16\",\n  \"activation_dtype\": \"bf16\"\n}"
+    }
+  ]
+}

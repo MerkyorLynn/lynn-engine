@@ -1,0 +1,44 @@
+{
+  "schema_version": "lynn-qwen36-candidate-promotion-summary-v1",
+  "candidate_name": "safe_default_70",
+  "stamp": "20260518_1549_safe70",
+  "candidate_env": [],
+  "thresholds": {
+    "safe_default_tps": 107.0,
+    "default_threshold": 108.0,
+    "amber_threshold": 118.0,
+    "default_requires_structured": "40/40",
+    "amber_requires_structured": "70/70"
+  },
+  "returncodes": {
+    "p37": 0,
+    "p25": 0,
+    "hard_structured": 1
+  },
+  "metrics": {
+    "p37_exact": true,
+    "p37_median_speedup": 1.0040245907707879,
+    "p25_512_decode_tps": 107.30872768806745,
+    "hard_structured_ok": false,
+    "hard_structured_decode_tps_mean": 107.49377206788631,
+    "structured_prompt_file": "scripts/qwen36_structured_hard_prompts_70.json",
+    "structured_prompt_count": 70,
+    "structured_request_count": 70,
+    "structured_pass_count": 59,
+    "structured_pass_rate": 0.8428571428571429,
+    "structured_pass_rate_40": null,
+    "structured_pass_rate_70": 0.8428571428571429,
+    "structured_40_exact": false,
+    "structured_70_exact": false
+  },
+  "reports": {
+    "p37": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_safe_default_70_20260518_1549_safe70_p37.json",
+    "p25": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_safe_default_70_20260518_1549_safe70_p25.json",
+    "hard_structured": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_safe_default_70_20260518_1549_safe70_hard_structured.json",
+    "p26": null,
+    "p28": null
+  },
+  "promote_default": false,
+  "promote_amber": false,
+  "decision": "CLOSED: hard structured gate failed."
+}
