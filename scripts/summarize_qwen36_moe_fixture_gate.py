@@ -20,11 +20,29 @@ def _as_float(value: Any, default: float = 0.0) -> float:
         return default
 
 
+def _first_numeric(mapping: dict[str, Any], paths: list[str]) -> float | None:
+    for path in paths:
+        cur: Any = mapping
+        for part in path.split("."):
+            if not isinstance(cur, dict) or part not in cur:
+                cur = None
+                break
+            cur = cur[part]
+        if cur is not None:
+            try:
+                return float(cur)
+            except (TypeError, ValueError):
+                pass
+    return None
+
+
 def classify(
     report: dict[str, Any],
     *,
     min_speedup: float,
     strict_exact: bool,
+    reference_report: dict[str, Any] | None = None,
+    candidate_metrics: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     total = int(report.get("total") or 0)
     passed = int(report.get("passed") or 0)
@@ -38,6 +56,33 @@ def classify(
     cosine_min = _as_float(summary.get("cosine_min"), 0.0)
     ref_ms = _as_float(summary.get("ref_ms_mean"))
     cand_ms = _as_float(summary.get("candidate_ms_mean"))
+
+    if reference_report and ref_ms <= 0.0:
+        ref_summary = reference_report.get("summary") or {}
+        ref_override = _first_numeric(
+            ref_summary,
+            ["ref_ms_mean", "candidate_ms_mean", "mean_ms", "latency_ms"],
+        )
+        if ref_override is not None:
+            ref_ms = ref_override
+
+    if candidate_metrics and cand_ms <= 0.0:
+        cand_override = _first_numeric(
+            candidate_metrics,
+            [
+                "candidate_ms_mean",
+                "mean_ms",
+                "latency_ms",
+                "ms_mean",
+                "summary.candidate_ms_mean",
+                "summary.mean_ms",
+                "summary.latency_ms",
+                "candidate.candidate_ms_mean",
+                "candidate.mean_ms",
+            ],
+        )
+        if cand_override is not None:
+            cand_ms = cand_override
 
     has_candidate_timing = cand_ms > 0.0
     speedup = (ref_ms / cand_ms) if has_candidate_timing else None
@@ -86,6 +131,8 @@ def classify(
         "cosine_min": cosine_min,
         "ref_ms_mean": ref_ms,
         "candidate_ms_mean": cand_ms,
+        "reference_report": reference_report.get("_source_report") if reference_report else None,
+        "candidate_metrics": candidate_metrics.get("_source_report") if candidate_metrics else None,
         "speedup": speedup,
         "min_speedup": min_speedup,
         "strict_exact": strict_exact,
@@ -130,16 +177,39 @@ def main() -> int:
         action="store_true",
         help="Do not close candidates solely because exact_count < total.",
     )
+    ap.add_argument(
+        "--reference-report",
+        default=None,
+        help="Optional p134 self-check report to provide ref_ms_mean when the "
+             "candidate report only contains precomputed outputs.",
+    )
+    ap.add_argument(
+        "--candidate-metrics",
+        default=None,
+        help="Optional JSON with candidate latency, e.g. candidate_ms_mean or mean_ms.",
+    )
     ap.add_argument("--quiet", action="store_true", help="Suppress human output")
     args = ap.parse_args()
 
     path = Path(args.report)
     report = json.loads(path.read_text())
     report["_source_report"] = str(path)
+    reference_report = None
+    if args.reference_report:
+        reference_path = Path(args.reference_report)
+        reference_report = json.loads(reference_path.read_text())
+        reference_report["_source_report"] = str(reference_path)
+    candidate_metrics = None
+    if args.candidate_metrics:
+        metrics_path = Path(args.candidate_metrics)
+        candidate_metrics = json.loads(metrics_path.read_text())
+        candidate_metrics["_source_report"] = str(metrics_path)
     summary = classify(
         report,
         min_speedup=args.min_speedup,
         strict_exact=not args.allow_nonexact,
+        reference_report=reference_report,
+        candidate_metrics=candidate_metrics,
     )
 
     if args.out:

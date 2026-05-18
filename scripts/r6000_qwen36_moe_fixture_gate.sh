@@ -43,11 +43,11 @@ DTYPE="${DTYPE:-bf16}"
 ROUTED_ONLY="${ROUTED_ONLY:-0}"
 CANDIDATE_BACKEND="${CANDIDATE_BACKEND:-}"
 CANDIDATE_OUTPUT_DIR="${CANDIDATE_OUTPUT_DIR:-}"
+CANDIDATE_METRICS_JSON="${CANDIDATE_METRICS_JSON:-}"
 MAX_ABS_THRESHOLD="${MAX_ABS_THRESHOLD:-0.0}"
 COSINE_THRESHOLD="${COSINE_THRESHOLD:-0.999999}"
 WARMUP="${WARMUP:-3}"
 ITERS="${ITERS:-10}"
-SUMMARY_OUT="${SUMMARY_OUT:-${OUT%.json}.summary.json}"
 MIN_SPEEDUP="${MIN_SPEEDUP:-1.05}"
 ALLOW_NONEXACT="${ALLOW_NONEXACT:-0}"
 
@@ -72,6 +72,13 @@ fi
 
 STAMP="${STAMP:-$(date +%Y%m%d_%H%M%S)}"
 OUT="${OUT:-${REPORT_DIR}/p134_${MODE_LABEL}_${CANDIDATE_LABEL}_${STAMP}.json}"
+SUMMARY_OUT="${SUMMARY_OUT:-${OUT%.json}.summary.json}"
+if [ "${ROUTED_ONLY}" = "1" ]; then
+    DEFAULT_REFERENCE_REPORT="${REPORT_DIR}/p134_routed_only_selfcheck_report.json"
+else
+    DEFAULT_REFERENCE_REPORT="${REPORT_DIR}/p134_triton_selfcheck_report.json"
+fi
+REFERENCE_REPORT="${REFERENCE_REPORT:-${DEFAULT_REFERENCE_REPORT}}"
 
 echo "═══════════════════════════════════════════════════════════════════════"
 echo " R6000 Qwen3.6 Active-MoE Fixture Candidate Gate"
@@ -84,6 +91,12 @@ echo " Mode:       ${MODE_LABEL}"
 echo " Thresholds: max_abs<=${MAX_ABS_THRESHOLD}, cosine>=${COSINE_THRESHOLD}"
 echo " Output:     ${OUT}"
 echo " Summary:    ${SUMMARY_OUT}"
+if [ -n "${CANDIDATE_METRICS_JSON}" ]; then
+    echo " Metrics:    ${CANDIDATE_METRICS_JSON}"
+fi
+if [ -f "${REFERENCE_REPORT}" ]; then
+    echo " Ref report: ${REFERENCE_REPORT}"
+fi
 echo ""
 
 if [ ! -d "${REPO_DIR}" ]; then
@@ -101,6 +114,10 @@ if [ -z "${CANDIDATE_OUTPUT_DIR}" ] && [ ! -d "${MODEL_DIR}" ]; then
 fi
 if [ -n "${CANDIDATE_OUTPUT_DIR}" ] && [ ! -d "${CANDIDATE_OUTPUT_DIR}" ]; then
     echo "ERROR: candidate output directory not found: ${CANDIDATE_OUTPUT_DIR}" >&2
+    exit 1
+fi
+if [ -n "${CANDIDATE_METRICS_JSON}" ] && [ ! -f "${CANDIDATE_METRICS_JSON}" ]; then
+    echo "ERROR: candidate metrics JSON not found: ${CANDIDATE_METRICS_JSON}" >&2
     exit 1
 fi
 
@@ -156,6 +173,12 @@ if [ -f scripts/summarize_qwen36_moe_fixture_gate.py ] && [ -f "${OUT}" ]; then
     )
     if [ "${ALLOW_NONEXACT}" = "1" ]; then
         SUMMARY_ARGS+=(--allow-nonexact)
+    fi
+    if [ -f "${REFERENCE_REPORT}" ]; then
+        SUMMARY_ARGS+=(--reference-report "${REFERENCE_REPORT}")
+    fi
+    if [ -n "${CANDIDATE_METRICS_JSON}" ]; then
+        SUMMARY_ARGS+=(--candidate-metrics "${CANDIDATE_METRICS_JSON}")
     fi
     "${PY}" "${SUMMARY_ARGS[@]}" || true
     echo "Summary: ${SUMMARY_OUT}"

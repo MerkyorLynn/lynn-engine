@@ -108,7 +108,10 @@ bash scripts/r6000_qwen36_moe_fixture_gate.sh
 ```
 
 The wrapper writes both the raw p134 report and a `.summary.json` traffic-light
-decision.  Summary decisions are:
+decision.  For precomputed output candidates, pass `CANDIDATE_METRICS_JSON` with
+`candidate_ms_mean` or `mean_ms`; the wrapper will combine it with the
+routed/full self-check reference report and classify speed automatically.
+Summary decisions are:
 
 | Decision | Meaning |
 |---|---|

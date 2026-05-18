@@ -347,7 +347,10 @@ weights.  Output-owned/non-atomic routed-MoE candidates should start with
 `--routed-only` against `routed_output`, then graduate to full MoE output after
 the routed path is strict.  `scripts/r6000_qwen36_moe_fixture_gate.sh` wraps this
 into the standard first gate and writes a `.summary.json` traffic light:
-`CLOSED_NUMERIC`, `PASS_NUMERIC_ONLY`, `PASS_SLOW`, or `FAST_CANDIDATE`.
+`CLOSED_NUMERIC`, `PASS_NUMERIC_ONLY`, `PASS_SLOW`, or `FAST_CANDIDATE`.  If a
+precomputed-output CUDA candidate also writes `CANDIDATE_METRICS_JSON` with
+`candidate_ms_mean` or `mean_ms`, the wrapper combines it with the routed/full
+reference report and decides speed without requiring a Python candidate backend.
 
 Artifacts:
 
