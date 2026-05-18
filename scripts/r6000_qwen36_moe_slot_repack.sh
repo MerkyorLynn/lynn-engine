@@ -29,6 +29,7 @@ MODEL_DIR="${MODEL_DIR:-/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a1
 P133_FIXTURES="${P133_FIXTURES:-/root/autodl-tmp/reports/qwen36_35b/p133_fixtures_official_w4a16}"
 P135_OUT="${P135_OUT:-/root/autodl-tmp/reports/qwen36_35b/p135_repacked_fixtures_official_w4a16}"
 P138_OUT="${P138_OUT:-/root/autodl-tmp/reports/qwen36_35b/p138_packed_slot_fixtures}"
+P138_COMPRESS="${P138_COMPRESS:-0}"
 REPORT_DIR="${REPORT_DIR:-/root/autodl-tmp/reports/qwen36_35b}"
 DEVICE="${DEVICE:-cuda}"
 DTYPE="${DTYPE:-bf16}"
@@ -46,6 +47,7 @@ echo " Model:       ${MODEL_DIR}"
 echo " p133 input:  ${P133_FIXTURES}"
 echo " p135 output: ${P135_OUT}"
 echo " p138 output: ${P138_OUT}"
+echo " p138 compress: ${P138_COMPRESS}"
 echo " Device:      ${DEVICE}"
 echo " Dtype:       ${DTYPE}"
 echo " Candidate:   ${RUN_NATIVE_SLOT_CANDIDATE}"
@@ -236,12 +238,19 @@ if [ "${RUN_P138_P139}" = "1" ]; then
 
     P138_START=$(date +%s)
 
+    P138_COMPRESS_FLAG=""
+    if [ "${P138_COMPRESS}" = "1" ]; then
+        P138_COMPRESS_FLAG="--compress"
+    fi
+
     set +e
     "${PY}" benchmarks/p138_pack_moe_fixture_slots_nvfp4.py \
         --fixtures "${P133_FIXTURES}" \
         --model-dir "${MODEL_DIR}" \
         --out "${P138_OUT}" \
-        --device "${DEVICE}"
+        --device "${DEVICE}" \
+        ${P138_COMPRESS_FLAG} \
+        --summary-out "${REPORT_DIR}/p138_packed_slot_summary.json"
     P138_EXIT=$?
     set -e
     P138_END=$(date +%s)

@@ -241,6 +241,45 @@ def pack_fixtures(
     return manifest
 
 
+def _write_summary(manifest: dict[str, Any], summary_out: str | None) -> None:
+    if summary_out is None:
+        return
+    entries = manifest.get("fixtures", [])
+    total_packed = sum(e.get("packed_bytes", 0) for e in entries)
+    total_bf16 = sum(e.get("bf16_equiv_bytes", 0) for e in entries)
+    mean_mb = (total_packed / len(entries) / 1e6) if entries else 0.0
+    bf16_mb = (total_bf16 / len(entries) / 1e6) if entries else 0.0
+    reduction = (1.0 - total_packed / total_bf16) if total_bf16 else 0.0
+    summary = {
+        "schema": "lynn-moe-slot-packed-nvfp4-summary-v1",
+        "created": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "source_fixtures_dir": manifest.get("source_fixtures_dir"),
+        "model_dir": manifest.get("model_dir"),
+        "compressed": manifest["fixtures"][0].get("compress", False) if entries else False,
+        "num_fixtures": len(entries),
+        "total_packed_bytes": total_packed,
+        "total_bf16_equiv_bytes": total_bf16,
+        "mean_fixture_mb": round(mean_mb, 4),
+        "bf16_equiv_mb": round(bf16_mb, 4),
+        "reduction_ratio": round(reduction, 6),
+        "fixtures": [
+            {
+                "fixture_file": e["fixture_file"],
+                "layer_id": e["layer_id"],
+                "prompt_id": e["prompt_id"],
+                "packed_bytes": e.get("packed_bytes"),
+                "bf16_equiv_bytes": e.get("bf16_equiv_bytes"),
+                "packed_mb": round(e.get("packed_bytes", 0) / 1e6, 4),
+                "bf16_equiv_mb": round(e.get("bf16_equiv_bytes", 0) / 1e6, 4),
+            }
+            for e in entries
+        ],
+    }
+    Path(summary_out).parent.mkdir(parents=True, exist_ok=True)
+    Path(summary_out).write_text(json.dumps(summary, indent=2, ensure_ascii=False) + "\n")
+    print(f"[p138] Summary written: {summary_out}")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Pack MoE fixtures into slot-ordered NVFP4 packed weights.")
     ap.add_argument("--fixtures", required=True, help="Path to p133 fixture directory.")
@@ -248,6 +287,7 @@ def main() -> int:
     ap.add_argument("--out", default="reports/qwen36_35b/p138_packed_slot_fixtures", help="Output directory.")
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--compress", action="store_true", help="Gzip compress each fixture.")
+    ap.add_argument("--summary-out", default=None, help="Optional separate summary JSON path.")
     args = ap.parse_args()
 
     manifest = pack_fixtures(
@@ -257,6 +297,8 @@ def main() -> int:
         device=args.device,
         compress=args.compress,
     )
+
+    _write_summary(manifest, args.summary_out)
 
     print(f"\n{'='*60}")
     print(f"P138 DONE: {manifest['num_fixtures']} fixtures packed")

@@ -134,7 +134,8 @@ def _load_fixture(path: Path, device: str = "cuda") -> dict[str, torch.Tensor]:
     if len(path.suffixes) >= 2 and path.suffixes[-2:] == [".safetensors", ".gz"]:
         with gzip.open(str(path), "rb") as f:
             raw = f.read()
-        return load_buffer(raw)
+        data = load_buffer(raw)
+        return {k: v.to(device) for k, v in data.items()}
     else:
         return load_file(str(path), device=device)
 

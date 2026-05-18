@@ -1,0 +1,177 @@
+{
+  "schema": "lynn-moe-slot-packed-nvfp4-summary-v1",
+  "created": "2026-05-18T22:56:44",
+  "source_fixtures_dir": "/root/autodl-tmp/reports/qwen36_35b/p133_fixtures_official_w4a16",
+  "model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0",
+  "compressed": true,
+  "num_fixtures": 18,
+  "total_packed_bytes": 254898948,
+  "total_bf16_equiv_bytes": 905969664,
+  "mean_fixture_mb": 14.1611,
+  "bf16_equiv_mb": 50.3316,
+  "reduction_ratio": 0.718645,
+  "fixtures": [
+    {
+      "fixture_file": "layer_00_prompt_00_slot_packed.safetensors.gz",
+      "layer_id": 0,
+      "prompt_id": 0,
+      "packed_bytes": 11996202,
+      "bf16_equiv_bytes": 50331648,
+      "packed_mb": 11.9962,
+      "bf16_equiv_mb": 50.3316
+    },
+    {
+      "fixture_file": "layer_04_prompt_00_slot_packed.safetensors.gz",
+      "layer_id": 4,
+      "prompt_id": 0,
+      "packed_bytes": 14447727,
+      "bf16_equiv_bytes": 50331648,
+      "packed_mb": 14.4477,
+      "bf16_equiv_mb": 50.3316
+    },
+    {
+      "fixture_file": "layer_08_prompt_00_slot_packed.safetensors.gz",
+      "layer_id": 8,
+      "prompt_id": 0,
+      "packed_bytes": 14443457,
+      "bf16_equiv_bytes": 50331648,
+      "packed_mb": 14.4435,
+      "bf16_equiv_mb": 50.3316
+    },
+    {
+      "fixture_file": "layer_16_prompt_00_slot_packed.safetensors.gz",
+      "layer_id": 16,
+      "prompt_id": 0,
+      "packed_bytes": 14441729,
+      "bf16_equiv_bytes": 50331648,
+      "packed_mb": 14.4417,
+      "bf16_equiv_mb": 50.3316
+    },
+    {
+      "fixture_file": "layer_20_prompt_00_slot_packed.safetensors.gz",
+      "layer_id": 20,
+      "prompt_id": 0,
+      "packed_bytes": 14438071,
+      "bf16_equiv_bytes": 50331648,
+      "packed_mb": 14.4381,
+      "bf16_equiv_mb": 50.3316
+    },
+    {
+      "fixture_file": "layer_28_prompt_00_slot_packed.safetensors.gz",
+      "layer_id": 28,
+      "prompt_id": 0,
+      "packed_bytes": 14443519,
+      "bf16_equiv_bytes": 50331648,
+      "packed_mb": 14.4435,
+      "bf16_equiv_mb": 50.3316
+    },
+    {
+      "fixture_file": "layer_32_prompt_00_slot_packed.safetensors.gz",
+      "layer_id": 32,
+      "prompt_id": 0,
+      "packed_bytes": 14473561,
+      "bf16_equiv_bytes": 50331648,
+      "packed_mb": 14.4736,
+      "bf16_equiv_mb": 50.3316
+    },
+    {
+      "fixture_file": "layer_36_prompt_00_slot_packed.safetensors.gz",
+      "layer_id": 36,
+      "prompt_id": 0,
+      "packed_bytes": 14465924,
+      "bf16_equiv_bytes": 50331648,
+      "packed_mb": 14.4659,
+      "bf16_equiv_mb": 50.3316
+    },
+    {
+      "fixture_file": "layer_39_prompt_00_slot_packed.safetensors.gz",
+      "layer_id": 39,
+      "prompt_id": 0,
+      "packed_bytes": 14478190,
+      "bf16_equiv_bytes": 50331648,
+      "packed_mb": 14.4782,
+      "bf16_equiv_mb": 50.3316
+    },
+    {
+      "fixture_file": "layer_00_prompt_01_slot_packed.safetensors.gz",
+      "layer_id": 0,
+      "prompt_id": 1,
+      "packed_bytes": 11501671,
+      "bf16_equiv_bytes": 50331648,
+      "packed_mb": 11.5017,
+      "bf16_equiv_mb": 50.3316
+    },
+    {
+      "fixture_file": "layer_04_prompt_01_slot_packed.safetensors.gz",
+      "layer_id": 4,
+      "prompt_id": 1,
+      "packed_bytes": 14445003,
+      "bf16_equiv_bytes": 50331648,
+      "packed_mb": 14.445,
+      "bf16_equiv_mb": 50.3316
+    },
+    {
+      "fixture_file": "layer_08_prompt_01_slot_packed.safetensors.gz",
+      "layer_id": 8,
+      "prompt_id": 1,
+      "packed_bytes": 14455087,
+      "bf16_equiv_bytes": 50331648,
+      "packed_mb": 14.4551,
+      "bf16_equiv_mb": 50.3316
+    },
+    {
+      "fixture_file": "layer_16_prompt_01_slot_packed.safetensors.gz",
+      "layer_id": 16,
+      "prompt_id": 1,
+      "packed_bytes": 14476562,
+      "bf16_equiv_bytes": 50331648,
+      "packed_mb": 14.4766,
+      "bf16_equiv_mb": 50.3316
+    },
+    {
+      "fixture_file": "layer_20_prompt_01_slot_packed.safetensors.gz",
+      "layer_id": 20,
+      "prompt_id": 1,
+      "packed_bytes": 14473515,
+      "bf16_equiv_bytes": 50331648,
+      "packed_mb": 14.4735,
+      "bf16_equiv_mb": 50.3316
+    },
+    {
+      "fixture_file": "layer_28_prompt_01_slot_packed.safetensors.gz",
+      "layer_id": 28,
+      "prompt_id": 1,
+      "packed_bytes": 14471541,
+      "bf16_equiv_bytes": 50331648,
+      "packed_mb": 14.4715,
+      "bf16_equiv_mb": 50.3316
+    },
+    {
+      "fixture_file": "layer_32_prompt_01_slot_packed.safetensors.gz",
+      "layer_id": 32,
+      "prompt_id": 1,
+      "packed_bytes": 14483670,
+      "bf16_equiv_bytes": 50331648,
+      "packed_mb": 14.4837,
+      "bf16_equiv_mb": 50.3316
+    },
+    {
+      "fixture_file": "layer_36_prompt_01_slot_packed.safetensors.gz",
+      "layer_id": 36,
+      "prompt_id": 1,
+      "packed_bytes": 14478755,
+      "bf16_equiv_bytes": 50331648,
+      "packed_mb": 14.4788,
+      "bf16_equiv_mb": 50.3316
+    },
+    {
+      "fixture_file": "layer_39_prompt_01_slot_packed.safetensors.gz",
+      "layer_id": 39,
+      "prompt_id": 1,
+      "packed_bytes": 14484764,
+      "bf16_equiv_bytes": 50331648,
+      "packed_mb": 14.4848,
+      "bf16_equiv_mb": 50.3316
+    }
+  ]
+}
