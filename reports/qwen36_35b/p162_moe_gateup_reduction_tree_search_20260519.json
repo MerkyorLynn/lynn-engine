@@ -1,0 +1,225 @@
+{
+  "schema": "lynn-p162-moe-gateup-reduction-tree-search-v1",
+  "created": "2026-05-19T06:39:45",
+  "packed_fixtures": "/root/autodl-tmp/reports/qwen36_35b/p138_packed_slot_fixtures_kimi_20260518",
+  "p160_report": "/root/autodl-tmp/reports/qwen36_35b/p160_moe_gateup_partial_trace_all_20260519.json",
+  "target": {
+    "fixture_file": "layer_16_prompt_00_slot_packed.safetensors",
+    "layer_id": 16,
+    "prompt_id": 0,
+    "slot": 4,
+    "hidden_block": 4,
+    "kind": 0,
+    "row": 356,
+    "source_p160_max_abs": 4.76837158203125e-07
+  },
+  "triton_target": -1.3349272012710571,
+  "native_target": -1.334926724433899,
+  "target_abs_diff": 4.76837158203125e-07,
+  "best": {
+    "name": "left_fold",
+    "value": -1.3349270820617676,
+    "abs_diff_vs_triton": 1.1920928955078125e-07,
+    "abs_diff_vs_native": 3.5762786865234375e-07,
+    "matches_triton": false,
+    "matches_native": false
+  },
+  "matched_triton": [],
+  "matched_native": [
+    {
+      "name": "pairwise_halving",
+      "value": -1.334926724433899,
+      "abs_diff_vs_triton": 4.76837158203125e-07,
+      "abs_diff_vs_native": 0.0,
+      "matches_triton": false,
+      "matches_native": true
+    },
+    {
+      "name": "pairwise_halving_reversed",
+      "value": -1.334926724433899,
+      "abs_diff_vs_triton": 4.76837158203125e-07,
+      "abs_diff_vs_native": 0.0,
+      "matches_triton": false,
+      "matches_native": true
+    },
+    {
+      "name": "chunk8_left_then_pairwise",
+      "value": -1.334926724433899,
+      "abs_diff_vs_triton": 4.76837158203125e-07,
+      "abs_diff_vs_native": 0.0,
+      "matches_triton": false,
+      "matches_native": true
+    },
+    {
+      "name": "chunk16_left_then_pairwise",
+      "value": -1.334926724433899,
+      "abs_diff_vs_triton": 4.76837158203125e-07,
+      "abs_diff_vs_native": 0.0,
+      "matches_triton": false,
+      "matches_native": true
+    }
+  ],
+  "candidates": [
+    {
+      "name": "left_fold",
+      "value": -1.3349270820617676,
+      "abs_diff_vs_triton": 1.1920928955078125e-07,
+      "abs_diff_vs_native": 3.5762786865234375e-07,
+      "matches_triton": false,
+      "matches_native": false
+    },
+    {
+      "name": "chunk4_pairwise_then_left",
+      "value": -1.3349270820617676,
+      "abs_diff_vs_triton": 1.1920928955078125e-07,
+      "abs_diff_vs_native": 3.5762786865234375e-07,
+      "matches_triton": false,
+      "matches_native": false
+    },
+    {
+      "name": "right_fold",
+      "value": -1.334926962852478,
+      "abs_diff_vs_triton": 2.384185791015625e-07,
+      "abs_diff_vs_native": 2.384185791015625e-07,
+      "matches_triton": false,
+      "matches_native": false
+    },
+    {
+      "name": "chunk2_left_then_pairwise",
+      "value": -1.334926962852478,
+      "abs_diff_vs_triton": 2.384185791015625e-07,
+      "abs_diff_vs_native": 2.384185791015625e-07,
+      "matches_triton": false,
+      "matches_native": false
+    },
+    {
+      "name": "chunk16_pairwise_then_left",
+      "value": -1.334926962852478,
+      "abs_diff_vs_triton": 2.384185791015625e-07,
+      "abs_diff_vs_native": 2.384185791015625e-07,
+      "matches_triton": false,
+      "matches_native": false
+    },
+    {
+      "name": "chunk64_pairwise_then_left",
+      "value": -1.334926962852478,
+      "abs_diff_vs_triton": 2.384185791015625e-07,
+      "abs_diff_vs_native": 2.384185791015625e-07,
+      "matches_triton": false,
+      "matches_native": false
+    },
+    {
+      "name": "warp32_then_pairwise",
+      "value": -1.3349268436431885,
+      "abs_diff_vs_triton": 3.5762786865234375e-07,
+      "abs_diff_vs_native": 1.1920928955078125e-07,
+      "matches_triton": false,
+      "matches_native": false
+    },
+    {
+      "name": "warp32_then_left",
+      "value": -1.3349268436431885,
+      "abs_diff_vs_triton": 3.5762786865234375e-07,
+      "abs_diff_vs_native": 1.1920928955078125e-07,
+      "matches_triton": false,
+      "matches_native": false
+    },
+    {
+      "name": "chunk4_left_then_pairwise",
+      "value": -1.3349268436431885,
+      "abs_diff_vs_triton": 3.5762786865234375e-07,
+      "abs_diff_vs_native": 1.1920928955078125e-07,
+      "matches_triton": false,
+      "matches_native": false
+    },
+    {
+      "name": "chunk8_pairwise_then_left",
+      "value": -1.3349268436431885,
+      "abs_diff_vs_triton": 3.5762786865234375e-07,
+      "abs_diff_vs_native": 1.1920928955078125e-07,
+      "matches_triton": false,
+      "matches_native": false
+    },
+    {
+      "name": "chunk32_left_then_pairwise",
+      "value": -1.3349268436431885,
+      "abs_diff_vs_triton": 3.5762786865234375e-07,
+      "abs_diff_vs_native": 1.1920928955078125e-07,
+      "matches_triton": false,
+      "matches_native": false
+    },
+    {
+      "name": "chunk32_pairwise_then_left",
+      "value": -1.3349268436431885,
+      "abs_diff_vs_triton": 3.5762786865234375e-07,
+      "abs_diff_vs_native": 1.1920928955078125e-07,
+      "matches_triton": false,
+      "matches_native": false
+    },
+    {
+      "name": "chunk64_left_then_pairwise",
+      "value": -1.3349268436431885,
+      "abs_diff_vs_triton": 3.5762786865234375e-07,
+      "abs_diff_vs_native": 1.1920928955078125e-07,
+      "matches_triton": false,
+      "matches_native": false
+    },
+    {
+      "name": "chunk128_left_then_pairwise",
+      "value": -1.3349268436431885,
+      "abs_diff_vs_triton": 3.5762786865234375e-07,
+      "abs_diff_vs_native": 1.1920928955078125e-07,
+      "matches_triton": false,
+      "matches_native": false
+    },
+    {
+      "name": "chunk128_pairwise_then_left",
+      "value": -1.3349268436431885,
+      "abs_diff_vs_triton": 3.5762786865234375e-07,
+      "abs_diff_vs_native": 1.1920928955078125e-07,
+      "matches_triton": false,
+      "matches_native": false
+    },
+    {
+      "name": "pairwise_halving",
+      "value": -1.334926724433899,
+      "abs_diff_vs_triton": 4.76837158203125e-07,
+      "abs_diff_vs_native": 0.0,
+      "matches_triton": false,
+      "matches_native": true
+    },
+    {
+      "name": "pairwise_halving_reversed",
+      "value": -1.334926724433899,
+      "abs_diff_vs_triton": 4.76837158203125e-07,
+      "abs_diff_vs_native": 0.0,
+      "matches_triton": false,
+      "matches_native": true
+    },
+    {
+      "name": "chunk8_left_then_pairwise",
+      "value": -1.334926724433899,
+      "abs_diff_vs_triton": 4.76837158203125e-07,
+      "abs_diff_vs_native": 0.0,
+      "matches_triton": false,
+      "matches_native": true
+    },
+    {
+      "name": "chunk16_left_then_pairwise",
+      "value": -1.334926724433899,
+      "abs_diff_vs_triton": 4.76837158203125e-07,
+      "abs_diff_vs_native": 0.0,
+      "matches_triton": false,
+      "matches_native": true
+    },
+    {
+      "name": "chunk2_pairwise_then_left",
+      "value": -1.3349266052246094,
+      "abs_diff_vs_triton": 5.960464477539062e-07,
+      "abs_diff_vs_native": 1.1920928955078125e-07,
+      "matches_triton": false,
+      "matches_native": false
+    }
+  ],
+  "diagnosis": "SIMPLE_TREE_MATCHED_NATIVE_ONLY"
+}
