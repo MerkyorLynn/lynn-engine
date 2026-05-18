@@ -1,0 +1,11 @@
+{
+  "model": "Qwen3.5-9B-Q4KM",
+  "endpoint": "http://127.0.0.1:18198/v1",
+  "n": 198,
+  "correct": 74,
+  "accuracy": 0.37373737373737376,
+  "elapsed_sec": 128.467,
+  "qps": 1.5413,
+  "parse_fail": 0,
+  "errors": 0
+}

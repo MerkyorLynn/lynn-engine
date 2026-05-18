@@ -1,0 +1,29 @@
+{
+  "schema": "lynn-qwen35-9b-quality-summary-v1",
+  "created": "2026-05-19T01:15:00+08:00",
+  "model": "Qwen3.5-9B-Q4KM",
+  "base_model": "Qwen/Qwen3.5-9B",
+  "stack": "llama.cpp CUDA server",
+  "quant": "Q4_K_M",
+  "reasoning": "off",
+  "endpoint": "http://127.0.0.1:18198/v1",
+  "mmlu_500_5shot": {
+    "correct": 380,
+    "total": 500,
+    "accuracy": 0.76,
+    "parse_fail": 0,
+    "elapsed_sec": 124.956
+  },
+  "gpqa_diamond": {
+    "correct": 74,
+    "total": 198,
+    "accuracy": 0.37373737373737376,
+    "parse_fail": 0,
+    "elapsed_sec": 128.467
+  },
+  "notes": [
+    "llama-server was launched with --reasoning off to force direct A/B/C/D answers.",
+    "Both evaluators had parse_fail=0.",
+    "Compared with the direct BF16 baseline, Q4_K_M is close on MMLU but lower on GPQA."
+  ]
+}
