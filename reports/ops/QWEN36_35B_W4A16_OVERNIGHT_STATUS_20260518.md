@@ -496,6 +496,31 @@ P28 layer timing keeps pointing at the 10 linear blocks: layer 4 is about
 `0.596 ms`, layer 0 about `0.595 ms`, and the other linear blocks cluster around
 `0.578-0.588 ms`. Full-attention layers mostly sit around `0.26 ms` median.
 
+P38/P39 was then rerun under the same AMBER+RoPE-cache profile to check whether
+the structured fast mode changed the MoE shape. It did not: the MoE cost is
+still a uniform per-linear-layer budget, not a one-layer defect.
+
+| AMBER+RoPE MoE segment | Mean ms/layer |
+|---|---:|
+| Router top-k | 0.036 |
+| Active packed experts | 0.122 |
+| Gate/up split | 0.031 |
+| Down split | 0.025 |
+| Shared BF16 expert | 0.059 |
+| Current full MoE | 0.214 |
+
+Approximate contribution across the 30 linear-attention layers is `6.43 ms`
+per token for the full MoE body. That number is intentionally larger than the
+P26 graph-block wall slice because P38/P39 isolate sampled layer calls outside
+the CUDA graph replay envelope, but the directional conclusion is stable:
+MoE boundary fusion is still the next kernel island, while Python/C++ service
+loop work is still below the current ROI line.
+
+Copied reports:
+
+- `reports/qwen36_35b/p38_moe_amber_rope_20260518_125020.json`
+- `reports/qwen36_35b/p39_active_moe_amber_rope_20260518_125020.json`
+
 So this branch is viable as a controlled structured-serving fast mode and the
 current best practical serving candidate. It still remains opt-in for
 exact-parity-sensitive gates because exact greedy parity is known to drift.
