@@ -18,6 +18,7 @@ from typing import Any
 
 
 LAYER_RE = re.compile(r"\.layers\.(\d+)\.")
+LANGUAGE_LAYER_RE = re.compile(r"^model\.language_model\.layers\.(\d+)\.")
 
 
 def _prod(shape: list[int] | tuple[int, ...] | None) -> int:
@@ -31,11 +32,13 @@ def _read_json(path: Path) -> dict[str, Any]:
 
 
 def _layer_id(key: str) -> int | None:
-    m = LAYER_RE.search(key)
+    m = LANGUAGE_LAYER_RE.search(key)
     return int(m.group(1)) if m else None
 
 
 def _bucket(key: str) -> str:
+    if key.startswith("mtp."):
+        return "mtp"
     if ".mlp.experts." in key:
         return "active_moe"
     if ".mlp.shared_expert" in key or ".mlp.shared_expert_gate" in key:
@@ -48,8 +51,6 @@ def _bucket(key: str) -> str:
         return "routing_norm"
     if key.startswith("model.visual."):
         return "visual"
-    if key.startswith("mtp."):
-        return "mtp"
     return "other"
 
 

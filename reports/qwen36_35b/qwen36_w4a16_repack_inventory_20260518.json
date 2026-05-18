@@ -7,11 +7,11 @@
   "missing_index_keys": [],
   "buckets": {
     "active_moe": {
-      "records": 82,
-      "packed_bytes": 16508780544,
-      "packed_gib": 15.375,
-      "scale_elements": 2063597568,
-      "global_scale_count": 82,
+      "records": 80,
+      "packed_bytes": 16106127360,
+      "packed_gib": 15.0,
+      "scale_elements": 2013265920,
+      "global_scale_count": 80,
       "shard_count": 7,
       "shards": [
         "model-00001.safetensors",
@@ -25,20 +25,20 @@
       "top_modules": [
         [
           "mlp.experts.gate_up_proj",
-          41
+          40
         ],
         [
           "mlp.experts.down_proj",
-          41
+          40
         ]
       ]
     },
     "full_attn": {
-      "records": 44,
-      "packed_bytes": 149946368,
-      "packed_gib": 0.1396,
-      "scale_elements": 18743296,
-      "global_scale_count": 44,
+      "records": 40,
+      "packed_bytes": 136314880,
+      "packed_gib": 0.127,
+      "scale_elements": 17039360,
+      "global_scale_count": 40,
       "shard_count": 7,
       "shards": [
         "model-00001.safetensors",
@@ -52,19 +52,19 @@
       "top_modules": [
         [
           "self_attn.k_proj",
-          11
+          10
         ],
         [
           "self_attn.o_proj",
-          11
+          10
         ],
         [
           "self_attn.q_proj",
-          11
+          10
         ],
         [
           "self_attn.v_proj",
-          11
+          10
         ]
       ]
     },
@@ -108,28 +108,68 @@
       ]
     },
     "mtp": {
-      "records": 1,
-      "packed_bytes": 4194304,
-      "packed_gib": 0.0039,
-      "scale_elements": 524288,
-      "global_scale_count": 1,
+      "records": 11,
+      "packed_bytes": 422052864,
+      "packed_gib": 0.3931,
+      "scale_elements": 52756608,
+      "global_scale_count": 11,
       "shard_count": 1,
       "shards": [
         "model-00007.safetensors"
       ],
       "top_modules": [
         [
+          "mtp.layers.0.mlp.experts.gate_up_proj",
+          1
+        ],
+        [
           "mtp.fc",
+          1
+        ],
+        [
+          "mtp.layers.0.mlp.experts.down_proj",
+          1
+        ],
+        [
+          "mtp.layers.0.mlp.shared_expert.down_proj",
+          1
+        ],
+        [
+          "mtp.layers.0.mlp.shared_expert.gate_proj",
+          1
+        ],
+        [
+          "mtp.layers.0.mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mtp.layers.0.mlp.shared_expert_gate",
+          1
+        ],
+        [
+          "mtp.layers.0.self_attn.k_proj",
+          1
+        ],
+        [
+          "mtp.layers.0.self_attn.o_proj",
+          1
+        ],
+        [
+          "mtp.layers.0.self_attn.q_proj",
+          1
+        ],
+        [
+          "mtp.layers.0.self_attn.v_proj",
           1
         ]
       ]
     },
     "shared_moe": {
-      "records": 164,
-      "packed_bytes": 64529408,
-      "packed_gib": 0.0601,
-      "scale_elements": 8066176,
-      "global_scale_count": 164,
+      "records": 160,
+      "packed_bytes": 62955520,
+      "packed_gib": 0.0586,
+      "scale_elements": 7869440,
+      "global_scale_count": 160,
       "shard_count": 7,
       "shards": [
         "model-00001.safetensors",
@@ -143,19 +183,19 @@
       "top_modules": [
         [
           "mlp.shared_expert.down_proj",
-          41
+          40
         ],
         [
           "mlp.shared_expert.gate_proj",
-          41
+          40
         ],
         [
           "mlp.shared_expert.up_proj",
-          41
+          40
         ],
         [
           "mlp.shared_expert_gate",
-          41
+          40
         ]
       ]
     },
@@ -256,7 +296,6 @@
       38
     ],
     "full_attn_layers": [
-      0,
       3,
       7,
       11,
@@ -269,51 +308,25 @@
       39
     ],
     "linear_attn_count": 30,
-    "full_attn_count": 11
+    "full_attn_count": 10
   },
   "layers": [
     {
       "layer": 0,
-      "records": 21,
-      "packed_bytes": 838928384,
-      "packed_mib": 800.06,
-      "scale_elements": 104866048,
+      "records": 11,
+      "packed_bytes": 421069824,
+      "packed_mib": 401.56,
+      "scale_elements": 52633728,
       "buckets": {
         "linear_attn": 5,
-        "active_moe": 4,
-        "shared_moe": 8,
-        "full_attn": 4
+        "active_moe": 2,
+        "shared_moe": 4
       },
-      "shard_count": 2,
+      "shard_count": 1,
       "shards": [
-        "model-00001.safetensors",
-        "model-00007.safetensors"
+        "model-00001.safetensors"
       ],
       "modules": [
-        [
-          "mlp.experts.gate_up_proj",
-          2
-        ],
-        [
-          "mlp.experts.down_proj",
-          2
-        ],
-        [
-          "mlp.shared_expert.down_proj",
-          2
-        ],
-        [
-          "mlp.shared_expert.gate_proj",
-          2
-        ],
-        [
-          "mlp.shared_expert.up_proj",
-          2
-        ],
-        [
-          "mlp.shared_expert_gate",
-          2
-        ],
         [
           "linear_attn.in_proj_qkv",
           1
@@ -327,6 +340,10 @@
           1
         ],
         [
+          "mlp.experts.gate_up_proj",
+          1
+        ],
+        [
           "linear_attn.in_proj_a",
           1
         ],
@@ -335,19 +352,23 @@
           1
         ],
         [
-          "self_attn.k_proj",
+          "mlp.experts.down_proj",
           1
         ],
         [
-          "self_attn.o_proj",
+          "mlp.shared_expert.down_proj",
           1
         ],
         [
-          "self_attn.q_proj",
+          "mlp.shared_expert.gate_proj",
           1
         ],
         [
-          "self_attn.v_proj",
+          "mlp.shared_expert.up_proj",
+          1
+        ],
+        [
+          "mlp.shared_expert_gate",
           1
         ]
       ]

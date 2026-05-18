@@ -5,17 +5,17 @@ This is a read-only inventory for the offline serving-layout repack route.
 - model: `/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0`
 - quantized tensors: `553`
 - missing index keys: `0`
-- language layers: `40`; linear-attn `30`, full-attn `11`
+- language layers: `40`; linear-attn `30`, full-attn `10`
 
 ## Bucket Summary
 
 | Bucket | Records | Packed GiB | Scale Elements | Shards | Top Modules |
 |---|---:|---:|---:|---:|---|
-| `active_moe` | 82 | 15.3750 | 2063597568 | 7 | mlp.experts.gate_up_proj (41), mlp.experts.down_proj (41) |
-| `full_attn` | 44 | 0.1396 | 18743296 | 7 | self_attn.k_proj (11), self_attn.o_proj (11), self_attn.q_proj (11), self_attn.v_proj (11) |
+| `active_moe` | 80 | 15.0000 | 2013265920 | 7 | mlp.experts.gate_up_proj (40), mlp.experts.down_proj (40) |
+| `full_attn` | 40 | 0.1270 | 17039360 | 7 | self_attn.k_proj (10), self_attn.o_proj (10), self_attn.q_proj (10), self_attn.v_proj (10) |
 | `linear_attn` | 150 | 0.4706 | 63160320 | 7 | linear_attn.in_proj_qkv (30), linear_attn.in_proj_z (30), linear_attn.out_proj (30), linear_attn.in_proj_a (30) |
-| `mtp` | 1 | 0.0039 | 524288 | 1 | mtp.fc (1) |
-| `shared_moe` | 164 | 0.0601 | 8066176 | 7 | mlp.shared_expert.down_proj (41), mlp.shared_expert.gate_proj (41), mlp.shared_expert.up_proj (41), mlp.shared_expert_gate (41) |
+| `mtp` | 11 | 0.3931 | 52756608 | 1 | mtp.layers.0.mlp.experts.gate_up_proj (1), mtp.fc (1), mtp.layers.0.mlp.experts.down_proj (1), mtp.layers.0.mlp.shared_expert.down_proj (1) |
+| `shared_moe` | 160 | 0.0586 | 7869440 | 7 | mlp.shared_expert.down_proj (40), mlp.shared_expert.gate_proj (40), mlp.shared_expert.up_proj (40), mlp.shared_expert_gate (40) |
 | `visual` | 112 | 0.2078 | 27885312 | 1 | model.visual.blocks.0.mlp.linear_fc1 (1), model.visual.blocks.0.mlp.linear_fc2 (1), model.visual.blocks.1.mlp.linear_fc1 (1), model.visual.blocks.1.mlp.linear_fc2 (1) |
 
 ## Repack Order
@@ -29,7 +29,7 @@ This is a read-only inventory for the offline serving-layout repack route.
 
 | Layer | Packed MiB | Buckets | Shards |
 |---:|---:|---|---:|
-| 0 | 800.06 | active_moe:4, full_attn:4, linear_attn:5, shared_moe:8 | 2 |
+| 0 | 401.56 | active_moe:2, linear_attn:5, shared_moe:4 | 1 |
 | 1 | 401.56 | active_moe:2, linear_attn:5, shared_moe:4 | 1 |
 | 2 | 401.56 | active_moe:2, linear_attn:5, shared_moe:4 | 1 |
 | 3 | 398.50 | active_moe:2, full_attn:4, shared_moe:4 | 1 |

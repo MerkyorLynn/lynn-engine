@@ -97,14 +97,15 @@ R6000 inventory for the current official 35B W4A16 NVFP4 artifact:
 
 | Bucket | Records | Packed GiB | Shards | Meaning |
 |---|---:|---:|---:|---|
-| active MoE | 82 | 15.3750 | 7 | first offline repack target |
-| shared MoE | 164 | 0.0601 | 7 | fuse with active MoE boundary after parity |
+| active MoE | 80 | 15.0000 | 7 | first offline repack target |
+| shared MoE | 160 | 0.0586 | 7 | fuse with active MoE boundary after parity |
 | linear attention | 150 | 0.4706 | 7 | boundary/layout target for 30 SSM layers |
-| full attention | 44 | 0.1396 | 7 | cache/boundary target; weight repack is smaller ROI |
+| full attention | 40 | 0.1270 | 7 | cache/boundary target; weight repack is smaller ROI |
+| MTP | 11 | 0.3931 | 1 | warm-start/diagnostic only; not counted in serving target |
 | visual | 112 | 0.2078 | 1 | not on the text serving critical path |
 
-The language stack has 40 layers: 30 linear-attention layers and 11
-full-attention layers (`0, 3, 7, 11, 15, 19, 23, 27, 31, 35, 39`). This makes
+The language stack has 40 layers: 30 linear-attention layers and 10
+full-attention layers (`3, 7, 11, 15, 19, 23, 27, 31, 35, 39`). This makes
 the next ordering concrete:
 
 1. active-MoE gate/up + down decode-tile repack;
@@ -116,6 +117,40 @@ Artifacts:
 
 - `reports/qwen36_35b/qwen36_w4a16_repack_inventory_20260518.json`
 - `reports/qwen36_35b/QWEN36_W4A16_REPACK_INVENTORY_20260518.md`
+
+### MoE Repack V0 Result
+
+The first MoE-only serving sidecar is complete on R6000:
+
+| Item | Result |
+|---|---:|
+| Sidecar path | `/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-v0` |
+| Layers | 40 |
+| Size | 18.8624 GiB |
+| Build time | 25.593 s |
+| P127 all-layer contract | GREEN, 40/40 |
+
+Each layer file co-locates router, active gate/up, active down, shared expert,
+and shared-gate tensors. Active expert tensors are now stored in expert-major
+3D layout:
+
+- `active_gate_up.packed`: `[256, 1024, 1024]`
+- `active_down.packed`: `[256, 2048, 256]`
+- `router.weight`: `[256, 2048]`
+
+This does not change math. P127 verifies the sidecar against the current
+manifest path for all 40 layers. The next MoE kernel-boundary implementation
+should consume this sidecar directly instead of chasing generic safetensors
+manifest keys.
+
+Artifacts:
+
+- `scripts/qwen36_w4a16_moe_repack_sidecar.py`
+- `engine/moe_repack_sidecar.py`
+- `benchmarks/p127_moe_repack_sidecar_contract.py`
+- `reports/qwen36_35b/qwen36_w4a16_moe_repack_manifest_20260518.json`
+- `reports/qwen36_35b/p127_moe_repack_sidecar_contract_all40_20260518.json`
+- `reports/qwen36_35b/QWEN36_W4A16_MOE_REPACK_V0_20260518.md`
 
 ## Hard Constraints
 
