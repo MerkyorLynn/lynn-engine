@@ -1,6 +1,6 @@
 {
   "schema": "lynn-native-moe-candidate-summary-v2",
-  "created": "2026-05-18T22:43:04",
+  "created": "2026-05-18T22:53:30",
   "report_dir": "reports/qwen36_35b",
   "extra_report_dirs": [
     "/Users/lynn/Downloads/Lynn/lynn-engine-main/reports/qwen36_35b"
@@ -20,6 +20,20 @@
     "report": "reports/qwen36_35b/p137_moe_slot_stage_diagnostics_slotorder_routebf16_20260518.json",
     "native_full_vs_torch_slot_max_abs": 0.0029296875,
     "native_full_ms_mean": 0.05168983115090264
+  },
+  "packed_slot": {
+    "p138_manifest": "reports/qwen36_35b/p138_packed_slot_fixtures_manifest_kimi_20260518.json",
+    "p139_report": "reports/qwen36_35b/p139_slot_packed_contract_kimi_20260518.json",
+    "num_fixtures": 18,
+    "packed_fixture_mb": 270.08,
+    "bf16_equiv_mb": 864.0,
+    "size_reduction_pct": 68.7,
+    "p139_verdict": "GREEN",
+    "p139_max_abs_max": 0.0,
+    "p139_passed": 18,
+    "p139_total": 18,
+    "packed_ready_for_kernel": true,
+    "recommend_next_step": "build native packed NVFP4 kernel probe"
   },
   "candidates": [
     {
@@ -69,7 +83,7 @@
     {
       "id": "native_slot_tc_bf16",
       "label": "native_slot_tc_bf16 (TensorCore probe)",
-      "report": "/Users/lynn/Downloads/Lynn/lynn-engine-main/reports/qwen36_35b/native_slot_tensorcore_probe_r6000_20260518.json",
+      "report": "reports/qwen36_35b/native_slot_tensorcore_probe_r6000_20260518.json",
       "slot_max_abs": 0.001953125,
       "unique_max_abs": null,
       "cosine_min": 0.9999891519546509,
@@ -80,7 +94,7 @@
     {
       "id": "native_slot_fused_bf16",
       "label": "native_slot_fused_bf16 (fused probe)",
-      "report": "/Users/lynn/Downloads/Lynn/lynn-engine-main/reports/qwen36_35b/native_slot_tensorcore_fused_probe_r6000_20260518.json",
+      "report": "reports/qwen36_35b/native_slot_tensorcore_fused_probe_r6000_20260518.json",
       "slot_max_abs": 0.001953125,
       "unique_max_abs": null,
       "cosine_min": 0.9999891519546509,
@@ -91,7 +105,7 @@
     {
       "id": "native_slot_tensorcore_pretransposed_probe",
       "label": "native_slot_tensorcore_pretransposed_probe (p139b)",
-      "report": "/Users/lynn/Downloads/Lynn/lynn-engine-main/reports/qwen36_35b/native_slot_tensorcore_pretransposed_probe_r6000_20260518.json",
+      "report": "reports/qwen36_35b/native_slot_tensorcore_pretransposed_probe_r6000_20260518.json",
       "slot_max_abs": 0.001953125,
       "unique_max_abs": null,
       "cosine_min": 0.9999890923500061,

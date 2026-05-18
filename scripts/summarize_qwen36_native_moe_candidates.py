@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -94,6 +95,83 @@ def _agg_unique_max_abs(data: dict[str, Any]) -> float | None:
             if vals:
                 return max(vals)
     return None
+
+
+def _gather_packed_slot(report_dir: Path,
+                        search_dirs: list[Path],
+                        p138_manifest_path: str | None = None,
+                        p139_report_path: str | None = None,
+                        ) -> dict[str, Any]:
+    """Gather p138 packed-slot manifest + p139 contract data."""
+    # ── p138 ──
+    if p138_manifest_path:
+        p138_file = Path(p138_manifest_path)
+    else:
+        p138_file = _find_latest_in_dirs(
+            search_dirs, "p138_packed_slot_fixtures_manifest*.json")
+    p138_data = _load_json(p138_file) if p138_file else None
+
+    # ── p139 ──
+    if p139_report_path:
+        p139_file = Path(p139_report_path)
+    else:
+        p139_file = _find_latest_in_dirs(
+            search_dirs, "p139_slot_packed_contract*.json")
+    p139_data = _load_json(p139_file) if p139_file else None
+
+    # ── Compute sizes from p138 ──
+    packed_bytes_total = 0
+    bf16_bytes_total = 0
+    if p138_data and "fixtures" in p138_data:
+        for fx in p138_data["fixtures"]:
+            packed_bytes_total += fx.get("packed_bytes", 0)
+            bf16_bytes_total += fx.get("bf16_equiv_bytes", 0)
+
+    packed_fixture_mb = packed_bytes_total / (1024 * 1024) if packed_bytes_total else None
+    bf16_equiv_mb = bf16_bytes_total / (1024 * 1024) if bf16_bytes_total else None
+    size_reduction_pct = (
+        (1.0 - packed_bytes_total / bf16_bytes_total) * 100.0
+        if bf16_bytes_total > 0 else None
+    )
+
+    # ── p139 verdict ──
+    p139_verdict = p139_data.get("verdict") if p139_data else None
+    p139_max_abs_max = p139_data.get("max_abs_max") if p139_data else None
+    p139_passed = p139_data.get("passed") if p139_data else None
+    p139_total = p139_data.get("total") if p139_data else None
+    num_fixtures = p138_data.get("num_fixtures") if p138_data else None
+
+    packed_ready = bool(
+        p139_verdict == "GREEN"
+        and packed_fixture_mb is not None
+        and bf16_equiv_mb is not None
+    )
+
+    # ── recommend ──
+    if (p139_verdict == "GREEN"
+            and size_reduction_pct is not None and size_reduction_pct > 60.0):
+        recommend_next_step = "build native packed NVFP4 kernel probe"
+    elif p139_verdict == "GREEN":
+        recommend_next_step = "packed fixtures ready — evaluate kernel feasibility"
+    elif p139_verdict:
+        recommend_next_step = "fix p139 contract failures before kernel work"
+    else:
+        recommend_next_step = "no p138/p139 data"
+
+    return {
+        "p138_manifest": str(p138_file) if p138_file else None,
+        "p139_report": str(p139_file) if p139_file else None,
+        "num_fixtures": num_fixtures,
+        "packed_fixture_mb": round(packed_fixture_mb, 2) if packed_fixture_mb is not None else None,
+        "bf16_equiv_mb": round(bf16_equiv_mb, 2) if bf16_equiv_mb is not None else None,
+        "size_reduction_pct": round(size_reduction_pct, 1) if size_reduction_pct is not None else None,
+        "p139_verdict": p139_verdict,
+        "p139_max_abs_max": p139_max_abs_max,
+        "p139_passed": p139_passed,
+        "p139_total": p139_total,
+        "packed_ready_for_kernel": packed_ready,
+        "recommend_next_step": recommend_next_step,
+    }
 
 
 def _classify(slot_abs: float | None, cos_min: float | None,
@@ -195,11 +273,16 @@ CANDIDATES = [
 # ─────────────────────────────────────────────────────────────
 
 def gather(report_dir: Path,
-           extra_dirs: list[Path] | None = None) -> dict[str, Any]:
+           extra_dirs: list[Path] | None = None,
+           p138_manifest_path: str | None = None,
+           p139_report_path: str | None = None,
+           ) -> dict[str, Any]:
     """Gather all candidate data into a unified report.
 
     ``report_dir`` is the primary search directory.  ``extra_dirs`` are
     consulted in order when a report is not found locally.
+    ``p138_manifest_path`` and ``p139_report_path`` allow explicit override
+    of packed-slot report locations (e.g. from env vars).
     """
     search_dirs = [report_dir] + (extra_dirs or [])
 
@@ -221,6 +304,13 @@ def gather(report_dir: Path,
         p137_file = _find_latest_in_dirs(
             search_dirs, "p137_moe_slot_stage_diagnostics*.json")
     p137_data = _load_json(p137_file) if p137_file else None
+
+    # ── Packed-slot (p138/p139) ──
+    packed_slot = _gather_packed_slot(
+        report_dir, search_dirs,
+        p138_manifest_path=p138_manifest_path,
+        p139_report_path=p139_report_path,
+    )
 
     # ── Candidates ──
     candidates: list[dict[str, Any]] = []
@@ -311,6 +401,7 @@ def gather(report_dir: Path,
                 if p137_data and "summary" in p137_data else None
             ),
         },
+        "packed_slot": packed_slot,
         "candidates": candidates,
         "summary": {
             "has_default_candidate": any_default,
@@ -355,6 +446,38 @@ def render_markdown(report: dict[str, Any]) -> str:
     p137 = report["p137_diagnostics"]
     p137_status = "present" if p137["report"] else "MISSING"
     lines.append(f"| P137 diagnostics | {p137_status} |")
+    lines.append("")
+
+    # Packed-slot section
+    ps = report.get("packed_slot", {})
+    p139_v = ps.get("p139_verdict")
+    ps_badge = {"GREEN": "🟢", "RED": "🔴"}.get(p139_v or "", "⚪")
+    lines.append("## Packed-Slot Readiness (p138/p139)")
+    lines.append("")
+    if ps.get("p138_manifest"):
+        lines.append(f"- **p138 manifest:** `{Path(ps['p138_manifest']).name}`")
+    else:
+        lines.append("- **p138 manifest:** ⚪ MISSING")
+    if ps.get("p139_report"):
+        lines.append(f"- **p139 contract:** `{Path(ps['p139_report']).name}`")
+    else:
+        lines.append("- **p139 contract:** ⚪ MISSING")
+    lines.append("")
+    lines.append(f"| Field | Value |")
+    lines.append(f"|-------|-------|")
+    lines.append(f"| num_fixtures | {ps.get('num_fixtures', '—')} |")
+    pf_mb = ps.get("packed_fixture_mb")
+    lines.append(f"| packed_fixture_mb | {f'{pf_mb:.2f}' if pf_mb is not None else '—'} |")
+    be_mb = ps.get("bf16_equiv_mb")
+    lines.append(f"| bf16_equiv_mb | {f'{be_mb:.2f}' if be_mb is not None else '—'} |")
+    rp = ps.get("size_reduction_pct")
+    lines.append(f"| size_reduction_pct | {f'{rp:.1f}%' if rp is not None else '—'} |")
+    lines.append(f"| p139_verdict | {ps_badge} {p139_v or '—'} |")
+    ma = ps.get("p139_max_abs_max")
+    lines.append(f"| p139_max_abs_max | {f'{ma}' if ma is not None else '—'} |")
+    prk = ps.get("packed_ready_for_kernel")
+    lines.append(f"| packed_ready_for_kernel | {'✅' if prk else '❌'} |")
+    lines.append(f"| recommend_next_step | {ps.get('recommend_next_step', '—')} |")
     lines.append("")
 
     # Candidates table
@@ -416,6 +539,12 @@ def main() -> int:
                     metavar="DIR",
                     help="Additional report directories to search "
                          "(can be repeated)")
+    ap.add_argument("--p138-manifest", default=None,
+                    help="Explicit p138 packed-slot manifest path "
+                         "(env: P138_MANIFEST)")
+    ap.add_argument("--p139-report", default=None,
+                    help="Explicit p139 packed-slot contract path "
+                         "(env: P139_REPORT)")
     ap.add_argument("--out", default=None)
     ap.add_argument("--md-out", default=None)
     args = ap.parse_args()
@@ -427,7 +556,14 @@ def main() -> int:
 
     extra_dirs = [Path(d) for d in args.extra_report_dir if Path(d).is_dir()]
 
-    report = gather(report_dir, extra_dirs=extra_dirs)
+    p138_manifest = (args.p138_manifest
+                     or os.environ.get("P138_MANIFEST"))
+    p139_report = (args.p139_report
+                   or os.environ.get("P139_REPORT"))
+
+    report = gather(report_dir, extra_dirs=extra_dirs,
+                    p138_manifest_path=p138_manifest,
+                    p139_report_path=p139_report)
 
     out_json = Path(args.out or report_dir / "native_moe_candidate_summary.json")
     out_json.parent.mkdir(parents=True, exist_ok=True)
@@ -447,6 +583,15 @@ def main() -> int:
         lat = f"{c['avg_latency_ms']:.4f}ms" if c.get("avg_latency_ms") else "—"
         sa = f"{c['slot_max_abs']:.2e}" if c.get("slot_max_abs") is not None else "—"
         print(f"  {badge} {c['verdict']:<12} lat={lat:<12} abs={sa:<12} {c['recommend_next_step']}")
+    print(f"{'─'*80}")
+    ps = report.get("packed_slot", {})
+    p139_v = ps.get("p139_verdict")
+    ps_badge = {"GREEN": "🟢", "RED": "🔴"}.get(p139_v or "", "⚪")
+    rp = ps.get("size_reduction_pct")
+    rp_s = f"{rp:.1f}%" if rp is not None else "—"
+    prk = "✅" if ps.get("packed_ready_for_kernel") else "❌"
+    print(f"  PACKED-SLOT: {ps_badge} p139={p139_v or '—':<6} "
+          f"reduction={rp_s:<8} ready={prk}  {ps.get('recommend_next_step', '—')}")
     print(f"{'='*80}")
     summ = report["summary"]
     badge = {"DEFAULT": "🟢", "AMBER_FAST": "🟡",

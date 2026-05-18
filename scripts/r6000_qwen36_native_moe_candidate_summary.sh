@@ -11,6 +11,8 @@
 #
 # Env overrides:
 #   EXTRA_REPORT_DIR  — colon-separated list of additional report dirs
+#   P138_MANIFEST     — explicit p138 packed-slot manifest path
+#   P139_REPORT       — explicit p139 packed-slot contract path
 #
 # Outputs:
 #   reports/qwen36_35b/native_moe_candidate_summary.json
@@ -23,6 +25,8 @@ REPO_DIR="${REPO_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 PY="${PY:-/root/autodl-tmp/conda-envs/r6000-eval/bin/python}"
 REPORT_DIR="${REPORT_DIR:-/root/autodl-tmp/reports/qwen36_35b}"
 EXTRA_REPORT_DIR="${EXTRA_REPORT_DIR:-}"
+P138_MANIFEST="${P138_MANIFEST:-}"
+P139_REPORT="${P139_REPORT:-}"
 
 echo "═══════════════════════════════════════════════════════════════════════"
 echo " R6000 Unified Native MoE Candidate Summary"
@@ -32,6 +36,8 @@ echo " Repo:        ${REPO_DIR}"
 echo " Python:      ${PY}"
 echo " Report dir:  ${REPORT_DIR}"
 echo " Extra dirs:  ${EXTRA_REPORT_DIR:-<none>}"
+echo " P138:        ${P138_MANIFEST:-<auto>}"
+echo " P139:        ${P139_REPORT:-<auto>}"
 echo ""
 
 cd "${REPO_DIR}"
@@ -58,6 +64,16 @@ if [[ -n "${EXTRA_REPORT_DIR}" ]]; then
     done
 fi
 
+P138_ARGS=""
+if [[ -n "${P138_MANIFEST}" && -f "${P138_MANIFEST}" ]]; then
+    P138_ARGS="--p138-manifest ${P138_MANIFEST}"
+fi
+
+P139_ARGS=""
+if [[ -n "${P139_REPORT}" && -f "${P139_REPORT}" ]]; then
+    P139_ARGS="--p139-report ${P139_REPORT}"
+fi
+
 echo "═══════════════════════════════════════════════════════════════════════"
 echo " Running candidate summary"
 echo "═══════════════════════════════════════════════════════════════════════"
@@ -67,6 +83,8 @@ echo ""
 "${PY}" scripts/summarize_qwen36_native_moe_candidates.py \
     --report-dir "${REPORT_DIR}" \
     ${EXTRA_ARGS} \
+    ${P138_ARGS} \
+    ${P139_ARGS} \
     --out "${REPORT_DIR}/native_moe_candidate_summary.json" \
     --md-out "${REPORT_DIR}/native_moe_candidate_summary.md"
 
