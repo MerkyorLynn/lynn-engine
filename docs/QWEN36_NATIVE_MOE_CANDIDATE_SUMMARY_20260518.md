@@ -30,6 +30,24 @@ python scripts/summarize_qwen36_native_moe_candidates.py \
     --md-out reports/qwen36_35b/native_moe_candidate_summary.md
 ```
 
+### With explicit p138/p139 overrides
+
+```bash
+P138_MANIFEST=/path/to/p138_manifest.json \
+P139_REPORT=/path/to/p139_contract.json \
+    bash scripts/r6000_qwen36_native_moe_candidate_summary.sh
+```
+
+### Env vars
+
+| Variable | Default | Description |
+|---|---|---|
+| `EXTRA_REPORT_DIR` | _(empty)_ | Colon-separated extra report dirs |
+| `P138_MANIFEST` | _(auto)_ | Explicit p138 packed-slot manifest path |
+| `P139_REPORT` | _(auto)_ | Explicit p139 packed-slot contract path |
+| `REPORT_DIR` | `reports/qwen36_35b` | Primary report directory |
+| `PY` | `/root/.../python` | Python interpreter |
+
 Reports are searched in order: local `--report-dir` first, then each
 `--extra-report-dir` in the order given.  The first match wins.  Missing
 candidates are listed as `MISSING`.
@@ -71,8 +89,21 @@ Top-level fields:
 - `p136` — slot-order contract status
 - `p140_gate` — risk gate verdict and recommend_p37 flag
 - `p137_diagnostics` — optional diagnostic context
+- `packed_slot` — p138/p139 packed-slot readiness (see below)
 - `candidates[]` — per-candidate metrics and verdict (includes `report` path)
 - `summary` — `best_verdict`, `has_default_candidate`, `has_amber_candidate`
+
+### Packed-Slot section (`packed_slot`)
+
+| Field | Type | Description |
+|---|---|---|
+| `packed_fixture_mb` | float? | Total packed fixture size in MiB |
+| `bf16_equiv_mb` | float? | BF16-equivalent size in MiB |
+| `size_reduction_pct` | float? | Compression ratio (percent) |
+| `p139_verdict` | string? | `GREEN` / `RED` |
+| `p139_max_abs_max` | float? | Max absolute error across all fixtures |
+| `packed_ready_for_kernel` | bool | True if p139 GREEN and sizes available |
+| `recommend_next_step` | string | Next action recommendation |
 
 ### Markdown (`native_moe_candidate_summary.md`)
 
