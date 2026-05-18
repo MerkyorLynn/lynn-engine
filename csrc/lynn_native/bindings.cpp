@@ -171,6 +171,14 @@ torch::Tensor lynn_native_moe_slot_tensorcore_pretransposed(
     torch::Tensor x, torch::Tensor routing_weights,
     torch::Tensor W_fused_T, torch::Tensor W_down_T);
 
+// P140 packed NVFP4 slot MoE probe
+torch::Tensor lynn_native_moe_slot_packed_nvfp4_probe(
+    torch::Tensor x, torch::Tensor routing_weights,
+    torch::Tensor slot_gate_up_packed, torch::Tensor slot_gate_up_scale,
+    torch::Tensor slot_gate_up_global_scale,
+    torch::Tensor slot_down_packed, torch::Tensor slot_down_scale,
+    torch::Tensor slot_down_global_scale);
+
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
   m.def("add_one", &lynn_native_add_one, "Lynn native CUDA extension smoke kernel");
   m.def(
@@ -261,4 +269,8 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
       "moe_slot_tensorcore_pretransposed",
       &lynn_native_moe_slot_tensorcore_pretransposed,
       "P139b pretransposed slot MoE (zero-overhead hot path, 2 launches)");
+  m.def(
+      "moe_slot_packed_nvfp4_probe",
+      &lynn_native_moe_slot_packed_nvfp4_probe,
+      "P140 packed NVFP4 slot MoE probe (correctness-first, scalar dequant)");
 }
