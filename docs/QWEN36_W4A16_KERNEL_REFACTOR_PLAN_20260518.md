@@ -356,9 +356,11 @@ Artifacts:
 
 - `benchmarks/p133_export_active_moe_fixtures.py`
 - `benchmarks/p134_active_moe_fixture_contract.py`
+- `docs/QWEN36_NATIVE_MOE_CANDIDATE_OUTPUT_CONTRACT_20260518.md`
 - `scripts/r6000_export_qwen36_moe_fixtures.sh`
 - `scripts/r6000_qwen36_moe_fixture_gate.sh`
 - `scripts/summarize_qwen36_moe_fixture_gate.py`
+- `scripts/qwen36_moe_candidate_metrics_template.json`
 - `reports/qwen36_35b/p133_fixtures_official_w4a16/manifest.json`
 - `reports/qwen36_35b/p134_triton_selfcheck_report.json`
 - `reports/qwen36_35b/p134_candidate_output_selfcheck_report.json`

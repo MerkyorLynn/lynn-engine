@@ -1,0 +1,9 @@
+{
+  "candidate_ms_mean": 0.0,
+  "candidate_ms_max": 0.0,
+  "iters": 0,
+  "warmup": 0,
+  "mode": "routed_only",
+  "candidate": "replace-with-kernel-name",
+  "notes": "Fill candidate_ms_mean before running scripts/r6000_qwen36_moe_fixture_gate.sh with CANDIDATE_METRICS_JSON."
+}

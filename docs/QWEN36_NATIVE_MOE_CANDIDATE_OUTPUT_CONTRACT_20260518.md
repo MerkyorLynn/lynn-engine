@@ -1,0 +1,112 @@
+# Qwen3.6 Native MoE Candidate Output Contract
+
+Date: 2026-05-18
+
+This is the handoff contract for native active-MoE kernel candidates.  The goal
+is to keep CUDA development independent from the full serving path until a
+candidate has passed the fast fixture gate.
+
+## Fixture Source
+
+Use the v2 fixture set:
+
+```text
+reports/qwen36_35b/p133_fixtures_official_w4a16/
+```
+
+Each fixture contains:
+
+| Tensor | Shape | Meaning |
+|---|---:|---|
+| `hidden_in` | `[1, 2048]` | MoE input for the final prompt token |
+| `expert_ids` | `[8]` | Top-8 expert ids in slot order |
+| `routing_weights` | `[8]` | Top-8 softmax weights |
+| `routed_output` | `[1, 2048]` | Routed experts only |
+| `moe_output` | `[1, 2048]` | Routed experts plus shared expert |
+
+Native routed-MoE kernels should target `routed_output` first.  Shared expert
+handling should be added only after the routed path is strict.
+
+## Candidate Output Directory
+
+Write one safetensors file per input fixture.  The easiest path is to mirror the
+fixture filename exactly:
+
+```text
+candidate_outputs/
+  layer_00_prompt_00.safetensors
+  layer_00_prompt_01.safetensors
+  ...
+```
+
+Each candidate file may contain one of these tensor keys:
+
+| Key | Preferred Use |
+|---|---|
+| `routed_output` | routed-only candidate output |
+| `moe_output` | full MoE candidate output |
+| `candidate_output` | generic output accepted by the gate |
+| `output` | generic output accepted by the gate |
+
+For routed-only work, run the gate with `ROUTED_ONLY=1`.
+
+## Candidate Metrics JSON
+
+If the kernel is timed outside Python, also write a small metrics JSON:
+
+```json
+{
+  "candidate_ms_mean": 0.70,
+  "candidate_ms_max": 0.82,
+  "iters": 1000,
+  "warmup": 100,
+  "notes": "Routed-only output-owned kernel, layer/prompt fixture mean."
+}
+```
+
+The summary script accepts `candidate_ms_mean`, `mean_ms`, `latency_ms`, or
+`summary.mean_ms`.  Without this file, a precomputed-output candidate can only be
+classified as `PASS_NUMERIC_ONLY`.
+
+## R6000 Gate Command
+
+```bash
+ROUTED_ONLY=1 \
+CANDIDATE_OUTPUT_DIR=/path/to/candidate_outputs \
+CANDIDATE_METRICS_JSON=/path/to/candidate_metrics.json \
+bash scripts/r6000_qwen36_moe_fixture_gate.sh
+```
+
+The wrapper emits:
+
+| File | Meaning |
+|---|---|
+| `p134_*.json` | raw numeric contract report |
+| `p134_*.summary.json` | traffic-light summary |
+
+## Decisions
+
+| Decision | Meaning | Next Step |
+|---|---|---|
+| `CLOSED_NUMERIC` | fixture contract failed | fix kernel, do not run service gates |
+| `PASS_NUMERIC_ONLY` | numeric pass, no latency | add metrics JSON |
+| `PASS_SLOW` | numeric pass, slower than reference | close or redesign |
+| `FAST_CANDIDATE` | numeric pass and speedup clears bar | escalate to P37/P25/structured |
+| `BASELINE_REFERENCE` | self-check report | reference only |
+
+Default speed bar is `1.05x` over the relevant p134 self-check reference.  This
+is deliberately modest: fixture speed is only an admission gate, not the final
+serving result.
+
+## Escalation Rule
+
+A native MoE candidate must pass in this order:
+
+1. `ROUTED_ONLY=1` fixture gate against `routed_output`.
+2. Full MoE fixture gate against `moe_output`, unless the candidate explicitly
+   owns only routed experts and leaves shared expert unchanged.
+3. P37 exact-greedy.
+4. P25 128/256/512 decode TPS.
+5. 40/40 and then 70/70 hard structured gates.
+
+Anything that fails step 1 or 2 should not spend R6000 time on service gates.
