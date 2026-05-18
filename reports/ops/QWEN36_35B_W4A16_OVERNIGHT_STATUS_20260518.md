@@ -611,6 +611,33 @@ Keep them as kernel signals only. The production path needs a fused kernel that
 preserves the Triton numerical contract, not a direct promotion of the old
 scalar/native tile references.
 
+The grouped-per16 active-MoE signal was then checked with a stricter
+first-divergence harness. P33 now supports arbitrary candidate backends and
+native-active-MoE layer allowlists, so the same reference-fed prompt can compare
+full linear-attention, coarse layer groups, and individual layers against the
+Triton baseline.
+
+| P33 grouped-per16 scope | Result |
+|---|---|
+| All linear-attention layers | RED: first top-1 divergence at step 2, `318 -> 1393`; first hidden drift at layer 15 |
+| Layers `0,1,2,4,5,6,8,9,10,12,13,14` | RED: first top-1 divergence at step 2, `318 -> 1393` |
+| Layers `16,17,18,20,21,22` | RED: first top-1 divergence at step 2, `318 -> 1393` |
+| Layers `24,25,26,28,29,30` | RED: first top-1 divergence at step 2, `318 -> 1393` |
+| Layers `32,33,34,36,37,38` | RED: first top-1 divergence at step 2, `318 -> 1393` |
+| Single layer `0` | RED: first top-1 divergence at step 2, `318 -> 1393` |
+| Single layer `16` | P33 GREEN over this one prompt, but hidden drift appears later at layer 19 |
+| Single layer `24` | RED: first top-1 divergence at step 2, `318 -> 1393` |
+| Single layer `32` | P33 GREEN over this one prompt |
+
+The apparent safe single-layer windows are not promotable. A follow-up P37
+multi-prompt generation gate with grouped-per16 enabled only on layers `16,32`
+improved median decode TPS by `1.017x` (`104.42 -> 106.18` median, `104.11 ->
+106.21` mean), but all three prompts diverged and collapsed to repeated `!`
+tokens after the first newline. This closes the simple layer-allowlist rescue.
+The grouped-per16 kernel remains a useful speed ceiling signal, but promotion
+needs a numerically stricter active-MoE implementation rather than choosing a
+subset of layers.
+
 Copied reports:
 
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p76_cutlass_cute_20260518_035340.json`
@@ -640,6 +667,16 @@ Copied reports:
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p53_triton_scale_hoist_20260518_062117.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p37_down_cuda_tile_gate_20260518_040259.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p37_grouped_per16_nonatomic_gate_20260518_040522.json`
+- `reports/qwen36_35b/p33_grouped_per16_nonatomic_linear_divergence_20260518_113506.json`
+- `reports/qwen36_35b/p33_grouped_per16_nonatomic_layers_0_1_2_4_5_6_8_9_10_12_13_14_20260518_113707.json`
+- `reports/qwen36_35b/p33_grouped_per16_nonatomic_layers_16_17_18_20_21_22_20260518_113728.json`
+- `reports/qwen36_35b/p33_grouped_per16_nonatomic_layers_24_25_26_28_29_30_20260518_113750.json`
+- `reports/qwen36_35b/p33_grouped_per16_nonatomic_layers_32_33_34_36_37_38_20260518_113812.json`
+- `reports/qwen36_35b/p33_grouped_per16_nonatomic_layer_0_20260518_113849.json`
+- `reports/qwen36_35b/p33_grouped_per16_nonatomic_layer_16_20260518_113911.json`
+- `reports/qwen36_35b/p33_grouped_per16_nonatomic_layer_24_20260518_113932.json`
+- `reports/qwen36_35b/p33_grouped_per16_nonatomic_layer_32_20260518_113953.json`
+- `reports/qwen36_35b/p37_grouped_per16_nonatomic_layers16_32_20260518_114034.json`
 
 ## Speed Profile
 
@@ -806,6 +843,8 @@ or if we deliberately start a new self-trained Qwen3.6 hybrid-SSM MTP project.
    W4A16 blocker appears.
 2. Treat graph+in-place plus gate/up fastdecode, triton-pair QK/RoPE, triton
    gated RMSNorm, and GQA recurrent as the current R6000 W4A16 serving baseline.
-3. Push native-kernel work from 82 decode TPS toward the 155 target: packed
-   prefill/decode parity, MoE grouped kernel, and Python serving overhead.
+3. Push native-kernel work from the 104-105 safe decode TPS line toward the 155
+   target: numerically strict active/shared MoE boundary fusion first, then
+   full-attention or linear-attention fusion. Python serving overhead is not the
+   current high-ROI lever.
 4. Keep MTP as a trained/calibrated sidecar project, not default promote credit.

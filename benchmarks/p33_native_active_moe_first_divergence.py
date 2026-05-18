@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""P33: first-divergence probe for the native active-MoE backend.
+"""P33: first-divergence probe for native active-MoE backends.
 
 P32 split the P31 signal into two facts:
   - cuda_scalar + reusable linear-block CUDA graphs can silently replay token 0.
@@ -36,6 +36,7 @@ COMMON_ENV = {
     "LYNN_LINEAR_ATTN_GQA_RECURRENT": "1",
     "LYNN_LINEAR_ATTN_CONV_BACKEND": "triton_torch_silu",
     "LYNN_MOE_IMPL": "packed_nvfp4",
+    "LYNN_MOE_FAST_FIXED": "0",
     "LYNN_QK_NORM_ROPE_BACKEND": "triton_pair",
     "LYNN_RMSNORM_GATED_BACKEND": "triton",
     "LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4": "1",
@@ -47,13 +48,14 @@ COMMON_ENV = {
     "LYNN_PACKED_DECODE": "0",
     "LYNN_PACKED_DECODE_PREPARE_NATIVE": "0",
     "LYNN_PACKED_SHARED_EXPERT": "0",
-    "LYNN_NATIVE_ACTIVE_MOE_LAYERS": "",
 }
 
 
-def _set_common_env() -> dict[str, str | None]:
-    old = {k: os.environ.get(k) for k in COMMON_ENV}
-    os.environ.update(COMMON_ENV)
+def _set_common_env(native_active_moe_layers: str) -> dict[str, str | None]:
+    updates = dict(COMMON_ENV)
+    updates["LYNN_NATIVE_ACTIVE_MOE_LAYERS"] = native_active_moe_layers
+    old = {k: os.environ.get(k) for k in updates}
+    os.environ.update(updates)
     return old
 
 
@@ -141,9 +143,15 @@ def main() -> int:
     ap.add_argument("--steps", type=int, default=6)
     ap.add_argument("--topk", type=int, default=5)
     ap.add_argument("--layer-cos-threshold", type=float, default=0.999999)
+    ap.add_argument("--candidate-backend", default="cuda_scalar")
+    ap.add_argument(
+        "--native-active-moe-layers",
+        default="",
+        help="Optional candidate layer allowlist, e.g. linear_attention, full_attention, or comma-separated layer ids.",
+    )
     args = ap.parse_args()
 
-    old_env = _set_common_env()
+    old_env = _set_common_env(args.native_active_moe_layers)
     try:
         runner = LynnIncrementalRunner(args.model, device="cuda", dtype=torch.bfloat16, verbose=False)
         ids = _encode_prompt(runner.tokenizer, args.prompt, runner.device, use_chat_template=False)
@@ -179,7 +187,7 @@ def main() -> int:
 
         for step in range(args.steps):
             h_t, logits_t, layers_t = _decode_step(runner, state_triton, next_id, "triton")
-            h_c, logits_c, layers_c = _decode_step(runner, state_cuda, next_id, "cuda_scalar")
+            h_c, logits_c, layers_c = _decode_step(runner, state_cuda, next_id, args.candidate_backend)
             logits_diff = _diff(logits_t, logits_c)
             top_t = _topk(logits_t, args.topk)
             top_c = _topk(logits_c, args.topk)
@@ -203,7 +211,7 @@ def main() -> int:
                 "step": step,
                 "input_token_id": int(next_id),
                 "triton_topk": top_t,
-                "cuda_scalar_topk": top_c,
+                "candidate_topk": top_c,
                 "top1_match": top_t["ids"][0] == top_c["ids"][0],
                 "logits_diff": logits_diff,
                 "first_layer_below_threshold": step_first_layer,
@@ -214,9 +222,9 @@ def main() -> int:
                 first_top1_divergence = {
                     "step": step,
                     "triton_top1": top_t["ids"][0],
-                    "cuda_scalar_top1": top_c["ids"][0],
+                    "candidate_top1": top_c["ids"][0],
                     "triton_margin": top_t["margin"],
-                    "cuda_scalar_margin": top_c["margin"],
+                    "candidate_margin": top_c["margin"],
                 }
 
             # Follow the Triton/reference greedy trajectory so both backends see
@@ -228,6 +236,8 @@ def main() -> int:
             "model": args.model,
             "prompt": args.prompt,
             "steps": args.steps,
+            "candidate_backend": args.candidate_backend,
+            "native_active_moe_layers": args.native_active_moe_layers,
             "initial_topk": _topk(logits0, args.topk),
             "first_top1_divergence": first_top1_divergence,
             "first_layer_divergence": first_layer_divergence,
