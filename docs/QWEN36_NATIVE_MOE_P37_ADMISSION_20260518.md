@@ -55,7 +55,7 @@ python benchmarks/p143_resident_p37_admission_gate.py \
 | Variable | Default | Description |
 |---|---|---|
 | `STAGE_REPORT` | _(auto: p142_graphsafe_v31_fixture_report.json)_ | Explicit stage report path |
-| `P37_REPORT` | _(auto)_ | Explicit P37 report path |
+| `P37_REPORT` | _(none)_ | Explicit fresh resident P37 report path. Historical P37 files are not auto-discovered. |
 | `REPORT_DIR` | `reports/qwen36_35b` | Primary report directory |
 | `PY` | `/root/.../python` | Python interpreter |
 
