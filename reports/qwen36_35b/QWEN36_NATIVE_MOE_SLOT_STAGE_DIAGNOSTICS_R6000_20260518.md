@@ -23,12 +23,13 @@ The answer: the scalar native slot path is fast, but it does not match PyTorch/T
 
 Changing Stage 1 from 256 threads to 128 threads did not improve numerical drift and slowed the candidate:
 
-| Stage 1 Threads | Full Max Abs | Full Cosine Min | Full Latency Mean |
+| Probe | Full Max Abs | Full Cosine Min | Full Latency Mean |
 | --- | --- | --- | --- |
-| 256 | 0.00390625 | 0.9999786615371704 | 0.0517 ms |
-| 128 | 0.00390625 | 0.9999786615371704 | 0.0558 ms |
+| baseline, S1 256 / S2 256 | 0.00390625 | 0.9999786615371704 | 0.0517 ms |
+| S1 128 / S2 256 | 0.00390625 | 0.9999786615371704 | 0.0558 ms |
+| S1 256 / S2 128 | 0.00390625 | 0.9999786615371704 | 0.0779 ms |
 
-This closes the cheap "thread-count reduction shape" hypothesis. The issue is not fixed by changing the scalar reduction width.
+This closes the cheap "thread-count reduction shape" hypothesis for both gate/up and down. The issue is not fixed by changing the scalar reduction width.
 
 ## Interpretation
 
@@ -47,3 +48,4 @@ Artifacts:
 
 - `reports/qwen36_35b/p137_moe_slot_stage_diagnostics_20260518.json`
 - `reports/qwen36_35b/p137_moe_slot_stage_diagnostics_s1t128_20260518.json`
+- `reports/qwen36_35b/p137_moe_slot_stage_diagnostics_s2t128_20260518.json`
