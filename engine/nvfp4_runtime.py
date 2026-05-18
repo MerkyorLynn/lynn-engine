@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
+import os
 from pathlib import Path
 
 import torch
@@ -19,6 +20,7 @@ from triton_kernels.nvfp4_linear import (
     nvfp4_dual_matvec_packed,
     nvfp4_matvec_packed,
     quantize_fp4_m1_native,
+    quantize_fp4_m1_native_out,
 )
 
 _SWIZZLE_INDEX_CACHE: dict[tuple[int, int, int, int, str], torch.Tensor] = {}
@@ -366,6 +368,8 @@ class PackedNVFP4FusedLinear:
     native_scale_b: torch.Tensor
     native_weight_t: torch.Tensor | None = None
     default_backend: str = "native_fast_2d"
+    act_packed_scratch: torch.Tensor | None = None
+    scale_a_scratch: torch.Tensor | None = None
 
     @property
     def out_features(self) -> int:
@@ -380,6 +384,24 @@ class PackedNVFP4FusedLinear:
             self.native_weight_t = self.weight_packed.view(torch.float4_e2m1fn_x2).t()
         return self.native_weight_t
 
+    def _activation_scratch(self, device: torch.device) -> tuple[torch.Tensor, torch.Tensor]:
+        expected_packed = (1, self.in_features // 2)
+        groups = self.in_features // 16
+        expected_scale = (max(1, 128) * max(groups, 4),)
+        if (
+            self.act_packed_scratch is None
+            or tuple(self.act_packed_scratch.shape) != expected_packed
+            or self.act_packed_scratch.device != device
+        ):
+            self.act_packed_scratch = torch.empty(expected_packed, device=device, dtype=torch.uint8)
+        if (
+            self.scale_a_scratch is None
+            or tuple(self.scale_a_scratch.shape) != expected_scale
+            or self.scale_a_scratch.device != device
+        ):
+            self.scale_a_scratch = torch.ones(expected_scale, device=device, dtype=torch.float8_e4m3fn)
+        return self.act_packed_scratch, self.scale_a_scratch
+
     def forward_native_fast_2d(self, x_2d: torch.Tensor) -> torch.Tensor:
         if x_2d.ndim != 2 or x_2d.shape[0] != 1 or x_2d.shape[1] != self.in_features:
             raise ValueError(
@@ -388,7 +410,11 @@ class PackedNVFP4FusedLinear:
             )
         if not hasattr(torch, "float4_e2m1fn_x2") or not hasattr(torch, "_scaled_mm"):
             raise RuntimeError("native_scaled_mm requires torch.float4_e2m1fn_x2 and torch._scaled_mm")
-        act_packed, scale_a = quantize_fp4_m1_native(x_2d)
+        if os.environ.get("LYNN_NATIVE_FP4_ACT_SCRATCH", "0") == "1":
+            act_packed_scratch, scale_a_scratch = self._activation_scratch(x_2d.device)
+            act_packed, scale_a = quantize_fp4_m1_native_out(x_2d, act_packed_scratch, scale_a_scratch)
+        else:
+            act_packed, scale_a = quantize_fp4_m1_native(x_2d)
         return torch._scaled_mm(
             act_packed.view(torch.float4_e2m1fn_x2),
             self._native_weight_t(),

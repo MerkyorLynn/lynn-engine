@@ -431,3 +431,48 @@ def quantize_fp4_m1_native(
         num_warps=1,
     )
     return packed, scale
+
+
+def quantize_fp4_m1_native_out(
+    x: torch.Tensor,
+    packed: torch.Tensor,
+    scale: torch.Tensor,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Quantize one activation row into caller-owned native FP4 scratch.
+
+    `scale` must be initialized with ones by the caller. The kernel overwrites
+    all active group scale positions and intentionally leaves padded FP4 scale
+    slots untouched, matching `quantize_fp4_m1_native`'s `torch.ones` padding
+    semantics without allocating a fresh scale tensor each token.
+    """
+    _require_triton()
+    if x.ndim == 1:
+        x = x.reshape(1, -1)
+    if x.ndim != 2 or x.shape[0] != 1:
+        raise ValueError(f"quantize_fp4_m1_native_out expects [K] or [1,K], got {tuple(x.shape)}")
+    if not x.is_cuda:
+        raise ValueError("x must be CUDA tensor")
+    if x.shape[1] % 16 != 0:
+        raise ValueError(f"K must be divisible by 16, got {x.shape[1]}")
+    k = x.shape[1]
+    groups = k // 16
+    expected_packed = (1, k // 2)
+    expected_scale_len = max(1, 128) * max(groups, 4)
+    if tuple(packed.shape) != expected_packed or packed.dtype != torch.uint8 or not packed.is_cuda:
+        raise ValueError(
+            f"packed scratch must be CUDA uint8 {expected_packed}, got shape={tuple(packed.shape)} dtype={packed.dtype}"
+        )
+    if scale.numel() != expected_scale_len or scale.dtype != torch.float8_e4m3fn or not scale.is_cuda:
+        raise ValueError(
+            "scale scratch must be CUDA float8_e4m3fn "
+            f"[{expected_scale_len}], got shape={tuple(scale.shape)} dtype={scale.dtype}"
+        )
+    _quantize_fp4_m1_kernel[(groups,)](
+        x,
+        packed,
+        scale,
+        k,
+        groups,
+        num_warps=1,
+    )
+    return packed, scale
