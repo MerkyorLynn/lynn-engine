@@ -410,7 +410,7 @@ def run_contract(
         fail_reasons = []
         if metrics["max_abs"] > max_abs_threshold:
             fail_reasons.append(f"max_abs {metrics['max_abs']:.6e} > {max_abs_threshold}")
-        if metrics["cosine"] < cosine_threshold:
+        if metrics["exact"] == 0 and metrics["cosine"] < cosine_threshold:
             fail_reasons.append(f"cosine {metrics['cosine']:.6f} < {cosine_threshold}")
 
         passed = len(fail_reasons) == 0

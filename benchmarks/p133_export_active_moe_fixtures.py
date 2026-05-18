@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """P133 · Export active MoE fixtures for native kernel contract testing.
 
-Purpose: Load the official Qwen3.6-35B W4A16 (NVFP4 v8-RTN) runner once, then
-capture *real* intermediate MoE activations for specific layers/prompts so that
+Purpose: stream the official Qwen3.6-35B W4A16 model layer-by-layer, then
+capture real prompt-derived MoE activations for specific layers/prompts so that
 downstream kernel development (Stream A native grouped GEMM) can validate
 correctness without re-loading the full 35B model.
 
@@ -25,7 +25,8 @@ Output layout:
 
 Usage:
   python benchmarks/p133_export_active_moe_fixtures.py \
-    --model-dir /root/autodl-tmp/models/Lynn-V4-Pro-Distill-Qwen-35B-A3B-NVFP4-v8-RTN \
+    --model-dir /root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0 \
+    --sidecar-dir /root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0 \
     --layers 0,4,8,16,20,28,32,36,39 \
     --prompts "Hello" "The capital of France is" \
     --out reports/qwen36_35b/p133_fixtures \
@@ -49,6 +50,7 @@ sys.path.insert(0, str(ROOT))
 
 from engine.loader import load_qwen36_layer  # noqa: E402
 from engine.full_forward import (  # noqa: E402
+    _moe_forward,
     _prefill_layer,
     _rms_norm,
     load_outside_weights,
@@ -117,61 +119,6 @@ def _capture_moe_activations(
         "routing_weights": routing_weights[0].detach().clone(),
         "moe_output": moe_out.detach().clone(),
     }
-
-
-def _get_moe_input_hidden(
-    prompt_ids: torch.Tensor,
-    layer_idx: int,
-    all_layer_weights: list[dict],
-    outside_weights: dict,
-    cfg: dict,
-    device: str,
-    dtype: torch.dtype,
-) -> torch.Tensor:
-    """Run prefill through layers [0, layer_idx) to get the hidden state
-    that enters the MoE sublayer of `layer_idx`.
-
-    For MoE layers, the hidden state entering MoE is after:
-      1. input_layernorm + attention + residual
-      2. post_attention_layernorm (which is the input to MoE FFN)
-
-    We run full prefill up through layer_idx, but capture the MoE input inside
-    that layer. For simplicity, we run the full prefill through the target layer
-    and capture post-attn-norm hidden as the MoE input.
-    """
-    T = prompt_ids.shape[1]
-    state = LynnInferenceState(batch=1, max_seq_len=T + 64, device=device, dtype=dtype)
-
-    h = F.embedding(prompt_ids, outside_weights["model.language_model.embed_tokens.weight"])
-    pos = torch.arange(T, device=device, dtype=torch.long).unsqueeze(0)
-
-    # Run through all layers up to (but not including) target
-    for i in range(layer_idx):
-        h = _prefill_layer(h, pos, LAYER_TYPES[i], all_layer_weights[i], cfg, state, i)
-
-    # For target layer: we need the hidden state AFTER attention + residual + post_attn_norm
-    # That is what enters MoE. We replicate the layer forward minus MoE.
-    w = all_layer_weights[layer_idx]
-
-    # Pre-attention norm
-    norm_w = w.get("input_layernorm.weight", w.get("pre_attn_layernorm.weight"))
-    if norm_w is not None:
-        h_normed = _rms_norm(h, norm_w)
-    else:
-        h_normed = h
-
-    # Run attention (full prefill)
-    h_after_attn = _prefill_layer(h, pos, LAYER_TYPES[layer_idx], w, cfg, state, layer_idx)
-
-    # The MoE input is the post-attention hidden state passed through post_attention_layernorm
-    post_norm_w = w.get("post_attention_layernorm.weight")
-    if post_norm_w is not None:
-        moe_input = _rms_norm(h_after_attn, post_norm_w)
-    else:
-        moe_input = h_after_attn
-
-    # For decode fixture: use the last token position as T=1 slice
-    return moe_input[:, -1:, :]  # [1, 1, hidden] → will be squeezed to [1, hidden]
 
 
 def _run_prefill_to_layer(
@@ -287,6 +234,47 @@ def _run_prefill_to_layer(
     return h
 
 
+def _prefill_layer_and_moe_input(
+    h: torch.Tensor,
+    position_ids: torch.Tensor,
+    layer_type: str,
+    w: dict[str, Any],
+    cfg: dict[str, Any],
+    state: LynnInferenceState,
+    layer_idx: int,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Run one prefill layer while exposing the exact MoE sublayer input.
+
+    This mirrors `engine.full_forward._prefill_layer` but splits the block at
+    the attention/MoE boundary:
+
+      h_attn = residual + attention(input_layernorm(h))
+      moe_in = post_attention_layernorm(h_attn)
+      h_out  = h_attn + moe(moe_in)
+
+    p133 fixtures need `moe_in` for the last token.  Keeping the same operation
+    order as `_prefill_layer` makes the fixture a real prompt-derived target
+    instead of a synthetic hidden-state proxy.
+    """
+    from engine.incremental_decode import prefill_full_attn, prefill_linear_attn
+
+    residual = h
+    h_norm = _rms_norm(h, w["input_layernorm.weight"])
+    if layer_type == "linear_attention":
+        attn_out, last_state, last_conv = prefill_linear_attn(h_norm, w)
+        state.update_linear_attn_state(layer_idx, last_state, last_conv)
+    elif layer_type == "full_attention":
+        attn_out, K, V = prefill_full_attn(h_norm, position_ids, w, cfg)
+        state.update_full_attn_kv(layer_idx, K, V, position_start=0)
+    else:
+        raise ValueError(f"unknown layer type {layer_type!r}")
+
+    h_attn = residual + attn_out
+    moe_input = _rms_norm(h_attn, w["post_attention_layernorm.weight"])
+    moe_out = _moe_forward(moe_input, w, cfg)
+    return h_attn + moe_out, moe_input
+
+
 # ─────────────────────────────────────────────────────────────
 # Main export pipeline
 # ─────────────────────────────────────────────────────────────
@@ -296,6 +284,7 @@ def export_fixtures(
     layers: list[int],
     prompts: list[str],
     out_dir: str,
+    sidecar_dir: str | None = None,
     device: str = "cuda",
     dtype: torch.dtype = torch.bfloat16,
 ) -> dict[str, Any]:
@@ -337,21 +326,13 @@ def export_fixtures(
     print(f"[p133] Loading outside weights...", flush=True)
     outside = load_outside_weights(model_dir, device, dtype)
 
-    # Load layers up to max target + 1
     layers_needed = max_target_layer + 1
-    print(f"[p133] Loading {layers_needed} layers (up to layer {max_target_layer})...", flush=True)
-    t0 = time.time()
-    all_layer_weights = []
-    for i in range(layers_needed):
-        w, _ = load_qwen36_layer(model_dir, i, num_experts=cfg["num_experts"], device=device, dequant_dtype=dtype)
-        all_layer_weights.append(w)
-        if i % 5 == 4 or i == layers_needed - 1:
-            print(f"  [p133] L{i:02d}: {time.time() - t0:.1f}s elapsed", flush=True)
-
-    if device.startswith("cuda"):
-        torch.cuda.synchronize()
-    load_time = time.time() - t0
-    print(f"[p133] All layers loaded in {load_time:.1f}s", flush=True)
+    layer_load_seconds = 0.0
+    print(
+        f"[p133] Will stream-load {layers_needed} layers per prompt "
+        f"(up to layer {max_target_layer}) to keep memory bounded.",
+        flush=True,
+    )
 
     # Detect sidecar info
     quant_cfg = full_cfg.get("quantization_config", {})
@@ -359,6 +340,7 @@ def export_fixtures(
         "quant_method": quant_cfg.get("quant_method"),
         "quant_format": quant_cfg.get("format"),
         "model_safetensors": str(model_dir_path / "model.safetensors"),
+        "sidecar_dir": sidecar_dir,
         "uses_folded_scale": quant_cfg.get("quant_method") == "compressed-tensors",
     }
 
@@ -377,27 +359,26 @@ def export_fixtures(
         pos = torch.arange(T, device=device, dtype=torch.long).unsqueeze(0)
 
         for i in range(layers_needed):
+            t_layer = time.time()
+            w, _ = load_qwen36_layer(
+                model_dir,
+                i,
+                num_experts=cfg["num_experts"],
+                device=device,
+                dequant_dtype=dtype,
+            )
+            layer_load_seconds += time.time() - t_layer
+
+            h, moe_h = _prefill_layer_and_moe_input(
+                h,
+                pos,
+                LAYER_TYPES[i],
+                w,
+                cfg,
+                state,
+                i,
+            )
             if i in layers:
-                # Capture MoE input at this layer BEFORE running the full layer
-                # MoE input = post_attention_layernorm(h + attention(input_layernorm(h)))
-                # Since we can't decompose _prefill_layer, we directly apply post_attn_norm
-                # to h and use it as the MoE proxy input for fixture purposes.
-                # NOTE: For a more precise capture, the target would need a modified
-                # _prefill_layer with hooks. For fixture purposes (testing kernel numerics
-                # with REAL weight distributions), this proxy is valid because:
-                #   1. h has correct magnitude/distribution after prior layers
-                #   2. Router weights will select real experts
-                #   3. The fixture tests kernel math, not end-to-end inference
-
-                # Apply post_attention_layernorm to get MoE-like input distribution
-                w = all_layer_weights[i]
-                post_norm_w = w.get("post_attention_layernorm.weight")
-                if post_norm_w is not None:
-                    moe_h = _rms_norm(h, post_norm_w)
-                else:
-                    moe_h = h
-
-                # Take last token (decode-like fixture)
                 moe_h_last = moe_h[:, -1:, :].view(1, cfg["hidden_size"])  # [1, 2048]
 
                 # Capture MoE activations
@@ -441,10 +422,9 @@ def export_fixtures(
                     f"h_norm={entry['hidden_in_norm']:.4f}, out_norm={entry['moe_output_norm']:.4f}",
                     flush=True,
                 )
-
-            # Run full layer (advance h)
-            h = _prefill_layer(h, pos, LAYER_TYPES[i], all_layer_weights[i], cfg, state, i)
-
+            del w, moe_h
+            if device.startswith("cuda") and i % 4 == 3:
+                torch.cuda.empty_cache()
     export_time = time.time() - export_t0
 
     # Write manifest
@@ -460,7 +440,7 @@ def export_fixtures(
         "hidden_size": cfg["hidden_size"],
         "num_experts": cfg["num_experts"],
         "num_fixtures": len(manifest_entries),
-        "load_seconds": load_time,
+        "layer_load_seconds": layer_load_seconds,
         "export_seconds": export_time,
         "sidecar": sidecar_info,
         "fixtures": manifest_entries,
@@ -502,6 +482,11 @@ def main() -> int:
         default="reports/qwen36_35b/p133_fixtures",
         help="Output directory for fixtures.",
     )
+    ap.add_argument(
+        "--sidecar-dir",
+        default=None,
+        help="Optional folded MoE sidecar path to record in fixture metadata.",
+    )
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--dtype", choices=["bf16", "fp16"], default="bf16")
 
@@ -515,13 +500,14 @@ def main() -> int:
         layers=layers,
         prompts=args.prompts,
         out_dir=args.out,
+        sidecar_dir=args.sidecar_dir,
         device=args.device,
         dtype=dtype,
     )
 
     print(f"\n{'='*60}")
     print(f"P133 DONE: {manifest['num_fixtures']} fixtures exported")
-    print(f"  Model load: {manifest['load_seconds']:.1f}s")
+    print(f"  Layer loads: {manifest['layer_load_seconds']:.1f}s")
     print(f"  Export:     {manifest['export_seconds']:.1f}s")
     print(f"  Output:     {args.out}/")
     print(f"{'='*60}")
