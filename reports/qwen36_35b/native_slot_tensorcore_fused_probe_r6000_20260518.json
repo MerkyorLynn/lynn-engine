@@ -1,0 +1,211 @@
+{
+  "candidate": "native_slot_tensorcore_probe",
+  "created": "2026-05-18T22:31:00",
+  "all_exact": false,
+  "max_max_abs": 0.001953125,
+  "min_cosine": 0.9999891519546509,
+  "avg_latency_ms": 0.10877379523383246,
+  "max_latency_ms": 0.10890144348144531,
+  "triton_baseline_ms": 0.059,
+  "verdict": "RED",
+  "results": [
+    {
+      "fixture": "layer_00_prompt_00_slots.safetensors",
+      "layer_id": 0,
+      "prompt_id": 0,
+      "max_abs": 0.000244140625,
+      "mean_abs": 2.8284266591072083e-05,
+      "rel_l2": 0.004328341223299503,
+      "cosine": 0.9999908804893494,
+      "exact": 0,
+      "candidate_ms": 0.1087667179107666
+    },
+    {
+      "fixture": "layer_04_prompt_00_slots.safetensors",
+      "layer_id": 4,
+      "prompt_id": 0,
+      "max_abs": 0.00048828125,
+      "mean_abs": 2.6642694137990475e-05,
+      "rel_l2": 0.004654645454138517,
+      "cosine": 0.9999891519546509,
+      "exact": 0,
+      "candidate_ms": 0.10873472213745117
+    },
+    {
+      "fixture": "layer_08_prompt_00_slots.safetensors",
+      "layer_id": 8,
+      "prompt_id": 0,
+      "max_abs": 0.0001220703125,
+      "mean_abs": 1.3370532542467117e-05,
+      "rel_l2": 0.004270776640623808,
+      "cosine": 0.9999909400939941,
+      "exact": 0,
+      "candidate_ms": 0.10873472213745117
+    },
+    {
+      "fixture": "layer_16_prompt_00_slots.safetensors",
+      "layer_id": 16,
+      "prompt_id": 0,
+      "max_abs": 3.0517578125e-05,
+      "mean_abs": 2.075335942208767e-06,
+      "rel_l2": 0.004271228332072496,
+      "cosine": 0.9999908804893494,
+      "exact": 0,
+      "candidate_ms": 0.10880800247192383
+    },
+    {
+      "fixture": "layer_20_prompt_00_slots.safetensors",
+      "layer_id": 20,
+      "prompt_id": 0,
+      "max_abs": 6.103515625e-05,
+      "mean_abs": 4.598172381520271e-06,
+      "rel_l2": 0.004101096652448177,
+      "cosine": 0.9999916553497314,
+      "exact": 0,
+      "candidate_ms": 0.10879487991333008
+    },
+    {
+      "fixture": "layer_28_prompt_00_slots.safetensors",
+      "layer_id": 28,
+      "prompt_id": 0,
+      "max_abs": 0.0001220703125,
+      "mean_abs": 3.820721758529544e-06,
+      "rel_l2": 0.0034223105758428574,
+      "cosine": 0.999994158744812,
+      "exact": 0,
+      "candidate_ms": 0.10879039764404297
+    },
+    {
+      "fixture": "layer_32_prompt_00_slots.safetensors",
+      "layer_id": 32,
+      "prompt_id": 0,
+      "max_abs": 0.00048828125,
+      "mean_abs": 5.6424178183078766e-05,
+      "rel_l2": 0.004428857006132603,
+      "cosine": 0.9999902248382568,
+      "exact": 0,
+      "candidate_ms": 0.10876288414001464
+    },
+    {
+      "fixture": "layer_36_prompt_00_slots.safetensors",
+      "layer_id": 36,
+      "prompt_id": 0,
+      "max_abs": 0.0009765625,
+      "mean_abs": 0.00013691303320229053,
+      "rel_l2": 0.004591941833496094,
+      "cosine": 0.9999895095825195,
+      "exact": 0,
+      "candidate_ms": 0.10873855590820312
+    },
+    {
+      "fixture": "layer_39_prompt_00_slots.safetensors",
+      "layer_id": 39,
+      "prompt_id": 0,
+      "max_abs": 0.001953125,
+      "mean_abs": 0.0002107981126755476,
+      "rel_l2": 0.004491174593567848,
+      "cosine": 0.999989926815033,
+      "exact": 0,
+      "candidate_ms": 0.10875295639038086
+    },
+    {
+      "fixture": "layer_00_prompt_01_slots.safetensors",
+      "layer_id": 0,
+      "prompt_id": 1,
+      "max_abs": 0.0001220703125,
+      "mean_abs": 8.593895472586155e-06,
+      "rel_l2": 0.00448481272906065,
+      "cosine": 0.9999899864196777,
+      "exact": 0,
+      "candidate_ms": 0.1087507152557373
+    },
+    {
+      "fixture": "layer_04_prompt_01_slots.safetensors",
+      "layer_id": 4,
+      "prompt_id": 1,
+      "max_abs": 0.000244140625,
+      "mean_abs": 1.7753220163285732e-05,
+      "rel_l2": 0.004565885756164789,
+      "cosine": 0.9999896883964539,
+      "exact": 0,
+      "candidate_ms": 0.10869983673095703
+    },
+    {
+      "fixture": "layer_08_prompt_01_slots.safetensors",
+      "layer_id": 8,
+      "prompt_id": 1,
+      "max_abs": 0.00048828125,
+      "mean_abs": 3.881379961967468e-05,
+      "rel_l2": 0.004339226055890322,
+      "cosine": 0.9999905824661255,
+      "exact": 0,
+      "candidate_ms": 0.10874848365783692
+    },
+    {
+      "fixture": "layer_16_prompt_01_slots.safetensors",
+      "layer_id": 16,
+      "prompt_id": 1,
+      "max_abs": 0.00048828125,
+      "mean_abs": 4.1517894715070724e-05,
+      "rel_l2": 0.004465851467102766,
+      "cosine": 0.999989926815033,
+      "exact": 0,
+      "candidate_ms": 0.10878560066223145
+    },
+    {
+      "fixture": "layer_20_prompt_01_slots.safetensors",
+      "layer_id": 20,
+      "prompt_id": 1,
+      "max_abs": 0.00048828125,
+      "mean_abs": 4.79784794151783e-05,
+      "rel_l2": 0.004433224443346262,
+      "cosine": 0.9999902844429016,
+      "exact": 0,
+      "candidate_ms": 0.10890144348144531
+    },
+    {
+      "fixture": "layer_28_prompt_01_slots.safetensors",
+      "layer_id": 28,
+      "prompt_id": 1,
+      "max_abs": 0.00048828125,
+      "mean_abs": 3.9428938180208206e-05,
+      "rel_l2": 0.004202290903776884,
+      "cosine": 0.999991238117218,
+      "exact": 0,
+      "candidate_ms": 0.10878080368041992
+    },
+    {
+      "fixture": "layer_32_prompt_01_slots.safetensors",
+      "layer_id": 32,
+      "prompt_id": 1,
+      "max_abs": 0.000732421875,
+      "mean_abs": 7.140450179576874e-05,
+      "rel_l2": 0.004263890907168388,
+      "cosine": 0.9999909400939941,
+      "exact": 0,
+      "candidate_ms": 0.10878527641296387
+    },
+    {
+      "fixture": "layer_36_prompt_01_slots.safetensors",
+      "layer_id": 36,
+      "prompt_id": 1,
+      "max_abs": 0.000732421875,
+      "mean_abs": 7.595401257276535e-05,
+      "rel_l2": 0.004454063717275858,
+      "cosine": 0.9999901652336121,
+      "exact": 0,
+      "candidate_ms": 0.10876255989074707
+    },
+    {
+      "fixture": "layer_39_prompt_01_slots.safetensors",
+      "layer_id": 39,
+      "prompt_id": 1,
+      "max_abs": 0.001953125,
+      "mean_abs": 0.00012432364746928215,
+      "rel_l2": 0.003985370043665171,
+      "cosine": 0.9999920725822449,
+      "exact": 0,
+      "candidate_ms": 0.10882975578308106
+    }
+  ]
+}
