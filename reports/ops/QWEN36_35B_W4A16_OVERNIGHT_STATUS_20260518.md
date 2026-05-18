@@ -395,6 +395,18 @@ text divergences from the different scalar-gate reduction order. Keep this as
 an AMBER speed branch until a longer structured/code/tool-call and benchmark
 quality sweep says the drift is acceptable.
 
+Two AMBER conv combinations were then checked over the OpenAI structured gate:
+
+| AMBER profile | P25 512 wall / decode TPS | Structured gate |
+|---|---:|---:|
+| shared-gate Triton + conv Triton | 87.72 / 109.13 | GREEN, 14/14, mean 109.70 TPS |
+| shared-gate Triton + conv Triton inplace | 88.38 / 110.04 | GREEN, 14/14, mean 110.73 TPS |
+
+These profiles are useful for speed research and controlled local serving, but
+they still inherit the P37 exact-greedy drift from both the shared-gate and pure
+Triton conv reorderings. Default promote remains the stricter
+`triton_torch_silu` conv plus Torch shared gate path.
+
 Copied reports:
 
 - `reports/qwen36_35b/p43_shared_gate_torch_20260518_083212.json`
@@ -402,6 +414,10 @@ Copied reports:
 - `reports/qwen36_35b/p37_shared_gate_triton_20260518_083325.json`
 - `reports/qwen36_35b/p25_shared_gate_triton_20260518_083519.json`
 - `reports/qwen36_35b/structured_gate_shared_gate_triton_20260518_083519.json`
+- `reports/qwen36_35b/p25_amber_sharedgate_triton_20260518_085130.json`
+- `reports/qwen36_35b/structured_gate_amber_sharedgate_triton_20260518_085130.json`
+- `reports/qwen36_35b/p25_amber_sharedgate_triton_inplace_20260518_085210.json`
+- `reports/qwen36_35b/structured_gate_amber_sharedgate_triton_inplace_20260518_085210.json`
 
 Negative probes from the same loop:
 

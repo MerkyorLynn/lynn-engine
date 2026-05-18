@@ -1,0 +1,62 @@
+{
+  "schema_version": "lynn-engine-p25-server-decode-tps-probe-v1",
+  "url": "http://127.0.0.1:18190/v1",
+  "model": "Qwen36-35B-W4A16-amber-triton-20260518_085130",
+  "chat": true,
+  "prompt_chars": 66,
+  "results": [
+    {
+      "wall_s": 5.83706259727478,
+      "completion_tokens": 512,
+      "wall_tps": 87.71535193729866,
+      "metrics_tokens_per_second": 89.07526388255299,
+      "decode_tps": 109.12986329905702,
+      "prefill_seconds": 1.0276672840118408,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.854865550994873,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 511,
+      "decode_step_ms_mean": 9.163394599511431,
+      "decode_step_ms_median": 9.097099304199219,
+      "preview": "在构建下一代大规模语言模型推理系统时，我们首先必须深入探讨混合专家模型（Mixture of Experts, MoE）的推理优化策略，因为随着模型参数规模的指数级增长，MoE 架构通过稀疏激活机制显著降低了计算密度，但也引入了复杂的通信与调度挑战。为了最大化吞吐量并降低延迟，我们需要对 MoE 的路由算法进行细粒度优",
+      "max_tokens": 512,
+      "run_idx": 0
+    }
+  ],
+  "summary_by_max_tokens": {
+    "512": {
+      "runs": 1,
+      "wall_tps": {
+        "mean": 87.71535193729866,
+        "median": 87.71535193729866,
+        "min": 87.71535193729866,
+        "max": 87.71535193729866
+      },
+      "metrics_tokens_per_second": {
+        "mean": 89.07526388255299,
+        "median": 89.07526388255299,
+        "min": 89.07526388255299,
+        "max": 89.07526388255299
+      },
+      "decode_tps": {
+        "mean": 109.12986329905702,
+        "median": 109.12986329905702,
+        "min": 109.12986329905702,
+        "max": 109.12986329905702
+      },
+      "prefill_seconds": {
+        "mean": 1.0276672840118408,
+        "median": 1.0276672840118408,
+        "min": 1.0276672840118408,
+        "max": 1.0276672840118408
+      },
+      "decode_step_ms_median": {
+        "mean": 9.097099304199219,
+        "median": 9.097099304199219,
+        "min": 9.097099304199219,
+        "max": 9.097099304199219
+      }
+    }
+  }
+}
