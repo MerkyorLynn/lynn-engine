@@ -1,0 +1,1324 @@
+{
+  "schema_version": "lynn-engine-p168-qwen36-linear-core-segment-census-v1",
+  "model": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0",
+  "device": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+  "env": {
+    "LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4": "1",
+    "LYNN_LINEAR_ATTN_CONV_BACKEND": "triton_torch_silu",
+    "LYNN_LINEAR_ATTN_RECURRENT_BACKEND": "triton_fused_prepare",
+    "LYNN_LINEAR_ATTN_RECURRENT_INPLACE": "1",
+    "LYNN_LINEAR_ATTN_GQA_RECURRENT": "1",
+    "LYNN_RMSNORM_GATED_BACKEND": "triton",
+    "LYNN_LINEAR_BLOCK_GRAPH": "1",
+    "LYNN_LINEAR_BLOCK_GRAPH_REUSE": "1",
+    "LYNN_LINEAR_STATE_UPDATE": "inplace",
+    "LYNN_NATIVE_FP4_LM_HEAD": "1"
+  },
+  "prompt": "用一句话解释 MoE active parameters",
+  "prompt_tokens": 7,
+  "layers": [
+    0,
+    1,
+    2,
+    4,
+    5,
+    6,
+    8,
+    9,
+    10,
+    12,
+    13,
+    14,
+    16,
+    17,
+    18,
+    20,
+    21,
+    22,
+    24,
+    25,
+    26,
+    28,
+    29,
+    30,
+    32,
+    33,
+    34,
+    36,
+    37,
+    38
+  ],
+  "layer_count": 30,
+  "warmup": 6,
+  "iters": 80,
+  "segment_summary_ms": {
+    "fused_native_fp4_inproj": {
+      "mean": 0.07023824036121368,
+      "median": 0.07029960155487061,
+      "min": 0.06932560205459595,
+      "max": 0.07119479775428772,
+      "sum": 2.1071472108364104
+    },
+    "conv_update": {
+      "mean": 0.03281358649333318,
+      "median": 0.03280699998140335,
+      "min": 0.03242160081863403,
+      "max": 0.03320559859275818,
+      "sum": 0.9844075947999954
+    },
+    "split_qkv_repeat": {
+      "mean": 0.006881853267550469,
+      "median": 0.006879999861121177,
+      "min": 0.006770800054073334,
+      "max": 0.0071864001452922825,
+      "sum": 0.20645559802651406
+    },
+    "recurrent_fused_prepare": {
+      "mean": 0.03773586690425872,
+      "median": 0.035802599787712094,
+      "min": 0.03545680046081543,
+      "max": 0.09305800199508667,
+      "sum": 1.1320760071277618
+    },
+    "gated_rmsnorm": {
+      "mean": 0.02015026663740476,
+      "median": 0.020132800191640855,
+      "min": 0.01991560012102127,
+      "max": 0.020514799654483794,
+      "sum": 0.6045079991221428
+    },
+    "out_proj_bf16": {
+      "mean": 0.014970026761293411,
+      "median": 0.014625199884176255,
+      "min": 0.014474800229072571,
+      "max": 0.01652600020170212,
+      "sum": 0.4491008028388023
+    },
+    "full_core_recomposed": {
+      "mean": 0.2997531723976135,
+      "median": 0.2993831992149353,
+      "min": 0.2948607921600342,
+      "max": 0.3049535989761353,
+      "sum": 8.992595171928405
+    }
+  },
+  "aggregate": {
+    "non_full_segment_sum_ms_across_profiled_layers": 5.483695212751627,
+    "full_core_sum_ms_across_profiled_layers": 8.992595171928405,
+    "full_core_mean_ms_per_profiled_layer": 0.2997531723976135
+  },
+  "hot_segments": [
+    {
+      "segment": "fused_native_fp4_inproj",
+      "sum_ms_across_profiled_layers": 2.1071472108364104,
+      "mean_ms": 0.07023824036121368,
+      "share_of_non_full_sum": 0.38425680660305683
+    },
+    {
+      "segment": "recurrent_fused_prepare",
+      "sum_ms_across_profiled_layers": 1.1320760071277618,
+      "mean_ms": 0.03773586690425872,
+      "share_of_non_full_sum": 0.20644400594972254
+    },
+    {
+      "segment": "conv_update",
+      "sum_ms_across_profiled_layers": 0.9844075947999954,
+      "mean_ms": 0.03281358649333318,
+      "share_of_non_full_sum": 0.17951537359532352
+    },
+    {
+      "segment": "gated_rmsnorm",
+      "sum_ms_across_profiled_layers": 0.6045079991221428,
+      "mean_ms": 0.02015026663740476,
+      "share_of_non_full_sum": 0.11023734464972403
+    },
+    {
+      "segment": "out_proj_bf16",
+      "sum_ms_across_profiled_layers": 0.4491008028388023,
+      "mean_ms": 0.014970026761293411,
+      "share_of_non_full_sum": 0.08189747705059834
+    },
+    {
+      "segment": "split_qkv_repeat",
+      "sum_ms_across_profiled_layers": 0.20645559802651406,
+      "mean_ms": 0.006881853267550469,
+      "share_of_non_full_sum": 0.03764899215157475
+    }
+  ],
+  "layers_detail": [
+    {
+      "layer": 0,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.07083240151405334,
+        "conv_update": 0.03290759921073914,
+        "split_qkv_repeat": 0.006880799680948258,
+        "recurrent_fused_prepare": 0.036087599396705625,
+        "gated_rmsnorm": 0.02005160003900528,
+        "out_proj_bf16": 0.014474800229072571,
+        "full_core_recomposed": 0.3048223972320557
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.07083240151405334
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.036087599396705625
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.03290759921073914
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.02005160003900528
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.014474800229072571
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.006880799680948258
+        }
+      ]
+    },
+    {
+      "layer": 1,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.06974800229072571,
+        "conv_update": 0.03255319893360138,
+        "split_qkv_repeat": 0.006867200136184692,
+        "recurrent_fused_prepare": 0.035732001066207886,
+        "gated_rmsnorm": 0.020337599515914916,
+        "out_proj_bf16": 0.01652600020170212,
+        "full_core_recomposed": 0.30018560886383056
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.06974800229072571
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.035732001066207886
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.03255319893360138
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.020337599515914916
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.01652600020170212
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.006867200136184692
+        }
+      ]
+    },
+    {
+      "layer": 2,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.07051640152931213,
+        "conv_update": 0.03263199925422668,
+        "split_qkv_repeat": 0.0071864001452922825,
+        "recurrent_fused_prepare": 0.03563759922981262,
+        "gated_rmsnorm": 0.02000879943370819,
+        "out_proj_bf16": 0.015136000514030457,
+        "full_core_recomposed": 0.30174880027770995
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.07051640152931213
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.03563759922981262
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.03263199925422668
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.02000879943370819
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.015136000514030457
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.0071864001452922825
+        }
+      ]
+    },
+    {
+      "layer": 4,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.0705012023448944,
+        "conv_update": 0.03285000026226044,
+        "split_qkv_repeat": 0.0068268001079559324,
+        "recurrent_fused_prepare": 0.03589800000190735,
+        "gated_rmsnorm": 0.020108799636363982,
+        "out_proj_bf16": 0.015039999783039094,
+        "full_core_recomposed": 0.29719839096069334
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.0705012023448944
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.03589800000190735
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.03285000026226044
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.020108799636363982
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.015039999783039094
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.0068268001079559324
+        }
+      ]
+    },
+    {
+      "layer": 5,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.0711467981338501,
+        "conv_update": 0.03293600082397461,
+        "split_qkv_repeat": 0.006883999705314637,
+        "recurrent_fused_prepare": 0.035834801197052,
+        "gated_rmsnorm": 0.01995519995689392,
+        "out_proj_bf16": 0.015199199318885803,
+        "full_core_recomposed": 0.29885919094085694
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.0711467981338501
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.035834801197052
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.03293600082397461
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.01995519995689392
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.015199199318885803
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.006883999705314637
+        }
+      ]
+    },
+    {
+      "layer": 6,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.07042279839515686,
+        "conv_update": 0.033144399523735046,
+        "split_qkv_repeat": 0.006897599995136261,
+        "recurrent_fused_prepare": 0.03569880127906799,
+        "gated_rmsnorm": 0.020013199746608736,
+        "out_proj_bf16": 0.014629200100898743,
+        "full_core_recomposed": 0.30359199047088625
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.07042279839515686
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.03569880127906799
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.033144399523735046
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.020013199746608736
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.014629200100898743
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.006897599995136261
+        }
+      ]
+    },
+    {
+      "layer": 8,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.07095839977264404,
+        "conv_update": 0.03266479969024658,
+        "split_qkv_repeat": 0.006869199872016907,
+        "recurrent_fused_prepare": 0.03574079871177673,
+        "gated_rmsnorm": 0.020081999897956847,
+        "out_proj_bf16": 0.015216800570487975,
+        "full_core_recomposed": 0.29582240581512453
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.07095839977264404
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.03574079871177673
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.03266479969024658
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.020081999897956847
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.015216800570487975
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.006869199872016907
+        }
+      ]
+    },
+    {
+      "layer": 9,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.07064440250396728,
+        "conv_update": 0.03285199999809265,
+        "split_qkv_repeat": 0.006859199702739715,
+        "recurrent_fused_prepare": 0.03581559956073761,
+        "gated_rmsnorm": 0.02003680020570755,
+        "out_proj_bf16": 0.014600400626659394,
+        "full_core_recomposed": 0.30047039985656737
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.07064440250396728
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.03581559956073761
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.03285199999809265
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.02003680020570755
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.014600400626659394
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.006859199702739715
+        }
+      ]
+    },
+    {
+      "layer": 10,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.06965879797935486,
+        "conv_update": 0.032778400182724,
+        "split_qkv_repeat": 0.006920800358057022,
+        "recurrent_fused_prepare": 0.03567000031471253,
+        "gated_rmsnorm": 0.02007479965686798,
+        "out_proj_bf16": 0.014552000164985656,
+        "full_core_recomposed": 0.29823200702667235
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.06965879797935486
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.03567000031471253
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.032778400182724
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.02007479965686798
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.014552000164985656
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.006920800358057022
+        }
+      ]
+    },
+    {
+      "layer": 12,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.06994640231132507,
+        "conv_update": 0.03261280059814453,
+        "split_qkv_repeat": 0.006923200190067291,
+        "recurrent_fused_prepare": 0.03545759916305542,
+        "gated_rmsnorm": 0.01991560012102127,
+        "out_proj_bf16": 0.015193599462509155,
+        "full_core_recomposed": 0.2977744102478027
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.06994640231132507
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.03545759916305542
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.03261280059814453
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.01991560012102127
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.015193599462509155
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.006923200190067291
+        }
+      ]
+    },
+    {
+      "layer": 13,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.07084640264511108,
+        "conv_update": 0.03276399970054626,
+        "split_qkv_repeat": 0.006841599941253662,
+        "recurrent_fused_prepare": 0.03583079874515534,
+        "gated_rmsnorm": 0.020056800544261934,
+        "out_proj_bf16": 0.014607200026512146,
+        "full_core_recomposed": 0.3024319887161255
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.07084640264511108
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.03583079874515534
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.03276399970054626
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.020056800544261934
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.014607200026512146
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.006841599941253662
+        }
+      ]
+    },
+    {
+      "layer": 14,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.06977720260620117,
+        "conv_update": 0.03242160081863403,
+        "split_qkv_repeat": 0.006925600022077561,
+        "recurrent_fused_prepare": 0.03578960001468658,
+        "gated_rmsnorm": 0.019986799359321593,
+        "out_proj_bf16": 0.014671599864959717,
+        "full_core_recomposed": 0.29916958808898925
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.06977720260620117
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.03578960001468658
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.03242160081863403
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.019986799359321593
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.014671599864959717
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.006925600022077561
+        }
+      ]
+    },
+    {
+      "layer": 16,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.07093960046768188,
+        "conv_update": 0.03301680088043213,
+        "split_qkv_repeat": 0.006846799701452255,
+        "recurrent_fused_prepare": 0.03557760119438171,
+        "gated_rmsnorm": 0.02021480053663254,
+        "out_proj_bf16": 0.014644800126552582,
+        "full_core_recomposed": 0.29783360958099364
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.07093960046768188
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.03557760119438171
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.03301680088043213
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.02021480053663254
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.014644800126552582
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.006846799701452255
+        }
+      ]
+    },
+    {
+      "layer": 17,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.07049800157546997,
+        "conv_update": 0.03257560133934021,
+        "split_qkv_repeat": 0.00688679963350296,
+        "recurrent_fused_prepare": 0.03605160117149353,
+        "gated_rmsnorm": 0.0199755996465683,
+        "out_proj_bf16": 0.015479999780654907,
+        "full_core_recomposed": 0.298857593536377
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.07049800157546997
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.03605160117149353
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.03257560133934021
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.0199755996465683
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.015479999780654907
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.00688679963350296
+        }
+      ]
+    },
+    {
+      "layer": 18,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.07003200054168701,
+        "conv_update": 0.033157598972320554,
+        "split_qkv_repeat": 0.0069204002618789675,
+        "recurrent_fused_prepare": 0.09305800199508667,
+        "gated_rmsnorm": 0.02018599957227707,
+        "out_proj_bf16": 0.01455319970846176,
+        "full_core_recomposed": 0.2967679977416992
+      },
+      "top_segments": [
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.09305800199508667
+        },
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.07003200054168701
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.033157598972320554
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.02018599957227707
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.01455319970846176
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.0069204002618789675
+        }
+      ]
+    },
+    {
+      "layer": 20,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.06950439810752869,
+        "conv_update": 0.03279879987239838,
+        "split_qkv_repeat": 0.006909599900245667,
+        "recurrent_fused_prepare": 0.03596239984035492,
+        "gated_rmsnorm": 0.020272800326347352,
+        "out_proj_bf16": 0.014621199667453766,
+        "full_core_recomposed": 0.30157439708709716
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.06950439810752869
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.03596239984035492
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.03279879987239838
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.020272800326347352
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.014621199667453766
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.006909599900245667
+        }
+      ]
+    },
+    {
+      "layer": 21,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.07119479775428772,
+        "conv_update": 0.03281520009040832,
+        "split_qkv_repeat": 0.0068283997476100925,
+        "recurrent_fused_prepare": 0.035892000794410704,
+        "gated_rmsnorm": 0.020316000282764434,
+        "out_proj_bf16": 0.014535200595855714,
+        "full_core_recomposed": 0.29769918918609617
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.07119479775428772
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.035892000794410704
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.03281520009040832
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.020316000282764434
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.014535200595855714
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.0068283997476100925
+        }
+      ]
+    },
+    {
+      "layer": 22,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.07041800022125244,
+        "conv_update": 0.03284960091114044,
+        "split_qkv_repeat": 0.006879200041294098,
+        "recurrent_fused_prepare": 0.03605560064315796,
+        "gated_rmsnorm": 0.020293599367141722,
+        "out_proj_bf16": 0.014559200406074524,
+        "full_core_recomposed": 0.3018176078796387
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.07041800022125244
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.03605560064315796
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.03284960091114044
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.020293599367141722
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.014559200406074524
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.006879200041294098
+        }
+      ]
+    },
+    {
+      "layer": 24,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.06960200071334839,
+        "conv_update": 0.03320559859275818,
+        "split_qkv_repeat": 0.006787999719381333,
+        "recurrent_fused_prepare": 0.036006399989128114,
+        "gated_rmsnorm": 0.020136800408363343,
+        "out_proj_bf16": 0.014484800398349762,
+        "full_core_recomposed": 0.30296480655670166
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.06960200071334839
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.036006399989128114
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.03320559859275818
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.020136800408363343
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.014484800398349762
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.006787999719381333
+        }
+      ]
+    },
+    {
+      "layer": 25,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.07054679989814758,
+        "conv_update": 0.0329367995262146,
+        "split_qkv_repeat": 0.006778399646282196,
+        "recurrent_fused_prepare": 0.03595840036869049,
+        "gated_rmsnorm": 0.020329999923706054,
+        "out_proj_bf16": 0.014504800736904144,
+        "full_core_recomposed": 0.297270393371582
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.07054679989814758
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.03595840036869049
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.0329367995262146
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.020329999923706054
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.014504800736904144
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.006778399646282196
+        }
+      ]
+    },
+    {
+      "layer": 26,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.06989319920539856,
+        "conv_update": 0.03309560120105744,
+        "split_qkv_repeat": 0.006885199993848801,
+        "recurrent_fused_prepare": 0.03644880056381226,
+        "gated_rmsnorm": 0.020292800664901734,
+        "out_proj_bf16": 0.014484800398349762,
+        "full_core_recomposed": 0.3029088020324707
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.06989319920539856
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.03644880056381226
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.03309560120105744
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.020292800664901734
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.014484800398349762
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.006885199993848801
+        }
+      ]
+    },
+    {
+      "layer": 28,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.06970800161361694,
+        "conv_update": 0.033136799931526184,
+        "split_qkv_repeat": 0.006859199702739715,
+        "recurrent_fused_prepare": 0.035769200325012206,
+        "gated_rmsnorm": 0.020284000039100646,
+        "out_proj_bf16": 0.01647000014781952,
+        "full_core_recomposed": 0.30157439708709716
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.06970800161361694
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.035769200325012206
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.033136799931526184
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.020284000039100646
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.01647000014781952
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.006859199702739715
+        }
+      ]
+    },
+    {
+      "layer": 29,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.07018120288848877,
+        "conv_update": 0.032586398720741275,
+        "split_qkv_repeat": 0.006867600232362747,
+        "recurrent_fused_prepare": 0.035636401176452635,
+        "gated_rmsnorm": 0.020191200077533722,
+        "out_proj_bf16": 0.014523999392986297,
+        "full_core_recomposed": 0.2948607921600342
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.07018120288848877
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.035636401176452635
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.032586398720741275
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.020191200077533722
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.014523999392986297
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.006867600232362747
+        }
+      ]
+    },
+    {
+      "layer": 30,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.0696828007698059,
+        "conv_update": 0.03260039985179901,
+        "split_qkv_repeat": 0.006918399780988693,
+        "recurrent_fused_prepare": 0.03570080101490021,
+        "gated_rmsnorm": 0.020183199644088747,
+        "out_proj_bf16": 0.014526000618934632,
+        "full_core_recomposed": 0.3002880096435547
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.0696828007698059
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.03570080101490021
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.03260039985179901
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.020183199644088747
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.014526000618934632
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.006918399780988693
+        }
+      ]
+    },
+    {
+      "layer": 32,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.07010279893875122,
+        "conv_update": 0.03299599885940552,
+        "split_qkv_repeat": 0.006989199668169022,
+        "recurrent_fused_prepare": 0.0356683999300003,
+        "gated_rmsnorm": 0.020038799941539766,
+        "out_proj_bf16": 0.016519600152969362,
+        "full_core_recomposed": 0.29664158821105957
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.07010279893875122
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.0356683999300003
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.03299599885940552
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.020038799941539766
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.016519600152969362
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.006989199668169022
+        }
+      ]
+    },
+    {
+      "layer": 33,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.07008839845657348,
+        "conv_update": 0.0326451987028122,
+        "split_qkv_repeat": 0.006857199966907502,
+        "recurrent_fused_prepare": 0.035787999629974365,
+        "gated_rmsnorm": 0.020514799654483794,
+        "out_proj_bf16": 0.016520799696445466,
+        "full_core_recomposed": 0.2976047992706299
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.07008839845657348
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.035787999629974365
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.0326451987028122
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.020514799654483794
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.016520799696445466
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.006857199966907502
+        }
+      ]
+    },
+    {
+      "layer": 34,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.06932560205459595,
+        "conv_update": 0.03250559866428375,
+        "split_qkv_repeat": 0.006804399937391281,
+        "recurrent_fused_prepare": 0.03597680032253266,
+        "gated_rmsnorm": 0.020189599692821504,
+        "out_proj_bf16": 0.014629200100898743,
+        "full_core_recomposed": 0.3049535989761353
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.06932560205459595
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.03597680032253266
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.03250559866428375
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.020189599692821504
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.014629200100898743
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.006804399937391281
+        }
+      ]
+    },
+    {
+      "layer": 36,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.06948639750480652,
+        "conv_update": 0.03312639892101288,
+        "split_qkv_repeat": 0.0069020003080368045,
+        "recurrent_fused_prepare": 0.03545680046081543,
+        "gated_rmsnorm": 0.020128799974918364,
+        "out_proj_bf16": 0.015017600357532501,
+        "full_core_recomposed": 0.3007967948913574
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.06948639750480652
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.03545680046081543
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.03312639892101288
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.020128799974918364
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.015017600357532501
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.0069020003080368045
+        }
+      ]
+    },
+    {
+      "layer": 37,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.07043039798736572,
+        "conv_update": 0.032504400610923766,
+        "split_qkv_repeat": 0.006770800054073334,
+        "recurrent_fused_prepare": 0.03568919897079468,
+        "gated_rmsnorm": 0.02024320065975189,
+        "out_proj_bf16": 0.014599199593067168,
+        "full_core_recomposed": 0.29827680587768557
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.07043039798736572
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.03568919897079468
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.032504400610923766
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.02024320065975189
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.014599199593067168
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.006770800054073334
+        }
+      ]
+    },
+    {
+      "layer": 38,
+      "use_gqa_recurrent": true,
+      "timing_ms": {
+        "fused_native_fp4_inproj": 0.07051360011100768,
+        "conv_update": 0.03273800015449524,
+        "split_qkv_repeat": 0.006881599873304367,
+        "recurrent_fused_prepare": 0.03618640005588532,
+        "gated_rmsnorm": 0.02008800059556961,
+        "out_proj_bf16": 0.014579600095748902,
+        "full_core_recomposed": 0.29959681034088137
+      },
+      "top_segments": [
+        {
+          "segment": "fused_native_fp4_inproj",
+          "latency_ms": 0.07051360011100768
+        },
+        {
+          "segment": "recurrent_fused_prepare",
+          "latency_ms": 0.03618640005588532
+        },
+        {
+          "segment": "conv_update",
+          "latency_ms": 0.03273800015449524
+        },
+        {
+          "segment": "gated_rmsnorm",
+          "latency_ms": 0.02008800059556961
+        },
+        {
+          "segment": "out_proj_bf16",
+          "latency_ms": 0.014579600095748902
+        },
+        {
+          "segment": "split_qkv_repeat",
+          "latency_ms": 0.006881599873304367
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Measurement-only census; it does not modify resident defaults.",
+    "Layer input is a shared one-token decode seed, so this ranks operation/layout cost rather than semantic layer activation difficulty."
+  ]
+}
