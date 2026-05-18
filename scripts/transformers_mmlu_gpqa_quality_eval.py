@@ -154,9 +154,9 @@ def generate_answers(model: Any, tok: Any, prompts: list[str], batch_size: int, 
             pad_token_id=pad_id,
             eos_token_id=tok.eos_token_id,
         )
+        prompt_width = enc["input_ids"].shape[1]
         for i, seq in enumerate(out):
-            prompt_len = int(enc["attention_mask"][i].sum().item())
-            outputs.append(tok.decode(seq[prompt_len:], skip_special_tokens=True))
+            outputs.append(tok.decode(seq[prompt_width:], skip_special_tokens=True))
     return outputs
 
 
