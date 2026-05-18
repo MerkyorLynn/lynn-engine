@@ -352,6 +352,7 @@ Artifacts:
 - `benchmarks/p133_export_active_moe_fixtures.py`
 - `benchmarks/p134_active_moe_fixture_contract.py`
 - `scripts/r6000_export_qwen36_moe_fixtures.sh`
+- `scripts/r6000_qwen36_moe_fixture_gate.sh`
 - `reports/qwen36_35b/p133_fixtures_official_w4a16/manifest.json`
 - `reports/qwen36_35b/p134_triton_selfcheck_report.json`
 - `reports/qwen36_35b/p134_candidate_output_selfcheck_report.json`
