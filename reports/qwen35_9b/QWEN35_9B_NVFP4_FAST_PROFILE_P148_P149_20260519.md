@@ -23,6 +23,11 @@ at both 128 and 512 generated tokens.
 This should become the next 9B serving-gate candidate. It is not a release
 default until it passes the OpenAI/P25 matrix.
 
+P150 subsequently confirmed the same candidate in the OpenAI/P25 serving path:
+128 / 256 / 512 decode TPS are 60.80 / 61.47 / 61.69, with graph reuse true on
+all 9 requests. The remaining release work is concurrent and long-context reruns
+with the same profile.
+
 ## Closed Or Cautioned Knobs
 
 The full 35B fast profile is not safe for 9B yet:
@@ -64,3 +69,4 @@ speed work should then move to dense FFN packed/fused kernels.
 - `reports/qwen35_9b/p148_qwen35_9b_nvfp4_fast_profile_20260519_0338.json`
 - `reports/qwen35_9b/p149_qwen35_9b_nvfp4_fast_knob_sweep_20260519_0343.json`
 - `reports/qwen35_9b/p149_qwen35_9b_nvfp4_fast_knob_sweep_20260519_0352.json`
+- `reports/qwen35_9b/p150_qwen35_9b_nvfp4_linear_graph_summary_20260519_0406.json`

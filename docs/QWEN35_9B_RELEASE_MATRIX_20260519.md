@@ -14,10 +14,11 @@
 | **NVFP4** | 8.3 | Lynn Engine (CUDA) | 🟢 DONE | 0.752 | 0.429 | 128t=35.1 / 256t=41.0 / 512t=40.9 | x2=40.4 / x4=40.2 / x8=40.2 | 4k=39.7 / 16k=37.7 / 32k=34.5 | — |
 
 **Runtime update:** P149 found a safe opt-in `linear_graph_only` NVFP4 profile
-for direct resident generation. It is exact on the 3-prompt 128/512-token gate
-and reaches 59.73 TPS at 128 tokens and 60.16 TPS at 512 tokens. This is not
-yet the release serving number; it needs the OpenAI/P25 matrix before replacing
-the published 40.9 TPS default.
+for direct resident generation, and P150 confirmed it in the OpenAI/P25 serving
+path. The new safe NVFP4 service line is 60.80 / 61.47 / 61.69 decode TPS at
+128 / 256 / 512 tokens. The table above still shows the original full release
+matrix because concurrent and long-context lanes have not been rerun with the
+linear-graph profile.
 
 ## BF16 Details
 

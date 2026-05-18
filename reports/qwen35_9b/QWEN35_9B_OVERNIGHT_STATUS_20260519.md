@@ -23,6 +23,13 @@ An overnight fast-profile sweep found the first safe NVFP4 speed candidate:
 profile is not safe for 9B yet (`FAST_PROFILE_DRIFT`), so only the linear graph
 slice should be promoted to the next OpenAI/P25 serving gate.
 
+That serving gate is now complete. With only `LYNN_LINEAR_STATE_UPDATE=inplace`
+and `LYNN_LINEAR_BLOCK_GRAPH{,_REUSE,_PREWARM}=1`, P150 reports decode TPS of
+60.80 / 61.47 / 61.69 at 128 / 256 / 512 tokens, with linear-block graph reuse
+true on all 9 P25 requests. This upgrades the safe NVFP4 R6000 service line from
+~40.9 to ~61.7 decode TPS. Concurrent serving still needs a separate matrix
+before comparing against Q4_K_M's 420.63 TPS x8 result.
+
 ## Artifacts
 
 | Artifact | Path |
@@ -34,6 +41,7 @@ slice should be promoted to the next OpenAI/P25 serving gate.
 | Q4_K_M quality report | `reports/qwen35_9b/q4km_llamacpp_reasoning_off_20260519_0115_quality_summary.md` |
 | NVFP4 speed matrix | `reports/qwen35_9b/r6000_qwen35_9b_nvfp4_openai_matrix_full_codex_20260519_022023.json` |
 | NVFP4 fast-profile report | `reports/qwen35_9b/QWEN35_9B_NVFP4_FAST_PROFILE_P148_P149_20260519.md` |
+| NVFP4 linear-graph P25 report | `reports/qwen35_9b/QWEN35_9B_NVFP4_LINEAR_GRAPH_SERVING_P150_20260519.md` |
 | NVFP4 MMLU summary | `reports/qwen35_9b/nvfp4_openai_quality_20260519_022635_mmlu_n500.summary.json` |
 | NVFP4 GPQA summary | `reports/qwen35_9b/nvfp4_openai_quality_20260519_022635_gpqa.summary.json` |
 | Release gate summary | `reports/qwen35_9b/qwen35_9b_release_gate_summary.json` |
