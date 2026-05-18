@@ -124,6 +124,12 @@ torch::Tensor lynn_native_active_moe_grouped_per16_nonatomic_reference(
     torch::Tensor down_global_scale,
     int64_t tile_inter,
     int64_t tile_hidden);
+torch::Tensor lynn_native_moe_output_owned_bf16(
+    torch::Tensor x,
+    torch::Tensor expert_ids,
+    torch::Tensor routing_weights,
+    torch::Tensor gate_up_weight,
+    torch::Tensor down_weight);
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
   m.def("add_one", &lynn_native_add_one, "Lynn native CUDA extension smoke kernel");
@@ -183,4 +189,8 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
       "active_moe_grouped_per16_nonatomic_reference",
       &lynn_native_active_moe_grouped_per16_nonatomic_reference,
       "P73 non-atomic native-owned scratch reference for grouped per-16 active expert FFN");
+  m.def(
+      "moe_output_owned_bf16",
+      &lynn_native_moe_output_owned_bf16,
+      "P134 candidate output-owned BF16 routed active-MoE kernel");
 }

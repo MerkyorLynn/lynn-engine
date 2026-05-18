@@ -281,6 +281,8 @@ def _summary_metrics(results: list[ContractResult]) -> dict[str, Any]:
 
 def _load_candidate_backend(
     backend_name: str,
+    *,
+    routed_only: bool = False,
 ) -> Callable | None:
     """Dynamically load a candidate MoE backend for testing.
 
@@ -291,7 +293,7 @@ def _load_candidate_backend(
     """
     if backend_name == "triton_reference":
         # Self-test: use the same reference as candidate (should be exact)
-        return _moe_reference_routed_only
+        return _moe_reference_routed_only if routed_only else _moe_reference_from_fixture
 
     if backend_name == "triton_fused":
         try:
@@ -323,6 +325,8 @@ def _load_candidate_backend(
         spec = importlib.util.spec_from_file_location(backend_name, candidate_path)
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
+        if routed_only and hasattr(mod, "moe_forward_routed_only"):
+            return mod.moe_forward_routed_only
         if hasattr(mod, "moe_forward_fixture"):
             return mod.moe_forward_fixture
         print(f"[p134] WARNING: {candidate_path} has no moe_forward_fixture()", flush=True)
@@ -398,7 +402,7 @@ def run_contract(
             print(f"[p134] Self-check mode: Triton reference vs Triton reference", flush=True)
         else:
             print(f"[p134] Candidate backend: {candidate_backend}", flush=True)
-        candidate_fn = _load_candidate_backend(candidate_backend)
+        candidate_fn = _load_candidate_backend(candidate_backend, routed_only=routed_only)
         if candidate_fn is None and candidate_backend != "triton_reference":
             print(f"[p134] FATAL: Could not load candidate backend '{candidate_backend}'", flush=True)
             return []

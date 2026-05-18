@@ -1,0 +1,25 @@
+{
+  "schema": "lynn-moe-fixture-gate-summary-v1",
+  "source_report": "/Users/lynn/Downloads/Lynn/lynn-engine-main/reports/qwen36_35b/p134_routed_only_native_output_owned_bf16_20260518_output_owned_bf16.json",
+  "decision": "CLOSED_NUMERIC",
+  "reasons": [
+    "strict exact required but exact_count=0/18"
+  ],
+  "mode": "routed_only",
+  "candidate_backend": "native_output_owned_bf16",
+  "candidate_output_dir": null,
+  "total": 18,
+  "passed": 18,
+  "failed": 0,
+  "exact_count": 0,
+  "max_abs_max": 0.00390625,
+  "rel_l2_max": 0.006828665733337402,
+  "cosine_min": 0.9999802112579346,
+  "ref_ms_mean": 0.9266812133789062,
+  "candidate_ms_mean": 0.050470790333218045,
+  "reference_report": "/Users/lynn/Downloads/Lynn/lynn-engine-main/reports/qwen36_35b/p134_routed_only_selfcheck_report.json",
+  "candidate_metrics": null,
+  "speedup": 18.360743060704525,
+  "min_speedup": 1.05,
+  "strict_exact": true
+}
