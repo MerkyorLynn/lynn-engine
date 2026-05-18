@@ -1,0 +1,203 @@
+{
+  "created": "2026-05-18T23:04:21",
+  "results": [
+    {
+      "layer_id": 0,
+      "prompt_id": 0,
+      "dequant_vs_ref_gate_up_w": 0.0,
+      "inter_dequant_vs_inter_ref": 0.0,
+      "dequant_vs_ref_down_w": 0.0,
+      "down_dequant_vs_down_ref": 0.0,
+      "full_dequant_vs_stored_ref": 0.0,
+      "full_slotorder_ref_vs_stored": 0.0,
+      "native_vs_dequant_python": 0.00048828125
+    },
+    {
+      "layer_id": 4,
+      "prompt_id": 0,
+      "dequant_vs_ref_gate_up_w": 0.0,
+      "inter_dequant_vs_inter_ref": 0.0,
+      "dequant_vs_ref_down_w": 0.0,
+      "down_dequant_vs_down_ref": 0.0,
+      "full_dequant_vs_stored_ref": 0.0,
+      "full_slotorder_ref_vs_stored": 0.0,
+      "native_vs_dequant_python": 0.00048828125
+    },
+    {
+      "layer_id": 8,
+      "prompt_id": 0,
+      "dequant_vs_ref_gate_up_w": 0.0,
+      "inter_dequant_vs_inter_ref": 0.0,
+      "dequant_vs_ref_down_w": 0.0,
+      "down_dequant_vs_down_ref": 0.0,
+      "full_dequant_vs_stored_ref": 0.0,
+      "full_slotorder_ref_vs_stored": 0.0,
+      "native_vs_dequant_python": 0.000244140625
+    },
+    {
+      "layer_id": 16,
+      "prompt_id": 0,
+      "dequant_vs_ref_gate_up_w": 0.0,
+      "inter_dequant_vs_inter_ref": 0.0,
+      "dequant_vs_ref_down_w": 0.0,
+      "down_dequant_vs_down_ref": 0.0,
+      "full_dequant_vs_stored_ref": 0.0,
+      "full_slotorder_ref_vs_stored": 0.0,
+      "native_vs_dequant_python": 3.0517578125e-05
+    },
+    {
+      "layer_id": 20,
+      "prompt_id": 0,
+      "dequant_vs_ref_gate_up_w": 0.0,
+      "inter_dequant_vs_inter_ref": 0.0,
+      "dequant_vs_ref_down_w": 0.0,
+      "down_dequant_vs_down_ref": 0.0,
+      "full_dequant_vs_stored_ref": 0.0,
+      "full_slotorder_ref_vs_stored": 0.0,
+      "native_vs_dequant_python": 0.0001220703125
+    },
+    {
+      "layer_id": 28,
+      "prompt_id": 0,
+      "dequant_vs_ref_gate_up_w": 0.0,
+      "inter_dequant_vs_inter_ref": 0.0,
+      "dequant_vs_ref_down_w": 0.0,
+      "down_dequant_vs_down_ref": 0.0,
+      "full_dequant_vs_stored_ref": 0.0,
+      "full_slotorder_ref_vs_stored": 0.0,
+      "native_vs_dequant_python": 0.000244140625
+    },
+    {
+      "layer_id": 32,
+      "prompt_id": 0,
+      "dequant_vs_ref_gate_up_w": 0.0,
+      "inter_dequant_vs_inter_ref": 0.0,
+      "dequant_vs_ref_down_w": 0.0,
+      "down_dequant_vs_down_ref": 0.0,
+      "full_dequant_vs_stored_ref": 0.0,
+      "full_slotorder_ref_vs_stored": 0.0,
+      "native_vs_dequant_python": 0.000732421875
+    },
+    {
+      "layer_id": 36,
+      "prompt_id": 0,
+      "dequant_vs_ref_gate_up_w": 0.0,
+      "inter_dequant_vs_inter_ref": 0.0,
+      "dequant_vs_ref_down_w": 0.0,
+      "down_dequant_vs_down_ref": 0.0,
+      "full_dequant_vs_stored_ref": 0.0,
+      "full_slotorder_ref_vs_stored": 0.0,
+      "native_vs_dequant_python": 0.001953125
+    },
+    {
+      "layer_id": 39,
+      "prompt_id": 0,
+      "dequant_vs_ref_gate_up_w": 0.0,
+      "inter_dequant_vs_inter_ref": 0.0,
+      "dequant_vs_ref_down_w": 0.0,
+      "down_dequant_vs_down_ref": 0.0,
+      "full_dequant_vs_stored_ref": 0.0,
+      "full_slotorder_ref_vs_stored": 0.0,
+      "native_vs_dequant_python": 0.00390625
+    },
+    {
+      "layer_id": 0,
+      "prompt_id": 1,
+      "dequant_vs_ref_gate_up_w": 0.0,
+      "inter_dequant_vs_inter_ref": 0.0,
+      "dequant_vs_ref_down_w": 0.0,
+      "down_dequant_vs_down_ref": 0.0,
+      "full_dequant_vs_stored_ref": 0.0,
+      "full_slotorder_ref_vs_stored": 0.0,
+      "native_vs_dequant_python": 0.0001220703125
+    },
+    {
+      "layer_id": 4,
+      "prompt_id": 1,
+      "dequant_vs_ref_gate_up_w": 0.0,
+      "inter_dequant_vs_inter_ref": 0.0,
+      "dequant_vs_ref_down_w": 0.0,
+      "down_dequant_vs_down_ref": 0.0,
+      "full_dequant_vs_stored_ref": 0.0,
+      "full_slotorder_ref_vs_stored": 0.0,
+      "native_vs_dequant_python": 0.000244140625
+    },
+    {
+      "layer_id": 8,
+      "prompt_id": 1,
+      "dequant_vs_ref_gate_up_w": 0.0,
+      "inter_dequant_vs_inter_ref": 0.0,
+      "dequant_vs_ref_down_w": 0.0,
+      "down_dequant_vs_down_ref": 0.0,
+      "full_dequant_vs_stored_ref": 0.0,
+      "full_slotorder_ref_vs_stored": 0.0,
+      "native_vs_dequant_python": 0.00048828125
+    },
+    {
+      "layer_id": 16,
+      "prompt_id": 1,
+      "dequant_vs_ref_gate_up_w": 0.0,
+      "inter_dequant_vs_inter_ref": 0.0,
+      "dequant_vs_ref_down_w": 0.0,
+      "down_dequant_vs_down_ref": 0.0,
+      "full_dequant_vs_stored_ref": 0.0,
+      "full_slotorder_ref_vs_stored": 0.0,
+      "native_vs_dequant_python": 0.000732421875
+    },
+    {
+      "layer_id": 20,
+      "prompt_id": 1,
+      "dequant_vs_ref_gate_up_w": 0.0,
+      "inter_dequant_vs_inter_ref": 0.0,
+      "dequant_vs_ref_down_w": 0.0,
+      "down_dequant_vs_down_ref": 0.0,
+      "full_dequant_vs_stored_ref": 0.0,
+      "full_slotorder_ref_vs_stored": 0.0,
+      "native_vs_dequant_python": 0.000732421875
+    },
+    {
+      "layer_id": 28,
+      "prompt_id": 1,
+      "dequant_vs_ref_gate_up_w": 0.0,
+      "inter_dequant_vs_inter_ref": 0.0,
+      "dequant_vs_ref_down_w": 0.0,
+      "down_dequant_vs_down_ref": 0.0,
+      "full_dequant_vs_stored_ref": 0.0,
+      "full_slotorder_ref_vs_stored": 0.0,
+      "native_vs_dequant_python": 0.00048828125
+    },
+    {
+      "layer_id": 32,
+      "prompt_id": 1,
+      "dequant_vs_ref_gate_up_w": 0.0,
+      "inter_dequant_vs_inter_ref": 0.0,
+      "dequant_vs_ref_down_w": 0.0,
+      "down_dequant_vs_down_ref": 0.0,
+      "full_dequant_vs_stored_ref": 0.0,
+      "full_slotorder_ref_vs_stored": 0.0,
+      "native_vs_dequant_python": 0.001953125
+    },
+    {
+      "layer_id": 36,
+      "prompt_id": 1,
+      "dequant_vs_ref_gate_up_w": 0.0,
+      "inter_dequant_vs_inter_ref": 0.0,
+      "dequant_vs_ref_down_w": 0.0,
+      "down_dequant_vs_down_ref": 0.0,
+      "full_dequant_vs_stored_ref": 0.0,
+      "full_slotorder_ref_vs_stored": 0.0,
+      "native_vs_dequant_python": 0.000732421875
+    },
+    {
+      "layer_id": 39,
+      "prompt_id": 1,
+      "dequant_vs_ref_gate_up_w": 0.0,
+      "inter_dequant_vs_inter_ref": 0.0,
+      "dequant_vs_ref_down_w": 0.0,
+      "down_dequant_vs_down_ref": 0.0,
+      "full_dequant_vs_stored_ref": 0.0,
+      "full_slotorder_ref_vs_stored": 0.0,
+      "native_vs_dequant_python": 0.001953125
+    }
+  ]
+}
