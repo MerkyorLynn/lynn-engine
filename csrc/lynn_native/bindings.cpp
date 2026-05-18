@@ -144,6 +144,11 @@ torch::Tensor lynn_native_moe_output_owned_bf16(
     torch::Tensor routing_weights,
     torch::Tensor gate_up_weight,
     torch::Tensor down_weight);
+torch::Tensor lynn_native_moe_slot_output_owned_bf16(
+    torch::Tensor x,
+    torch::Tensor routing_weights,
+    torch::Tensor slot_gate_up,
+    torch::Tensor slot_down);
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
   m.def("add_one", &lynn_native_add_one, "Lynn native CUDA extension smoke kernel");
@@ -211,4 +216,8 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
       "moe_output_owned_bf16",
       &lynn_native_moe_output_owned_bf16,
       "P134 candidate output-owned BF16 routed active-MoE kernel");
+  m.def(
+      "moe_slot_output_owned_bf16",
+      &lynn_native_moe_slot_output_owned_bf16,
+      "P135/P136 slot-repacked output-owned BF16 routed active-MoE kernel");
 }

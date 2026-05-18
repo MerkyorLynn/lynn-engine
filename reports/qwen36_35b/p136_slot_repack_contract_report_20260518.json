@@ -1,0 +1,307 @@
+{
+  "schema": "lynn-moe-slot-repack-contract-v1",
+  "created": "2026-05-18T21:20:05",
+  "fixtures_dir": "/root/autodl-tmp/reports/qwen36_35b/p135_repacked_fixtures_official_w4a16_slot",
+  "model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0",
+  "max_abs_threshold": 0.001,
+  "cosine_threshold": 0.999999,
+  "total": 18,
+  "passed": 0,
+  "failed": 18,
+  "verdict": "RED",
+  "max_abs_max": 0.00390625,
+  "ref_ms_mean": 0.9000924534267849,
+  "slot_repack_ms_mean": 0.45550257629818386,
+  "results": [
+    {
+      "fixture_file": "layer_00_prompt_00_slots.safetensors",
+      "layer_id": 0,
+      "prompt_id": 0,
+      "max_abs": 0.00048828125,
+      "mean_abs": 3.243552055209875e-05,
+      "rel_l2": 0.00480186752974987,
+      "cosine": 0.9999886155128479,
+      "exact": 0,
+      "ref_ms": 0.9031744003295898,
+      "slot_repack_ms": 0.45679359436035155,
+      "passed": false,
+      "fail_reasons": [
+        "cosine 0.999989 < 0.999999"
+      ]
+    },
+    {
+      "fixture_file": "layer_04_prompt_00_slots.safetensors",
+      "layer_id": 4,
+      "prompt_id": 0,
+      "max_abs": 0.000244140625,
+      "mean_abs": 2.9638467822223902e-05,
+      "rel_l2": 0.004840807057917118,
+      "cosine": 0.9999881982803345,
+      "exact": 0,
+      "ref_ms": 0.967801570892334,
+      "slot_repack_ms": 0.4569375991821289,
+      "passed": false,
+      "fail_reasons": [
+        "cosine 0.999988 < 0.999999"
+      ]
+    },
+    {
+      "fixture_file": "layer_08_prompt_00_slots.safetensors",
+      "layer_id": 8,
+      "prompt_id": 0,
+      "max_abs": 0.0001220703125,
+      "mean_abs": 1.4686491340398788e-05,
+      "rel_l2": 0.004619676154106855,
+      "cosine": 0.9999892711639404,
+      "exact": 0,
+      "ref_ms": 0.8890975952148438,
+      "slot_repack_ms": 0.45741119384765627,
+      "passed": false,
+      "fail_reasons": [
+        "cosine 0.999989 < 0.999999"
+      ]
+    },
+    {
+      "fixture_file": "layer_16_prompt_00_slots.safetensors",
+      "layer_id": 16,
+      "prompt_id": 0,
+      "max_abs": 3.0517578125e-05,
+      "mean_abs": 2.6990892365574837e-06,
+      "rel_l2": 0.005100980866700411,
+      "cosine": 0.9999868869781494,
+      "exact": 0,
+      "ref_ms": 0.887174415588379,
+      "slot_repack_ms": 0.45601282119750974,
+      "passed": false,
+      "fail_reasons": [
+        "cosine 0.999987 < 0.999999"
+      ]
+    },
+    {
+      "fixture_file": "layer_20_prompt_00_slots.safetensors",
+      "layer_id": 20,
+      "prompt_id": 0,
+      "max_abs": 0.0001220703125,
+      "mean_abs": 5.247275112196803e-06,
+      "rel_l2": 0.004541351925581694,
+      "cosine": 0.9999898076057434,
+      "exact": 0,
+      "ref_ms": 0.8946368217468261,
+      "slot_repack_ms": 0.45506877899169923,
+      "passed": false,
+      "fail_reasons": [
+        "cosine 0.999990 < 0.999999"
+      ]
+    },
+    {
+      "fixture_file": "layer_28_prompt_00_slots.safetensors",
+      "layer_id": 28,
+      "prompt_id": 0,
+      "max_abs": 0.0001220703125,
+      "mean_abs": 4.848581738770008e-06,
+      "rel_l2": 0.003938952926546335,
+      "cosine": 0.999992311000824,
+      "exact": 0,
+      "ref_ms": 0.8869824409484863,
+      "slot_repack_ms": 0.45500478744506834,
+      "passed": false,
+      "fail_reasons": [
+        "cosine 0.999992 < 0.999999"
+      ]
+    },
+    {
+      "fixture_file": "layer_32_prompt_00_slots.safetensors",
+      "layer_id": 32,
+      "prompt_id": 0,
+      "max_abs": 0.0009765625,
+      "mean_abs": 7.001613266766071e-05,
+      "rel_l2": 0.005175124853849411,
+      "cosine": 0.9999865889549255,
+      "exact": 0,
+      "ref_ms": 0.8898816108703613,
+      "slot_repack_ms": 0.45270400047302245,
+      "passed": false,
+      "fail_reasons": [
+        "cosine 0.999987 < 0.999999"
+      ]
+    },
+    {
+      "fixture_file": "layer_36_prompt_00_slots.safetensors",
+      "layer_id": 36,
+      "prompt_id": 0,
+      "max_abs": 0.0009765625,
+      "mean_abs": 9.220466017723083e-05,
+      "rel_l2": 0.003476858837530017,
+      "cosine": 0.9999939799308777,
+      "exact": 0,
+      "ref_ms": 0.8854207992553711,
+      "slot_repack_ms": 0.4566976070404053,
+      "passed": false,
+      "fail_reasons": [
+        "cosine 0.999994 < 0.999999"
+      ]
+    },
+    {
+      "fixture_file": "layer_39_prompt_00_slots.safetensors",
+      "layer_id": 39,
+      "prompt_id": 0,
+      "max_abs": 0.00390625,
+      "mean_abs": 0.00021196529269218445,
+      "rel_l2": 0.004413662478327751,
+      "cosine": 0.9999903440475464,
+      "exact": 0,
+      "ref_ms": 0.8858847618103027,
+      "slot_repack_ms": 0.4548895835876465,
+      "passed": false,
+      "fail_reasons": [
+        "max_abs 3.906250e-03 > 0.001",
+        "cosine 0.999990 < 0.999999"
+      ]
+    },
+    {
+      "fixture_file": "layer_00_prompt_01_slots.safetensors",
+      "layer_id": 0,
+      "prompt_id": 1,
+      "max_abs": 0.0001220703125,
+      "mean_abs": 8.839895599521697e-06,
+      "rel_l2": 0.004460482858121395,
+      "cosine": 0.9999899864196777,
+      "exact": 0,
+      "ref_ms": 0.8845151901245117,
+      "slot_repack_ms": 0.4531839847564697,
+      "passed": false,
+      "fail_reasons": [
+        "cosine 0.999990 < 0.999999"
+      ]
+    },
+    {
+      "fixture_file": "layer_04_prompt_01_slots.safetensors",
+      "layer_id": 4,
+      "prompt_id": 1,
+      "max_abs": 0.000152587890625,
+      "mean_abs": 1.531268935650587e-05,
+      "rel_l2": 0.003946851938962936,
+      "cosine": 0.9999921917915344,
+      "exact": 0,
+      "ref_ms": 0.8839648246765137,
+      "slot_repack_ms": 0.45517120361328123,
+      "passed": false,
+      "fail_reasons": [
+        "cosine 0.999992 < 0.999999"
+      ]
+    },
+    {
+      "fixture_file": "layer_08_prompt_01_slots.safetensors",
+      "layer_id": 8,
+      "prompt_id": 1,
+      "max_abs": 0.000244140625,
+      "mean_abs": 4.7089532017707825e-05,
+      "rel_l2": 0.0048263221979141235,
+      "cosine": 0.999988317489624,
+      "exact": 0,
+      "ref_ms": 0.8874560356140136,
+      "slot_repack_ms": 0.4563583850860596,
+      "passed": false,
+      "fail_reasons": [
+        "cosine 0.999988 < 0.999999"
+      ]
+    },
+    {
+      "fixture_file": "layer_16_prompt_01_slots.safetensors",
+      "layer_id": 16,
+      "prompt_id": 1,
+      "max_abs": 0.00048828125,
+      "mean_abs": 5.0295377150177956e-05,
+      "rel_l2": 0.005045822821557522,
+      "cosine": 0.9999873638153076,
+      "exact": 0,
+      "ref_ms": 0.8847647666931152,
+      "slot_repack_ms": 0.45360960960388186,
+      "passed": false,
+      "fail_reasons": [
+        "cosine 0.999987 < 0.999999"
+      ]
+    },
+    {
+      "fixture_file": "layer_20_prompt_01_slots.safetensors",
+      "layer_id": 20,
+      "prompt_id": 1,
+      "max_abs": 0.00048828125,
+      "mean_abs": 5.313195288181305e-05,
+      "rel_l2": 0.004739567171782255,
+      "cosine": 0.9999887943267822,
+      "exact": 0,
+      "ref_ms": 0.8867936134338379,
+      "slot_repack_ms": 0.45593600273132323,
+      "passed": false,
+      "fail_reasons": [
+        "cosine 0.999989 < 0.999999"
+      ]
+    },
+    {
+      "fixture_file": "layer_28_prompt_01_slots.safetensors",
+      "layer_id": 28,
+      "prompt_id": 1,
+      "max_abs": 0.00048828125,
+      "mean_abs": 4.9517955631017685e-05,
+      "rel_l2": 0.004938717931509018,
+      "cosine": 0.9999878406524658,
+      "exact": 0,
+      "ref_ms": 0.8845984458923339,
+      "slot_repack_ms": 0.4554624080657959,
+      "passed": false,
+      "fail_reasons": [
+        "cosine 0.999988 < 0.999999"
+      ]
+    },
+    {
+      "fixture_file": "layer_32_prompt_01_slots.safetensors",
+      "layer_id": 32,
+      "prompt_id": 1,
+      "max_abs": 0.0009765625,
+      "mean_abs": 8.335732854902744e-05,
+      "rel_l2": 0.004679807461798191,
+      "cosine": 0.9999890327453613,
+      "exact": 0,
+      "ref_ms": 0.8824576377868653,
+      "slot_repack_ms": 0.4569248199462891,
+      "passed": false,
+      "fail_reasons": [
+        "cosine 0.999989 < 0.999999"
+      ]
+    },
+    {
+      "fixture_file": "layer_36_prompt_01_slots.safetensors",
+      "layer_id": 36,
+      "prompt_id": 1,
+      "max_abs": 0.0009765625,
+      "mean_abs": 8.2358717918396e-05,
+      "rel_l2": 0.00497200945392251,
+      "cosine": 0.9999877214431763,
+      "exact": 0,
+      "ref_ms": 1.033948802947998,
+      "slot_repack_ms": 0.4543935775756836,
+      "passed": false,
+      "fail_reasons": [
+        "cosine 0.999988 < 0.999999"
+      ]
+    },
+    {
+      "fixture_file": "layer_39_prompt_01_slots.safetensors",
+      "layer_id": 39,
+      "prompt_id": 1,
+      "max_abs": 0.001953125,
+      "mean_abs": 0.00014828145503997803,
+      "rel_l2": 0.004443445708602667,
+      "cosine": 0.9999900460243225,
+      "exact": 0,
+      "ref_ms": 0.8831104278564453,
+      "slot_repack_ms": 0.4564864158630371,
+      "passed": false,
+      "fail_reasons": [
+        "max_abs 1.953125e-03 > 0.001",
+        "cosine 0.999990 < 0.999999"
+      ]
+    }
+  ]
+}

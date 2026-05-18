@@ -328,3 +328,78 @@ torch::Tensor lynn_native_moe_output_owned_bf16(
 
     return out;
 }
+
+torch::Tensor lynn_native_moe_slot_output_owned_bf16(
+    torch::Tensor x,                   // [2048] BF16
+    torch::Tensor routing_weights,     // [top_k] float32
+    torch::Tensor slot_gate_up,        // [top_k, 1024, 2048] BF16 — pre-gathered
+    torch::Tensor slot_down            // [top_k, 2048, 512] BF16 — pre-gathered
+) {
+    TORCH_CHECK(x.is_cuda(), "x must be CUDA");
+    TORCH_CHECK(x.scalar_type() == torch::kBFloat16, "x must be BF16");
+    TORCH_CHECK(x.dim() == 1 && x.numel() == kHidden, "x must be [2048]");
+    TORCH_CHECK(routing_weights.is_cuda() && routing_weights.scalar_type() == torch::kFloat32);
+    TORCH_CHECK(slot_gate_up.is_cuda() && slot_gate_up.scalar_type() == torch::kBFloat16);
+    TORCH_CHECK(slot_down.is_cuda() && slot_down.scalar_type() == torch::kBFloat16);
+    TORCH_CHECK(slot_gate_up.dim() == 3, "slot_gate_up must be [top_k, 1024, 2048]");
+    TORCH_CHECK(slot_gate_up.size(1) == kGateUpRows && slot_gate_up.size(2) == kHidden);
+    TORCH_CHECK(slot_down.dim() == 3, "slot_down must be [top_k, 2048, 512]");
+    TORCH_CHECK(slot_down.size(1) == kHidden && slot_down.size(2) == kIntermediate);
+
+    const int top_k = slot_gate_up.size(0);
+    TORCH_CHECK(routing_weights.size(0) == top_k);
+    TORCH_CHECK(slot_down.size(0) == top_k);
+
+    // Slot variant: dim 0 IS the slot index, no expert_ids needed.
+    // Reuse the same kernels — gate_up_silu_bf16_kernel uses expert_ids to
+    // index into weight[expert, ...], but here slot_gate_up[slot, ...] is
+    // already gathered, so we pass a trivial identity mapping: expert_ids = [0,1,...,top_k-1]
+    auto identity_ids = torch::arange(top_k, torch::TensorOptions().device(x.device()).dtype(torch::kInt32));
+
+    // Allocate intermediate buffer [top_k, 512] BF16
+    auto inter = torch::empty({top_k, kIntermediate},
+                              torch::TensorOptions().device(x.device()).dtype(torch::kBFloat16));
+    // Allocate output [2048] BF16
+    auto out = torch::zeros({kHidden},
+                            torch::TensorOptions().device(x.device()).dtype(torch::kBFloat16));
+
+    // Stage 1: gate_up_silu (slot_gate_up[slot, row, col] — identity expert mapping)
+    constexpr int TILE_I = 4;
+    constexpr int THREADS_S1 = 256;
+    dim3 grid_s1(top_k, (kIntermediate + TILE_I - 1) / TILE_I);
+    dim3 block_s1(THREADS_S1);
+
+    gate_up_silu_bf16_kernel<TILE_I, THREADS_S1><<<grid_s1, block_s1>>>(
+        reinterpret_cast<const __nv_bfloat16*>(x.data_ptr<at::BFloat16>()),
+        identity_ids.data_ptr<int32_t>(),
+        reinterpret_cast<const __nv_bfloat16*>(slot_gate_up.data_ptr<at::BFloat16>()),
+        reinterpret_cast<__nv_bfloat16*>(inter.data_ptr<at::BFloat16>()),
+        slot_gate_up.stride(0),
+        slot_gate_up.stride(1),
+        slot_gate_up.stride(2)
+    );
+
+    // Stage 2: down_weighted_sum (output-owned, slot_down[slot, h, i])
+    constexpr int TILE_H = 8;
+    constexpr int THREADS_S2 = 256;
+    dim3 grid_s2((kHidden + TILE_H - 1) / TILE_H);
+    dim3 block_s2(THREADS_S2);
+
+    down_weighted_sum_bf16_kernel<TILE_H, THREADS_S2><<<grid_s2, block_s2>>>(
+        reinterpret_cast<const __nv_bfloat16*>(inter.data_ptr<at::BFloat16>()),
+        identity_ids.data_ptr<int32_t>(),
+        routing_weights.data_ptr<float>(),
+        reinterpret_cast<const __nv_bfloat16*>(slot_down.data_ptr<at::BFloat16>()),
+        reinterpret_cast<__nv_bfloat16*>(out.data_ptr<at::BFloat16>()),
+        slot_down.stride(0),
+        slot_down.stride(1),
+        slot_down.stride(2),
+        top_k
+    );
+
+    cudaError_t err = cudaGetLastError();
+    TORCH_CHECK(err == cudaSuccess,
+                "lynn_native_moe_slot_output_owned_bf16 failed: ", cudaGetErrorString(err));
+
+    return out;
+}
