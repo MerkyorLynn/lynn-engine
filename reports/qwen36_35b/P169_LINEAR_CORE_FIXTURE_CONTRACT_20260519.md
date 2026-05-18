@@ -41,6 +41,11 @@ linear-attention layer:
 The self-check reloads the official W4A16 model, recomputes the same core, and
 requires bit-exact equality for all checked tensors.
 
+The contract also accepts `--candidate-output-dir`, where a candidate can mirror
+fixture filenames and provide any subset of checked tensors. This lets fused
+kernel experiments write only `linear_core_out`, `recurrent_state_out`, or
+stage-level tensors and receive a fast pass/fail report before resident P37/P25.
+
 ## Why It Matters
 
 P168 showed the linear/GDN core is the next large exact boundary:
@@ -59,6 +64,7 @@ math while removing per-token scratch allocation/initialization.
 - `benchmarks/p169_qwen36_linear_core_fixture_contract.py`
 - `scripts/r6000_qwen36_linear_core_fixture_gate.sh`
 - `reports/qwen36_35b/p169_linear_core_fixture_contract_20260519_0750_v2.json`
+- `reports/qwen36_35b/p169_linear_core_fixture_contract_20260519_0822_v3.json`
 
 The full fixture tensor directory was left on R6000 under
 `/root/autodl-tmp/reports/qwen36_35b/p169_linear_core_fixtures_official_w4a16_20260519_0750`

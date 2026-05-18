@@ -275,21 +275,58 @@ def export_fixtures(args: argparse.Namespace) -> dict[str, Any]:
 def check_fixtures(args: argparse.Namespace) -> dict[str, Any]:
     fixtures_dir = Path(args.fixtures)
     manifest = json.loads((fixtures_dir / "manifest.json").read_text(encoding="utf-8"))
-    runner = LynnIncrementalRunner(args.model or manifest["model"], device=args.device, dtype=torch.bfloat16, max_seq_len=args.max_seq_len, verbose=False)
+    candidate_dir = Path(args.candidate_output_dir) if args.candidate_output_dir else None
+    runner = None
+    if candidate_dir is None:
+        runner = LynnIncrementalRunner(
+            args.model or manifest["model"],
+            device=args.device,
+            dtype=torch.bfloat16,
+            max_seq_len=args.max_seq_len,
+            verbose=False,
+        )
     rows = []
     for item in manifest["fixtures"]:
         tensors = load_file(str(fixtures_dir / item["file"]), device=args.device)
         layer = int(item["layer_id"])
-        ref = _linear_core_reference(
-            tensors["h_norm"],
-            runner.layer_weights[layer],
-            tensors["recurrent_state_in"],
-            tensors["conv_state_in"],
-        )
+        if candidate_dir is None:
+            assert runner is not None
+            candidate = _linear_core_reference(
+                tensors["h_norm"],
+                runner.layer_weights[layer],
+                tensors["recurrent_state_in"],
+                tensors["conv_state_in"],
+            )
+        else:
+            candidates = [
+                candidate_dir / item["file"],
+                candidate_dir / Path(item["file"]).name,
+                candidate_dir / f"{Path(item['file']).stem}.safetensors",
+            ]
+            found = next((path for path in candidates if path.exists()), None)
+            if found is None:
+                rows.append(
+                    {
+                        "fixture_file": item["file"],
+                        "layer_id": layer,
+                        "prompt_id": int(item["prompt_id"]),
+                        "passed": False,
+                        "per_tensor": {},
+                        "fail_reasons": ["candidate file missing"],
+                    }
+                )
+                continue
+            candidate = load_file(str(found), device=args.device)
         per_tensor = {}
         passed = True
+        fail_reasons: list[str] = []
         for key in CHECK_KEYS:
-            m = _metrics(tensors[key], ref[key])
+            if key not in candidate:
+                if args.require_all_keys:
+                    passed = False
+                    fail_reasons.append(f"missing candidate tensor {key}")
+                continue
+            m = _metrics(tensors[key], candidate[key])
             per_tensor[key] = m
             # Exact tensor equality is the primary contract. Cosine is computed
             # in FP32 and can print as 0.9999998 even when max_abs is exactly 0.
@@ -297,6 +334,7 @@ def check_fixtures(args: argparse.Namespace) -> dict[str, Any]:
                 m["max_abs"] > args.max_abs_threshold or m["cosine"] < args.cosine_threshold
             ):
                 passed = False
+                fail_reasons.append(f"{key} exceeds thresholds")
         rows.append(
             {
                 "fixture_file": item["file"],
@@ -304,6 +342,7 @@ def check_fixtures(args: argparse.Namespace) -> dict[str, Any]:
                 "prompt_id": int(item["prompt_id"]),
                 "passed": passed,
                 "per_tensor": per_tensor,
+                "fail_reasons": fail_reasons,
             }
         )
     total = len(rows)
@@ -318,8 +357,9 @@ def check_fixtures(args: argparse.Namespace) -> dict[str, Any]:
     )
     return {
         "schema_version": "lynn-qwen36-linear-core-fixture-contract-v1",
-        "mode": "selfcheck",
+        "mode": "candidate-output-dir" if candidate_dir is not None else "selfcheck",
         "fixtures": str(fixtures_dir),
+        "candidate_output_dir": str(candidate_dir) if candidate_dir is not None else None,
         "model": args.model or manifest["model"],
         "thresholds": {
             "max_abs_threshold": args.max_abs_threshold,
@@ -349,6 +389,8 @@ def main() -> int:
     parser.add_argument("--max-seq-len", type=int, default=2048)
     parser.add_argument("--max-abs-threshold", type=float, default=0.0)
     parser.add_argument("--cosine-threshold", type=float, default=0.999999)
+    parser.add_argument("--candidate-output-dir", default="")
+    parser.add_argument("--require-all-keys", action="store_true")
     args = parser.parse_args()
     if not args.export and not args.check:
         args.export = True
