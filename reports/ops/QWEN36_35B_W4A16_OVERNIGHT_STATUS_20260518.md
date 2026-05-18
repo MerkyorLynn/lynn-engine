@@ -314,6 +314,59 @@ Copied reports:
 - `reports/qwen36_35b/r6000_qwen36_w4a16_gqa_recurrent_p10c_linear_layer0_20260518_052949.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_gqa_recurrent_p10c_linear_layer28_20260518_052949.json`
 
+### Post-Conv Promoted Bottleneck Profile
+
+The current promoted profile was reprofiled after the Triton conv promotion,
+with the fast service env pinned explicitly:
+
+```text
+LYNN_NATIVE_GATEUP_BACKEND=triton_fast_decode
+LYNN_QK_NORM_ROPE_BACKEND=triton_pair
+LYNN_RMSNORM_GATED_BACKEND=triton
+LYNN_LINEAR_ATTN_GQA_RECURRENT=1
+LYNN_LINEAR_ATTN_RECURRENT_BACKEND=triton_fused_prepare
+LYNN_LINEAR_ATTN_RECURRENT_INPLACE=1
+LYNN_LINEAR_ATTN_CONV_BACKEND=triton_torch_silu
+LYNN_DECODE_FAST_DISPATCH=1
+```
+
+| P26 phase | Mean |
+|---|---:|
+| Decode TPS from profiled wall | 102.29 |
+| Wall | 9.776 ms/token |
+| Linear graph blocks | 6.168 ms/token |
+| Full-attention layers | 3.083 ms/token |
+| Norm + native FP4 lm_head | 0.331 ms/token |
+| Host gap | 0.156 ms/token |
+
+P28 confirms the hot path is still broadly uniform rather than one bad layer:
+the 10 linear graph blocks sum to `6.177 ms/token`, while the 10 full-attention
+layers sum to `3.197 ms/token`. The hottest linear blocks are layers 4 and 0 at
+about `0.634 ms`, followed by the remaining linear blocks around
+`0.612-0.618 ms`.
+
+P38/P39 MoE profiling on sampled linear layers now shows:
+
+| MoE segment | Mean ms/layer |
+|---|---:|
+| Router top-k | 0.038 |
+| Active packed experts | 0.113 |
+| Active combined | 0.124 |
+| Shared BF16 expert | 0.061 |
+| Current full MoE | 0.200 |
+
+This keeps the next safe runtime target unchanged: remove kernel boundaries in
+the routed/shared MoE path, then revisit full-attention fusion. The host gap is
+only `0.156 ms/token`, so a C++ service-loop rewrite is not the current high-ROI
+lever for the 155 TPS gap.
+
+Copied reports:
+
+- `reports/qwen36_35b/p26_phase_conv_promoted_20260518_082209.json`
+- `reports/qwen36_35b/p28_hybrid_conv_promoted_20260518_082209.json`
+- `reports/qwen36_35b/p38_moe_conv_promoted_20260518_082209.json`
+- `reports/qwen36_35b/p39_active_moe_conv_promoted_20260518_082417.json`
+
 Negative probes from the same loop:
 
 - Router Triton top-k is not a full-path win: sampled full router regressed from
