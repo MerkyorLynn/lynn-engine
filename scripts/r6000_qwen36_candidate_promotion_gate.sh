@@ -31,6 +31,8 @@ P25_MAX_TOKENS=${P25_MAX_TOKENS:-"128 256 512"}
 STRUCTURED_REQUESTS=${STRUCTURED_REQUESTS:-40}
 STRUCTURED_MAX_TOKENS=${STRUCTURED_MAX_TOKENS:-128}
 SAFE_DEFAULT_TPS=${SAFE_DEFAULT_TPS:-107.0}
+DEFAULT_P25_TPS=${DEFAULT_P25_TPS:-108.0}
+AMBER_P25_TPS=${AMBER_P25_TPS:-118.0}
 DEFAULT_MARGIN=${DEFAULT_MARGIN:-1.01}
 AMBER_MARGIN=${AMBER_MARGIN:-1.05}
 RUN_PROFILES=${RUN_PROFILES:-0}
@@ -166,22 +168,51 @@ P37_RC=$?
 set -e
 
 if [[ "$P37_RC" -ne 0 && "$STOP_ON_P37_FAIL" == "1" ]]; then
-  "$PY" - "$SUMMARY_OUT" "$P37_OUT" "$P37_RC" "$CANDIDATE_NAME" "$STAMP" "$SAFE_DEFAULT_TPS" "$DEFAULT_MARGIN" "$AMBER_MARGIN" "$P25_OUT" "$STRUCTURED_OUT" "$P26_OUT" "$P28_OUT" "${CANDIDATE_PAIRS[@]}" <<'PY'
+  "$PY" - "$SUMMARY_OUT" "$P37_OUT" "$P37_RC" "$CANDIDATE_NAME" "$STAMP" "$SAFE_DEFAULT_TPS" "$DEFAULT_MARGIN" "$AMBER_MARGIN" "$DEFAULT_P25_TPS" "$AMBER_P25_TPS" "$P25_OUT" "$STRUCTURED_OUT" "$P26_OUT" "$P28_OUT" "${CANDIDATE_PAIRS[@]}" <<'PY'
 import json
 import pathlib
 import sys
 
 out = pathlib.Path(sys.argv[1])
 p37 = pathlib.Path(sys.argv[2])
+safe_default = float(sys.argv[6])
+default_margin = float(sys.argv[7])
+amber_margin = float(sys.argv[8])
+default_p25_raw = sys.argv[9]
+amber_p25_raw = sys.argv[10]
+default_threshold = float(default_p25_raw) if default_p25_raw else safe_default * default_margin
+amber_threshold = float(amber_p25_raw) if amber_p25_raw else safe_default * amber_margin
 report = {
     "schema_version": "lynn-qwen36-candidate-promotion-summary-v1",
     "candidate_name": sys.argv[4],
     "stamp": sys.argv[5],
-    "candidate_env": sys.argv[13:],
+    "candidate_env": sys.argv[15:],
+    "thresholds": {
+        "safe_default_tps": safe_default,
+        "default_threshold": default_threshold,
+        "amber_threshold": amber_threshold,
+        "default_requires_structured": "40/40",
+        "amber_requires_structured": "70/70",
+    },
     "p37": json.loads(p37.read_text(encoding="utf-8")) if p37.exists() else None,
     "p37_returncode": int(sys.argv[3]),
     "p25": None,
     "hard_structured": None,
+    "metrics": {
+        "p37_exact": False,
+        "p25_512_decode_tps": None,
+        "hard_structured_ok": None,
+        "hard_structured_decode_tps_mean": None,
+        "structured_prompt_file": None,
+        "structured_prompt_count": None,
+        "structured_request_count": None,
+        "structured_pass_count": None,
+        "structured_pass_rate": None,
+        "structured_pass_rate_40": None,
+        "structured_pass_rate_70": None,
+        "structured_40_exact": False,
+        "structured_70_exact": False,
+    },
     "promote_default": False,
     "promote_amber": False,
     "decision": "CLOSED: P37 failed and STOP_ON_P37_FAIL=1.",
@@ -251,7 +282,7 @@ if [[ "$RUN_PROFILES" == "1" ]]; then
   "$PY" benchmarks/p28_hybrid_block_timing_profile.py --model "$MODEL" --out "$P28_OUT" || true
 fi
 
-"$PY" - "$SUMMARY_OUT" "$P37_OUT" "$P37_RC" "$CANDIDATE_NAME" "$STAMP" "$SAFE_DEFAULT_TPS" "$DEFAULT_MARGIN" "$AMBER_MARGIN" "$P25_OUT" "$STRUCTURED_OUT" "$P25_RC" "$STRUCTURED_RC" "$P26_OUT" "$P28_OUT" "${CANDIDATE_PAIRS[@]}" <<'PY'
+"$PY" - "$SUMMARY_OUT" "$P37_OUT" "$P37_RC" "$CANDIDATE_NAME" "$STAMP" "$SAFE_DEFAULT_TPS" "$DEFAULT_MARGIN" "$AMBER_MARGIN" "$DEFAULT_P25_TPS" "$AMBER_P25_TPS" "$P25_OUT" "$STRUCTURED_OUT" "$P25_RC" "$STRUCTURED_RC" "$P26_OUT" "$P28_OUT" "${CANDIDATE_PAIRS[@]}" <<'PY'
 import json
 import pathlib
 import sys
@@ -264,13 +295,15 @@ stamp = sys.argv[5]
 safe_default = float(sys.argv[6])
 default_margin = float(sys.argv[7])
 amber_margin = float(sys.argv[8])
-p25_path = pathlib.Path(sys.argv[9])
-structured_path = pathlib.Path(sys.argv[10])
-p25_rc = int(sys.argv[11])
-structured_rc = int(sys.argv[12])
-p26_path = pathlib.Path(sys.argv[13])
-p28_path = pathlib.Path(sys.argv[14])
-candidate_env = sys.argv[15:]
+default_p25_raw = sys.argv[9]
+amber_p25_raw = sys.argv[10]
+p25_path = pathlib.Path(sys.argv[11])
+structured_path = pathlib.Path(sys.argv[12])
+p25_rc = int(sys.argv[13])
+structured_rc = int(sys.argv[14])
+p26_path = pathlib.Path(sys.argv[15])
+p28_path = pathlib.Path(sys.argv[16])
+candidate_env = sys.argv[17:]
 
 def load(path: pathlib.Path):
     if not path.exists():
@@ -290,20 +323,36 @@ if p25:
     p25_512 = ((p25.get("summary_by_max_tokens") or {}).get("512") or {}).get("decode_tps", {}).get("mean")
 hard_ok = bool(structured and structured.get("summary", {}).get("all_format_ok") and structured.get("summary", {}).get("all_finish_stop"))
 hard_decode = structured.get("summary", {}).get("decode_tps_mean") if structured else None
+structured_summary = structured.get("summary", {}) if structured else {}
+structured_prompt_file = structured.get("prompt_specs_file") if structured else None
+structured_prompt_count = structured.get("prompt_spec_count") if structured else None
+structured_request_count = structured_summary.get("request_count") if structured_summary else None
+structured_pass_count = structured_summary.get("format_ok") if structured_summary else None
+structured_pass_rate = (
+    (float(structured_pass_count) / float(structured_request_count))
+    if structured_pass_count is not None and structured_request_count
+    else None
+)
+structured_pass_rate_40 = structured_pass_rate if structured_request_count == 40 else None
+structured_pass_rate_70 = structured_pass_rate if structured_request_count == 70 else None
+structured_40_exact = bool(structured_request_count == 40 and structured_pass_count == 40 and hard_ok)
+structured_70_exact = bool(structured_request_count == 70 and structured_pass_count == 70 and hard_ok)
 
-default_threshold = safe_default * default_margin
-amber_threshold = safe_default * amber_margin
-promote_default = bool(p37_exact and hard_ok and p25_512 is not None and p25_512 >= default_threshold)
-promote_amber = bool(hard_ok and p25_512 is not None and p25_512 >= amber_threshold)
+default_threshold = float(default_p25_raw) if default_p25_raw else safe_default * default_margin
+amber_threshold = float(amber_p25_raw) if amber_p25_raw else safe_default * amber_margin
+promote_default = bool(p37_exact and structured_40_exact and p25_512 is not None and p25_512 >= default_threshold)
+promote_amber = bool(structured_70_exact and p25_512 is not None and p25_512 >= amber_threshold)
 
 if promote_default:
-    decision = "DEFAULT_CANDIDATE: exact-greedy, hard structured, and P25 threshold passed."
+    decision = "DEFAULT_CANDIDATE: exact-greedy, 40/40 hard structured, and P25 threshold passed."
 elif promote_amber:
-    decision = "AMBER_CANDIDATE: hard structured and P25 threshold passed, but exact-greedy default gate did not pass."
+    decision = "AMBER_CANDIDATE: 70/70 hard structured and P25 threshold passed, but exact-greedy default gate did not pass."
 elif not hard_ok:
     decision = "CLOSED: hard structured gate failed."
 elif p25_512 is None or p25_512 < safe_default:
     decision = "CLOSED: P25 512 decode TPS is below safe default."
+elif p25_512 >= amber_threshold and not structured_70_exact:
+    decision = "RESEARCH_ONLY: AMBER speed may pass, but 70/70 hard structured gate is missing or failed."
 elif not p37_exact:
     decision = "RESEARCH_ONLY: speed/format may pass, but exact-greedy drift blocks default."
 else:
@@ -318,6 +367,8 @@ report = {
         "safe_default_tps": safe_default,
         "default_threshold": default_threshold,
         "amber_threshold": amber_threshold,
+        "default_requires_structured": "40/40",
+        "amber_requires_structured": "70/70",
     },
     "returncodes": {
         "p37": p37_rc,
@@ -330,6 +381,15 @@ report = {
         "p25_512_decode_tps": p25_512,
         "hard_structured_ok": hard_ok,
         "hard_structured_decode_tps_mean": hard_decode,
+        "structured_prompt_file": structured_prompt_file,
+        "structured_prompt_count": structured_prompt_count,
+        "structured_request_count": structured_request_count,
+        "structured_pass_count": structured_pass_count,
+        "structured_pass_rate": structured_pass_rate,
+        "structured_pass_rate_40": structured_pass_rate_40,
+        "structured_pass_rate_70": structured_pass_rate_70,
+        "structured_40_exact": structured_40_exact,
+        "structured_70_exact": structured_70_exact,
     },
     "reports": {
         "p37": str(p37_path),
