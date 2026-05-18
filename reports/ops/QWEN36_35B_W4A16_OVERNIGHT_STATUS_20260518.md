@@ -702,6 +702,43 @@ Copied reports:
 - `reports/qwen36_35b/p37_moe_block_ff0_gi16_gh128_20260518_115209.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p25_server_decode_tps_ff0_p25_20260518_115717.json`
 
+### Full-Attention RoPE Table Cache
+
+`LYNN_FULL_ATTN_ROPE_CACHE=1` is now part of the R6000 W4A16 fast service
+profile. The cache precomputes full-attention RoPE cos/sin tables once per
+device, dtype, rotary dimension, theta, and max sequence length, then gathers by
+GPU position tensor during decode. This removes per-full-attention-layer
+`arange -> inv_freq -> cos/sin` work without changing the QK/RoPE math.
+
+The first probe was exact but exposed a serving startup detail: building the
+table during the first decode request hurts short-request P25. The implementation
+was then wired into prefill as well, so the existing `LYNN_PREFILL_WARMUP=1`
+path builds the table before the measured decode requests.
+
+| Probe | Result |
+|---|---:|
+| P37 RoPE cache, decode-only parity | GREEN, 3/3 exact |
+| P37 median TPS before prewarm | `104.74 -> 106.76` |
+| P37 median TPS after prewarm | `104.05 -> 108.13` |
+| P25 128-token wall / decode TPS | 56.39 / 106.46 |
+| P25 256-token wall / decode TPS | 81.61 / 107.54 |
+| P25 512-token wall / decode TPS | 88.91 / 107.31 |
+| Structured OpenAI gate | GREEN, 14/14 format-clean |
+| Structured gate decode TPS | mean 107.43, min 103.52 |
+
+This is the new safe default speed line. It is a meaningful incremental win over
+the previous 104-105 decode TPS default, but it does not change the remaining
+shape of the problem: 155 TPS still needs a strict MoE/native kernel island,
+full-attention core work, or a real accepted speculation path.
+
+Copied reports:
+
+- `reports/qwen36_35b/p37_fullattn_rope_cache_20260518_120416.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p25_server_decode_tps_rope_cache_p25_20260518_120512.json`
+- `reports/qwen36_35b/p37_fullattn_rope_cache_prewarm_20260518_120655.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p25_server_decode_tps_rope_cache_prewarm_p25_20260518_120753.json`
+- `reports/qwen36_35b/structured_gate_rope_cache_structured_20260518_121102.json`
+
 ## Speed Profile
 
 R6000 P26 phase profile on graph+in-place narrows the 155 TPS gap:

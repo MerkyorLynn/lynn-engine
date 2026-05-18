@@ -52,6 +52,9 @@ except Exception:  # pragma: no cover - optional acceleration path.
     qk_norm_rope_triton = None
 
 
+_ROPE_TABLE_CACHE: dict[tuple[str, str, int, float, int], tuple[torch.Tensor, torch.Tensor]] = {}
+
+
 def _linear(x: torch.Tensor, weight) -> torch.Tensor:
     """Linear dispatch with optional packed NVFP4 decode-path support."""
     if isinstance(weight, (PackedNVFP4FusedLinear, PackedNVFP4Linear)):
@@ -180,6 +183,32 @@ def _build_rope_cos_sin(positions: torch.Tensor, rotary_dim: int, theta: float,
     return cos, sin
 
 
+def _build_rope_cos_sin_cached(positions: torch.Tensor, rotary_dim: int, theta: float, device, dtype):
+    """Optional full-attention decode RoPE table cache.
+
+    Rebuilding `arange -> inv_freq -> cos/sin` for every full-attention layer is
+    launch-heavy during one-token decode. The cache is opt-in so gates can prove
+    bitwise/greedy parity before it becomes a serving default.
+    """
+    max_seq = int(os.environ.get("LYNN_FULL_ATTN_ROPE_CACHE_MAX_SEQ", "65536"))
+    half = rotary_dim // 2
+    key = (str(torch.device(device)), str(dtype), int(rotary_dim), float(theta), max_seq)
+    cached = _ROPE_TABLE_CACHE.get(key)
+    if cached is None:
+        inv_freq = 1.0 / (
+            theta ** (torch.arange(0, rotary_dim, 2, device=device, dtype=torch.float32) / rotary_dim)
+        )
+        seq = torch.arange(max_seq, device=device, dtype=torch.float32)
+        freqs = seq[:, None] * inv_freq[None, :]
+        cached = (freqs.cos().to(dtype).contiguous(), freqs.sin().to(dtype).contiguous())
+        _ROPE_TABLE_CACHE[key] = cached
+    cos_table, sin_table = cached
+    flat = positions.reshape(-1).to(device=device, dtype=torch.long)
+    cos = cos_table.index_select(0, flat).reshape(*positions.shape, half).unsqueeze(1)
+    sin = sin_table.index_select(0, flat).reshape(*positions.shape, half).unsqueeze(1)
+    return cos, sin
+
+
 def _apply_partial_rope(x, cos, sin, rotary_dim):
     """GPT-NeoX style partial RoPE, cat-free implementation.
 
@@ -250,8 +279,12 @@ def prefill_full_attn(h, position_ids, w, cfg):
     k = _rms_norm(k, w["self_attn.k_norm.weight"])
 
     # 3. RoPE on q and k (both will be cached as post-RoPE for K)
-    cos, sin = _build_rope_cos_sin(position_ids, rotary_dim, rope_theta,
-                                   h.device, h.dtype)
+    rope_builder = (
+        _build_rope_cos_sin_cached
+        if os.environ.get("LYNN_FULL_ATTN_ROPE_CACHE", "0") == "1"
+        else _build_rope_cos_sin
+    )
+    cos, sin = rope_builder(position_ids, rotary_dim, rope_theta, h.device, h.dtype)
     q = _apply_partial_rope(q, cos, sin, rotary_dim)
     k = _apply_partial_rope(k, cos, sin, rotary_dim)
 
@@ -326,8 +359,12 @@ def decode_full_attn(h_new, new_position_id, w, cfg, K_cache_full, V_cache_full,
         pos_tensor = new_position_id
     else:
         pos_tensor = torch.tensor([[new_position_id]], device=h_new.device, dtype=torch.long)
-    cos, sin = _build_rope_cos_sin(pos_tensor, rotary_dim, rope_theta,
-                                   h_new.device, h_new.dtype)
+    rope_builder = (
+        _build_rope_cos_sin_cached
+        if os.environ.get("LYNN_FULL_ATTN_ROPE_CACHE", "0") == "1"
+        else _build_rope_cos_sin
+    )
+    cos, sin = rope_builder(pos_tensor, rotary_dim, rope_theta, h_new.device, h_new.dtype)
     q, k_new = _qk_norm_rope_pair_decode(
         q,
         k_new,
