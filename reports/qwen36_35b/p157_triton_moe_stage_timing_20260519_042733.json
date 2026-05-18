@@ -1,0 +1,411 @@
+{
+  "schema": "lynn-p157-triton-moe-stage-timing-correction-v1",
+  "created": "2026-05-19T04:27:35",
+  "packed_fixtures": "/root/autodl-tmp/reports/qwen36_35b/p138_packed_slot_fixtures_kimi_20260518",
+  "p147_reference_dir": "/root/autodl-tmp/reports/qwen36_35b/p147_triton_stage_reference_20260519_0318",
+  "total": 18,
+  "inter_exact": 18,
+  "out_exact": 18,
+  "gateup_ms_mean": 0.030048889054192437,
+  "down_ms_mean": 0.024792249070273505,
+  "combined_ms_mean": 0.05227509339650472,
+  "gate_plus_down_ms_mean": 0.05484113812446594,
+  "results": [
+    {
+      "fixture_file": "layer_00_prompt_00_slot_packed.safetensors",
+      "layer_id": 0,
+      "prompt_id": 0,
+      "gateup_ms": 0.031147520542144775,
+      "down_ms": 0.024860799312591553,
+      "combined_ms": 0.053089280128479,
+      "inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "out_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_04_prompt_00_slot_packed.safetensors",
+      "layer_id": 4,
+      "prompt_id": 0,
+      "gateup_ms": 0.029882240295410156,
+      "down_ms": 0.02518656015396118,
+      "combined_ms": 0.05317311763763428,
+      "inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "out_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_08_prompt_00_slot_packed.safetensors",
+      "layer_id": 8,
+      "prompt_id": 0,
+      "gateup_ms": 0.02974463939666748,
+      "down_ms": 0.0250764799118042,
+      "combined_ms": 0.05233983993530274,
+      "inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "out_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_16_prompt_00_slot_packed.safetensors",
+      "layer_id": 16,
+      "prompt_id": 0,
+      "gateup_ms": 0.02976703882217407,
+      "down_ms": 0.024895360469818117,
+      "combined_ms": 0.05198912143707275,
+      "inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "out_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_20_prompt_00_slot_packed.safetensors",
+      "layer_id": 20,
+      "prompt_id": 0,
+      "gateup_ms": 0.029516160488128662,
+      "down_ms": 0.025017600059509277,
+      "combined_ms": 0.05200448036193848,
+      "inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104,
+        "exact": 1
+      },
+      "out_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_28_prompt_00_slot_packed.safetensors",
+      "layer_id": 28,
+      "prompt_id": 0,
+      "gateup_ms": 0.029955840110778807,
+      "down_ms": 0.024766080379486084,
+      "combined_ms": 0.052112641334533694,
+      "inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "out_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_32_prompt_00_slot_packed.safetensors",
+      "layer_id": 32,
+      "prompt_id": 0,
+      "gateup_ms": 0.029764480590820312,
+      "down_ms": 0.025240321159362793,
+      "combined_ms": 0.05205183982849121,
+      "inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "out_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_36_prompt_00_slot_packed.safetensors",
+      "layer_id": 36,
+      "prompt_id": 0,
+      "gateup_ms": 0.029852800369262696,
+      "down_ms": 0.024954240322113037,
+      "combined_ms": 0.05245183944702148,
+      "inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104,
+        "exact": 1
+      },
+      "out_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_39_prompt_00_slot_packed.safetensors",
+      "layer_id": 39,
+      "prompt_id": 0,
+      "gateup_ms": 0.029809920787811278,
+      "down_ms": 0.025256319046020506,
+      "combined_ms": 0.05188799858093262,
+      "inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "out_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_00_prompt_01_slot_packed.safetensors",
+      "layer_id": 0,
+      "prompt_id": 1,
+      "gateup_ms": 0.029510400295257568,
+      "down_ms": 0.02450239896774292,
+      "combined_ms": 0.05175936222076416,
+      "inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "out_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_04_prompt_01_slot_packed.safetensors",
+      "layer_id": 4,
+      "prompt_id": 1,
+      "gateup_ms": 0.0296614408493042,
+      "down_ms": 0.024992001056671143,
+      "combined_ms": 0.05193088054656982,
+      "inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552,
+        "exact": 1
+      },
+      "out_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_08_prompt_01_slot_packed.safetensors",
+      "layer_id": 8,
+      "prompt_id": 1,
+      "gateup_ms": 0.029662721157073975,
+      "down_ms": 0.02427520036697388,
+      "combined_ms": 0.05191423892974854,
+      "inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "out_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_16_prompt_01_slot_packed.safetensors",
+      "layer_id": 16,
+      "prompt_id": 1,
+      "gateup_ms": 0.02987776041030884,
+      "down_ms": 0.024668800830841064,
+      "combined_ms": 0.05211904048919678,
+      "inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998211860657,
+        "exact": 1
+      },
+      "out_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_20_prompt_01_slot_packed.safetensors",
+      "layer_id": 20,
+      "prompt_id": 1,
+      "gateup_ms": 0.030050559043884276,
+      "down_ms": 0.0246726393699646,
+      "combined_ms": 0.05277247905731201,
+      "inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "out_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_28_prompt_01_slot_packed.safetensors",
+      "layer_id": 28,
+      "prompt_id": 1,
+      "gateup_ms": 0.03130624055862427,
+      "down_ms": 0.024497280120849608,
+      "combined_ms": 0.05261824131011963,
+      "inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "out_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_32_prompt_01_slot_packed.safetensors",
+      "layer_id": 32,
+      "prompt_id": 1,
+      "gateup_ms": 0.030088319778442382,
+      "down_ms": 0.024576001167297364,
+      "combined_ms": 0.05223296165466309,
+      "inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "out_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_36_prompt_01_slot_packed.safetensors",
+      "layer_id": 36,
+      "prompt_id": 1,
+      "gateup_ms": 0.031172480583190918,
+      "down_ms": 0.02440000057220459,
+      "combined_ms": 0.05222015857696533,
+      "inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104,
+        "exact": 1
+      },
+      "out_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_39_prompt_01_slot_packed.safetensors",
+      "layer_id": 39,
+      "prompt_id": 1,
+      "gateup_ms": 0.0301094388961792,
+      "down_ms": 0.024422399997711182,
+      "combined_ms": 0.052284159660339356,
+      "inter_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "out_vs_p147": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    }
+  ]
+}
