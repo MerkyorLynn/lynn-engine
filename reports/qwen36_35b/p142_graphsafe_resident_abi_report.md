@@ -2,21 +2,21 @@
 
 Date: 2026-05-18
 Branch: `claude/moe-packed-resident-abi-v3-20260518`
-Commit: abae5ad
+Commit: 50c0b4e
 
-## Verdict: AMBER_GRAPHSAFE (Fixture Gate PASS, P37 NOT TESTED)
+## Verdict: AMBER_GRAPHSAFE_V31 (Fixture Gate PASS, P37 NOT TESTED)
 
 ### Fixture Results (18 p138 packed fixtures)
 
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
-| Avg latency | **0.0550 ms** | ≤ 0.055 | ✅ (boundary) |
-| Max latency | 0.0553 ms | — | ✅ |
+| Avg latency | **0.0440 ms** | ≤ 0.056 | ✅ |
+| Max latency | 0.0451 ms | — | ✅ |
 | max_abs_max | 1.95e-3 | ≤ p141_v2 (1.95e-3) | ✅ (equal) |
-| cos_min | 0.99999 | — | ✅ |
+| cos_min | 0.9999876 | — | ✅ |
 | 16/18 GREEN (≤1e-3) | ✅ | — | — |
 | 2 AMBER (L39, 1.95e-3) | ⚠️ | — | FP non-assoc floor |
-| Graph-safe (no alloc in hot path) | ✅ | — | mm_out + bmm_out + vectorized reduce |
+| Graph-safe (no alloc in hot path) | ✅ | — | mm_out + bmm_out + custom CUDA reduce |
 
 ### Graph-Safe ABI Design
 
@@ -37,15 +37,15 @@ torch::Tensor moe_packed_pretransposed_graphsafe_v3(
 1. `mm_out(gate_up_scratch, x, W_fused_T)` — one cuBLAS launch
 2. `silu_out(inter_scratch, gate_view)` + `inter_scratch.mul_(up_view)` — element-wise
 3. `bmm_out(down_scratch, inter_scratch, W_down_T)` — one cuBLAS launch
-4. `out = (down_2d * rw_bf16.view(8,1)).sum(0)` — vectorized reduce
+4. `weighted_reduce_bf16_kernel(down_scratch, routing_weights, out)` — custom CUDA reduce
 
-**Remaining tiny allocations** (in current impl, fixable):
-- `routing_weights.to(bf16)` — 16 bytes, could be externalized
-- `weighted.sum(0)` intermediate — could use `torch::sum_out`
+The V3.1 hot path removes the earlier V3 `routing_weights.to(bf16)`,
+`down_2d * rw_bf16`, and `sum(0)` torch ops. The remaining hot path is
+caller-owned and allocation-free.
 
 ### P37 Integration Status
 
-**NOT TESTED** — V3 requires pretransposed BF16 weights (`W_fused_T`, `W_down_T`)
+**NOT TESTED** — V3.1 requires pretransposed BF16 weights (`W_fused_T`, `W_down_T`)
 which must be prepared at model load time. This requires changes to
 `engine/resident_runner.py` (weight prep) which is out of scope for this branch.
 
@@ -64,14 +64,16 @@ which must be prepared at model load time. This requires changes to
 | `csrc/lynn_native/bindings.cpp` | Binding update |
 | `engine/native_cuda.py` | Build source list |
 | `benchmarks/p142_packed_nvfp4_graphsafe_fixture_probe.py` | Fixture benchmark |
-| `reports/qwen36_35b/p142_graphsafe_fixture_report.json` | R6000 results |
+| `reports/qwen36_35b/p142_graphsafe_fixture_report.json` | V3 R6000 results |
+| `reports/qwen36_35b/p142_graphsafe_v31_fixture_report.json` | V3.1 R6000 results |
 
 ### Conclusion
 
-- **Fixture gate: PASS** (AMBER_GRAPHSAFE)
+- **Fixture gate: PASS** (AMBER_GRAPHSAFE_V31)
 - **P37 gate: NOT TESTED** (requires resident_runner weight prep, out of scope)
 - **Recommendation**: Wire V3 into resident_runner in a follow-up branch with
   load-time dequant + pretranspose. The kernel itself is proven correct and fast.
-- **Token-0 collapse risk**: LOW — V3 uses `mm_out`/`bmm_out` (no dynamic allocation),
+- **Token-0 collapse risk**: LOW — V3.1 uses `mm_out`/`bmm_out` plus a custom
+  reduce kernel (no dynamic allocation),
   which is the known-safe pattern for CUDA graph capture. The old `nonatomic` collapse
   was caused by `torch::empty` inside the captured region.
