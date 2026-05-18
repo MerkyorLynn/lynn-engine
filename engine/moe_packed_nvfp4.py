@@ -305,6 +305,38 @@ def _active_moe_native_cuda_scalar_contract(
     )
 
 
+def _active_moe_native_strict_fused_boundary(
+    hidden: torch.Tensor,
+    expert_ids: torch.Tensor,
+    routing_weights: torch.Tensor,
+    w: dict,
+) -> torch.Tensor:
+    """Strict native-owned active-MoE boundary with BF16 inter contract.
+
+    This is the Stream-A replacement point for a future one-boundary native
+    MoE kernel. The current implementation intentionally preserves the proven
+    operation order:
+
+      gate/up -> bf16 inter store -> down -> route weighted sum
+
+    Keep it opt-in until full generate gates pass.
+    """
+    from engine.native_cuda import load_lynn_native_extension
+
+    ext = load_lynn_native_extension(verbose=_env_bool("LYNN_NATIVE_CUDA_VERBOSE", False))
+    return ext.active_moe_strict_fused_boundary(
+        hidden,
+        expert_ids,
+        routing_weights,
+        w["mlp.experts._gate_up_packed"],
+        w["mlp.experts._gate_up_scale"],
+        w["mlp.experts._gate_up_global_scale"],
+        w["mlp.experts._down_packed"],
+        w["mlp.experts._down_scale"],
+        w["mlp.experts._down_global_scale"],
+    )
+
+
 def _active_moe_native_grouped_per16(
     hidden: torch.Tensor,
     expert_ids: torch.Tensor,
@@ -579,7 +611,9 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
     else:
         backend = os.environ.get("LYNN_NATIVE_ACTIVE_MOE_BACKEND", "triton")
         down_backend = os.environ.get("LYNN_NATIVE_DOWN_BACKEND", "triton")
-        if backend == "grouped_per16_nonatomic" and _layer_selected_for_native_cuda(cfg):
+        if backend == "strict_fused_boundary" and _layer_selected_for_native_cuda(cfg):
+            moe_out = _active_moe_native_strict_fused_boundary(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
+        elif backend == "grouped_per16_nonatomic" and _layer_selected_for_native_cuda(cfg):
             moe_out = _active_moe_native_grouped_per16_nonatomic(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
         elif backend == "grouped_per16_fused" and _layer_selected_for_native_cuda(cfg):
             moe_out = _active_moe_native_grouped_per16_fused(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
@@ -593,6 +627,7 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
             "triton",
             "cuda_scalar",
             "cuda_scalar_contract",
+            "strict_fused_boundary",
             "grouped_per16",
             "grouped_per16_fused",
             "grouped_per16_nonatomic",
@@ -662,7 +697,7 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
         else:
             raise ValueError(
                 "LYNN_NATIVE_ACTIVE_MOE_BACKEND must be 'triton', 'cuda_scalar', "
-                "'cuda_scalar_contract', 'grouped_per16', 'grouped_per16_fused', "
+                "'cuda_scalar_contract', 'strict_fused_boundary', 'grouped_per16', 'grouped_per16_fused', "
                 "or 'grouped_per16_nonatomic', "
                 f"got {backend!r}"
             )

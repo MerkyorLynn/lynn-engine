@@ -1243,7 +1243,7 @@ torch::Tensor lynn_native_down_grouped_per16_tile_reference(
       tile_hidden);
 }
 
-torch::Tensor lynn_native_active_moe_scalar_contract(
+static torch::Tensor lynn_native_active_moe_strict_fused_boundary_impl(
     torch::Tensor x,
     torch::Tensor expert_ids,
     torch::Tensor routing_weights,
@@ -1263,6 +1263,50 @@ torch::Tensor lynn_native_active_moe_scalar_contract(
       inter,
       expert_ids,
       routing_weights,
+      down_packed,
+      down_scale,
+      down_global_scale);
+}
+
+torch::Tensor lynn_native_active_moe_scalar_contract(
+    torch::Tensor x,
+    torch::Tensor expert_ids,
+    torch::Tensor routing_weights,
+    torch::Tensor gate_up_packed,
+    torch::Tensor gate_up_scale,
+    torch::Tensor gate_up_global_scale,
+    torch::Tensor down_packed,
+    torch::Tensor down_scale,
+    torch::Tensor down_global_scale) {
+  return lynn_native_active_moe_strict_fused_boundary_impl(
+      x,
+      expert_ids,
+      routing_weights,
+      gate_up_packed,
+      gate_up_scale,
+      gate_up_global_scale,
+      down_packed,
+      down_scale,
+      down_global_scale);
+}
+
+torch::Tensor lynn_native_active_moe_strict_fused_boundary(
+    torch::Tensor x,
+    torch::Tensor expert_ids,
+    torch::Tensor routing_weights,
+    torch::Tensor gate_up_packed,
+    torch::Tensor gate_up_scale,
+    torch::Tensor gate_up_global_scale,
+    torch::Tensor down_packed,
+    torch::Tensor down_scale,
+    torch::Tensor down_global_scale) {
+  return lynn_native_active_moe_strict_fused_boundary_impl(
+      x,
+      expert_ids,
+      routing_weights,
+      gate_up_packed,
+      gate_up_scale,
+      gate_up_global_scale,
       down_packed,
       down_scale,
       down_global_scale);
