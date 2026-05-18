@@ -301,9 +301,16 @@ def decode_full_attn(h_new, new_position_id, w, cfg, K_cache_full, V_cache_full,
     rotary_dim = int(head_dim * cfg["partial_rotary_factor"])
 
     # 1. Q/K/V projection on the single new token
-    q_full = _linear(h_new, _decode_weight(w, "self_attn.q_proj.weight"))
-    k_new = _linear(h_new, _decode_weight(w, "self_attn.k_proj.weight"))
-    v_new = _linear(h_new, _decode_weight(w, "self_attn.v_proj.weight"))
+    if os.environ.get("LYNN_FULL_ATTN_QKV_FUSED", "0") == "1" and "self_attn._qkv_proj.weight" in w:
+        q_out = int(w["self_attn.q_proj.weight"].shape[0])
+        k_out = int(w["self_attn.k_proj.weight"].shape[0])
+        v_out = int(w["self_attn.v_proj.weight"].shape[0])
+        qkv = _linear(h_new, w["self_attn._qkv_proj.weight"])
+        q_full, k_new, v_new = qkv.split((q_out, k_out, v_out), dim=-1)
+    else:
+        q_full = _linear(h_new, _decode_weight(w, "self_attn.q_proj.weight"))
+        k_new = _linear(h_new, _decode_weight(w, "self_attn.k_proj.weight"))
+        v_new = _linear(h_new, _decode_weight(w, "self_attn.v_proj.weight"))
 
     q_full_view = q_full.view(B, 1, H_Q, head_dim * 2)
     q, gate = q_full_view.chunk(2, dim=-1)

@@ -299,6 +299,8 @@ class LynnIncrementalRunner:
             self._prepare_linear_attn_inproj_fused()
         if os.environ.get("LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4", "0") == "1":
             self._prepare_linear_attn_inproj_fused_native_fp4()
+        if os.environ.get("LYNN_FULL_ATTN_QKV_FUSED", "0") == "1":
+            self._prepare_full_attn_qkv_fused()
         self._prepare_linear_attn_decode_constants()
         self._linear_block_graph_slot: dict[str, Any] | None = None
         self.prefill_warmup_seconds: float | None = None
@@ -479,6 +481,33 @@ class LynnIncrementalRunner:
         self.shared_expert_gate_up_fused_attached = attached
         if self.verbose:
             print(f"[resident] shared expert fused gate/up attached={attached}", flush=True)
+
+    def _prepare_full_attn_qkv_fused(self) -> None:
+        """Attach BF16 fused full-attention Q/K/V projection weights.
+
+        Full-attention decode currently runs three small BF16 GEMMs for q, k,
+        and v. Concatenating the rows keeps the same resident BF16 weight
+        contract while replacing those launch boundaries with one GEMM.
+        """
+        attached = 0
+        for layer_type, w in zip(LAYER_TYPES, self.layer_weights):
+            if layer_type != "full_attention":
+                continue
+            key = "self_attn._qkv_proj.weight"
+            if key in w:
+                continue
+            required = (
+                "self_attn.q_proj.weight",
+                "self_attn.k_proj.weight",
+                "self_attn.v_proj.weight",
+            )
+            if any(name not in w for name in required):
+                continue
+            w[key] = torch.cat([w[name] for name in required], dim=0).contiguous()
+            attached += 1
+        self.full_attn_qkv_fused_attached = attached
+        if self.verbose:
+            print(f"[resident] full-attn fused qkv attached={attached}", flush=True)
 
     def _prepare_linear_attn_inproj_fused(self) -> None:
         """Attach fused qkv/z/b/a projection weights for linear-attn decode.

@@ -429,9 +429,16 @@ Negative probes from the same loop:
   rmsgated fast profile: P26 decode drops from 99.18 to 87.65 TPS, full-attn
   layers rise from 3.09 to 3.94 ms/token, and host gap rises from 0.16 to
   0.30 ms/token.
+- `LYNN_FULL_ATTN_QKV_FUSED=1` is now available as an opt-in research switch,
+  but it is not promotable: P37 median decode improves only `1.013x`
+  (`104.33 -> 105.67` TPS) and exact-greedy parity is `0/3`. Concatenating the
+  BF16 q/k/v projection rows changes matmul reduction behavior enough to move
+  greedy text, so full-attention speed needs a numerically stricter kernel path
+  instead of this quick row-fusion shortcut.
 
 Copied reports:
 
+- `reports/qwen36_35b/p37_fullattn_qkv_fused_20260518_085919.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_manualgqa_p26_phase_20260518_041631.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_manualgqa_p28_hybrid_block_20260518_041631.json`
 
