@@ -1,0 +1,730 @@
+{
+  "schema": "p135-moe-native-stage-drift-v1",
+  "created": "2026-05-18T20:35:40",
+  "fixtures_dir": "/root/autodl-tmp/reports/qwen36_35b/p133_fixtures_official_w4a16",
+  "model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0",
+  "tile_inter": 2,
+  "tile_hidden": 2,
+  "warmup": 5,
+  "iters": 20,
+  "total": 18,
+  "summary": {
+    "gate_inter_max_abs_max": 3.0517578125e-05,
+    "gate_inter_rel_l2_max": 5.87615340919001e-06,
+    "gate_inter_exact_count": 9,
+    "down_on_triton_inter_max_abs_max": 1.52587890625e-05,
+    "down_on_triton_inter_rel_l2_max": 8.295405859826133e-05,
+    "down_on_triton_inter_exact_count": 10,
+    "native_full_max_abs_max": 0.00390625,
+    "native_full_rel_l2_max": 0.007198334205895662,
+    "native_full_exact_count": 0,
+    "triton_gate_ms_mean": 0.0328503108686871,
+    "native_gate_ms_mean": 0.0300373332368003,
+    "triton_down_ms_mean": 0.02843262255191803,
+    "native_down_ms_mean": 0.020821955634488
+  },
+  "rows": [
+    {
+      "fixture": "layer_00_prompt_00.safetensors",
+      "layer_id": 0,
+      "prompt_id": 0,
+      "gate_inter_native_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "down_native_vs_triton_on_triton_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "triton_routed_vs_fixture": {
+        "max_abs": 0.0009765625,
+        "mean_abs": 3.80486308131367e-05,
+        "rel_l2": 0.005293960217386484,
+        "cosine": 0.9999872446060181,
+        "exact": 0
+      },
+      "native_full_vs_fixture": {
+        "max_abs": 0.0009765625,
+        "mean_abs": 3.80486308131367e-05,
+        "rel_l2": 0.005293960217386484,
+        "cosine": 0.9999872446060181,
+        "exact": 0
+      },
+      "timings": {
+        "triton_gate_ms": 0.032201600074768064,
+        "native_gate_ms": 0.028916800022125246,
+        "triton_down_ms": 0.025879999995231627,
+        "native_down_ms": 0.020788800716400147
+      }
+    },
+    {
+      "fixture": "layer_04_prompt_00.safetensors",
+      "layer_id": 4,
+      "prompt_id": 0,
+      "gate_inter_native_vs_triton": {
+        "max_abs": 3.0517578125e-05,
+        "mean_abs": 7.450580596923828e-09,
+        "rel_l2": 5.87615340919001e-06,
+        "cosine": 1.0000001192092896,
+        "exact": 0
+      },
+      "down_native_vs_triton_on_triton_inter": {
+        "max_abs": 9.313225746154785e-10,
+        "mean_abs": 4.547473508864641e-13,
+        "rel_l2": 2.030059675917073e-09,
+        "cosine": 0.9999999403953552,
+        "exact": 0
+      },
+      "triton_routed_vs_fixture": {
+        "max_abs": 0.000244140625,
+        "mean_abs": 3.771868796320632e-05,
+        "rel_l2": 0.005447540897876024,
+        "cosine": 0.9999851584434509,
+        "exact": 0
+      },
+      "native_full_vs_fixture": {
+        "max_abs": 0.000244140625,
+        "mean_abs": 3.768655733438209e-05,
+        "rel_l2": 0.005445819813758135,
+        "cosine": 0.9999852180480957,
+        "exact": 0
+      },
+      "timings": {
+        "triton_gate_ms": 0.03693599998950958,
+        "native_gate_ms": 0.029275199770927428,
+        "triton_down_ms": 0.03924480080604553,
+        "native_down_ms": 0.021166400611400606
+      }
+    },
+    {
+      "fixture": "layer_08_prompt_00.safetensors",
+      "layer_id": 8,
+      "prompt_id": 0,
+      "gate_inter_native_vs_triton": {
+        "max_abs": 5.960464477539063e-08,
+        "mean_abs": 1.864464138634503e-11,
+        "rel_l2": 1.7008503050419677e-08,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "down_native_vs_triton_on_triton_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "triton_routed_vs_fixture": {
+        "max_abs": 0.000244140625,
+        "mean_abs": 2.2734529920853674e-05,
+        "rel_l2": 0.00579855777323246,
+        "cosine": 0.9999832510948181,
+        "exact": 0
+      },
+      "native_full_vs_fixture": {
+        "max_abs": 0.000244140625,
+        "mean_abs": 2.2734529920853674e-05,
+        "rel_l2": 0.00579855777323246,
+        "cosine": 0.9999832510948181,
+        "exact": 0
+      },
+      "timings": {
+        "triton_gate_ms": 0.03517920076847077,
+        "native_gate_ms": 0.03102400004863739,
+        "triton_down_ms": 0.03845120072364807,
+        "native_down_ms": 0.020868800580501556
+      }
+    },
+    {
+      "fixture": "layer_16_prompt_00.safetensors",
+      "layer_id": 16,
+      "prompt_id": 0,
+      "gate_inter_native_vs_triton": {
+        "max_abs": 5.960464477539063e-08,
+        "mean_abs": 1.4551915228366852e-11,
+        "rel_l2": 1.709867980537183e-08,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "down_native_vs_triton_on_triton_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "triton_routed_vs_fixture": {
+        "max_abs": 3.0517578125e-05,
+        "mean_abs": 4.552388418233022e-06,
+        "rel_l2": 0.007106023840606213,
+        "cosine": 0.9999750256538391,
+        "exact": 0
+      },
+      "native_full_vs_fixture": {
+        "max_abs": 3.0517578125e-05,
+        "mean_abs": 4.552388418233022e-06,
+        "rel_l2": 0.007106023840606213,
+        "cosine": 0.9999750256538391,
+        "exact": 0
+      },
+      "timings": {
+        "triton_gate_ms": 0.035873600840568544,
+        "native_gate_ms": 0.031097599864006044,
+        "triton_down_ms": 0.03723520040512085,
+        "native_down_ms": 0.020904000103473663
+      }
+    },
+    {
+      "fixture": "layer_20_prompt_00.safetensors",
+      "layer_id": 20,
+      "prompt_id": 0,
+      "gate_inter_native_vs_triton": {
+        "max_abs": 7.62939453125e-06,
+        "mean_abs": 1.8630998965818435e-09,
+        "rel_l2": 1.8211285350844264e-06,
+        "cosine": 0.9999998807907104,
+        "exact": 0
+      },
+      "down_native_vs_triton_on_triton_inter": {
+        "max_abs": 7.62939453125e-06,
+        "mean_abs": 3.725290298461914e-09,
+        "rel_l2": 8.295405859826133e-05,
+        "cosine": 0.9999998807907104,
+        "exact": 0
+      },
+      "triton_routed_vs_fixture": {
+        "max_abs": 0.0001220703125,
+        "mean_abs": 1.0382420441601425e-05,
+        "rel_l2": 0.007202270906418562,
+        "cosine": 0.999984085559845,
+        "exact": 0
+      },
+      "native_full_vs_fixture": {
+        "max_abs": 0.0001220703125,
+        "mean_abs": 1.0376665159128606e-05,
+        "rel_l2": 0.007198334205895662,
+        "cosine": 0.999984085559845,
+        "exact": 0
+      },
+      "timings": {
+        "triton_gate_ms": 0.03494719862937927,
+        "native_gate_ms": 0.030844798684120177,
+        "triton_down_ms": 0.02648960053920746,
+        "native_down_ms": 0.020828799903392793
+      }
+    },
+    {
+      "fixture": "layer_28_prompt_00.safetensors",
+      "layer_id": 28,
+      "prompt_id": 0,
+      "gate_inter_native_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "down_native_vs_triton_on_triton_inter": {
+        "max_abs": 1.4901161193847656e-08,
+        "mean_abs": 7.275957614183426e-12,
+        "rel_l2": 1.5354642357578996e-07,
+        "cosine": 1.0000001192092896,
+        "exact": 0
+      },
+      "triton_routed_vs_fixture": {
+        "max_abs": 0.000244140625,
+        "mean_abs": 7.428527169395238e-06,
+        "rel_l2": 0.005354064982384443,
+        "cosine": 0.9999868869781494,
+        "exact": 0
+      },
+      "native_full_vs_fixture": {
+        "max_abs": 0.000244140625,
+        "mean_abs": 7.428534445352852e-06,
+        "rel_l2": 0.005354066379368305,
+        "cosine": 0.9999868869781494,
+        "exact": 0
+      },
+      "timings": {
+        "triton_gate_ms": 0.0316864013671875,
+        "native_gate_ms": 0.029179200530052185,
+        "triton_down_ms": 0.0265392005443573,
+        "native_down_ms": 0.02080000042915344
+      }
+    },
+    {
+      "fixture": "layer_32_prompt_00.safetensors",
+      "layer_id": 32,
+      "prompt_id": 0,
+      "gate_inter_native_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 1.1641532182693481e-10,
+        "rel_l2": 3.794447067662077e-08,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "down_native_vs_triton_on_triton_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "triton_routed_vs_fixture": {
+        "max_abs": 0.0009765625,
+        "mean_abs": 0.00010577356442809105,
+        "rel_l2": 0.006676295306533575,
+        "cosine": 0.9999799132347107,
+        "exact": 0
+      },
+      "native_full_vs_fixture": {
+        "max_abs": 0.0009765625,
+        "mean_abs": 0.00010577356442809105,
+        "rel_l2": 0.006676295306533575,
+        "cosine": 0.9999799132347107,
+        "exact": 0
+      },
+      "timings": {
+        "triton_gate_ms": 0.03227680027484894,
+        "native_gate_ms": 0.031036800146102904,
+        "triton_down_ms": 0.026369601488113403,
+        "native_down_ms": 0.020849600434303284
+      }
+    },
+    {
+      "fixture": "layer_36_prompt_00.safetensors",
+      "layer_id": 36,
+      "prompt_id": 0,
+      "gate_inter_native_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104,
+        "exact": 1
+      },
+      "down_native_vs_triton_on_triton_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "triton_routed_vs_fixture": {
+        "max_abs": 0.001953125,
+        "mean_abs": 0.0001995137718040496,
+        "rel_l2": 0.005813478492200375,
+        "cosine": 0.9999841451644897,
+        "exact": 0
+      },
+      "native_full_vs_fixture": {
+        "max_abs": 0.001953125,
+        "mean_abs": 0.0001995137718040496,
+        "rel_l2": 0.005813478492200375,
+        "cosine": 0.9999841451644897,
+        "exact": 0
+      },
+      "timings": {
+        "triton_gate_ms": 0.031911998987197876,
+        "native_gate_ms": 0.03026399910449982,
+        "triton_down_ms": 0.026225599646568298,
+        "native_down_ms": 0.020815999805927278
+      }
+    },
+    {
+      "fixture": "layer_39_prompt_00.safetensors",
+      "layer_id": 39,
+      "prompt_id": 0,
+      "gate_inter_native_vs_triton": {
+        "max_abs": 7.62939453125e-06,
+        "mean_abs": 1.862645149230957e-09,
+        "rel_l2": 1.3201128012951813e-07,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "down_native_vs_triton_on_triton_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "triton_routed_vs_fixture": {
+        "max_abs": 0.00390625,
+        "mean_abs": 0.00040737708332017064,
+        "rel_l2": 0.006727701053023338,
+        "cosine": 0.9999850392341614,
+        "exact": 0
+      },
+      "native_full_vs_fixture": {
+        "max_abs": 0.00390625,
+        "mean_abs": 0.00040737801464274526,
+        "rel_l2": 0.006727703381329775,
+        "cosine": 0.9999850392341614,
+        "exact": 0
+      },
+      "timings": {
+        "triton_gate_ms": 0.031947198510169986,
+        "native_gate_ms": 0.02924799919128418,
+        "triton_down_ms": 0.02592160105705261,
+        "native_down_ms": 0.02073120027780533
+      }
+    },
+    {
+      "fixture": "layer_00_prompt_01.safetensors",
+      "layer_id": 0,
+      "prompt_id": 1,
+      "gate_inter_native_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "down_native_vs_triton_on_triton_inter": {
+        "max_abs": 3.725290298461914e-09,
+        "mean_abs": 1.8189894035458565e-12,
+        "rel_l2": 2.385657538184205e-08,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "triton_routed_vs_fixture": {
+        "max_abs": 6.103515625e-05,
+        "mean_abs": 1.196394077851437e-05,
+        "rel_l2": 0.005055208690464497,
+        "cosine": 0.9999871253967285,
+        "exact": 0
+      },
+      "native_full_vs_fixture": {
+        "max_abs": 6.103515625e-05,
+        "mean_abs": 1.1963938959524967e-05,
+        "rel_l2": 0.005055208224803209,
+        "cosine": 0.9999871253967285,
+        "exact": 0
+      },
+      "timings": {
+        "triton_gate_ms": 0.03142879903316498,
+        "native_gate_ms": 0.02898240089416504,
+        "triton_down_ms": 0.026822400093078614,
+        "native_down_ms": 0.020691199600696562
+      }
+    },
+    {
+      "fixture": "layer_04_prompt_01.safetensors",
+      "layer_id": 4,
+      "prompt_id": 1,
+      "gate_inter_native_vs_triton": {
+        "max_abs": 1.1920928955078125e-07,
+        "mean_abs": 3.2741809263825417e-11,
+        "rel_l2": 3.146398341868917e-08,
+        "cosine": 0.9999999403953552,
+        "exact": 0
+      },
+      "down_native_vs_triton_on_triton_inter": {
+        "max_abs": 1.52587890625e-05,
+        "mean_abs": 7.45421857573092e-09,
+        "rel_l2": 4.8392244934802875e-05,
+        "cosine": 0.9999999403953552,
+        "exact": 0
+      },
+      "triton_routed_vs_fixture": {
+        "max_abs": 0.000244140625,
+        "mean_abs": 3.349044709466398e-05,
+        "rel_l2": 0.006729453802108765,
+        "cosine": 0.9999775886535645,
+        "exact": 0
+      },
+      "native_full_vs_fixture": {
+        "max_abs": 0.000244140625,
+        "mean_abs": 3.349790131323971e-05,
+        "rel_l2": 0.006729976274073124,
+        "cosine": 0.9999775886535645,
+        "exact": 0
+      },
+      "timings": {
+        "triton_gate_ms": 0.03221279978752136,
+        "native_gate_ms": 0.03095200061798096,
+        "triton_down_ms": 0.02624320089817047,
+        "native_down_ms": 0.020777599513530733
+      }
+    },
+    {
+      "fixture": "layer_08_prompt_01.safetensors",
+      "layer_id": 8,
+      "prompt_id": 1,
+      "gate_inter_native_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "down_native_vs_triton_on_triton_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552,
+        "exact": 1
+      },
+      "triton_routed_vs_fixture": {
+        "max_abs": 0.00048828125,
+        "mean_abs": 6.152287824079394e-05,
+        "rel_l2": 0.005654546897858381,
+        "cosine": 0.9999840259552002,
+        "exact": 0
+      },
+      "native_full_vs_fixture": {
+        "max_abs": 0.00048828125,
+        "mean_abs": 6.152287824079394e-05,
+        "rel_l2": 0.005654546897858381,
+        "cosine": 0.9999840259552002,
+        "exact": 0
+      },
+      "timings": {
+        "triton_gate_ms": 0.032123199105262755,
+        "native_gate_ms": 0.028964799642562867,
+        "triton_down_ms": 0.026438400149345398,
+        "native_down_ms": 0.020819200575351714
+      }
+    },
+    {
+      "fixture": "layer_16_prompt_01.safetensors",
+      "layer_id": 16,
+      "prompt_id": 1,
+      "gate_inter_native_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998211860657,
+        "exact": 1
+      },
+      "down_native_vs_triton_on_triton_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104,
+        "exact": 1
+      },
+      "triton_routed_vs_fixture": {
+        "max_abs": 0.00048828125,
+        "mean_abs": 7.128826109692454e-05,
+        "rel_l2": 0.006234967615455389,
+        "cosine": 0.9999834895133972,
+        "exact": 0
+      },
+      "native_full_vs_fixture": {
+        "max_abs": 0.00048828125,
+        "mean_abs": 7.128826109692454e-05,
+        "rel_l2": 0.006234967615455389,
+        "cosine": 0.9999834895133972,
+        "exact": 0
+      },
+      "timings": {
+        "triton_gate_ms": 0.03204480111598969,
+        "native_gate_ms": 0.0291920006275177,
+        "triton_down_ms": 0.026576000452041625,
+        "native_down_ms": 0.020771199464797975
+      }
+    },
+    {
+      "fixture": "layer_20_prompt_01.safetensors",
+      "layer_id": 20,
+      "prompt_id": 1,
+      "gate_inter_native_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "down_native_vs_triton_on_triton_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "triton_routed_vs_fixture": {
+        "max_abs": 0.00048828125,
+        "mean_abs": 7.277028635144234e-05,
+        "rel_l2": 0.0055948044173419476,
+        "cosine": 0.999984860420227,
+        "exact": 0
+      },
+      "native_full_vs_fixture": {
+        "max_abs": 0.00048828125,
+        "mean_abs": 7.277028635144234e-05,
+        "rel_l2": 0.0055948044173419476,
+        "cosine": 0.999984860420227,
+        "exact": 0
+      },
+      "timings": {
+        "triton_gate_ms": 0.03211039900779724,
+        "native_gate_ms": 0.029529601335525513,
+        "triton_down_ms": 0.02656640112400055,
+        "native_down_ms": 0.02080959975719452
+      }
+    },
+    {
+      "fixture": "layer_28_prompt_01.safetensors",
+      "layer_id": 28,
+      "prompt_id": 1,
+      "gate_inter_native_vs_triton": {
+        "max_abs": 1.4901161193847656e-08,
+        "mean_abs": 3.637978807091713e-12,
+        "rel_l2": 1.3632509565653095e-09,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "down_native_vs_triton_on_triton_inter": {
+        "max_abs": 2.384185791015625e-07,
+        "mean_abs": 1.1641532182693481e-10,
+        "rel_l2": 3.17833439567039e-07,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "triton_routed_vs_fixture": {
+        "max_abs": 0.00048828125,
+        "mean_abs": 6.897441926412284e-05,
+        "rel_l2": 0.00585866579785943,
+        "cosine": 0.9999830722808838,
+        "exact": 0
+      },
+      "native_full_vs_fixture": {
+        "max_abs": 0.00048828125,
+        "mean_abs": 6.897430284880102e-05,
+        "rel_l2": 0.005858663935214281,
+        "cosine": 0.9999830722808838,
+        "exact": 0
+      },
+      "timings": {
+        "triton_gate_ms": 0.032102400064468385,
+        "native_gate_ms": 0.029630398750305174,
+        "triton_down_ms": 0.026364800333976746,
+        "native_down_ms": 0.02083040028810501
+      }
+    },
+    {
+      "fixture": "layer_32_prompt_01.safetensors",
+      "layer_id": 32,
+      "prompt_id": 1,
+      "gate_inter_native_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "down_native_vs_triton_on_triton_inter": {
+        "max_abs": 3.814697265625e-06,
+        "mean_abs": 1.862645149230957e-09,
+        "rel_l2": 2.9007871944486396e-06,
+        "cosine": 1.0000001192092896,
+        "exact": 0
+      },
+      "triton_routed_vs_fixture": {
+        "max_abs": 0.001953125,
+        "mean_abs": 0.0001135808415710926,
+        "rel_l2": 0.0056493389420211315,
+        "cosine": 0.9999841451644897,
+        "exact": 0
+      },
+      "native_full_vs_fixture": {
+        "max_abs": 0.001953125,
+        "mean_abs": 0.00011358270421624184,
+        "rel_l2": 0.005649412516504526,
+        "cosine": 0.9999841451644897,
+        "exact": 0
+      },
+      "timings": {
+        "triton_gate_ms": 0.03207359910011291,
+        "native_gate_ms": 0.030931198596954347,
+        "triton_down_ms": 0.026470398902893065,
+        "native_down_ms": 0.020747199654579163
+      }
+    },
+    {
+      "fixture": "layer_36_prompt_01.safetensors",
+      "layer_id": 36,
+      "prompt_id": 1,
+      "gate_inter_native_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104,
+        "exact": 1
+      },
+      "down_native_vs_triton_on_triton_inter": {
+        "max_abs": 1.1920928955078125e-07,
+        "mean_abs": 5.820766091346741e-11,
+        "rel_l2": 9.052725857827681e-08,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "triton_routed_vs_fixture": {
+        "max_abs": 0.0009765625,
+        "mean_abs": 0.0001232349022757262,
+        "rel_l2": 0.00606490159407258,
+        "cosine": 0.9999816417694092,
+        "exact": 0
+      },
+      "native_full_vs_fixture": {
+        "max_abs": 0.0009765625,
+        "mean_abs": 0.00012323484406806529,
+        "rel_l2": 0.0060648988001048565,
+        "cosine": 0.9999816417694092,
+        "exact": 0
+      },
+      "timings": {
+        "triton_gate_ms": 0.03207840025424957,
+        "native_gate_ms": 0.030643200874328612,
+        "triton_down_ms": 0.027083200216293336,
+        "native_down_ms": 0.020814399421215057
+      }
+    },
+    {
+      "fixture": "layer_39_prompt_01.safetensors",
+      "layer_id": 39,
+      "prompt_id": 1,
+      "gate_inter_native_vs_triton": {
+        "max_abs": 9.5367431640625e-07,
+        "mean_abs": 2.4010660126805305e-10,
+        "rel_l2": 3.912684931606236e-08,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "down_native_vs_triton_on_triton_inter": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "triton_routed_vs_fixture": {
+        "max_abs": 0.001953125,
+        "mean_abs": 0.00017593143275007606,
+        "rel_l2": 0.004564490169286728,
+        "cosine": 0.9999896883964539,
+        "exact": 0
+      },
+      "native_full_vs_fixture": {
+        "max_abs": 0.001953125,
+        "mean_abs": 0.00017593143275007606,
+        "rel_l2": 0.004564490169286728,
+        "cosine": 0.9999896883964539,
+        "exact": 0
+      },
+      "timings": {
+        "triton_gate_ms": 0.03217119872570038,
+        "native_gate_ms": 0.030959999561309813,
+        "triton_down_ms": 0.02686559855937958,
+        "native_down_ms": 0.02078080028295517
+      }
+    }
+  ]
+}

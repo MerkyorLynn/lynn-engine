@@ -28,8 +28,35 @@ Artifacts:
 
 This narrows the problem: packed NVFP4 native-owned scratch is not slow at fixture scale; it is blocked by numerical contract drift. The drift shape closely matches the BF16 output-owned candidate, which points toward accumulation order / BF16 intermediate rounding rather than an obvious route or weight-layout bug.
 
-Next useful work is to keep the output-owned/non-atomic scheduling shape, then reduce drift by aligning the Triton contract more closely:
+P135 stage isolation sharpened this further:
 
-1. preserve the existing Triton two-stage contract and only replace the down output-owned reduction;
-2. compare candidate against stored `routed_output` and a Triton-intermediate dump to isolate whether drift enters at gate/up or down;
-3. only after the isolated stage is strict or bounded, wire it into P37/P25.
+| Stage | max_abs_max | rel_l2_max | Mean Triton ms | Mean native ms |
+|---|---:|---:|---:|---:|
+| gate/up native vs Triton intermediate | 3.0518e-5 | 5.8762e-6 | 0.032850 | 0.030037 |
+| down native vs Triton on Triton intermediate | 1.5259e-5 | 8.2954e-5 | 0.028433 | 0.020822 |
+| native full vs stored fixture reference | 3.90625e-3 | 7.1983e-3 | n/a | n/a |
+
+That means the native pieces are close to Triton at the isolated active-MoE stage; the larger fixture drift is mostly the existing Triton-vs-PyTorch fixture-reference difference.
+
+However, a real P37 generate gate still closes this backend:
+
+| Gate | Result |
+|---|---|
+| P37 exact | RED |
+| candidate decode TPS mean | 134.41 |
+| median speedup | 1.249x |
+| failure shape | first token ok, then token id 0 / `!` repetition |
+
+So this is the first clear 130+ TPS speed shape, but it is not promotable until the runtime contract is fixed.
+
+Artifacts:
+
+- `reports/qwen36_35b/p135_moe_native_stage_drift_20260518.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_grouped_per16_nonatomic_stagechecked_20260518_stagechecked_p37_p37.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_grouped_per16_nonatomic_stagechecked_20260518_stagechecked_p37_promotion_summary.json`
+
+Next useful work is to keep the output-owned/non-atomic scheduling shape, then fix the runtime contract:
+
+1. preserve the existing Triton two-stage contract and first replace only the down output-owned reduction;
+2. add a P37-side logit/activation probe for the first candidate-vs-baseline divergence, because fixture-level active-MoE stage drift is too small to explain the token-id-0 collapse by itself;
+3. only after that divergence is understood, wire the native path into P25/structured again.
