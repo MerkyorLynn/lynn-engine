@@ -1,0 +1,149 @@
+{
+  "schema": "lynn-qwen35-9b-official-pipeline-manifest-v1",
+  "created": "2026-05-18T21:30:00+08:00",
+  "note": "R6000 official pipeline manifest for Qwen3.5-9B (not 3.6-9B-Dense). Describes expected assets, benchmark stages, and report outputs. Actual data produced by r6000_qwen35_9b_official_matrix_watch.sh.",
+  "model_id": "Qwen3.5-9B",
+  "arch": "dense",
+  "assets": {
+    "bf16": {
+      "path": "${MODEL_ROOT}/Qwen3.5-9B-BF16",
+      "index_file": "model.safetensors.index.json",
+      "expected_size_gib": 18.0,
+      "source": "Official HuggingFace / ModelScope download",
+      "status": "PENDING"
+    },
+    "nvfp4": {
+      "path": "${MODEL_ROOT}/Qwen3.5-9B-lynn-native-w4a16-nvfp4-v0",
+      "manifest_file": "lynn_quant_manifest.json",
+      "expected_size_gib": 5.5,
+      "source": "Lynn-native W4A16 packer from BF16",
+      "status": "PENDING"
+    },
+    "q4_k_m": {
+      "path": "${MODEL_ROOT}/Qwen3.5-9B-Q4_K_M.gguf",
+      "expected_size_gib": 5.2,
+      "source": "llama.cpp GGUF conversion (not managed by this pipeline)",
+      "status": "PENDING",
+      "note": "No automatic download. Mark as PENDING if file missing."
+    }
+  },
+  "stages": [
+    {
+      "stage_id": "asset_check",
+      "label": "Asset completion check",
+      "checks": [
+        "BF16 model.safetensors.index.json exists",
+        "NVFP4 lynn_quant_manifest.json exists",
+        "Q4_K_M GGUF exists (optional, no download)"
+      ],
+      "dry_run_safe": true,
+      "status": "PENDING"
+    },
+    {
+      "stage_id": "size_summary",
+      "label": "Size / manifest summary",
+      "outputs": [
+        "BF16 bytes / GiB",
+        "NVFP4 bytes / GiB",
+        "quantized_count from manifest",
+        "kept_count from manifest",
+        "output_shards from manifest",
+        "pack_elapsed_seconds from manifest"
+      ],
+      "dry_run_safe": true,
+      "status": "PENDING"
+    },
+    {
+      "stage_id": "gpu_idle_check",
+      "label": "GPU idle check",
+      "description": "Check nvidia-smi memory usage. Skip benchmarks if GPU is busy (e.g. 35B P37 running).",
+      "env": {
+        "SKIP_GPU": "1 to force skip",
+        "GPU_MEM_THRESHOLD_MB": "1000"
+      },
+      "dry_run_safe": true,
+      "status": "PENDING"
+    },
+    {
+      "stage_id": "mmlu_500_5shot",
+      "label": "MMLU-500 5-shot eval",
+      "description": "Run MMLU evaluation with 5 shots, 500 samples. Requires MMLU_RUNNER script.",
+      "requires": ["asset_check", "gpu_idle_check"],
+      "env": {
+        "MMLU_RUNNER": "Path to mmlu_runner_v2.py",
+        "MMLU_DATASET": "MMLU dataset directory"
+      },
+      "report": "${REPORT_DIR}/${quant}_${STAMP}_mmlu_n500.summary.json",
+      "dry_run_safe": false,
+      "status": "PENDING"
+    },
+    {
+      "stage_id": "gpqa_diamond",
+      "label": "GPQA-diamond eval",
+      "description": "Run GPQA diamond evaluation. Requires GPQA_RUNNER script.",
+      "requires": ["asset_check", "gpu_idle_check"],
+      "env": {
+        "GPQA_RUNNER": "Path to gpqa_runner_v2.py",
+        "GPQA_DATASET": "GPQA diamond CSV path"
+      },
+      "report": "${REPORT_DIR}/${quant}_${STAMP}_gpqa.summary.json",
+      "dry_run_safe": false,
+      "status": "PENDING"
+    },
+    {
+      "stage_id": "single_tps",
+      "label": "Single TPS probe (128/256/512)",
+      "description": "Run P25 server decode TPS probe at 128/256/512 max_tokens.",
+      "requires": ["asset_check", "gpu_idle_check"],
+      "script": "benchmarks/p25_server_decode_tps_probe.py",
+      "report": "${REPORT_DIR}/${quant}_${STAMP}_tps.json",
+      "dry_run_safe": false,
+      "status": "PENDING"
+    },
+    {
+      "stage_id": "summarize",
+      "label": "Generate Markdown report",
+      "script": "scripts/summarize_qwen35_9b_r6000_reports.py",
+      "inputs": ["summary JSON"],
+      "outputs": ["docs/QWEN35_9B_R6000_NVFP4_PIPELINE_*.md"],
+      "dry_run_safe": true,
+      "status": "PENDING"
+    }
+  ],
+  "report_outputs": {
+    "summary_json": "${REPORT_DIR}/r6000_qwen35_9b_official_matrix_summary_${STAMP}.json",
+    "per_quant_mmlu": "${REPORT_DIR}/${quant}_${STAMP}_mmlu_n500.summary.json",
+    "per_quant_gpqa": "${REPORT_DIR}/${quant}_${STAMP}_gpqa.summary.json",
+    "per_quant_tps": "${REPORT_DIR}/${quant}_${STAMP}_tps.json",
+    "markdown": "${REPORT_DIR}/QWEN35_9B_R6000_NVFP4_PIPELINE_${STAMP}.md",
+    "log": "${REPORT_DIR}/r6000_qwen35_9b_official_matrix_watch_${STAMP}.log"
+  },
+  "matrix_fields": {
+    "mmlu_500_5shot": {
+      "score": "float accuracy",
+      "correct": "int",
+      "total": "int (default 500)",
+      "report_path": "str",
+      "status": "DONE | BLOCKED | PENDING",
+      "blocked_reason": "str | null"
+    },
+    "gpqa_diamond": {
+      "score": "float accuracy",
+      "correct": "int",
+      "total": "int",
+      "report_path": "str",
+      "status": "DONE | BLOCKED | PENDING",
+      "blocked_reason": "str | null"
+    },
+    "single_tps": {
+      "tps_128": "float",
+      "tps_256": "float",
+      "tps_512": "float",
+      "report_path": "str",
+      "status": "DONE | BLOCKED | PENDING",
+      "blocked_reason": "str | null"
+    },
+    "size_gib": "float",
+    "load_seconds": "float"
+  }
+}
