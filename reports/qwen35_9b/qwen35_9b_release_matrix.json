@@ -1,0 +1,109 @@
+{
+  "schema": "lynn-qwen35-9b-release-matrix-v1",
+  "created": "2026-05-19T01:20:54+08:00",
+  "model_id": "Qwen3.5-9B",
+  "entries": [
+    {
+      "variant": "BF16",
+      "size_gib": 18.0,
+      "stack": "transformers-direct",
+      "mmlu": {
+        "score": 0.772,
+        "correct": 386,
+        "total": 500,
+        "status": "DONE"
+      },
+      "gpqa": {
+        "score": 0.4495,
+        "correct": 89,
+        "total": 198,
+        "status": "DONE"
+      },
+      "single_tps": {
+        "128": null,
+        "256": null,
+        "512": null
+      },
+      "concurrent_tps": {
+        "2": null,
+        "4": null,
+        "8": null
+      },
+      "long_context": {
+        "4k": null,
+        "16k": null,
+        "32k": null
+      },
+      "status": "PARTIAL",
+      "blocker": "No TPS benchmarks yet"
+    },
+    {
+      "variant": "Q4_K_M",
+      "size_gib": 5.2,
+      "stack": "llama.cpp",
+      "mmlu": {
+        "score": null,
+        "correct": null,
+        "total": null,
+        "status": "PENDING"
+      },
+      "gpqa": {
+        "score": null,
+        "correct": null,
+        "total": null,
+        "status": "PENDING"
+      },
+      "single_tps": {
+        "128": null,
+        "256": null,
+        "512": null
+      },
+      "concurrent_tps": {
+        "2": null,
+        "4": null,
+        "8": null
+      },
+      "long_context": {
+        "4k": null,
+        "16k": null,
+        "32k": null
+      },
+      "status": "PENDING",
+      "blocker": "GGUF download pending"
+    },
+    {
+      "variant": "NVFP4",
+      "size_gib": 5.5,
+      "stack": "Lynn Engine (CUDA)",
+      "mmlu": {
+        "score": null,
+        "correct": null,
+        "total": null,
+        "status": "BLOCKED"
+      },
+      "gpqa": {
+        "score": null,
+        "correct": null,
+        "total": null,
+        "status": "BLOCKED"
+      },
+      "single_tps": {
+        "128": null,
+        "256": null,
+        "512": null
+      },
+      "concurrent_tps": {
+        "2": null,
+        "4": null,
+        "8": null
+      },
+      "long_context": {
+        "4k": null,
+        "16k": null,
+        "32k": null
+      },
+      "status": "BLOCKED",
+      "blocker": "Dense runtime KeyError num_experts — engine assumes MoE architecture"
+    }
+  ]
+}
