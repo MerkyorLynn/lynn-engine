@@ -39,8 +39,14 @@ and 420.63 TPS x8. The useful conclusion is narrower but solid: 9B NVFP4 has a
 safe graph-only serving profile, and further speed work should focus on dense
 FFN packed/fused kernels rather than broad fast-profile toggles.
 
+P151 then reran the broader serving matrix: single 512 wall TPS is 60.09,
+concurrent x8 total TPS remains 60.11, and long-context 32k is 45.02 TPS. This
+confirms the single-stream upgrade while exposing server concurrency as the next
+9B runtime bottleneck.
+
 ## Artifacts
 
 - `scripts/r6000_qwen35_9b_nvfp4_linear_graph_serving_gate.sh`
 - `reports/qwen35_9b/p150_qwen35_9b_nvfp4_linear_graph_p25_20260519_0406.json`
 - `reports/qwen35_9b/p150_qwen35_9b_nvfp4_linear_graph_summary_20260519_0406.json`
+- `reports/qwen35_9b/p151_qwen35_9b_nvfp4_linear_graph_matrix_summary_20260519_0418.json`

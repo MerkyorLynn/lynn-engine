@@ -1,0 +1,20 @@
+{
+  "schema": "lynn-qwen35-9b-nvfp4-linear-graph-serving-matrix-v1",
+  "matrix": "/root/autodl-tmp/reports/qwen35_9b/p151_qwen35_9b_nvfp4_linear_graph_matrix_20260519_0418.json",
+  "single_wall_tps": {
+    "128": 52.346216686467784,
+    "256": 59.16048953907856,
+    "512": 60.09421299655617
+  },
+  "concurrent_total_tps": {
+    "2": 60.025742029338346,
+    "4": 60.08292200233073,
+    "8": 60.10968058312236
+  },
+  "long_context_wall_tps": {
+    "4096": 56.10897917720487,
+    "16384": 51.375433040183715,
+    "32768": 45.02250173634086
+  },
+  "verdict": "MATRIX_DONE"
+}

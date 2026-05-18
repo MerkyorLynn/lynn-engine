@@ -17,8 +17,11 @@
 for direct resident generation, and P150 confirmed it in the OpenAI/P25 serving
 path. The new safe NVFP4 service line is 60.80 / 61.47 / 61.69 decode TPS at
 128 / 256 / 512 tokens. The table above still shows the original full release
-matrix because concurrent and long-context lanes have not been rerun with the
-linear-graph profile.
+matrix because it is generated from the original summary. P151 reran the serving
+matrix with the linear-graph profile: single 512 wall TPS is 60.09, concurrent
+x2/x4/x8 total TPS stays flat at 60.03/60.08/60.11, and long-context
+4k/16k/32k is 56.11/51.38/45.02 TPS. The next 9B runtime bottleneck is server
+concurrency/batching plus dense FFN fused kernels.
 
 ## BF16 Details
 

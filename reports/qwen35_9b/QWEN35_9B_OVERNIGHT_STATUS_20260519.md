@@ -30,6 +30,13 @@ true on all 9 P25 requests. This upgrades the safe NVFP4 R6000 service line from
 ~40.9 to ~61.7 decode TPS. Concurrent serving still needs a separate matrix
 before comparing against Q4_K_M's 420.63 TPS x8 result.
 
+The follow-up P151 serving matrix confirms the single-stream upgrade but also
+shows the current Lynn server does not yet batch concurrent 9B requests:
+single 512 wall TPS is 60.09, x2/x4/x8 concurrent total TPS is
+60.03/60.08/60.11, and long-context 4k/16k/32k is 56.11/51.38/45.02 TPS.
+So 9B NVFP4 now has a stronger NVIDIA single-stream story, while Q4_K_M remains
+the multi-request throughput reference.
+
 ## Artifacts
 
 | Artifact | Path |
@@ -42,6 +49,7 @@ before comparing against Q4_K_M's 420.63 TPS x8 result.
 | NVFP4 speed matrix | `reports/qwen35_9b/r6000_qwen35_9b_nvfp4_openai_matrix_full_codex_20260519_022023.json` |
 | NVFP4 fast-profile report | `reports/qwen35_9b/QWEN35_9B_NVFP4_FAST_PROFILE_P148_P149_20260519.md` |
 | NVFP4 linear-graph P25 report | `reports/qwen35_9b/QWEN35_9B_NVFP4_LINEAR_GRAPH_SERVING_P150_20260519.md` |
+| NVFP4 linear-graph matrix | `reports/qwen35_9b/QWEN35_9B_NVFP4_LINEAR_GRAPH_MATRIX_P151_20260519.md` |
 | NVFP4 MMLU summary | `reports/qwen35_9b/nvfp4_openai_quality_20260519_022635_mmlu_n500.summary.json` |
 | NVFP4 GPQA summary | `reports/qwen35_9b/nvfp4_openai_quality_20260519_022635_gpqa.summary.json` |
 | Release gate summary | `reports/qwen35_9b/qwen35_9b_release_gate_summary.json` |
