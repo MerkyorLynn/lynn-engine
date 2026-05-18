@@ -1,0 +1,11 @@
+{
+  "model": "Qwen3.5-9B-W4A16-NVFP4",
+  "endpoint": "http://127.0.0.1:18241/v1",
+  "n": 198,
+  "correct": 85,
+  "accuracy": 0.4292929292929293,
+  "elapsed_sec": 129.207,
+  "qps": 1.5324,
+  "parse_fail": 0,
+  "errors": 0
+}

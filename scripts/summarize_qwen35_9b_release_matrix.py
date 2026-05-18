@@ -344,67 +344,90 @@ def _extract_nvfp4(report_dir: Path) -> dict[str, Any]:
             entry["status"] = "PARTIAL"
             entry["blocker"] = "Generation smoke passes; quality/TPS benchmarks pending"
 
+    # --- Quality from standalone OpenAI evaluator summaries ---
+    mmlu_path = _latest("nvfp4*_mmlu*.summary.json", report_dir)
+    if mmlu_path:
+        mmlu = _load_json(mmlu_path)
+        if mmlu:
+            acc = mmlu.get("accuracy") or mmlu.get("score")
+            if acc is not None:
+                entry["mmlu"] = {
+                    "score": round(acc, 4),
+                    "correct": mmlu.get("correct"),
+                    "total": mmlu.get("n") or mmlu.get("total"),
+                    "status": "DONE",
+                }
+
+    gpqa_path = _latest("nvfp4*_gpqa*.summary.json", report_dir)
+    if gpqa_path:
+        gpqa = _load_json(gpqa_path)
+        if gpqa:
+            acc = gpqa.get("accuracy") or gpqa.get("score")
+            if acc is not None:
+                entry["gpqa"] = {
+                    "score": round(acc, 4),
+                    "correct": gpqa.get("correct"),
+                    "total": gpqa.get("n") or gpqa.get("total"),
+                    "status": "DONE",
+                }
+
     # Search for any nvfp4 matrix/watch reports
     nvfp4_paths = list(report_dir.glob("*nvfp4*matrix*.json")) + list(
         report_dir.glob("*nvfp4*watch*.json")
     )
-    if not nvfp4_paths:
-        return entry
+    if nvfp4_paths:
+        # Pick the latest
+        nvfp4_path = max(nvfp4_paths, key=lambda p: p.stat().st_mtime)
+        report = _load_json(nvfp4_path)
+        if report is not None:
+            # Try to extract data from report if it exists
+            file_status = report.get("status", "")
+            if file_status == "BLOCKED":
+                entry["blocker"] = report.get("blocked_reason", entry["blocker"])
+                return entry
 
-    # Pick the latest
-    nvfp4_path = max(nvfp4_paths, key=lambda p: p.stat().st_mtime)
-    report = _load_json(nvfp4_path)
-    if report is None:
-        return entry
+            # Extract quality if present
+            for metric_name in ("mmlu", "gpqa", "mmlu_500_5shot", "gpqa_diamond"):
+                metric_data = report.get(metric_name, {})
+                if metric_data:
+                    acc = metric_data.get("accuracy") or metric_data.get("score")
+                    key = "mmlu" if "mmlu" in metric_name else "gpqa"
+                    if acc is not None and entry[key]["status"] != "DONE":
+                        entry[key] = {
+                            "score": round(acc, 4),
+                            "correct": metric_data.get("correct"),
+                            "total": metric_data.get("n") or metric_data.get("total"),
+                            "status": "DONE",
+                        }
 
-    # Try to extract data from report if it exists
-    file_status = report.get("status", "")
-    if file_status == "BLOCKED":
-        entry["blocker"] = report.get("blocked_reason", entry["blocker"])
-        return entry
-
-    # Extract quality if present
-    for metric_name in ("mmlu", "gpqa", "mmlu_500_5shot", "gpqa_diamond"):
-        metric_data = report.get(metric_name, {})
-        if metric_data:
-            acc = metric_data.get("accuracy") or metric_data.get("score")
-            key = "mmlu" if "mmlu" in metric_name else "gpqa"
-            if acc is not None and entry[key]["status"] != "DONE":
-                entry[key] = {
-                    "score": round(acc, 4),
-                    "correct": metric_data.get("correct"),
-                    "total": metric_data.get("n") or metric_data.get("total"),
-                    "status": "DONE",
+            # Extract TPS if present. Lynn server reports use the same generic OpenAI
+            # matrix schema as the Q4_K_M llama.cpp baseline.
+            if report.get("schema_version") == "openai-serving-matrix-probe-v1":
+                for row in report.get("single", {}).get("rows", []):
+                    key = str(row.get("max_tokens"))
+                    if key in entry["single_tps"] and row.get("ok"):
+                        entry["single_tps"][key] = round(row.get("wall_tps", 0.0), 1)
+                for row in report.get("concurrency", {}).get("rows", []):
+                    key = str(row.get("concurrency"))
+                    if key in entry["concurrent_tps"] and row.get("ok"):
+                        entry["concurrent_tps"][key] = round(row.get("batch_wall_tps", 0.0), 1)
+                by_chars = {
+                    str(row.get("target_prompt_chars")): row
+                    for row in report.get("long_context", {}).get("rows", [])
                 }
-
-    # Extract TPS if present. Lynn server reports use the same generic OpenAI
-    # matrix schema as the Q4_K_M llama.cpp baseline.
-    if report.get("schema_version") == "openai-serving-matrix-probe-v1":
-        for row in report.get("single", {}).get("rows", []):
-            key = str(row.get("max_tokens"))
-            if key in entry["single_tps"] and row.get("ok"):
-                entry["single_tps"][key] = round(row.get("wall_tps", 0.0), 1)
-        for row in report.get("concurrency", {}).get("rows", []):
-            key = str(row.get("concurrency"))
-            if key in entry["concurrent_tps"] and row.get("ok"):
-                entry["concurrent_tps"][key] = round(row.get("batch_wall_tps", 0.0), 1)
-        by_chars = {
-            str(row.get("target_prompt_chars")): row
-            for row in report.get("long_context", {}).get("rows", [])
-        }
-        for label, chars in {"4k": "4096", "16k": "16384", "32k": "32768"}.items():
-            row = by_chars.get(chars)
-            if row and row.get("ok"):
-                entry["long_context"][label] = round(row.get("wall_tps", 0.0), 1)
-    else:
-        single = report.get("single_tps", {})
-        if single:
-            for key in ("128", "256", "512"):
-                e = single.get(key) or single.get(f"tps_{key}")
-                if isinstance(e, dict) and e.get("ok"):
-                    entry["single_tps"][key] = round(e.get("wall_tps", 0.0), 1)
-                elif isinstance(e, (int, float)):
-                    entry["single_tps"][key] = round(float(e), 1)
+                for label, chars in {"4k": "4096", "16k": "16384", "32k": "32768"}.items():
+                    row = by_chars.get(chars)
+                    if row and row.get("ok"):
+                        entry["long_context"][label] = round(row.get("wall_tps", 0.0), 1)
+            else:
+                single = report.get("single_tps", {})
+                if single:
+                    for key in ("128", "256", "512"):
+                        e = single.get(key) or single.get(f"tps_{key}")
+                        if isinstance(e, dict) and e.get("ok"):
+                            entry["single_tps"][key] = round(e.get("wall_tps", 0.0), 1)
+                        elif isinstance(e, (int, float)):
+                            entry["single_tps"][key] = round(float(e), 1)
 
     # Derive status
     has_quality = entry["mmlu"]["status"] == "DONE" or entry["gpqa"]["status"] == "DONE"
@@ -639,7 +662,7 @@ def render_markdown(matrix: dict[str, Any]) -> str:
     lines.append("")
     lines.append("- `bf16_*_quality_summary.json` / `bf16_*_mmlu*.summary.json` / `bf16_*_gpqa*.summary.json`")
     lines.append("- `r6000_qwen35_9b_q4km_baseline_*.json`")
-    lines.append("- `*nvfp4*matrix*.json` / `*nvfp4*watch*.json`")
+    lines.append("- `*nvfp4*matrix*.json` / `*nvfp4*watch*.json` / `nvfp4*_mmlu*.summary.json` / `nvfp4*_gpqa*.summary.json`")
     lines.append("- `*release_matrix*.json` (previous run, for diff)")
     lines.append("")
 
