@@ -6,15 +6,15 @@
 |---|---|---:|---:|---:|---:|
 | BF16 official | Transformers direct eval | 19G | 77.20% (386/500) | 44.95% (89/198) | not served by Lynn yet |
 | Q4_K_M GGUF | llama.cpp CUDA, `--reasoning off` for quality | 5.5G | 76.00% (380/500) | 37.37% (74/198) | 168.23 TPS single 512, 420.63 TPS concurrent 8 |
-| Lynn-native W4A16 NVFP4 | packed artifact ready | 8.3G | blocked | blocked | blocked by dense runtime |
+| Lynn-native W4A16 NVFP4 | Lynn Engine CUDA | 8.3G | 75.20% (376/500) | 42.93% (85/198) | 40.9 TPS single 512, 40.2 TPS concurrent 8 |
 
 ## Key Readout
 
-Q4_K_M is the immediate R6000 speed reference for 9B dense: it reaches 168.23 tok/s single-stream at 512 tokens and 420.63 tok/s total at concurrency 8. Long-context smoke passes at 4k and 16k prompt chars, while 32k currently returns HTTP 400 from the llama.cpp server configuration.
+Q4_K_M is the immediate R6000 speed reference for 9B dense: it reaches 168.23 tok/s single-stream at 512 tokens and 420.63 tok/s total at concurrency 8. Long-context smoke now passes at 4k, 16k, and 32k prompt chars when the llama.cpp server runs with a single long-context slot.
 
 BF16 direct quality remains the best confirmed 9B quality number in this local harness. Q4_K_M is close on MMLU but loses GPQA versus BF16 in no-thinking A/B/C/D mode.
 
-Lynn-native W4A16 NVFP4 packing is complete, but serving is blocked because the current Lynn resident runtime assumes MoE fields and raises `KeyError: 'num_experts'` on dense Qwen3.5-9B configs. The next unblock is dense runtime support or a fail-loud dense path, not more quantization.
+Lynn-native W4A16 NVFP4 is no longer blocked: dense resident smoke, OpenAI serving matrix, MMLU, and GPQA all completed. Its current value is NVIDIA-native compatibility and quality retention; its speed is not competitive with Q4_K_M yet, so the next 9B runtime target is dense NVFP4 kernel/launch optimization rather than additional quantization.
 
 ## Artifacts
 
@@ -25,3 +25,7 @@ Lynn-native W4A16 NVFP4 packing is complete, but serving is blocked because the 
 | Q4_K_M speed report | `reports/qwen35_9b/r6000_qwen35_9b_q4km_baseline_20260519_0107.md` |
 | Q4_K_M quality summary | `reports/qwen35_9b/q4km_llamacpp_reasoning_off_20260519_0115_quality_summary.json` |
 | Q4_K_M quality report | `reports/qwen35_9b/q4km_llamacpp_reasoning_off_20260519_0115_quality_summary.md` |
+| NVFP4 speed matrix | `reports/qwen35_9b/r6000_qwen35_9b_nvfp4_openai_matrix_full_codex_20260519_022023.json` |
+| NVFP4 MMLU summary | `reports/qwen35_9b/nvfp4_openai_quality_20260519_022635_mmlu_n500.summary.json` |
+| NVFP4 GPQA summary | `reports/qwen35_9b/nvfp4_openai_quality_20260519_022635_gpqa.summary.json` |
+| Release gate summary | `reports/qwen35_9b/qwen35_9b_release_gate_summary.json` |
