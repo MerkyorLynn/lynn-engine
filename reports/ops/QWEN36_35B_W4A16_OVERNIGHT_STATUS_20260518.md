@@ -355,6 +355,22 @@ P38/P39 MoE profiling on sampled linear layers now shows:
 | Shared BF16 expert | 0.061 |
 | Current full MoE | 0.200 |
 
+P38 was then expanded from 6 sampled linear layers to all 30 linear-attention
+layers. The full-layer profile confirms the bottleneck is uniform, not a single
+bad layer:
+
+| All-linear MoE segment | Mean ms/layer | Approx ms/token across 30 layers |
+|---|---:|---:|
+| Router top-k | 0.0379 | 1.14 |
+| Active packed experts | 0.1212 | 3.64 |
+| Shared BF16 expert | 0.0621 | 1.86 |
+| Current full MoE | 0.2175 | 6.53 |
+
+This means a selective one-layer patch will not move the service line much.
+The next real speed step needs a reusable active/shared expert boundary fusion
+that applies to all linear layers while preserving the existing Triton numerical
+contract.
+
 This keeps the next safe runtime target unchanged: remove kernel boundaries in
 the routed/shared MoE path, then revisit full-attention fusion. The host gap is
 only `0.156 ms/token`, so a C++ service-loop rewrite is not the current high-ROI
@@ -366,6 +382,7 @@ Copied reports:
 - `reports/qwen36_35b/p28_hybrid_conv_promoted_20260518_082209.json`
 - `reports/qwen36_35b/p38_moe_conv_promoted_20260518_082209.json`
 - `reports/qwen36_35b/p39_active_moe_conv_promoted_20260518_082417.json`
+- `reports/qwen36_35b/p38_moe_all_linear_20260518_092201.json`
 
 ### Shared-Gate Triton AMBER Branch
 
