@@ -19,6 +19,11 @@ CTX_SIZE=${CTX_SIZE:-32768}
 THREADS=${THREADS:-12}
 N_GPU_LAYERS=${N_GPU_LAYERS:-99}
 PARALLEL=${PARALLEL:-8}
+CONCURRENCY=${CONCURRENCY:-"2 4"}
+SINGLE_MAX_TOKENS=${SINGLE_MAX_TOKENS:-"128 256 512"}
+LONG_CONTEXT_CHARS=${LONG_CONTEXT_CHARS:-"8192 32768 65536"}
+CONCURRENT_MAX_TOKENS=${CONCURRENT_MAX_TOKENS:-256}
+LONG_CONTEXT_MAX_TOKENS=${LONG_CONTEXT_MAX_TOKENS:-128}
 LLAMA_SERVER=${LLAMA_SERVER:-}
 LLAMA_EXTRA_ARGS=${LLAMA_EXTRA_ARGS:-}
 
@@ -104,11 +109,11 @@ fi
 "$PY" benchmarks/openai_serving_matrix_probe.py \
   --url "http://${HOST}:${PORT}/v1" \
   --model "$SERVED_NAME" \
-  --single-max-tokens 128 256 512 \
-  --concurrency 2 4 8 \
-  --concurrent-max-tokens 256 \
-  --long-context-chars 8192 32768 65536 \
-  --long-context-max-tokens 128 \
+  --single-max-tokens $SINGLE_MAX_TOKENS \
+  --concurrency $CONCURRENCY \
+  --concurrent-max-tokens "$CONCURRENT_MAX_TOKENS" \
+  --long-context-chars $LONG_CONTEXT_CHARS \
+  --long-context-max-tokens "$LONG_CONTEXT_MAX_TOKENS" \
   --runs 1 \
   --timeout 1800 \
   --out "$OUT"

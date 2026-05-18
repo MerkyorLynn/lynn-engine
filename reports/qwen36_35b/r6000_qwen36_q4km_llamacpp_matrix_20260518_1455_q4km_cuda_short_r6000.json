@@ -1,0 +1,351 @@
+{
+  "schema_version": "openai-serving-matrix-probe-v1",
+  "url": "http://127.0.0.1:18196/v1",
+  "model": "Qwen3.6-35B-A3B-Q4KM-imatrix-r6000",
+  "single": {
+    "rows": [
+      {
+        "ok": true,
+        "wall_s": 0.8290953636169434,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 128,
+        "wall_tps": 154.3851354343579,
+        "preview": "\n\n<think>\n\n</think>\n\n在构建大规模语言模型（LLM）的高性能推理服务时，我们首先面临的核心挑战是如何在有限的硬件资源下最大化吞吐量并降低延迟，而混合专家模型（Mixture of Experts, MoE）架构的引入虽然显著提升了模型的参数效率与上下文处理能力，但也带来了复杂的调度开销。为了优化 M",
+        "kind": "single",
+        "max_tokens": 128,
+        "run_idx": 0
+      },
+      {
+        "ok": true,
+        "wall_s": 1.2644035816192627,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 256,
+        "wall_tps": 202.467000031867,
+        "preview": "\n\n<think>\n\n</think>\n\n在构建大规模语言模型（LLM）的高性能推理服务时，我们首先面临的核心挑战是如何在有限的硬件资源下最大化吞吐量并降低延迟，而混合专家模型（Mixture of Experts, MoE）架构的引入虽然显著提升了模型的参数效率与上下文处理能力，但也带来了复杂的调度开销。为了优化 M",
+        "kind": "single",
+        "max_tokens": 256,
+        "run_idx": 0
+      },
+      {
+        "ok": true,
+        "wall_s": 2.469956874847412,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 512,
+        "wall_tps": 207.29106860686792,
+        "preview": "\n\n<think>\n\n</think>\n\n在构建大规模语言模型（LLM）的高性能推理服务时，我们首先面临的核心挑战是如何在有限的硬件资源下最大化吞吐量并降低延迟，而混合专家模型（Mixture of Experts, MoE）架构的引入虽然显著提升了模型的参数效率与上下文处理能力，但也带来了复杂的调度开销。为了优化 M",
+        "kind": "single",
+        "max_tokens": 512,
+        "run_idx": 0
+      }
+    ],
+    "summary": {
+      "count": 3,
+      "ok": 3,
+      "failed": 0,
+      "completion_tokens_total": 896,
+      "wall_seconds_sum": 4.563455820083618,
+      "wall_tps": {
+        "mean": 188.04773469103094,
+        "median": 202.467000031867,
+        "min": 154.3851354343579,
+        "max": 207.29106860686792
+      }
+    }
+  },
+  "concurrency": {
+    "rows": [
+      {
+        "ok": true,
+        "wall_s": 1.6663682460784912,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 256,
+        "wall_tps": 153.627507366665,
+        "preview": "\n\n<think>\n\n</think>\n\n在构建大规模语言模型（LLM）的高性能推理服务时，系统架构的每一个环节都面临着从理论性能到实际吞吐量的严峻挑战，其中混合专家模型（Mixture of Experts, MoE）的推理优化是提升资源利用率的核心突破口。MoE 架构通过稀疏激活机制，使得每次前向传播仅调用模型中一",
+        "kind": "concurrency",
+        "concurrency": 2,
+        "request_idx": 0,
+        "max_tokens": 256,
+        "batch_wall_s": 1.671356439590454,
+        "batch_completion_tokens": 512,
+        "batch_wall_tps": 306.3380065867096
+      },
+      {
+        "ok": true,
+        "wall_s": 1.6651957035064697,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 256,
+        "wall_tps": 153.7356837162926,
+        "preview": "\n\n<think>\n\n</think>\n\n在构建大规模语言模型（LLM）的高性能推理服务时，我们首先关注的是模型架构层面的稀疏性优化，特别是混合专家（Mixture of Experts, MoE）架构的推理加速。MoE 通过引入多个并行的专家网络，仅在推理时激活部分专家，从而在保持模型总参数量的同时显著降低计算复杂度",
+        "kind": "concurrency",
+        "concurrency": 2,
+        "request_idx": 1,
+        "max_tokens": 256,
+        "batch_wall_s": 1.671356439590454,
+        "batch_completion_tokens": 512,
+        "batch_wall_tps": 306.3380065867096
+      },
+      {
+        "ok": true,
+        "wall_s": 2.556166648864746,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 256,
+        "wall_tps": 100.149964836485,
+        "preview": "\n\n<think>\n\n</think>\n\n在构建大规模语言模型（LLM）的高性能推理服务时，我们首先关注的是模型架构层面的稀疏性优化，特别是混合专家（Mixture of Experts, MoE）架构的推理加速。MoE 通过引入多个并行的专家网络，仅在推理时激活部分专家，从而在保持模型总参数量的同时显著降低计算复杂度",
+        "kind": "concurrency",
+        "concurrency": 4,
+        "request_idx": 0,
+        "max_tokens": 256,
+        "batch_wall_s": 2.5575296878814697,
+        "batch_completion_tokens": 1024,
+        "batch_wall_tps": 400.3863590917807
+      },
+      {
+        "ok": true,
+        "wall_s": 2.5558905601501465,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 256,
+        "wall_tps": 100.1607830911826,
+        "preview": "\n\n<think>\n\n</think>\n\n在构建大规模语言模型（LLM）的高性能推理服务时，我们正面临从单纯追求模型参数量向极致优化推理效率与成本比率的范式转变，这一过程的核心在于对底层硬件资源与上层算法逻辑的深度协同优化。首先，混合专家模型（Mixture of Experts, MoE）架构的引入虽然显著提升了模型",
+        "kind": "concurrency",
+        "concurrency": 4,
+        "request_idx": 1,
+        "max_tokens": 256,
+        "batch_wall_s": 2.5575296878814697,
+        "batch_completion_tokens": 1024,
+        "batch_wall_tps": 400.3863590917807
+      },
+      {
+        "ok": true,
+        "wall_s": 2.5545566082000732,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 256,
+        "wall_tps": 100.21308558136678,
+        "preview": "\n\n<think>\n\n</think>\n\n在构建大规模语言模型（LLM）的高性能推理服务时，我们首先面临的核心挑战是如何在有限的硬件资源下最大化吞吐量并降低延迟，这就引出了混合专家模型（Mixture of Experts, MoE）的推理优化策略。MoE 架构通过稀疏激活机制，使得每次前向传播仅调用部分专家网络，从而",
+        "kind": "concurrency",
+        "concurrency": 4,
+        "request_idx": 2,
+        "max_tokens": 256,
+        "batch_wall_s": 2.5575296878814697,
+        "batch_completion_tokens": 1024,
+        "batch_wall_tps": 400.3863590917807
+      },
+      {
+        "ok": true,
+        "wall_s": 2.5529346466064453,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 256,
+        "wall_tps": 100.27675418181764,
+        "preview": "\n\n<think>\n\n</think>\n\n在构建大规模语言模型（LLM）的高性能推理服务时，我们首先关注的是模型架构层面的稀疏性优化，特别是混合专家（Mixture of Experts, MoE）架构的推理加速。MoE 通过引入多个并行的专家网络，仅在推理时激活部分专家，从而在保持模型总参数量的同时显著降低计算复杂度",
+        "kind": "concurrency",
+        "concurrency": 4,
+        "request_idx": 3,
+        "max_tokens": 256,
+        "batch_wall_s": 2.5575296878814697,
+        "batch_completion_tokens": 1024,
+        "batch_wall_tps": 400.3863590917807
+      },
+      {
+        "ok": true,
+        "wall_s": 4.0886921882629395,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 256,
+        "wall_tps": 62.61170765920639,
+        "preview": "\n\n<think>\n\n</think>\n\n在构建大规模语言模型（LLM）的高性能推理服务时，系统架构的每一个环节都面临着从理论性能到实际吞吐量的严峻挑战，其中混合专家模型（Mixture of Experts, MoE）的推理优化是提升资源利用率的核心突破口。MoE 架构通过稀疏激活机制，使得每次前向传播仅调用部分专家",
+        "kind": "concurrency",
+        "concurrency": 8,
+        "request_idx": 0,
+        "max_tokens": 256,
+        "batch_wall_s": 4.090571641921997,
+        "batch_completion_tokens": 2048,
+        "batch_wall_tps": 500.66352071949683
+      },
+      {
+        "ok": true,
+        "wall_s": 4.087211847305298,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 256,
+        "wall_tps": 62.63438489707379,
+        "preview": "\n\n<think>\n\n</think>\n\n在构建大规模语言模型（LLM）的高性能推理服务时，系统架构的每一个环节都面临着从理论性能到实际吞吐量的严峻挑战，其中混合专家模型（Mixture of Experts, MoE）的推理优化是提升资源利用率的核心突破口。MoE 架构通过稀疏激活机制，使得每次前向传播仅调用部分专家",
+        "kind": "concurrency",
+        "concurrency": 8,
+        "request_idx": 1,
+        "max_tokens": 256,
+        "batch_wall_s": 4.090571641921997,
+        "batch_completion_tokens": 2048,
+        "batch_wall_tps": 500.66352071949683
+      },
+      {
+        "ok": true,
+        "wall_s": 4.0866382122039795,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 256,
+        "wall_tps": 62.64317678905462,
+        "preview": "\n\n<think>\n\n</think>\n\n在构建大规模语言模型（LLM）的高性能推理服务时，系统架构的每一个环节都面临着从理论性能到实际吞吐量的严峻挑战，其中混合专家模型（Mixture of Experts, MoE）的推理优化是提升资源利用率的核心突破口。MoE 架构通过稀疏激活机制，使得每次前向传播仅调用部分专家",
+        "kind": "concurrency",
+        "concurrency": 8,
+        "request_idx": 2,
+        "max_tokens": 256,
+        "batch_wall_s": 4.090571641921997,
+        "batch_completion_tokens": 2048,
+        "batch_wall_tps": 500.66352071949683
+      },
+      {
+        "ok": true,
+        "wall_s": 4.086673974990845,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 256,
+        "wall_tps": 62.64262859397134,
+        "preview": "\n\n<think>\n\n</think>\n\n在构建大规模语言模型（LLM）的高性能推理服务时，我们首先关注的是模型架构层面的稀疏性优化，特别是混合专家（Mixture of Experts, MoE）架构的推理加速。MoE 通过引入多个并行的专家网络，仅在推理时激活部分专家，从而在保持模型总参数量的同时显著降低计算复杂度",
+        "kind": "concurrency",
+        "concurrency": 8,
+        "request_idx": 3,
+        "max_tokens": 256,
+        "batch_wall_s": 4.090571641921997,
+        "batch_completion_tokens": 2048,
+        "batch_wall_tps": 500.66352071949683
+      },
+      {
+        "ok": true,
+        "wall_s": 4.084133148193359,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 256,
+        "wall_tps": 62.681599916311036,
+        "preview": "\n\n<think>\n\n</think>\n\n在构建大规模语言模型（LLM）的高性能推理服务时，我们首先关注的是模型架构层面的稀疏性优化，特别是混合专家（Mixture of Experts, MoE）架构的推理加速。MoE 通过引入多个并行的专家网络，仅在推理时激活部分专家，从而在保持模型总参数量的同时显著降低计算复杂度",
+        "kind": "concurrency",
+        "concurrency": 8,
+        "request_idx": 4,
+        "max_tokens": 256,
+        "batch_wall_s": 4.090571641921997,
+        "batch_completion_tokens": 2048,
+        "batch_wall_tps": 500.66352071949683
+      },
+      {
+        "ok": true,
+        "wall_s": 4.0832226276397705,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 256,
+        "wall_tps": 62.695577328335865,
+        "preview": "\n\n<think>\n\n</think>\n\n在构建大规模语言模型（LLM）的高性能推理服务时，我们首先关注的是模型架构层面的稀疏性优化，特别是混合专家（Mixture of Experts, MoE）架构的推理加速。MoE 通过引入多个并行的专家网络，仅在推理时激活部分专家，从而在保持模型总参数量的同时显著降低计算复杂度",
+        "kind": "concurrency",
+        "concurrency": 8,
+        "request_idx": 5,
+        "max_tokens": 256,
+        "batch_wall_s": 4.090571641921997,
+        "batch_completion_tokens": 2048,
+        "batch_wall_tps": 500.66352071949683
+      },
+      {
+        "ok": true,
+        "wall_s": 4.085018157958984,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 256,
+        "wall_tps": 62.66802009220601,
+        "preview": "\n\n<think>\n\n</think>\n\n在构建大规模语言模型（LLM）的高性能推理服务时，系统架构的每一个环节都面临着精度、延迟与吞吐量的多重权衡，其中混合专家模型（MoE）的推理优化是提升资源利用率的关键突破口。传统的密集模型在推理时往往需要激活所有参数，而 MoE 架构通过引入稀疏激活机制，仅在每次前向传播中激活",
+        "kind": "concurrency",
+        "concurrency": 8,
+        "request_idx": 6,
+        "max_tokens": 256,
+        "batch_wall_s": 4.090571641921997,
+        "batch_completion_tokens": 2048,
+        "batch_wall_tps": 500.66352071949683
+      },
+      {
+        "ok": true,
+        "wall_s": 4.080720901489258,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 256,
+        "wall_tps": 62.734013469672206,
+        "preview": "\n\n<think>\n\n</think>\n\n在构建大规模语言模型（LLM）的高性能推理服务时，系统架构的每一个环节都面临着从理论性能到实际吞吐量的严峻挑战，其中混合专家模型（Mixture of Experts, MoE）的推理优化是提升资源利用率的核心突破口。MoE 架构通过稀疏激活机制，使得每次前向传播仅调用部分专家",
+        "kind": "concurrency",
+        "concurrency": 8,
+        "request_idx": 7,
+        "max_tokens": 256,
+        "batch_wall_s": 4.090571641921997,
+        "batch_completion_tokens": 2048,
+        "batch_wall_tps": 500.66352071949683
+      }
+    ],
+    "summary": {
+      "count": 14,
+      "ok": 14,
+      "failed": 0,
+      "completion_tokens_total": 3584,
+      "wall_seconds_sum": 46.233423471450806,
+      "wall_tps": {
+        "mean": 86.39106339426006,
+        "median": 62.71479539900403,
+        "min": 62.61170765920639,
+        "max": 153.7356837162926
+      }
+    },
+    "batch_summary": {
+      "2": {
+        "requests": 2,
+        "ok": 2,
+        "batch_wall_s": 1.671356439590454,
+        "batch_completion_tokens": 512,
+        "batch_wall_tps": 306.3380065867096
+      },
+      "4": {
+        "requests": 4,
+        "ok": 4,
+        "batch_wall_s": 2.5575296878814697,
+        "batch_completion_tokens": 1024,
+        "batch_wall_tps": 400.3863590917807
+      },
+      "8": {
+        "requests": 8,
+        "ok": 8,
+        "batch_wall_s": 4.090571641921997,
+        "batch_completion_tokens": 2048,
+        "batch_wall_tps": 500.66352071949683
+      }
+    }
+  },
+  "long_context": {
+    "rows": [
+      {
+        "ok": true,
+        "wall_s": 0.5603058338165283,
+        "prompt_chars": 8215,
+        "prompt_tokens": 1469,
+        "completion_tokens": 64,
+        "wall_tps": 114.22333328936344,
+        "preview": "\n\n<think>\n\n</think>\n\n基于提供的重复文本内容，Lynn Engine 长上下文基准测试段落中涉及的核心技术挑战主要集中在以下五个方面：\n\n1. **MoE（混合专家）路由机制**：如何在大规模模型中高效、准确地动态分配计算资源给不同的专家网络，以平衡负载并",
+        "kind": "long_context",
+        "target_prompt_chars": 8192,
+        "max_tokens": 64
+      }
+    ],
+    "summary": {
+      "count": 1,
+      "ok": 1,
+      "failed": 0,
+      "completion_tokens_total": 64,
+      "wall_seconds_sum": 0.5603058338165283,
+      "wall_tps": {
+        "mean": 114.22333328936344,
+        "median": 114.22333328936344,
+        "min": 114.22333328936344,
+        "max": 114.22333328936344
+      }
+    }
+  }
+}

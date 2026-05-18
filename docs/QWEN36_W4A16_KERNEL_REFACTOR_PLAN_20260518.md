@@ -18,7 +18,7 @@ Measured state:
 |---|---:|
 | Safe default serving | ~107 decode TPS, structured 14/14 |
 | Controlled AMBER structured serving | 114 decode TPS, hard structured 40/40 |
-| Q4_K_M llama.cpp reference | ~71 wall TPS warm requests |
+| Q4_K_M llama.cpp reference | R6000 CUDA: 207 wall TPS single 512, 501 total TPS concurrent 8 |
 | W4A16 quality | MMLU 84.40%, GPQA 49.49% |
 | BF16 quality | MMLU 86.40%, GPQA 45.45% |
 | Official MTP sidecar | shape/forward ok, local accept 0; no TPS credit |
@@ -45,6 +45,47 @@ MoE is uniform across linear layers:
 Do not spend near-term engineering on a C++ HTTP/service-loop rewrite. The host
 gap is too small. The next useful work is CUDA/Triton kernel boundaries and
 graph-safe state ownership.
+
+## llama.cpp Reference Delta
+
+The clean R6000 CUDA baseline for official Qwen3.6-35B-A3B Q4_K_M-imatrix is
+now much stronger than the earlier Spark-only reference:
+
+| llama.cpp Q4_K_M R6000 probe | Result |
+|---|---:|
+| Single 128 tokens | 154.39 wall TPS |
+| Single 256 tokens | 202.47 wall TPS |
+| Single 512 tokens | 207.29 wall TPS |
+| Concurrent 2 total | 306.34 wall TPS |
+| Concurrent 4 total | 400.39 wall TPS |
+| Concurrent 8 total | 500.66 wall TPS |
+| 5.8k prompt tokens + 128 decode | 91.13 wall TPS including prefill |
+| 11.6k prompt tokens + 128 decode | 84.19 wall TPS including prefill |
+
+This changes the competitive target. Q4_K_M is W4A16-class, not W4A8: it uses
+4-bit weights with high-precision activations and accumulation. The useful
+lesson is not "sacrifice quality for W4A8"; it is that a stable W4A16-class
+runtime can be very fast if the weight layout, graph, and CUDA boundaries are
+engineered correctly.
+
+The llama.cpp CUDA files worth studying as MIT-licensed high-level references
+are:
+
+- `ggml/src/ggml-cuda/mmq.cu`, `mmq.cuh`, and `mmvq.cu` for Q4_K_M repacked
+  matmul/matvec dispatch
+- `ggml/src/ggml-cuda/topk-moe.cu` plus the graph-pattern detector in
+  `ggml-cuda.cu` for softmax/top-k/get_rows fusion
+- `ggml/src/ggml-cuda/gated_delta_net.cu` and `ssm-scan.cu` for GDN/SSM
+  single-boundary kernels
+
+The clean-room Lynn translation should be:
+
+1. Add a Lynn-native offline repack for W4A16/NVFP4 decode-friendly expert
+   tiles, separate from the safetensors manifest format.
+2. Fuse top-k routing and row gather/scatter boundaries only after exact
+   first-token probes pass.
+3. Fuse GDN/SSM boundaries in Stream B before touching the HTTP service loop.
+4. Keep every candidate behind the Stream C promotion ladder.
 
 ## Hard Constraints
 
@@ -110,6 +151,13 @@ Acceptance:
 Stretch target: 512-token decode >=120 TPS while preserving P37 exact-greedy.
 Expected upside: 5-15% if boundary reduction is real. This alone may not close
 155 TPS, but it is the highest-confidence kernel island.
+
+2026-05-18 P125 update: current strict-boundary allowlist probes are still
+closed. Full-attention layer candidates reached at most `1.087x` median speedup
+but `0/3` exact with min prefix `2-3`; linear-attention layer candidates reached
+at most `1.067x` median speedup but also `0/3` exact. Do not promote these
+native candidates. The next MoE island needs tighter Triton-contract parity
+before speed work resumes.
 
 ### Stream B: Full-Attention and Linear-Core Fusion
 

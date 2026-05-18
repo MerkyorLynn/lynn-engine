@@ -1,0 +1,117 @@
+{
+  "schema_version": "openai-serving-matrix-probe-v1",
+  "url": "http://127.0.0.1:18197/v1",
+  "model": "Qwen3.6-35B-A3B-Q4KM-imatrix-r6000",
+  "single": {
+    "rows": [
+      {
+        "ok": true,
+        "wall_s": 0.8271968364715576,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 128,
+        "wall_tps": 154.73946992591183,
+        "preview": "\n\n<think>\n\n</think>\n\n在构建大规模语言模型（LLM）的高性能推理服务时，我们首先面临的核心挑战是如何在有限的硬件资源下最大化吞吐量并降低延迟，而混合专家模型（Mixture of Experts, MoE）架构的引入虽然显著提升了模型的参数效率与上下文处理能力，但也带来了复杂的调度开销。为了优化 M",
+        "kind": "single",
+        "max_tokens": 128,
+        "run_idx": 0
+      }
+    ],
+    "summary": {
+      "count": 1,
+      "ok": 1,
+      "failed": 0,
+      "completion_tokens_total": 128,
+      "wall_seconds_sum": 0.8271968364715576,
+      "wall_tps": {
+        "mean": 154.73946992591183,
+        "median": 154.73946992591183,
+        "min": 154.73946992591183,
+        "max": 154.73946992591183
+      }
+    }
+  },
+  "concurrency": {
+    "rows": [
+      {
+        "ok": true,
+        "wall_s": 0.6718182563781738,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 128,
+        "wall_tps": 190.5277190442223,
+        "preview": "\n\n<think>\n\n</think>\n\n在构建大规模语言模型（LLM）的高性能推理服务时，我们首先面临的核心挑战是如何在有限的硬件资源下最大化吞吐量并降低延迟，而混合专家模型（Mixture of Experts, MoE）架构的引入虽然显著提升了模型的参数效率与上下文处理能力，但也带来了复杂的调度开销。为了优化 M",
+        "kind": "concurrency",
+        "concurrency": 1,
+        "request_idx": 0,
+        "max_tokens": 128,
+        "batch_wall_s": 0.673783540725708,
+        "batch_completion_tokens": 128,
+        "batch_wall_tps": 189.97198990960183
+      }
+    ],
+    "summary": {
+      "count": 1,
+      "ok": 1,
+      "failed": 0,
+      "completion_tokens_total": 128,
+      "wall_seconds_sum": 0.6718182563781738,
+      "wall_tps": {
+        "mean": 190.5277190442223,
+        "median": 190.5277190442223,
+        "min": 190.5277190442223,
+        "max": 190.5277190442223
+      }
+    },
+    "batch_summary": {
+      "1": {
+        "requests": 1,
+        "ok": 1,
+        "batch_wall_s": 0.673783540725708,
+        "batch_completion_tokens": 128,
+        "batch_wall_tps": 189.97198990960183
+      }
+    }
+  },
+  "long_context": {
+    "rows": [
+      {
+        "ok": true,
+        "wall_s": 1.4045121669769287,
+        "prompt_chars": 32791,
+        "prompt_tokens": 5839,
+        "completion_tokens": 128,
+        "wall_tps": 91.13484596969148,
+        "preview": "\n\n<think>\n\n</think>\n\n基于您提供的重复文本，该段落核心围绕 **Lynn Engine** 在长上下文（Long-Context）场景下面临的五大关键技术挑战展开。以下是详细的技术挑战总结：\n\n1.  **MoE（混合专家）路由效率与稳定性**\n    *   **挑战点**：在长上下文处理中，如何",
+        "kind": "long_context",
+        "target_prompt_chars": 32768,
+        "max_tokens": 128
+      },
+      {
+        "ok": true,
+        "wall_s": 1.5203578472137451,
+        "prompt_chars": 65559,
+        "prompt_tokens": 11664,
+        "completion_tokens": 128,
+        "wall_tps": 84.19070565168376,
+        "preview": "\n\n<think>\n\n</think>\n\n基于您提供的重复文本内容，Lynn Engine 长上下文基准测试段落中提到的核心技术挑战主要集中在以下五个方面：\n\n1.  **MoE（混合专家）路由机制**：\n    涉及如何在大规模模型中高效、准确地激活和路由至特定的专家网络，以平衡计算负载并优化推理性能。\n\n2.  *",
+        "kind": "long_context",
+        "target_prompt_chars": 65536,
+        "max_tokens": 128
+      }
+    ],
+    "summary": {
+      "count": 2,
+      "ok": 2,
+      "failed": 0,
+      "completion_tokens_total": 256,
+      "wall_seconds_sum": 2.924870014190674,
+      "wall_tps": {
+        "mean": 87.66277581068762,
+        "median": 87.66277581068762,
+        "min": 84.19070565168376,
+        "max": 91.13484596969148
+      }
+    }
+  }
+}

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import concurrent.futures
+import http.client
 import json
 import statistics
 import time
@@ -66,7 +67,7 @@ def _completion_request(
             "wall_tps": completion_tokens / wall_s if wall_s else None,
             "preview": (choice.get("text") or "")[:160],
         }
-    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as exc:
+    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, http.client.HTTPException) as exc:
         return {
             "ok": False,
             "wall_s": None,
@@ -96,6 +97,25 @@ def _summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
             "median": statistics.median(tps),
             "min": min(tps),
             "max": max(tps),
+        }
+    return out
+
+
+def _concurrency_batch_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for row in rows:
+        grouped.setdefault(str(row.get("concurrency")), []).append(row)
+
+    out: dict[str, Any] = {}
+    for concurrency, group_rows in grouped.items():
+        first = group_rows[0]
+        ok = sum(1 for row in group_rows if row.get("ok"))
+        out[concurrency] = {
+            "requests": len(group_rows),
+            "ok": ok,
+            "batch_wall_s": first.get("batch_wall_s"),
+            "batch_completion_tokens": first.get("batch_completion_tokens"),
+            "batch_wall_tps": first.get("batch_wall_tps"),
         }
     return out
 
@@ -222,7 +242,11 @@ def main() -> int:
         "url": args.url,
         "model": args.model,
         "single": {"rows": single, "summary": _summary(single)},
-        "concurrency": {"rows": concurrency, "summary": _summary(concurrency)},
+        "concurrency": {
+            "rows": concurrency,
+            "summary": _summary(concurrency),
+            "batch_summary": _concurrency_batch_summary(concurrency),
+        },
         "long_context": {"rows": long_context, "summary": _summary(long_context)},
     }
     out = Path(args.out)
