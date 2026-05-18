@@ -8,6 +8,11 @@ set -euo pipefail
 #   CANDIDATE_ENV='LYNN_SHARED_EXPERT_GATE_BACKEND=triton LYNN_LINEAR_ATTN_CONV_BACKEND=triton_inplace' \
 #   scripts/r6000_qwen36_candidate_promotion_gate.sh
 #
+# Safer remote example that avoids shell quoting mistakes:
+#   CANDIDATE_NAME=amber_shared_gate \
+#   CANDIDATE_ENV_FILE=scripts/qwen36_candidate_env_amber_sharedgate_convinplace.env \
+#   scripts/r6000_qwen36_candidate_promotion_gate.sh
+#
 # The script is designed for R6000, but paths are overridable for local smoke.
 
 REPO=${REPO:-/root/autodl-tmp/lynn-engine}
