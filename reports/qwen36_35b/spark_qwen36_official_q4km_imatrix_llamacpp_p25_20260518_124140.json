@@ -1,0 +1,92 @@
+{
+  "schema_version": "lynn-engine-p25-server-decode-tps-probe-v1",
+  "url": "http://127.0.0.1:18096/v1",
+  "model": "Qwen3.6-35B-A3B-Q4KM-imatrix",
+  "chat": false,
+  "prompt_chars": 66,
+  "results": [
+    {
+      "wall_s": 23.96608877182007,
+      "completion_tokens": 128,
+      "wall_tps": 5.3408798247674705,
+      "metrics_tokens_per_second": null,
+      "decode_tps": null,
+      "prefill_seconds": null,
+      "linear_block_graph_reused": null,
+      "linear_block_graph_capture_seconds": null,
+      "linear_block_graph_prewarm_seconds": null,
+      "native_fp4_lm_head_enabled": null,
+      "decode_step_count": 0,
+      "decode_step_ms_mean": null,
+      "decode_step_ms_median": null,
+      "preview": "\n\n<think>\n\n</think>\n\n在构建大规模语言模型（LLM）的高性能推理服务时，我们首先面临的核心挑战是如何在有限的硬件资源下最大化吞吐量并降低延迟，而混合专家模型（Mixture of Experts, MoE）架构的引入虽然显著提升了模型的参数效率与推理能力，但也带来了复杂的调度开销。为了优化 MoE ",
+      "max_tokens": 128,
+      "run_idx": 0
+    },
+    {
+      "wall_s": 3.6185953617095947,
+      "completion_tokens": 256,
+      "wall_tps": 70.74568289919367,
+      "metrics_tokens_per_second": null,
+      "decode_tps": null,
+      "prefill_seconds": null,
+      "linear_block_graph_reused": null,
+      "linear_block_graph_capture_seconds": null,
+      "linear_block_graph_prewarm_seconds": null,
+      "native_fp4_lm_head_enabled": null,
+      "decode_step_count": 0,
+      "decode_step_ms_mean": null,
+      "decode_step_ms_median": null,
+      "preview": "\n\n<think>\n\n</think>\n\n在构建大规模语言模型（LLM）的高性能推理服务时，我们首先面临的核心挑战是如何在有限的硬件资源下最大化吞吐量并降低延迟，而混合专家模型（Mixture of Experts, MoE）架构的引入虽然显著提升了模型的参数效率与推理能力，但也带来了复杂的调度开销。为了优化 MoE ",
+      "max_tokens": 256,
+      "run_idx": 0
+    },
+    {
+      "wall_s": 7.1533074378967285,
+      "completion_tokens": 512,
+      "wall_tps": 71.57528240538508,
+      "metrics_tokens_per_second": null,
+      "decode_tps": null,
+      "prefill_seconds": null,
+      "linear_block_graph_reused": null,
+      "linear_block_graph_capture_seconds": null,
+      "linear_block_graph_prewarm_seconds": null,
+      "native_fp4_lm_head_enabled": null,
+      "decode_step_count": 0,
+      "decode_step_ms_mean": null,
+      "decode_step_ms_median": null,
+      "preview": "\n\n<think>\n\n</think>\n\n在构建大规模语言模型（LLM）的高性能推理服务时，我们首先面临的核心挑战是如何在有限的硬件资源下最大化吞吐量并降低延迟，而混合专家模型（Mixture of Experts, MoE）架构的引入虽然显著提升了模型的参数效率与推理能力，但也带来了复杂的调度开销。为了优化 MoE ",
+      "max_tokens": 512,
+      "run_idx": 0
+    }
+  ],
+  "summary_by_max_tokens": {
+    "128": {
+      "runs": 1,
+      "wall_tps": {
+        "mean": 5.3408798247674705,
+        "median": 5.3408798247674705,
+        "min": 5.3408798247674705,
+        "max": 5.3408798247674705
+      }
+    },
+    "256": {
+      "runs": 1,
+      "wall_tps": {
+        "mean": 70.74568289919367,
+        "median": 70.74568289919367,
+        "min": 70.74568289919367,
+        "max": 70.74568289919367
+      }
+    },
+    "512": {
+      "runs": 1,
+      "wall_tps": {
+        "mean": 71.57528240538508,
+        "median": 71.57528240538508,
+        "min": 71.57528240538508,
+        "max": 71.57528240538508
+      }
+    }
+  }
+}

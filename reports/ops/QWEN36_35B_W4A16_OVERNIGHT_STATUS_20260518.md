@@ -39,6 +39,21 @@ artifact as
 with a 20G quantized size, so this is the official Qwen3.6-35B-A3B GGUF result,
 not a V4-Pro/Flash distill result.
 
+The same Q4_K_M-imatrix artifact was also served through llama.cpp on Spark for
+a P25 wall-TPS comparison. The 128-token request was polluted by first-request
+startup, while the warm 256/512-token requests were stable:
+
+| Q4_K_M-imatrix llama.cpp | Wall TPS |
+|---:|---:|
+| 128 tokens | 5.34, cold-start polluted |
+| 256 tokens | 70.75 |
+| 512 tokens | 71.58 |
+
+This makes the current Lynn-native W4A16 R6000 service line meaningfully faster
+than the Spark llama.cpp Q4_K_M reference on the same prompt family: conservative
+default is about `107` decode TPS and the controlled structured fast mode is now
+about `114` decode TPS.
+
 ## W4A16 Artifact
 
 R6000 and Spark both produced the Lynn-native W4A16 NVFP4 package from the
@@ -65,6 +80,7 @@ Copied summaries:
 - `reports/qwen36_35b/spark_qwen36_official_q4km_imatrix_mmlu_n500_20260518.json`
 - `reports/qwen36_35b/spark_qwen36_official_q4km_imatrix_gpqa_20260518.json`
 - `reports/qwen36_35b/spark_qwen36_official_q4km_imatrix_backstop_20260518.log`
+- `reports/qwen36_35b/spark_qwen36_official_q4km_imatrix_llamacpp_p25_20260518_124140.json`
 - `reports/qwen36_35b/spark_qwen36_official_w4a16_nvfp4_mmlu_n500_20260518.json`
 - `reports/qwen36_35b/spark_qwen36_official_w4a16_nvfp4_gpqa_20260518.json`
 
