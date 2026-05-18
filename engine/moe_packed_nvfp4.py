@@ -392,6 +392,41 @@ def _active_moe_native_grouped_per16_nonatomic(
     )
 
 
+def _active_moe_native_grouped_per16_nonatomic_out(
+    hidden: torch.Tensor,
+    expert_ids: torch.Tensor,
+    routing_weights: torch.Tensor,
+    w: dict,
+) -> torch.Tensor:
+    """Caller-owned scratch variant for CUDA graph capture probes."""
+    from engine.native_cuda import load_lynn_native_extension
+
+    inter_scratch = w.get("mlp.experts._active_inter_scratch")
+    out_scratch = w.get("mlp.experts._active_out_scratch")
+    if inter_scratch is None or out_scratch is None:
+        raise RuntimeError(
+            "LYNN_NATIVE_ACTIVE_MOE_BACKEND=grouped_per16_nonatomic_out requires "
+            "LYNN_MOE_ACTIVE_SCRATCH=1 so resident_runner preallocates MoE scratch."
+        )
+
+    ext = load_lynn_native_extension(verbose=_env_bool("LYNN_NATIVE_CUDA_VERBOSE", False))
+    return ext.active_moe_grouped_per16_nonatomic_out_reference(
+        hidden,
+        expert_ids,
+        routing_weights,
+        w["mlp.experts._gate_up_packed"],
+        w["mlp.experts._gate_up_scale"],
+        w["mlp.experts._gate_up_global_scale"],
+        w["mlp.experts._down_packed"],
+        w["mlp.experts._down_scale"],
+        w["mlp.experts._down_global_scale"],
+        inter_scratch,
+        out_scratch,
+        _env_int("LYNN_NATIVE_GATEUP_TILE_INTER", 2),
+        _env_int("LYNN_NATIVE_DOWN_TILE_HIDDEN", 2),
+    )
+
+
 def _moe_forward_decode_packed_nvfp4_fixed_triton(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
     """Fixed-config production fast path for the current R6000 best profile."""
     h_flat = h.reshape(-1, h.shape[-1])
@@ -601,7 +636,9 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
     else:
         backend = os.environ.get("LYNN_NATIVE_ACTIVE_MOE_BACKEND", "triton")
         down_backend = os.environ.get("LYNN_NATIVE_DOWN_BACKEND", "triton")
-        if backend == "grouped_per16_nonatomic" and _layer_selected_for_native_cuda(cfg):
+        if backend == "grouped_per16_nonatomic_out" and _layer_selected_for_native_cuda(cfg):
+            moe_out = _active_moe_native_grouped_per16_nonatomic_out(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
+        elif backend == "grouped_per16_nonatomic" and _layer_selected_for_native_cuda(cfg):
             moe_out = _active_moe_native_grouped_per16_nonatomic(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
         elif backend == "grouped_per16_fused" and _layer_selected_for_native_cuda(cfg):
             moe_out = _active_moe_native_grouped_per16_fused(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
@@ -618,6 +655,7 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
             "grouped_per16",
             "grouped_per16_fused",
             "grouped_per16_nonatomic",
+            "grouped_per16_nonatomic_out",
         }:
             gateup_backend = os.environ.get("LYNN_NATIVE_GATEUP_BACKEND", "triton")
             if gateup_backend == "split16_fp4" and _layer_selected_for_native_cuda(cfg):
@@ -711,7 +749,7 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
             raise ValueError(
                 "LYNN_NATIVE_ACTIVE_MOE_BACKEND must be 'triton', 'cuda_scalar', "
                 "'cuda_scalar_contract', 'grouped_per16', 'grouped_per16_fused', "
-                "or 'grouped_per16_nonatomic', "
+                "'grouped_per16_nonatomic', or 'grouped_per16_nonatomic_out', "
                 f"got {backend!r}"
             )
 

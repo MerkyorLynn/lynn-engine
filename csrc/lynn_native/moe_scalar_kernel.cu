@@ -1518,3 +1518,233 @@ torch::Tensor lynn_native_active_moe_grouped_per16_nonatomic_reference(
       down_global_scale,
       tile_hidden);
 }
+
+torch::Tensor lynn_native_active_moe_grouped_per16_nonatomic_out_reference(
+    torch::Tensor x,
+    torch::Tensor expert_ids,
+    torch::Tensor routing_weights,
+    torch::Tensor gate_up_packed,
+    torch::Tensor gate_up_scale,
+    torch::Tensor gate_up_global_scale,
+    torch::Tensor down_packed,
+    torch::Tensor down_scale,
+    torch::Tensor down_global_scale,
+    torch::Tensor inter_out,
+    torch::Tensor out,
+    int64_t tile_inter,
+    int64_t tile_hidden) {
+  TORCH_CHECK(x.is_cuda(), "x must be a CUDA tensor");
+  TORCH_CHECK(expert_ids.is_cuda(), "expert_ids must be a CUDA tensor");
+  TORCH_CHECK(routing_weights.is_cuda(), "routing_weights must be a CUDA tensor");
+  TORCH_CHECK(gate_up_packed.is_cuda(), "gate_up_packed must be a CUDA tensor");
+  TORCH_CHECK(gate_up_scale.is_cuda(), "gate_up_scale must be a CUDA tensor");
+  TORCH_CHECK(gate_up_global_scale.is_cuda(), "gate_up_global_scale must be a CUDA tensor");
+  TORCH_CHECK(down_packed.is_cuda(), "down_packed must be a CUDA tensor");
+  TORCH_CHECK(down_scale.is_cuda(), "down_scale must be a CUDA tensor");
+  TORCH_CHECK(down_global_scale.is_cuda(), "down_global_scale must be a CUDA tensor");
+  TORCH_CHECK(inter_out.is_cuda(), "inter_out must be a CUDA tensor");
+  TORCH_CHECK(out.is_cuda(), "out must be a CUDA tensor");
+  TORCH_CHECK(x.scalar_type() == torch::kBFloat16, "x must be bfloat16");
+  TORCH_CHECK(expert_ids.scalar_type() == torch::kInt32, "expert_ids must be int32");
+  TORCH_CHECK(routing_weights.scalar_type() == torch::kFloat32, "routing_weights must be float32");
+  TORCH_CHECK(gate_up_packed.scalar_type() == torch::kUInt8, "gate_up_packed must be uint8");
+  TORCH_CHECK(gate_up_scale.scalar_type() == torch::kFloat32, "gate_up_scale must be float32");
+  TORCH_CHECK(gate_up_global_scale.scalar_type() == torch::kFloat32, "gate_up_global_scale must be float32");
+  TORCH_CHECK(down_packed.scalar_type() == torch::kUInt8, "down_packed must be uint8");
+  TORCH_CHECK(down_scale.scalar_type() == torch::kFloat32, "down_scale must be float32");
+  TORCH_CHECK(down_global_scale.scalar_type() == torch::kFloat32, "down_global_scale must be float32");
+  TORCH_CHECK(inter_out.scalar_type() == torch::kBFloat16, "inter_out must be bfloat16");
+  TORCH_CHECK(out.scalar_type() == torch::kBFloat16, "out must be bfloat16");
+  TORCH_CHECK(x.dim() == 1 && x.numel() == kHidden, "x must be [2048]");
+  TORCH_CHECK(expert_ids.dim() == 1, "expert_ids must be [top_k]");
+  TORCH_CHECK(routing_weights.dim() == 1 && routing_weights.size(0) == expert_ids.size(0),
+              "routing_weights must match expert_ids");
+  TORCH_CHECK(inter_out.dim() == 2 && inter_out.size(0) >= expert_ids.size(0) &&
+                  inter_out.size(1) == kIntermediate,
+              "inter_out must be [>=top_k, 512]");
+  TORCH_CHECK(out.dim() == 1 && out.numel() == kHidden, "out must be [2048]");
+  TORCH_CHECK(gate_up_packed.dim() == 3, "gate_up_packed must be [experts, 1024, 1024]");
+  TORCH_CHECK(gate_up_scale.dim() == 3, "gate_up_scale must be [experts, 1024, 128]");
+  TORCH_CHECK(gate_up_packed.size(1) == kGateUpRows, "gate_up_packed row dim must be 1024");
+  TORCH_CHECK(gate_up_packed.size(2) == kHidden / 2, "gate_up_packed packed hidden dim must be 1024");
+  TORCH_CHECK(gate_up_scale.size(1) == kGateUpRows, "gate_up_scale row dim must be 1024");
+  TORCH_CHECK(gate_up_scale.size(2) == kHidden / 16, "gate_up_scale group dim must be 128");
+  TORCH_CHECK(gate_up_global_scale.numel() == 1, "gate_up_global_scale must be scalar");
+  TORCH_CHECK(down_packed.dim() == 3, "down_packed must be [experts, 2048, 256]");
+  TORCH_CHECK(down_scale.dim() == 3, "down_scale must be [experts, 2048, 32]");
+  TORCH_CHECK(down_packed.size(1) == kHidden, "down_packed row dim must be 2048");
+  TORCH_CHECK(down_packed.size(2) == kIntermediate / 2, "down_packed packed inter dim must be 256");
+  TORCH_CHECK(down_scale.size(1) == kHidden, "down_scale row dim must be 2048");
+  TORCH_CHECK(down_scale.size(2) == kIntermediate / 16, "down_scale group dim must be 32");
+  TORCH_CHECK(down_global_scale.numel() == 1, "down_global_scale must be scalar");
+  TORCH_CHECK(
+      tile_inter == 1 || tile_inter == 2 || tile_inter == 4 || tile_inter == 8,
+      "tile_inter must be one of {1, 2, 4, 8}");
+  TORCH_CHECK(
+      tile_hidden == 1 || tile_hidden == 2 || tile_hidden == 4 || tile_hidden == 8,
+      "tile_hidden must be one of {1, 2, 4, 8}");
+  TORCH_CHECK(x.is_contiguous(), "x must be contiguous for graph-safe out ABI");
+  TORCH_CHECK(expert_ids.is_contiguous(), "expert_ids must be contiguous for graph-safe out ABI");
+  TORCH_CHECK(routing_weights.is_contiguous(), "routing_weights must be contiguous for graph-safe out ABI");
+  TORCH_CHECK(gate_up_packed.is_contiguous(), "gate_up_packed must be contiguous for graph-safe out ABI");
+  TORCH_CHECK(gate_up_scale.is_contiguous(), "gate_up_scale must be contiguous for graph-safe out ABI");
+  TORCH_CHECK(gate_up_global_scale.is_contiguous(), "gate_up_global_scale must be contiguous for graph-safe out ABI");
+  TORCH_CHECK(down_packed.is_contiguous(), "down_packed must be contiguous for graph-safe out ABI");
+  TORCH_CHECK(down_scale.is_contiguous(), "down_scale must be contiguous for graph-safe out ABI");
+  TORCH_CHECK(down_global_scale.is_contiguous(), "down_global_scale must be contiguous for graph-safe out ABI");
+  TORCH_CHECK(inter_out.is_contiguous(), "inter_out must be contiguous for graph-safe out ABI");
+  TORCH_CHECK(out.is_contiguous(), "out must be contiguous for graph-safe out ABI");
+
+  const int64_t top_k = expert_ids.numel();
+  constexpr int kTileThreads = 128;
+  const unsigned int gate_grid_y = static_cast<unsigned int>((kIntermediate + tile_inter - 1) / tile_inter);
+  const dim3 gate_grid(static_cast<unsigned int>(top_k), gate_grid_y);
+  const size_t gate_shared_bytes = static_cast<size_t>(tile_inter) * kTileThreads * 2 * sizeof(float);
+
+  if (tile_inter == 1) {
+    gate_up_silu_tile_inter_scalar_kernel<1, kTileThreads><<<gate_grid, kTileThreads, gate_shared_bytes>>>(
+        reinterpret_cast<const __nv_bfloat16*>(x.data_ptr<at::BFloat16>()),
+        expert_ids.data_ptr<int32_t>(),
+        gate_up_packed.data_ptr<uint8_t>(),
+        gate_up_scale.data_ptr<float>(),
+        gate_up_global_scale.data_ptr<float>(),
+        reinterpret_cast<__nv_bfloat16*>(inter_out.data_ptr<at::BFloat16>()),
+        gate_up_packed.stride(0),
+        gate_up_packed.stride(1),
+        gate_up_packed.stride(2),
+        gate_up_scale.stride(0),
+        gate_up_scale.stride(1),
+        gate_up_scale.stride(2),
+        inter_out.stride(0),
+        inter_out.stride(1));
+  } else if (tile_inter == 2) {
+    gate_up_silu_tile_inter_scalar_kernel<2, kTileThreads><<<gate_grid, kTileThreads, gate_shared_bytes>>>(
+        reinterpret_cast<const __nv_bfloat16*>(x.data_ptr<at::BFloat16>()),
+        expert_ids.data_ptr<int32_t>(),
+        gate_up_packed.data_ptr<uint8_t>(),
+        gate_up_scale.data_ptr<float>(),
+        gate_up_global_scale.data_ptr<float>(),
+        reinterpret_cast<__nv_bfloat16*>(inter_out.data_ptr<at::BFloat16>()),
+        gate_up_packed.stride(0),
+        gate_up_packed.stride(1),
+        gate_up_packed.stride(2),
+        gate_up_scale.stride(0),
+        gate_up_scale.stride(1),
+        gate_up_scale.stride(2),
+        inter_out.stride(0),
+        inter_out.stride(1));
+  } else if (tile_inter == 4) {
+    gate_up_silu_tile_inter_scalar_kernel<4, kTileThreads><<<gate_grid, kTileThreads, gate_shared_bytes>>>(
+        reinterpret_cast<const __nv_bfloat16*>(x.data_ptr<at::BFloat16>()),
+        expert_ids.data_ptr<int32_t>(),
+        gate_up_packed.data_ptr<uint8_t>(),
+        gate_up_scale.data_ptr<float>(),
+        gate_up_global_scale.data_ptr<float>(),
+        reinterpret_cast<__nv_bfloat16*>(inter_out.data_ptr<at::BFloat16>()),
+        gate_up_packed.stride(0),
+        gate_up_packed.stride(1),
+        gate_up_packed.stride(2),
+        gate_up_scale.stride(0),
+        gate_up_scale.stride(1),
+        gate_up_scale.stride(2),
+        inter_out.stride(0),
+        inter_out.stride(1));
+  } else {
+    gate_up_silu_tile_inter_scalar_kernel<8, kTileThreads><<<gate_grid, kTileThreads, gate_shared_bytes>>>(
+        reinterpret_cast<const __nv_bfloat16*>(x.data_ptr<at::BFloat16>()),
+        expert_ids.data_ptr<int32_t>(),
+        gate_up_packed.data_ptr<uint8_t>(),
+        gate_up_scale.data_ptr<float>(),
+        gate_up_global_scale.data_ptr<float>(),
+        reinterpret_cast<__nv_bfloat16*>(inter_out.data_ptr<at::BFloat16>()),
+        gate_up_packed.stride(0),
+        gate_up_packed.stride(1),
+        gate_up_packed.stride(2),
+        gate_up_scale.stride(0),
+        gate_up_scale.stride(1),
+        gate_up_scale.stride(2),
+        inter_out.stride(0),
+        inter_out.stride(1));
+  }
+  cudaError_t err = cudaGetLastError();
+  TORCH_CHECK(err == cudaSuccess, "graph-safe gate_up_silu_tile_inter launch failed: ", cudaGetErrorString(err));
+
+  const unsigned int down_grid_x = static_cast<unsigned int>((kHidden + tile_hidden - 1) / tile_hidden);
+  const size_t down_shared_bytes = static_cast<size_t>(tile_hidden) * kTileThreads * sizeof(float);
+  if (tile_hidden == 1) {
+    down_weighted_sum_tile_scalar_kernel<1, kTileThreads><<<down_grid_x, dim3(kTileThreads, 1), down_shared_bytes>>>(
+        reinterpret_cast<const __nv_bfloat16*>(inter_out.data_ptr<at::BFloat16>()),
+        expert_ids.data_ptr<int32_t>(),
+        routing_weights.data_ptr<float>(),
+        down_packed.data_ptr<uint8_t>(),
+        down_scale.data_ptr<float>(),
+        down_global_scale.data_ptr<float>(),
+        reinterpret_cast<__nv_bfloat16*>(out.data_ptr<at::BFloat16>()),
+        inter_out.stride(0),
+        inter_out.stride(1),
+        down_packed.stride(0),
+        down_packed.stride(1),
+        down_packed.stride(2),
+        down_scale.stride(0),
+        down_scale.stride(1),
+        down_scale.stride(2),
+        top_k);
+  } else if (tile_hidden == 2) {
+    down_weighted_sum_tile_scalar_kernel<2, kTileThreads><<<down_grid_x, dim3(kTileThreads, 2), down_shared_bytes>>>(
+        reinterpret_cast<const __nv_bfloat16*>(inter_out.data_ptr<at::BFloat16>()),
+        expert_ids.data_ptr<int32_t>(),
+        routing_weights.data_ptr<float>(),
+        down_packed.data_ptr<uint8_t>(),
+        down_scale.data_ptr<float>(),
+        down_global_scale.data_ptr<float>(),
+        reinterpret_cast<__nv_bfloat16*>(out.data_ptr<at::BFloat16>()),
+        inter_out.stride(0),
+        inter_out.stride(1),
+        down_packed.stride(0),
+        down_packed.stride(1),
+        down_packed.stride(2),
+        down_scale.stride(0),
+        down_scale.stride(1),
+        down_scale.stride(2),
+        top_k);
+  } else if (tile_hidden == 4) {
+    down_weighted_sum_tile_scalar_kernel<4, kTileThreads><<<down_grid_x, dim3(kTileThreads, 4), down_shared_bytes>>>(
+        reinterpret_cast<const __nv_bfloat16*>(inter_out.data_ptr<at::BFloat16>()),
+        expert_ids.data_ptr<int32_t>(),
+        routing_weights.data_ptr<float>(),
+        down_packed.data_ptr<uint8_t>(),
+        down_scale.data_ptr<float>(),
+        down_global_scale.data_ptr<float>(),
+        reinterpret_cast<__nv_bfloat16*>(out.data_ptr<at::BFloat16>()),
+        inter_out.stride(0),
+        inter_out.stride(1),
+        down_packed.stride(0),
+        down_packed.stride(1),
+        down_packed.stride(2),
+        down_scale.stride(0),
+        down_scale.stride(1),
+        down_scale.stride(2),
+        top_k);
+  } else {
+    down_weighted_sum_tile_scalar_kernel<8, kTileThreads><<<down_grid_x, dim3(kTileThreads, 8), down_shared_bytes>>>(
+        reinterpret_cast<const __nv_bfloat16*>(inter_out.data_ptr<at::BFloat16>()),
+        expert_ids.data_ptr<int32_t>(),
+        routing_weights.data_ptr<float>(),
+        down_packed.data_ptr<uint8_t>(),
+        down_scale.data_ptr<float>(),
+        down_global_scale.data_ptr<float>(),
+        reinterpret_cast<__nv_bfloat16*>(out.data_ptr<at::BFloat16>()),
+        inter_out.stride(0),
+        inter_out.stride(1),
+        down_packed.stride(0),
+        down_packed.stride(1),
+        down_packed.stride(2),
+        down_scale.stride(0),
+        down_scale.stride(1),
+        down_scale.stride(2),
+        top_k);
+  }
+  err = cudaGetLastError();
+  TORCH_CHECK(err == cudaSuccess, "graph-safe down_weighted_sum_tile launch failed: ", cudaGetErrorString(err));
+  return out;
+}
