@@ -332,8 +332,10 @@ R6000 result:
 | fixture bytes | 268,061 |
 | P134 self-check | GREEN, 18/18 |
 | P134 candidate-output-dir self-check | GREEN, 18/18 |
+| P134 routed-only self-check | GREEN, 18/18 |
 | max abs / mean abs | 0.0 / 0.0 |
 | mean reference latency | 0.963 ms |
+| routed-only mean reference latency | 0.914 ms |
 
 Decision: make P134 the first admission gate for Stream A native MoE kernel
 candidates.  A candidate that cannot pass the 18-fixture fast target should not
@@ -341,7 +343,9 @@ spend R6000 time on full P37/P25/structured gates.  This keeps the mainline
 quality bar strict while making kernel iteration cheaper.  Candidate developers
 can either plug in a Python backend or write precomputed safetensors into a
 candidate-output directory and let P134 compare them without loading layer
-weights.
+weights.  Output-owned/non-atomic routed-MoE candidates should start with
+`--routed-only` against `routed_output`, then graduate to full MoE output after
+the routed path is strict.
 
 Artifacts:
 
@@ -351,6 +355,8 @@ Artifacts:
 - `reports/qwen36_35b/p133_fixtures_official_w4a16/manifest.json`
 - `reports/qwen36_35b/p134_triton_selfcheck_report.json`
 - `reports/qwen36_35b/p134_candidate_output_selfcheck_report.json`
+- `reports/qwen36_35b/p134_routed_only_selfcheck_report.json`
+- `reports/qwen36_35b/p134_routed_candidate_output_selfcheck_report.json`
 
 ## Hard Constraints
 

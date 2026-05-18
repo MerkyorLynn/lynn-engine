@@ -79,6 +79,21 @@ The candidate directory may mirror fixture filenames and contain `moe_output`,
 CUDA kernel developers: write outputs once, then let p134 compare them against
 the same fixture contract.
 
+### Mode 4: Routed-Only Gate
+
+```bash
+python benchmarks/p134_active_moe_fixture_contract.py \
+    --fixtures reports/qwen36_35b/p133_fixtures_official_w4a16 \
+    --model-dir $MODEL_DIR \
+    --routed-only \
+    --max-abs-threshold 0.0 \
+    --cosine-threshold 0.999999
+```
+
+This compares against the fixture `routed_output` tensor and skips the shared
+expert.  It is the preferred first gate for output-owned/non-atomic routed-MoE
+kernel candidates.
+
 Thresholds for native kernel acceptance:
 - `max_abs < 5e-3` (FP16 ULP floor for multi-step compute)
 - `cosine > 0.999` (strong correlation)
@@ -112,6 +127,9 @@ Thresholds for native kernel acceptance:
 | mean reference latency | 0.963 ms |
 | max reference latency | 0.983 ms |
 | candidate-output-dir self-check | GREEN, 18/18 |
+| routed-only self-check | GREEN, 18/18 |
+| routed-only mean reference latency | 0.914 ms |
+| routed-only candidate-output-dir self-check | GREEN, 18/18 |
 | verdict | GREEN |
 
 The fixture set is now a valid fast admission gate for Stream A native active
@@ -130,3 +148,5 @@ The p134 self-check passed GREEN:
 3. No full model load is needed for candidate-kernel fixture iteration.
 4. The fixture set cuts the first correctness loop from full service gates to a
    small 18-case target before P37/P25 escalation.
+5. Routed-only candidates can target `routed_output` first, then add shared
+   expert handling only after the routed path is numerically strict.
