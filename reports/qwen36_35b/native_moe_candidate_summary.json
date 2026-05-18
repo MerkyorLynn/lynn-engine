@@ -1,6 +1,6 @@
 {
   "schema": "lynn-native-moe-candidate-summary-v2",
-  "created": "2026-05-18T23:01:10",
+  "created": "2026-05-18T23:17:01",
   "report_dir": "reports/qwen36_35b",
   "extra_report_dirs": [],
   "p136": {
@@ -110,6 +110,28 @@
       "avg_latency_ms": 0.05266247987747193,
       "verdict": "AMBER_FAST_PRETRANSPOSED",
       "recommend_next_step": "P37 exploratory"
+    },
+    {
+      "id": "native_slot_packed_nvfp4_probe",
+      "label": "native_slot_packed_nvfp4_probe (p140)",
+      "report": "reports/qwen36_35b/p140_packed_nvfp4_probe_report.json",
+      "slot_max_abs": 0.00390625,
+      "unique_max_abs": null,
+      "cosine_min": 0.9999736547470093,
+      "avg_latency_ms": 0.09026956558227539,
+      "verdict": "CLOSED",
+      "recommend_next_step": "stage diagnostics / v2 kernel only"
+    },
+    {
+      "id": "packed_dequant_pretransposed_v2",
+      "label": "packed_dequant_pretransposed_v2 (p141)",
+      "report": "reports/qwen36_35b/p141_v2_report.json",
+      "slot_max_abs": 0.001953125,
+      "unique_max_abs": null,
+      "cosine_min": 0.9999890923500061,
+      "avg_latency_ms": 0.0516851806640625,
+      "verdict": "AMBER_STAGE",
+      "recommend_next_step": "build graph-safe resident ABI, then P37 exact"
     }
   ],
   "summary": {

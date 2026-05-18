@@ -204,6 +204,40 @@ def _classify(slot_abs: float | None, cos_min: float | None,
     return "CLOSED", "no further action"
 
 
+def _classify_packed_nvfp4(data: dict[str, Any],
+                           slot_abs: float | None,
+                           cos_min: float | None,
+                           lat: float | None,
+                           stage_only: bool = False) -> tuple[str, str]:
+    """Classify packed-NVFP4 fixture-stage probes.
+
+    These reports are not resident-serving candidates yet. Even a fast AMBER
+    result must first get a graph-safe resident ABI and pass P37 exact before
+    P25/structured promotion gates.
+    """
+    source_verdict = data.get("verdict")
+    if slot_abs is None or lat is None:
+        return "MISSING", "no data"
+
+    if source_verdict == "CLOSED":
+        return "CLOSED", "stage diagnostics / v2 kernel only"
+
+    if stage_only or source_verdict == "AMBER_STAGE":
+        if lat <= AMBER_LATENCY_MS and slot_abs <= AMBER_SLOT_MAX_ABS:
+            return "AMBER_STAGE", "build graph-safe resident ABI, then P37 exact"
+        return "CLOSED", "stage drift/latency exceeds AMBER"
+
+    if (slot_abs <= DEFAULT_SLOT_MAX_ABS
+            and (cos_min is not None and cos_min >= DEFAULT_COSINE_MIN)
+            and lat <= DEFAULT_LATENCY_MS):
+        return "DEFAULT_STAGE", "stage-only exact; still requires P37 exact"
+
+    if lat <= AMBER_LATENCY_MS and slot_abs <= AMBER_SLOT_MAX_ABS:
+        return "AMBER_STAGE", "stage-only; build v2 diagnostics"
+
+    return "CLOSED", "stage diagnostics / v2 kernel only"
+
+
 # ─────────────────────────────────────────────────────────────
 # Candidate registry
 # ─────────────────────────────────────────────────────────────
@@ -264,6 +298,23 @@ CANDIDATES = [
             "native_slot_tensorcore_pretransposed_probe*.json",
         ],
         "pretransposed": True,
+    },
+    {
+        "id": "native_slot_packed_nvfp4_probe",
+        "label": "native_slot_packed_nvfp4_probe (p140)",
+        "patterns": [
+            "p140_packed_nvfp4_probe_report*.json",
+        ],
+        "packed_nvfp4": True,
+    },
+    {
+        "id": "packed_dequant_pretransposed_v2",
+        "label": "packed_dequant_pretransposed_v2 (p141)",
+        "patterns": [
+            "p141_v2_report*.json",
+        ],
+        "packed_nvfp4": True,
+        "stage_only": True,
     },
 ]
 
@@ -354,9 +405,14 @@ def gather(report_dir: Path,
         lat = data.get("avg_latency_ms")
         pretransposed = bool(spec.get("pretransposed"))
 
-        verdict, next_step = _classify(
-            slot_abs, cos_min, lat, uniq_abs, p140_recommend_p37,
-            pretransposed=pretransposed)
+        if spec.get("packed_nvfp4"):
+            verdict, next_step = _classify_packed_nvfp4(
+                data, slot_abs, cos_min, lat,
+                stage_only=bool(spec.get("stage_only")))
+        else:
+            verdict, next_step = _classify(
+                slot_abs, cos_min, lat, uniq_abs, p140_recommend_p37,
+                pretransposed=pretransposed)
 
         candidates.append({
             "id": spec["id"],
@@ -372,7 +428,7 @@ def gather(report_dir: Path,
 
     # ── Assemble ──
     any_default = any(c["verdict"] == "DEFAULT" for c in candidates)
-    any_amber = any(c["verdict"].startswith("AMBER_FAST") for c in candidates)
+    any_amber = any(c["verdict"].startswith("AMBER") for c in candidates)
 
     return {
         "schema": "lynn-native-moe-candidate-summary-v2",
@@ -410,6 +466,9 @@ def gather(report_dir: Path,
                 "DEFAULT" if any_default
                 else "AMBER_FAST_PRETRANSPOSED" if any(
                     c["verdict"] == "AMBER_FAST_PRETRANSPOSED"
+                    for c in candidates)
+                else "AMBER_STAGE" if any(
+                    c["verdict"] == "AMBER_STAGE"
                     for c in candidates)
                 else "AMBER_FAST" if any_amber
                 else "CLOSED"
@@ -499,6 +558,8 @@ def render_markdown(report: dict[str, Any]) -> str:
             "DEFAULT": "🟢",
             "AMBER_FAST": "🟡",
             "AMBER_FAST_PRETRANSPOSED": "🟡",
+            "AMBER_STAGE": "🟡",
+            "DEFAULT_STAGE": "🟢",
             "EXACT_SLOW": "🔵",
             "CLOSED": "🔴",
             "MISSING": "⚪",
@@ -523,7 +584,7 @@ def render_markdown(report: dict[str, Any]) -> str:
     elif summ["has_amber_candidate"]:
         lines.append(
             "> 🟡 AMBER candidates exist — no default promote. "
-            "P37 exploratory permitted if P140 gate clears.")
+            "P37 exploratory permitted only after graph-safe resident ABI is ready.")
     else:
         lines.append(
             "> 🔴 No viable candidates. Further kernel work needed.")
@@ -578,7 +639,8 @@ def main() -> int:
     print(f"{'='*80}")
     for c in report["candidates"]:
         badge = {"DEFAULT": "🟢", "AMBER_FAST": "🟡",
-                 "AMBER_FAST_PRETRANSPOSED": "🟡", "EXACT_SLOW": "🔵",
+                 "AMBER_FAST_PRETRANSPOSED": "🟡", "AMBER_STAGE": "🟡",
+                 "DEFAULT_STAGE": "🟢", "EXACT_SLOW": "🔵",
                  "CLOSED": "🔴", "MISSING": "⚪"}.get(c["verdict"], "❓")
         lat = f"{c['avg_latency_ms']:.4f}ms" if c.get("avg_latency_ms") else "—"
         sa = f"{c['slot_max_abs']:.2e}" if c.get("slot_max_abs") is not None else "—"
@@ -595,7 +657,8 @@ def main() -> int:
     print(f"{'='*80}")
     summ = report["summary"]
     badge = {"DEFAULT": "🟢", "AMBER_FAST": "🟡",
-             "AMBER_FAST_PRETRANSPOSED": "🟡", "CLOSED": "🔴"}.get(
+             "AMBER_FAST_PRETRANSPOSED": "🟡", "AMBER_STAGE": "🟡",
+             "DEFAULT_STAGE": "🟢", "CLOSED": "🔴"}.get(
         summ["best_verdict"], "⚪")
     print(f"  BEST: {badge} {summ['best_verdict']}")
     print(f"{'='*80}")
