@@ -70,6 +70,7 @@ ENV_KEYS = [
     "LYNN_PACKED_DECODE",
     "LYNN_PACKED_DECODE_PREPARE_NATIVE",
     "LYNN_DECODE_FAST_DISPATCH",
+    "LYNN_DENSE_FFN_GATE_UP_FUSED",
 ]
 
 PHASE_KEYS = [
@@ -80,6 +81,7 @@ PHASE_KEYS = [
     "full_attention_ms",
     "attention_residual_ms",
     "post_rmsnorm_ms",
+    "dense_gateup_fused_ms",
     "dense_gate_ms",
     "dense_up_ms",
     "dense_act_mul_ms",
@@ -226,8 +228,13 @@ def _decode_layer_profiled(
     if cfg.get("is_moe", int(cfg.get("num_experts", 0) or 0) > 0):
         raise RuntimeError("P155 is dense-FFN only; loaded layer config is MoE")
 
-    gate = measure("dense_gate_ms", lambda: F.linear(h_norm, w["mlp.gate_proj.weight"]))
-    up = measure("dense_up_ms", lambda: F.linear(h_norm, w["mlp.up_proj.weight"]))
+    fused = w.get("mlp._gate_up_proj.weight")
+    if fused is not None:
+        gate_up = measure("dense_gateup_fused_ms", lambda: F.linear(h_norm, fused))
+        gate, up = gate_up.chunk(2, dim=-1)
+    else:
+        gate = measure("dense_gate_ms", lambda: F.linear(h_norm, w["mlp.gate_proj.weight"]))
+        up = measure("dense_up_ms", lambda: F.linear(h_norm, w["mlp.up_proj.weight"]))
     inter = measure("dense_act_mul_ms", lambda: F.silu(gate) * up)
     ffn_out = measure("dense_down_ms", lambda: F.linear(inter, w["mlp.down_proj.weight"]))
     return measure("ffn_residual_ms", lambda: residual + ffn_out)
@@ -346,7 +353,8 @@ def main() -> int:
         next_id = int(raw_next_id_tensor.item())
         wall_ms = (time.time() - wall_t0) * 1000.0
         dense_total = (
-            measured_ms.get("dense_gate_ms", 0.0)
+            measured_ms.get("dense_gateup_fused_ms", 0.0)
+            + measured_ms.get("dense_gate_ms", 0.0)
             + measured_ms.get("dense_up_ms", 0.0)
             + measured_ms.get("dense_act_mul_ms", 0.0)
             + measured_ms.get("dense_down_ms", 0.0)
@@ -375,6 +383,7 @@ def main() -> int:
             "full_attention_ms": measured_ms.get("full_attention_ms", 0.0),
             "attention_residual_ms": measured_ms.get("attention_residual_ms", 0.0),
             "post_rmsnorm_ms": measured_ms.get("post_rmsnorm_ms", 0.0),
+            "dense_gateup_fused_ms": measured_ms.get("dense_gateup_fused_ms", 0.0),
             "dense_gate_ms": measured_ms.get("dense_gate_ms", 0.0),
             "dense_up_ms": measured_ms.get("dense_up_ms", 0.0),
             "dense_act_mul_ms": measured_ms.get("dense_act_mul_ms", 0.0),
