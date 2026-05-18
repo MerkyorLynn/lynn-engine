@@ -108,6 +108,8 @@ def _prompt(subject: str, shots: list[dict[str, Any]], ex: dict[str, Any]) -> st
 
 def _extract_answer(text: str) -> str | None:
     text = text.strip()
+    if text[:1].upper() in CHOICES:
+        return text[:1].upper()
     patterns = [
         r"(?i)^(?:answer\s*[:：]?\s*)?([ABCD])\b",
         r"(?i)\banswer\s*(?:is|:|：)?\s*([ABCD])\b",

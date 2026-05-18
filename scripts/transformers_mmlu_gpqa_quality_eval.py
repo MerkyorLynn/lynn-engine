@@ -26,6 +26,8 @@ CHOICES = ("A", "B", "C", "D")
 
 def _extract_answer(text: str) -> str | None:
     text = text.strip()
+    if text[:1].upper() in CHOICES:
+        return text[:1].upper()
     for pat in (
         r"(?i)^(?:answer\s*[:：]?\s*)?([ABCD])\b",
         r"(?i)\banswer\s*(?:is|:|：)?\s*([ABCD])\b",
