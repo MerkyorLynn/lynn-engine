@@ -527,6 +527,39 @@ __global__ void gate_up_packed_nvfp4_partial_accum_triton_order_kernel(
     }
 }
 
+__global__ void gate_up_packed_nvfp4_term_trace_kernel(
+    const __nv_bfloat16* __restrict__ x,            // [hidden]
+    const uint8_t* __restrict__ gate_up_packed,     // [top_k, 1024, 1024]
+    const __half* __restrict__ gate_up_scale,       // [top_k, 1024, 128]
+    const __half* __restrict__ gate_up_global_scale,// scalar
+    float* __restrict__ terms,                      // [block_hidden]
+    int64_t packed_stride_k, int64_t packed_stride_r, int64_t packed_stride_c,
+    int64_t scale_stride_k, int64_t scale_stride_r, int64_t scale_stride_g,
+    int64_t slot,
+    int64_t row,
+    int64_t kind,
+    int64_t hidden_block
+) {
+    const int tid = threadIdx.x;
+    const int h = static_cast<int>(hidden_block) * blockDim.x + tid;
+    const int weight_row = static_cast<int>(kind) == 0 ? static_cast<int>(row) : kIntermediate + static_cast<int>(row);
+    float term = 0.0f;
+    if (h < kHidden && row >= 0 && row < kIntermediate && slot >= 0) {
+        const int packed_col = h >> 1;
+        const int scale_group = h >> 4;
+        const bool is_low = (h & 1) == 0;
+        const uint8_t byte = gate_up_packed[
+            slot * packed_stride_k + weight_row * packed_stride_r + packed_col * packed_stride_c];
+        const unsigned char nib = is_low ? (byte & 0x0F) : ((byte >> 4) & 0x0F);
+        const float scale = __half2float(gate_up_scale[
+            slot * scale_stride_k + weight_row * scale_stride_r + scale_group * scale_stride_g]);
+        const float global_scale = __half2float(gate_up_global_scale[0]);
+        const float xh = __bfloat162float(x[h]);
+        term = e2m1_decode(nib) * (scale / global_scale) * xh;
+    }
+    terms[tid] = term;
+}
+
 // ── Stage 2: down weighted sum packed NVFP4 kernel (output-owned) ──
 // Grid: (hidden / TILE_H,)
 // Block: THREADS
@@ -800,6 +833,49 @@ torch::Tensor lynn_native_moe_slot_packed_nvfp4_partial_accum_triton_order_probe
     cudaError_t err = cudaGetLastError();
     TORCH_CHECK(err == cudaSuccess, "moe_slot_packed_nvfp4_partial_accum_triton_order_probe failed: ", cudaGetErrorString(err));
     return partial;
+}
+
+torch::Tensor lynn_native_moe_slot_packed_nvfp4_term_trace_probe(
+    torch::Tensor x,                        // [2048] BF16
+    torch::Tensor slot_gate_up_packed,      // [top_k, 1024, 1024] uint8
+    torch::Tensor slot_gate_up_scale,       // [top_k, 1024, 128] fp16
+    torch::Tensor slot_gate_up_global_scale,// scalar fp16
+    int64_t slot,
+    int64_t row,
+    int64_t kind,
+    int64_t hidden_block
+) {
+    TORCH_CHECK(x.is_cuda() && x.scalar_type() == torch::kBFloat16);
+    TORCH_CHECK(x.dim() == 1 && x.numel() == kHidden);
+    TORCH_CHECK(slot_gate_up_packed.is_cuda() && slot_gate_up_packed.scalar_type() == torch::kUInt8);
+    TORCH_CHECK(slot_gate_up_scale.is_cuda() && slot_gate_up_scale.scalar_type() == torch::kFloat16);
+    TORCH_CHECK(slot_gate_up_global_scale.is_cuda() && slot_gate_up_global_scale.scalar_type() == torch::kFloat16);
+    const int top_k = slot_gate_up_packed.size(0);
+    TORCH_CHECK(slot >= 0 && slot < top_k);
+    TORCH_CHECK(row >= 0 && row < kIntermediate);
+    TORCH_CHECK(kind == 0 || kind == 1);
+    constexpr int THREADS_S1 = 256;
+    constexpr int HIDDEN_BLOCKS = kHidden / THREADS_S1;
+    TORCH_CHECK(hidden_block >= 0 && hidden_block < HIDDEN_BLOCKS);
+    TORCH_CHECK(slot_gate_up_packed.size(1) == kGateUpRows && slot_gate_up_packed.size(2) == kHidden / 2);
+    TORCH_CHECK(slot_gate_up_scale.size(0) == top_k && slot_gate_up_scale.size(1) == kGateUpRows);
+    TORCH_CHECK(slot_gate_up_scale.size(2) == kHidden / kGroupSize);
+
+    auto terms = torch::empty({THREADS_S1},
+        torch::TensorOptions().device(x.device()).dtype(torch::kFloat32));
+    gate_up_packed_nvfp4_term_trace_kernel<<<1, THREADS_S1>>>(
+        reinterpret_cast<const __nv_bfloat16*>(x.data_ptr<at::BFloat16>()),
+        slot_gate_up_packed.data_ptr<uint8_t>(),
+        reinterpret_cast<const __half*>(slot_gate_up_scale.data_ptr<at::Half>()),
+        reinterpret_cast<const __half*>(slot_gate_up_global_scale.data_ptr<at::Half>()),
+        terms.data_ptr<float>(),
+        slot_gate_up_packed.stride(0), slot_gate_up_packed.stride(1), slot_gate_up_packed.stride(2),
+        slot_gate_up_scale.stride(0), slot_gate_up_scale.stride(1), slot_gate_up_scale.stride(2),
+        slot, row, kind, hidden_block
+    );
+    cudaError_t err = cudaGetLastError();
+    TORCH_CHECK(err == cudaSuccess, "moe_slot_packed_nvfp4_term_trace_probe failed: ", cudaGetErrorString(err));
+    return terms;
 }
 
 torch::Tensor lynn_native_moe_slot_packed_nvfp4_down_probe(

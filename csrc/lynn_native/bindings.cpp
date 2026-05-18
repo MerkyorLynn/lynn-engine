@@ -203,6 +203,15 @@ torch::Tensor lynn_native_moe_slot_packed_nvfp4_partial_accum_triton_order_probe
     torch::Tensor slot_gate_up_packed,
     torch::Tensor slot_gate_up_scale,
     torch::Tensor slot_gate_up_global_scale);
+torch::Tensor lynn_native_moe_slot_packed_nvfp4_term_trace_probe(
+    torch::Tensor x,
+    torch::Tensor slot_gate_up_packed,
+    torch::Tensor slot_gate_up_scale,
+    torch::Tensor slot_gate_up_global_scale,
+    int64_t slot,
+    int64_t row,
+    int64_t kind,
+    int64_t hidden_block);
 torch::Tensor lynn_native_moe_slot_packed_nvfp4_down_probe(
     torch::Tensor inter,
     torch::Tensor routing_weights,
@@ -348,6 +357,10 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
       "moe_slot_packed_nvfp4_partial_accum_triton_order_probe",
       &lynn_native_moe_slot_packed_nvfp4_partial_accum_triton_order_probe,
       "P160 packed NVFP4 slot MoE per-hidden-block FP32 partial accumulator trace with Triton-like reduction");
+  m.def(
+      "moe_slot_packed_nvfp4_term_trace_probe",
+      &lynn_native_moe_slot_packed_nvfp4_term_trace_probe,
+      "P161 packed NVFP4 slot MoE per-term FP32 trace for a single gate/up row");
   m.def(
       "moe_slot_packed_nvfp4_down_probe",
       &lynn_native_moe_slot_packed_nvfp4_down_probe,

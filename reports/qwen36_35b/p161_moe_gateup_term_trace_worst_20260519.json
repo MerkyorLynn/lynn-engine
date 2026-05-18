@@ -1,0 +1,88 @@
+{
+  "schema": "lynn-p161-native-packed-moe-gateup-term-trace-v1",
+  "created": "2026-05-19T06:36:11",
+  "packed_fixtures": "/root/autodl-tmp/reports/qwen36_35b/p138_packed_slot_fixtures_kimi_20260518",
+  "p160_report": "/root/autodl-tmp/reports/qwen36_35b/p160_moe_gateup_partial_trace_all_20260519.json",
+  "target": {
+    "fixture_file": "layer_16_prompt_00_slot_packed.safetensors",
+    "layer_id": 16,
+    "prompt_id": 0,
+    "slot": 4,
+    "hidden_block": 4,
+    "kind": 0,
+    "row": 356,
+    "source_p160_max_abs": 4.76837158203125e-07
+  },
+  "terms_vs_triton": {
+    "max_abs": 0.0,
+    "mean_abs": 0.0,
+    "rel_l2": 0.0,
+    "cosine": 0.9999999403953552,
+    "exact": 1,
+    "max_index": 0,
+    "ref_at_max": -0.010754585266113281,
+    "cand_at_max": -0.010754585266113281
+  },
+  "diagnosis": "REDUCTION_TREE_DRIFT",
+  "top_abs_diffs": [
+    {
+      "offset": 7,
+      "hidden": 1031,
+      "abs_diff": 0.0,
+      "triton": 0.0003182440996170044,
+      "native": 0.0003182440996170044
+    },
+    {
+      "offset": 6,
+      "hidden": 1030,
+      "abs_diff": 0.0,
+      "triton": -0.0011377930641174316,
+      "native": -0.0011377930641174316
+    },
+    {
+      "offset": 4,
+      "hidden": 1028,
+      "abs_diff": 0.0,
+      "triton": 0.0,
+      "native": -0.0
+    },
+    {
+      "offset": 5,
+      "hidden": 1029,
+      "abs_diff": 0.0,
+      "triton": 0.0,
+      "native": -0.0
+    },
+    {
+      "offset": 1,
+      "hidden": 1025,
+      "abs_diff": 0.0,
+      "triton": -0.0029439926147460938,
+      "native": -0.0029439926147460938
+    },
+    {
+      "offset": 0,
+      "hidden": 1024,
+      "abs_diff": 0.0,
+      "triton": -0.010754585266113281,
+      "native": -0.010754585266113281
+    },
+    {
+      "offset": 2,
+      "hidden": 1026,
+      "abs_diff": 0.0,
+      "triton": 0.0033570528030395508,
+      "native": 0.0033570528030395508
+    },
+    {
+      "offset": 3,
+      "hidden": 1027,
+      "abs_diff": 0.0,
+      "triton": -0.0011265277862548828,
+      "native": -0.0011265277862548828
+    }
+  ],
+  "triton_sum_torch": -1.3349268436431885,
+  "native_sum_torch": -1.3349268436431885,
+  "torch_sum_abs_diff": 0.0
+}
