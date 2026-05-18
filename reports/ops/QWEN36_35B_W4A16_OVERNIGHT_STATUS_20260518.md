@@ -763,6 +763,7 @@ Two tempting follow-up switches were then closed:
 |---|---|
 | `LYNN_PACKED_DECODE_FULL_ATTN=1` | RED: P37 0/3 exact, median TPS `106.54 -> 92.41`; do not open packed full-attn decode by default |
 | `LYNN_FULL_ATTN_GATE_INPLACE=1` | P37 exact and +0.6%, but service P25 512 decode TPS `106.79` is below the RoPE-cache default `107.31`; not promoted |
+| Merged top-k gate/up scheduling | Numerically clean but slower: reference gate/up is about `0.033 ms/layer`, best merged top-k is `0.068-0.070 ms/layer`; not a kernel path |
 
 Copied reports:
 
@@ -772,6 +773,7 @@ Copied reports:
 - `reports/qwen36_35b/p37_fullattn_gate_inplace_rope_cache_20260518_122013.json`
 - `reports/qwen36_35b/p25_gate_inplace_rope_cache_20260518_122134.json`
 - `reports/qwen36_35b/structured_gate_gate_inplace_rope_cache_20260518_122134.json`
+- `reports/qwen36_35b/p26_gateup_merged_topk_qwen36_20260518_122603.json`
 
 ## Speed Profile
 
