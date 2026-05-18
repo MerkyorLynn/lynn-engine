@@ -1,0 +1,668 @@
+{
+  "schema": "lynn-p153-native-packed-moe-stage-split-v1",
+  "created": "2026-05-19T03:54:46",
+  "packed_fixtures": "/root/autodl-tmp/reports/qwen36_35b/p138_packed_slot_fixtures_kimi_20260518",
+  "p147_reference_dir": "/root/autodl-tmp/reports/qwen36_35b/p147_triton_stage_reference_20260519_0318",
+  "total": 18,
+  "diagnosis": "GATEUP_DRIFT",
+  "inter_exact": 6,
+  "down_from_triton_inter_exact": 15,
+  "native_full_exact": 12,
+  "native_inter_ms_mean": 0.04131875501738654,
+  "native_down_ms_mean_from_triton_inter": 0.049456355472405754,
+  "native_full_ms_mean": 0.09051884478992886,
+  "inter_max_abs_max": 0.000244140625,
+  "down_from_triton_inter_max_abs_max": 2.384185791015625e-07,
+  "down_from_native_inter_max_abs_max": 0.0001220703125,
+  "native_full_max_abs_max": 0.0001220703125,
+  "results": [
+    {
+      "fixture_file": "layer_00_prompt_00_slot_packed.safetensors",
+      "layer_id": 0,
+      "prompt_id": 0,
+      "native_inter_ms": 0.04142079949378967,
+      "native_down_ms_from_triton_inter": 0.04955999851226807,
+      "native_full_ms": 0.091348797082901,
+      "inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "down_from_triton_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "down_from_native_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "native_full_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_04_prompt_00_slot_packed.safetensors",
+      "layer_id": 4,
+      "prompt_id": 0,
+      "native_inter_ms": 0.04133279919624329,
+      "native_down_ms_from_triton_inter": 0.04946720004081726,
+      "native_full_ms": 0.09044640064239502,
+      "inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "down_from_triton_inter_vs_triton_out": {
+        "max_abs": 9.313225746154785e-10,
+        "mean_abs": 4.547473508864641e-13,
+        "rel_l2": 2.030059675917073e-09,
+        "cosine": 0.9999999403953552,
+        "exact": 0
+      },
+      "down_from_native_inter_vs_triton_out": {
+        "max_abs": 9.313225746154785e-10,
+        "mean_abs": 4.547473508864641e-13,
+        "rel_l2": 2.030059675917073e-09,
+        "cosine": 0.9999999403953552,
+        "exact": 0
+      },
+      "native_full_vs_triton_out": {
+        "max_abs": 9.313225746154785e-10,
+        "mean_abs": 4.547473508864641e-13,
+        "rel_l2": 2.030059675917073e-09,
+        "cosine": 0.9999999403953552,
+        "exact": 0
+      }
+    },
+    {
+      "fixture_file": "layer_08_prompt_00_slot_packed.safetensors",
+      "layer_id": 8,
+      "prompt_id": 0,
+      "native_inter_ms": 0.04129279851913452,
+      "native_down_ms_from_triton_inter": 0.04946880042552948,
+      "native_full_ms": 0.09047840237617492,
+      "inter_vs_triton": {
+        "max_abs": 2.384185791015625e-07,
+        "mean_abs": 6.320988177321851e-11,
+        "rel_l2": 6.611918479393353e-08,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "down_from_triton_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "down_from_native_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "native_full_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_16_prompt_00_slot_packed.safetensors",
+      "layer_id": 16,
+      "prompt_id": 0,
+      "native_inter_ms": 0.041331198811531064,
+      "native_down_ms_from_triton_inter": 0.04954879879951477,
+      "native_full_ms": 0.09049280285835266,
+      "inter_vs_triton": {
+        "max_abs": 5.960464477539063e-08,
+        "mean_abs": 1.4551915228366852e-11,
+        "rel_l2": 1.709867980537183e-08,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "down_from_triton_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "down_from_native_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "native_full_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_20_prompt_00_slot_packed.safetensors",
+      "layer_id": 20,
+      "prompt_id": 0,
+      "native_inter_ms": 0.04126879870891571,
+      "native_down_ms_from_triton_inter": 0.049558401107788086,
+      "native_full_ms": 0.09046880006790162,
+      "inter_vs_triton": {
+        "max_abs": 7.62939453125e-06,
+        "mean_abs": 1.8627588360686786e-09,
+        "rel_l2": 1.8211285350844264e-06,
+        "cosine": 0.9999998807907104,
+        "exact": 0
+      },
+      "down_from_triton_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "down_from_native_inter_vs_triton_out": {
+        "max_abs": 7.62939453125e-06,
+        "mean_abs": 1.356966095045209e-08,
+        "rel_l2": 0.00013022584607824683,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "native_full_vs_triton_out": {
+        "max_abs": 7.62939453125e-06,
+        "mean_abs": 1.356966095045209e-08,
+        "rel_l2": 0.00013022584607824683,
+        "cosine": 1.0,
+        "exact": 0
+      }
+    },
+    {
+      "fixture_file": "layer_28_prompt_00_slot_packed.safetensors",
+      "layer_id": 28,
+      "prompt_id": 0,
+      "native_inter_ms": 0.04130719900131226,
+      "native_down_ms_from_triton_inter": 0.049456000328063965,
+      "native_full_ms": 0.09054080247879029,
+      "inter_vs_triton": {
+        "max_abs": 0.000244140625,
+        "mean_abs": 5.960464477539063e-08,
+        "rel_l2": 6.395877426257357e-05,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "down_from_triton_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "down_from_native_inter_vs_triton_out": {
+        "max_abs": 1.52587890625e-05,
+        "mean_abs": 4.115281626582146e-08,
+        "rel_l2": 0.0002737693430390209,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "native_full_vs_triton_out": {
+        "max_abs": 1.52587890625e-05,
+        "mean_abs": 4.115281626582146e-08,
+        "rel_l2": 0.0002737693430390209,
+        "cosine": 1.0,
+        "exact": 0
+      }
+    },
+    {
+      "fixture_file": "layer_32_prompt_00_slot_packed.safetensors",
+      "layer_id": 32,
+      "prompt_id": 0,
+      "native_inter_ms": 0.04130719900131226,
+      "native_down_ms_from_triton_inter": 0.04943679869174957,
+      "native_full_ms": 0.0904304027557373,
+      "inter_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 1.1641532182693481e-10,
+        "rel_l2": 3.794447067662077e-08,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "down_from_triton_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "down_from_native_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "native_full_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_36_prompt_00_slot_packed.safetensors",
+      "layer_id": 36,
+      "prompt_id": 0,
+      "native_inter_ms": 0.041310399770736694,
+      "native_down_ms_from_triton_inter": 0.049403199553489686,
+      "native_full_ms": 0.09043200016021728,
+      "inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104,
+        "exact": 1
+      },
+      "down_from_triton_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "down_from_native_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "native_full_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_39_prompt_00_slot_packed.safetensors",
+      "layer_id": 39,
+      "prompt_id": 0,
+      "native_inter_ms": 0.04127840101718903,
+      "native_down_ms_from_triton_inter": 0.049403199553489686,
+      "native_full_ms": 0.09041119813919067,
+      "inter_vs_triton": {
+        "max_abs": 7.62939453125e-06,
+        "mean_abs": 1.862645149230957e-09,
+        "rel_l2": 1.3201128012951813e-07,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "down_from_triton_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "down_from_native_inter_vs_triton_out": {
+        "max_abs": 1.9073486328125e-06,
+        "mean_abs": 9.313225746154785e-10,
+        "rel_l2": 4.785342184732144e-07,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "native_full_vs_triton_out": {
+        "max_abs": 1.9073486328125e-06,
+        "mean_abs": 9.313225746154785e-10,
+        "rel_l2": 4.785342184732144e-07,
+        "cosine": 1.0,
+        "exact": 0
+      }
+    },
+    {
+      "fixture_file": "layer_00_prompt_01_slot_packed.safetensors",
+      "layer_id": 0,
+      "prompt_id": 1,
+      "native_inter_ms": 0.041388800740242,
+      "native_down_ms_from_triton_inter": 0.04950079917907715,
+      "native_full_ms": 0.09046080112457275,
+      "inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "down_from_triton_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "down_from_native_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "native_full_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_04_prompt_01_slot_packed.safetensors",
+      "layer_id": 4,
+      "prompt_id": 1,
+      "native_inter_ms": 0.04129120111465454,
+      "native_down_ms_from_triton_inter": 0.04952160120010376,
+      "native_full_ms": 0.09042400121688843,
+      "inter_vs_triton": {
+        "max_abs": 1.4901161193847656e-08,
+        "mean_abs": 3.637978807091713e-12,
+        "rel_l2": 3.9026266662745e-09,
+        "cosine": 0.9999999403953552,
+        "exact": 0
+      },
+      "down_from_triton_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "down_from_native_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "native_full_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_08_prompt_01_slot_packed.safetensors",
+      "layer_id": 8,
+      "prompt_id": 1,
+      "native_inter_ms": 0.041283199191093446,
+      "native_down_ms_from_triton_inter": 0.04941279888153076,
+      "native_full_ms": 0.09043999910354614,
+      "inter_vs_triton": {
+        "max_abs": 0.000244140625,
+        "mean_abs": 5.960464477539063e-08,
+        "rel_l2": 2.2239099052967504e-05,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "down_from_triton_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552,
+        "exact": 1
+      },
+      "down_from_native_inter_vs_triton_out": {
+        "max_abs": 0.0001220703125,
+        "mean_abs": 2.400483936071396e-07,
+        "rel_l2": 0.0002434630150673911,
+        "cosine": 0.9999999403953552,
+        "exact": 0
+      },
+      "native_full_vs_triton_out": {
+        "max_abs": 0.0001220703125,
+        "mean_abs": 2.400483936071396e-07,
+        "rel_l2": 0.0002434630150673911,
+        "cosine": 0.9999999403953552,
+        "exact": 0
+      }
+    },
+    {
+      "fixture_file": "layer_16_prompt_01_slot_packed.safetensors",
+      "layer_id": 16,
+      "prompt_id": 1,
+      "native_inter_ms": 0.04133439958095551,
+      "native_down_ms_from_triton_inter": 0.04939360022544861,
+      "native_full_ms": 0.09047359824180604,
+      "inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998211860657,
+        "exact": 1
+      },
+      "down_from_triton_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104,
+        "exact": 1
+      },
+      "down_from_native_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104,
+        "exact": 1
+      },
+      "native_full_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_20_prompt_01_slot_packed.safetensors",
+      "layer_id": 20,
+      "prompt_id": 1,
+      "native_inter_ms": 0.04131839871406555,
+      "native_down_ms_from_triton_inter": 0.049420800805091855,
+      "native_full_ms": 0.09045119881629944,
+      "inter_vs_triton": {
+        "max_abs": 2.384185791015625e-07,
+        "mean_abs": 5.820766091346741e-11,
+        "rel_l2": 2.0478413631508374e-08,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "down_from_triton_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "down_from_native_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "native_full_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_28_prompt_01_slot_packed.safetensors",
+      "layer_id": 28,
+      "prompt_id": 1,
+      "native_inter_ms": 0.04138399958610535,
+      "native_down_ms_from_triton_inter": 0.049379199743270874,
+      "native_full_ms": 0.09064159989356994,
+      "inter_vs_triton": {
+        "max_abs": 7.62939453125e-06,
+        "mean_abs": 1.864464138634503e-09,
+        "rel_l2": 6.979848308219516e-07,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "down_from_triton_inter_vs_triton_out": {
+        "max_abs": 2.384185791015625e-07,
+        "mean_abs": 1.1641532182693481e-10,
+        "rel_l2": 3.17833439567039e-07,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "down_from_native_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "native_full_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_32_prompt_01_slot_packed.safetensors",
+      "layer_id": 32,
+      "prompt_id": 1,
+      "native_inter_ms": 0.04129279851913452,
+      "native_down_ms_from_triton_inter": 0.049446401000022885,
+      "native_full_ms": 0.09047039747238159,
+      "inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "down_from_triton_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "down_from_native_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "native_full_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_36_prompt_01_slot_packed.safetensors",
+      "layer_id": 36,
+      "prompt_id": 1,
+      "native_inter_ms": 0.0412992000579834,
+      "native_down_ms_from_triton_inter": 0.04944320023059845,
+      "native_full_ms": 0.09041280150413514,
+      "inter_vs_triton": {
+        "max_abs": 2.384185791015625e-07,
+        "mean_abs": 5.820766091346741e-11,
+        "rel_l2": 1.395688808969453e-08,
+        "cosine": 0.9999998807907104,
+        "exact": 0
+      },
+      "down_from_triton_inter_vs_triton_out": {
+        "max_abs": 1.1920928955078125e-07,
+        "mean_abs": 5.820766091346741e-11,
+        "rel_l2": 9.052725857827681e-08,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "down_from_native_inter_vs_triton_out": {
+        "max_abs": 1.1920928955078125e-07,
+        "mean_abs": 5.820766091346741e-11,
+        "rel_l2": 9.052725857827681e-08,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "native_full_vs_triton_out": {
+        "max_abs": 1.1920928955078125e-07,
+        "mean_abs": 5.820766091346741e-11,
+        "rel_l2": 9.052725857827681e-08,
+        "cosine": 1.0,
+        "exact": 0
+      }
+    },
+    {
+      "fixture_file": "layer_39_prompt_01_slot_packed.safetensors",
+      "layer_id": 39,
+      "prompt_id": 1,
+      "native_inter_ms": 0.04129599928855896,
+      "native_down_ms_from_triton_inter": 0.04939360022544861,
+      "native_full_ms": 0.09051520228385926,
+      "inter_vs_triton": {
+        "max_abs": 9.5367431640625e-07,
+        "mean_abs": 2.3283064365386963e-10,
+        "rel_l2": 3.910775703275249e-08,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "down_from_triton_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "down_from_native_inter_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "native_full_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    }
+  ]
+}

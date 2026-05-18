@@ -248,6 +248,84 @@ __global__ void down_weighted_sum_packed_nvfp4_kernel(
 
 // ─── Python entry point ───
 
+torch::Tensor lynn_native_moe_slot_packed_nvfp4_inter_probe(
+    torch::Tensor x,                        // [2048] BF16
+    torch::Tensor slot_gate_up_packed,      // [top_k, 1024, 1024] uint8
+    torch::Tensor slot_gate_up_scale,       // [top_k, 1024, 128] fp16
+    torch::Tensor slot_gate_up_global_scale // scalar fp16
+) {
+    TORCH_CHECK(x.is_cuda() && x.scalar_type() == torch::kBFloat16);
+    TORCH_CHECK(x.dim() == 1 && x.numel() == kHidden);
+    TORCH_CHECK(slot_gate_up_packed.is_cuda() && slot_gate_up_packed.scalar_type() == torch::kUInt8);
+    TORCH_CHECK(slot_gate_up_scale.is_cuda() && slot_gate_up_scale.scalar_type() == torch::kFloat16);
+    TORCH_CHECK(slot_gate_up_global_scale.is_cuda() && slot_gate_up_global_scale.scalar_type() == torch::kFloat16);
+    const int top_k = slot_gate_up_packed.size(0);
+    TORCH_CHECK(slot_gate_up_packed.size(1) == kGateUpRows && slot_gate_up_packed.size(2) == kHidden / 2);
+    TORCH_CHECK(slot_gate_up_scale.size(0) == top_k && slot_gate_up_scale.size(1) == kGateUpRows);
+    TORCH_CHECK(slot_gate_up_scale.size(2) == kHidden / kGroupSize);
+
+    auto inter = torch::empty({top_k, kIntermediate},
+        torch::TensorOptions().device(x.device()).dtype(torch::kBFloat16));
+
+    constexpr int TILE_I = 4;
+    constexpr int THREADS_S1 = 256;
+    dim3 grid_s1(top_k, (kIntermediate + TILE_I - 1) / TILE_I);
+    gate_up_packed_nvfp4_kernel<TILE_I, THREADS_S1><<<grid_s1, THREADS_S1>>>(
+        reinterpret_cast<const __nv_bfloat16*>(x.data_ptr<at::BFloat16>()),
+        slot_gate_up_packed.data_ptr<uint8_t>(),
+        reinterpret_cast<const __half*>(slot_gate_up_scale.data_ptr<at::Half>()),
+        reinterpret_cast<const __half*>(slot_gate_up_global_scale.data_ptr<at::Half>()),
+        reinterpret_cast<__nv_bfloat16*>(inter.data_ptr<at::BFloat16>()),
+        slot_gate_up_packed.stride(0), slot_gate_up_packed.stride(1), slot_gate_up_packed.stride(2),
+        slot_gate_up_scale.stride(0), slot_gate_up_scale.stride(1), slot_gate_up_scale.stride(2)
+    );
+    cudaError_t err = cudaGetLastError();
+    TORCH_CHECK(err == cudaSuccess, "moe_slot_packed_nvfp4_inter_probe failed: ", cudaGetErrorString(err));
+    return inter;
+}
+
+torch::Tensor lynn_native_moe_slot_packed_nvfp4_down_probe(
+    torch::Tensor inter,                    // [top_k, 512] BF16
+    torch::Tensor routing_weights,          // [top_k] float32
+    torch::Tensor slot_down_packed,         // [top_k, 2048, 256] uint8
+    torch::Tensor slot_down_scale,          // [top_k, 2048, 32] fp16
+    torch::Tensor slot_down_global_scale    // scalar fp16
+) {
+    TORCH_CHECK(inter.is_cuda() && inter.scalar_type() == torch::kBFloat16);
+    TORCH_CHECK(inter.dim() == 2 && inter.size(1) == kIntermediate);
+    TORCH_CHECK(routing_weights.is_cuda() && routing_weights.scalar_type() == torch::kFloat32);
+    TORCH_CHECK(slot_down_packed.is_cuda() && slot_down_packed.scalar_type() == torch::kUInt8);
+    TORCH_CHECK(slot_down_scale.is_cuda() && slot_down_scale.scalar_type() == torch::kFloat16);
+    TORCH_CHECK(slot_down_global_scale.is_cuda() && slot_down_global_scale.scalar_type() == torch::kFloat16);
+    const int top_k = inter.size(0);
+    TORCH_CHECK(routing_weights.size(0) == top_k);
+    TORCH_CHECK(slot_down_packed.size(0) == top_k && slot_down_packed.size(1) == kHidden);
+    TORCH_CHECK(slot_down_packed.size(2) == kIntermediate / 2);
+    TORCH_CHECK(slot_down_scale.size(0) == top_k && slot_down_scale.size(1) == kHidden);
+    TORCH_CHECK(slot_down_scale.size(2) == kIntermediate / kGroupSize);
+
+    auto out = torch::zeros({kHidden},
+        torch::TensorOptions().device(inter.device()).dtype(torch::kBFloat16));
+
+    constexpr int TILE_H = 8;
+    constexpr int THREADS_S2 = 256;
+    dim3 grid_s2((kHidden + TILE_H - 1) / TILE_H);
+    down_weighted_sum_packed_nvfp4_kernel<TILE_H, THREADS_S2><<<grid_s2, THREADS_S2>>>(
+        reinterpret_cast<const __nv_bfloat16*>(inter.data_ptr<at::BFloat16>()),
+        routing_weights.data_ptr<float>(),
+        slot_down_packed.data_ptr<uint8_t>(),
+        reinterpret_cast<const __half*>(slot_down_scale.data_ptr<at::Half>()),
+        reinterpret_cast<const __half*>(slot_down_global_scale.data_ptr<at::Half>()),
+        reinterpret_cast<__nv_bfloat16*>(out.data_ptr<at::BFloat16>()),
+        slot_down_packed.stride(0), slot_down_packed.stride(1), slot_down_packed.stride(2),
+        slot_down_scale.stride(0), slot_down_scale.stride(1), slot_down_scale.stride(2),
+        top_k
+    );
+    cudaError_t err = cudaGetLastError();
+    TORCH_CHECK(err == cudaSuccess, "moe_slot_packed_nvfp4_down_probe failed: ", cudaGetErrorString(err));
+    return out;
+}
+
 torch::Tensor lynn_native_moe_slot_packed_nvfp4_probe(
     torch::Tensor x,                        // [2048] BF16
     torch::Tensor routing_weights,          // [top_k] float32
