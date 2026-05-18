@@ -178,6 +178,12 @@ torch::Tensor lynn_native_moe_slot_packed_nvfp4_probe(
     torch::Tensor slot_gate_up_global_scale,
     torch::Tensor slot_down_packed, torch::Tensor slot_down_scale,
     torch::Tensor slot_down_global_scale);
+// P142 graph-safe pretransposed MoE V3
+torch::Tensor lynn_native_moe_packed_pretransposed_graphsafe_v3(
+    torch::Tensor x, torch::Tensor routing_weights,
+    torch::Tensor W_fused_T, torch::Tensor W_down_T,
+    torch::Tensor gate_up_scratch, torch::Tensor inter_scratch,
+    torch::Tensor down_scratch, torch::Tensor out);
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
   m.def("add_one", &lynn_native_add_one, "Lynn native CUDA extension smoke kernel");
@@ -273,4 +279,8 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
       "moe_slot_packed_nvfp4_probe",
       &lynn_native_moe_slot_packed_nvfp4_probe,
       "P140 packed NVFP4 slot MoE probe (correctness-first, scalar dequant)");
+  m.def(
+      "moe_packed_pretransposed_graphsafe_v3",
+      &lynn_native_moe_packed_pretransposed_graphsafe_v3,
+      "P142 graph-safe pretransposed MoE V3 (caller-owned scratch, no alloc)");
 }
