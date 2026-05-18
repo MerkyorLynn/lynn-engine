@@ -20,12 +20,22 @@ Keep large binary traffic separate from the canonical site:
 | Domain | Purpose |
 |---|---|
 | `engine.merkyorlynn.com` | docs, install page, release index |
-| `dl.merkyorlynn.com` | binary/model/download endpoint |
+| `dl.merkyorlynn.com` | resolved download domain for binaries, model bundles, and release artifacts |
 | `mirror.merkyorlynn.com` | domestic mirror endpoint if needed |
 
-The root install page should treat GitHub as source control and the mirror
-domain as delivery infrastructure. Do not make GitHub the only install path for
-China users.
+The root install page should treat GitHub as source control and
+`dl.merkyorlynn.com` as delivery infrastructure. Do not make GitHub the only
+install path for China users.
+
+Recommended URL shape:
+
+| URL | Use |
+|---|---|
+| `https://engine.merkyorlynn.com/install.sh` | small bootstrap installer |
+| `https://engine.merkyorlynn.com/docs` | docs and compatibility matrix |
+| `https://dl.merkyorlynn.com/releases/` | wheels, native binaries, Docker metadata |
+| `https://dl.merkyorlynn.com/models/` | quantized model bundles and manifests |
+| `https://dl.merkyorlynn.com/checksums/` | checksums and signatures |
 
 ## Target User Install Shape
 
@@ -103,4 +113,3 @@ Current R6000 gate anchor:
 
 The AMBER structured-fast profile is useful but should not be the default until
 its exact-greedy drift is accepted or fixed.
-
