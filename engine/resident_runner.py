@@ -233,6 +233,7 @@ class LynnIncrementalRunner:
         self.decode_linear_state_update = os.environ.get("LYNN_LINEAR_STATE_UPDATE", state_update_default)
         self.decode_fast_dispatch = os.environ.get("LYNN_DECODE_FAST_DISPATCH", "1") != "0"
         self.shared_expert_gate_up_fused_attached = 0
+        self.dense_ffn_gate_up_fused_attached = 0
         self.packed_nvfp4_moe_aliases_attached = 0
         self.moe_repack_sidecar_dir = os.environ.get("LYNN_MOE_REPACK_SIDECAR_DIR") or None
         self.moe_repack_sidecar_layers_attached = 0
@@ -302,6 +303,8 @@ class LynnIncrementalRunner:
             self._prepare_triton_moe_layout()
         if self.is_moe and os.environ.get("LYNN_SHARED_EXPERT_GATE_UP_FUSED", "1") != "0":
             self._prepare_shared_expert_gate_up_fused()
+        if (not self.is_moe) and os.environ.get("LYNN_DENSE_FFN_GATE_UP_FUSED", "0") == "1":
+            self._prepare_dense_ffn_gate_up_fused()
         if self.is_moe and impl == "packed_nvfp4":
             self._prepare_packed_nvfp4_moe_layout()
         if (
@@ -612,6 +615,33 @@ class LynnIncrementalRunner:
         self.shared_expert_gate_up_fused_attached = attached
         if self.verbose:
             print(f"[resident] shared expert fused gate/up attached={attached}", flush=True)
+
+    def _prepare_dense_ffn_gate_up_fused(self) -> None:
+        """Attach BF16 fused dense-FFN gate/up weights.
+
+        This is the resident version of P168 for Qwen3.5-9B dense. It keeps the
+        exact BF16 dense FFN contract while replacing the two gate/up GEMM
+        launches with one larger GEMM. The path is opt-in because it adds a
+        resident concatenated weight copy for each dense layer.
+        """
+        attached = 0
+        for w in self.layer_weights:
+            key = "mlp._gate_up_proj.weight"
+            if key in w:
+                continue
+            if "mlp.gate_proj.weight" not in w or "mlp.up_proj.weight" not in w:
+                continue
+            w[key] = torch.cat(
+                [
+                    w["mlp.gate_proj.weight"],
+                    w["mlp.up_proj.weight"],
+                ],
+                dim=0,
+            ).contiguous()
+            attached += 1
+        self.dense_ffn_gate_up_fused_attached = attached
+        if self.verbose:
+            print(f"[resident] dense FFN fused gate/up attached={attached}", flush=True)
 
     def _prepare_full_attn_qkv_fused(self) -> None:
         """Attach BF16 fused full-attention Q/K/V projection weights.

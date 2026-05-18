@@ -1,0 +1,272 @@
+{
+  "schema_version": "lynn-engine-p25-server-decode-tps-probe-v1",
+  "url": "http://127.0.0.1:18192/v1",
+  "model": "qwen35-9b-nvfp4-linear-graph",
+  "chat": true,
+  "prompt_chars": 66,
+  "results": [
+    {
+      "wall_s": 2.495694637298584,
+      "completion_tokens": 128,
+      "wall_tps": 51.28832593820496,
+      "metrics_tokens_per_second": 53.15123638018588,
+      "decode_tps": 61.03054468286268,
+      "prefill_seconds": 0.3112978935241699,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.30945634841918945,
+      "native_fp4_lm_head_enabled": false,
+      "decode_step_count": 127,
+      "decode_step_ms_mean": 16.38523800166573,
+      "decode_step_ms_median": 16.310453414916992,
+      "preview": "在大规模语言模型（LLM）的推理阶段，混合专家模型（MoE）因其稀疏激活特性而成为提升吞吐量的关键架构，然而其动态路由机制带来的控制流复杂性往往成为性能瓶颈。针对这一挑战，现代推理框架正通过深度结合硬件特性与编译优化技术来释放算力潜力，其中 NVFP4（基于 NVIDIA 硬件的 4 位浮点精度）与 CUDA Grap",
+      "max_tokens": 128,
+      "run_idx": 0
+    },
+    {
+      "wall_s": 2.1873106956481934,
+      "completion_tokens": 128,
+      "wall_tps": 58.519349928048584,
+      "metrics_tokens_per_second": 58.6079046467921,
+      "decode_tps": 61.55689362901508,
+      "prefill_seconds": 0.1127784252166748,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.30945634841918945,
+      "native_fp4_lm_head_enabled": false,
+      "decode_step_count": 127,
+      "decode_step_ms_mean": 16.24513423348975,
+      "decode_step_ms_median": 16.221046447753906,
+      "preview": "在大规模语言模型（LLM）的推理阶段，混合专家模型（MoE）因其稀疏激活特性而成为提升吞吐量的关键架构，然而其动态路由机制带来的控制流复杂性往往成为性能瓶颈。针对这一挑战，现代推理框架正通过深度结合硬件特性与编译优化技术来释放算力潜力，其中 NVFP4（基于 NVIDIA 硬件的 4 位浮点精度）与 CUDA Grap",
+      "max_tokens": 128,
+      "run_idx": 1
+    },
+    {
+      "wall_s": 2.187966823577881,
+      "completion_tokens": 128,
+      "wall_tps": 58.501801133660486,
+      "metrics_tokens_per_second": 58.61998651306939,
+      "decode_tps": 61.651735843985904,
+      "prefill_seconds": 0.11534881591796875,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.30945634841918945,
+      "native_fp4_lm_head_enabled": false,
+      "decode_step_count": 127,
+      "decode_step_ms_mean": 16.220143460851954,
+      "decode_step_ms_median": 16.201496124267578,
+      "preview": "在大规模语言模型（LLM）的推理阶段，混合专家模型（MoE）因其稀疏激活特性而成为提升吞吐量的关键架构，然而其动态路由机制带来的控制流复杂性往往成为性能瓶颈。针对这一挑战，现代推理框架正通过深度结合硬件特性与编译优化技术来释放算力潜力，其中 NVFP4（基于 NVIDIA 硬件的 4 位浮点精度）与 CUDA Grap",
+      "max_tokens": 128,
+      "run_idx": 2
+    },
+    {
+      "wall_s": 4.260412693023682,
+      "completion_tokens": 256,
+      "wall_tps": 60.088075603378414,
+      "metrics_tokens_per_second": 60.182673333864685,
+      "decode_tps": 61.87849916911774,
+      "prefill_seconds": 0.11761641502380371,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.30945634841918945,
+      "native_fp4_lm_head_enabled": false,
+      "decode_step_count": 255,
+      "decode_step_ms_mean": 16.16070223789589,
+      "decode_step_ms_median": 16.158342361450195,
+      "preview": "在大规模语言模型（LLM）的推理阶段，混合专家模型（MoE）因其稀疏激活特性而成为提升吞吐量的关键架构，然而其动态路由机制带来的控制流复杂性往往成为性能瓶颈。针对这一挑战，现代推理框架正通过深度结合硬件特性与编译优化技术来释放算力潜力，其中 NVFP4（基于 NVIDIA 硬件的 4 位浮点精度）与 CUDA Grap",
+      "max_tokens": 256,
+      "run_idx": 0
+    },
+    {
+      "wall_s": 4.2388410568237305,
+      "completion_tokens": 256,
+      "wall_tps": 60.39386628755248,
+      "metrics_tokens_per_second": 60.468125917024764,
+      "decode_tps": 62.09740202283968,
+      "prefill_seconds": 0.1131598949432373,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.30945634841918945,
+      "native_fp4_lm_head_enabled": false,
+      "decode_step_count": 255,
+      "decode_step_ms_mean": 16.1037332871381,
+      "decode_step_ms_median": 16.09659194946289,
+      "preview": "在大规模语言模型（LLM）的推理阶段，混合专家模型（MoE）因其稀疏激活特性而成为提升吞吐量的关键架构，然而其动态路由机制带来的控制流复杂性往往成为性能瓶颈。针对这一挑战，现代推理框架正通过深度结合硬件特性与编译优化技术来释放算力潜力，其中 NVFP4（基于 NVIDIA 硬件的 4 位浮点精度）与 CUDA Grap",
+      "max_tokens": 256,
+      "run_idx": 1
+    },
+    {
+      "wall_s": 4.242877960205078,
+      "completion_tokens": 256,
+      "wall_tps": 60.33640429941245,
+      "metrics_tokens_per_second": 60.41878620758731,
+      "decode_tps": 62.061524347838954,
+      "prefill_seconds": 0.11264967918395996,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.30945634841918945,
+      "native_fp4_lm_head_enabled": false,
+      "decode_step_count": 255,
+      "decode_step_ms_mean": 16.1130428314209,
+      "decode_step_ms_median": 16.106128692626953,
+      "preview": "在大规模语言模型（LLM）的推理阶段，混合专家模型（MoE）因其稀疏激活特性而成为提升吞吐量的关键架构，然而其动态路由机制带来的控制流复杂性往往成为性能瓶颈。针对这一挑战，现代推理框架正通过深度结合硬件特性与编译优化技术来释放算力潜力，其中 NVFP4（基于 NVIDIA 硬件的 4 位浮点精度）与 CUDA Grap",
+      "max_tokens": 256,
+      "run_idx": 2
+    },
+    {
+      "wall_s": 8.413135766983032,
+      "completion_tokens": 512,
+      "wall_tps": 60.857213550424405,
+      "metrics_tokens_per_second": 60.914096457518355,
+      "decode_tps": 61.827693873246915,
+      "prefill_seconds": 0.11272549629211426,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.30945634841918945,
+      "native_fp4_lm_head_enabled": false,
+      "decode_step_count": 511,
+      "decode_step_ms_mean": 16.17398187372316,
+      "decode_step_ms_median": 16.149520874023438,
+      "preview": "在大规模语言模型（LLM）的推理阶段，混合专家模型（MoE）因其稀疏激活特性而成为提升吞吐量的关键架构，然而其动态路由机制带来的控制流复杂性往往成为性能瓶颈。针对这一挑战，现代推理框架正通过深度结合硬件特性与编译优化技术来释放算力潜力，其中 NVFP4（基于 NVIDIA 硬件的 4 位浮点精度）与 CUDA Grap",
+      "max_tokens": 512,
+      "run_idx": 0
+    },
+    {
+      "wall_s": 8.409611225128174,
+      "completion_tokens": 512,
+      "wall_tps": 60.88271934261699,
+      "metrics_tokens_per_second": 60.943506542672246,
+      "decode_tps": 61.860587541406794,
+      "prefill_seconds": 0.11278676986694336,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.30945634841918945,
+      "native_fp4_lm_head_enabled": false,
+      "decode_step_count": 511,
+      "decode_step_ms_mean": 16.165381541690717,
+      "decode_step_ms_median": 16.145706176757812,
+      "preview": "在大规模语言模型（LLM）的推理阶段，混合专家模型（MoE）因其稀疏激活特性而成为提升吞吐量的关键架构，然而其动态路由机制带来的控制流复杂性往往成为性能瓶颈。针对这一挑战，现代推理框架正通过深度结合硬件特性与编译优化技术来释放算力潜力，其中 NVFP4（基于 NVIDIA 硬件的 4 位浮点精度）与 CUDA Grap",
+      "max_tokens": 512,
+      "run_idx": 1
+    },
+    {
+      "wall_s": 8.409363746643066,
+      "completion_tokens": 512,
+      "wall_tps": 60.88451105523712,
+      "metrics_tokens_per_second": 60.94241350708708,
+      "decode_tps": 61.84978389549784,
+      "prefill_seconds": 0.11307883262634277,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.30945634841918945,
+      "native_fp4_lm_head_enabled": false,
+      "decode_step_count": 511,
+      "decode_step_ms_mean": 16.168205238834986,
+      "decode_step_ms_median": 16.149044036865234,
+      "preview": "在大规模语言模型（LLM）的推理阶段，混合专家模型（MoE）因其稀疏激活特性而成为提升吞吐量的关键架构，然而其动态路由机制带来的控制流复杂性往往成为性能瓶颈。针对这一挑战，现代推理框架正通过深度结合硬件特性与编译优化技术来释放算力潜力，其中 NVFP4（基于 NVIDIA 硬件的 4 位浮点精度）与 CUDA Grap",
+      "max_tokens": 512,
+      "run_idx": 2
+    }
+  ],
+  "summary_by_max_tokens": {
+    "128": {
+      "runs": 3,
+      "wall_tps": {
+        "mean": 56.10315899997134,
+        "median": 58.501801133660486,
+        "min": 51.28832593820496,
+        "max": 58.519349928048584
+      },
+      "metrics_tokens_per_second": {
+        "mean": 56.79304251334912,
+        "median": 58.6079046467921,
+        "min": 53.15123638018588,
+        "max": 58.61998651306939
+      },
+      "decode_tps": {
+        "mean": 61.41305805195456,
+        "median": 61.55689362901508,
+        "min": 61.03054468286268,
+        "max": 61.651735843985904
+      },
+      "prefill_seconds": {
+        "mean": 0.1798083782196045,
+        "median": 0.11534881591796875,
+        "min": 0.1127784252166748,
+        "max": 0.3112978935241699
+      },
+      "decode_step_ms_median": {
+        "mean": 16.24433199564616,
+        "median": 16.221046447753906,
+        "min": 16.201496124267578,
+        "max": 16.310453414916992
+      }
+    },
+    "256": {
+      "runs": 3,
+      "wall_tps": {
+        "mean": 60.27278206344778,
+        "median": 60.33640429941245,
+        "min": 60.088075603378414,
+        "max": 60.39386628755248
+      },
+      "metrics_tokens_per_second": {
+        "mean": 60.35652848615892,
+        "median": 60.41878620758731,
+        "min": 60.182673333864685,
+        "max": 60.468125917024764
+      },
+      "decode_tps": {
+        "mean": 62.012475179932125,
+        "median": 62.061524347838954,
+        "min": 61.87849916911774,
+        "max": 62.09740202283968
+      },
+      "prefill_seconds": {
+        "mean": 0.11447532971700032,
+        "median": 0.1131598949432373,
+        "min": 0.11264967918395996,
+        "max": 0.11761641502380371
+      },
+      "decode_step_ms_median": {
+        "mean": 16.120354334513348,
+        "median": 16.106128692626953,
+        "min": 16.09659194946289,
+        "max": 16.158342361450195
+      }
+    },
+    "512": {
+      "runs": 3,
+      "wall_tps": {
+        "mean": 60.87481464942617,
+        "median": 60.88271934261699,
+        "min": 60.857213550424405,
+        "max": 60.88451105523712
+      },
+      "metrics_tokens_per_second": {
+        "mean": 60.93333883575923,
+        "median": 60.94241350708708,
+        "min": 60.914096457518355,
+        "max": 60.943506542672246
+      },
+      "decode_tps": {
+        "mean": 61.84602177005052,
+        "median": 61.84978389549784,
+        "min": 61.827693873246915,
+        "max": 61.860587541406794
+      },
+      "prefill_seconds": {
+        "mean": 0.11286369959513347,
+        "median": 0.11278676986694336,
+        "min": 0.11272549629211426,
+        "max": 0.11307883262634277
+      },
+      "decode_step_ms_median": {
+        "mean": 16.148090362548828,
+        "median": 16.149044036865234,
+        "min": 16.145706176757812,
+        "max": 16.149520874023438
+      }
+    }
+  }
+}

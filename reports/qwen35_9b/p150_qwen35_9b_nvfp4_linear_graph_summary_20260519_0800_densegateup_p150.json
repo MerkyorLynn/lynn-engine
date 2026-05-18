@@ -1,0 +1,21 @@
+{
+  "schema": "lynn-qwen35-9b-nvfp4-linear-graph-serving-gate-v1",
+  "p25": "/root/autodl-tmp/reports/qwen35_9b/p150_qwen35_9b_nvfp4_linear_graph_p25_20260519_0800_densegateup_p150.json",
+  "decode_tps": {
+    "128": 61.41305805195456,
+    "256": 62.012475179932125,
+    "512": 61.84602177005052
+  },
+  "linear_block_graph_reused_values": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+  ],
+  "verdict": "P25_READY"
+}

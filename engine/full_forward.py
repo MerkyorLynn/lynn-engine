@@ -185,8 +185,13 @@ def _moe_forward(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
 
 def _dense_ffn_forward(h: torch.Tensor, w: dict) -> torch.Tensor:
     """Dense Qwen FFN: down_proj(silu(gate_proj(x)) * up_proj(x))."""
-    gate = F.linear(h, w["mlp.gate_proj.weight"])
-    up = F.linear(h, w["mlp.up_proj.weight"])
+    fused = w.get("mlp._gate_up_proj.weight")
+    if fused is not None:
+        gate_up = F.linear(h, fused)
+        gate, up = gate_up.chunk(2, dim=-1)
+    else:
+        gate = F.linear(h, w["mlp.gate_proj.weight"])
+        up = F.linear(h, w["mlp.up_proj.weight"])
     return F.linear(F.silu(gate) * up, w["mlp.down_proj.weight"])
 
 
