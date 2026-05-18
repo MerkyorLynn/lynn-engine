@@ -407,6 +407,18 @@ they still inherit the P37 exact-greedy drift from both the shared-gate and pure
 Triton conv reorderings. Default promote remains the stricter
 `triton_torch_silu` conv plus Torch shared gate path.
 
+A longer 70-request structured gate on the fastest AMBER profile
+(`shared-gate Triton + conv Triton inplace`) stayed format-clean:
+
+| Probe | Result |
+|---|---:|
+| Structured requests | GREEN, 70/70 |
+| Mean decode TPS | 110.38 |
+| Min / max decode TPS | 101.25 / 111.41 |
+
+So this branch is viable as a controlled structured-serving fast mode, but it
+still must remain opt-in because exact greedy parity is known to drift.
+
 `LYNN_SHARED_EXPERT_GATE_BACKEND=torch_inplace` was also checked as a safer
 middle ground. It keeps Torch `F.linear + sigmoid` for the scalar gate and only
 applies the final multiply in-place:
@@ -435,6 +447,7 @@ Copied reports:
 - `reports/qwen36_35b/structured_gate_amber_sharedgate_triton_20260518_085130.json`
 - `reports/qwen36_35b/p25_amber_sharedgate_triton_inplace_20260518_085210.json`
 - `reports/qwen36_35b/structured_gate_amber_sharedgate_triton_inplace_20260518_085210.json`
+- `reports/qwen36_35b/structured_gate_amber70_sharedgate_triton_convinplace_20260518_091420.json`
 - `reports/qwen36_35b/p37_shared_gate_torch_inplace_20260518_090215.json`
 - `reports/qwen36_35b/p25_shared_gate_torch_inplace_20260518_091020.json`
 - `reports/qwen36_35b/structured_gate_shared_gate_torch_inplace_20260518_091050.json`
