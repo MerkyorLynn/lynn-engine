@@ -345,7 +345,9 @@ can either plug in a Python backend or write precomputed safetensors into a
 candidate-output directory and let P134 compare them without loading layer
 weights.  Output-owned/non-atomic routed-MoE candidates should start with
 `--routed-only` against `routed_output`, then graduate to full MoE output after
-the routed path is strict.
+the routed path is strict.  `scripts/r6000_qwen36_moe_fixture_gate.sh` wraps this
+into the standard first gate and writes a `.summary.json` traffic light:
+`CLOSED_NUMERIC`, `PASS_NUMERIC_ONLY`, `PASS_SLOW`, or `FAST_CANDIDATE`.
 
 Artifacts:
 
@@ -353,6 +355,7 @@ Artifacts:
 - `benchmarks/p134_active_moe_fixture_contract.py`
 - `scripts/r6000_export_qwen36_moe_fixtures.sh`
 - `scripts/r6000_qwen36_moe_fixture_gate.sh`
+- `scripts/summarize_qwen36_moe_fixture_gate.py`
 - `reports/qwen36_35b/p133_fixtures_official_w4a16/manifest.json`
 - `reports/qwen36_35b/p134_triton_selfcheck_report.json`
 - `reports/qwen36_35b/p134_candidate_output_selfcheck_report.json`

@@ -99,6 +99,25 @@ Thresholds for native kernel acceptance:
 - `cosine > 0.999` (strong correlation)
 - `rel_l2 < 0.05` (relative error within 5%)
 
+### Mode 5: Wrapper Summary
+
+```bash
+ROUTED_ONLY=1 \
+CANDIDATE_OUTPUT_DIR=/path/to/native_outputs \
+bash scripts/r6000_qwen36_moe_fixture_gate.sh
+```
+
+The wrapper writes both the raw p134 report and a `.summary.json` traffic-light
+decision.  Summary decisions are:
+
+| Decision | Meaning |
+|---|---|
+| `BASELINE_REFERENCE` | self-check report, useful as timing/reference only |
+| `PASS_NUMERIC_ONLY` | candidate outputs are numerically clean but carry no latency |
+| `FAST_CANDIDATE` | candidate is numerically clean and beats the configured speedup bar |
+| `PASS_SLOW` | candidate is numerically clean but not worth service gates yet |
+| `CLOSED_NUMERIC` | contract failed; do not run P37/P25 |
+
 ## Contract Metrics
 
 | Metric | Formula | Purpose |

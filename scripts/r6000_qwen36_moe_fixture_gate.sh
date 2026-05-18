@@ -47,6 +47,9 @@ MAX_ABS_THRESHOLD="${MAX_ABS_THRESHOLD:-0.0}"
 COSINE_THRESHOLD="${COSINE_THRESHOLD:-0.999999}"
 WARMUP="${WARMUP:-3}"
 ITERS="${ITERS:-10}"
+SUMMARY_OUT="${SUMMARY_OUT:-${OUT%.json}.summary.json}"
+MIN_SPEEDUP="${MIN_SPEEDUP:-1.05}"
+ALLOW_NONEXACT="${ALLOW_NONEXACT:-0}"
 
 if [ -n "${CANDIDATE_BACKEND}" ] && [ -n "${CANDIDATE_OUTPUT_DIR}" ]; then
     echo "ERROR: set only one of CANDIDATE_BACKEND or CANDIDATE_OUTPUT_DIR" >&2
@@ -80,6 +83,7 @@ echo " Candidate:  ${CANDIDATE_LABEL}"
 echo " Mode:       ${MODE_LABEL}"
 echo " Thresholds: max_abs<=${MAX_ABS_THRESHOLD}, cosine>=${COSINE_THRESHOLD}"
 echo " Output:     ${OUT}"
+echo " Summary:    ${SUMMARY_OUT}"
 echo ""
 
 if [ ! -d "${REPO_DIR}" ]; then
@@ -142,5 +146,19 @@ else
     echo "VERDICT: RED — fixture gate failed"
 fi
 echo "Report: ${OUT}"
+
+if [ -f scripts/summarize_qwen36_moe_fixture_gate.py ] && [ -f "${OUT}" ]; then
+    SUMMARY_ARGS=(
+        scripts/summarize_qwen36_moe_fixture_gate.py
+        "${OUT}"
+        --out "${SUMMARY_OUT}"
+        --min-speedup "${MIN_SPEEDUP}"
+    )
+    if [ "${ALLOW_NONEXACT}" = "1" ]; then
+        SUMMARY_ARGS+=(--allow-nonexact)
+    fi
+    "${PY}" "${SUMMARY_ARGS[@]}" || true
+    echo "Summary: ${SUMMARY_OUT}"
+fi
 
 exit "${EXIT_CODE}"
