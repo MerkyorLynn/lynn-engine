@@ -153,6 +153,43 @@ Sample card output (DEFAULT scenario):
 | `qwen36_candidate_env_rope_cache_default.env` | GREEN (byte-equivalent) | 40/40 | DEFAULT-eligible |
 | `qwen36_candidate_env_amber_sharedgate_convinplace.env` (Codex) | RED (known) | 40/40 (verified 2026-05-18, P25 114.04) | AMBER-only |
 | `qwen36_candidate_env_rope_cache_plus_amber.env` | RED (inherits amber) | 40/40 (expected) | AMBER-only — does rope stacking lift P25 above 118? |
+| `qwen36_candidate_env_full_token_graph_slot_baseline.env` | GREEN (graph replay = byte-identical) | 40/40 (expected) | research_artifact_only — measure capture-per-token cost to bound the per-layer reuse pool upside |
+
+## Strategic reframe after R6000 llama.cpp baseline (2026-05-18 evening)
+
+`llama.cpp:server-cuda` on R6000 with the Q4_K_M-imatrix GGUF lands at
+**207 TPS short-ctx single-stream** / **501 TPS c=8 total** / **84 wall TPS**
+at 11.6k long-ctx. Lynn-native W4A16 NVFP4 on the same R6000 sits at
+**116.9 TPS** — a **~90-TPS gap** that is structural, not Python plumbing.
+
+The gap is **kernel-launch + boundary fragmentation** on the 10 full-attn
+layers (still eager in the safe-default decode loop), not host gap
+(0.16 ms/token already). Sprint target 118 TPS stays as a tactical
+AMBER bar, but the **real Stream B bar is the 117 → 207 closure**.
+
+The owned-module scaffolds (`full_attn_decode_workspace.py`,
+`full_attn_mask_cache.py`) and the report-card / sweep tooling stay valid
+— they cover plumbing + promotion discipline. They are **not** the
+90-TPS lever.
+
+The 90-TPS lever has its own dedicated spec:
+`STREAM_B_FULL_ATTN_LAYER_GRAPH_REUSE_SPEC_20260518.md`. Summary:
+
+* `_capture_full_attn_layer_graph_slot` already exists as a scaffold
+  (`engine/resident_runner.py:766`), used by `p9v` and `p9q` probes
+  but **not wired into the decode loop**.
+* Decode-loop branch 3 (linear blocks replay + full-attn eager) is the
+  current safe-default Spark Config D path. The spec defines a
+  `_get_reusable_full_attn_layer_graph_slots(...)` analog of
+  `_get_reusable_linear_block_graphs(...)` so every layer in the safe
+  route becomes a CUDA-graph replay end-to-end.
+* Bucket-aligned recapture (default 256 tokens, env
+  `LYNN_FULL_ATTN_LAYER_GRAPH_BUCKET`) keeps capture cost amortised.
+* New env `LYNN_FULL_ATTN_LAYER_GRAPH_POOL=1` gates the path; default
+  0 until DEFAULT promote bar passes (P37 3/3 + structured 40/40 +
+  P25 512 ≥ 108).
+* Implementation deferred until the R6000 baseline candidate above
+  produces a P25 number that lets us size the upside window.
 
 ## Negative list (do not retry, per plan doc)
 
