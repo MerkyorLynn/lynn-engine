@@ -191,6 +191,9 @@ def main() -> int:
 
     started = time.time()
     tok = AutoTokenizer.from_pretrained(args.model, trust_remote_code=True)
+    tok.padding_side = "left"
+    if tok.pad_token_id is None:
+        tok.pad_token_id = tok.eos_token_id
     model = AutoModelForCausalLM.from_pretrained(args.model, dtype=torch.bfloat16, device_map="cuda", trust_remote_code=True)
     model.eval()
 
