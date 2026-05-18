@@ -1,0 +1,157 @@
+{
+  "candidate": "moe_packed_pretransposed_graphsafe_v3",
+  "created": "2026-05-18T23:34:23",
+  "max_max_abs": 0.001953125,
+  "min_cosine": 0.9999876022338867,
+  "avg_latency_ms": 0.04404271973503961,
+  "max_latency_ms": 0.045031742095947264,
+  "precision_ok": true,
+  "latency_ok": true,
+  "verdict": "AMBER_GRAPHSAFE",
+  "results": [
+    {
+      "layer_id": 0,
+      "prompt_id": 0,
+      "max_abs": 0.000244140625,
+      "mean_abs": 3.007916166097857e-05,
+      "cosine": 0.9999899864196777,
+      "candidate_ms": 0.045031742095947264
+    },
+    {
+      "layer_id": 4,
+      "prompt_id": 0,
+      "max_abs": 0.00048828125,
+      "mean_abs": 2.9697264835704118e-05,
+      "cosine": 0.9999876022338867,
+      "candidate_ms": 0.04410022354125977
+    },
+    {
+      "layer_id": 8,
+      "prompt_id": 0,
+      "max_abs": 0.00048828125,
+      "mean_abs": 1.4838355127722025e-05,
+      "cosine": 0.9999883770942688,
+      "candidate_ms": 0.04406924819946289
+    },
+    {
+      "layer_id": 16,
+      "prompt_id": 0,
+      "max_abs": 3.0517578125e-05,
+      "mean_abs": 2.31219019042328e-06,
+      "cosine": 0.9999899864196777,
+      "candidate_ms": 0.044894142150878905
+    },
+    {
+      "layer_id": 20,
+      "prompt_id": 0,
+      "max_abs": 6.103515625e-05,
+      "mean_abs": 5.061756382929161e-06,
+      "cosine": 0.9999909996986389,
+      "candidate_ms": 0.043221824645996096
+    },
+    {
+      "layer_id": 28,
+      "prompt_id": 0,
+      "max_abs": 0.000244140625,
+      "mean_abs": 4.568625172396423e-06,
+      "cosine": 0.9999912977218628,
+      "candidate_ms": 0.04484518432617188
+    },
+    {
+      "layer_id": 32,
+      "prompt_id": 0,
+      "max_abs": 0.00048828125,
+      "mean_abs": 6.343175482470542e-05,
+      "cosine": 0.999988853931427,
+      "candidate_ms": 0.04313190460205078
+    },
+    {
+      "layer_id": 36,
+      "prompt_id": 0,
+      "max_abs": 0.001953125,
+      "mean_abs": 0.0001470870920456946,
+      "cosine": 0.9999884963035583,
+      "candidate_ms": 0.04413516616821289
+    },
+    {
+      "layer_id": 39,
+      "prompt_id": 0,
+      "max_abs": 0.001953125,
+      "mean_abs": 0.00023718178272247314,
+      "cosine": 0.999988853931427,
+      "candidate_ms": 0.044706558227539064
+    },
+    {
+      "layer_id": 0,
+      "prompt_id": 1,
+      "max_abs": 0.0001220703125,
+      "mean_abs": 9.464150934945792e-06,
+      "cosine": 0.9999889135360718,
+      "candidate_ms": 0.04347129440307617
+    },
+    {
+      "layer_id": 4,
+      "prompt_id": 1,
+      "max_abs": 0.000244140625,
+      "mean_abs": 2.0367049728520215e-05,
+      "cosine": 0.9999880790710449,
+      "candidate_ms": 0.04340576171875
+    },
+    {
+      "layer_id": 8,
+      "prompt_id": 1,
+      "max_abs": 0.00048828125,
+      "mean_abs": 4.3690932216122746e-05,
+      "cosine": 0.9999896883964539,
+      "candidate_ms": 0.044857086181640624
+    },
+    {
+      "layer_id": 16,
+      "prompt_id": 1,
+      "max_abs": 0.00048828125,
+      "mean_abs": 4.734029062092304e-05,
+      "cosine": 0.9999886751174927,
+      "candidate_ms": 0.043563201904296876
+    },
+    {
+      "layer_id": 20,
+      "prompt_id": 1,
+      "max_abs": 0.00048828125,
+      "mean_abs": 5.5233482271432877e-05,
+      "cosine": 0.9999884963035583,
+      "candidate_ms": 0.0433422737121582
+    },
+    {
+      "layer_id": 28,
+      "prompt_id": 1,
+      "max_abs": 0.00048828125,
+      "mean_abs": 4.6727844164706767e-05,
+      "cosine": 0.9999896287918091,
+      "candidate_ms": 0.04501996612548828
+    },
+    {
+      "layer_id": 32,
+      "prompt_id": 1,
+      "max_abs": 0.0009765625,
+      "mean_abs": 7.921369979158044e-05,
+      "cosine": 0.9999898672103882,
+      "candidate_ms": 0.044116481781005856
+    },
+    {
+      "layer_id": 36,
+      "prompt_id": 1,
+      "max_abs": 0.0009765625,
+      "mean_abs": 8.474746573483571e-05,
+      "cosine": 0.9999887347221375,
+      "candidate_ms": 0.043307647705078126
+    },
+    {
+      "layer_id": 39,
+      "prompt_id": 1,
+      "max_abs": 0.001953125,
+      "mean_abs": 0.00013787284842692316,
+      "cosine": 0.9999911785125732,
+      "candidate_ms": 0.04354924774169922
+    }
+  ]
+}
