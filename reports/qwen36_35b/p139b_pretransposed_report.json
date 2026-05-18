@@ -1,0 +1,212 @@
+{
+  "candidate": "native_slot_tensorcore_pretransposed",
+  "created": "2026-05-18T22:36:48",
+  "max_max_abs": 0.001953125,
+  "min_cosine": 0.9999890923500061,
+  "avg_latency_ms": 0.052475210189819335,
+  "max_latency_ms": 0.05313561630249024,
+  "triton_baseline_ms": 0.059,
+  "latency_ok": true,
+  "precision_ok": true,
+  "verdict": "AMBER_FAST_PRETRANSPOSED",
+  "results": [
+    {
+      "fixture": "layer_00_prompt_00_slots.safetensors",
+      "layer_id": 0,
+      "prompt_id": 0,
+      "max_abs": 0.000244140625,
+      "mean_abs": 2.8268899768590927e-05,
+      "rel_l2": 0.004328362178057432,
+      "cosine": 0.9999906420707703,
+      "exact": 0,
+      "candidate_ms": 0.05305484771728516
+    },
+    {
+      "fixture": "layer_04_prompt_00_slots.safetensors",
+      "layer_id": 4,
+      "prompt_id": 0,
+      "max_abs": 0.00048828125,
+      "mean_abs": 2.6627792976796627e-05,
+      "rel_l2": 0.0046541704796254635,
+      "cosine": 0.9999890923500061,
+      "exact": 0,
+      "candidate_ms": 0.05170956802368164
+    },
+    {
+      "fixture": "layer_08_prompt_00_slots.safetensors",
+      "layer_id": 8,
+      "prompt_id": 0,
+      "max_abs": 0.0001220703125,
+      "mean_abs": 1.3370532542467117e-05,
+      "rel_l2": 0.004270776640623808,
+      "cosine": 0.9999909400939941,
+      "exact": 0,
+      "candidate_ms": 0.05229049682617187
+    },
+    {
+      "fixture": "layer_16_prompt_00_slots.safetensors",
+      "layer_id": 16,
+      "prompt_id": 0,
+      "max_abs": 3.0517578125e-05,
+      "mean_abs": 2.075335942208767e-06,
+      "rel_l2": 0.004271228332072496,
+      "cosine": 0.9999908804893494,
+      "exact": 0,
+      "candidate_ms": 0.05302399826049805
+    },
+    {
+      "fixture": "layer_20_prompt_00_slots.safetensors",
+      "layer_id": 20,
+      "prompt_id": 0,
+      "max_abs": 6.103515625e-05,
+      "mean_abs": 4.598172381520271e-06,
+      "rel_l2": 0.004101096652448177,
+      "cosine": 0.9999916553497314,
+      "exact": 0,
+      "candidate_ms": 0.05280691146850586
+    },
+    {
+      "fixture": "layer_28_prompt_00_slots.safetensors",
+      "layer_id": 28,
+      "prompt_id": 0,
+      "max_abs": 0.0001220703125,
+      "mean_abs": 3.820721758529544e-06,
+      "rel_l2": 0.0034223105758428574,
+      "cosine": 0.999994158744812,
+      "exact": 0,
+      "candidate_ms": 0.053133567810058596
+    },
+    {
+      "fixture": "layer_32_prompt_00_slots.safetensors",
+      "layer_id": 32,
+      "prompt_id": 0,
+      "max_abs": 0.00048828125,
+      "mean_abs": 5.6424178183078766e-05,
+      "rel_l2": 0.004428857006132603,
+      "cosine": 0.9999902248382568,
+      "exact": 0,
+      "candidate_ms": 0.05228262329101562
+    },
+    {
+      "fixture": "layer_36_prompt_00_slots.safetensors",
+      "layer_id": 36,
+      "prompt_id": 0,
+      "max_abs": 0.0009765625,
+      "mean_abs": 0.00013691303320229053,
+      "rel_l2": 0.004591941833496094,
+      "cosine": 0.9999895095825195,
+      "exact": 0,
+      "candidate_ms": 0.05152185440063477
+    },
+    {
+      "fixture": "layer_39_prompt_00_slots.safetensors",
+      "layer_id": 39,
+      "prompt_id": 0,
+      "max_abs": 0.001953125,
+      "mean_abs": 0.0002107981126755476,
+      "rel_l2": 0.004491174593567848,
+      "cosine": 0.999989926815033,
+      "exact": 0,
+      "candidate_ms": 0.05126847839355469
+    },
+    {
+      "fixture": "layer_00_prompt_01_slots.safetensors",
+      "layer_id": 0,
+      "prompt_id": 1,
+      "max_abs": 0.0001220703125,
+      "mean_abs": 8.593895472586155e-06,
+      "rel_l2": 0.00448481272906065,
+      "cosine": 0.9999899864196777,
+      "exact": 0,
+      "candidate_ms": 0.05264569473266602
+    },
+    {
+      "fixture": "layer_04_prompt_01_slots.safetensors",
+      "layer_id": 4,
+      "prompt_id": 1,
+      "max_abs": 0.000244140625,
+      "mean_abs": 1.7753220163285732e-05,
+      "rel_l2": 0.004565885756164789,
+      "cosine": 0.9999896883964539,
+      "exact": 0,
+      "candidate_ms": 0.05309747314453125
+    },
+    {
+      "fixture": "layer_08_prompt_01_slots.safetensors",
+      "layer_id": 8,
+      "prompt_id": 1,
+      "max_abs": 0.00048828125,
+      "mean_abs": 3.882497549057007e-05,
+      "rel_l2": 0.004339572042226791,
+      "cosine": 0.9999904632568359,
+      "exact": 0,
+      "candidate_ms": 0.05128915023803711
+    },
+    {
+      "fixture": "layer_16_prompt_01_slots.safetensors",
+      "layer_id": 16,
+      "prompt_id": 1,
+      "max_abs": 0.00048828125,
+      "mean_abs": 4.1517894715070724e-05,
+      "rel_l2": 0.004465851467102766,
+      "cosine": 0.999989926815033,
+      "exact": 0,
+      "candidate_ms": 0.05294124984741211
+    },
+    {
+      "fixture": "layer_20_prompt_01_slots.safetensors",
+      "layer_id": 20,
+      "prompt_id": 1,
+      "max_abs": 0.00048828125,
+      "mean_abs": 4.79784794151783e-05,
+      "rel_l2": 0.004433224443346262,
+      "cosine": 0.9999902844429016,
+      "exact": 0,
+      "candidate_ms": 0.05308550262451172
+    },
+    {
+      "fixture": "layer_28_prompt_01_slots.safetensors",
+      "layer_id": 28,
+      "prompt_id": 1,
+      "max_abs": 0.00048828125,
+      "mean_abs": 3.9428938180208206e-05,
+      "rel_l2": 0.004202290903776884,
+      "cosine": 0.999991238117218,
+      "exact": 0,
+      "candidate_ms": 0.05313561630249024
+    },
+    {
+      "fixture": "layer_32_prompt_01_slots.safetensors",
+      "layer_id": 32,
+      "prompt_id": 1,
+      "max_abs": 0.000732421875,
+      "mean_abs": 7.140450179576874e-05,
+      "rel_l2": 0.004263890907168388,
+      "cosine": 0.9999909400939941,
+      "exact": 0,
+      "candidate_ms": 0.05279391860961914
+    },
+    {
+      "fixture": "layer_36_prompt_01_slots.safetensors",
+      "layer_id": 36,
+      "prompt_id": 1,
+      "max_abs": 0.000732421875,
+      "mean_abs": 7.595401257276535e-05,
+      "rel_l2": 0.004454063717275858,
+      "cosine": 0.9999901652336121,
+      "exact": 0,
+      "candidate_ms": 0.051380287170410155
+    },
+    {
+      "fixture": "layer_39_prompt_01_slots.safetensors",
+      "layer_id": 39,
+      "prompt_id": 1,
+      "max_abs": 0.001953125,
+      "mean_abs": 0.00012432364746928215,
+      "rel_l2": 0.003985370043665171,
+      "cosine": 0.9999920725822449,
+      "exact": 0,
+      "candidate_ms": 0.05309254455566406
+    }
+  ]
+}
