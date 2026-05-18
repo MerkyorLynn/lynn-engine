@@ -83,6 +83,16 @@ def _runtime_config(model_dir: str) -> tuple[dict[str, Any], int]:
     with open(Path(model_dir) / "config.json", encoding="utf-8") as f:
         full_cfg = json.load(f)
     tc = full_cfg["text_config"]
+    if not tc.get("num_experts") or not tc.get("num_experts_per_tok"):
+        model_type = tc.get("model_type") or full_cfg.get("model_type") or "unknown"
+        n_layers = tc.get("num_hidden_layers")
+        raise NotImplementedError(
+            "LynnIncrementalRunner currently supports the Qwen3.6 MoE resident "
+            "runtime only. Dense Qwen configs are recognized but not served yet: "
+            f"model_type={model_type!r}, num_hidden_layers={n_layers!r}, "
+            "num_experts=None. Use the direct Transformers or llama.cpp paths for "
+            "Qwen3.5-9B until the dense MLP runtime is implemented."
+        )
     rope_p = tc.get("rope_parameters", {})
     cfg = {
         "hidden_size": tc["hidden_size"],
