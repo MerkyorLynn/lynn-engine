@@ -1,0 +1,68 @@
+{
+  "schema": "lynn-r6000-9b-dense-pipeline-manifest-v1",
+  "created": "2026-05-18T21:30:00+08:00",
+  "note": "R6000 benchmark pipeline manifest for Qwen3.6-9B-Dense. This is a template; actual report paths are filled in after each stage completes. DRY_RUN=1 by default in the shell scaffold.",
+  "model_id": "Qwen3.6-9B-Dense",
+  "base_model_dir": "${MODEL_DIR:-/data/models/Qwen3.6-9B-Dense}",
+  "output_dir": "${OUTPUT_DIR:-./r6000_9b_reports}",
+  "stages": [
+    {
+      "stage_id": "bf16_baseline",
+      "label": "BF16 Baseline",
+      "quant": "BF16",
+      "runtime": "Lynn Engine",
+      "device_class": "NVIDIA (RTX 4090/5080, 24 GB+)",
+      "enabled": true,
+      "dry_run_safe": true,
+      "commands": [
+        "lynn-engine-bench --model ${MODEL_DIR}/bf16 --benchmark mmlu,gpqa,single_tps,concurrent_tps --output ${OUTPUT_DIR}/bf16_report.json"
+      ],
+      "report_path": "${OUTPUT_DIR}/bf16_report.json",
+      "fields_expected": ["mmlu", "gpqa", "single_tps", "concurrent_tps"],
+      "size_gb_estimate": 18.0,
+      "ctx_notes": "Full BF16 serving path; no quantization loss. Baseline for quality comparison against Q4_K_M and NVFP4.",
+      "status": "PENDING"
+    },
+    {
+      "stage_id": "q4_km_llamacpp",
+      "label": "Q4_K_M llama.cpp",
+      "quant": "Q4_K_M",
+      "runtime": "llama.cpp / GGUF",
+      "device_class": "Cross-platform (Mac/NVIDIA reference)",
+      "enabled": true,
+      "dry_run_safe": true,
+      "commands": [
+        "${LLAMACPP_BIN:-llama-bench} -m ${MODEL_DIR}/gguf/qwen3.6-9b-dense-q4_k_m.gguf --output-format json > ${OUTPUT_DIR}/q4km_llamacpp_report.json",
+        "${LLAMACPP_BIN:-llama-perplexity} -m ${MODEL_DIR}/gguf/qwen3.6-9b-dense-q4_k_m.gguf -f ${MMLU_DATASET:-data/mmlu.jsonl} > ${OUTPUT_DIR}/q4km_mmlu_ppl.txt"
+      ],
+      "report_path": "${OUTPUT_DIR}/q4km_llamacpp_report.json",
+      "fields_expected": ["mmlu", "gpqa", "single_tps"],
+      "size_gb_estimate": 5.2,
+      "ctx_notes": "4K–32K context via llama.cpp KV cache; imatrix optional for quality lift. Mac/端侧首选量化格式; R6000 runs as reference baseline.",
+      "status": "PENDING"
+    },
+    {
+      "stage_id": "w4a16_nvfp4_lynn",
+      "label": "W4A16 NVFP4 Lynn-native",
+      "quant": "W4A16 / NVFP4",
+      "runtime": "Lynn Engine",
+      "device_class": "NVIDIA (RTX PRO 6000 / B200, Blackwell)",
+      "enabled": true,
+      "dry_run_safe": true,
+      "commands": [
+        "lynn-engine-bench --model ${MODEL_DIR}/w4a16_nvfp4 --benchmark mmlu,gpqa,single_tps --output ${OUTPUT_DIR}/w4a16_nvfp4_report.json",
+        "lynn-engine-profile --model ${MODEL_DIR}/w4a16_nvfp4 --kernel packed_nvfp4 --trace ${OUTPUT_DIR}/w4a16_nvfp4_trace.json"
+      ],
+      "report_path": "${OUTPUT_DIR}/w4a16_nvfp4_report.json",
+      "fields_expected": ["mmlu", "gpqa", "single_tps", "concurrent_tps"],
+      "size_gb_estimate": 5.5,
+      "ctx_notes": "Packed NVFP4 decode; TensorCore MMA on SM100+. Lynn-native W4A16 path. Target: quality within 0.5% of BF16, TPS competitive with Q4_K_M on R6000.",
+      "status": "PENDING"
+    }
+  ],
+  "post_process": {
+    "summarizer": "scripts/summarize_qwen36_9b_r6000_reports.py",
+    "merge_target": "reports/qwen36_9b/qwen36_9b_dense_matrix_schema_v1.json",
+    "output_markdown": "docs/QWEN36_9B_R6000_PIPELINE_20260518.md"
+  }
+}
