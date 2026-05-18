@@ -60,6 +60,7 @@ BASE_ENV = {
     "LYNN_NATIVE_GATEUP_BACKEND": "triton_fast_decode",
     "LYNN_NATIVE_DOWN_BACKEND": "triton",
     "LYNN_SHARED_EXPERT_GATE_BACKEND": "torch",
+    "LYNN_ROUTER_TOPK_OUT_BUFFER": "1",
 }
 
 

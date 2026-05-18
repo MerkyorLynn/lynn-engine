@@ -112,6 +112,48 @@ def _topk_limit_from_env(top_k: int) -> int:
     return limit
 
 
+def _router_topk(
+    router_logits: torch.Tensor,
+    top_k: int,
+    *,
+    sorted: bool,
+    scratch_owner: dict,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Run router top-k, optionally reusing caller-owned output buffers.
+
+    P163 showed `torch.topk(..., out=...)` is bit-exact for the decode shape and
+    saves a small but measurable boundary cost.  Keep it opt-in because the
+    scratch tensors are stored on the mutable per-layer weight dict.
+    """
+    if not _env_bool("LYNN_ROUTER_TOPK_OUT_BUFFER", False):
+        return torch.topk(router_logits, top_k, dim=-1, sorted=sorted)
+    if router_logits.ndim != 2 or router_logits.shape[0] != 1:
+        return torch.topk(router_logits, top_k, dim=-1, sorted=sorted)
+    values_key = "mlp.gate._topk_values_scratch"
+    indices_key = "mlp.gate._topk_indices_scratch"
+    values = scratch_owner.get(values_key)
+    indices = scratch_owner.get(indices_key)
+    expected_shape = (1, top_k)
+    if (
+        values is None
+        or tuple(values.shape) != expected_shape
+        or values.device != router_logits.device
+        or values.dtype != router_logits.dtype
+    ):
+        values = torch.empty(expected_shape, device=router_logits.device, dtype=router_logits.dtype)
+        scratch_owner[values_key] = values
+    if (
+        indices is None
+        or tuple(indices.shape) != expected_shape
+        or indices.device != router_logits.device
+        or indices.dtype != torch.long
+    ):
+        indices = torch.empty(expected_shape, device=router_logits.device, dtype=torch.long)
+        scratch_owner[indices_key] = indices
+    torch.topk(router_logits, top_k, dim=-1, sorted=sorted, out=(values, indices))
+    return values, indices
+
+
 def _skip_shared_from_env() -> bool:
     raw = _env_first(("LYNN_MOE_SKIP_SHARED", "LYNN_MOE_PROFILE_SKIP_SHARED"))
     if raw is None:
@@ -587,11 +629,11 @@ def _moe_forward_decode_packed_nvfp4_fixed_triton(h: torch.Tensor, w: dict, cfg:
     h_flat = h.reshape(-1, h.shape[-1])
     router_logits = F.linear(h_flat, w["mlp.gate.weight"])
     top_k = int(cfg["num_experts_per_tok"])
-    routing_weights, expert_indices = torch.topk(
+    routing_weights, expert_indices = _router_topk(
         router_logits,
         top_k,
-        dim=-1,
         sorted=False,
+        scratch_owner=w,
     )
     routing_weights = F.softmax(routing_weights, dim=-1, dtype=torch.float32)[0].contiguous()
     expert_ids = expert_indices[0].to(torch.int32).contiguous()
@@ -763,11 +805,11 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
         return _moe_forward_decode_packed_nvfp4_fixed_triton(h, w, cfg)
 
     router_logits = F.linear(h_flat, w["mlp.gate.weight"])
-    routing_weights, expert_indices = torch.topk(
+    routing_weights, expert_indices = _router_topk(
         router_logits,
         int(cfg["num_experts_per_tok"]),
-        dim=-1,
         sorted=_env_bool("LYNN_ROUTER_TOPK_SORTED", False),
+        scratch_owner=w,
     )
     routing_weights = F.softmax(routing_weights, dim=-1, dtype=torch.float32)[0]
     # Triton kernels consume int32 expert ids. Keep this as int32 once here so
