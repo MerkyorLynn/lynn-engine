@@ -238,6 +238,24 @@ def _classify_packed_nvfp4(data: dict[str, Any],
     return "CLOSED", "stage diagnostics / v2 kernel only"
 
 
+def _classify_graphsafe_fixture(data: dict[str, Any],
+                                slot_abs: float | None,
+                                lat: float | None) -> tuple[str, str]:
+    """Classify allocation-free graph-safe fixture probes.
+
+    These are stronger than generic fixture-stage probes because the hot path
+    is caller-owned and allocation-free, but still cannot be default-promoted
+    until resident weight-prep wiring and P37 exact pass.
+    """
+    source_verdict = data.get("verdict")
+    if source_verdict == "AMBER_GRAPHSAFE" and lat is not None and slot_abs is not None:
+        if lat <= 0.056 and slot_abs <= AMBER_SLOT_MAX_ABS:
+            return "AMBER_GRAPHSAFE", "wire resident weight-prep, then P37 exact"
+    if slot_abs == 0.0 and lat is not None and lat <= DEFAULT_LATENCY_MS:
+        return "DEFAULT_STAGE", "fixture-exact only; still requires P37 exact"
+    return "CLOSED", "graphsafe fixture not admissible"
+
+
 # ─────────────────────────────────────────────────────────────
 # Candidate registry
 # ─────────────────────────────────────────────────────────────
@@ -315,6 +333,14 @@ CANDIDATES = [
         ],
         "packed_nvfp4": True,
         "stage_only": True,
+    },
+    {
+        "id": "moe_packed_pretransposed_graphsafe_v31",
+        "label": "moe_packed_pretransposed_graphsafe_v31 (p142)",
+        "patterns": [
+            "p142_graphsafe_v31_fixture_report*.json",
+        ],
+        "graphsafe_fixture": True,
     },
 ]
 
@@ -405,7 +431,10 @@ def gather(report_dir: Path,
         lat = data.get("avg_latency_ms")
         pretransposed = bool(spec.get("pretransposed"))
 
-        if spec.get("packed_nvfp4"):
+        if spec.get("graphsafe_fixture"):
+            verdict, next_step = _classify_graphsafe_fixture(
+                data, slot_abs, lat)
+        elif spec.get("packed_nvfp4"):
             verdict, next_step = _classify_packed_nvfp4(
                 data, slot_abs, cos_min, lat,
                 stage_only=bool(spec.get("stage_only")))
@@ -464,6 +493,9 @@ def gather(report_dir: Path,
             "has_amber_candidate": any_amber,
             "best_verdict": (
                 "DEFAULT" if any_default
+                else "AMBER_GRAPHSAFE" if any(
+                    c["verdict"] == "AMBER_GRAPHSAFE"
+                    for c in candidates)
                 else "AMBER_FAST_PRETRANSPOSED" if any(
                     c["verdict"] == "AMBER_FAST_PRETRANSPOSED"
                     for c in candidates)
@@ -559,6 +591,7 @@ def render_markdown(report: dict[str, Any]) -> str:
             "AMBER_FAST": "🟡",
             "AMBER_FAST_PRETRANSPOSED": "🟡",
             "AMBER_STAGE": "🟡",
+            "AMBER_GRAPHSAFE": "🟡",
             "DEFAULT_STAGE": "🟢",
             "EXACT_SLOW": "🔵",
             "CLOSED": "🔴",
@@ -573,7 +606,9 @@ def render_markdown(report: dict[str, Any]) -> str:
     # Overall
     summ = report["summary"]
     badge = {"DEFAULT": "🟢", "AMBER_FAST": "🟡",
-             "AMBER_FAST_PRETRANSPOSED": "🟡", "CLOSED": "🔴"}.get(
+             "AMBER_FAST_PRETRANSPOSED": "🟡", "AMBER_STAGE": "🟡",
+             "AMBER_GRAPHSAFE": "🟡", "DEFAULT_STAGE": "🟢",
+             "CLOSED": "🔴"}.get(
         summ["best_verdict"], "⚪")
     lines.append("## Overall")
     lines.append("")
@@ -638,10 +673,17 @@ def main() -> int:
     print(" NATIVE MOE CANDIDATE SUMMARY")
     print(f"{'='*80}")
     for c in report["candidates"]:
-        badge = {"DEFAULT": "🟢", "AMBER_FAST": "🟡",
-                 "AMBER_FAST_PRETRANSPOSED": "🟡", "AMBER_STAGE": "🟡",
-                 "DEFAULT_STAGE": "🟢", "EXACT_SLOW": "🔵",
-                 "CLOSED": "🔴", "MISSING": "⚪"}.get(c["verdict"], "❓")
+        badge = {
+            "DEFAULT": "🟢",
+            "AMBER_FAST": "🟡",
+            "AMBER_FAST_PRETRANSPOSED": "🟡",
+            "AMBER_STAGE": "🟡",
+            "AMBER_GRAPHSAFE": "🟡",
+            "DEFAULT_STAGE": "🟢",
+            "EXACT_SLOW": "🔵",
+            "CLOSED": "🔴",
+            "MISSING": "⚪",
+        }.get(c["verdict"], "❓")
         lat = f"{c['avg_latency_ms']:.4f}ms" if c.get("avg_latency_ms") else "—"
         sa = f"{c['slot_max_abs']:.2e}" if c.get("slot_max_abs") is not None else "—"
         print(f"  {badge} {c['verdict']:<12} lat={lat:<12} abs={sa:<12} {c['recommend_next_step']}")
@@ -658,6 +700,7 @@ def main() -> int:
     summ = report["summary"]
     badge = {"DEFAULT": "🟢", "AMBER_FAST": "🟡",
              "AMBER_FAST_PRETRANSPOSED": "🟡", "AMBER_STAGE": "🟡",
+             "AMBER_GRAPHSAFE": "🟡",
              "DEFAULT_STAGE": "🟢", "CLOSED": "🔴"}.get(
         summ["best_verdict"], "⚪")
     print(f"  BEST: {badge} {summ['best_verdict']}")

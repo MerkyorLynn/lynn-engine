@@ -68,6 +68,7 @@ as `MISSING` with `recommend_next_step: "no report found"`.
 | native_slot_tensorcore_pretransposed_probe | `native_slot_tensorcore_pretransposed_probe*.json` |
 | native_slot_packed_nvfp4_probe | `p140_packed_nvfp4_probe_report*.json` |
 | packed_dequant_pretransposed_v2 | `p141_v2_report*.json` |
+| moe_packed_pretransposed_graphsafe_v31 | `p142_graphsafe_v31_fixture_report*.json` |
 
 ## Verdict Rules
 
@@ -77,6 +78,7 @@ as `MISSING` with `recommend_next_step: "no report found"`.
 | 🟡 AMBER_FAST | latency ≤ 0.055ms, slot_max_abs ≤ 0.003, P140 recommend_p37=true | P37 exploratory |
 | 🟡 AMBER_FAST_PRETRANSPOSED | same as AMBER_FAST, candidate uses pretransposed weight layout | P37 exploratory |
 | 🟡 AMBER_STAGE | packed-NVFP4 fixture-stage probe is fast but still approximate | build graph-safe resident ABI, then P37 exact |
+| 🟡 AMBER_GRAPHSAFE | allocation-free graph-safe fixture probe is fast but still approximate | wire resident weight-prep, then P37 exact |
 | 🟢 DEFAULT_STAGE | packed-NVFP4 fixture-stage probe is exact and fast | stage-only exact; still requires P37 exact |
 | 🟡 AMBER_FAST / _PRETRANSPOSED | same, but P140 does not clear | await P140 gate clearance |
 | 🔵 EXACT_SLOW | slot_max_abs = 0, latency > threshold | research artifact |

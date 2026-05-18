@@ -1,6 +1,6 @@
 # Native MoE Candidate Summary
 
-**Generated:** 2026-05-18T23:17:01
+**Generated:** 2026-05-18T23:38:17
 
 ## Prerequisites
 
@@ -39,9 +39,10 @@
 | native_slot_tensorcore_pretransposed_probe (p139b) | 1.953125e-03 | — | 0.9999890924 | 0.0527 | 🟡 AMBER_FAST_PRETRANSPOSED | P37 exploratory |
 | native_slot_packed_nvfp4_probe (p140) | 3.906250e-03 | — | 0.9999736547 | 0.0903 | 🔴 CLOSED | stage diagnostics / v2 kernel only |
 | packed_dequant_pretransposed_v2 (p141) | 1.953125e-03 | — | 0.9999890924 | 0.0517 | 🟡 AMBER_STAGE | build graph-safe resident ABI, then P37 exact |
+| moe_packed_pretransposed_graphsafe_v31 (p142) | 1.953125e-03 | — | 0.9999876022 | 0.0440 | 🟡 AMBER_GRAPHSAFE | wire resident weight-prep, then P37 exact |
 
 ## Overall
 
-**Best verdict: 🟡 AMBER_FAST_PRETRANSPOSED**
+**Best verdict: 🟡 AMBER_GRAPHSAFE**
 
 > 🟡 AMBER candidates exist — no default promote. P37 exploratory permitted only after graph-safe resident ABI is ready.
