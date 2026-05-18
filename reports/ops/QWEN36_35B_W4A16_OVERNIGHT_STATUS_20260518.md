@@ -572,6 +572,13 @@ server P25 path regressed:
 This closes the in-place cleanup branch as a default-speed lever. P37 can catch
 greedy drift, but service P25 remains the authority for promotion.
 
+`LYNN_SHARED_EXPERT_GATE_BACKEND=torch_scalar_add_triton` was added as a
+stricter shared-gate boundary probe: the scalar gate reduction stays on the
+Torch path, while the final `active_moe + shared * gate` is fused in Triton.
+This also is not promotable. It improves P37 median decode by only `1.011x`
+(`103.57 -> 104.67` TPS) and fails exact-greedy parity, so P25 was intentionally
+skipped.
+
 Copied reports:
 
 - `reports/qwen36_35b/p43_shared_gate_torch_20260518_083212.json`
@@ -595,6 +602,7 @@ Copied reports:
 - `reports/qwen36_35b/p25_moe_add_shared_inplace_20260518_092010.json`
 - `reports/qwen36_35b/p37_moe_inplace_combo_20260518_092445.json`
 - `reports/qwen36_35b/p25_moe_inplace_combo_20260518_092538.json`
+- `reports/qwen36_35b/p37_shared_scalar_add_triton_20260518_125634_shared_scalar_add.json`
 
 Negative probes from the same loop:
 
