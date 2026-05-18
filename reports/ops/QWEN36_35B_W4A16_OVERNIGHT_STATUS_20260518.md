@@ -730,6 +730,25 @@ fake-quant comparisons inherit it, and P11/P12 shadow-release graph checks
 require it explicitly. This prevents future native-kernel probes from comparing
 against the stale pre-GQA recurrent path.
 
+## A100 Retire Decision
+
+The A100 host is no longer on the critical path for the official Qwen3.6-35B
+W4A16 serving route. On the 2026-05-18 retire check both A100 GPUs were idle
+(`0%` utilization, `14 MiB` memory each), with no active Python/torch benchmark
+or training jobs. The useful A100 output is already represented by the checked-in
+reports plus the retained sidecars on R6000.
+
+R6000 currently holds the sidecars worth keeping:
+
+- official Qwen3.6-35B MTP sidecar
+- A100 v27 weak-miss-in-top-k sidecar
+- R6000 v34 rank-flip sidecar
+
+The remaining A100-only v45/v46 hard-miss diagnostics did not improve the
+promotable route and do not justify another rental day. A100 should only be
+restarted if a concrete 35B W4A16 blocker requires large-GPU BF16 calibration
+or if we deliberately start a new self-trained Qwen3.6 hybrid-SSM MTP project.
+
 ## Immediate Work
 
 1. Stop open-ended A100 quality repair for 27B/W4A8 unless a concrete 35B
