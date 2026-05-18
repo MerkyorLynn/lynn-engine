@@ -1,6 +1,6 @@
 # P142 · Packed NVFP4 Stage Admission Gate
 
-**Generated:** 2026-05-18T23:25:53
+**Generated:** 2026-05-18T23:27:09
 
 ## Admission Decision
 

@@ -1,6 +1,6 @@
 {
   "schema": "lynn-p142-packed-nvfp4-stage-admission-v1",
-  "created": "2026-05-18T23:25:53",
+  "created": "2026-05-18T23:27:09",
   "report_dir": "reports/qwen36_35b",
   "inputs": {
     "p141_v2_report": {
