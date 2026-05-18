@@ -1,0 +1,522 @@
+{
+  "schema": "lynn-p154-native-packed-moe-gateup-order-probe-v1",
+  "created": "2026-05-19T04:05:15",
+  "packed_fixtures": "/root/autodl-tmp/reports/qwen36_35b/p138_packed_slot_fixtures_kimi_20260518",
+  "p147_reference_dir": "/root/autodl-tmp/reports/qwen36_35b/p147_triton_stage_reference_20260519_0318",
+  "total": 18,
+  "base_inter_exact": 6,
+  "triton_order_inter_exact": 10,
+  "triton_order_full_exact": 13,
+  "base_inter_max_abs_max": 0.000244140625,
+  "triton_order_inter_max_abs_max": 0.000244140625,
+  "triton_order_full_max_abs_max": 0.000244140625,
+  "base_inter_ms_mean": 0.04133511102861828,
+  "triton_order_inter_ms_mean": 0.06577395564979976,
+  "diagnosis": "TRITON_ORDER_STILL_DRIFTS",
+  "results": [
+    {
+      "fixture_file": "layer_00_prompt_00_slot_packed.safetensors",
+      "layer_id": 0,
+      "prompt_id": 0,
+      "base_inter_ms": 0.04145120084285736,
+      "triton_order_inter_ms": 0.06582720279693603,
+      "base_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "triton_order_full_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_04_prompt_00_slot_packed.safetensors",
+      "layer_id": 4,
+      "prompt_id": 0,
+      "base_inter_ms": 0.04133279919624329,
+      "triton_order_inter_ms": 0.0659168004989624,
+      "base_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 3.0517578125e-05,
+        "mean_abs": 7.450580596923828e-09,
+        "rel_l2": 5.87615340919001e-06,
+        "cosine": 1.0000001192092896,
+        "exact": 0
+      },
+      "triton_order_full_vs_triton_out": {
+        "max_abs": 6.103515625e-05,
+        "mean_abs": 3.167679096804932e-08,
+        "rel_l2": 0.00013317186676431447,
+        "cosine": 1.0,
+        "exact": 0
+      }
+    },
+    {
+      "fixture_file": "layer_08_prompt_00_slot_packed.safetensors",
+      "layer_id": 8,
+      "prompt_id": 0,
+      "base_inter_ms": 0.041345599293708804,
+      "triton_order_inter_ms": 0.06579679846763611,
+      "base_inter_vs_triton": {
+        "max_abs": 2.384185791015625e-07,
+        "mean_abs": 6.320988177321851e-11,
+        "rel_l2": 6.611918479393353e-08,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 1.862645149230957e-09,
+        "mean_abs": 4.547473508864641e-13,
+        "rel_l2": 5.154092153070167e-10,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "triton_order_full_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_16_prompt_00_slot_packed.safetensors",
+      "layer_id": 16,
+      "prompt_id": 0,
+      "base_inter_ms": 0.04132960140705109,
+      "triton_order_inter_ms": 0.06580320000648499,
+      "base_inter_vs_triton": {
+        "max_abs": 5.960464477539063e-08,
+        "mean_abs": 1.4551915228366852e-11,
+        "rel_l2": 1.709867980537183e-08,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "triton_order_full_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_20_prompt_00_slot_packed.safetensors",
+      "layer_id": 20,
+      "prompt_id": 0,
+      "base_inter_ms": 0.04132480025291443,
+      "triton_order_inter_ms": 0.06573600172996522,
+      "base_inter_vs_triton": {
+        "max_abs": 7.62939453125e-06,
+        "mean_abs": 1.8627588360686786e-09,
+        "rel_l2": 1.8211285350844264e-06,
+        "cosine": 0.9999998807907104,
+        "exact": 0
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 9.5367431640625e-07,
+        "mean_abs": 2.3305801732931286e-10,
+        "rel_l2": 2.2764118057239102e-07,
+        "cosine": 0.9999998807907104,
+        "exact": 0
+      },
+      "triton_order_full_vs_triton_out": {
+        "max_abs": 1.1920928955078125e-07,
+        "mean_abs": 5.820766091346741e-11,
+        "rel_l2": 1.2961571655978332e-06,
+        "cosine": 1.0,
+        "exact": 0
+      }
+    },
+    {
+      "fixture_file": "layer_28_prompt_00_slot_packed.safetensors",
+      "layer_id": 28,
+      "prompt_id": 0,
+      "base_inter_ms": 0.04140479862689972,
+      "triton_order_inter_ms": 0.0657472014427185,
+      "base_inter_vs_triton": {
+        "max_abs": 0.000244140625,
+        "mean_abs": 5.960464477539063e-08,
+        "rel_l2": 6.395877426257357e-05,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 7.450580596923828e-09,
+        "mean_abs": 1.8189894035458565e-12,
+        "rel_l2": 1.951866890337328e-09,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "triton_order_full_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_32_prompt_00_slot_packed.safetensors",
+      "layer_id": 32,
+      "prompt_id": 0,
+      "base_inter_ms": 0.04132319986820221,
+      "triton_order_inter_ms": 0.06575359702110291,
+      "base_inter_vs_triton": {
+        "max_abs": 4.76837158203125e-07,
+        "mean_abs": 1.1641532182693481e-10,
+        "rel_l2": 3.794447067662077e-08,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "triton_order_full_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_36_prompt_00_slot_packed.safetensors",
+      "layer_id": 36,
+      "prompt_id": 0,
+      "base_inter_ms": 0.04141440093517303,
+      "triton_order_inter_ms": 0.06581760048866273,
+      "base_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104,
+        "exact": 1
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104,
+        "exact": 1
+      },
+      "triton_order_full_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_39_prompt_00_slot_packed.safetensors",
+      "layer_id": 39,
+      "prompt_id": 0,
+      "base_inter_ms": 0.04132319986820221,
+      "triton_order_inter_ms": 0.06578720211982728,
+      "base_inter_vs_triton": {
+        "max_abs": 7.62939453125e-06,
+        "mean_abs": 1.862645149230957e-09,
+        "rel_l2": 1.3201128012951813e-07,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 0.000244140625,
+        "mean_abs": 6.170012056827545e-08,
+        "rel_l2": 4.226455530442763e-06,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "triton_order_full_vs_triton_out": {
+        "max_abs": 0.000244140625,
+        "mean_abs": 3.9301812648773193e-07,
+        "rel_l2": 9.73218702711165e-05,
+        "cosine": 0.9999999403953552,
+        "exact": 0
+      }
+    },
+    {
+      "fixture_file": "layer_00_prompt_01_slot_packed.safetensors",
+      "layer_id": 0,
+      "prompt_id": 1,
+      "base_inter_ms": 0.04126720130443573,
+      "triton_order_inter_ms": 0.06571679711341857,
+      "base_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "triton_order_full_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_04_prompt_01_slot_packed.safetensors",
+      "layer_id": 4,
+      "prompt_id": 1,
+      "base_inter_ms": 0.04142400026321411,
+      "triton_order_inter_ms": 0.06569439768791199,
+      "base_inter_vs_triton": {
+        "max_abs": 1.4901161193847656e-08,
+        "mean_abs": 3.637978807091713e-12,
+        "rel_l2": 3.9026266662745e-09,
+        "cosine": 0.9999999403953552,
+        "exact": 0
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 1.4901161193847656e-08,
+        "mean_abs": 3.637978807091713e-12,
+        "rel_l2": 3.9026266662745e-09,
+        "cosine": 0.9999999403953552,
+        "exact": 0
+      },
+      "triton_order_full_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_08_prompt_01_slot_packed.safetensors",
+      "layer_id": 8,
+      "prompt_id": 1,
+      "base_inter_ms": 0.04120799899101257,
+      "triton_order_inter_ms": 0.06578080058097839,
+      "base_inter_vs_triton": {
+        "max_abs": 0.000244140625,
+        "mean_abs": 5.960464477539063e-08,
+        "rel_l2": 2.2239099052967504e-05,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "triton_order_full_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_16_prompt_01_slot_packed.safetensors",
+      "layer_id": 16,
+      "prompt_id": 1,
+      "base_inter_ms": 0.041387200355529785,
+      "triton_order_inter_ms": 0.06577439904212952,
+      "base_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998211860657,
+        "exact": 1
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998211860657,
+        "exact": 1
+      },
+      "triton_order_full_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_20_prompt_01_slot_packed.safetensors",
+      "layer_id": 20,
+      "prompt_id": 1,
+      "base_inter_ms": 0.04129279851913452,
+      "triton_order_inter_ms": 0.06570079922676086,
+      "base_inter_vs_triton": {
+        "max_abs": 2.384185791015625e-07,
+        "mean_abs": 5.820766091346741e-11,
+        "rel_l2": 2.0478413631508374e-08,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "triton_order_full_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_28_prompt_01_slot_packed.safetensors",
+      "layer_id": 28,
+      "prompt_id": 1,
+      "base_inter_ms": 0.041252800822258,
+      "triton_order_inter_ms": 0.06569920182228088,
+      "base_inter_vs_triton": {
+        "max_abs": 7.62939453125e-06,
+        "mean_abs": 1.864464138634503e-09,
+        "rel_l2": 6.979848308219516e-07,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 7.450580596923828e-09,
+        "mean_abs": 1.8189894035458565e-12,
+        "rel_l2": 6.816254782826547e-10,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "triton_order_full_vs_triton_out": {
+        "max_abs": 2.384185791015625e-07,
+        "mean_abs": 1.1641532182693481e-10,
+        "rel_l2": 3.17833439567039e-07,
+        "cosine": 1.0,
+        "exact": 0
+      }
+    },
+    {
+      "fixture_file": "layer_32_prompt_01_slot_packed.safetensors",
+      "layer_id": 32,
+      "prompt_id": 1,
+      "base_inter_ms": 0.041310399770736694,
+      "triton_order_inter_ms": 0.06571360230445862,
+      "base_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      },
+      "triton_order_full_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "exact": 1
+      }
+    },
+    {
+      "fixture_file": "layer_36_prompt_01_slot_packed.safetensors",
+      "layer_id": 36,
+      "prompt_id": 1,
+      "base_inter_ms": 0.041305598616600034,
+      "triton_order_inter_ms": 0.06583359837532043,
+      "base_inter_vs_triton": {
+        "max_abs": 2.384185791015625e-07,
+        "mean_abs": 5.820766091346741e-11,
+        "rel_l2": 1.395688808969453e-08,
+        "cosine": 0.9999998807907104,
+        "exact": 0
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 2.384185791015625e-07,
+        "mean_abs": 5.820766091346741e-11,
+        "rel_l2": 1.395688808969453e-08,
+        "cosine": 0.9999998807907104,
+        "exact": 0
+      },
+      "triton_order_full_vs_triton_out": {
+        "max_abs": 1.1920928955078125e-07,
+        "mean_abs": 5.820766091346741e-11,
+        "rel_l2": 9.052725857827681e-08,
+        "cosine": 1.0,
+        "exact": 0
+      }
+    },
+    {
+      "fixture_file": "layer_39_prompt_01_slot_packed.safetensors",
+      "layer_id": 39,
+      "prompt_id": 1,
+      "base_inter_ms": 0.04133439958095551,
+      "triton_order_inter_ms": 0.06583200097084045,
+      "base_inter_vs_triton": {
+        "max_abs": 9.5367431640625e-07,
+        "mean_abs": 2.3283064365386963e-10,
+        "rel_l2": 3.910775703275249e-08,
+        "cosine": 1.0,
+        "exact": 0
+      },
+      "triton_order_inter_vs_triton": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      },
+      "triton_order_full_vs_triton_out": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "exact": 1
+      }
+    }
+  ]
+}

@@ -183,6 +183,11 @@ torch::Tensor lynn_native_moe_slot_packed_nvfp4_inter_probe(
     torch::Tensor slot_gate_up_packed,
     torch::Tensor slot_gate_up_scale,
     torch::Tensor slot_gate_up_global_scale);
+torch::Tensor lynn_native_moe_slot_packed_nvfp4_inter_triton_order_probe(
+    torch::Tensor x,
+    torch::Tensor slot_gate_up_packed,
+    torch::Tensor slot_gate_up_scale,
+    torch::Tensor slot_gate_up_global_scale);
 torch::Tensor lynn_native_moe_slot_packed_nvfp4_down_probe(
     torch::Tensor inter,
     torch::Tensor routing_weights,
@@ -312,6 +317,10 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
       "moe_slot_packed_nvfp4_inter_probe",
       &lynn_native_moe_slot_packed_nvfp4_inter_probe,
       "P153 packed NVFP4 slot MoE gate/up intermediate probe");
+  m.def(
+      "moe_slot_packed_nvfp4_inter_triton_order_probe",
+      &lynn_native_moe_slot_packed_nvfp4_inter_triton_order_probe,
+      "P154 packed NVFP4 slot MoE gate/up intermediate probe with Triton-like hidden-block reduction");
   m.def(
       "moe_slot_packed_nvfp4_down_probe",
       &lynn_native_moe_slot_packed_nvfp4_down_probe,
