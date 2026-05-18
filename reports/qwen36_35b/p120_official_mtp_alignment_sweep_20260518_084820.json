@@ -1,0 +1,2377 @@
+{
+  "schema_version": "lynn-p120-mtp-alignment-sweep-v1",
+  "decision": "RED: no swept MTP alignment variant produced top1 acceptance.",
+  "model": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0",
+  "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen36-35b-a3b-mtp-official/mtp.safetensors",
+  "dtype": "bfloat16",
+  "use_chat_template": false,
+  "mtp_layer_moe": "decode_slot_sorted",
+  "case_count": 15,
+  "sidecar_tensor_count": 19,
+  "summaries": {
+    "embed=current;pos_offset=-1;target=next_label": {
+      "events": 12,
+      "top1": 0,
+      "top5": 0,
+      "top8": 0,
+      "top32": 0,
+      "top1_rate": 0.0,
+      "top8_rate": 0.0,
+      "median_rank": 5071.5,
+      "mean_loss": 11.189528067906698,
+      "min_loss": 7.083593368530273
+    },
+    "embed=current;pos_offset=-1;target=same_label": {
+      "events": 15,
+      "top1": 0,
+      "top5": 0,
+      "top8": 0,
+      "top32": 1,
+      "top1_rate": 0.0,
+      "top8_rate": 0.0,
+      "median_rank": 7073,
+      "mean_loss": 11.217891407012939,
+      "min_loss": 5.4793925285339355
+    },
+    "embed=current;pos_offset=0;target=next_label": {
+      "events": 12,
+      "top1": 0,
+      "top5": 0,
+      "top8": 0,
+      "top32": 0,
+      "top1_rate": 0.0,
+      "top8_rate": 0.0,
+      "median_rank": 5071.5,
+      "mean_loss": 11.189528067906698,
+      "min_loss": 7.083593368530273
+    },
+    "embed=current;pos_offset=0;target=same_label": {
+      "events": 15,
+      "top1": 0,
+      "top5": 0,
+      "top8": 0,
+      "top32": 1,
+      "top1_rate": 0.0,
+      "top8_rate": 0.0,
+      "median_rank": 7073,
+      "mean_loss": 11.217891407012939,
+      "min_loss": 5.4793925285339355
+    },
+    "embed=current;pos_offset=1;target=next_label": {
+      "events": 12,
+      "top1": 0,
+      "top5": 0,
+      "top8": 0,
+      "top32": 0,
+      "top1_rate": 0.0,
+      "top8_rate": 0.0,
+      "median_rank": 5071.5,
+      "mean_loss": 11.189528067906698,
+      "min_loss": 7.083593368530273
+    },
+    "embed=current;pos_offset=1;target=same_label": {
+      "events": 15,
+      "top1": 0,
+      "top5": 0,
+      "top8": 0,
+      "top32": 1,
+      "top1_rate": 0.0,
+      "top8_rate": 0.0,
+      "median_rank": 7073,
+      "mean_loss": 11.217891407012939,
+      "min_loss": 5.4793925285339355
+    },
+    "embed=current;pos_offset=2;target=next_label": {
+      "events": 12,
+      "top1": 0,
+      "top5": 0,
+      "top8": 0,
+      "top32": 0,
+      "top1_rate": 0.0,
+      "top8_rate": 0.0,
+      "median_rank": 5071.5,
+      "mean_loss": 11.189528067906698,
+      "min_loss": 7.083593368530273
+    },
+    "embed=current;pos_offset=2;target=same_label": {
+      "events": 15,
+      "top1": 0,
+      "top5": 0,
+      "top8": 0,
+      "top32": 1,
+      "top1_rate": 0.0,
+      "top8_rate": 0.0,
+      "median_rank": 7073,
+      "mean_loss": 11.217891407012939,
+      "min_loss": 5.4793925285339355
+    },
+    "embed=label_oracle;pos_offset=-1;target=next_label": {
+      "events": 12,
+      "top1": 0,
+      "top5": 0,
+      "top8": 0,
+      "top32": 0,
+      "top1_rate": 0.0,
+      "top8_rate": 0.0,
+      "median_rank": 29066.0,
+      "mean_loss": 12.179458657900492,
+      "min_loss": 7.72007417678833
+    },
+    "embed=label_oracle;pos_offset=-1;target=same_label": {
+      "events": 15,
+      "top1": 0,
+      "top5": 0,
+      "top8": 0,
+      "top32": 2,
+      "top1_rate": 0.0,
+      "top8_rate": 0.0,
+      "median_rank": 1035,
+      "mean_loss": 9.535309886932373,
+      "min_loss": 6.068739891052246
+    },
+    "embed=label_oracle;pos_offset=0;target=next_label": {
+      "events": 12,
+      "top1": 0,
+      "top5": 0,
+      "top8": 0,
+      "top32": 0,
+      "top1_rate": 0.0,
+      "top8_rate": 0.0,
+      "median_rank": 29066.0,
+      "mean_loss": 12.179458657900492,
+      "min_loss": 7.72007417678833
+    },
+    "embed=label_oracle;pos_offset=0;target=same_label": {
+      "events": 15,
+      "top1": 0,
+      "top5": 0,
+      "top8": 0,
+      "top32": 2,
+      "top1_rate": 0.0,
+      "top8_rate": 0.0,
+      "median_rank": 1035,
+      "mean_loss": 9.535309886932373,
+      "min_loss": 6.068739891052246
+    },
+    "embed=label_oracle;pos_offset=1;target=next_label": {
+      "events": 12,
+      "top1": 0,
+      "top5": 0,
+      "top8": 0,
+      "top32": 0,
+      "top1_rate": 0.0,
+      "top8_rate": 0.0,
+      "median_rank": 29066.0,
+      "mean_loss": 12.179458657900492,
+      "min_loss": 7.72007417678833
+    },
+    "embed=label_oracle;pos_offset=1;target=same_label": {
+      "events": 15,
+      "top1": 0,
+      "top5": 0,
+      "top8": 0,
+      "top32": 2,
+      "top1_rate": 0.0,
+      "top8_rate": 0.0,
+      "median_rank": 1035,
+      "mean_loss": 9.535309886932373,
+      "min_loss": 6.068739891052246
+    },
+    "embed=label_oracle;pos_offset=2;target=next_label": {
+      "events": 12,
+      "top1": 0,
+      "top5": 0,
+      "top8": 0,
+      "top32": 0,
+      "top1_rate": 0.0,
+      "top8_rate": 0.0,
+      "median_rank": 29066.0,
+      "mean_loss": 12.179458657900492,
+      "min_loss": 7.72007417678833
+    },
+    "embed=label_oracle;pos_offset=2;target=same_label": {
+      "events": 15,
+      "top1": 0,
+      "top5": 0,
+      "top8": 0,
+      "top32": 2,
+      "top1_rate": 0.0,
+      "top8_rate": 0.0,
+      "median_rank": 1035,
+      "mean_loss": 9.535309886932373,
+      "min_loss": 6.068739891052246
+    }
+  },
+  "best": [
+    {
+      "variant": "embed=label_oracle;pos_offset=-1;target=same_label",
+      "events": 15,
+      "top1": 0,
+      "top5": 0,
+      "top8": 0,
+      "top32": 2,
+      "top1_rate": 0.0,
+      "top8_rate": 0.0,
+      "median_rank": 1035,
+      "mean_loss": 9.535309886932373,
+      "min_loss": 6.068739891052246
+    },
+    {
+      "variant": "embed=label_oracle;pos_offset=0;target=same_label",
+      "events": 15,
+      "top1": 0,
+      "top5": 0,
+      "top8": 0,
+      "top32": 2,
+      "top1_rate": 0.0,
+      "top8_rate": 0.0,
+      "median_rank": 1035,
+      "mean_loss": 9.535309886932373,
+      "min_loss": 6.068739891052246
+    },
+    {
+      "variant": "embed=label_oracle;pos_offset=1;target=same_label",
+      "events": 15,
+      "top1": 0,
+      "top5": 0,
+      "top8": 0,
+      "top32": 2,
+      "top1_rate": 0.0,
+      "top8_rate": 0.0,
+      "median_rank": 1035,
+      "mean_loss": 9.535309886932373,
+      "min_loss": 6.068739891052246
+    },
+    {
+      "variant": "embed=label_oracle;pos_offset=2;target=same_label",
+      "events": 15,
+      "top1": 0,
+      "top5": 0,
+      "top8": 0,
+      "top32": 2,
+      "top1_rate": 0.0,
+      "top8_rate": 0.0,
+      "median_rank": 1035,
+      "mean_loss": 9.535309886932373,
+      "min_loss": 6.068739891052246
+    },
+    {
+      "variant": "embed=current;pos_offset=-1;target=next_label",
+      "events": 12,
+      "top1": 0,
+      "top5": 0,
+      "top8": 0,
+      "top32": 0,
+      "top1_rate": 0.0,
+      "top8_rate": 0.0,
+      "median_rank": 5071.5,
+      "mean_loss": 11.189528067906698,
+      "min_loss": 7.083593368530273
+    },
+    {
+      "variant": "embed=current;pos_offset=0;target=next_label",
+      "events": 12,
+      "top1": 0,
+      "top5": 0,
+      "top8": 0,
+      "top32": 0,
+      "top1_rate": 0.0,
+      "top8_rate": 0.0,
+      "median_rank": 5071.5,
+      "mean_loss": 11.189528067906698,
+      "min_loss": 7.083593368530273
+    },
+    {
+      "variant": "embed=current;pos_offset=1;target=next_label",
+      "events": 12,
+      "top1": 0,
+      "top5": 0,
+      "top8": 0,
+      "top32": 0,
+      "top1_rate": 0.0,
+      "top8_rate": 0.0,
+      "median_rank": 5071.5,
+      "mean_loss": 11.189528067906698,
+      "min_loss": 7.083593368530273
+    },
+    {
+      "variant": "embed=current;pos_offset=2;target=next_label",
+      "events": 12,
+      "top1": 0,
+      "top5": 0,
+      "top8": 0,
+      "top32": 0,
+      "top1_rate": 0.0,
+      "top8_rate": 0.0,
+      "median_rank": 5071.5,
+      "mean_loss": 11.189528067906698,
+      "min_loss": 7.083593368530273
+    }
+  ],
+  "examples": {
+    "embed=label_oracle;pos_offset=-1;target=same_label": [
+      {
+        "case_idx": 0,
+        "prompt_idx": 0,
+        "step": 0,
+        "current_pos": 17,
+        "embed_token_id": 271,
+        "embed_text": "\n\n",
+        "target_id": 271,
+        "target_text": "\n\n",
+        "draft_id": 4117,
+        "draft_text": "entic",
+        "target_rank": 7085,
+        "loss": 10.870431900024414,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 4117,
+            "score": 11.125,
+            "text": "entic"
+          },
+          {
+            "rank": 2,
+            "token_id": 3317,
+            "score": 10.9375,
+            "text": "isc"
+          },
+          {
+            "rank": 3,
+            "token_id": 99542,
+            "score": 10.1875,
+            "text": "唯一"
+          },
+          {
+            "rank": 4,
+            "token_id": 110438,
+            "score": 10.0625,
+            "text": "唯一的"
+          },
+          {
+            "rank": 5,
+            "token_id": 5590,
+            "score": 9.75,
+            "text": "iler"
+          },
+          {
+            "rank": 6,
+            "token_id": 126916,
+            "score": 9.6875,
+            "text": "为了使"
+          },
+          {
+            "rank": 7,
+            "token_id": 108909,
+            "score": 9.6875,
+            "text": "另一方面"
+          },
+          {
+            "rank": 8,
+            "token_id": 31654,
+            "score": 9.5,
+            "text": "actly"
+          }
+        ]
+      },
+      {
+        "case_idx": 1,
+        "prompt_idx": 0,
+        "step": 1,
+        "current_pos": 18,
+        "embed_token_id": 4754,
+        "embed_text": "{\"",
+        "target_id": 4754,
+        "target_text": "{\"",
+        "draft_id": 332,
+        "draft_text": "**",
+        "target_rank": 1431,
+        "loss": 9.482211112976074,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 332,
+            "score": 11.625,
+            "text": "**"
+          },
+          {
+            "rank": 2,
+            "token_id": 84,
+            "score": 11.0,
+            "text": "u"
+          },
+          {
+            "rank": 3,
+            "token_id": 286,
+            "score": 10.1875,
+            "text": "ing"
+          },
+          {
+            "rank": 4,
+            "token_id": 6517,
+            "score": 10.0,
+            "text": "oi"
+          },
+          {
+            "rank": 5,
+            "token_id": 9009,
+            "score": 9.8125,
+            "text": "-T"
+          },
+          {
+            "rank": 6,
+            "token_id": 225259,
+            "score": 9.75,
+            "text": " Freien"
+          },
+          {
+            "rank": 7,
+            "token_id": 20173,
+            "score": 9.4375,
+            "text": ".pack"
+          },
+          {
+            "rank": 8,
+            "token_id": 12217,
+            "score": 9.4375,
+            "text": "-free"
+          }
+        ]
+      },
+      {
+        "case_idx": 2,
+        "prompt_idx": 0,
+        "step": 2,
+        "current_pos": 19,
+        "embed_token_id": 8656,
+        "embed_text": "city",
+        "target_id": 8656,
+        "target_text": "city",
+        "draft_id": 28572,
+        "draft_text": "ogan",
+        "target_rank": 49222,
+        "loss": 13.200906753540039,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 28572,
+            "score": 10.5625,
+            "text": "ogan"
+          },
+          {
+            "rank": 2,
+            "token_id": 27791,
+            "score": 10.25,
+            "text": "ós"
+          },
+          {
+            "rank": 3,
+            "token_id": 153645,
+            "score": 10.1875,
+            "text": "apun"
+          },
+          {
+            "rank": 4,
+            "token_id": 175291,
+            "score": 9.8125,
+            "text": " abr"
+          },
+          {
+            "rank": 5,
+            "token_id": 216203,
+            "score": 9.75,
+            "text": "ispo"
+          },
+          {
+            "rank": 6,
+            "token_id": 74916,
+            "score": 9.5,
+            "text": "abr"
+          },
+          {
+            "rank": 7,
+            "token_id": 38877,
+            "score": 9.4375,
+            "text": "YZ"
+          },
+          {
+            "rank": 8,
+            "token_id": 57558,
+            "score": 9.3125,
+            "text": " Sung"
+          }
+        ]
+      },
+      {
+        "case_idx": 3,
+        "prompt_idx": 0,
+        "step": 3,
+        "current_pos": 20,
+        "embed_token_id": 763,
+        "embed_text": "\":",
+        "target_id": 763,
+        "target_text": "\":",
+        "draft_id": 11,
+        "draft_text": ",",
+        "target_rank": 1816,
+        "loss": 9.671778678894043,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 11,
+            "score": 11.25,
+            "text": ","
+          },
+          {
+            "rank": 2,
+            "token_id": 286,
+            "score": 11.125,
+            "text": "ing"
+          },
+          {
+            "rank": 3,
+            "token_id": 13,
+            "score": 10.125,
+            "text": "."
+          },
+          {
+            "rank": 4,
+            "token_id": 10970,
+            "score": 10.0,
+            "text": "-style"
+          },
+          {
+            "rank": 5,
+            "token_id": 470,
+            "score": 9.9375,
+            "text": "able"
+          },
+          {
+            "rank": 6,
+            "token_id": 220,
+            "score": 9.8125,
+            "text": " "
+          },
+          {
+            "rank": 7,
+            "token_id": 735,
+            "score": 9.5625,
+            "text": " |"
+          },
+          {
+            "rank": 8,
+            "token_id": 198,
+            "score": 9.5625,
+            "text": "\n"
+          }
+        ]
+      }
+    ],
+    "embed=label_oracle;pos_offset=0;target=same_label": [
+      {
+        "case_idx": 0,
+        "prompt_idx": 0,
+        "step": 0,
+        "current_pos": 17,
+        "embed_token_id": 271,
+        "embed_text": "\n\n",
+        "target_id": 271,
+        "target_text": "\n\n",
+        "draft_id": 4117,
+        "draft_text": "entic",
+        "target_rank": 7085,
+        "loss": 10.870431900024414,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 4117,
+            "score": 11.125,
+            "text": "entic"
+          },
+          {
+            "rank": 2,
+            "token_id": 3317,
+            "score": 10.9375,
+            "text": "isc"
+          },
+          {
+            "rank": 3,
+            "token_id": 99542,
+            "score": 10.1875,
+            "text": "唯一"
+          },
+          {
+            "rank": 4,
+            "token_id": 110438,
+            "score": 10.0625,
+            "text": "唯一的"
+          },
+          {
+            "rank": 5,
+            "token_id": 5590,
+            "score": 9.75,
+            "text": "iler"
+          },
+          {
+            "rank": 6,
+            "token_id": 126916,
+            "score": 9.6875,
+            "text": "为了使"
+          },
+          {
+            "rank": 7,
+            "token_id": 108909,
+            "score": 9.6875,
+            "text": "另一方面"
+          },
+          {
+            "rank": 8,
+            "token_id": 31654,
+            "score": 9.5,
+            "text": "actly"
+          }
+        ]
+      },
+      {
+        "case_idx": 1,
+        "prompt_idx": 0,
+        "step": 1,
+        "current_pos": 18,
+        "embed_token_id": 4754,
+        "embed_text": "{\"",
+        "target_id": 4754,
+        "target_text": "{\"",
+        "draft_id": 332,
+        "draft_text": "**",
+        "target_rank": 1431,
+        "loss": 9.482211112976074,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 332,
+            "score": 11.625,
+            "text": "**"
+          },
+          {
+            "rank": 2,
+            "token_id": 84,
+            "score": 11.0,
+            "text": "u"
+          },
+          {
+            "rank": 3,
+            "token_id": 286,
+            "score": 10.1875,
+            "text": "ing"
+          },
+          {
+            "rank": 4,
+            "token_id": 6517,
+            "score": 10.0,
+            "text": "oi"
+          },
+          {
+            "rank": 5,
+            "token_id": 9009,
+            "score": 9.8125,
+            "text": "-T"
+          },
+          {
+            "rank": 6,
+            "token_id": 225259,
+            "score": 9.75,
+            "text": " Freien"
+          },
+          {
+            "rank": 7,
+            "token_id": 20173,
+            "score": 9.4375,
+            "text": ".pack"
+          },
+          {
+            "rank": 8,
+            "token_id": 12217,
+            "score": 9.4375,
+            "text": "-free"
+          }
+        ]
+      },
+      {
+        "case_idx": 2,
+        "prompt_idx": 0,
+        "step": 2,
+        "current_pos": 19,
+        "embed_token_id": 8656,
+        "embed_text": "city",
+        "target_id": 8656,
+        "target_text": "city",
+        "draft_id": 28572,
+        "draft_text": "ogan",
+        "target_rank": 49222,
+        "loss": 13.200906753540039,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 28572,
+            "score": 10.5625,
+            "text": "ogan"
+          },
+          {
+            "rank": 2,
+            "token_id": 27791,
+            "score": 10.25,
+            "text": "ós"
+          },
+          {
+            "rank": 3,
+            "token_id": 153645,
+            "score": 10.1875,
+            "text": "apun"
+          },
+          {
+            "rank": 4,
+            "token_id": 175291,
+            "score": 9.8125,
+            "text": " abr"
+          },
+          {
+            "rank": 5,
+            "token_id": 216203,
+            "score": 9.75,
+            "text": "ispo"
+          },
+          {
+            "rank": 6,
+            "token_id": 74916,
+            "score": 9.5,
+            "text": "abr"
+          },
+          {
+            "rank": 7,
+            "token_id": 38877,
+            "score": 9.4375,
+            "text": "YZ"
+          },
+          {
+            "rank": 8,
+            "token_id": 57558,
+            "score": 9.3125,
+            "text": " Sung"
+          }
+        ]
+      },
+      {
+        "case_idx": 3,
+        "prompt_idx": 0,
+        "step": 3,
+        "current_pos": 20,
+        "embed_token_id": 763,
+        "embed_text": "\":",
+        "target_id": 763,
+        "target_text": "\":",
+        "draft_id": 11,
+        "draft_text": ",",
+        "target_rank": 1816,
+        "loss": 9.671778678894043,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 11,
+            "score": 11.25,
+            "text": ","
+          },
+          {
+            "rank": 2,
+            "token_id": 286,
+            "score": 11.125,
+            "text": "ing"
+          },
+          {
+            "rank": 3,
+            "token_id": 13,
+            "score": 10.125,
+            "text": "."
+          },
+          {
+            "rank": 4,
+            "token_id": 10970,
+            "score": 10.0,
+            "text": "-style"
+          },
+          {
+            "rank": 5,
+            "token_id": 470,
+            "score": 9.9375,
+            "text": "able"
+          },
+          {
+            "rank": 6,
+            "token_id": 220,
+            "score": 9.8125,
+            "text": " "
+          },
+          {
+            "rank": 7,
+            "token_id": 735,
+            "score": 9.5625,
+            "text": " |"
+          },
+          {
+            "rank": 8,
+            "token_id": 198,
+            "score": 9.5625,
+            "text": "\n"
+          }
+        ]
+      }
+    ],
+    "embed=label_oracle;pos_offset=1;target=same_label": [
+      {
+        "case_idx": 0,
+        "prompt_idx": 0,
+        "step": 0,
+        "current_pos": 17,
+        "embed_token_id": 271,
+        "embed_text": "\n\n",
+        "target_id": 271,
+        "target_text": "\n\n",
+        "draft_id": 4117,
+        "draft_text": "entic",
+        "target_rank": 7085,
+        "loss": 10.870431900024414,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 4117,
+            "score": 11.125,
+            "text": "entic"
+          },
+          {
+            "rank": 2,
+            "token_id": 3317,
+            "score": 10.9375,
+            "text": "isc"
+          },
+          {
+            "rank": 3,
+            "token_id": 99542,
+            "score": 10.1875,
+            "text": "唯一"
+          },
+          {
+            "rank": 4,
+            "token_id": 110438,
+            "score": 10.0625,
+            "text": "唯一的"
+          },
+          {
+            "rank": 5,
+            "token_id": 5590,
+            "score": 9.75,
+            "text": "iler"
+          },
+          {
+            "rank": 6,
+            "token_id": 126916,
+            "score": 9.6875,
+            "text": "为了使"
+          },
+          {
+            "rank": 7,
+            "token_id": 108909,
+            "score": 9.6875,
+            "text": "另一方面"
+          },
+          {
+            "rank": 8,
+            "token_id": 31654,
+            "score": 9.5,
+            "text": "actly"
+          }
+        ]
+      },
+      {
+        "case_idx": 1,
+        "prompt_idx": 0,
+        "step": 1,
+        "current_pos": 18,
+        "embed_token_id": 4754,
+        "embed_text": "{\"",
+        "target_id": 4754,
+        "target_text": "{\"",
+        "draft_id": 332,
+        "draft_text": "**",
+        "target_rank": 1431,
+        "loss": 9.482211112976074,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 332,
+            "score": 11.625,
+            "text": "**"
+          },
+          {
+            "rank": 2,
+            "token_id": 84,
+            "score": 11.0,
+            "text": "u"
+          },
+          {
+            "rank": 3,
+            "token_id": 286,
+            "score": 10.1875,
+            "text": "ing"
+          },
+          {
+            "rank": 4,
+            "token_id": 6517,
+            "score": 10.0,
+            "text": "oi"
+          },
+          {
+            "rank": 5,
+            "token_id": 9009,
+            "score": 9.8125,
+            "text": "-T"
+          },
+          {
+            "rank": 6,
+            "token_id": 225259,
+            "score": 9.75,
+            "text": " Freien"
+          },
+          {
+            "rank": 7,
+            "token_id": 20173,
+            "score": 9.4375,
+            "text": ".pack"
+          },
+          {
+            "rank": 8,
+            "token_id": 12217,
+            "score": 9.4375,
+            "text": "-free"
+          }
+        ]
+      },
+      {
+        "case_idx": 2,
+        "prompt_idx": 0,
+        "step": 2,
+        "current_pos": 19,
+        "embed_token_id": 8656,
+        "embed_text": "city",
+        "target_id": 8656,
+        "target_text": "city",
+        "draft_id": 28572,
+        "draft_text": "ogan",
+        "target_rank": 49222,
+        "loss": 13.200906753540039,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 28572,
+            "score": 10.5625,
+            "text": "ogan"
+          },
+          {
+            "rank": 2,
+            "token_id": 27791,
+            "score": 10.25,
+            "text": "ós"
+          },
+          {
+            "rank": 3,
+            "token_id": 153645,
+            "score": 10.1875,
+            "text": "apun"
+          },
+          {
+            "rank": 4,
+            "token_id": 175291,
+            "score": 9.8125,
+            "text": " abr"
+          },
+          {
+            "rank": 5,
+            "token_id": 216203,
+            "score": 9.75,
+            "text": "ispo"
+          },
+          {
+            "rank": 6,
+            "token_id": 74916,
+            "score": 9.5,
+            "text": "abr"
+          },
+          {
+            "rank": 7,
+            "token_id": 38877,
+            "score": 9.4375,
+            "text": "YZ"
+          },
+          {
+            "rank": 8,
+            "token_id": 57558,
+            "score": 9.3125,
+            "text": " Sung"
+          }
+        ]
+      },
+      {
+        "case_idx": 3,
+        "prompt_idx": 0,
+        "step": 3,
+        "current_pos": 20,
+        "embed_token_id": 763,
+        "embed_text": "\":",
+        "target_id": 763,
+        "target_text": "\":",
+        "draft_id": 11,
+        "draft_text": ",",
+        "target_rank": 1816,
+        "loss": 9.671778678894043,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 11,
+            "score": 11.25,
+            "text": ","
+          },
+          {
+            "rank": 2,
+            "token_id": 286,
+            "score": 11.125,
+            "text": "ing"
+          },
+          {
+            "rank": 3,
+            "token_id": 13,
+            "score": 10.125,
+            "text": "."
+          },
+          {
+            "rank": 4,
+            "token_id": 10970,
+            "score": 10.0,
+            "text": "-style"
+          },
+          {
+            "rank": 5,
+            "token_id": 470,
+            "score": 9.9375,
+            "text": "able"
+          },
+          {
+            "rank": 6,
+            "token_id": 220,
+            "score": 9.8125,
+            "text": " "
+          },
+          {
+            "rank": 7,
+            "token_id": 735,
+            "score": 9.5625,
+            "text": " |"
+          },
+          {
+            "rank": 8,
+            "token_id": 198,
+            "score": 9.5625,
+            "text": "\n"
+          }
+        ]
+      }
+    ],
+    "embed=label_oracle;pos_offset=2;target=same_label": [
+      {
+        "case_idx": 0,
+        "prompt_idx": 0,
+        "step": 0,
+        "current_pos": 17,
+        "embed_token_id": 271,
+        "embed_text": "\n\n",
+        "target_id": 271,
+        "target_text": "\n\n",
+        "draft_id": 4117,
+        "draft_text": "entic",
+        "target_rank": 7085,
+        "loss": 10.870431900024414,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 4117,
+            "score": 11.125,
+            "text": "entic"
+          },
+          {
+            "rank": 2,
+            "token_id": 3317,
+            "score": 10.9375,
+            "text": "isc"
+          },
+          {
+            "rank": 3,
+            "token_id": 99542,
+            "score": 10.1875,
+            "text": "唯一"
+          },
+          {
+            "rank": 4,
+            "token_id": 110438,
+            "score": 10.0625,
+            "text": "唯一的"
+          },
+          {
+            "rank": 5,
+            "token_id": 5590,
+            "score": 9.75,
+            "text": "iler"
+          },
+          {
+            "rank": 6,
+            "token_id": 126916,
+            "score": 9.6875,
+            "text": "为了使"
+          },
+          {
+            "rank": 7,
+            "token_id": 108909,
+            "score": 9.6875,
+            "text": "另一方面"
+          },
+          {
+            "rank": 8,
+            "token_id": 31654,
+            "score": 9.5,
+            "text": "actly"
+          }
+        ]
+      },
+      {
+        "case_idx": 1,
+        "prompt_idx": 0,
+        "step": 1,
+        "current_pos": 18,
+        "embed_token_id": 4754,
+        "embed_text": "{\"",
+        "target_id": 4754,
+        "target_text": "{\"",
+        "draft_id": 332,
+        "draft_text": "**",
+        "target_rank": 1431,
+        "loss": 9.482211112976074,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 332,
+            "score": 11.625,
+            "text": "**"
+          },
+          {
+            "rank": 2,
+            "token_id": 84,
+            "score": 11.0,
+            "text": "u"
+          },
+          {
+            "rank": 3,
+            "token_id": 286,
+            "score": 10.1875,
+            "text": "ing"
+          },
+          {
+            "rank": 4,
+            "token_id": 6517,
+            "score": 10.0,
+            "text": "oi"
+          },
+          {
+            "rank": 5,
+            "token_id": 9009,
+            "score": 9.8125,
+            "text": "-T"
+          },
+          {
+            "rank": 6,
+            "token_id": 225259,
+            "score": 9.75,
+            "text": " Freien"
+          },
+          {
+            "rank": 7,
+            "token_id": 20173,
+            "score": 9.4375,
+            "text": ".pack"
+          },
+          {
+            "rank": 8,
+            "token_id": 12217,
+            "score": 9.4375,
+            "text": "-free"
+          }
+        ]
+      },
+      {
+        "case_idx": 2,
+        "prompt_idx": 0,
+        "step": 2,
+        "current_pos": 19,
+        "embed_token_id": 8656,
+        "embed_text": "city",
+        "target_id": 8656,
+        "target_text": "city",
+        "draft_id": 28572,
+        "draft_text": "ogan",
+        "target_rank": 49222,
+        "loss": 13.200906753540039,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 28572,
+            "score": 10.5625,
+            "text": "ogan"
+          },
+          {
+            "rank": 2,
+            "token_id": 27791,
+            "score": 10.25,
+            "text": "ós"
+          },
+          {
+            "rank": 3,
+            "token_id": 153645,
+            "score": 10.1875,
+            "text": "apun"
+          },
+          {
+            "rank": 4,
+            "token_id": 175291,
+            "score": 9.8125,
+            "text": " abr"
+          },
+          {
+            "rank": 5,
+            "token_id": 216203,
+            "score": 9.75,
+            "text": "ispo"
+          },
+          {
+            "rank": 6,
+            "token_id": 74916,
+            "score": 9.5,
+            "text": "abr"
+          },
+          {
+            "rank": 7,
+            "token_id": 38877,
+            "score": 9.4375,
+            "text": "YZ"
+          },
+          {
+            "rank": 8,
+            "token_id": 57558,
+            "score": 9.3125,
+            "text": " Sung"
+          }
+        ]
+      },
+      {
+        "case_idx": 3,
+        "prompt_idx": 0,
+        "step": 3,
+        "current_pos": 20,
+        "embed_token_id": 763,
+        "embed_text": "\":",
+        "target_id": 763,
+        "target_text": "\":",
+        "draft_id": 11,
+        "draft_text": ",",
+        "target_rank": 1816,
+        "loss": 9.671778678894043,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 11,
+            "score": 11.25,
+            "text": ","
+          },
+          {
+            "rank": 2,
+            "token_id": 286,
+            "score": 11.125,
+            "text": "ing"
+          },
+          {
+            "rank": 3,
+            "token_id": 13,
+            "score": 10.125,
+            "text": "."
+          },
+          {
+            "rank": 4,
+            "token_id": 10970,
+            "score": 10.0,
+            "text": "-style"
+          },
+          {
+            "rank": 5,
+            "token_id": 470,
+            "score": 9.9375,
+            "text": "able"
+          },
+          {
+            "rank": 6,
+            "token_id": 220,
+            "score": 9.8125,
+            "text": " "
+          },
+          {
+            "rank": 7,
+            "token_id": 735,
+            "score": 9.5625,
+            "text": " |"
+          },
+          {
+            "rank": 8,
+            "token_id": 198,
+            "score": 9.5625,
+            "text": "\n"
+          }
+        ]
+      }
+    ],
+    "embed=current;pos_offset=-1;target=next_label": [
+      {
+        "case_idx": 0,
+        "prompt_idx": 0,
+        "step": 0,
+        "current_pos": 17,
+        "embed_token_id": 13,
+        "embed_text": ".",
+        "target_id": 4754,
+        "target_text": "{\"",
+        "draft_id": 3317,
+        "draft_text": "isc",
+        "target_rank": 13607,
+        "loss": 11.591802597045898,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 3317,
+            "score": 13.3125,
+            "text": "isc"
+          },
+          {
+            "rank": 2,
+            "token_id": 96214,
+            "score": 10.375,
+            "text": "源"
+          },
+          {
+            "rank": 3,
+            "token_id": 97648,
+            "score": 10.3125,
+            "text": "洋"
+          },
+          {
+            "rank": 4,
+            "token_id": 2354,
+            "score": 10.0625,
+            "text": "ories"
+          },
+          {
+            "rank": 5,
+            "token_id": 661,
+            "score": 9.8125,
+            "text": "ory"
+          },
+          {
+            "rank": 6,
+            "token_id": 4314,
+            "score": 9.6875,
+            "text": " member"
+          },
+          {
+            "rank": 7,
+            "token_id": 4464,
+            "score": 9.625,
+            "text": " party"
+          },
+          {
+            "rank": 8,
+            "token_id": 4117,
+            "score": 9.5625,
+            "text": "entic"
+          }
+        ]
+      },
+      {
+        "case_idx": 1,
+        "prompt_idx": 0,
+        "step": 1,
+        "current_pos": 18,
+        "embed_token_id": 271,
+        "embed_text": "\n\n",
+        "target_id": 8656,
+        "target_text": "city",
+        "draft_id": 11,
+        "draft_text": ",",
+        "target_rank": 200758,
+        "loss": 17.111982345581055,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 11,
+            "score": 11.0,
+            "text": ","
+          },
+          {
+            "rank": 2,
+            "token_id": 110438,
+            "score": 10.5625,
+            "text": "唯一的"
+          },
+          {
+            "rank": 3,
+            "token_id": 15327,
+            "score": 10.25,
+            "text": " essentially"
+          },
+          {
+            "rank": 4,
+            "token_id": 96188,
+            "score": 10.125,
+            "text": "注"
+          },
+          {
+            "rank": 5,
+            "token_id": 470,
+            "score": 10.0625,
+            "text": "able"
+          },
+          {
+            "rank": 6,
+            "token_id": 43147,
+            "score": 9.8125,
+            "text": "-thirds"
+          },
+          {
+            "rank": 7,
+            "token_id": 108909,
+            "score": 9.6875,
+            "text": "另一方面"
+          },
+          {
+            "rank": 8,
+            "token_id": 777,
+            "score": 9.625,
+            "text": " more"
+          }
+        ]
+      },
+      {
+        "case_idx": 2,
+        "prompt_idx": 0,
+        "step": 2,
+        "current_pos": 19,
+        "embed_token_id": 4754,
+        "embed_text": "{\"",
+        "target_id": 763,
+        "target_text": "\":",
+        "draft_id": 2513,
+        "draft_text": "body",
+        "target_rank": 6247,
+        "loss": 10.730426788330078,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 2513,
+            "score": 11.125,
+            "text": "body"
+          },
+          {
+            "rank": 2,
+            "token_id": 94354,
+            "score": 10.9375,
+            "text": "rita"
+          },
+          {
+            "rank": 3,
+            "token_id": 23468,
+            "score": 10.875,
+            "text": "iblings"
+          },
+          {
+            "rank": 4,
+            "token_id": 159499,
+            "score": 10.0625,
+            "text": "бри"
+          },
+          {
+            "rank": 5,
+            "token_id": 165730,
+            "score": 10.0,
+            "text": "anggar"
+          },
+          {
+            "rank": 6,
+            "token_id": 119285,
+            "score": 10.0,
+            "text": "点多"
+          },
+          {
+            "rank": 7,
+            "token_id": 512,
+            "score": 10.0,
+            "text": "ang"
+          },
+          {
+            "rank": 8,
+            "token_id": 114248,
+            "score": 10.0,
+            "text": "查看全部"
+          }
+        ]
+      },
+      {
+        "case_idx": 3,
+        "prompt_idx": 0,
+        "step": 3,
+        "current_pos": 20,
+        "embed_token_id": 8656,
+        "embed_text": "city",
+        "target_id": 328,
+        "target_text": " \"",
+        "draft_id": 324,
+        "draft_text": " l",
+        "target_rank": 1909,
+        "loss": 9.567964553833008,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 324,
+            "score": 10.75,
+            "text": " l"
+          },
+          {
+            "rank": 2,
+            "token_id": 4016,
+            "score": 10.125,
+            "text": " due"
+          },
+          {
+            "rank": 3,
+            "token_id": 31088,
+            "score": 9.625,
+            "text": " residual"
+          },
+          {
+            "rank": 4,
+            "token_id": 15029,
+            "score": 9.625,
+            "text": " regardless"
+          },
+          {
+            "rank": 5,
+            "token_id": 10509,
+            "score": 9.5625,
+            "text": " residents"
+          },
+          {
+            "rank": 6,
+            "token_id": 866,
+            "score": 9.4375,
+            "text": " any"
+          },
+          {
+            "rank": 7,
+            "token_id": 220,
+            "score": 9.375,
+            "text": " "
+          },
+          {
+            "rank": 8,
+            "token_id": 5853,
+            "score": 9.25,
+            "text": " comments"
+          }
+        ]
+      }
+    ],
+    "embed=current;pos_offset=0;target=next_label": [
+      {
+        "case_idx": 0,
+        "prompt_idx": 0,
+        "step": 0,
+        "current_pos": 17,
+        "embed_token_id": 13,
+        "embed_text": ".",
+        "target_id": 4754,
+        "target_text": "{\"",
+        "draft_id": 3317,
+        "draft_text": "isc",
+        "target_rank": 13607,
+        "loss": 11.591802597045898,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 3317,
+            "score": 13.3125,
+            "text": "isc"
+          },
+          {
+            "rank": 2,
+            "token_id": 96214,
+            "score": 10.375,
+            "text": "源"
+          },
+          {
+            "rank": 3,
+            "token_id": 97648,
+            "score": 10.3125,
+            "text": "洋"
+          },
+          {
+            "rank": 4,
+            "token_id": 2354,
+            "score": 10.0625,
+            "text": "ories"
+          },
+          {
+            "rank": 5,
+            "token_id": 661,
+            "score": 9.8125,
+            "text": "ory"
+          },
+          {
+            "rank": 6,
+            "token_id": 4314,
+            "score": 9.6875,
+            "text": " member"
+          },
+          {
+            "rank": 7,
+            "token_id": 4464,
+            "score": 9.625,
+            "text": " party"
+          },
+          {
+            "rank": 8,
+            "token_id": 4117,
+            "score": 9.5625,
+            "text": "entic"
+          }
+        ]
+      },
+      {
+        "case_idx": 1,
+        "prompt_idx": 0,
+        "step": 1,
+        "current_pos": 18,
+        "embed_token_id": 271,
+        "embed_text": "\n\n",
+        "target_id": 8656,
+        "target_text": "city",
+        "draft_id": 11,
+        "draft_text": ",",
+        "target_rank": 200758,
+        "loss": 17.111982345581055,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 11,
+            "score": 11.0,
+            "text": ","
+          },
+          {
+            "rank": 2,
+            "token_id": 110438,
+            "score": 10.5625,
+            "text": "唯一的"
+          },
+          {
+            "rank": 3,
+            "token_id": 15327,
+            "score": 10.25,
+            "text": " essentially"
+          },
+          {
+            "rank": 4,
+            "token_id": 96188,
+            "score": 10.125,
+            "text": "注"
+          },
+          {
+            "rank": 5,
+            "token_id": 470,
+            "score": 10.0625,
+            "text": "able"
+          },
+          {
+            "rank": 6,
+            "token_id": 43147,
+            "score": 9.8125,
+            "text": "-thirds"
+          },
+          {
+            "rank": 7,
+            "token_id": 108909,
+            "score": 9.6875,
+            "text": "另一方面"
+          },
+          {
+            "rank": 8,
+            "token_id": 777,
+            "score": 9.625,
+            "text": " more"
+          }
+        ]
+      },
+      {
+        "case_idx": 2,
+        "prompt_idx": 0,
+        "step": 2,
+        "current_pos": 19,
+        "embed_token_id": 4754,
+        "embed_text": "{\"",
+        "target_id": 763,
+        "target_text": "\":",
+        "draft_id": 2513,
+        "draft_text": "body",
+        "target_rank": 6247,
+        "loss": 10.730426788330078,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 2513,
+            "score": 11.125,
+            "text": "body"
+          },
+          {
+            "rank": 2,
+            "token_id": 94354,
+            "score": 10.9375,
+            "text": "rita"
+          },
+          {
+            "rank": 3,
+            "token_id": 23468,
+            "score": 10.875,
+            "text": "iblings"
+          },
+          {
+            "rank": 4,
+            "token_id": 159499,
+            "score": 10.0625,
+            "text": "бри"
+          },
+          {
+            "rank": 5,
+            "token_id": 165730,
+            "score": 10.0,
+            "text": "anggar"
+          },
+          {
+            "rank": 6,
+            "token_id": 119285,
+            "score": 10.0,
+            "text": "点多"
+          },
+          {
+            "rank": 7,
+            "token_id": 512,
+            "score": 10.0,
+            "text": "ang"
+          },
+          {
+            "rank": 8,
+            "token_id": 114248,
+            "score": 10.0,
+            "text": "查看全部"
+          }
+        ]
+      },
+      {
+        "case_idx": 3,
+        "prompt_idx": 0,
+        "step": 3,
+        "current_pos": 20,
+        "embed_token_id": 8656,
+        "embed_text": "city",
+        "target_id": 328,
+        "target_text": " \"",
+        "draft_id": 324,
+        "draft_text": " l",
+        "target_rank": 1909,
+        "loss": 9.567964553833008,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 324,
+            "score": 10.75,
+            "text": " l"
+          },
+          {
+            "rank": 2,
+            "token_id": 4016,
+            "score": 10.125,
+            "text": " due"
+          },
+          {
+            "rank": 3,
+            "token_id": 31088,
+            "score": 9.625,
+            "text": " residual"
+          },
+          {
+            "rank": 4,
+            "token_id": 15029,
+            "score": 9.625,
+            "text": " regardless"
+          },
+          {
+            "rank": 5,
+            "token_id": 10509,
+            "score": 9.5625,
+            "text": " residents"
+          },
+          {
+            "rank": 6,
+            "token_id": 866,
+            "score": 9.4375,
+            "text": " any"
+          },
+          {
+            "rank": 7,
+            "token_id": 220,
+            "score": 9.375,
+            "text": " "
+          },
+          {
+            "rank": 8,
+            "token_id": 5853,
+            "score": 9.25,
+            "text": " comments"
+          }
+        ]
+      }
+    ],
+    "embed=current;pos_offset=1;target=next_label": [
+      {
+        "case_idx": 0,
+        "prompt_idx": 0,
+        "step": 0,
+        "current_pos": 17,
+        "embed_token_id": 13,
+        "embed_text": ".",
+        "target_id": 4754,
+        "target_text": "{\"",
+        "draft_id": 3317,
+        "draft_text": "isc",
+        "target_rank": 13607,
+        "loss": 11.591802597045898,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 3317,
+            "score": 13.3125,
+            "text": "isc"
+          },
+          {
+            "rank": 2,
+            "token_id": 96214,
+            "score": 10.375,
+            "text": "源"
+          },
+          {
+            "rank": 3,
+            "token_id": 97648,
+            "score": 10.3125,
+            "text": "洋"
+          },
+          {
+            "rank": 4,
+            "token_id": 2354,
+            "score": 10.0625,
+            "text": "ories"
+          },
+          {
+            "rank": 5,
+            "token_id": 661,
+            "score": 9.8125,
+            "text": "ory"
+          },
+          {
+            "rank": 6,
+            "token_id": 4314,
+            "score": 9.6875,
+            "text": " member"
+          },
+          {
+            "rank": 7,
+            "token_id": 4464,
+            "score": 9.625,
+            "text": " party"
+          },
+          {
+            "rank": 8,
+            "token_id": 4117,
+            "score": 9.5625,
+            "text": "entic"
+          }
+        ]
+      },
+      {
+        "case_idx": 1,
+        "prompt_idx": 0,
+        "step": 1,
+        "current_pos": 18,
+        "embed_token_id": 271,
+        "embed_text": "\n\n",
+        "target_id": 8656,
+        "target_text": "city",
+        "draft_id": 11,
+        "draft_text": ",",
+        "target_rank": 200758,
+        "loss": 17.111982345581055,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 11,
+            "score": 11.0,
+            "text": ","
+          },
+          {
+            "rank": 2,
+            "token_id": 110438,
+            "score": 10.5625,
+            "text": "唯一的"
+          },
+          {
+            "rank": 3,
+            "token_id": 15327,
+            "score": 10.25,
+            "text": " essentially"
+          },
+          {
+            "rank": 4,
+            "token_id": 96188,
+            "score": 10.125,
+            "text": "注"
+          },
+          {
+            "rank": 5,
+            "token_id": 470,
+            "score": 10.0625,
+            "text": "able"
+          },
+          {
+            "rank": 6,
+            "token_id": 43147,
+            "score": 9.8125,
+            "text": "-thirds"
+          },
+          {
+            "rank": 7,
+            "token_id": 108909,
+            "score": 9.6875,
+            "text": "另一方面"
+          },
+          {
+            "rank": 8,
+            "token_id": 777,
+            "score": 9.625,
+            "text": " more"
+          }
+        ]
+      },
+      {
+        "case_idx": 2,
+        "prompt_idx": 0,
+        "step": 2,
+        "current_pos": 19,
+        "embed_token_id": 4754,
+        "embed_text": "{\"",
+        "target_id": 763,
+        "target_text": "\":",
+        "draft_id": 2513,
+        "draft_text": "body",
+        "target_rank": 6247,
+        "loss": 10.730426788330078,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 2513,
+            "score": 11.125,
+            "text": "body"
+          },
+          {
+            "rank": 2,
+            "token_id": 94354,
+            "score": 10.9375,
+            "text": "rita"
+          },
+          {
+            "rank": 3,
+            "token_id": 23468,
+            "score": 10.875,
+            "text": "iblings"
+          },
+          {
+            "rank": 4,
+            "token_id": 159499,
+            "score": 10.0625,
+            "text": "бри"
+          },
+          {
+            "rank": 5,
+            "token_id": 165730,
+            "score": 10.0,
+            "text": "anggar"
+          },
+          {
+            "rank": 6,
+            "token_id": 119285,
+            "score": 10.0,
+            "text": "点多"
+          },
+          {
+            "rank": 7,
+            "token_id": 512,
+            "score": 10.0,
+            "text": "ang"
+          },
+          {
+            "rank": 8,
+            "token_id": 114248,
+            "score": 10.0,
+            "text": "查看全部"
+          }
+        ]
+      },
+      {
+        "case_idx": 3,
+        "prompt_idx": 0,
+        "step": 3,
+        "current_pos": 20,
+        "embed_token_id": 8656,
+        "embed_text": "city",
+        "target_id": 328,
+        "target_text": " \"",
+        "draft_id": 324,
+        "draft_text": " l",
+        "target_rank": 1909,
+        "loss": 9.567964553833008,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 324,
+            "score": 10.75,
+            "text": " l"
+          },
+          {
+            "rank": 2,
+            "token_id": 4016,
+            "score": 10.125,
+            "text": " due"
+          },
+          {
+            "rank": 3,
+            "token_id": 31088,
+            "score": 9.625,
+            "text": " residual"
+          },
+          {
+            "rank": 4,
+            "token_id": 15029,
+            "score": 9.625,
+            "text": " regardless"
+          },
+          {
+            "rank": 5,
+            "token_id": 10509,
+            "score": 9.5625,
+            "text": " residents"
+          },
+          {
+            "rank": 6,
+            "token_id": 866,
+            "score": 9.4375,
+            "text": " any"
+          },
+          {
+            "rank": 7,
+            "token_id": 220,
+            "score": 9.375,
+            "text": " "
+          },
+          {
+            "rank": 8,
+            "token_id": 5853,
+            "score": 9.25,
+            "text": " comments"
+          }
+        ]
+      }
+    ],
+    "embed=current;pos_offset=2;target=next_label": [
+      {
+        "case_idx": 0,
+        "prompt_idx": 0,
+        "step": 0,
+        "current_pos": 17,
+        "embed_token_id": 13,
+        "embed_text": ".",
+        "target_id": 4754,
+        "target_text": "{\"",
+        "draft_id": 3317,
+        "draft_text": "isc",
+        "target_rank": 13607,
+        "loss": 11.591802597045898,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 3317,
+            "score": 13.3125,
+            "text": "isc"
+          },
+          {
+            "rank": 2,
+            "token_id": 96214,
+            "score": 10.375,
+            "text": "源"
+          },
+          {
+            "rank": 3,
+            "token_id": 97648,
+            "score": 10.3125,
+            "text": "洋"
+          },
+          {
+            "rank": 4,
+            "token_id": 2354,
+            "score": 10.0625,
+            "text": "ories"
+          },
+          {
+            "rank": 5,
+            "token_id": 661,
+            "score": 9.8125,
+            "text": "ory"
+          },
+          {
+            "rank": 6,
+            "token_id": 4314,
+            "score": 9.6875,
+            "text": " member"
+          },
+          {
+            "rank": 7,
+            "token_id": 4464,
+            "score": 9.625,
+            "text": " party"
+          },
+          {
+            "rank": 8,
+            "token_id": 4117,
+            "score": 9.5625,
+            "text": "entic"
+          }
+        ]
+      },
+      {
+        "case_idx": 1,
+        "prompt_idx": 0,
+        "step": 1,
+        "current_pos": 18,
+        "embed_token_id": 271,
+        "embed_text": "\n\n",
+        "target_id": 8656,
+        "target_text": "city",
+        "draft_id": 11,
+        "draft_text": ",",
+        "target_rank": 200758,
+        "loss": 17.111982345581055,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 11,
+            "score": 11.0,
+            "text": ","
+          },
+          {
+            "rank": 2,
+            "token_id": 110438,
+            "score": 10.5625,
+            "text": "唯一的"
+          },
+          {
+            "rank": 3,
+            "token_id": 15327,
+            "score": 10.25,
+            "text": " essentially"
+          },
+          {
+            "rank": 4,
+            "token_id": 96188,
+            "score": 10.125,
+            "text": "注"
+          },
+          {
+            "rank": 5,
+            "token_id": 470,
+            "score": 10.0625,
+            "text": "able"
+          },
+          {
+            "rank": 6,
+            "token_id": 43147,
+            "score": 9.8125,
+            "text": "-thirds"
+          },
+          {
+            "rank": 7,
+            "token_id": 108909,
+            "score": 9.6875,
+            "text": "另一方面"
+          },
+          {
+            "rank": 8,
+            "token_id": 777,
+            "score": 9.625,
+            "text": " more"
+          }
+        ]
+      },
+      {
+        "case_idx": 2,
+        "prompt_idx": 0,
+        "step": 2,
+        "current_pos": 19,
+        "embed_token_id": 4754,
+        "embed_text": "{\"",
+        "target_id": 763,
+        "target_text": "\":",
+        "draft_id": 2513,
+        "draft_text": "body",
+        "target_rank": 6247,
+        "loss": 10.730426788330078,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 2513,
+            "score": 11.125,
+            "text": "body"
+          },
+          {
+            "rank": 2,
+            "token_id": 94354,
+            "score": 10.9375,
+            "text": "rita"
+          },
+          {
+            "rank": 3,
+            "token_id": 23468,
+            "score": 10.875,
+            "text": "iblings"
+          },
+          {
+            "rank": 4,
+            "token_id": 159499,
+            "score": 10.0625,
+            "text": "бри"
+          },
+          {
+            "rank": 5,
+            "token_id": 165730,
+            "score": 10.0,
+            "text": "anggar"
+          },
+          {
+            "rank": 6,
+            "token_id": 119285,
+            "score": 10.0,
+            "text": "点多"
+          },
+          {
+            "rank": 7,
+            "token_id": 512,
+            "score": 10.0,
+            "text": "ang"
+          },
+          {
+            "rank": 8,
+            "token_id": 114248,
+            "score": 10.0,
+            "text": "查看全部"
+          }
+        ]
+      },
+      {
+        "case_idx": 3,
+        "prompt_idx": 0,
+        "step": 3,
+        "current_pos": 20,
+        "embed_token_id": 8656,
+        "embed_text": "city",
+        "target_id": 328,
+        "target_text": " \"",
+        "draft_id": 324,
+        "draft_text": " l",
+        "target_rank": 1909,
+        "loss": 9.567964553833008,
+        "topk": [
+          {
+            "rank": 1,
+            "token_id": 324,
+            "score": 10.75,
+            "text": " l"
+          },
+          {
+            "rank": 2,
+            "token_id": 4016,
+            "score": 10.125,
+            "text": " due"
+          },
+          {
+            "rank": 3,
+            "token_id": 31088,
+            "score": 9.625,
+            "text": " residual"
+          },
+          {
+            "rank": 4,
+            "token_id": 15029,
+            "score": 9.625,
+            "text": " regardless"
+          },
+          {
+            "rank": 5,
+            "token_id": 10509,
+            "score": 9.5625,
+            "text": " residents"
+          },
+          {
+            "rank": 6,
+            "token_id": 866,
+            "score": 9.4375,
+            "text": " any"
+          },
+          {
+            "rank": 7,
+            "token_id": 220,
+            "score": 9.375,
+            "text": " "
+          },
+          {
+            "rank": 8,
+            "token_id": 5853,
+            "score": 9.25,
+            "text": " comments"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -627,6 +627,8 @@ Official Qwen3.6-35B MTP sidecar on Lynn-native W4A16:
 | Shape audit | GREEN |
 | Forward smoke | GREEN, finite logits |
 | Iterative accept | RED, 0/24 accepted |
+| P120 alignment sweep on W4A16 | RED, 0/15 top1 and 0/15 top8 |
+| P120 alignment sweep on BF16 | RED, 0/9 top1 and 0/9 top8 |
 
 Atlas/Qwen3.6 external framing is mixed and should not be treated as a free
 multiplier. Atlas README pins 131 tok/s to Qwen3.5-35B-A3B MTP, while its public
@@ -642,6 +644,19 @@ has reported Qwen3.6 MTP not engaging in some NVFP4 settings. That matches the
 local result: shape and forward compatibility are not enough; Lynn must measure
 accept rate and end-to-end TPS on the exact W4A16 runtime before counting MTP
 credit.
+
+P120 rules out the easiest "off by one" explanations for the official sidecar.
+It sweeps current-token embedding versus oracle next-token embedding, position
+offsets `-1/0/+1/+2`, and immediate-next versus next-after-current targets. The
+best W4A16 variant reaches only `2/15` inside top32 and no top8/top1; the BF16
+official base similarly stays at no top8/top1. This means W4A16 quantization is
+not the reason official MTP is unusable locally. Treat the official 35B sidecar
+as a warm-start/diagnostic asset, not a plug-and-play proposer.
+
+Copied reports:
+
+- `reports/qwen36_35b/p120_official_mtp_alignment_sweep_20260518_084820.json`
+- `reports/qwen36_35b/p120_official_mtp_alignment_sweep_bf16base_20260518_084906.json`
 
 References:
 
