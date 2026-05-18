@@ -220,6 +220,37 @@ Artifacts:
 - `scripts/qwen36_candidate_env_moe_effective_scale.env`
 - `reports/qwen36_35b/QWEN36_W4A16_MOE_EFFECTIVE_SCALE_P130_20260518.md`
 
+### Repack Stack Closure
+
+P131 combines the strict sidecar, active scratch, and effective-scale paths:
+
+```text
+LYNN_MOE_REPACK_SIDECAR_DIR=/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-v0
+LYNN_MOE_ACTIVE_SCRATCH=1
+LYNN_MOE_EFFECTIVE_SCALE=1
+```
+
+R6000 result:
+
+| Gate | Result |
+|---|---:|
+| P37 exact | true |
+| P37 median speedup | 0.998x |
+| P25 512 decode TPS | 107.95 |
+| hard structured | 40/40, mean 107.72 decode TPS |
+| decision | research-only |
+
+This closes the non-math MoE repack stack: sidecar lookup, scratch allocation,
+and global-scale division are not the remaining 122/155 TPS blockers.  The next
+MoE step must be a true grouped native gate/up and down kernel behind the same
+strict active-MoE boundary; more env stacking around the current Triton inner
+math is low ROI.
+
+Artifacts:
+
+- `scripts/qwen36_candidate_env_moe_repack_scratch_effective.env`
+- `reports/qwen36_35b/QWEN36_W4A16_MOE_REPACK_SCRATCH_EFFECTIVE_P131_20260518.md`
+
 ## Hard Constraints
 
 1. Default promotion must preserve full top-8 active MoE plus shared expert.
