@@ -412,6 +412,7 @@ def run_contract(
         "num_experts": manifest["num_experts"],
         "num_experts_per_tok": manifest["top_k"],
         "hidden_size": manifest["hidden_size"],
+        "model_dir": str(effective_model_dir),
     }
 
     layer_cache: dict[int, dict] = {}
@@ -461,6 +462,8 @@ def run_contract(
             raise KeyError(f"{fixture_file} lacks moe_output")
         expected_output = fixture_data[expected_key].to(dtype)
 
+        fixture_cfg = dict(cfg, layer_id=layer_id, prompt_id=prompt_id, fixture_file=fixture_file)
+
         if candidate_output_dir:
             ref_out = expected_output
             ref_ms = 0.0
@@ -477,9 +480,9 @@ def run_contract(
             layer_weights = layer_cache[layer_id]
 
             # Run reference
-            ref_out = ref_fn(hidden_in, expert_ids, routing_weights, layer_weights, cfg)
+            ref_out = ref_fn(hidden_in, expert_ids, routing_weights, layer_weights, fixture_cfg)
             ref_ms = _bench_fn(
-                lambda: ref_fn(hidden_in, expert_ids, routing_weights, layer_weights, cfg),
+                lambda: ref_fn(hidden_in, expert_ids, routing_weights, layer_weights, fixture_cfg),
                 warmup=warmup,
                 iters=iters,
             )
@@ -493,9 +496,9 @@ def run_contract(
                 metrics = _compute_metrics(expected_output, ref_out)
             else:
                 # Candidate comparison
-                candidate_out = candidate_fn(hidden_in, expert_ids, routing_weights, layer_weights, cfg)
+                candidate_out = candidate_fn(hidden_in, expert_ids, routing_weights, layer_weights, fixture_cfg)
                 candidate_ms = _bench_fn(
-                    lambda: candidate_fn(hidden_in, expert_ids, routing_weights, layer_weights, cfg),
+                    lambda: candidate_fn(hidden_in, expert_ids, routing_weights, layer_weights, fixture_cfg),
                     warmup=warmup,
                     iters=iters,
                 )

@@ -1,0 +1,25 @@
+{
+  "schema": "lynn-moe-fixture-gate-summary-v1",
+  "source_report": "/root/autodl-tmp/reports/qwen36_35b/p134_routed_only_native_grouped_per16_nonatomic_20260518_grouped_per16_nonatomic_relaxed.json",
+  "decision": "FAST_CANDIDATE",
+  "reasons": [
+    "candidate speedup 17.470x >= 1.050x"
+  ],
+  "mode": "routed_only",
+  "candidate_backend": "native_grouped_per16_nonatomic",
+  "candidate_output_dir": null,
+  "total": 18,
+  "passed": 18,
+  "failed": 0,
+  "exact_count": 0,
+  "max_abs_max": 0.00390625,
+  "rel_l2_max": 0.007198334205895662,
+  "cosine_min": 0.9999750256538391,
+  "ref_ms_mean": 0.9163200855255127,
+  "candidate_ms_mean": 0.05244977739122179,
+  "reference_report": "/root/autodl-tmp/reports/qwen36_35b/p134_routed_only_selfcheck_report.json",
+  "candidate_metrics": null,
+  "speedup": 17.4704284956388,
+  "min_speedup": 1.05,
+  "strict_exact": false
+}
