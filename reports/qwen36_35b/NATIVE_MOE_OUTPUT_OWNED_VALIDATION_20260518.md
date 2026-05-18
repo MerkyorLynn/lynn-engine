@@ -90,6 +90,19 @@ Single-layer and family probes did not hit top-1 divergence in 4 steps:
 
 The generation failure appears cumulative, not caused by one isolated toxic layer. That makes a "native only selected layers" promotion unlikely to be enough; the next useful work is lowering packed NVFP4 drift itself.
 
+## P37 Selected-Layer Follow-Up
+
+P33's 4-step top-1 probe was not enough to define a safe serving subset. Four P37 selected-layer probes all remained exact-greedy RED:
+
+| Layer spec | P37 exact | Candidate median TPS | Median speedup |
+|---|---:|---:|---:|
+| `16,36,39` | false | 106.72 | 1.020x |
+| `8,16,36,39` | false | 107.31 | 1.036x |
+| `full_attention` | false | 104.47 | 1.018x |
+| `linear_attention` | false | 112.52 | 1.083x |
+
+This closes the tempting "just enable a few apparently-safe layers" shortcut. Even very small packed-native subsets can alter generation. The priority remains a numerically tighter output-owned/slot-repacked packed-NVFP4 kernel, not layer allowlist tuning.
+
 ## Claude Slot-Repack Acceptance Gate
 
 `claude/moe-slot-repack-fixture-20260518` was not found on `origin` during validation:
