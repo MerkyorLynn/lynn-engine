@@ -52,7 +52,13 @@ except Exception:  # pragma: no cover - optional acceleration path.
     qk_norm_rope_triton = None
 
 
-_ROPE_TABLE_CACHE: dict[tuple[str, str, int, float, int], tuple[torch.Tensor, torch.Tensor]] = {}
+# RoPE cos/sin table cache moved to triton_kernels/full_attn_rope_cache.py
+# (Stream B Task 1, docs/QWEN36_W4A16_KERNEL_REFACTOR_PLAN_20260518.md).
+# Imported below as the previous private name so the two call sites in this
+# module migrate by reading from the same symbol they already used.
+from triton_kernels.full_attn_rope_cache import (  # noqa: E402
+    build_rope_cos_sin_cached as _build_rope_cos_sin_cached,
+)
 
 
 def _linear(x: torch.Tensor, weight) -> torch.Tensor:
@@ -183,30 +189,11 @@ def _build_rope_cos_sin(positions: torch.Tensor, rotary_dim: int, theta: float,
     return cos, sin
 
 
-def _build_rope_cos_sin_cached(positions: torch.Tensor, rotary_dim: int, theta: float, device, dtype):
-    """Optional full-attention decode RoPE table cache.
-
-    Rebuilding `arange -> inv_freq -> cos/sin` for every full-attention layer is
-    launch-heavy during one-token decode. The cache is opt-in so gates can prove
-    bitwise/greedy parity before it becomes a serving default.
-    """
-    max_seq = int(os.environ.get("LYNN_FULL_ATTN_ROPE_CACHE_MAX_SEQ", "65536"))
-    half = rotary_dim // 2
-    key = (str(torch.device(device)), str(dtype), int(rotary_dim), float(theta), max_seq)
-    cached = _ROPE_TABLE_CACHE.get(key)
-    if cached is None:
-        inv_freq = 1.0 / (
-            theta ** (torch.arange(0, rotary_dim, 2, device=device, dtype=torch.float32) / rotary_dim)
-        )
-        seq = torch.arange(max_seq, device=device, dtype=torch.float32)
-        freqs = seq[:, None] * inv_freq[None, :]
-        cached = (freqs.cos().to(dtype).contiguous(), freqs.sin().to(dtype).contiguous())
-        _ROPE_TABLE_CACHE[key] = cached
-    cos_table, sin_table = cached
-    flat = positions.reshape(-1).to(device=device, dtype=torch.long)
-    cos = cos_table.index_select(0, flat).reshape(*positions.shape, half).unsqueeze(1)
-    sin = sin_table.index_select(0, flat).reshape(*positions.shape, half).unsqueeze(1)
-    return cos, sin
+# NOTE: ``_build_rope_cos_sin_cached`` is now re-exported from
+# ``triton_kernels.full_attn_rope_cache`` (see import block near the top
+# of this module). The body lived here until 2026-05-18; it moved out as
+# part of Stream B Task 1 in the W4A16 kernel refactor plan so the cache
+# has a named owner with explicit prewarm + inventory hooks.
 
 
 def _apply_partial_rope(x, cos, sin, rotary_dim):
