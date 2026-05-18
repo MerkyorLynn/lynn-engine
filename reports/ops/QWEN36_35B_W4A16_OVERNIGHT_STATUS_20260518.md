@@ -473,6 +473,14 @@ answers, and JSON Patch arrays. This also passed:
 | Mean decode TPS | 114.18 |
 | Min / max decode TPS | 110.36 / 115.22 |
 
+The same AMBER profile with RoPE-cache prewarm also improves long-output P25:
+
+| Max tokens | Wall TPS | Decode TPS |
+|---:|---:|---:|
+| 128 | 56.82 | 111.83 |
+| 256 | 82.18 | 112.29 |
+| 512 | 95.51 | 113.20 |
+
 So this branch is viable as a controlled structured-serving fast mode and the
 current best practical serving candidate. It still remains opt-in for
 exact-parity-sensitive gates because exact greedy parity is known to drift.
@@ -537,6 +545,7 @@ Copied reports:
 - `reports/qwen36_35b/structured_gate_amber_sharedgate_triton_inplace_20260518_085210.json`
 - `reports/qwen36_35b/structured_gate_amber70_sharedgate_triton_convinplace_20260518_091420.json`
 - `reports/qwen36_35b/structured_hardgate_amber_20260518_123744.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_p25_server_decode_tps_20260518_124449_amber_rope_p25.json`
 - `reports/qwen36_35b/p37_shared_gate_torch_inplace_20260518_090215.json`
 - `reports/qwen36_35b/p25_shared_gate_torch_inplace_20260518_091020.json`
 - `reports/qwen36_35b/structured_gate_shared_gate_torch_inplace_20260518_091050.json`

@@ -1,0 +1,164 @@
+{
+  "schema_version": "lynn-engine-p25-server-decode-tps-probe-v1",
+  "url": "http://127.0.0.1:18173/v1",
+  "model": "Qwen3.6-35B-A3B-W4A16-NVFP4-server-20260518_124449_amber_rope_p25",
+  "chat": true,
+  "prompt_chars": 66,
+  "results": [
+    {
+      "wall_s": 2.252596139907837,
+      "completion_tokens": 128,
+      "wall_tps": 56.82332386720552,
+      "metrics_tokens_per_second": 58.46195373251722,
+      "decode_tps": 111.82603496632686,
+      "prefill_seconds": 1.0342607498168945,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.770094633102417,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 127,
+      "decode_step_ms_mean": 8.942461389256275,
+      "decode_step_ms_median": 8.779525756835938,
+      "preview": "在构建下一代大规模语言模型推理系统时，我们首先必须深入探讨混合专家模型（Mixture of Experts, MoE）的推理优化策略，因为随着模型参数规模的指数级增长，MoE 架构通过稀疏激活机制显著降低了计算密度，但也引入了复杂的通信与调度挑战。为了最大化吞吐量并降低延迟，我们需要对 MoE 的路由算法进行细粒度优",
+      "max_tokens": 128,
+      "run_idx": 0
+    },
+    {
+      "wall_s": 3.1149730682373047,
+      "completion_tokens": 256,
+      "wall_tps": 82.18369610009657,
+      "metrics_tokens_per_second": 82.34681221271384,
+      "decode_tps": 112.28916087660394,
+      "prefill_seconds": 0.8176565170288086,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.770094633102417,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 255,
+      "decode_step_ms_mean": 8.905579062069163,
+      "decode_step_ms_median": 8.790731430053711,
+      "preview": "在构建下一代大规模语言模型推理系统时，我们首先必须深入探讨混合专家模型（Mixture of Experts, MoE）的推理优化策略，因为随着模型参数规模的指数级增长，MoE 架构通过稀疏激活机制显著降低了计算密度，但也引入了复杂的通信与调度挑战。为了最大化吞吐量并降低延迟，我们需要对 MoE 的路由算法进行细粒度优",
+      "max_tokens": 256,
+      "run_idx": 0
+    },
+    {
+      "wall_s": 5.360799551010132,
+      "completion_tokens": 512,
+      "wall_tps": 95.50814111367477,
+      "metrics_tokens_per_second": 95.66726871053305,
+      "decode_tps": 113.19975157514173,
+      "prefill_seconds": 0.8047034740447998,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.770094633102417,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 511,
+      "decode_step_ms_mean": 8.833941648151075,
+      "decode_step_ms_median": 8.781194686889648,
+      "preview": "在构建下一代大规模语言模型推理系统时，我们首先必须深入探讨混合专家模型（Mixture of Experts, MoE）的推理优化策略，因为随着模型参数规模的指数级增长，MoE 架构通过稀疏激活机制显著降低了计算密度，但也引入了复杂的通信与调度挑战。为了最大化吞吐量并降低延迟，我们需要对 MoE 的路由算法进行细粒度优",
+      "max_tokens": 512,
+      "run_idx": 0
+    }
+  ],
+  "summary_by_max_tokens": {
+    "128": {
+      "runs": 1,
+      "wall_tps": {
+        "mean": 56.82332386720552,
+        "median": 56.82332386720552,
+        "min": 56.82332386720552,
+        "max": 56.82332386720552
+      },
+      "metrics_tokens_per_second": {
+        "mean": 58.46195373251722,
+        "median": 58.46195373251722,
+        "min": 58.46195373251722,
+        "max": 58.46195373251722
+      },
+      "decode_tps": {
+        "mean": 111.82603496632686,
+        "median": 111.82603496632686,
+        "min": 111.82603496632686,
+        "max": 111.82603496632686
+      },
+      "prefill_seconds": {
+        "mean": 1.0342607498168945,
+        "median": 1.0342607498168945,
+        "min": 1.0342607498168945,
+        "max": 1.0342607498168945
+      },
+      "decode_step_ms_median": {
+        "mean": 8.779525756835938,
+        "median": 8.779525756835938,
+        "min": 8.779525756835938,
+        "max": 8.779525756835938
+      }
+    },
+    "256": {
+      "runs": 1,
+      "wall_tps": {
+        "mean": 82.18369610009657,
+        "median": 82.18369610009657,
+        "min": 82.18369610009657,
+        "max": 82.18369610009657
+      },
+      "metrics_tokens_per_second": {
+        "mean": 82.34681221271384,
+        "median": 82.34681221271384,
+        "min": 82.34681221271384,
+        "max": 82.34681221271384
+      },
+      "decode_tps": {
+        "mean": 112.28916087660394,
+        "median": 112.28916087660394,
+        "min": 112.28916087660394,
+        "max": 112.28916087660394
+      },
+      "prefill_seconds": {
+        "mean": 0.8176565170288086,
+        "median": 0.8176565170288086,
+        "min": 0.8176565170288086,
+        "max": 0.8176565170288086
+      },
+      "decode_step_ms_median": {
+        "mean": 8.790731430053711,
+        "median": 8.790731430053711,
+        "min": 8.790731430053711,
+        "max": 8.790731430053711
+      }
+    },
+    "512": {
+      "runs": 1,
+      "wall_tps": {
+        "mean": 95.50814111367477,
+        "median": 95.50814111367477,
+        "min": 95.50814111367477,
+        "max": 95.50814111367477
+      },
+      "metrics_tokens_per_second": {
+        "mean": 95.66726871053305,
+        "median": 95.66726871053305,
+        "min": 95.66726871053305,
+        "max": 95.66726871053305
+      },
+      "decode_tps": {
+        "mean": 113.19975157514173,
+        "median": 113.19975157514173,
+        "min": 113.19975157514173,
+        "max": 113.19975157514173
+      },
+      "prefill_seconds": {
+        "mean": 0.8047034740447998,
+        "median": 0.8047034740447998,
+        "min": 0.8047034740447998,
+        "max": 0.8047034740447998
+      },
+      "decode_step_ms_median": {
+        "mean": 8.781194686889648,
+        "median": 8.781194686889648,
+        "min": 8.781194686889648,
+        "max": 8.781194686889648
+      }
+    }
+  }
+}
