@@ -84,18 +84,23 @@ def _runtime_config(model_dir: str) -> tuple[dict[str, Any], int]:
         full_cfg = json.load(f)
     tc = full_cfg["text_config"]
     rope_p = tc.get("rope_parameters", {})
-    cfg = {
+    num_experts = tc.get("num_experts", 0)
+    num_experts_per_tok = tc.get("num_experts_per_tok", 0)
+    cfg: dict[str, Any] = {
         "hidden_size": tc["hidden_size"],
         "num_attention_heads": tc["num_attention_heads"],
         "num_key_value_heads": tc["num_key_value_heads"],
         "head_dim": tc["head_dim"],
-        "num_experts": tc["num_experts"],
-        "num_experts_per_tok": tc["num_experts_per_tok"],
+        "num_experts": num_experts,
+        "num_experts_per_tok": num_experts_per_tok,
+        "is_moe": num_experts > 0,
         "rope_theta": rope_p.get("rope_theta", tc.get("rope_theta", 1e6)),
         "partial_rotary_factor": rope_p.get("partial_rotary_factor", 1.0),
     }
-    if LAYER_TYPES != tc["layer_types"]:
+    cfg_layer_types = tc.get("layer_types")
+    if cfg_layer_types is not None and LAYER_TYPES != cfg_layer_types:
         raise ValueError("layer_types config mismatch")
+    # dense models (is_moe=False) won't have "layer_types" in config — OK
     return cfg, tc["num_hidden_layers"]
 
 
@@ -239,6 +244,10 @@ class LynnIncrementalRunner:
         self.packed_decode_aliases_skipped = 0
         self.runtime_warnings: list[str] = []
         self.cfg, self.n_layers = _runtime_config(self.model_dir)
+        self.is_moe = self.cfg.get("is_moe", True)
+        if not self.is_moe:
+            print(f"[resident] dense model detected (num_experts=0), "
+                  f"MoE paths will be skipped", flush=True)
         if os.environ.get("LYNN_PACKED_DECODE", "0") == "1":
             self.runtime_warnings.append(
                 "LYNN_PACKED_DECODE=1 is a diagnostic path, not the current R6000 best "
@@ -280,7 +289,7 @@ class LynnIncrementalRunner:
             w, inferred = load_qwen36_layer(
                 self.model_dir,
                 i,
-                num_experts=self.cfg["num_experts"],
+                num_experts=self.cfg.get("num_experts", 0),
                 device=device,
                 dequant_dtype=dtype,
             )
@@ -288,21 +297,22 @@ class LynnIncrementalRunner:
             self.layer_cfgs.append(_with_inferred_layer_config(self.cfg, inferred, i))
             if verbose and (i % 5 == 4 or i == self.n_layers - 1):
                 print(f"  [resident] L{i:02}: {time.time() - t0:.1f}s", flush=True)
-        if impl == "triton":
+        if self.is_moe and impl == "triton":
             self._prepare_triton_moe_layout()
-        if os.environ.get("LYNN_SHARED_EXPERT_GATE_UP_FUSED", "1") != "0":
+        if self.is_moe and os.environ.get("LYNN_SHARED_EXPERT_GATE_UP_FUSED", "1") != "0":
             self._prepare_shared_expert_gate_up_fused()
-        if impl == "packed_nvfp4":
+        if self.is_moe and impl == "packed_nvfp4":
             self._prepare_packed_nvfp4_moe_layout()
-        if (
+        if self.is_moe and (
             os.environ.get("LYNN_PACKED_DECODE", "0") == "1"
             or os.environ.get("LYNN_PACKED_DECODE_LINEAR_ATTN", "0") == "1"
             or os.environ.get("LYNN_PACKED_DECODE_FULL_ATTN", "0") == "1"
         ):
             self._prepare_packed_decode_aliases()
-        if os.environ.get("LYNN_LINEAR_ATTN_INPROJ_FUSED", "0") == "1":
+        has_linear_attn = self.layer_cfgs and self.layer_cfgs[0].get("is_linear_attention", False)
+        if has_linear_attn and os.environ.get("LYNN_LINEAR_ATTN_INPROJ_FUSED", "0") == "1":
             self._prepare_linear_attn_inproj_fused()
-        if os.environ.get("LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4", "0") == "1":
+        if has_linear_attn and os.environ.get("LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4", "0") == "1":
             self._prepare_linear_attn_inproj_fused_native_fp4()
         if os.environ.get("LYNN_FULL_ATTN_QKV_FUSED", "0") == "1":
             self._prepare_full_attn_qkv_fused()

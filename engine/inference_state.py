@@ -16,12 +16,12 @@ For shorter contexts, cache is pre-allocated max_T but only first seq_len positi
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, Sequence
 
 import torch
 
 
-# Qwen 3.6 35B-A3B fixed dims
+# Qwen 3.6 35B-A3B fixed dims (default; overridden by from_config for other models)
 HIDDEN = 2048
 NUM_KV_HEADS = 2
 HEAD_DIM = 256
@@ -40,6 +40,15 @@ FULL_ATTN_INDICES = [i for i, t in enumerate(LAYER_TYPES) if t == "full_attentio
 LINEAR_ATTN_INDICES = [i for i, t in enumerate(LAYER_TYPES) if t == "linear_attention"]
 
 
+def _infer_layer_types(tc: dict) -> list[str]:
+    """Infer layer_types from config, with fallback for dense (all-full_attention) models."""
+    if "layer_types" in tc:
+        return list(tc["layer_types"])
+    n = tc.get("num_hidden_layers", 40)
+    # Dense models (e.g. Qwen3.5-9B) have no linear_attention layers
+    return ["full_attention"] * n
+
+
 @dataclass
 class LynnInferenceState:
     """Per-request KV cache + recurrent state for incremental decode."""
@@ -50,12 +59,48 @@ class LynnInferenceState:
     dtype: torch.dtype = torch.bfloat16
     seq_len: int = 0   # current populated length (incl. prompt)
 
-    # full_attention KV cache (10 layers)
+    # Architecture dimensions (set by from_config or defaults)
+    hidden_size: int = HIDDEN
+    num_kv_heads: int = NUM_KV_HEADS
+    head_dim: int = HEAD_DIM
+    layer_types: list[str] = field(default_factory=lambda: list(LAYER_TYPES))
+
+    # full_attention KV cache
     kv_cache: dict[int, tuple[torch.Tensor, torch.Tensor]] = field(default_factory=dict)
 
-    # linear_attention recurrent state + conv state (30 layers)
+    # linear_attention recurrent state + conv state
     recurrent_state: dict[int, torch.Tensor] = field(default_factory=dict)
     conv_state: dict[int, torch.Tensor] = field(default_factory=dict)
+
+    # Linear attention dims (only used if layer has linear_attention)
+    linear_num_v_heads: int = LINEAR_NUM_V_HEADS
+    linear_head_k_dim: int = LINEAR_HEAD_K_DIM
+    linear_head_v_dim: int = LINEAR_HEAD_V_DIM
+    linear_conv_kernel: int = LINEAR_CONV_KERNEL
+    linear_conv_dim: int = LINEAR_CONV_DIM
+
+    @classmethod
+    def from_config(
+        cls,
+        tc: dict,
+        *,
+        batch: int = 1,
+        max_seq_len: int = 32768,
+        device: str = "cuda",
+        dtype: torch.dtype = torch.bfloat16,
+    ) -> "LynnInferenceState":
+        """Create state from a text_config dict (config.json['text_config'])."""
+        layer_types = _infer_layer_types(tc)
+        return cls(
+            batch=batch,
+            max_seq_len=max_seq_len,
+            device=device,
+            dtype=dtype,
+            hidden_size=tc.get("hidden_size", HIDDEN),
+            num_kv_heads=tc.get("num_key_value_heads", NUM_KV_HEADS),
+            head_dim=tc.get("head_dim", HEAD_DIM),
+            layer_types=layer_types,
+        )
 
     def __post_init__(self):
         if not self.kv_cache:
@@ -63,23 +108,27 @@ class LynnInferenceState:
 
     def _allocate(self):
         """Pre-allocate all caches at max_seq_len. Called once on init."""
-        B, T, D = self.batch, self.max_seq_len, HEAD_DIM
+        B, T = self.batch, self.max_seq_len
+        D = self.head_dim
+        full_attn = [i for i, t in enumerate(self.layer_types) if t == "full_attention"]
+        linear_attn = [i for i, t in enumerate(self.layer_types) if t == "linear_attention"]
 
         # full_attn KV: per-layer K and V
-        for i in FULL_ATTN_INDICES:
-            K = torch.zeros(B, NUM_KV_HEADS, T, D, device=self.device, dtype=self.dtype)
-            V = torch.zeros(B, NUM_KV_HEADS, T, D, device=self.device, dtype=self.dtype)
+        for i in full_attn:
+            K = torch.zeros(B, self.num_kv_heads, T, D, device=self.device, dtype=self.dtype)
+            V = torch.zeros(B, self.num_kv_heads, T, D, device=self.device, dtype=self.dtype)
             self.kv_cache[i] = (K, V)
 
         # linear_attn recurrent state (FP32 for accumulator stability)
-        for i in LINEAR_ATTN_INDICES:
-            S = torch.zeros(B, LINEAR_NUM_V_HEADS, LINEAR_HEAD_K_DIM, LINEAR_HEAD_V_DIM,
+        for i in linear_attn:
+            S = torch.zeros(B, self.linear_num_v_heads, self.linear_head_k_dim,
+                            self.linear_head_v_dim,
                             device=self.device, dtype=torch.float32)
             self.recurrent_state[i] = S
 
         # linear_attn conv1d left context (kernel - 1 = 3 tokens)
-        for i in LINEAR_ATTN_INDICES:
-            C = torch.zeros(B, LINEAR_CONV_DIM, LINEAR_CONV_KERNEL - 1,
+        for i in linear_attn:
+            C = torch.zeros(B, self.linear_conv_dim, self.linear_conv_kernel - 1,
                             device=self.device, dtype=self.dtype)
             self.conv_state[i] = C
 

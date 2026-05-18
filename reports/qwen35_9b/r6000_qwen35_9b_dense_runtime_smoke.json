@@ -1,0 +1,8 @@
+{
+  "benchmark": "qwen35_9b_dense_runtime_smoke",
+  "variant": "dense",
+  "quantization": "none",
+  "status": "PENDING",
+  "reason": "Model not found. Set --model-dir or place checkpoint in models/hub/Qwen3.5-9B.",
+  "timestamp": "2026-05-18T17:30:58Z"
+}
