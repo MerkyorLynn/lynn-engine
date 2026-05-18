@@ -276,18 +276,36 @@ Layer-0 R6000 validation:
 | folded sidecar active-MoE timing | 0.08210 ms |
 | manifest / sidecar timing ratio | 1.062x |
 
-Decision: keep this as the next native-kernel input format.  Do not build a
-full 40-layer folded sidecar until a native grouped kernel consumes it; the
-one-layer probe validates the contract and avoids another large duplicate
-artifact.  The sidecar loader exposes folded active scales as effective-scale
-aliases, and the resident runner skips runner-time replacement when those
-aliases are already present.
+Full all-layer R6000 validation:
+
+| Check | Result |
+|---|---:|
+| sidecar path | `/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-v0` |
+| sidecar size | 23 GiB on disk |
+| files | 40 layer files + manifest |
+| P127 contract | GREEN, 40/40 |
+| P128 Triton boundary | GREEN, 40/40 |
+| max abs / mean abs | 0.0 / 0.0 |
+| manifest active-MoE mean | 0.08317 ms/layer |
+| folded sidecar active-MoE mean | 0.08244 ms/layer |
+| manifest / sidecar mean ratio | 1.009x |
+
+Decision: keep this as the next native-kernel input format.  The full 40-layer
+folded sidecar is now built and validated, so Stream A can consume one stable
+ABI instead of re-opening manifest/global-scale layout questions.  The sidecar
+loader exposes folded active scales as effective-scale aliases, and the
+resident runner skips runner-time replacement when those aliases are already
+present.  This is not expected to move TPS alone; it is the repack foundation
+for replacing the inner active-MoE math.
 
 Artifacts:
 
 - `reports/qwen36_35b/QWEN36_W4A16_MOE_FOLDED_SCALE_SIDECAR_P132_20260518.md`
 - `reports/qwen36_35b/p132_moe_folded_scale_sidecar_contract_layer0_20260518.json`
 - `reports/qwen36_35b/p132_moe_folded_scale_sidecar_triton_boundary_layer0_20260518.json`
+- `reports/qwen36_35b/p132_moe_folded_scale_sidecar_contract_all40_20260518.json`
+- `reports/qwen36_35b/p132_moe_folded_scale_sidecar_triton_boundary_all40_20260518.json`
+- `scripts/qwen36_candidate_env_moe_folded_sidecar.env`
 
 ## Hard Constraints
 
