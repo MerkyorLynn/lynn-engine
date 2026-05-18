@@ -6,6 +6,7 @@ import argparse
 import json
 from pathlib import Path
 import sys
+import time
 from typing import Any
 
 import torch
@@ -90,7 +91,10 @@ def main() -> int:
     h_seed = F.embedding(token, runner.outside["model.language_model.embed_tokens.weight"])
     linear_blocks, linear_capture_s = runner._capture_linear_block_graphs(state, h_seed, pos_tensor)
     base = _snapshot_state(state)
+    full_slot_capture_t0 = time.time()
     full_slots = _capture_real_state_full_slots(runner, state, base, h_seed, pos_tensor)
+    torch.cuda.synchronize()
+    full_slot_capture_s = time.time() - full_slot_capture_t0
 
     def eager_token() -> torch.Tensor:
         _restore_state(state, base)
@@ -140,11 +144,14 @@ def main() -> int:
         "full_attn_graph_slots": len(full_slots),
         "linear_block_graphs": len(linear_blocks),
         "linear_capture_s": linear_capture_s,
+        "full_slot_capture_s": full_slot_capture_s,
         "eager_ms": eager_ms,
         "graph_ms": graph_ms,
         "speedup": eager_ms / graph_ms,
         "one_shot_graph_ms": one_shot_graph_ms,
         "one_shot_graph_tps": 1000.0 / one_shot_graph_ms,
+        "single_use_graph_ms_with_capture": full_slot_capture_s * 1000.0 + one_shot_graph_ms,
+        "single_use_speedup_with_capture": eager_ms / (full_slot_capture_s * 1000.0 + one_shot_graph_ms),
         "logit_diff": diff,
         "graph_next_id": graph_next,
         "eager_next_id": eager_next,
