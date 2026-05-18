@@ -104,10 +104,11 @@ Acceptance:
 | Local active-MoE diff | cosine ~1.0, max abs no worse than Triton reference |
 | P37 | 3/3 exact greedy |
 | Hard structured gate | 40/40 format-clean |
-| P25 server | must beat safe default by at least 5%, otherwise keep research-only |
+| P25 server | minimum useful result is 512-token decode >=115 TPS |
 | Failure mode | if first-token/min-prefix regression appears, close the branch |
 
-Expected upside: 5-15% if boundary reduction is real. This alone will not close
+Stretch target: 512-token decode >=120 TPS while preserving P37 exact-greedy.
+Expected upside: 5-15% if boundary reduction is real. This alone may not close
 155 TPS, but it is the highest-confidence kernel island.
 
 ### Stream B: Full-Attention and Linear-Core Fusion
@@ -149,10 +150,11 @@ Acceptance:
 | Gate | Requirement |
 |---|---:|
 | P37 | 3/3 exact greedy |
-| P25 server | positive on 256/512 token runs, not just microbench |
+| P25 server | minimum useful result is 512-token decode >=113 TPS |
 | P26/P28 | phase shift visible, not measurement noise |
 | Hard structured gate | 40/40 if candidate is promoted beyond research |
 
+Stretch target: 512-token decode >=118 TPS while preserving P37 exact-greedy.
 Expected upside: 5-12%. This is the second kernel island after MoE.
 
 ### Stream C: Gate Harness and Promotion Discipline

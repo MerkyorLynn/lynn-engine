@@ -169,3 +169,39 @@ safe default: 107 -> 118-125 TPS
 AMBER structured: 114 -> 125-130 TPS
 ```
 
+## 2026-05-18 14:00 R6000 Fast122 Sweep
+
+R6000 re-swept the existing switch space before asking the kernel branches to
+chase 122 TPS. Result: the old toggle pool is exhausted. The current AMBER
+shared-gate + conv-inplace profile remains the fastest known candidate, and it
+still has documented exact-greedy drift.
+
+| Candidate | P37 exact | Candidate median decode TPS | Decision |
+|---|---:|---:|---|
+| `LYNN_MOE_ADD_SHARED_INPLACE=1` | yes | 107.86 | small safe signal, full gate running |
+| current AMBER shared-gate + conv-inplace | no | 114.26 | still best AMBER baseline |
+| AMBER + `LYNN_MOE_FAST_FIXED=0` | no | 113.09 | closed, slower |
+| AMBER + packed linear decode | no | 69.12 | closed, severe regression |
+| AMBER + sorted router / non-fixed MoE | no | 111.36 | closed, slower |
+| AMBER + top-k 7 | no | 112.75 | closed, expert dropping drifts and does not beat AMBER |
+| shared scalar-add Triton variants | no | 109-110 | closed, greedy drift |
+| top-k 6/7 only | no | 106-107 | closed, no useful speed |
+| `cuda_tile` down on full/layer0 | no | 107.86 | closed, drift/repeated-token risk |
+| `cuda_tile_inter` gate/up on full layers | no | 106.31 | closed, slower |
+
+Implication for external branches:
+
+- Stream A must deliver a real strict MoE fused boundary. Single-kernel native
+  substitutions and top-k shortcuts are not enough.
+- Stream B must deliver a real attention/linear workspace or boundary change.
+  Reusing old packed-linear/full-attn switches is not enough.
+- Stream C should reject average-TPS-only reports. Each candidate needs P37,
+  P25 512-token service TPS, and hard structured results.
+
+Concrete branch goals:
+
+| Stream | Minimum useful result | Stretch result |
+|---|---:|---:|
+| A Native MoE | P37 exact, hard structured 40/40, P25 512 decode >=115 TPS | >=120 TPS |
+| B Attn/linear core | P37 exact, P25 512 decode >=113 TPS, visible P26/P28 phase win | >=118 TPS |
+| A+B combined | hard structured 40/40 or 70/70 AMBER, P25 512 decode >=122 TPS | >=125 TPS |

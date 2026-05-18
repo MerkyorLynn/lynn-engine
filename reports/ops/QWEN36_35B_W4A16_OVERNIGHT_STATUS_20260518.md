@@ -68,6 +68,61 @@ Spark serving default, while Lynn-native W4A16 remains a deterministic fallback
 and compatibility path on `sm_121`. The 155 TPS engineering loop should stay on
 R6000, where the native FP4/W4A16/W4A8 kernel work maps to the hardware.
 
+## 2026-05-18 R6000 Fast122 Switch Sweep
+
+After the safe default and AMBER gates were established, R6000 swept the
+remaining known runtime switches to see whether today&apos;s 122 TPS target could be
+reached without new kernels. It could not. The old switch pool is now largely
+exhausted, which makes Stream A/B kernel-boundary work the required next step.
+
+| Candidate | P37 exact | Median decode TPS | Notes |
+|---|---:|---:|---|
+| `LYNN_MOE_ADD_SHARED_INPLACE=1` | yes | 107.86 | small safe signal; full promotion gate running |
+| current AMBER shared-gate + conv-inplace | no | 114.26 | still the best known AMBER speed line |
+| AMBER + non-fixed MoE | no | 113.09 | slower than AMBER |
+| AMBER + packed linear decode | no | 69.12 | severe regression |
+| AMBER + sorted router/non-fixed MoE | no | 111.36 | slower than AMBER |
+| AMBER + top-k 7 | no | 112.75 | expert dropping drifts and does not beat AMBER |
+| shared scalar-add Triton variants | no | 109-110 | greedy drift |
+| top-k 6/7 only | no | 106-107 | no useful speed |
+| `cuda_tile` down layer probes | no | ~107.9 | drift/repeated-token risk |
+| `cuda_tile_inter` gate/up full layers | no | 106.31 | slower |
+
+Copied reports:
+
+- `reports/qwen36_35b/r6000_qwen36_w4a16_amber_base_20260518_134652_p37_fast122_sweep.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_amber_moe_ff0_20260518_134652_p37_fast122_sweep.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_amber_packed_linear_20260518_134652_p37_fast122_sweep.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_amber_sorted_ff0_20260518_134652_p37_fast122_sweep.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_add_shared_inplace_20260518_135311_p37_micro122_sweep.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_amber_add_shared_inplace_20260518_135311_p37_micro122_sweep.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_amber_topk7_20260518_135311_p37_micro122_sweep.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_conv_inplace_scalar_add_triton_20260518_135311_p37_micro122_sweep.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_down_cuda_full_layers_20260518_135311_p37_micro122_sweep.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_down_cuda_layer0_20260518_135311_p37_micro122_sweep.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_gateup_cuda_full_layers_20260518_135311_p37_micro122_sweep.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_shared_scalar_add_triton_20260518_135311_p37_micro122_sweep.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_topk6_renorm_20260518_135311_p37_micro122_sweep.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_topk7_renorm_20260518_135311_p37_micro122_sweep.json`
+
+
+Safe in-place shared-add full gate:
+
+| Probe | Result |
+|---|---:|
+| P37 exact | true |
+| P25 512 decode TPS | 107.57 |
+| Hard structured | 40/40 |
+| Hard structured mean decode TPS | 107.48 |
+| Decision | DEFAULT_CANDIDATE |
+
+Copied reports:
+
+- `reports/qwen36_35b/r6000_qwen36_w4a16_moe_add_shared_inplace_20260518_140156_add_shared_inplace_full_p37.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_moe_add_shared_inplace_20260518_140156_add_shared_inplace_full_p25.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_moe_add_shared_inplace_20260518_140156_add_shared_inplace_full_hard_structured.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_moe_add_shared_inplace_20260518_140156_add_shared_inplace_full_promotion_summary.json`
+
 Copied summary:
 
 - `reports/spark/SPARK_QWEN36_SINGLE_STREAM_TPS_BASELINE_20260518.md`
