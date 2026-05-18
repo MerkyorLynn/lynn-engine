@@ -63,7 +63,76 @@ def _lc_cell(entry: dict | None) -> str:
     return f"**{tps:.1f}** TPS ({pt} tok)"
 
 
+def _normalize_openai_matrix_report(report: dict) -> dict:
+    """Convert the live OpenAI-compatible probe schema into the baseline schema."""
+    if report.get("schema_version") != "openai-serving-matrix-probe-v1":
+        return report
+
+    single_tps: dict[str, dict[str, Any]] = {}
+    for row in report.get("single", {}).get("rows", []):
+        mt = row.get("max_tokens")
+        if mt is None:
+            continue
+        single_tps[str(mt)] = {
+            "ok": row.get("ok", False),
+            "wall_tps": row.get("wall_tps"),
+            "prompt_tokens": row.get("prompt_tokens"),
+            "completion_tokens": row.get("completion_tokens"),
+            "elapsed_s": row.get("wall_s"),
+            "error": row.get("error"),
+        }
+
+    concurrent_tps: dict[str, dict[str, Any]] = {}
+    for row in report.get("concurrency", {}).get("rows", []):
+        c = row.get("concurrency")
+        if c is None:
+            continue
+        key = str(c)
+        current = concurrent_tps.get(key)
+        if current is None:
+            concurrent_tps[key] = {
+                "ok": row.get("ok", False),
+                "batch_wall_tps": row.get("batch_wall_tps"),
+                "elapsed_s": row.get("batch_wall_s"),
+                "errors": [] if row.get("ok", False) else [row.get("error", "unknown")],
+            }
+            continue
+        current["ok"] = current.get("ok", True) and row.get("ok", False)
+        if not row.get("ok", False):
+            current.setdefault("errors", []).append(row.get("error", "unknown"))
+
+    long_context: dict[str, dict[str, Any]] = {}
+    for row in report.get("long_context", {}).get("rows", []):
+        chars = row.get("target_prompt_chars")
+        if chars is None:
+            continue
+        long_context[str(chars)] = {
+            "ok": row.get("ok", False),
+            "wall_tps": row.get("wall_tps"),
+            "prompt_tokens": row.get("prompt_tokens"),
+            "completion_tokens": row.get("completion_tokens"),
+            "elapsed_s": row.get("wall_s"),
+            "error": row.get("error"),
+        }
+
+    return {
+        "schema": "lynn-qwen35-9b-q4km-baseline-v1",
+        "status": "DONE",
+        "model_id": report.get("model", "Qwen3.5-9B-Q4KM"),
+        "quant": "Q4_K_M",
+        "model_path": None,
+        "size_gib": None,
+        "llama_cpp_binary": None,
+        "git_rev": None,
+        "single_tps": single_tps,
+        "concurrent_tps": concurrent_tps,
+        "long_context": long_context,
+        "errors": [],
+    }
+
+
 def render_markdown(report: dict) -> str:
+    report = _normalize_openai_matrix_report(report)
     lines: list[str] = []
     status = report.get("status", "UNKNOWN")
     model_id = report.get("model_id", "Qwen3.5-9B")
@@ -171,13 +240,14 @@ def render_markdown(report: dict) -> str:
         e = lc[chars]
         ok = e.get("ok", False)
         tps = e.get("wall_tps", 0)
-        pt = e.get("prompt_tokens", 0)
-        ct = e.get("completion_tokens", 0)
-        elapsed = e.get("elapsed_s", 0)
+        pt = _fmt(e.get("prompt_tokens"))
+        ct = _fmt(e.get("completion_tokens"))
+        elapsed_v = e.get("elapsed_s")
+        elapsed = f"{elapsed_v:.3f}" if isinstance(elapsed_v, (int, float)) else "—"
         err = e.get("error")
         if ok:
             lines.append(
-                f"| {chars} | {pt} | **{tps:.1f}** | {ct} | {elapsed:.3f} | ✅ |"
+                f"| {chars} | {pt} | **{tps:.1f}** | {ct} | {elapsed} | ✅ |"
             )
         else:
             err_short = (err[:40] + "…") if err and len(err) > 40 else (err or "fail")
