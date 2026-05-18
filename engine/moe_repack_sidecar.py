@@ -27,7 +27,7 @@ class MoeRepackLayer:
     metadata: dict[str, Any]
 
     def active_aliases(self) -> dict[str, torch.Tensor]:
-        return {
+        aliases = {
             "mlp.gate.weight": self.tensors["router.weight"],
             "mlp.experts._gate_up_packed": self.tensors["active_gate_up.packed"],
             "mlp.experts._gate_up_scale": self.tensors["active_gate_up.scale"].float(),
@@ -36,6 +36,12 @@ class MoeRepackLayer:
             "mlp.experts._down_scale": self.tensors["active_down.scale"].float(),
             "mlp.experts._down_global_scale": self.tensors["active_down.global_scale"].float(),
         }
+        tensor_meta = self.metadata.get("tensors", {})
+        if tensor_meta.get("active_gate_up", {}).get("global_scale_folded", False):
+            aliases["mlp.experts._gate_up_effective_scale"] = aliases["mlp.experts._gate_up_scale"]
+        if tensor_meta.get("active_down", {}).get("global_scale_folded", False):
+            aliases["mlp.experts._down_effective_scale"] = aliases["mlp.experts._down_scale"]
+        return aliases
 
     def shared_aliases(self) -> dict[str, torch.Tensor]:
         aliases: dict[str, torch.Tensor] = {}

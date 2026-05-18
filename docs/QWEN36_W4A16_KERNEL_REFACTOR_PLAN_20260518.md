@@ -251,6 +251,44 @@ Artifacts:
 - `scripts/qwen36_candidate_env_moe_repack_scratch_effective.env`
 - `reports/qwen36_35b/QWEN36_W4A16_MOE_REPACK_SCRATCH_EFFECTIVE_P131_20260518.md`
 
+### Folded-Scale Sidecar Input Contract
+
+P132 adds an offline sidecar option for native MoE kernels:
+
+```text
+scripts/qwen36_w4a16_moe_repack_sidecar.py --fold-active-global-scale
+```
+
+For active experts only, this stores `scale / global_scale` directly and writes
+`global_scale=1`.  Shared expert tensors keep the original scale contract.  The
+purpose is to give the native grouped kernel a direct effective-scale input
+without runner-time replacement.
+
+Layer-0 R6000 validation:
+
+| Check | Result |
+|---|---:|
+| folded sidecar build | GREEN |
+| P127 contract | GREEN |
+| P128 Triton boundary | GREEN |
+| max abs / mean abs | 0.0 / 0.0 |
+| folded effective aliases | gate/up true, down true |
+| folded sidecar active-MoE timing | 0.08210 ms |
+| manifest / sidecar timing ratio | 1.062x |
+
+Decision: keep this as the next native-kernel input format.  Do not build a
+full 40-layer folded sidecar until a native grouped kernel consumes it; the
+one-layer probe validates the contract and avoids another large duplicate
+artifact.  The sidecar loader exposes folded active scales as effective-scale
+aliases, and the resident runner skips runner-time replacement when those
+aliases are already present.
+
+Artifacts:
+
+- `reports/qwen36_35b/QWEN36_W4A16_MOE_FOLDED_SCALE_SIDECAR_P132_20260518.md`
+- `reports/qwen36_35b/p132_moe_folded_scale_sidecar_contract_layer0_20260518.json`
+- `reports/qwen36_35b/p132_moe_folded_scale_sidecar_triton_boundary_layer0_20260518.json`
+
 ## Hard Constraints
 
 1. Default promotion must preserve full top-8 active MoE plus shared expert.

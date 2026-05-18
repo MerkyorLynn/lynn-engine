@@ -1,0 +1,49 @@
+{
+  "schema_version": "p128-moe-repack-triton-boundary-v1",
+  "model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0",
+  "sidecar_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-folded-scale-probe",
+  "layers": [
+    {
+      "layer": 0,
+      "ok": true,
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "manifest_timing": {
+        "mean_ms": 0.08715626671910286,
+        "min_ms": 0.08022399991750717,
+        "max_ms": 0.19244800508022308,
+        "iterations": 30
+      },
+      "sidecar_timing": {
+        "mean_ms": 0.08210346649090448,
+        "min_ms": 0.07999999821186066,
+        "max_ms": 0.09564799815416336,
+        "iterations": 30
+      },
+      "speed_ratio_manifest_over_sidecar": 1.061541862288581,
+      "sidecar_strides": {
+        "gate_up_packed": [
+          1048576,
+          1024,
+          1
+        ],
+        "gate_up_scale": [
+          131072,
+          128,
+          1
+        ],
+        "down_packed": [
+          524288,
+          256,
+          1
+        ],
+        "down_scale": [
+          65536,
+          32,
+          1
+        ]
+      }
+    }
+  ],
+  "ok": true
+}

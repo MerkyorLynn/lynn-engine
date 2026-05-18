@@ -12,9 +12,13 @@ import argparse
 import json
 from pathlib import Path
 from statistics import mean
+import sys
 from typing import Any
 
 import torch
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 from engine.moe_repack_sidecar import load_moe_repack_layer
 from engine.nvfp4_runtime import load_grouped_nvfp4_weight

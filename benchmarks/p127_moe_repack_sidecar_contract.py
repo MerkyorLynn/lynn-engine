@@ -7,10 +7,14 @@ import argparse
 import json
 import time
 from pathlib import Path
+import sys
 from typing import Any
 
 import torch
 from safetensors import safe_open
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 from engine.moe_repack_sidecar import load_moe_repack_layer, load_moe_repack_manifest
 from engine.nvfp4_runtime import load_grouped_nvfp4_weight
@@ -66,6 +70,22 @@ def _eq(a: torch.Tensor, b: torch.Tensor, *, compare_float: bool = False) -> dic
     }
 
 
+def _expected_triplet(
+    packed: torch.Tensor,
+    scale: torch.Tensor,
+    global_scale: torch.Tensor,
+    *,
+    folded: bool,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    if not folded:
+        return packed, scale, global_scale
+    return (
+        packed,
+        (scale.float() / global_scale.float().reshape(())).contiguous(),
+        torch.ones_like(global_scale.float().reshape(())),
+    )
+
+
 def check_layer(model_dir: Path, sidecar_dir: Path, layer: int) -> dict[str, Any]:
     manifest = _read_json(model_dir / "lynn_quant_manifest.json")
     weight_map = _read_json(model_dir / "model.safetensors.index.json")["weight_map"]
@@ -79,6 +99,22 @@ def check_layer(model_dir: Path, sidecar_dir: Path, layer: int) -> dict[str, Any
     )
     down_packed, down_scale, down_global = load_grouped_nvfp4_weight(
         model_dir, f"{prefix}.mlp.experts.down_proj", device="cpu"
+    )
+    gateup_folded = bool(
+        side.metadata.get("tensors", {})
+        .get("active_gate_up", {})
+        .get("global_scale_folded", False)
+    )
+    down_folded = bool(
+        side.metadata.get("tensors", {})
+        .get("active_down", {})
+        .get("global_scale_folded", False)
+    )
+    gateup_packed, gateup_scale, gateup_global = _expected_triplet(
+        gateup_packed, gateup_scale, gateup_global, folded=gateup_folded
+    )
+    down_packed, down_scale, down_global = _expected_triplet(
+        down_packed, down_scale, down_global, folded=down_folded
     )
     router = _load_tensor(model_dir, weight_map, f"{prefix}.mlp.gate.weight")
 

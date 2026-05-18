@@ -64,6 +64,7 @@ def _load_quantized_triplet(
     rec: dict[str, Any],
     *,
     grouped: bool,
+    fold_global_scale: bool = False,
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict[str, Any]]:
     packed = _load_tensor(model_dir, weight_map, rec["packed_key"])
     scale = _load_tensor(model_dir, weight_map, rec["scale_key"])
@@ -72,6 +73,9 @@ def _load_quantized_triplet(
     if grouped:
         packed = _reshape_grouped_packed(packed, original_shape)
         scale = _reshape_grouped_scale(scale, original_shape)
+    if fold_global_scale:
+        scale = (scale.float() / global_scale.float()).contiguous()
+        global_scale = torch.ones_like(global_scale.float())
     info = {
         "original_shape": original_shape,
         "packed_shape": list(packed.shape),
@@ -80,6 +84,7 @@ def _load_quantized_triplet(
         "packed_key": rec["packed_key"],
         "scale_key": rec["scale_key"],
         "global_scale_key": rec["global_scale_key"],
+        "global_scale_folded": fold_global_scale,
     }
     return packed.contiguous(), scale.contiguous(), global_scale.contiguous(), info
 
@@ -96,6 +101,7 @@ def _layer_tensors(
     *,
     include_shared: bool,
     include_router: bool,
+    fold_active_global_scale: bool,
 ) -> tuple[dict[str, torch.Tensor], dict[str, Any]]:
     prefix = _layer_prefix(layer)
     active_gateup_key = f"{prefix}.mlp.experts.gate_up_proj"
@@ -122,6 +128,7 @@ def _layer_tensors(
             weight_map,
             _rec(manifest, source_key),
             grouped=True,
+            fold_global_scale=fold_active_global_scale,
         )
         tensors[f"{short}.packed"] = packed
         tensors[f"{short}.scale"] = scale
@@ -210,6 +217,7 @@ def build_sidecar(
     layers: list[int],
     include_shared: bool,
     include_router: bool,
+    fold_active_global_scale: bool,
     overwrite: bool,
     validate: bool,
 ) -> dict[str, Any]:
@@ -235,6 +243,11 @@ def build_sidecar(
             "activation_contract": "W4A16_weight_only",
             "active_moe_layout": "expert_major_3d",
             "shared_moe_layout": "row_major_2d",
+            "active_scale_contract": (
+                "effective_scale_global_one"
+                if fold_active_global_scale
+                else "scale_div_global"
+            ),
             "math_order": "unchanged: router -> topk -> gate/up -> bf16 inter -> down -> weighted sum -> shared add",
         },
     }
@@ -248,6 +261,7 @@ def build_sidecar(
             layer,
             include_shared=include_shared,
             include_router=include_router,
+            fold_active_global_scale=fold_active_global_scale,
         )
         rel = f"moe_layer_{layer:02d}.safetensors"
         path = out_dir / rel
@@ -296,6 +310,11 @@ def main() -> int:
     ap.add_argument("--layers", help="comma/range layer selector, default all 0-39")
     ap.add_argument("--no-shared", action="store_true", help="exclude shared expert tensors")
     ap.add_argument("--no-router", action="store_true", help="exclude router gate weight")
+    ap.add_argument(
+        "--fold-active-global-scale",
+        action="store_true",
+        help="store active MoE scales as scale/global_scale and write global_scale=1 for native kernels",
+    )
     ap.add_argument("--overwrite", action="store_true")
     ap.add_argument("--no-validate", action="store_true")
     args = ap.parse_args()
@@ -306,6 +325,7 @@ def main() -> int:
         layers=_parse_layers(args.layers),
         include_shared=not args.no_shared,
         include_router=not args.no_router,
+        fold_active_global_scale=args.fold_active_global_scale,
         overwrite=args.overwrite,
         validate=not args.no_validate,
     )

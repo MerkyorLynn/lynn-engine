@@ -540,6 +540,12 @@ class LynnIncrementalRunner:
         missing = [key for key in required if key not in w]
         if missing:
             raise KeyError(f"LYNN_MOE_EFFECTIVE_SCALE missing packed MoE scale aliases: {missing}")
+        if (
+            "mlp.experts._gate_up_effective_scale" in w
+            and "mlp.experts._down_effective_scale" in w
+        ):
+            self.moe_effective_scale_attached += 1
+            return
         gate_up_effective = (
             w["mlp.experts._gate_up_scale"].float() / w["mlp.experts._gate_up_global_scale"].float()
         ).contiguous()
