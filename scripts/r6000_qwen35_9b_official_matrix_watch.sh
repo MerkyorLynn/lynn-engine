@@ -61,6 +61,15 @@ BF16_PORT="${BF16_PORT:-18170}"
 NVFP4_PORT="${NVFP4_PORT:-18171}"
 Q4KM_PORT="${Q4KM_PORT:-18172}"
 
+# The report directory must exist before the final tee opens $LOG.  For local
+# dry-runs on macOS the R6000 Python path may not exist, so use python3 for the
+# summary-only stages while still printing the configured remote PYTHON_BIN.
+mkdir -p "$REPORT_DIR" || true
+PY_EXEC="$PYTHON_BIN"
+if [[ ! -x "$PY_EXEC" ]]; then
+    PY_EXEC="$(command -v python3 || true)"
+fi
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -246,8 +255,6 @@ echo "  GPQA_RUNNER:    ${GPQA_RUNNER:-(not set)}"
 echo "  P25_PROBE:      ${P25_PROBE}"
 echo ""
 
-mkdir -p "$REPORT_DIR" || true
-
 # ---------------------------------------------------------------------------
 # Stage 0: Asset completion
 # ---------------------------------------------------------------------------
@@ -306,7 +313,7 @@ if [[ "$NVFP4_READY" == "1" ]]; then
     log_ok "NVFP4 size: ${SIZE_GIB_NVFP4} GiB"
 
     if [[ -f "$NVFP4_MANIFEST" ]]; then
-        MANIFEST_DATA="$($PYTHON_BIN -c "
+        MANIFEST_DATA="$("$PY_EXEC" -c "
 import json, sys
 try:
     with open(sys.argv[1]) as f:
@@ -320,10 +327,10 @@ try:
 except Exception as e:
     print(json.dumps({'error': str(e)}))
 " "$NVFP4_MANIFEST")"
-        QUANTIZED_COUNT="$(echo "$MANIFEST_DATA" | $PYTHON_BIN -c "import json,sys; print(json.load(sys.stdin).get('quantized_count','null'))")"
-        KEPT_COUNT="$(echo "$MANIFEST_DATA" | $PYTHON_BIN -c "import json,sys; print(json.load(sys.stdin).get('kept_count','null'))")"
-        OUTPUT_SHARDS="$(echo "$MANIFEST_DATA" | $PYTHON_BIN -c "import json,sys; print(json.load(sys.stdin).get('output_shards','null'))")"
-        PACK_ELAPSED="$(echo "$MANIFEST_DATA" | $PYTHON_BIN -c "import json,sys; print(json.load(sys.stdin).get('elapsed_seconds','null'))")"
+        QUANTIZED_COUNT="$(echo "$MANIFEST_DATA" | "$PY_EXEC" -c "import json,sys; print(json.load(sys.stdin).get('quantized_count','null'))")"
+        KEPT_COUNT="$(echo "$MANIFEST_DATA" | "$PY_EXEC" -c "import json,sys; print(json.load(sys.stdin).get('kept_count','null'))")"
+        OUTPUT_SHARDS="$(echo "$MANIFEST_DATA" | "$PY_EXEC" -c "import json,sys; print(json.load(sys.stdin).get('output_shards','null'))")"
+        PACK_ELAPSED="$(echo "$MANIFEST_DATA" | "$PY_EXEC" -c "import json,sys; print(json.load(sys.stdin).get('elapsed_seconds','null'))")"
         log_ok "Manifest: quantized=$QUANTIZED_COUNT kept=$KEPT_COUNT shards=$OUTPUT_SHARDS elapsed=${PACK_ELAPSED}s"
     fi
 else
@@ -437,7 +444,7 @@ benchmark_quant() {
     if run_mmlu "$base_url" "$served_name" "$mmlu_jsonl" "$mmlu_summary" 2>/dev/null; then
         if [[ -f "$mmlu_summary" ]]; then
             local mmlu_data
-            mmlu_data="$($PYTHON_BIN -c "
+            mmlu_data="$("$PY_EXEC" -c "
 import json, sys
 try:
     with open(sys.argv[1]) as f:
@@ -447,9 +454,9 @@ except Exception as e:
     print(json.dumps({'error': str(e)}))
 " "$mmlu_summary")"
             local ms mc mt
-            ms="$(echo "$mmlu_data" | $PYTHON_BIN -c "import json,sys; print(json.load(sys.stdin).get('accuracy','null'))")"
-            mc="$(echo "$mmlu_data" | $PYTHON_BIN -c "import json,sys; print(json.load(sys.stdin).get('correct','null'))")"
-            mt="$(echo "$mmlu_data" | $PYTHON_BIN -c "import json,sys; print(json.load(sys.stdin).get('total',500)))" || echo "500")"
+            ms="$(echo "$mmlu_data" | "$PY_EXEC" -c "import json,sys; print(json.load(sys.stdin).get('accuracy','null'))")"
+            mc="$(echo "$mmlu_data" | "$PY_EXEC" -c "import json,sys; print(json.load(sys.stdin).get('correct','null'))")"
+            mt="$(echo "$mmlu_data" | "$PY_EXEC" -c "import json,sys; print(json.load(sys.stdin).get('total',500))" || echo "500")"
             case "$quant" in
                 bf16)   MMLU_SCORE_BF16="$ms"; MMLU_CORRECT_BF16="$mc"; MMLU_TOTAL_BF16="$mt" ;;
                 nvfp4)  MMLU_SCORE_NVFP4="$ms"; MMLU_CORRECT_NVFP4="$mc"; MMLU_TOTAL_NVFP4="$mt" ;;
@@ -464,7 +471,7 @@ except Exception as e:
     if run_gpqa "$base_url" "$served_name" "$gpqa_jsonl" "$gpqa_summary" 2>/dev/null; then
         if [[ -f "$gpqa_summary" ]]; then
             local gpqa_data
-            gpqa_data="$($PYTHON_BIN -c "
+            gpqa_data="$("$PY_EXEC" -c "
 import json, sys
 try:
     with open(sys.argv[1]) as f:
@@ -474,9 +481,9 @@ except Exception as e:
     print(json.dumps({'error': str(e)}))
 " "$gpqa_summary")"
             local gs gc gt
-            gs="$(echo "$gpqa_data" | $PYTHON_BIN -c "import json,sys; print(json.load(sys.stdin).get('accuracy','null'))")"
-            gc="$(echo "$gpqa_data" | $PYTHON_BIN -c "import json,sys; print(json.load(sys.stdin).get('correct','null'))")"
-            gt="$(echo "$gpqa_data" | $PYTHON_BIN -c "import json,sys; print(json.load(sys.stdin).get('total','null'))")"
+            gs="$(echo "$gpqa_data" | "$PY_EXEC" -c "import json,sys; print(json.load(sys.stdin).get('accuracy','null'))")"
+            gc="$(echo "$gpqa_data" | "$PY_EXEC" -c "import json,sys; print(json.load(sys.stdin).get('correct','null'))")"
+            gt="$(echo "$gpqa_data" | "$PY_EXEC" -c "import json,sys; print(json.load(sys.stdin).get('total','null'))")"
             case "$quant" in
                 bf16)   GPQA_SCORE_BF16="$gs"; GPQA_CORRECT_BF16="$gc"; GPQA_TOTAL_BF16="$gt" ;;
                 nvfp4)  GPQA_SCORE_NVFP4="$gs"; GPQA_CORRECT_NVFP4="$gc"; GPQA_TOTAL_NVFP4="$gt" ;;
@@ -491,7 +498,7 @@ except Exception as e:
     if run_tps "$base_url" "$served_name" "$tps_json" 2>/dev/null; then
         if [[ -f "$tps_json" ]]; then
             local tps_data
-            tps_data="$($PYTHON_BIN -c "
+            tps_data="$("$PY_EXEC" -c "
 import json, sys
 try:
     with open(sys.argv[1]) as f:
@@ -512,9 +519,9 @@ except Exception as e:
     print(json.dumps({'error': str(e)}))
 " "$tps_json")"
             local t128 t256 t512
-            t128="$(echo "$tps_data" | $PYTHON_BIN -c "import json,sys; print(json.load(sys.stdin).get('tps_128','null'))")"
-            t256="$(echo "$tps_data" | $PYTHON_BIN -c "import json,sys; print(json.load(sys.stdin).get('tps_256','null'))")"
-            t512="$(echo "$tps_data" | $PYTHON_BIN -c "import json,sys; print(json.load(sys.stdin).get('tps_512','null'))")"
+            t128="$(echo "$tps_data" | "$PY_EXEC" -c "import json,sys; print(json.load(sys.stdin).get('tps_128','null'))")"
+            t256="$(echo "$tps_data" | "$PY_EXEC" -c "import json,sys; print(json.load(sys.stdin).get('tps_256','null'))")"
+            t512="$(echo "$tps_data" | "$PY_EXEC" -c "import json,sys; print(json.load(sys.stdin).get('tps_512','null'))")"
             case "$quant" in
                 bf16)   TPS_128_BF16="$t128"; TPS_256_BF16="$t256"; TPS_512_BF16="$t512" ;;
                 nvfp4)  TPS_128_NVFP4="$t128"; TPS_256_NVFP4="$t256"; TPS_512_NVFP4="$t512" ;;
@@ -550,7 +557,7 @@ echo "────────────────────────�
 
 SUMMARY_JSON="${REPORT_DIR}/r6000_qwen35_9b_official_matrix_summary_${STAMP}.json"
 
-$PYTHON_BIN - \
+"$PY_EXEC" - \
     "$BF16_READY" "$NVFP4_READY" "$Q4KM_READY" \
     "$BF16_BYTES" "$NVFP4_BYTES" \
     "$QUANTIZED_COUNT" "$KEPT_COUNT" "$OUTPUT_SHARDS" "$PACK_ELAPSED" \
@@ -694,7 +701,7 @@ echo "────────────────────────�
 
 MD_OUT="${REPORT_DIR}/QWEN35_9B_R6000_NVFP4_PIPELINE_${STAMP}.md"
 if [[ -f "$SUMMARIZER" ]]; then
-    run_or_dry "\"$PYTHON_BIN\" \"$SUMMARIZER\" --summary \"$SUMMARY_JSON\" --out \"$MD_OUT\""
+    run_or_dry "\"$PY_EXEC\" \"$SUMMARIZER\" --summary \"$SUMMARY_JSON\" --out \"$MD_OUT\""
 else
     log_warn "Summarizer not found: $SUMMARIZER"
 fi
