@@ -16,6 +16,13 @@ BF16 direct quality remains the best confirmed 9B quality number in this local h
 
 Lynn-native W4A16 NVFP4 is no longer blocked: dense resident smoke, OpenAI serving matrix, MMLU, and GPQA all completed. Its current value is NVIDIA-native compatibility and quality retention; its speed is not competitive with Q4_K_M yet, so the next 9B runtime target is dense NVFP4 kernel/launch optimization rather than additional quantization.
 
+An overnight fast-profile sweep found the first safe NVFP4 speed candidate:
+`linear_graph_only` stayed exact on the 3-prompt direct-runner gate at both
+128 and 512 generated tokens, improving 128-token decode from 40.05 to
+59.73 TPS and 512-token decode from 40.71 to 60.16 TPS. The full 35B fast
+profile is not safe for 9B yet (`FAST_PROFILE_DRIFT`), so only the linear graph
+slice should be promoted to the next OpenAI/P25 serving gate.
+
 ## Artifacts
 
 | Artifact | Path |
@@ -26,6 +33,7 @@ Lynn-native W4A16 NVFP4 is no longer blocked: dense resident smoke, OpenAI servi
 | Q4_K_M quality summary | `reports/qwen35_9b/q4km_llamacpp_reasoning_off_20260519_0115_quality_summary.json` |
 | Q4_K_M quality report | `reports/qwen35_9b/q4km_llamacpp_reasoning_off_20260519_0115_quality_summary.md` |
 | NVFP4 speed matrix | `reports/qwen35_9b/r6000_qwen35_9b_nvfp4_openai_matrix_full_codex_20260519_022023.json` |
+| NVFP4 fast-profile report | `reports/qwen35_9b/QWEN35_9B_NVFP4_FAST_PROFILE_P148_P149_20260519.md` |
 | NVFP4 MMLU summary | `reports/qwen35_9b/nvfp4_openai_quality_20260519_022635_mmlu_n500.summary.json` |
 | NVFP4 GPQA summary | `reports/qwen35_9b/nvfp4_openai_quality_20260519_022635_gpqa.summary.json` |
 | Release gate summary | `reports/qwen35_9b/qwen35_9b_release_gate_summary.json` |

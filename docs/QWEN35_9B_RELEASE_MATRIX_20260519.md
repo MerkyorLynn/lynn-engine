@@ -13,6 +13,12 @@
 | **Q4_K_M** | 5.5 | llama.cpp | 🟢 DONE | 0.760 | 0.374 | 128t=121.8 / 256t=165.2 / 512t=168.2 | x2=275.6 / x4=341.3 / x8=420.6 | 4k=146.0 / 16k=123.9 / 32k=72.2 | — |
 | **NVFP4** | 8.3 | Lynn Engine (CUDA) | 🟢 DONE | 0.752 | 0.429 | 128t=35.1 / 256t=41.0 / 512t=40.9 | x2=40.4 / x4=40.2 / x8=40.2 | 4k=39.7 / 16k=37.7 / 32k=34.5 | — |
 
+**Runtime update:** P149 found a safe opt-in `linear_graph_only` NVFP4 profile
+for direct resident generation. It is exact on the 3-prompt 128/512-token gate
+and reaches 59.73 TPS at 128 tokens and 60.16 TPS at 512 tokens. This is not
+yet the release serving number; it needs the OpenAI/P25 matrix before replacing
+the published 40.9 TPS default.
+
 ## BF16 Details
 
 - **Stack:** transformers-direct
