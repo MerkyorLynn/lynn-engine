@@ -815,6 +815,72 @@ def nvfp4_grouped_gate_up_silu_fast_decode(
     return inter
 
 
+def nvfp4_grouped_gate_up_silu_fast_decode_prepared(
+    x: torch.Tensor,
+    expert_ids: torch.Tensor,
+    gate_up_packed: torch.Tensor,
+    gate_up_scale: torch.Tensor,
+    gate_up_global_scale: torch.Tensor,
+    out: torch.Tensor,
+    *,
+    scale_effective: bool = False,
+) -> torch.Tensor:
+    """Prepared-shape gate/up entrypoint for the resident decode hot path.
+
+    The public wrappers defensively cast and contiguous-copy inputs. The fixed
+    resident W4A16 path already prepares these tensors. This exact wrapper keeps
+    the same Triton kernel and constants, but avoids redundant boundary ops.
+    """
+    _require_triton()
+    top_k = expert_ids.numel()
+    if x.ndim != 1 or x.numel() != HIDDEN_SIZE:
+        raise ValueError(f"x must be [2048], got {tuple(x.shape)}")
+    if expert_ids.ndim != 1 or expert_ids.dtype != torch.int32 or expert_ids.device != x.device:
+        raise ValueError("expert_ids must be a contiguous int32 tensor on x.device")
+    if not expert_ids.is_contiguous():
+        raise ValueError("expert_ids must be contiguous")
+    if gate_up_packed.ndim != 3 or gate_up_scale.ndim != 3:
+        raise ValueError(
+            f"expected grouped 3D tensors, got packed={tuple(gate_up_packed.shape)} scale={tuple(gate_up_scale.shape)}"
+        )
+    if not (
+        x.is_contiguous()
+        and gate_up_packed.is_contiguous()
+        and gate_up_scale.is_contiguous()
+        and gate_up_global_scale.is_contiguous()
+    ):
+        raise ValueError("prepared gate/up tensors must be contiguous")
+    if out.ndim != 2 or out.shape[0] < top_k or out.shape[1] != INTERMEDIATE_SIZE:
+        raise ValueError(f"out must be at least [top_k, {INTERMEDIATE_SIZE}], got {tuple(out.shape)}")
+    if out.device != x.device or out.dtype != torch.bfloat16:
+        raise ValueError("out must be a bfloat16 tensor on x.device")
+    inter = out[:top_k]
+    grid = (top_k, triton.cdiv(INTERMEDIATE_SIZE, 8))
+    _grouped_gate_up_silu_fast_decode_kernel[grid](
+        x,
+        expert_ids,
+        gate_up_packed,
+        gate_up_scale,
+        gate_up_global_scale,
+        inter,
+        gate_up_packed.stride(0),
+        gate_up_packed.stride(1),
+        gate_up_packed.stride(2),
+        gate_up_scale.stride(0),
+        gate_up_scale.stride(1),
+        gate_up_scale.stride(2),
+        inter.stride(0),
+        inter.stride(1),
+        HIDDEN=HIDDEN_SIZE,
+        INTERMEDIATE=INTERMEDIATE_SIZE,
+        BLOCK_INTER=8,
+        BLOCK_HIDDEN=256,
+        SCALE_EFFECTIVE=scale_effective,
+        num_warps=4,
+    )
+    return inter
+
+
 def nvfp4_grouped_gate_up_silu_merged_topk(
     x: torch.Tensor,
     expert_ids: torch.Tensor,
@@ -988,6 +1054,67 @@ def nvfp4_grouped_down_weighted_sum_effective_scale(
     return out
 
 
+def nvfp4_grouped_down_weighted_sum_prepared(
+    inter: torch.Tensor,
+    expert_ids: torch.Tensor,
+    routing_weights: torch.Tensor,
+    down_packed: torch.Tensor,
+    down_scale: torch.Tensor,
+    down_global_scale: torch.Tensor,
+    out: torch.Tensor,
+    *,
+    scale_effective: bool = False,
+) -> torch.Tensor:
+    """Prepared-shape down entrypoint for the resident decode hot path."""
+    _require_triton()
+    if inter.ndim != 2 or inter.shape[1] != INTERMEDIATE_SIZE:
+        raise ValueError(f"inter must be [top_k, 512], got {tuple(inter.shape)}")
+    if expert_ids.ndim != 1 or expert_ids.dtype != torch.int32 or expert_ids.device != inter.device:
+        raise ValueError("expert_ids must be a contiguous int32 tensor on inter.device")
+    if routing_weights.ndim != 1 or routing_weights.dtype != torch.float32 or routing_weights.device != inter.device:
+        raise ValueError("routing_weights must be a contiguous float32 tensor on inter.device")
+    if not expert_ids.is_contiguous() or not routing_weights.is_contiguous():
+        raise ValueError("expert_ids and routing_weights must be contiguous")
+    if expert_ids.numel() != inter.shape[0] or routing_weights.numel() != inter.shape[0]:
+        raise ValueError("expert_ids/routing_weights must match inter top_k")
+    if down_packed.ndim != 3 or down_scale.ndim != 3:
+        raise ValueError(
+            f"expected grouped 3D tensors, got packed={tuple(down_packed.shape)} scale={tuple(down_scale.shape)}"
+        )
+    if not (inter.is_contiguous() and down_packed.is_contiguous() and down_scale.is_contiguous() and down_global_scale.is_contiguous()):
+        raise ValueError("prepared down tensors must be contiguous")
+    if out.shape != (HIDDEN_SIZE,):
+        raise ValueError(f"out must be [{HIDDEN_SIZE}], got {tuple(out.shape)}")
+    if out.device != inter.device or out.dtype != torch.bfloat16:
+        raise ValueError("out must be a bfloat16 tensor on inter.device")
+    grid = (triton.cdiv(HIDDEN_SIZE, 8),)
+    _grouped_down_weighted_sum_kernel[grid](
+        inter,
+        expert_ids,
+        routing_weights,
+        down_packed,
+        down_scale,
+        down_global_scale,
+        out,
+        down_packed.stride(0),
+        down_packed.stride(1),
+        down_packed.stride(2),
+        down_scale.stride(0),
+        down_scale.stride(1),
+        down_scale.stride(2),
+        inter.stride(0),
+        inter.stride(1),
+        TOP_K=inter.shape[0],
+        HIDDEN=HIDDEN_SIZE,
+        INTERMEDIATE=INTERMEDIATE_SIZE,
+        BLOCK_HIDDEN=8,
+        BLOCK_INTER=512,
+        SCALE_EFFECTIVE=scale_effective,
+        num_warps=8,
+    )
+    return out
+
+
 def nvfp4_grouped_down_weighted_sum_scale_hoist(
     inter: torch.Tensor,
     expert_ids: torch.Tensor,
@@ -1046,10 +1173,12 @@ __all__ = [
     "HAS_TRITON",
     "nvfp4_grouped_down_weighted_sum",
     "nvfp4_grouped_down_weighted_sum_effective_scale",
+    "nvfp4_grouped_down_weighted_sum_prepared",
     "nvfp4_grouped_down_weighted_sum_scale_hoist",
     "nvfp4_grouped_gate_up_silu",
     "nvfp4_grouped_gate_up_silu_fast_decode",
     "nvfp4_grouped_gate_up_silu_fast_decode_effective_scale",
+    "nvfp4_grouped_gate_up_silu_fast_decode_prepared",
     "nvfp4_grouped_gate_up_silu_merged_topk",
     "nvfp4_grouped_gate_up_silu_scale_hoist",
 ]

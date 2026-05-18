@@ -10,9 +10,11 @@ from engine.nvfp4_runtime import _quantize_activation_to_fp4, dual_scalar_bridge
 from triton_kernels.nvfp4_moe import (
     nvfp4_grouped_down_weighted_sum,
     nvfp4_grouped_down_weighted_sum_effective_scale,
+    nvfp4_grouped_down_weighted_sum_prepared,
     nvfp4_grouped_gate_up_silu,
     nvfp4_grouped_gate_up_silu_fast_decode,
     nvfp4_grouped_gate_up_silu_fast_decode_effective_scale,
+    nvfp4_grouped_gate_up_silu_fast_decode_prepared,
 )
 from triton_kernels.shared_expert_gate import (
     HAS_TRITON as HAS_SHARED_EXPERT_GATE_TRITON,
@@ -673,7 +675,23 @@ def _moe_forward_decode_packed_nvfp4_fixed_triton(h: torch.Tensor, w: dict, cfg:
     if w4a8_mode in {"gateup", "full"}:
         hidden = _fake_quant_fp8_activation(hidden)
     gateup_backend = os.environ.get("LYNN_NATIVE_GATEUP_BACKEND", "triton")
-    if gateup_backend == "split16_fp4" and _layer_selected_for_native_cuda(cfg):
+    prepared_triton = _env_bool("LYNN_MOE_TRITON_PREPARED", False)
+    if prepared_triton:
+        if gateup_backend != "triton_fast_decode":
+            raise RuntimeError("LYNN_MOE_TRITON_PREPARED requires LYNN_NATIVE_GATEUP_BACKEND=triton_fast_decode")
+        inter_scratch = w.get("mlp.experts._active_inter_scratch")
+        if inter_scratch is None:
+            raise RuntimeError("LYNN_MOE_TRITON_PREPARED requires LYNN_MOE_ACTIVE_SCRATCH=1")
+        inter = nvfp4_grouped_gate_up_silu_fast_decode_prepared(
+            hidden,
+            expert_ids,
+            w["mlp.experts._gate_up_packed"],
+            w["mlp.experts._gate_up_effective_scale"] if _use_moe_effective_scale(w) else w["mlp.experts._gate_up_scale"],
+            w["mlp.experts._gate_up_global_scale"],
+            inter_scratch,
+            scale_effective=_use_moe_effective_scale(w),
+        )
+    elif gateup_backend == "split16_fp4" and _layer_selected_for_native_cuda(cfg):
         inter = _gate_up_native_split16_fp4(hidden, expert_ids, w)
     elif gateup_backend == "cuda_tile_inter" and _layer_selected_for_native_cuda(cfg):
         inter = _gate_up_native_cuda_tile_inter(hidden, expert_ids, w)
@@ -728,6 +746,22 @@ def _moe_forward_decode_packed_nvfp4_fixed_triton(h: torch.Tensor, w: dict, cfg:
     down_backend = os.environ.get("LYNN_NATIVE_DOWN_BACKEND", "triton")
     if down_backend == "cuda_tile" and _layer_selected_for_native_cuda(cfg):
         moe_out = _down_weighted_sum_native_cuda_tile(inter, expert_ids, routing_weights, w).reshape_as(h_flat)
+    elif prepared_triton:
+        if down_backend != "triton":
+            raise RuntimeError("LYNN_MOE_TRITON_PREPARED requires LYNN_NATIVE_DOWN_BACKEND=triton")
+        out_scratch = w.get("mlp.experts._active_out_scratch")
+        if out_scratch is None:
+            raise RuntimeError("LYNN_MOE_TRITON_PREPARED requires LYNN_MOE_ACTIVE_SCRATCH=1")
+        moe_out = nvfp4_grouped_down_weighted_sum_prepared(
+            inter,
+            expert_ids,
+            routing_weights,
+            w["mlp.experts._down_packed"],
+            w["mlp.experts._down_effective_scale"] if _use_moe_effective_scale(w) else w["mlp.experts._down_scale"],
+            w["mlp.experts._down_global_scale"],
+            out_scratch,
+            scale_effective=_use_moe_effective_scale(w),
+        ).reshape_as(h_flat)
     elif down_backend == "triton":
         down_fn = (
             nvfp4_grouped_down_weighted_sum_effective_scale
@@ -818,6 +852,13 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
             )
         if os.environ.get("LYNN_NATIVE_DOWN_BACKEND", "triton") not in {"triton", "cuda_tile"}:
             raise RuntimeError("LYNN_MOE_FAST_FIXED requires LYNN_NATIVE_DOWN_BACKEND=triton or cuda_tile")
+        if _env_bool("LYNN_MOE_TRITON_PREPARED", False):
+            if os.environ.get("LYNN_NATIVE_GATEUP_BACKEND", "triton") != "triton_fast_decode":
+                raise RuntimeError("LYNN_MOE_TRITON_PREPARED requires LYNN_NATIVE_GATEUP_BACKEND=triton_fast_decode")
+            if os.environ.get("LYNN_NATIVE_DOWN_BACKEND", "triton") != "triton":
+                raise RuntimeError("LYNN_MOE_TRITON_PREPARED requires LYNN_NATIVE_DOWN_BACKEND=triton")
+            if not _env_bool("LYNN_MOE_ACTIVE_SCRATCH", False):
+                raise RuntimeError("LYNN_MOE_TRITON_PREPARED requires LYNN_MOE_ACTIVE_SCRATCH=1")
         if (
             _env_int("LYNN_MOE_GATE_BLOCK_INTER", 8),
             _env_int("LYNN_MOE_GATE_BLOCK_HIDDEN", 256),
