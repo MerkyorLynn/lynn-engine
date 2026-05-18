@@ -1,0 +1,32 @@
+{
+  "schema": "lynn-qwen35-9b-q4km-baseline-v1",
+  "created": "2026-05-19T10:00:00+0800",
+  "status": "PENDING_DOWNLOAD",
+  "model_id": "Qwen3.5-9B",
+  "quant": "Q4_K_M",
+  "model_path": null,
+  "size_gib": null,
+  "llama_cpp_binary": null,
+  "git_rev": null,
+  "single_tps": {},
+  "concurrent_tps": {},
+  "long_context": {},
+  "errors": [
+    "GGUF not found. Set GGUF, HF_REPO, MS_REPO, or GGUF_URL."
+  ],
+  "recommendation": {
+    "hf_repo": "Qwen/Qwen3.5-9B-GGUF",
+    "ms_repo": "Qwen/Qwen3.5-9B-GGUF",
+    "filename": "qwen3.5-9b-q4_k_m.gguf",
+    "download_commands": [
+      "# HuggingFace CLI:",
+      "huggingface-cli download Qwen/Qwen3.5-9B-GGUF qwen3.5-9b-q4_k_m.gguf --local-dir /root/autodl-tmp/models",
+      "",
+      "# ModelScope CLI:",
+      "modelscope download Qwen/Qwen3.5-9B-GGUF qwen3.5-9b-q4_k_m.gguf --local_dir /root/autodl-tmp/models",
+      "",
+      "# Direct URL:",
+      "wget -O /root/autodl-tmp/models/Qwen3.5-9B-Q4_K_M.gguf '<GGUF_URL_HERE>'"
+    ]
+  }
+}
