@@ -245,7 +245,9 @@ DeepSeek:
 Claude:
 
 1. Stream B full-attention/linear-core fusion plus Stream C promotion wrapper.
-2. Own `resident_runner.py`, attention/linear-core probes, and gate scripts.
+2. Own `resident_runner.py` and attention/linear-core probes. Stream C wrapper
+   is already implemented, so reuse `scripts/r6000_qwen36_candidate_promotion_gate.sh`
+   instead of creating a parallel gate.
 3. Do not edit native CUDA MoE files.
 
 Codex:
