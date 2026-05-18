@@ -1,0 +1,131 @@
+{
+  "schema_version": "p128-moe-repack-triton-boundary-v1",
+  "model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0",
+  "sidecar_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-moe-repack-v0",
+  "layers": [
+    {
+      "layer": 0,
+      "ok": true,
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "manifest_timing": {
+        "mean_ms": 0.08741439978281657,
+        "min_ms": 0.07983999699354172,
+        "max_ms": 0.20403200387954712,
+        "iterations": 30
+      },
+      "sidecar_timing": {
+        "mean_ms": 0.0824629324177901,
+        "min_ms": 0.0798719972372055,
+        "max_ms": 0.09907200187444687,
+        "iterations": 30
+      },
+      "speed_ratio_manifest_over_sidecar": 1.0600447645972662,
+      "sidecar_strides": {
+        "gate_up_packed": [
+          1048576,
+          1024,
+          1
+        ],
+        "gate_up_scale": [
+          131072,
+          128,
+          1
+        ],
+        "down_packed": [
+          524288,
+          256,
+          1
+        ],
+        "down_scale": [
+          65536,
+          32,
+          1
+        ]
+      }
+    },
+    {
+      "layer": 20,
+      "ok": true,
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "manifest_timing": {
+        "mean_ms": 0.08150079995393752,
+        "min_ms": 0.07862400263547897,
+        "max_ms": 0.09148799628019333,
+        "iterations": 30
+      },
+      "sidecar_timing": {
+        "mean_ms": 0.08141653388738632,
+        "min_ms": 0.07923199981451035,
+        "max_ms": 0.08953599631786346,
+        "iterations": 30
+      },
+      "speed_ratio_manifest_over_sidecar": 1.0010349994347312,
+      "sidecar_strides": {
+        "gate_up_packed": [
+          1048576,
+          1024,
+          1
+        ],
+        "gate_up_scale": [
+          131072,
+          128,
+          1
+        ],
+        "down_packed": [
+          524288,
+          256,
+          1
+        ],
+        "down_scale": [
+          65536,
+          32,
+          1
+        ]
+      }
+    },
+    {
+      "layer": 39,
+      "ok": true,
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "manifest_timing": {
+        "mean_ms": 0.08250133295853933,
+        "min_ms": 0.08032000064849854,
+        "max_ms": 0.09020800143480301,
+        "iterations": 30
+      },
+      "sidecar_timing": {
+        "mean_ms": 0.0821023998161157,
+        "min_ms": 0.08009599894285202,
+        "max_ms": 0.08947200328111649,
+        "iterations": 30
+      },
+      "speed_ratio_manifest_over_sidecar": 1.0048589705455275,
+      "sidecar_strides": {
+        "gate_up_packed": [
+          1048576,
+          1024,
+          1
+        ],
+        "gate_up_scale": [
+          131072,
+          128,
+          1
+        ],
+        "down_packed": [
+          524288,
+          256,
+          1
+        ],
+        "down_scale": [
+          65536,
+          32,
+          1
+        ]
+      }
+    }
+  ],
+  "ok": true
+}

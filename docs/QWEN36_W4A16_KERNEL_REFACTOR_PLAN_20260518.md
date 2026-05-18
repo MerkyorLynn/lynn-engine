@@ -148,9 +148,17 @@ Artifacts:
 - `scripts/qwen36_w4a16_moe_repack_sidecar.py`
 - `engine/moe_repack_sidecar.py`
 - `benchmarks/p127_moe_repack_sidecar_contract.py`
+- `benchmarks/p128_moe_repack_triton_boundary_probe.py`
 - `reports/qwen36_35b/qwen36_w4a16_moe_repack_manifest_20260518.json`
 - `reports/qwen36_35b/p127_moe_repack_sidecar_contract_all40_20260518.json`
+- `reports/qwen36_35b/p128_moe_repack_triton_boundary_all40_20260518.json`
 - `reports/qwen36_35b/QWEN36_W4A16_MOE_REPACK_V0_20260518.md`
+
+P128 then feeds the current Triton active-MoE boundary directly from the sidecar
+for all 40 layers. It is GREEN with `max_abs=0.0`; mean active-MoE time is
+`0.08257 ms` from sidecar tensors versus `0.08362 ms` from manifest-loaded
+tensors. This confirms the sidecar is now a valid kernel-input ABI. It is not
+the fused native boundary yet; it removes layout uncertainty before that work.
 
 ## Hard Constraints
 
