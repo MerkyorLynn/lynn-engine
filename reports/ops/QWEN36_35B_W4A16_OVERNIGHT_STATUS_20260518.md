@@ -739,6 +739,40 @@ Copied reports:
 - `reports/qwen36_35b/r6000_qwen36_w4a16_p25_server_decode_tps_rope_cache_prewarm_p25_20260518_120753.json`
 - `reports/qwen36_35b/structured_gate_rope_cache_structured_20260518_121102.json`
 
+Follow-up profiling on the new safe default shows the cache moved the bottleneck
+back toward the linear/MoE body:
+
+| P26 phase after RoPE cache | Mean ms/token |
+|---|---:|
+| Linear-attention graph blocks | 6.17 |
+| Full-attention layers | 2.82 |
+| Norm + native FP4 lm_head | 0.33 |
+| Host gap | 0.15 |
+| Total wall | 9.52 |
+| Decode TPS from wall | 105.07 |
+
+P28 layer timing confirms the 10 linear blocks are now the uniform hot path:
+layer 0 averages `0.635 ms`, layer 4 averages `0.628 ms`, and the remaining
+linear blocks sit around `0.613-0.614 ms`. Full-attention layers are mostly
+around `0.27-0.28 ms`; the layer 3 mean is inflated by a one-off outlier, while
+its median is `0.281 ms`.
+
+Two tempting follow-up switches were then closed:
+
+| Candidate | Result |
+|---|---|
+| `LYNN_PACKED_DECODE_FULL_ATTN=1` | RED: P37 0/3 exact, median TPS `106.54 -> 92.41`; do not open packed full-attn decode by default |
+| `LYNN_FULL_ATTN_GATE_INPLACE=1` | P37 exact and +0.6%, but service P25 512 decode TPS `106.79` is below the RoPE-cache default `107.31`; not promoted |
+
+Copied reports:
+
+- `reports/qwen36_35b/p26_rope_cache_profile_20260518_121508.json`
+- `reports/qwen36_35b/p28_rope_cache_profile_20260518_121508.json`
+- `reports/qwen36_35b/p37_packed_fullattn_rope_cache_20260518_121802.json`
+- `reports/qwen36_35b/p37_fullattn_gate_inplace_rope_cache_20260518_122013.json`
+- `reports/qwen36_35b/p25_gate_inplace_rope_cache_20260518_122134.json`
+- `reports/qwen36_35b/structured_gate_gate_inplace_rope_cache_20260518_122134.json`
+
 ## Speed Profile
 
 R6000 P26 phase profile on graph+in-place narrows the 155 TPS gap:
