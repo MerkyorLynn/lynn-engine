@@ -328,14 +328,21 @@ def _extract_nvfp4(report_dir: Path) -> dict[str, Any]:
         "variant": "NVFP4",
         "size_gib": 8.3,
         "stack": "Lynn Engine (CUDA)",
-        "mmlu": {"score": None, "correct": None, "total": None, "status": "BLOCKED"},
-        "gpqa": {"score": None, "correct": None, "total": None, "status": "BLOCKED"},
+        "mmlu": {"score": None, "correct": None, "total": None, "status": "PENDING"},
+        "gpqa": {"score": None, "correct": None, "total": None, "status": "PENDING"},
         "single_tps": {"128": None, "256": None, "512": None},
         "concurrent_tps": {"2": None, "4": None, "8": None},
         "long_context": {"4k": None, "16k": None, "32k": None},
-        "status": "BLOCKED",
-        "blocker": "Dense runtime not implemented yet; runner now fails loud instead of KeyError num_experts",
+        "status": "PENDING",
+        "blocker": "NVFP4 quality/TPS benchmarks pending",
     }
+
+    smoke_path = _latest("r6000_qwen35_9b_nvfp4_dense_runtime_smoke*.json", report_dir)
+    if smoke_path:
+        smoke = _load_json(smoke_path)
+        if smoke and smoke.get("status") == "GENERATION_PASS":
+            entry["status"] = "PARTIAL"
+            entry["blocker"] = "Generation smoke passes; quality/TPS benchmarks pending"
 
     # Search for any nvfp4 matrix/watch reports
     nvfp4_paths = list(report_dir.glob("*nvfp4*matrix*.json")) + list(
@@ -370,27 +377,45 @@ def _extract_nvfp4(report_dir: Path) -> dict[str, Any]:
                     "status": "DONE",
                 }
 
-    # Extract TPS if present
-    single = report.get("single_tps", {})
-    if single:
-        for key in ("128", "256", "512"):
-            e = single.get(key) or single.get(f"tps_{key}")
-            if isinstance(e, dict) and e.get("ok"):
-                entry["single_tps"][key] = round(e.get("wall_tps", 0.0), 1)
-            elif isinstance(e, (int, float)):
-                entry["single_tps"][key] = round(float(e), 1)
+    # Extract TPS if present. Lynn server reports use the same generic OpenAI
+    # matrix schema as the Q4_K_M llama.cpp baseline.
+    if report.get("schema_version") == "openai-serving-matrix-probe-v1":
+        for row in report.get("single", {}).get("rows", []):
+            key = str(row.get("max_tokens"))
+            if key in entry["single_tps"] and row.get("ok"):
+                entry["single_tps"][key] = round(row.get("wall_tps", 0.0), 1)
+        for row in report.get("concurrency", {}).get("rows", []):
+            key = str(row.get("concurrency"))
+            if key in entry["concurrent_tps"] and row.get("ok"):
+                entry["concurrent_tps"][key] = round(row.get("batch_wall_tps", 0.0), 1)
+        by_chars = {
+            str(row.get("target_prompt_chars")): row
+            for row in report.get("long_context", {}).get("rows", [])
+        }
+        for label, chars in {"4k": "4096", "16k": "16384", "32k": "32768"}.items():
+            row = by_chars.get(chars)
+            if row and row.get("ok"):
+                entry["long_context"][label] = round(row.get("wall_tps", 0.0), 1)
+    else:
+        single = report.get("single_tps", {})
+        if single:
+            for key in ("128", "256", "512"):
+                e = single.get(key) or single.get(f"tps_{key}")
+                if isinstance(e, dict) and e.get("ok"):
+                    entry["single_tps"][key] = round(e.get("wall_tps", 0.0), 1)
+                elif isinstance(e, (int, float)):
+                    entry["single_tps"][key] = round(float(e), 1)
 
     # Derive status
     has_quality = entry["mmlu"]["status"] == "DONE" or entry["gpqa"]["status"] == "DONE"
     has_tps = any(v is not None for v in entry["single_tps"].values())
+    has_conc = any(v is not None for v in entry["concurrent_tps"].values())
     if has_quality and has_tps:
         entry["status"] = "DONE"
         entry["blocker"] = None
-    elif has_quality or has_tps:
+    elif has_quality or has_tps or has_conc:
         entry["status"] = "PARTIAL"
-        if not entry["blocker"]:
-            entry["blocker"] = "Partial NVFP4 data"
-    # else keep BLOCKED
+        entry["blocker"] = "Quality benchmarks pending" if not has_quality else "Partial NVFP4 data"
 
     return entry
 

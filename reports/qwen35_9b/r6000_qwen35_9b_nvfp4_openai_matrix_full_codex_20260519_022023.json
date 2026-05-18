@@ -1,0 +1,375 @@
+{
+  "schema_version": "openai-serving-matrix-probe-v1",
+  "url": "http://127.0.0.1:18236/v1",
+  "model": "Qwen3.5-9B-W4A16-NVFP4",
+  "single": {
+    "rows": [
+      {
+        "ok": true,
+        "wall_s": 3.6513776779174805,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 128,
+        "wall_tps": 35.05526168221614,
+        "preview": "\n\n<think>\nThinking Process:\n\n1.  **Analyze the Request:**\n    *   **Topic:** MoE (Mixture of Experts) inference optimization, NVFP4 (NVIDIA FP4), CUDA Graph, an",
+        "kind": "single",
+        "max_tokens": 128,
+        "run_idx": 0
+      },
+      {
+        "ok": true,
+        "wall_s": 6.249857187271118,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 256,
+        "wall_tps": 40.960935958886694,
+        "preview": "\n\n<think>\nThinking Process:\n\n1.  **Analyze the Request:**\n    *   **Topic:** MoE (Mixture of Experts) inference optimization, NVFP4 (NVIDIA FP4), CUDA Graph, an",
+        "kind": "single",
+        "max_tokens": 256,
+        "run_idx": 0
+      },
+      {
+        "ok": true,
+        "wall_s": 12.512068271636963,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 512,
+        "wall_tps": 40.920492830160576,
+        "preview": "\n\n<think>\nThinking Process:\n\n1.  **Analyze the Request:**\n    *   **Topic:** MoE (Mixture of Experts) inference optimization, NVFP4 (NVIDIA FP4), CUDA Graph, an",
+        "kind": "single",
+        "max_tokens": 512,
+        "run_idx": 0
+      }
+    ],
+    "summary": {
+      "count": 3,
+      "ok": 3,
+      "failed": 0,
+      "completion_tokens_total": 896,
+      "wall_seconds_sum": 22.41330313682556,
+      "wall_tps": {
+        "mean": 38.97889682375447,
+        "median": 40.920492830160576,
+        "min": 35.05526168221614,
+        "max": 40.960935958886694
+      }
+    }
+  },
+  "concurrency": {
+    "rows": [
+      {
+        "ok": true,
+        "wall_s": 3.178034543991089,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 128,
+        "wall_tps": 40.27646591885469,
+        "preview": "\n\n<think>\nThinking Process:\n\n1.  **Analyze the Request:**\n    *   **Topic:** MoE (Mixture of Experts) inference optimization, NVFP4 (NVIDIA FP4), CUDA Graph, an",
+        "kind": "concurrency",
+        "concurrency": 2,
+        "request_idx": 0,
+        "max_tokens": 128,
+        "batch_wall_s": 6.336577892303467,
+        "batch_completion_tokens": 256,
+        "batch_wall_tps": 40.40035557851229
+      },
+      {
+        "ok": true,
+        "wall_s": 6.332975625991821,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 128,
+        "wall_tps": 20.21166787294458,
+        "preview": "\n\n<think>\nThinking Process:\n\n1.  **Analyze the Request:**\n    *   **Topic:** MoE (Mixture of Experts) inference optimization, NVFP4 (NVIDIA FP4), CUDA Graph, an",
+        "kind": "concurrency",
+        "concurrency": 2,
+        "request_idx": 1,
+        "max_tokens": 128,
+        "batch_wall_s": 6.336577892303467,
+        "batch_completion_tokens": 256,
+        "batch_wall_tps": 40.40035557851229
+      },
+      {
+        "ok": true,
+        "wall_s": 3.1652426719665527,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 128,
+        "wall_tps": 40.439237450465086,
+        "preview": "\n\n<think>\nThinking Process:\n\n1.  **Analyze the Request:**\n    *   **Topic:** MoE (Mixture of Experts) inference optimization, NVFP4 (NVIDIA FP4), CUDA Graph, an",
+        "kind": "concurrency",
+        "concurrency": 4,
+        "request_idx": 0,
+        "max_tokens": 128,
+        "batch_wall_s": 12.731924533843994,
+        "batch_completion_tokens": 512,
+        "batch_wall_tps": 40.21387329456768
+      },
+      {
+        "ok": true,
+        "wall_s": 6.341296434402466,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 128,
+        "wall_tps": 20.18514688977181,
+        "preview": "\n\n<think>\nThinking Process:\n\n1.  **Analyze the Request:**\n    *   **Topic:** MoE (Mixture of Experts) inference optimization, NVFP4 (NVIDIA FP4), CUDA Graph, an",
+        "kind": "concurrency",
+        "concurrency": 4,
+        "request_idx": 1,
+        "max_tokens": 128,
+        "batch_wall_s": 12.731924533843994,
+        "batch_completion_tokens": 512,
+        "batch_wall_tps": 40.21387329456768
+      },
+      {
+        "ok": true,
+        "wall_s": 9.54467248916626,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 128,
+        "wall_tps": 13.410622537890871,
+        "preview": "\n\n<think>\nThinking Process:\n\n1.  **Analyze the Request:**\n    *   **Topic:** MoE (Mixture of Experts) inference optimization, NVFP4 (NVIDIA FP4), CUDA Graph, an",
+        "kind": "concurrency",
+        "concurrency": 4,
+        "request_idx": 2,
+        "max_tokens": 128,
+        "batch_wall_s": 12.731924533843994,
+        "batch_completion_tokens": 512,
+        "batch_wall_tps": 40.21387329456768
+      },
+      {
+        "ok": true,
+        "wall_s": 12.729555130004883,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 128,
+        "wall_tps": 10.055339616566075,
+        "preview": "\n\n<think>\nThinking Process:\n\n1.  **Analyze the Request:**\n    *   **Topic:** MoE (Mixture of Experts) inference optimization, NVFP4 (NVIDIA FP4), CUDA Graph, an",
+        "kind": "concurrency",
+        "concurrency": 4,
+        "request_idx": 3,
+        "max_tokens": 128,
+        "batch_wall_s": 12.731924533843994,
+        "batch_completion_tokens": 512,
+        "batch_wall_tps": 40.21387329456768
+      },
+      {
+        "ok": true,
+        "wall_s": 6.379328489303589,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 128,
+        "wall_tps": 20.064807795149825,
+        "preview": "\n\n<think>\nThinking Process:\n\n1.  **Analyze the Request:**\n    *   **Topic:** MoE (Mixture of Experts) inference optimization, NVFP4 (NVIDIA FP4), CUDA Graph, an",
+        "kind": "concurrency",
+        "concurrency": 8,
+        "request_idx": 0,
+        "max_tokens": 128,
+        "batch_wall_s": 25.462525129318237,
+        "batch_completion_tokens": 1024,
+        "batch_wall_tps": 40.215964237613605
+      },
+      {
+        "ok": true,
+        "wall_s": 15.962451934814453,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 128,
+        "wall_tps": 8.018818194266837,
+        "preview": "\n\n<think>\nThinking Process:\n\n1.  **Analyze the Request:**\n    *   **Topic:** MoE (Mixture of Experts) inference optimization, NVFP4 (NVIDIA FP4), CUDA Graph, an",
+        "kind": "concurrency",
+        "concurrency": 8,
+        "request_idx": 1,
+        "max_tokens": 128,
+        "batch_wall_s": 25.462525129318237,
+        "batch_completion_tokens": 1024,
+        "batch_wall_tps": 40.215964237613605
+      },
+      {
+        "ok": true,
+        "wall_s": 9.5525963306427,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 128,
+        "wall_tps": 13.39949847869141,
+        "preview": "\n\n<think>\nThinking Process:\n\n1.  **Analyze the Request:**\n    *   **Topic:** MoE (Mixture of Experts) inference optimization, NVFP4 (NVIDIA FP4), CUDA Graph, an",
+        "kind": "concurrency",
+        "concurrency": 8,
+        "request_idx": 2,
+        "max_tokens": 128,
+        "batch_wall_s": 25.462525129318237,
+        "batch_completion_tokens": 1024,
+        "batch_wall_tps": 40.215964237613605
+      },
+      {
+        "ok": true,
+        "wall_s": 3.187865734100342,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 128,
+        "wall_tps": 40.15225567086918,
+        "preview": "\n\n<think>\nThinking Process:\n\n1.  **Analyze the Request:**\n    *   **Topic:** MoE (Mixture of Experts) inference optimization, NVFP4 (NVIDIA FP4), CUDA Graph, an",
+        "kind": "concurrency",
+        "concurrency": 8,
+        "request_idx": 3,
+        "max_tokens": 128,
+        "batch_wall_s": 25.462525129318237,
+        "batch_completion_tokens": 1024,
+        "batch_wall_tps": 40.215964237613605
+      },
+      {
+        "ok": true,
+        "wall_s": 19.134227514266968,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 128,
+        "wall_tps": 6.689582838113529,
+        "preview": "\n\n<think>\nThinking Process:\n\n1.  **Analyze the Request:**\n    *   **Topic:** MoE (Mixture of Experts) inference optimization, NVFP4 (NVIDIA FP4), CUDA Graph, an",
+        "kind": "concurrency",
+        "concurrency": 8,
+        "request_idx": 4,
+        "max_tokens": 128,
+        "batch_wall_s": 25.462525129318237,
+        "batch_completion_tokens": 1024,
+        "batch_wall_tps": 40.215964237613605
+      },
+      {
+        "ok": true,
+        "wall_s": 12.767402648925781,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 128,
+        "wall_tps": 10.025531701294751,
+        "preview": "\n\n<think>\nThinking Process:\n\n1.  **Analyze the Request:**\n    *   **Topic:** MoE (Mixture of Experts) inference optimization, NVFP4 (NVIDIA FP4), CUDA Graph, an",
+        "kind": "concurrency",
+        "concurrency": 8,
+        "request_idx": 5,
+        "max_tokens": 128,
+        "batch_wall_s": 25.462525129318237,
+        "batch_completion_tokens": 1024,
+        "batch_wall_tps": 40.215964237613605
+      },
+      {
+        "ok": true,
+        "wall_s": 25.45737648010254,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 128,
+        "wall_tps": 5.0280122187785015,
+        "preview": "\n\n<think>\nThinking Process:\n\n1.  **Analyze the Request:**\n    *   **Topic:** MoE (Mixture of Experts) inference optimization, NVFP4 (NVIDIA FP4), CUDA Graph, an",
+        "kind": "concurrency",
+        "concurrency": 8,
+        "request_idx": 6,
+        "max_tokens": 128,
+        "batch_wall_s": 25.462525129318237,
+        "batch_completion_tokens": 1024,
+        "batch_wall_tps": 40.215964237613605
+      },
+      {
+        "ok": true,
+        "wall_s": 22.298038244247437,
+        "prompt_chars": 66,
+        "prompt_tokens": 36,
+        "completion_tokens": 128,
+        "wall_tps": 5.74041530460744,
+        "preview": "\n\n<think>\nThinking Process:\n\n1.  **Analyze the Request:**\n    *   **Topic:** MoE (Mixture of Experts) inference optimization, NVFP4 (NVIDIA FP4), CUDA Graph, an",
+        "kind": "concurrency",
+        "concurrency": 8,
+        "request_idx": 7,
+        "max_tokens": 128,
+        "batch_wall_s": 25.462525129318237,
+        "batch_completion_tokens": 1024,
+        "batch_wall_tps": 40.215964237613605
+      }
+    ],
+    "summary": {
+      "count": 14,
+      "ok": 14,
+      "failed": 0,
+      "completion_tokens_total": 1792,
+      "wall_seconds_sum": 156.03106427192688,
+      "wall_tps": {
+        "mean": 18.12124303487604,
+        "median": 13.40506050829114,
+        "min": 5.0280122187785015,
+        "max": 40.439237450465086
+      }
+    },
+    "batch_summary": {
+      "2": {
+        "requests": 2,
+        "ok": 2,
+        "batch_wall_s": 6.336577892303467,
+        "batch_completion_tokens": 256,
+        "batch_wall_tps": 40.40035557851229
+      },
+      "4": {
+        "requests": 4,
+        "ok": 4,
+        "batch_wall_s": 12.731924533843994,
+        "batch_completion_tokens": 512,
+        "batch_wall_tps": 40.21387329456768
+      },
+      "8": {
+        "requests": 8,
+        "ok": 8,
+        "batch_wall_s": 25.462525129318237,
+        "batch_completion_tokens": 1024,
+        "batch_wall_tps": 40.215964237613605
+      }
+    }
+  },
+  "long_context": {
+    "rows": [
+      {
+        "ok": true,
+        "wall_s": 3.2259514331817627,
+        "prompt_chars": 4119,
+        "prompt_tokens": 742,
+        "completion_tokens": 128,
+        "wall_tps": 39.67821669086733,
+        "preview": "\n\n基于您提供的长文本内容，其核心描述的是 **Lynn Engine** 在处理长上下文（Long-context）时面临的一系列关键技术挑战。\n\n以下是针对该文本中提到的核心技术挑战的总结：\n\n1.  **MoE（混合专家模型）路由压力**：在长上下文处理中，动态的路由机制可能导致计算资源分配不均或延迟增加，需要高",
+        "kind": "long_context",
+        "target_prompt_chars": 4096,
+        "max_tokens": 128
+      },
+      {
+        "ok": true,
+        "wall_s": 3.392335891723633,
+        "prompt_chars": 16407,
+        "prompt_tokens": 2926,
+        "completion_tokens": 128,
+        "wall_tps": 37.732112646122346,
+        "preview": "\n\n<think>\nThinking Process:\n\n1.  **Analyze the Request:**\n    *   Input: A long text consisting of repeated sentences (\"Lynn Engine long-context benchmark parag",
+        "kind": "long_context",
+        "target_prompt_chars": 16384,
+        "max_tokens": 128
+      },
+      {
+        "ok": true,
+        "wall_s": 3.714536428451538,
+        "prompt_chars": 32791,
+        "prompt_tokens": 5839,
+        "completion_tokens": 128,
+        "wall_tps": 34.4592124658093,
+        "preview": "\n\n基于您提供的长文本内容，其核心描述的是 **Lynn Engine** 在处理长上下文（Long-context）时面临的一系列关键技术挑战。\n\n以下是针对该文本中提到的核心技术挑战的总结：\n\n1.  **MoE（混合专家模型）路由压力**：在长上下文处理中，动态的路由机制需要高效地决定将哪些 token 分配给哪",
+        "kind": "long_context",
+        "target_prompt_chars": 32768,
+        "max_tokens": 128
+      }
+    ],
+    "summary": {
+      "count": 3,
+      "ok": 3,
+      "failed": 0,
+      "completion_tokens_total": 384,
+      "wall_seconds_sum": 10.332823753356934,
+      "wall_tps": {
+        "mean": 37.28984726759966,
+        "median": 37.732112646122346,
+        "min": 34.4592124658093,
+        "max": 39.67821669086733
+      }
+    }
+  }
+}

@@ -1,6 +1,6 @@
 {
   "schema": "lynn-qwen35-9b-release-matrix-v1",
-  "created": "2026-05-19T01:31:16+08:00",
+  "created": "2026-05-19T02:22:05+08:00",
   "model_id": "Qwen3.5-9B",
   "entries": [
     {
@@ -79,31 +79,31 @@
         "score": null,
         "correct": null,
         "total": null,
-        "status": "BLOCKED"
+        "status": "PENDING"
       },
       "gpqa": {
         "score": null,
         "correct": null,
         "total": null,
-        "status": "BLOCKED"
+        "status": "PENDING"
       },
       "single_tps": {
-        "128": null,
-        "256": null,
-        "512": null
+        "128": 35.1,
+        "256": 41.0,
+        "512": 40.9
       },
       "concurrent_tps": {
-        "2": null,
-        "4": null,
-        "8": null
+        "2": 40.4,
+        "4": 40.2,
+        "8": 40.2
       },
       "long_context": {
-        "4k": null,
-        "16k": null,
-        "32k": null
+        "4k": 39.7,
+        "16k": 37.7,
+        "32k": 34.5
       },
-      "status": "BLOCKED",
-      "blocker": "Dense runtime not implemented yet; runner now fails loud instead of KeyError num_experts"
+      "status": "PARTIAL",
+      "blocker": "Quality benchmarks pending"
     }
   ]
 }

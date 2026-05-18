@@ -1,6 +1,6 @@
 # Qwen3.5-9B Release Status
 
-**Generated:** 2026-05-19T02:14:22+08:00  
+**Generated:** 2026-05-19T02:22:05+08:00  
 **Overall decision:** `PARTIAL_RELEASE_Q4KM_READY_NVFP4_SMOKE_PASS`  
 
 ## Compact Gate Matrix
@@ -9,7 +9,7 @@
 |---|---:|---:|---:|---:|---:|---:|---|---|
 | BF16 | REPORTED_PRESENT (18.0 GiB) | 77.20% | 44.95% | PENDING | PENDING | PENDING | `PASS_QUALITY_CEILING` | TPS not required for BF16 release ceiling |
 | Q4_K_M | REPORTED_PRESENT (5.5 GiB) | 76.00% | 37.37% | 168.2 | 420.6 | 72.2 | `PASS_RELEASE` | - |
-| NVFP4 | REPORTED_PRESENT (8.3 GiB) | PENDING | PENDING | PENDING | PENDING | PENDING | `PENDING_QUALITY_TPS` | NVFP4 dense resident generation smoke passes; MMLU/GPQA and serving TPS gates still pending |
+| NVFP4 | REPORTED_PRESENT (8.3 GiB) | PENDING | PENDING | 40.9 | 40.2 | 34.5 | `PENDING_QUALITY_TPS` | NVFP4 dense resident generation smoke passes; MMLU/GPQA and serving TPS gates still pending |
 
 ## Explicit Blockers
 
