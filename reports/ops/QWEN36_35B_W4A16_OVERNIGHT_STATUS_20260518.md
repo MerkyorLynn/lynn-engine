@@ -446,8 +446,20 @@ A longer 70-request structured gate on the fastest AMBER profile
 | Mean decode TPS | 110.38 |
 | Min / max decode TPS | 101.25 / 111.41 |
 
-So this branch is viable as a controlled structured-serving fast mode, but it
-still must remain opt-in because exact greedy parity is known to drift.
+The follow-up hard structured gate then used a stricter prompt set covering
+nested JSON tool args, JSON Schema, JSON-only function args, Python palindrome,
+Python `normalize_city`, OpenAPI YAML, Chinese prefix constraints, number-only
+answers, and JSON Patch arrays. This also passed:
+
+| Probe | Result |
+|---|---:|
+| Hard structured requests | GREEN, 40/40 |
+| Mean decode TPS | 114.18 |
+| Min / max decode TPS | 110.36 / 115.22 |
+
+So this branch is viable as a controlled structured-serving fast mode and the
+current best practical serving candidate. It still remains opt-in for
+exact-parity-sensitive gates because exact greedy parity is known to drift.
 
 `LYNN_SHARED_EXPERT_GATE_BACKEND=torch_inplace` was also checked as a safer
 middle ground. It keeps Torch `F.linear + sigmoid` for the scalar gate and only
@@ -508,6 +520,7 @@ Copied reports:
 - `reports/qwen36_35b/p25_amber_sharedgate_triton_inplace_20260518_085210.json`
 - `reports/qwen36_35b/structured_gate_amber_sharedgate_triton_inplace_20260518_085210.json`
 - `reports/qwen36_35b/structured_gate_amber70_sharedgate_triton_convinplace_20260518_091420.json`
+- `reports/qwen36_35b/structured_hardgate_amber_20260518_123744.json`
 - `reports/qwen36_35b/p37_shared_gate_torch_inplace_20260518_090215.json`
 - `reports/qwen36_35b/p25_shared_gate_torch_inplace_20260518_091020.json`
 - `reports/qwen36_35b/structured_gate_shared_gate_torch_inplace_20260518_091050.json`
