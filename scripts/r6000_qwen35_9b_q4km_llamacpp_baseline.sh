@@ -78,6 +78,17 @@ else
   fi
 fi
 
+# Subdirectory format: MODEL_ROOT/Qwen3.5-9B-GGUF/Qwen_Qwen3.5-9B-Q4_K_M.gguf
+if [[ -z "$GGUF_FOUND" ]]; then
+  for candidate in "$MODEL_ROOT"/Qwen3.5-9B-GGUF/*.gguf \
+                   "$MODEL_ROOT"/Qwen3.5*9B*GGUF/*.gguf; do
+    if [[ -s "${candidate:-}" ]]; then
+      GGUF_FOUND="$candidate"
+      break
+    fi
+  done
+fi
+
 OUT="$REPORT_ROOT/r6000_qwen35_9b_q4km_baseline_${STAMP}.json"
 
 # ---------------------------------------------------------------------------
@@ -423,6 +434,44 @@ with open(out_path, "w", encoding="utf-8") as f:
 
 print(f"\n[q4km-9b] Report written: {out_path}")
 PYEOF
+fi
+
+# ---------------------------------------------------------------------------
+# Quality evaluation (optional, QUALITY=1)
+# ---------------------------------------------------------------------------
+QUALITY="${QUALITY:-0}"
+if [[ "$QUALITY" == "1" ]]; then
+  echo "[q4km-9b] running quality evaluations..."
+  QUALITY_DIR="$REPORT_ROOT/quality_${STAMP}"
+  mkdir -p "$QUALITY_DIR"
+
+  # MMLU-500 5-shot
+  MMLU_SCRIPT="$REPO_ROOT/scripts/openai_mmlu_500_5shot_eval.py"
+  if [[ -f "$MMLU_SCRIPT" ]]; then
+    echo "[q4km-9b] MMLU-500 5-shot..."
+    "$PY" "$MMLU_SCRIPT" \
+      --url "http://${HOST}:${PORT}/v1" \
+      --model "$SERVED_NAME" \
+      --out "$QUALITY_DIR/mmlu_500" \
+      2>&1 || echo "[q4km-9b] MMLU failed (non-fatal)"
+  else
+    echo "[q4km-9b] MMLU script not found: $MMLU_SCRIPT"
+  fi
+
+  # GPQA Diamond
+  GPQA_SCRIPT="$REPO_ROOT/scripts/openai_gpqa_diamond_eval.py"
+  if [[ -f "$GPQA_SCRIPT" ]]; then
+    echo "[q4km-9b] GPQA Diamond..."
+    "$PY" "$GPQA_SCRIPT" \
+      --url "http://${HOST}:${PORT}/v1" \
+      --model "$SERVED_NAME" \
+      --out "$QUALITY_DIR/gpqa_diamond" \
+      2>&1 || echo "[q4km-9b] GPQA failed (non-fatal)"
+  else
+    echo "[q4km-9b] GPQA script not found: $GPQA_SCRIPT"
+  fi
+
+  echo "[q4km-9b] quality results in $QUALITY_DIR"
 fi
 
 # ---------------------------------------------------------------------------

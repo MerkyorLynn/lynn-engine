@@ -186,6 +186,29 @@ def render_markdown(report: dict) -> str:
             lines.append(f"| {chars} | {pt} | — | — | — | {icon} |")
     lines.append("")
 
+    # --- Quality Results ---
+    quality = report.get("quality", {})
+    if quality:
+        lines.append("## Quality Evaluation")
+        lines.append("")
+        mmlu = quality.get("mmlu", {})
+        gpqa = quality.get("gpqa", {})
+        lines.append("| Benchmark | Accuracy | Correct | Total | Status |")
+        lines.append("|-----------|----------|---------|-------|--------|")
+        if mmlu:
+            acc = mmlu.get("accuracy", mmlu.get("score"))
+            if acc is not None:
+                lines.append(f"| MMLU-500 5-shot | **{acc:.3f}** | {mmlu.get('correct', '—')} | {mmlu.get('total', 500)} | ✅ |")
+            else:
+                lines.append(f"| MMLU-500 5-shot | — | — | — | ⏳ PENDING |")
+        if gpqa:
+            acc = gpqa.get("accuracy", gpqa.get("score"))
+            if acc is not None:
+                lines.append(f"| GPQA Diamond | **{acc:.4f}** | {gpqa.get('correct', '—')} | {gpqa.get('total', 198)} | ✅ |")
+            else:
+                lines.append(f"| GPQA Diamond | — | — | — | ⏳ PENDING |")
+        lines.append("")
+
     # --- Lynn NVFP4 cross-reference ---
     lines.append("## Cross-Reference: Lynn 9B NVFP4 Watcher Fields")
     lines.append("")
