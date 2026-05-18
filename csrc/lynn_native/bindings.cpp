@@ -166,6 +166,10 @@ torch::Tensor lynn_native_moe_slot_strict_bf16(
 torch::Tensor lynn_native_moe_slot_tensorcore_probe(
     torch::Tensor x, torch::Tensor routing_weights,
     torch::Tensor slot_gate_up, torch::Tensor slot_down);
+// P139b pretransposed variant (zero-overhead hot path)
+torch::Tensor lynn_native_moe_slot_tensorcore_pretransposed(
+    torch::Tensor x, torch::Tensor routing_weights,
+    torch::Tensor W_fused_T, torch::Tensor W_down_T);
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
   m.def("add_one", &lynn_native_add_one, "Lynn native CUDA extension smoke kernel");
@@ -253,4 +257,8 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
       "moe_slot_tensorcore_probe",
       &lynn_native_moe_slot_tensorcore_probe,
       "P139 TensorCore batched-bmm slot MoE probe (2 launches)");
+  m.def(
+      "moe_slot_tensorcore_pretransposed",
+      &lynn_native_moe_slot_tensorcore_pretransposed,
+      "P139b pretransposed slot MoE (zero-overhead hot path, 2 launches)");
 }

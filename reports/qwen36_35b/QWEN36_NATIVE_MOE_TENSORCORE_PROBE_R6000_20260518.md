@@ -19,3 +19,15 @@ Reference points:
 | fused gate_up mm + bmm down | ~0.109 ms | Cleaner bridge, still slower than Triton |
 
 Conclusion: PyTorch/cuBLAS bridge shapes are not a viable path for this single-token top-8 MoE slot workload. The next viable line is packed slot layout plus a custom output-owned kernel that avoids PyTorch/cuBLAS launch overhead while preserving the slot-order contract.
+
+## P139b Pretransposed TensorCore Probe
+
+Verdict: AMBER_FAST_PRETRANSPOSED.
+
+This variant moves the expensive `reshape/transpose/contiguous` work into a load-time repack step and passes precomputed `W_fused_T [2048, 8192]` plus `W_down_T [8, 512, 2048]` into the hot path. Decode-time work is limited to `mm`, `view`, `silu*up`, `bmm`, and BF16 route reduce.
+
+| Candidate | max_abs_max | cosine_min | mean latency | max latency | Verdict |
+|---|---:|---:|---:|---:|---|
+| pretransposed fused gate_up + bmm down | 1.953125e-03 | 0.9999890924 | 0.0527 ms | 0.0588 ms | AMBER_FAST_PRETRANSPOSED |
+
+This is the first TensorCore bridge candidate that beats the Triton active baseline on the fixture harness. It is not default-promotable because fixture-level numerical drift remains above strict default thresholds, but it is a useful evidence point for the offline repack direction.

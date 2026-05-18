@@ -74,3 +74,55 @@ torch::Tensor lynn_native_moe_slot_tensorcore_probe(
     }
     return out;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Pretransposed variant: zero overhead in hot path.
+//
+// Caller pre-computes (once at weight load):
+//   W_fused_T = slot_gate_up.reshape(8*1024, 2048).t().contiguous()  → [2048, 8192]
+//   W_down_T  = slot_down.transpose(1, 2).contiguous()               → [8, 512, 2048]
+//
+// Hot path: mm + view + silu*up + bmm + bf16_reduce. No transpose/contiguous.
+// ─────────────────────────────────────────────────────────────────────────────
+
+torch::Tensor lynn_native_moe_slot_tensorcore_pretransposed(
+    torch::Tensor x,                   // [2048] or [1, 2048] BF16
+    torch::Tensor routing_weights,     // [top_k] float32
+    torch::Tensor W_fused_T,           // [2048, top_k*1024] BF16 contiguous
+    torch::Tensor W_down_T             // [top_k, 512, 2048] BF16 contiguous
+) {
+    TORCH_CHECK(x.is_cuda() && x.scalar_type() == torch::kBFloat16, "x: CUDA BF16");
+    TORCH_CHECK(routing_weights.is_cuda() && routing_weights.scalar_type() == torch::kFloat32);
+    TORCH_CHECK(W_fused_T.is_cuda() && W_fused_T.scalar_type() == torch::kBFloat16);
+    TORCH_CHECK(W_down_T.is_cuda() && W_down_T.scalar_type() == torch::kBFloat16);
+    TORCH_CHECK(W_fused_T.dim() == 2 && W_fused_T.size(0) == kHidden,
+                "W_fused_T must be [2048, top_k*1024]");
+    TORCH_CHECK(W_down_T.dim() == 3 && W_down_T.size(1) == kIntermediate && W_down_T.size(2) == kHidden,
+                "W_down_T must be [top_k, 512, 2048]");
+
+    const int top_k = W_down_T.size(0);
+    TORCH_CHECK(W_fused_T.size(1) == top_k * kGateUpRows,
+                "W_fused_T col dim must be top_k*1024");
+    TORCH_CHECK(routing_weights.size(0) == top_k);
+    TORCH_CHECK(W_fused_T.is_contiguous(), "W_fused_T must be contiguous");
+    TORCH_CHECK(W_down_T.is_contiguous(), "W_down_T must be contiguous");
+
+    auto x_2d = x.dim() == 1 ? x.unsqueeze(0) : x;  // [1, 2048]
+
+    // Stage 1: mm(x[1,2048], W_fused_T[2048,8192]) → [1, 8192]
+    auto gate_up_flat = torch::mm(x_2d, W_fused_T);
+
+    // view + split + silu*up (no allocation beyond result tensors)
+    auto gate_up_3d = gate_up_flat.view({top_k, 1, kGateUpRows});
+    auto chunks = gate_up_3d.chunk(2, /*dim=*/2);
+    auto inter = torch::silu(chunks[0]) * chunks[1];  // [top_k, 1, 512]
+
+    // Stage 2: bmm(inter[top_k,1,512], W_down_T[top_k,512,2048]) → [top_k,1,2048]
+    auto down_out = torch::bmm(inter, W_down_T);
+
+    // Weighted reduce (bf16 route weight, matches slot-order PyTorch)
+    auto rw_bf16 = routing_weights.to(torch::kBFloat16).view({top_k, 1, 1});
+    auto out = (down_out * rw_bf16).sum(/*dim=*/0);  // [1, 2048]
+
+    return x.dim() == 1 ? out.squeeze(0) : out;
+}
