@@ -469,6 +469,20 @@ cleanup at the final MoE add boundary is below the noise floor; the remaining
 TPS gap needs real shared-expert or active-expert fusion, not only in-place
 bookkeeping.
 
+Combining `LYNN_SHARED_EXPERT_GATE_BACKEND=torch_inplace` with
+`LYNN_MOE_ADD_SHARED_INPLACE=1` was also checked. The small P37 generate gate
+looked positive (`3/3` exact, `1.006x` median speedup), but the real OpenAI
+server P25 path regressed:
+
+| Probe | Result |
+|---|---:|
+| P37 greedy exact match | GREEN, 3/3 exact |
+| P37 median decode TPS | 104.37 -> 105.05 |
+| P25 512-token wall / decode TPS | 81.46 / 99.04 |
+
+This closes the in-place cleanup branch as a default-speed lever. P37 can catch
+greedy drift, but service P25 remains the authority for promotion.
+
 Copied reports:
 
 - `reports/qwen36_35b/p43_shared_gate_torch_20260518_083212.json`
@@ -486,6 +500,8 @@ Copied reports:
 - `reports/qwen36_35b/structured_gate_shared_gate_torch_inplace_20260518_091050.json`
 - `reports/qwen36_35b/p37_moe_add_shared_inplace_20260518_091905.json`
 - `reports/qwen36_35b/p25_moe_add_shared_inplace_20260518_092010.json`
+- `reports/qwen36_35b/p37_moe_inplace_combo_20260518_092445.json`
+- `reports/qwen36_35b/p25_moe_inplace_combo_20260518_092538.json`
 
 Negative probes from the same loop:
 
