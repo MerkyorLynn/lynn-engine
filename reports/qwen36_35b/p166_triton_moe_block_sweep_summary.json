@@ -1,0 +1,767 @@
+{
+  "schema": "lynn-p166-triton-moe-block-sweep-v1",
+  "created": "2026-05-19T07:08:30",
+  "rows": [
+    {
+      "config": {
+        "gate_block_inter": 8,
+        "gate_block_hidden": 128,
+        "down_block_hidden": 8,
+        "down_block_inter": 256,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 6,
+      "out_exact": 10,
+      "total": 18,
+      "gateup_ms_mean": 0.032849999972515635,
+      "down_ms_mean": 0.026121111276249092,
+      "combined_ms_mean": 0.06134688895609644,
+      "gate_plus_down_ms_mean": 0.058971111248764724,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_000_gi8_gh128_dh8_di256_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 8,
+        "gate_block_hidden": 128,
+        "down_block_hidden": 8,
+        "down_block_inter": 512,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 6,
+      "out_exact": 14,
+      "total": 18,
+      "gateup_ms_mean": 0.032956222279204264,
+      "down_ms_mean": 0.027082110962106123,
+      "combined_ms_mean": 0.054949222339524165,
+      "gate_plus_down_ms_mean": 0.06003833324131039,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_001_gi8_gh128_dh8_di512_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 8,
+        "gate_block_hidden": 128,
+        "down_block_hidden": 16,
+        "down_block_inter": 256,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 6,
+      "out_exact": 11,
+      "total": 18,
+      "gateup_ms_mean": 0.032803111192252904,
+      "down_ms_mean": 0.042789666603008904,
+      "combined_ms_mean": 0.07345366684926881,
+      "gate_plus_down_ms_mean": 0.0755927777952618,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_002_gi8_gh128_dh16_di256_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 8,
+        "gate_block_hidden": 128,
+        "down_block_hidden": 16,
+        "down_block_inter": 512,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 6,
+      "out_exact": 10,
+      "total": 18,
+      "gateup_ms_mean": 0.03282255555192629,
+      "down_ms_mean": 0.0349188894033432,
+      "combined_ms_mean": 0.06557466627822982,
+      "gate_plus_down_ms_mean": 0.0677414449552695,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_003_gi8_gh128_dh16_di512_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 8,
+        "gate_block_hidden": 128,
+        "down_block_hidden": 32,
+        "down_block_inter": 256,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 6,
+      "out_exact": 12,
+      "total": 18,
+      "gateup_ms_mean": 0.032863666406936116,
+      "down_ms_mean": 0.10910966702633434,
+      "combined_ms_mean": 0.1403584455450376,
+      "gate_plus_down_ms_mean": 0.14197333343327045,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_004_gi8_gh128_dh32_di256_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 8,
+        "gate_block_hidden": 128,
+        "down_block_hidden": 32,
+        "down_block_inter": 512,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 6,
+      "out_exact": 9,
+      "total": 18,
+      "gateup_ms_mean": 0.03279844485223293,
+      "down_ms_mean": 0.10356766730546951,
+      "combined_ms_mean": 0.13473511156108645,
+      "gate_plus_down_ms_mean": 0.13636611215770245,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_005_gi8_gh128_dh32_di512_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 8,
+        "gate_block_hidden": 256,
+        "down_block_hidden": 8,
+        "down_block_inter": 256,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 18,
+      "out_exact": 11,
+      "total": 18,
+      "gateup_ms_mean": 0.03137355556504594,
+      "down_ms_mean": 0.02611855562362406,
+      "combined_ms_mean": 0.054036888811323375,
+      "gate_plus_down_ms_mean": 0.05749211118867,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_006_gi8_gh256_dh8_di256_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 8,
+        "gate_block_hidden": 256,
+        "down_block_hidden": 8,
+        "down_block_inter": 512,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 18,
+      "out_exact": 18,
+      "total": 18,
+      "gateup_ms_mean": 0.03149611088964674,
+      "down_ms_mean": 0.026116555349694356,
+      "combined_ms_mean": 0.053476555479897395,
+      "gate_plus_down_ms_mean": 0.0576126662393411,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_007_gi8_gh256_dh8_di512_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 8,
+        "gate_block_hidden": 256,
+        "down_block_hidden": 16,
+        "down_block_inter": 256,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 18,
+      "out_exact": 12,
+      "total": 18,
+      "gateup_ms_mean": 0.03134233318269253,
+      "down_ms_mean": 0.04272222187783983,
+      "combined_ms_mean": 0.07259322206179301,
+      "gate_plus_down_ms_mean": 0.07406455506053236,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_008_gi8_gh256_dh16_di256_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 8,
+        "gate_block_hidden": 256,
+        "down_block_hidden": 16,
+        "down_block_inter": 512,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 18,
+      "out_exact": 13,
+      "total": 18,
+      "gateup_ms_mean": 0.03143888908541865,
+      "down_ms_mean": 0.034946777754359774,
+      "combined_ms_mean": 0.06459999995099173,
+      "gate_plus_down_ms_mean": 0.06638566683977842,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_009_gi8_gh256_dh16_di512_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 8,
+        "gate_block_hidden": 256,
+        "down_block_hidden": 32,
+        "down_block_inter": 256,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 18,
+      "out_exact": 14,
+      "total": 18,
+      "gateup_ms_mean": 0.03495922239704265,
+      "down_ms_mean": 0.10890644416213036,
+      "combined_ms_mean": 0.14069022155470318,
+      "gate_plus_down_ms_mean": 0.143865666559173,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_010_gi8_gh256_dh32_di256_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 8,
+        "gate_block_hidden": 256,
+        "down_block_hidden": 32,
+        "down_block_inter": 512,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 18,
+      "out_exact": 10,
+      "total": 18,
+      "gateup_ms_mean": 0.03154277770469586,
+      "down_ms_mean": 0.10363633268409306,
+      "combined_ms_mean": 0.13461855467822817,
+      "gate_plus_down_ms_mean": 0.1351791103887889,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_011_gi8_gh256_dh32_di512_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 16,
+        "gate_block_hidden": 128,
+        "down_block_hidden": 8,
+        "down_block_inter": 256,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 4,
+      "out_exact": 10,
+      "total": 18,
+      "gateup_ms_mean": 0.07035299928651916,
+      "down_ms_mean": 0.026619888842105865,
+      "combined_ms_mean": 0.09933133299152057,
+      "gate_plus_down_ms_mean": 0.09697288812862502,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_012_gi16_gh128_dh8_di256_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 16,
+        "gate_block_hidden": 128,
+        "down_block_hidden": 8,
+        "down_block_inter": 512,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 4,
+      "out_exact": 12,
+      "total": 18,
+      "gateup_ms_mean": 0.0702721116443475,
+      "down_ms_mean": 0.02590144456674655,
+      "combined_ms_mean": 0.09382955564392938,
+      "gate_plus_down_ms_mean": 0.09617355621109407,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_013_gi16_gh128_dh8_di512_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 16,
+        "gate_block_hidden": 128,
+        "down_block_hidden": 16,
+        "down_block_inter": 256,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 4,
+      "out_exact": 10,
+      "total": 18,
+      "gateup_ms_mean": 0.070355667008294,
+      "down_ms_mean": 0.04272477784090572,
+      "combined_ms_mean": 0.11107911169528961,
+      "gate_plus_down_ms_mean": 0.11308044484919971,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_014_gi16_gh128_dh16_di256_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 16,
+        "gate_block_hidden": 128,
+        "down_block_hidden": 16,
+        "down_block_inter": 512,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 4,
+      "out_exact": 7,
+      "total": 18,
+      "gateup_ms_mean": 0.07047133396069209,
+      "down_ms_mean": 0.034818666676680245,
+      "combined_ms_mean": 0.10402488874064551,
+      "gate_plus_down_ms_mean": 0.10529000063737233,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_015_gi16_gh128_dh16_di512_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 16,
+        "gate_block_hidden": 128,
+        "down_block_hidden": 32,
+        "down_block_inter": 256,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 4,
+      "out_exact": 9,
+      "total": 18,
+      "gateup_ms_mean": 0.07056922217210133,
+      "down_ms_mean": 0.10885888917578591,
+      "combined_ms_mean": 0.17811855591005749,
+      "gate_plus_down_ms_mean": 0.17942811134788725,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_016_gi16_gh128_dh32_di256_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 16,
+        "gate_block_hidden": 128,
+        "down_block_hidden": 32,
+        "down_block_inter": 512,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 4,
+      "out_exact": 7,
+      "total": 18,
+      "gateup_ms_mean": 0.07033077710204655,
+      "down_ms_mean": 0.10476077761914995,
+      "combined_ms_mean": 0.17317955278688008,
+      "gate_plus_down_ms_mean": 0.1750915547211965,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_017_gi16_gh128_dh32_di512_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 16,
+        "gate_block_hidden": 256,
+        "down_block_hidden": 8,
+        "down_block_inter": 256,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 7,
+      "out_exact": 9,
+      "total": 18,
+      "gateup_ms_mean": 0.06803066655993462,
+      "down_ms_mean": 0.02768711093813181,
+      "combined_ms_mean": 0.09048233388198747,
+      "gate_plus_down_ms_mean": 0.09571777749806643,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_018_gi16_gh256_dh8_di256_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 16,
+        "gate_block_hidden": 256,
+        "down_block_hidden": 8,
+        "down_block_inter": 512,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 7,
+      "out_exact": 12,
+      "total": 18,
+      "gateup_ms_mean": 0.0689993326862653,
+      "down_ms_mean": 0.028712333490451176,
+      "combined_ms_mean": 0.09586422186758783,
+      "gate_plus_down_ms_mean": 0.09771166617671649,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_019_gi16_gh256_dh8_di512_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 16,
+        "gate_block_hidden": 256,
+        "down_block_hidden": 16,
+        "down_block_inter": 256,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 7,
+      "out_exact": 9,
+      "total": 18,
+      "gateup_ms_mean": 0.06771611132555538,
+      "down_ms_mean": 0.04273699989749326,
+      "combined_ms_mean": 0.10854000060094728,
+      "gate_plus_down_ms_mean": 0.11045311122304863,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_020_gi16_gh256_dh16_di256_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 16,
+        "gate_block_hidden": 256,
+        "down_block_hidden": 16,
+        "down_block_inter": 512,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 7,
+      "out_exact": 8,
+      "total": 18,
+      "gateup_ms_mean": 0.0678414437505934,
+      "down_ms_mean": 0.03499477791289488,
+      "combined_ms_mean": 0.10063288857539494,
+      "gate_plus_down_ms_mean": 0.10283622166348828,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_021_gi16_gh256_dh16_di512_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 16,
+        "gate_block_hidden": 256,
+        "down_block_hidden": 32,
+        "down_block_inter": 256,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 7,
+      "out_exact": 9,
+      "total": 18,
+      "gateup_ms_mean": 0.06778111184636752,
+      "down_ms_mean": 0.10875244397256109,
+      "combined_ms_mean": 0.17447222189770806,
+      "gate_plus_down_ms_mean": 0.1765335558189286,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_022_gi16_gh256_dh32_di256_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 16,
+        "gate_block_hidden": 256,
+        "down_block_hidden": 32,
+        "down_block_inter": 512,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 7,
+      "out_exact": 8,
+      "total": 18,
+      "gateup_ms_mean": 0.06778799990812938,
+      "down_ms_mean": 0.1037625554535124,
+      "combined_ms_mean": 0.169614111383756,
+      "gate_plus_down_ms_mean": 0.17155055536164177,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_023_gi16_gh256_dh32_di512_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 32,
+        "gate_block_hidden": 128,
+        "down_block_hidden": 8,
+        "down_block_inter": 256,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 5,
+      "out_exact": 8,
+      "total": 18,
+      "gateup_ms_mean": 0.1324737783935335,
+      "down_ms_mean": 0.02642911124146647,
+      "combined_ms_mean": 0.15440999964872995,
+      "gate_plus_down_ms_mean": 0.15890288963499996,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_024_gi32_gh128_dh8_di256_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 32,
+        "gate_block_hidden": 128,
+        "down_block_hidden": 8,
+        "down_block_inter": 512,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 5,
+      "out_exact": 12,
+      "total": 18,
+      "gateup_ms_mean": 0.13230577773518032,
+      "down_ms_mean": 0.027162111053864162,
+      "combined_ms_mean": 0.15441711246967316,
+      "gate_plus_down_ms_mean": 0.1594678887890445,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_025_gi32_gh128_dh8_di512_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 32,
+        "gate_block_hidden": 128,
+        "down_block_hidden": 16,
+        "down_block_inter": 256,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 5,
+      "out_exact": 10,
+      "total": 18,
+      "gateup_ms_mean": 0.13277644332912233,
+      "down_ms_mean": 0.04276911107202371,
+      "combined_ms_mean": 0.17291955484284294,
+      "gate_plus_down_ms_mean": 0.17554555440114605,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_026_gi32_gh128_dh16_di256_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 32,
+        "gate_block_hidden": 128,
+        "down_block_hidden": 16,
+        "down_block_inter": 512,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 5,
+      "out_exact": 8,
+      "total": 18,
+      "gateup_ms_mean": 0.13333300087187025,
+      "down_ms_mean": 0.03493400000863605,
+      "combined_ms_mean": 0.1655716689096557,
+      "gate_plus_down_ms_mean": 0.1682670008805063,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_027_gi32_gh128_dh16_di512_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 32,
+        "gate_block_hidden": 128,
+        "down_block_hidden": 32,
+        "down_block_inter": 256,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 5,
+      "out_exact": 9,
+      "total": 18,
+      "gateup_ms_mean": 0.13287322223186493,
+      "down_ms_mean": 0.10925611149933603,
+      "combined_ms_mean": 0.23989733391337925,
+      "gate_plus_down_ms_mean": 0.24212933373120096,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_028_gi32_gh128_dh32_di256_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 32,
+        "gate_block_hidden": 128,
+        "down_block_hidden": 32,
+        "down_block_inter": 512,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 5,
+      "out_exact": 8,
+      "total": 18,
+      "gateup_ms_mean": 0.13260422067509758,
+      "down_ms_mean": 0.10416888859536913,
+      "combined_ms_mean": 0.23672089063458973,
+      "gate_plus_down_ms_mean": 0.2367731092704667,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_029_gi32_gh128_dh32_di512_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 32,
+        "gate_block_hidden": 256,
+        "down_block_hidden": 8,
+        "down_block_inter": 256,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 6,
+      "out_exact": 7,
+      "total": 18,
+      "gateup_ms_mean": 0.15369722247123718,
+      "down_ms_mean": 0.027224444680743747,
+      "combined_ms_mean": 0.17607566631502575,
+      "gate_plus_down_ms_mean": 0.18092166715198094,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_030_gi32_gh256_dh8_di256_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 32,
+        "gate_block_hidden": 256,
+        "down_block_hidden": 8,
+        "down_block_inter": 512,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 6,
+      "out_exact": 9,
+      "total": 18,
+      "gateup_ms_mean": 0.1537308899892701,
+      "down_ms_mean": 0.03912088885489437,
+      "combined_ms_mean": 0.17603311191002527,
+      "gate_plus_down_ms_mean": 0.1928517788441645,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_031_gi32_gh256_dh8_di512_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 32,
+        "gate_block_hidden": 256,
+        "down_block_hidden": 16,
+        "down_block_inter": 256,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 6,
+      "out_exact": 7,
+      "total": 18,
+      "gateup_ms_mean": 0.15361299945248497,
+      "down_ms_mean": 0.04278688898517026,
+      "combined_ms_mean": 0.20104344603088167,
+      "gate_plus_down_ms_mean": 0.19639988843765524,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_032_gi32_gh256_dh16_di256_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 32,
+        "gate_block_hidden": 256,
+        "down_block_hidden": 16,
+        "down_block_inter": 512,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 6,
+      "out_exact": 5,
+      "total": 18,
+      "gateup_ms_mean": 0.15379733509487575,
+      "down_ms_mean": 0.0349431112408638,
+      "combined_ms_mean": 0.18657410889863968,
+      "gate_plus_down_ms_mean": 0.18874044633573955,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_033_gi32_gh256_dh16_di512_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 32,
+        "gate_block_hidden": 256,
+        "down_block_hidden": 32,
+        "down_block_inter": 256,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 6,
+      "out_exact": 7,
+      "total": 18,
+      "gateup_ms_mean": 0.15390944480895996,
+      "down_ms_mean": 0.10910100034541553,
+      "combined_ms_mean": 0.26069022549523246,
+      "gate_plus_down_ms_mean": 0.2630104451543755,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_034_gi32_gh256_dh32_di256_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 32,
+        "gate_block_hidden": 256,
+        "down_block_hidden": 32,
+        "down_block_inter": 512,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 6,
+      "out_exact": 6,
+      "total": 18,
+      "gateup_ms_mean": 0.15372511082225376,
+      "down_ms_mean": 0.1041516661643982,
+      "combined_ms_mean": 0.2556120041343901,
+      "gate_plus_down_ms_mean": 0.25787677698665196,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_035_gi32_gh256_dh32_di512_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 8,
+        "gate_block_hidden": 64,
+        "down_block_hidden": 8,
+        "down_block_inter": 512,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 8,
+      "out_exact": 13,
+      "total": 18,
+      "gateup_ms_mean": 0.04097133336795701,
+      "down_ms_mean": 0.02669911107255353,
+      "combined_ms_mean": 0.066905555418796,
+      "gate_plus_down_ms_mean": 0.06767044444051054,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_036_gi8_gh64_dh8_di512_gw4_dw8.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 8,
+        "gate_block_hidden": 256,
+        "down_block_hidden": 8,
+        "down_block_inter": 512,
+        "gate_num_warps": 4,
+        "down_num_warps": 4
+      },
+      "inter_exact": 18,
+      "out_exact": 14,
+      "total": 18,
+      "gateup_ms_mean": 0.0315944446871678,
+      "down_ms_mean": 0.03090833355155256,
+      "combined_ms_mean": 0.05413255592187246,
+      "gate_plus_down_ms_mean": 0.06250277823872036,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_037_gi8_gh256_dh8_di512_gw4_dw4.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 8,
+        "gate_block_hidden": 256,
+        "down_block_hidden": 8,
+        "down_block_inter": 512,
+        "gate_num_warps": 4,
+        "down_num_warps": 16
+      },
+      "inter_exact": 18,
+      "out_exact": 13,
+      "total": 18,
+      "gateup_ms_mean": 0.03160188916242785,
+      "down_ms_mean": 0.026344666671421792,
+      "combined_ms_mean": 0.053408888892994985,
+      "gate_plus_down_ms_mean": 0.05794655583384964,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_038_gi8_gh256_dh8_di512_gw4_dw16.json"
+    },
+    {
+      "config": {
+        "gate_block_inter": 16,
+        "gate_block_hidden": 256,
+        "down_block_hidden": 8,
+        "down_block_inter": 512,
+        "gate_num_warps": 4,
+        "down_num_warps": 4
+      },
+      "inter_exact": 7,
+      "out_exact": 10,
+      "total": 18,
+      "gateup_ms_mean": 0.06776333393322097,
+      "down_ms_mean": 0.028719333310921986,
+      "combined_ms_mean": 0.10340688874324162,
+      "gate_plus_down_ms_mean": 0.09648266724414295,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_039_gi16_gh256_dh8_di512_gw4_dw4.json"
+    }
+  ],
+  "valid_count": 1,
+  "top_valid_by_combined": [
+    {
+      "config": {
+        "gate_block_inter": 8,
+        "gate_block_hidden": 256,
+        "down_block_hidden": 8,
+        "down_block_inter": 512,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 18,
+      "out_exact": 18,
+      "total": 18,
+      "gateup_ms_mean": 0.03149611088964674,
+      "down_ms_mean": 0.026116555349694356,
+      "combined_ms_mean": 0.053476555479897395,
+      "gate_plus_down_ms_mean": 0.0576126662393411,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_007_gi8_gh256_dh8_di512_gw4_dw8.json"
+    }
+  ],
+  "top_valid_by_gate_plus_down": [
+    {
+      "config": {
+        "gate_block_inter": 8,
+        "gate_block_hidden": 256,
+        "down_block_hidden": 8,
+        "down_block_inter": 512,
+        "gate_num_warps": 4,
+        "down_num_warps": 8
+      },
+      "inter_exact": 18,
+      "out_exact": 18,
+      "total": 18,
+      "gateup_ms_mean": 0.03149611088964674,
+      "down_ms_mean": 0.026116555349694356,
+      "combined_ms_mean": 0.053476555479897395,
+      "gate_plus_down_ms_mean": 0.0576126662393411,
+      "file": "/root/autodl-tmp/reports/qwen36_35b/p166_triton_block_sweep_20260519_1215/cfg_007_gi8_gh256_dh8_di512_gw4_dw8.json"
+    }
+  ]
+}
