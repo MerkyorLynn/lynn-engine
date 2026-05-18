@@ -75,48 +75,122 @@ def _get(d: dict[str, Any] | None, *keys: str, default: Any = None) -> Any:
 
 
 def _extract_gate_fields(report: dict[str, Any]) -> dict[str, Any]:
-    """Pull the 3 mandatory fields from the Stream C wrapper schema.
+    """Pull mandatory + explicit-5-field structured schema from the gate JSON.
 
-    The Codex wrapper writes ``gates`` with:
-      - ``p37_exact_pass``        (bool)
-      - ``structured_pass_rate``  (float in [0,1] or None)
-      - ``structured_pass``       (bool)
-      - ``p25_512_mean_tps``      (float or None)
-      - ``p25_delta_pct_vs_safe`` (float or None)
+    Per the 2026-05-18 hand-off, the report MUST surface these 5 fields:
+      - structured_prompt_file   (the prompts file actually used)
+      - structured_request_count (count of prompts in that file)
+      - structured_pass_count    (count of prompts that passed)
+      - structured_pass_rate_40  (rate when file is the 40 hard set; else None)
+      - structured_pass_rate_70  (rate when file is the 70 hard set; else None)
 
-    Older runs may use slightly different keys; tolerate a couple of
-    aliases so a Codex schema bump does not break this tool.
+    DEFAULT promote requires structured_pass_rate_40 == 1.0 with the file
+    being the default 40 set. AMBER promote requires structured_pass_rate_70
+    == 1.0 with the 70 set. **A generic pass_rate=1.0 is never accepted as
+    proxy for 70/70** — AMBER must explicitly run the 70 prompt set.
+
+    Schema tolerance: the Codex wrapper places these in either
+    ``gates.{...}`` or ``metrics.{...}``; older flat schemas (rope_cache
+    rev) use top-level ``structured_pass_rate`` / ``hard_structured_ok``.
+    We probe both then route by the file basename.
     """
     gates = report.get("gates") or {}
+    metrics = report.get("metrics") or {}
     out: dict[str, Any] = {}
 
     # P37
     p37 = gates.get("p37_exact_pass")
     if p37 is None:
-        # tolerate alias paths
+        p37 = metrics.get("p37_exact")
+    if p37 is None:
+        p37 = report.get("p37_exact")
+    if p37 is None:
         exact_count = _get(report, "p37", "exact_count")
         if exact_count is not None:
             p37 = int(exact_count) >= 3
     out["p37_exact_pass"] = p37
 
-    # Structured
-    rate = gates.get("structured_pass_rate")
-    if rate is None:
-        passed = _get(report, "structured", "passed")
-        total = _get(report, "structured", "total")
-        if passed is not None and total:
-            rate = float(passed) / float(total)
-    out["structured_pass_rate"] = rate
-    out["structured_pass"] = gates.get("structured_pass")
-    if out["structured_pass"] is None and rate is not None:
-        out["structured_pass"] = float(rate) >= STRUCTURED_DEFAULT_FRACTION
+    # Structured: explicit file + counts + per-file pass rates
+    struct_file = (
+        gates.get("structured_prompt_file")
+        or metrics.get("structured_prompt_file")
+        or report.get("structured_prompt_file")
+    )
+    request_count = (
+        gates.get("structured_request_count")
+        or metrics.get("structured_request_count")
+        or metrics.get("structured_prompt_count")
+        or report.get("structured_request_count")
+        or _get(report, "structured", "total")
+    )
+    pass_count = (
+        gates.get("structured_pass_count")
+        or metrics.get("structured_pass_count")
+        or report.get("structured_pass_count")
+        or _get(report, "structured", "passed")
+    )
+    rate_40 = (
+        gates.get("structured_pass_rate_40")
+        or metrics.get("structured_pass_rate_40")
+        or report.get("structured_pass_rate_40")
+    )
+    rate_70 = (
+        gates.get("structured_pass_rate_70")
+        or metrics.get("structured_pass_rate_70")
+        or report.get("structured_pass_rate_70")
+    )
+
+    # Fallback routing only if 40/70 explicit rates are missing AND a
+    # generic pass_rate + file hint are present. We refuse to populate
+    # ``structured_pass_rate_70`` without an explicit 70-set marker.
+    if rate_40 is None and rate_70 is None:
+        generic_rate = (
+            gates.get("structured_pass_rate")
+            or metrics.get("structured_pass_rate")
+            or report.get("structured_pass_rate")
+            or _get(report, "structured", "pass_rate")
+        )
+        if generic_rate is None and pass_count is not None and request_count:
+            try:
+                generic_rate = float(pass_count) / float(request_count)
+            except Exception:  # noqa: BLE001
+                generic_rate = None
+        if generic_rate is not None:
+            basename = (str(struct_file).rsplit("/", 1)[-1]
+                        if struct_file else "")
+            if "_70" in basename:
+                rate_70 = float(generic_rate)
+            else:
+                # Default routing: assume 40 hard set unless _70 hint
+                rate_40 = float(generic_rate)
+
+    out["structured_prompt_file"] = struct_file
+    out["structured_request_count"] = (
+        int(request_count) if request_count is not None else None
+    )
+    out["structured_pass_count"] = (
+        int(pass_count) if pass_count is not None else None
+    )
+    out["structured_pass_rate_40"] = (
+        float(rate_40) if rate_40 is not None else None
+    )
+    out["structured_pass_rate_70"] = (
+        float(rate_70) if rate_70 is not None else None
+    )
 
     # P25 @ 512
-    tps_512 = gates.get("p25_512_mean_tps")
+    tps_512 = (
+        gates.get("p25_512_mean_tps")
+        or metrics.get("p25_512_decode_tps")
+        or report.get("p25_512_decode_tps")
+    )
     if tps_512 is None:
         tps_512 = _get(report, "p25", "summary", "mean")
     out["p25_512_mean_tps"] = float(tps_512) if tps_512 is not None else None
-    out["p25_delta_pct_vs_safe"] = gates.get("p25_delta_pct_vs_safe")
+    out["p25_delta_pct_vs_safe"] = (
+        gates.get("p25_delta_pct_vs_safe")
+        or metrics.get("p25_delta_pct_vs_safe")
+    )
 
     return out
 
@@ -125,8 +199,20 @@ def _missing_required(fields: dict[str, Any]) -> list[str]:
     missing: list[str] = []
     if fields.get("p37_exact_pass") is None:
         missing.append("P37 exact-greedy")
-    if fields.get("structured_pass_rate") is None and fields.get("structured_pass") is None:
-        missing.append("hard structured pass")
+    # Structured: must have at least one of the two explicit rates AND the
+    # 5 hand-off fields (file + counts) populated. Generic pass_rate alone
+    # without file routing is no longer accepted.
+    if (
+        fields.get("structured_pass_rate_40") is None
+        and fields.get("structured_pass_rate_70") is None
+    ):
+        missing.append("hard structured pass rate (neither _40 nor _70 set)")
+    if fields.get("structured_prompt_file") is None:
+        missing.append("structured_prompt_file (which prompts file was used)")
+    if fields.get("structured_request_count") is None:
+        missing.append("structured_request_count")
+    if fields.get("structured_pass_count") is None:
+        missing.append("structured_pass_count")
     if fields.get("p25_512_mean_tps") is None:
         missing.append("P25 512-token decode TPS")
     return missing
@@ -135,10 +221,18 @@ def _missing_required(fields: dict[str, Any]) -> list[str]:
 def _decide(
     fields: dict[str, Any], safe_default_tps: float
 ) -> tuple[str, list[str]]:
-    """Apply 2026-05-18 hand-off promotion bar; return (decision, reasons)."""
+    """Apply 2026-05-18 hand-off promotion bar; return (decision, reasons).
+
+    Strict ladder:
+      * DEFAULT requires P37 3/3 + structured_pass_rate_40 == 1.0 + P25 ≥ 108
+        (AND ≥ safe + 1%).
+      * AMBER requires structured_pass_rate_70 == 1.0 + P25 ≥ 118 (AND ≥
+        safe + 5%). Generic pass_rate=1.0 without explicit 70-set file is
+        NEVER accepted as proxy for AMBER.
+    """
     p37 = bool(fields.get("p37_exact_pass"))
-    rate = fields.get("structured_pass_rate")
-    rate_f = float(rate) if rate is not None else None
+    rate_40 = fields.get("structured_pass_rate_40")
+    rate_70 = fields.get("structured_pass_rate_70")
     tps_512 = fields.get("p25_512_mean_tps")
     tps_f = float(tps_512) if tps_512 is not None else None
     delta_pct = fields.get("p25_delta_pct_vs_safe")
@@ -151,8 +245,10 @@ def _decide(
         reasons.append("P25 512 decode TPS missing")
         return "research_artifact_only", reasons
 
-    if rate_f is None:
-        reasons.append("structured pass rate missing")
+    if rate_40 is None and rate_70 is None:
+        reasons.append(
+            "structured pass rates both missing — cannot judge DEFAULT or AMBER"
+        )
         return "research_artifact_only", reasons
 
     # Closed by hard regression
@@ -165,46 +261,66 @@ def _decide(
     # DEFAULT?
     default_ok = (
         p37
-        and rate_f >= STRUCTURED_DEFAULT_FRACTION
+        and rate_40 is not None
+        and rate_40 >= STRUCTURED_DEFAULT_FRACTION
         and tps_f >= DEFAULT_PROMOTE_TPS_FLOOR
         and (delta_pct is not None and delta_pct >= DEFAULT_PROMOTE_DELTA_PCT)
     )
 
-    # AMBER?
+    # AMBER? Strict: explicit 70-set file required.
     amber_ok = (
-        rate_f >= STRUCTURED_AMBER_FRACTION_HARD
+        rate_70 is not None
+        and rate_70 >= STRUCTURED_AMBER_FRACTION_HARD
         and tps_f >= AMBER_PROMOTE_TPS_FLOOR
         and (delta_pct is not None and delta_pct >= AMBER_PROMOTE_DELTA_PCT)
     )
 
     if default_ok:
         reasons.append(
-            f"P37 3/3 + structured {rate_f * 100:.0f}% + P25 {tps_f:.2f} ≥ "
-            f"{DEFAULT_PROMOTE_TPS_FLOOR} & ≥ safe + {DEFAULT_PROMOTE_DELTA_PCT}%"
+            f"P37 3/3 + structured_pass_rate_40 = {rate_40 * 100:.0f}% + "
+            f"P25 {tps_f:.2f} ≥ {DEFAULT_PROMOTE_TPS_FLOOR} & ≥ safe + "
+            f"{DEFAULT_PROMOTE_DELTA_PCT}%"
         )
         if amber_ok:
-            reasons.append("(also clears AMBER bar; ship as DEFAULT — stricter wins)")
+            reasons.append(
+                f"(also clears AMBER bar with structured_pass_rate_70 = "
+                f"{rate_70 * 100:.0f}%; ship as DEFAULT — stricter wins)"
+            )
         return "DEFAULT_promote", reasons
 
     if amber_ok:
         if not p37:
             reasons.append(
-                f"P37 drift accepted; structured {rate_f * 100:.0f}% (need 70/70 hard) + "
-                f"P25 {tps_f:.2f} ≥ {AMBER_PROMOTE_TPS_FLOOR}"
+                f"P37 drift accepted; structured_pass_rate_70 = "
+                f"{rate_70 * 100:.0f}% on 70-set + P25 {tps_f:.2f} ≥ "
+                f"{AMBER_PROMOTE_TPS_FLOOR}"
             )
         else:
             reasons.append(
-                f"P37 3/3 but DEFAULT bar not met; falling to AMBER: structured "
-                f"{rate_f * 100:.0f}% + P25 {tps_f:.2f} ≥ {AMBER_PROMOTE_TPS_FLOOR}"
+                f"P37 3/3 but DEFAULT bar not met; falling to AMBER: "
+                f"structured_pass_rate_70 = {rate_70 * 100:.0f}% + P25 "
+                f"{tps_f:.2f} ≥ {AMBER_PROMOTE_TPS_FLOOR}"
             )
         return "AMBER_promote", reasons
 
     # Neither
     if not p37:
         reasons.append("P37 exact-greedy failed (DEFAULT requires 3/3)")
-    if rate_f < STRUCTURED_DEFAULT_FRACTION:
+    if rate_40 is None:
         reasons.append(
-            f"structured {rate_f * 100:.1f}% below DEFAULT bar 100%"
+            "structured_pass_rate_40 missing (DEFAULT requires 40-set explicit)"
+        )
+    elif rate_40 < STRUCTURED_DEFAULT_FRACTION:
+        reasons.append(
+            f"structured_pass_rate_40 = {rate_40 * 100:.1f}% below DEFAULT bar 100%"
+        )
+    if rate_70 is None:
+        reasons.append(
+            "structured_pass_rate_70 missing (AMBER strictly requires explicit 70-set)"
+        )
+    elif rate_70 < STRUCTURED_AMBER_FRACTION_HARD:
+        reasons.append(
+            f"structured_pass_rate_70 = {rate_70 * 100:.1f}% below AMBER bar 100% (70/70)"
         )
     if tps_f < DEFAULT_PROMOTE_TPS_FLOOR:
         reasons.append(
@@ -214,7 +330,11 @@ def _decide(
         reasons.append(
             f"P25 512 ({tps_f:.2f}) below AMBER floor {AMBER_PROMOTE_TPS_FLOOR}"
         )
-    return "AMBER_only" if (rate_f >= STRUCTURED_DEFAULT_FRACTION and tps_f >= safe_default_tps) else "closed", reasons
+    return (
+        "AMBER_only"
+        if (rate_70 is not None and rate_70 >= STRUCTURED_AMBER_FRACTION_HARD and tps_f >= safe_default_tps)
+        else "closed"
+    ), reasons
 
 
 def _render_card(
@@ -230,8 +350,15 @@ def _render_card(
 
     p37 = fields.get("p37_exact_pass")
     p37_str = "3/3 ✓" if p37 else ("漂 ✗" if p37 is False else "missing")
-    rate = fields.get("structured_pass_rate")
-    rate_str = f"{rate * 100:.1f}%" if rate is not None else "missing"
+    rate_40 = fields.get("structured_pass_rate_40")
+    rate_70 = fields.get("structured_pass_rate_70")
+    rate_40_str = f"{rate_40 * 100:.1f}%" if rate_40 is not None else "—"
+    rate_70_str = f"{rate_70 * 100:.1f}%" if rate_70 is not None else "—"
+    prompt_file = fields.get("structured_prompt_file") or "—"
+    req_count = fields.get("structured_request_count")
+    pass_count = fields.get("structured_pass_count")
+    req_count_str = str(req_count) if req_count is not None else "—"
+    pass_count_str = str(pass_count) if pass_count is not None else "—"
     tps = fields.get("p25_512_mean_tps")
     tps_str = f"{tps:.2f} TPS" if tps is not None else "missing"
     delta_str = f"{delta_pct:+.2f}%" if delta_pct is not None else "n/a"
@@ -261,8 +388,19 @@ def _render_card(
 | Gate | Result | DEFAULT bar | AMBER bar |
 |---|---|---|---|
 | P37 exact-greedy | **{p37_str}** | 3/3 required | drift OK |
-| Hard structured | **{rate_str}** | 100% (40/40) | 100% on the hard 70-prompt set |
+| Hard structured (40-set) | **{rate_40_str}** | 100% (40/40) | — (use 70-set instead) |
+| Hard structured (70-set) | **{rate_70_str}** | — | 100% (70/70) required, no fallback |
 | P25 512 decode TPS | **{tps_str}** ({delta_str} vs safe) | ≥ {DEFAULT_PROMOTE_TPS_FLOOR} & ≥ safe + {DEFAULT_PROMOTE_DELTA_PCT}% | ≥ {AMBER_PROMOTE_TPS_FLOOR} & ≥ safe + {AMBER_PROMOTE_DELTA_PCT}% |
+
+## Five explicit structured fields (hand-off discipline)
+
+| Field | Value |
+|---|---|
+| `structured_prompt_file` | `{prompt_file}` |
+| `structured_request_count` | `{req_count_str}` |
+| `structured_pass_count` | `{pass_count_str}` |
+| `structured_pass_rate_40` | `{rate_40_str}` |
+| `structured_pass_rate_70` | `{rate_70_str}` |
 
 ## Decision: {icon}
 
@@ -276,16 +414,23 @@ def _render_card(
 
 {env_lines}
 
-## Discipline reminder
+## Discipline reminder (2026-05-18 hand-off)
 
-Per 2026-05-18 hand-off, no candidate is promoted on microbench latency
-alone. Every promote-eligible candidate must carry **all three** gates:
-P37 exact-greedy, hard structured pass, and P25 512-token decode TPS.
+Per the hand-off, no candidate is promoted on microbench latency alone.
+Every promote-eligible candidate MUST carry the five explicit structured
+fields above PLUS P37 exact + P25 512 decode TPS together.
 
-* DEFAULT route ships if and only if P37 3/3 + structured 40/40 + P25 512 ≥ {DEFAULT_PROMOTE_TPS_FLOOR}.
-* AMBER ships opt-in only with structured 70/70 + P25 512 ≥ {AMBER_PROMOTE_TPS_FLOOR}.
-* 122 TPS is reachable only after Stream A + Stream B candidates each
-  pass DEFAULT in isolation, then are stacked through the full ladder.
+* DEFAULT route ships if and only if P37 3/3 + `structured_pass_rate_40`
+  == 1.0 (on the default 40 hard set) + P25 512 ≥ {DEFAULT_PROMOTE_TPS_FLOOR}.
+* AMBER ships opt-in only with explicit 70-set:
+  `structured_pass_rate_70` == 1.0 + P25 512 ≥ {AMBER_PROMOTE_TPS_FLOOR}. A
+  generic `pass_rate=1.0` without the 70-set explicit IS NEVER ACCEPTED.
+* Stream B's own bar (a strict-only candidate) is stricter than DEFAULT:
+  P25 512 ≥ 113 + P26 full-attn OR linear block ≥ 5% drop. AMBER is
+  Stream C's territory, not Stream B's deliverable.
+* 122 TPS is reachable only after Stream A + Stream B strict candidates
+  each pass their own gate in isolation, then are stacked through the
+  full ladder.
 """
 
 

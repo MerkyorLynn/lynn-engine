@@ -1,0 +1,581 @@
+[
+  {
+    "id": "json_nested_weather_args",
+    "system": "You output JSON only. No markdown, no prose.",
+    "prompt": "Return exactly one JSON object for a get_weather tool call. Keys: tool, arguments. arguments must contain city=\"Tokyo\", unit=\"celsius\", days=3.",
+    "response_format": "json_object",
+    "starts_with": "{",
+    "parse_json": true,
+    "must_contain": ["get_weather", "Tokyo", "celsius", "days"],
+    "forbid": ["```", "<think>"]
+  },
+  {
+    "id": "json_schema_user_profile",
+    "system": "You output JSON only. No markdown, no explanation.",
+    "prompt": "Return one JSON Schema object for a user profile with required string name and integer age. Include type, properties, required.",
+    "response_format": "json_object",
+    "starts_with": "{",
+    "parse_json": true,
+    "must_contain": ["properties", "required", "name", "age", "integer"],
+    "forbid": ["```", "<think>"]
+  },
+  {
+    "id": "json_function_args_normalize_city",
+    "system": "You output JSON only. No markdown, no prose.",
+    "prompt": "Return only the JSON arguments object for function normalize_city. Use city=\"New York\", country=\"US\", lowercase=false.",
+    "response_format": "json_object",
+    "starts_with": "{",
+    "parse_json": true,
+    "must_contain": ["New York", "US", "lowercase"],
+    "forbid": ["```", "<think>", "function", "normalize_city"]
+  },
+  {
+    "id": "python_palindrome_code_only",
+    "system": "You output Python code only.",
+    "prompt": "Only output Python code, no markdown. Define is_palindrome(s: str) -> bool. It should ignore case and non-alphanumeric characters.",
+    "starts_with_any": ["def is_palindrome", "import re\n\ndef is_palindrome"],
+    "must_contain": ["def is_palindrome", "return"],
+    "forbid": ["```", "<think>", "Here"]
+  },
+  {
+    "id": "python_normalize_city_code_only",
+    "system": "You output Python code only.",
+    "prompt": "Only output Python code, no markdown. Define normalize_city(city: str) -> str that strips whitespace and title-cases words.",
+    "starts_with_any": ["def normalize_city"],
+    "must_contain": ["def normalize_city", "strip", "title", "return"],
+    "forbid": ["```", "<think>", "Here"]
+  },
+  {
+    "id": "yaml_openapi_request_body",
+    "system": "You output YAML only.",
+    "prompt": "Output only an OpenAPI YAML requestBody for application/json with object properties email:string and subscribed:boolean. No explanation.",
+    "starts_with_any": ["requestBody:", "content:", "```yaml"],
+    "must_contain": ["application/json", "email", "subscribed", "boolean"],
+    "forbid": ["<think>"]
+  },
+  {
+    "id": "router_zh_prefix",
+    "system": "严格遵守用户给定的格式要求。不要输出思考过程。",
+    "prompt": "用一句中文短句说明 MoE router 的作用。必须以 router 开头，必须包含 动态分配、专家、token。",
+    "starts_with": "router",
+    "must_contain": ["动态分配", "专家", "token"],
+    "forbid": ["<think>", "```"]
+  },
+  {
+    "id": "linear_attention_zh_exact_terms",
+    "system": "严格遵守用户给定的格式要求。不要输出思考过程。",
+    "prompt": "用一句中文短句说明 linear attention 适合长上下文的原因。必须包含 计算复杂度、线性、长上下文。",
+    "must_contain": ["计算复杂度", "线性", "长上下文"],
+    "forbid": ["<think>", "```"]
+  },
+  {
+    "id": "short_math_number_only",
+    "system": "Answer with the final value only.",
+    "prompt": "Answer only with the number: 17 multiplied by 23.",
+    "starts_with": "391",
+    "forbid": ["\n", "<think>", " "]
+  },
+  {
+    "id": "json_patch_ops",
+    "system": "You output JSON only. No markdown, no prose.",
+    "prompt": "Return one JSON array of JSON Patch operations to replace /name with \"Lynn\" and add /active true.",
+    "starts_with": "[",
+    "must_contain": ["replace", "/name", "Lynn", "add", "/active", "true"],
+    "forbid": ["```", "<think>"]
+  },
+  {
+    "id": "json_h_nested_tool_array",
+    "system": "You output JSON only. No markdown, no prose, no commentary.",
+    "prompt": "Return one JSON object with key tool_calls (array). Inside: two entries — first is search_web with arguments {query:\"NVFP4\", top_k:5}; second is fetch_url with arguments {url:\"https://example.com\", timeout_s:10}.",
+    "response_format": "json_object",
+    "starts_with": "{",
+    "parse_json": true,
+    "must_contain": ["tool_calls", "search_web", "NVFP4", "top_k", "fetch_url", "example.com", "timeout_s"],
+    "forbid": ["```", "<think>"]
+  },
+  {
+    "id": "json_h_unicode_keys",
+    "system": "You output JSON only. No markdown, no prose.",
+    "prompt": "Return one JSON object describing a city with keys 城市, country, 人口. Use 城市=\"北京\", country=\"China\", 人口=21893000.",
+    "response_format": "json_object",
+    "starts_with": "{",
+    "parse_json": true,
+    "must_contain": ["城市", "北京", "country", "China", "人口", "21893000"],
+    "forbid": ["```", "<think>"]
+  },
+  {
+    "id": "json_h_escape_string",
+    "system": "You output JSON only. No markdown, no prose.",
+    "prompt": "Return one JSON object with key 'pattern' whose value is the literal string: She said \"hi\\nbye\" — that needs escaping.",
+    "response_format": "json_object",
+    "starts_with": "{",
+    "parse_json": true,
+    "must_contain": ["pattern", "\\\"hi", "\\\\n", "bye"],
+    "forbid": ["```", "<think>"]
+  },
+  {
+    "id": "json_h_conditional_choice",
+    "system": "You output JSON only. No markdown, no prose.",
+    "prompt": "Return one JSON object representing a chat completion request: model=\"qwen3.6\", messages=[{role:\"user\", content:\"Hello\"}], stream=true, max_tokens=128.",
+    "response_format": "json_object",
+    "starts_with": "{",
+    "parse_json": true,
+    "must_contain": ["model", "qwen3.6", "messages", "role", "user", "content", "Hello", "stream", "true", "max_tokens", "128"],
+    "forbid": ["```", "<think>"]
+  },
+  {
+    "id": "json_h_response_schema_with_enum",
+    "system": "You output JSON only. No markdown, no prose.",
+    "prompt": "Return a JSON Schema for a record with required color (string, enum red|green|blue) and quantity (integer, minimum 1). Include type, properties, required, enum, minimum.",
+    "response_format": "json_object",
+    "starts_with": "{",
+    "parse_json": true,
+    "must_contain": ["properties", "color", "enum", "red", "green", "blue", "quantity", "integer", "minimum", "required"],
+    "forbid": ["```", "<think>"]
+  },
+  {
+    "id": "json_h_deeply_nested_config",
+    "system": "You output JSON only. No markdown, no prose.",
+    "prompt": "Return one JSON config with keys server.host=\"0.0.0.0\", server.port=18099, runtime.dtype=\"bf16\", runtime.quant.method=\"nvfp4\", runtime.quant.bits=4. Use real nesting, not dot keys.",
+    "response_format": "json_object",
+    "starts_with": "{",
+    "parse_json": true,
+    "must_contain": ["server", "host", "0.0.0.0", "port", "18099", "runtime", "dtype", "bf16", "quant", "method", "nvfp4", "bits", "4"],
+    "forbid": ["```", "<think>"]
+  },
+  {
+    "id": "json_h_array_of_objects_sorted",
+    "system": "You output JSON only. No markdown, no prose.",
+    "prompt": "Return a JSON array of three user objects, each with name and age, sorted ascending by age: Alice 23, Bob 18, Carol 30.",
+    "starts_with": "[",
+    "parse_json": true,
+    "must_contain": ["Bob", "18", "Alice", "23", "Carol", "30"],
+    "forbid": ["```", "<think>"]
+  },
+  {
+    "id": "json_h_nullable_optional",
+    "system": "You output JSON only. No markdown, no prose.",
+    "prompt": "Return one JSON object with keys id (integer 1001), name (\"Lynn\"), middle_name (null), tags (empty array).",
+    "response_format": "json_object",
+    "starts_with": "{",
+    "parse_json": true,
+    "must_contain": ["id", "1001", "name", "Lynn", "middle_name", "null", "tags", "[]"],
+    "forbid": ["```", "<think>"]
+  },
+  {
+    "id": "json_h_pair_swap_args",
+    "system": "You output JSON only. No markdown, no prose.",
+    "prompt": "Return JSON arguments for function move_file: src=\"/old/path.txt\", dst=\"/new/path.txt\", overwrite=false, retries=3.",
+    "response_format": "json_object",
+    "starts_with": "{",
+    "parse_json": true,
+    "must_contain": ["src", "/old/path.txt", "dst", "/new/path.txt", "overwrite", "false", "retries", "3"],
+    "forbid": ["```", "<think>"]
+  },
+  {
+    "id": "json_h_lynn_engine_runtime",
+    "system": "You output JSON only. No markdown, no prose.",
+    "prompt": "Return a JSON object describing a Lynn engine runtime selection: model=\"Qwen3.6-35B-A3B\", quant=\"w4a16-nvfp4\", host=\"rtx-pro-6000\", port=18099.",
+    "response_format": "json_object",
+    "starts_with": "{",
+    "parse_json": true,
+    "must_contain": ["model", "Qwen3.6-35B-A3B", "quant", "w4a16-nvfp4", "host", "rtx-pro-6000", "port", "18099"],
+    "forbid": ["```", "<think>"]
+  },
+  {
+    "id": "json_h_iso_timestamp_field",
+    "system": "You output JSON only. No markdown, no prose.",
+    "prompt": "Return one JSON object: event=\"deploy\", timestamp=\"2026-05-18T15:30:00Z\", actor=\"merkyor\", status=\"success\".",
+    "response_format": "json_object",
+    "starts_with": "{",
+    "parse_json": true,
+    "must_contain": ["event", "deploy", "timestamp", "2026-05-18T15:30:00Z", "actor", "merkyor", "status", "success"],
+    "forbid": ["```", "<think>"]
+  },
+  {
+    "id": "json_h_array_only_no_object_wrap",
+    "system": "You output JSON only. No markdown, no prose.",
+    "prompt": "Return JUST a JSON array of the five small fibonacci numbers starting at 1: 1,1,2,3,5. Just the array, no object wrapper.",
+    "starts_with": "[",
+    "parse_json": true,
+    "must_contain": ["1", "2", "3", "5"],
+    "forbid": ["```", "<think>", "{", "fib"]
+  },
+  {
+    "id": "json_h_kv_cache_dtype_choice",
+    "system": "You output JSON only. No markdown, no prose.",
+    "prompt": "Return one JSON config: kv_cache_dtype=\"fp8\", high_precision_layers=\"auto\", max_seq_len=65536, mtp_quantization=\"bf16\".",
+    "response_format": "json_object",
+    "starts_with": "{",
+    "parse_json": true,
+    "must_contain": ["kv_cache_dtype", "fp8", "high_precision_layers", "auto", "max_seq_len", "65536", "mtp_quantization", "bf16"],
+    "forbid": ["```", "<think>"]
+  },
+  {
+    "id": "py_h_clamp_function",
+    "system": "You output Python code only.",
+    "prompt": "Only Python code, no markdown. Define clamp(x: float, lo: float, hi: float) -> float. Behavior: return lo if x<lo else hi if x>hi else x. No imports.",
+    "starts_with_any": ["def clamp"],
+    "must_contain": ["def clamp", "return"],
+    "forbid": ["```", "<think>", "Here", "import"]
+  },
+  {
+    "id": "py_h_rle_encode",
+    "system": "You output Python code only.",
+    "prompt": "Only Python code, no markdown. Define rle_encode(s: str) -> list[tuple[str, int]]. Run-length encode the string into list of (char, count) tuples.",
+    "starts_with_any": ["def rle_encode"],
+    "must_contain": ["def rle_encode", "return"],
+    "forbid": ["```", "<think>", "Here"]
+  },
+  {
+    "id": "py_h_async_sleep_print",
+    "system": "You output Python code only.",
+    "prompt": "Only Python code, no markdown. Define an async function tick(n: int) -> None that awaits asyncio.sleep(1) and prints n. Include the import.",
+    "starts_with_any": ["import asyncio", "import asyncio\n"],
+    "must_contain": ["import asyncio", "async def tick", "await asyncio.sleep(1)", "print(n)"],
+    "forbid": ["```", "<think>", "Here"]
+  },
+  {
+    "id": "py_h_dict_invert",
+    "system": "You output Python code only.",
+    "prompt": "Only Python code, no markdown. Define invert(d: dict) -> dict that swaps keys and values. Assume values are hashable and unique.",
+    "starts_with_any": ["def invert"],
+    "must_contain": ["def invert", "return"],
+    "forbid": ["```", "<think>", "Here"]
+  },
+  {
+    "id": "py_h_pathlib_read_lines",
+    "system": "You output Python code only.",
+    "prompt": "Only Python code, no markdown. Use pathlib.Path. Define read_nonempty_lines(path: str) -> list[str] returning non-empty stripped lines.",
+    "starts_with_any": ["from pathlib", "import pathlib"],
+    "must_contain": ["pathlib", "Path", "def read_nonempty_lines", "strip", "return"],
+    "forbid": ["```", "<think>", "Here"]
+  },
+  {
+    "id": "py_h_typed_dataclass",
+    "system": "You output Python code only.",
+    "prompt": "Only Python code, no markdown. Use dataclasses. Define Point with fields x:int, y:int (frozen=True, slots=True).",
+    "starts_with_any": ["from dataclasses", "import dataclasses"],
+    "must_contain": ["dataclass", "frozen=True", "slots=True", "x: int", "y: int", "class Point"],
+    "forbid": ["```", "<think>", "Here"]
+  },
+  {
+    "id": "py_h_safe_div",
+    "system": "You output Python code only.",
+    "prompt": "Only Python code, no markdown. Define safe_div(a: float, b: float) -> float | None. Returns None if b==0 else a/b.",
+    "starts_with_any": ["def safe_div"],
+    "must_contain": ["def safe_div", "return None", "return a / b"],
+    "forbid": ["```", "<think>", "Here"]
+  },
+  {
+    "id": "py_h_logging_basic_setup",
+    "system": "You output Python code only.",
+    "prompt": "Only Python code, no markdown. Configure root logger to level INFO with format '%(asctime)s %(levelname)s %(message)s'. Just the setup, no function.",
+    "starts_with_any": ["import logging"],
+    "must_contain": ["logging.basicConfig", "level=logging.INFO", "format=", "%(asctime)s", "%(levelname)s", "%(message)s"],
+    "forbid": ["```", "<think>", "Here", "def "]
+  },
+  {
+    "id": "py_h_sorted_by_secondary",
+    "system": "You output Python code only.",
+    "prompt": "Only Python code, no markdown. Define sort_users(users: list[dict]) -> list[dict] returning users sorted by age ascending then name ascending.",
+    "starts_with_any": ["def sort_users"],
+    "must_contain": ["def sort_users", "sorted", "key=", "age", "name", "return"],
+    "forbid": ["```", "<think>", "Here"]
+  },
+  {
+    "id": "py_h_argparse_two_flags",
+    "system": "You output Python code only.",
+    "prompt": "Only Python code, no markdown. Build an argparse parser with --model (required string) and --temperature (float, default 0.7). Parse args and print them.",
+    "starts_with_any": ["import argparse"],
+    "must_contain": ["import argparse", "ArgumentParser", "--model", "--temperature", "default=0.7", "parse_args", "print"],
+    "forbid": ["```", "<think>", "Here"]
+  },
+  {
+    "id": "yaml_h_docker_compose_minimal",
+    "system": "You output YAML only.",
+    "prompt": "Output a docker-compose.yml top-level with version '3.9' and services.lynn-engine with image 'lynn-engine:0.1' and ports '18099:18099'.",
+    "starts_with_any": ["version:", "services:"],
+    "must_contain": ["version:", "3.9", "services:", "lynn-engine", "image:", "lynn-engine:0.1", "ports:", "18099:18099"],
+    "forbid": ["<think>"]
+  },
+  {
+    "id": "yaml_h_k8s_deployment",
+    "system": "You output YAML only.",
+    "prompt": "Output a Kubernetes Deployment manifest snippet with apiVersion apps/v1, kind Deployment, metadata.name=lynn-engine, spec.replicas=1, spec.selector.matchLabels.app=lynn-engine.",
+    "starts_with_any": ["apiVersion:", "kind:"],
+    "must_contain": ["apiVersion", "apps/v1", "kind", "Deployment", "lynn-engine", "replicas", "1", "matchLabels"],
+    "forbid": ["<think>", "```"]
+  },
+  {
+    "id": "yaml_h_openapi_response",
+    "system": "You output YAML only.",
+    "prompt": "Output an OpenAPI 3.0 responses snippet with '200' description 'OK' and content application/json schema $ref '#/components/schemas/Reply'.",
+    "starts_with_any": ["responses:", "'200':"],
+    "must_contain": ["responses", "200", "OK", "application/json", "schema", "$ref", "#/components/schemas/Reply"],
+    "forbid": ["<think>", "```"]
+  },
+  {
+    "id": "toml_h_pyproject_minimal",
+    "system": "You output TOML only.",
+    "prompt": "Output a pyproject.toml [project] section with name='lynn-engine', version='0.1.0', requires-python='>=3.10'.",
+    "starts_with_any": ["[project]"],
+    "must_contain": ["[project]", "name", "lynn-engine", "version", "0.1.0", "requires-python", ">=3.10"],
+    "forbid": ["<think>", "```"]
+  },
+  {
+    "id": "yaml_h_github_workflow_on_push",
+    "system": "You output YAML only.",
+    "prompt": "Output a GitHub Actions workflow snippet with name 'CI', on push to main, single job 'test' runs-on 'ubuntu-latest', steps[0] uses 'actions/checkout@v4'.",
+    "starts_with_any": ["name:", "on:"],
+    "must_contain": ["name:", "CI", "on:", "push", "branches", "main", "jobs:", "test:", "runs-on:", "ubuntu-latest", "actions/checkout@v4"],
+    "forbid": ["<think>", "```"]
+  },
+  {
+    "id": "yaml_h_nginx_upstream",
+    "system": "You output YAML-like nginx config only, exact syntax.",
+    "prompt": "Output an nginx upstream block named lynn_engine_pool with three server entries: 10.0.0.1:18099, 10.0.0.2:18099, 10.0.0.3:18099. Use exact nginx syntax.",
+    "starts_with_any": ["upstream"],
+    "must_contain": ["upstream", "lynn_engine_pool", "server", "10.0.0.1:18099", "10.0.0.2:18099", "10.0.0.3:18099"],
+    "forbid": ["<think>", "```"]
+  },
+  {
+    "id": "math_h_decimal_two_places",
+    "system": "Answer with the final value only.",
+    "prompt": "Answer only the decimal number rounded to two places: 22 divided by 7.",
+    "starts_with": "3.14",
+    "forbid": ["\n", "<think>", " "]
+  },
+  {
+    "id": "math_h_scientific_notation",
+    "system": "Answer with the final value only.",
+    "prompt": "Answer only with the number in scientific notation: 1234567 expressed as a.bcd*10^N. Use the format like 1.23e6 (lowercase e).",
+    "starts_with_any": ["1.23e6", "1.234567e6"],
+    "forbid": ["\n", "<think>", " ", "x10"]
+  },
+  {
+    "id": "math_h_factorial_small",
+    "system": "Answer with the final value only.",
+    "prompt": "Answer only the integer: 7 factorial.",
+    "starts_with": "5040",
+    "forbid": ["\n", "<think>", " ", "!"]
+  },
+  {
+    "id": "math_h_modulo",
+    "system": "Answer with the final value only.",
+    "prompt": "Answer only the integer: 12345 modulo 7.",
+    "starts_with": "4",
+    "forbid": ["\n", "<think>", " ", "mod"]
+  },
+  {
+    "id": "math_h_count_primes_under",
+    "system": "Answer with the final value only.",
+    "prompt": "Answer only the integer count: how many primes are strictly less than 30.",
+    "starts_with": "10",
+    "forbid": ["\n", "<think>", " "]
+  },
+  {
+    "id": "list_h_sorted_dedup_csv",
+    "system": "Output the requested CSV only. No prose, no markdown.",
+    "prompt": "Sort and deduplicate then output as CSV on a single line: 3,1,2,1,3,4. Output ascending without duplicates.",
+    "starts_with": "1,2,3,4",
+    "forbid": ["\n", "<think>", "```", " "]
+  },
+  {
+    "id": "list_h_pipe_separated_chars",
+    "system": "Output the requested format only. No prose.",
+    "prompt": "Output the letters a through e pipe-separated, no surrounding text or markdown: a|b|c|d|e.",
+    "starts_with": "a|b|c|d|e",
+    "forbid": ["\n", "<think>", "```", " "]
+  },
+  {
+    "id": "list_h_json_strings_array",
+    "system": "You output JSON only. No markdown, no prose.",
+    "prompt": "Return a JSON array of the four strings, lowercase, in this order: \"red\", \"green\", \"blue\", \"yellow\".",
+    "starts_with": "[",
+    "parse_json": true,
+    "must_contain": ["red", "green", "blue", "yellow"],
+    "forbid": ["```", "<think>"]
+  },
+  {
+    "id": "list_h_kv_lines",
+    "system": "Output exactly the requested key=value lines. Nothing else.",
+    "prompt": "Output exactly two lines: first line 'host=lynn-engine', second line 'port=18099'. No other lines, no markdown.",
+    "starts_with": "host=lynn-engine",
+    "must_contain": ["host=lynn-engine", "port=18099"],
+    "forbid": ["<think>", "```", "explain"]
+  },
+  {
+    "id": "list_h_tab_separated",
+    "system": "Output the requested TSV only.",
+    "prompt": "Output a single line TSV with three integer fields tab-separated: 10, 20, 30.",
+    "starts_with": "10\t20\t30",
+    "forbid": ["\n", "<think>", "```", " "]
+  },
+  {
+    "id": "zh_h_router_topk",
+    "system": "严格遵守用户给定的格式要求。不要输出思考过程。",
+    "prompt": "用一句中文短句解释 MoE 中的 top-k routing。必须以\"top-k\"开头，必须包含 路由、专家、稀疏。",
+    "starts_with": "top-k",
+    "must_contain": ["路由", "专家", "稀疏"],
+    "forbid": ["<think>", "```"]
+  },
+  {
+    "id": "zh_h_quant_w4a16",
+    "system": "严格遵守用户给定的格式要求。不要输出思考过程。",
+    "prompt": "用一句中文短句说明 W4A16 量化与 W4A4 的区别。必须包含 权重、激活、精度。",
+    "must_contain": ["权重", "激活", "精度"],
+    "forbid": ["<think>", "```"]
+  },
+  {
+    "id": "zh_h_cuda_graph_capture",
+    "system": "严格遵守用户给定的格式要求。不要输出思考过程。",
+    "prompt": "用一句中文短句说明 CUDA graph capture 的收益。必须以\"CUDA graph\"开头，必须包含 内核启动、开销、回放。",
+    "starts_with": "CUDA graph",
+    "must_contain": ["内核启动", "开销", "回放"],
+    "forbid": ["<think>", "```"]
+  },
+  {
+    "id": "zh_h_imatrix_calibration",
+    "system": "严格遵守用户给定的格式要求。不要输出思考过程。",
+    "prompt": "用一句中文短句说明 GGUF imatrix 校准的目的。必须包含 重要性、低位量化、误差。",
+    "must_contain": ["重要性", "低位量化", "误差"],
+    "forbid": ["<think>", "```"]
+  },
+  {
+    "id": "zh_h_long_context_strict",
+    "system": "严格遵守用户给定的格式要求。不要输出思考过程。",
+    "prompt": "用一句中文短句解释为什么 64k 上下文对智能体任务有意义。必须以\"64k\"开头，必须包含 上下文、智能体、长任务。",
+    "starts_with": "64k",
+    "must_contain": ["上下文", "智能体", "长任务"],
+    "forbid": ["<think>", "```"]
+  },
+  {
+    "id": "regex_h_uuid_v4",
+    "system": "Output the requested value only.",
+    "prompt": "Output a UUID v4 string (xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx). Use 8-4-4-4-12 hex layout with the literal '4' as the start of the third group. Use the example: 550e8400-e29b-41d4-a716-446655440000.",
+    "starts_with": "550e8400-e29b-41d4-a716-446655440000",
+    "forbid": ["\n", "<think>", " ", "```"]
+  },
+  {
+    "id": "regex_h_iso_8601_date",
+    "system": "Output the requested value only.",
+    "prompt": "Output one ISO 8601 date for May 18, 2026, in YYYY-MM-DD format. Nothing else.",
+    "starts_with": "2026-05-18",
+    "forbid": ["\n", "<think>", " ", "```"]
+  },
+  {
+    "id": "regex_h_semver_pinned",
+    "system": "Output the requested value only.",
+    "prompt": "Output the semver string for version 1.4.7-rc.2. No prefix, no whitespace, no quotes.",
+    "starts_with": "1.4.7-rc.2",
+    "forbid": ["\n", "<think>", " ", "```", "\"", "v"]
+  },
+  {
+    "id": "regex_h_email_only",
+    "system": "Output the requested value only.",
+    "prompt": "Output the email address user.name+tag@example.co.uk exactly. No prefix, no quotes.",
+    "starts_with": "user.name+tag@example.co.uk",
+    "forbid": ["\n", "<think>", " ", "```", "\""]
+  },
+  {
+    "id": "regex_h_ipv4_address",
+    "system": "Output the requested value only.",
+    "prompt": "Output the IPv4 address 192.168.100.26. No other characters, no quotes.",
+    "starts_with": "192.168.100.26",
+    "forbid": ["\n", "<think>", " ", "```", "\""]
+  },
+  {
+    "id": "sql_h_simple_select",
+    "system": "Output SQL only. No prose, no markdown.",
+    "prompt": "Output a SQL SELECT to fetch id and name from table users where age > 18 ordered by name. End with semicolon.",
+    "starts_with_any": ["SELECT", "select"],
+    "must_contain": ["SELECT", "id", "name", "FROM", "users", "WHERE", "age > 18", "ORDER BY", "name", ";"],
+    "forbid": ["<think>", "```"]
+  },
+  {
+    "id": "sql_h_join_count",
+    "system": "Output SQL only. No prose, no markdown.",
+    "prompt": "Output a SQL SELECT counting orders per customer: SELECT customer_id, COUNT(*) FROM orders GROUP BY customer_id ORDER BY 2 DESC LIMIT 10;",
+    "starts_with_any": ["SELECT", "select"],
+    "must_contain": ["SELECT", "customer_id", "COUNT(*)", "FROM", "orders", "GROUP BY", "customer_id", "ORDER BY", "DESC", "LIMIT 10", ";"],
+    "forbid": ["<think>", "```"]
+  },
+  {
+    "id": "sql_h_create_table",
+    "system": "Output SQL only. No prose, no markdown.",
+    "prompt": "Output a CREATE TABLE statement for users with columns id (INTEGER PRIMARY KEY), email (TEXT NOT NULL UNIQUE), created_at (TIMESTAMP DEFAULT CURRENT_TIMESTAMP).",
+    "starts_with_any": ["CREATE TABLE", "create table"],
+    "must_contain": ["CREATE TABLE", "users", "id", "INTEGER PRIMARY KEY", "email", "TEXT NOT NULL UNIQUE", "created_at", "TIMESTAMP", "DEFAULT", "CURRENT_TIMESTAMP", ";"],
+    "forbid": ["<think>", "```"]
+  },
+  {
+    "id": "mixed_h_md_table_only",
+    "system": "Output the requested markdown table only. No surrounding text.",
+    "prompt": "Output a markdown table with header 'Quant | TPS' then two rows: 'BF16 | 30' and 'Q4_K_M | 70'. Exact formatting.",
+    "starts_with": "| Quant | TPS |",
+    "must_contain": ["| Quant | TPS |", "| BF16 | 30 |", "| Q4_K_M | 70 |"],
+    "forbid": ["<think>", "explain"]
+  },
+  {
+    "id": "mixed_h_code_block_python",
+    "system": "Output a single fenced Python code block. Nothing else.",
+    "prompt": "Output exactly one fenced ```python ... ``` block containing the single line: print('hello, lynn'). Triple backticks required this time.",
+    "starts_with": "```python",
+    "must_contain": ["```python", "print('hello, lynn')", "```"],
+    "forbid": ["<think>", "explain", "Here is"]
+  },
+  {
+    "id": "mixed_h_json_then_done",
+    "system": "You output JSON only. No markdown, no prose.",
+    "prompt": "Return a JSON object with one key 'status' value 'ok' and one key 'tokens' value [1,2,3,5,8].",
+    "response_format": "json_object",
+    "starts_with": "{",
+    "parse_json": true,
+    "must_contain": ["status", "ok", "tokens", "1", "2", "3", "5", "8"],
+    "forbid": ["```", "<think>"]
+  },
+  {
+    "id": "mixed_h_curl_command_only",
+    "system": "Output one curl command, no markdown, no prose.",
+    "prompt": "Output exactly one curl command (single line) POSTing JSON {\"model\":\"qwen\"} to http://127.0.0.1:18099/v1/chat/completions with header Content-Type: application/json.",
+    "starts_with": "curl",
+    "must_contain": ["curl", "-X POST", "127.0.0.1:18099/v1/chat/completions", "Content-Type: application/json", "qwen"],
+    "forbid": ["<think>", "```", "explain", "Here"]
+  },
+  {
+    "id": "json_h_router_decision_field",
+    "system": "You output JSON only. No markdown, no prose.",
+    "prompt": "Return one JSON object describing a router decision: decision=\"AMBER_promote\", reasons=[\"P37 drift accepted\", \"structured 70/70\", \"P25 119 TPS\"], promote_default=false, promote_amber=true.",
+    "response_format": "json_object",
+    "starts_with": "{",
+    "parse_json": true,
+    "must_contain": ["decision", "AMBER_promote", "reasons", "P37 drift accepted", "structured 70/70", "promote_default", "false", "promote_amber", "true"],
+    "forbid": ["```", "<think>"]
+  },
+  {
+    "id": "py_h_pytest_assert",
+    "system": "You output Python code only.",
+    "prompt": "Only Python code, no markdown. Define test_add that asserts 1+1 == 2 and 2+2 == 4. Pytest style.",
+    "starts_with_any": ["def test_add"],
+    "must_contain": ["def test_add", "assert 1 + 1 == 2", "assert 2 + 2 == 4"],
+    "forbid": ["```", "<think>", "Here", "import"]
+  },
+  {
+    "id": "math_h_percent_rounded",
+    "system": "Answer with the final value only.",
+    "prompt": "Answer only the percent rounded to one decimal place with a trailing %: 23 out of 60 as percent.",
+    "starts_with": "38.3%",
+    "forbid": ["\n", "<think>", " "]
+  },
+  {
+    "id": "json_h_lynn_quant_manifest",
+    "system": "You output JSON only. No markdown, no prose.",
+    "prompt": "Return a JSON object resembling lynn_quant_manifest: quant_method=\"lynn_native\", format=\"nvfp4_e2m1_rowwise_per_16\", weight_activation_contract=\"w4a16\", activation_dtype=\"bf16\".",
+    "response_format": "json_object",
+    "starts_with": "{",
+    "parse_json": true,
+    "must_contain": ["quant_method", "lynn_native", "format", "nvfp4_e2m1_rowwise_per_16", "weight_activation_contract", "w4a16", "activation_dtype", "bf16"],
+    "forbid": ["```", "<think>"]
+  }
+]
