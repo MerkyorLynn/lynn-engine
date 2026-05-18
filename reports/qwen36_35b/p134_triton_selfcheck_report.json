@@ -1,6 +1,6 @@
 {
   "schema": "lynn-moe-contract-v2",
-  "created": "2026-05-18T18:23:47",
+  "created": "2026-05-18T19:27:04",
   "fixtures_dir": "/root/autodl-tmp/reports/qwen36_35b/p133_fixtures_official_w4a16",
   "model_dir": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0",
   "candidate_backend": null,
@@ -12,6 +12,17 @@
   "passed": 18,
   "failed": 0,
   "verdict": "GREEN",
+  "summary": {
+    "max_abs_max": 0.0,
+    "mean_abs_mean": 0.0,
+    "rel_l2_max": 0.0,
+    "cosine_min": 0.9999997615814209,
+    "exact_count": 18,
+    "ref_ms_mean": 1.0220058547125923,
+    "ref_ms_max": 1.1820639610290526,
+    "candidate_ms_mean": 1.0220058547125923,
+    "candidate_ms_max": 1.1820639610290526
+  },
   "results": [
     {
       "fixture_file": "layer_00_prompt_00.safetensors",
@@ -22,8 +33,8 @@
       "rel_l2": 0.0,
       "cosine": 1.0,
       "exact": 1,
-      "ref_ms": 0.9829343795776367,
-      "candidate_ms": 0.9829343795776367,
+      "ref_ms": 1.019260787963867,
+      "candidate_ms": 1.019260787963867,
       "passed": true,
       "fail_reasons": []
     },
@@ -36,8 +47,8 @@
       "rel_l2": 0.0,
       "cosine": 0.9999998211860657,
       "exact": 1,
-      "ref_ms": 0.9663359642028808,
-      "candidate_ms": 0.9663359642028808,
+      "ref_ms": 1.0022432327270507,
+      "candidate_ms": 1.0022432327270507,
       "passed": true,
       "fail_reasons": []
     },
@@ -50,8 +61,8 @@
       "rel_l2": 0.0,
       "cosine": 1.0000001192092896,
       "exact": 1,
-      "ref_ms": 0.965062427520752,
-      "candidate_ms": 0.965062427520752,
+      "ref_ms": 0.999078369140625,
+      "candidate_ms": 0.999078369140625,
       "passed": true,
       "fail_reasons": []
     },
@@ -64,8 +75,8 @@
       "rel_l2": 0.0,
       "cosine": 0.9999998807907104,
       "exact": 1,
-      "ref_ms": 0.9580096244812012,
-      "candidate_ms": 0.9580096244812012,
+      "ref_ms": 0.9926303863525391,
+      "candidate_ms": 0.9926303863525391,
       "passed": true,
       "fail_reasons": []
     },
@@ -78,8 +89,8 @@
       "rel_l2": 0.0,
       "cosine": 0.9999997615814209,
       "exact": 1,
-      "ref_ms": 0.9604479789733886,
-      "candidate_ms": 0.9604479789733886,
+      "ref_ms": 0.9877375602722168,
+      "candidate_ms": 0.9877375602722168,
       "passed": true,
       "fail_reasons": []
     },
@@ -92,8 +103,8 @@
       "rel_l2": 0.0,
       "cosine": 1.0,
       "exact": 1,
-      "ref_ms": 0.9630240440368653,
-      "candidate_ms": 0.9630240440368653,
+      "ref_ms": 0.9979711532592773,
+      "candidate_ms": 0.9979711532592773,
       "passed": true,
       "fail_reasons": []
     },
@@ -106,8 +117,8 @@
       "rel_l2": 0.0,
       "cosine": 1.0,
       "exact": 1,
-      "ref_ms": 0.9617952346801758,
-      "candidate_ms": 0.9617952346801758,
+      "ref_ms": 0.9985664367675782,
+      "candidate_ms": 0.9985664367675782,
       "passed": true,
       "fail_reasons": []
     },
@@ -120,8 +131,8 @@
       "rel_l2": 0.0,
       "cosine": 1.0000001192092896,
       "exact": 1,
-      "ref_ms": 0.9647583961486816,
-      "candidate_ms": 0.9647583961486816,
+      "ref_ms": 1.1385439872741698,
+      "candidate_ms": 1.1385439872741698,
       "passed": true,
       "fail_reasons": []
     },
@@ -134,8 +145,8 @@
       "rel_l2": 0.0,
       "cosine": 1.0,
       "exact": 1,
-      "ref_ms": 0.9610783576965332,
-      "candidate_ms": 0.9610783576965332,
+      "ref_ms": 0.999510383605957,
+      "candidate_ms": 0.999510383605957,
       "passed": true,
       "fail_reasons": []
     },
@@ -148,8 +159,8 @@
       "rel_l2": 0.0,
       "cosine": 1.0000001192092896,
       "exact": 1,
-      "ref_ms": 0.9592160224914551,
-      "candidate_ms": 0.9592160224914551,
+      "ref_ms": 0.9999168395996094,
+      "candidate_ms": 0.9999168395996094,
       "passed": true,
       "fail_reasons": []
     },
@@ -162,8 +173,8 @@
       "rel_l2": 0.0,
       "cosine": 1.0000001192092896,
       "exact": 1,
-      "ref_ms": 0.9610079765319824,
-      "candidate_ms": 0.9610079765319824,
+      "ref_ms": 1.0922143936157227,
+      "candidate_ms": 1.0922143936157227,
       "passed": true,
       "fail_reasons": []
     },
@@ -176,8 +187,8 @@
       "rel_l2": 0.0,
       "cosine": 1.0000001192092896,
       "exact": 1,
-      "ref_ms": 0.9641632080078125,
-      "candidate_ms": 0.9641632080078125,
+      "ref_ms": 0.9964639663696289,
+      "candidate_ms": 0.9964639663696289,
       "passed": true,
       "fail_reasons": []
     },
@@ -190,8 +201,8 @@
       "rel_l2": 0.0,
       "cosine": 0.9999999403953552,
       "exact": 1,
-      "ref_ms": 0.9595456123352051,
-      "candidate_ms": 0.9595456123352051,
+      "ref_ms": 0.9940192222595214,
+      "candidate_ms": 0.9940192222595214,
       "passed": true,
       "fail_reasons": []
     },
@@ -204,8 +215,8 @@
       "rel_l2": 0.0,
       "cosine": 1.0,
       "exact": 1,
-      "ref_ms": 0.9545696258544922,
-      "candidate_ms": 0.9545696258544922,
+      "ref_ms": 0.9958687782287597,
+      "candidate_ms": 0.9958687782287597,
       "passed": true,
       "fail_reasons": []
     },
@@ -218,8 +229,8 @@
       "rel_l2": 0.0,
       "cosine": 1.0,
       "exact": 1,
-      "ref_ms": 0.9529727935791016,
-      "candidate_ms": 0.9529727935791016,
+      "ref_ms": 0.9958047866821289,
+      "candidate_ms": 0.9958047866821289,
       "passed": true,
       "fail_reasons": []
     },
@@ -232,8 +243,8 @@
       "rel_l2": 0.0,
       "cosine": 1.0,
       "exact": 1,
-      "ref_ms": 0.9710592269897461,
-      "candidate_ms": 0.9710592269897461,
+      "ref_ms": 0.9965151786804199,
+      "candidate_ms": 0.9965151786804199,
       "passed": true,
       "fail_reasons": []
     },
@@ -246,8 +257,8 @@
       "rel_l2": 0.0,
       "cosine": 1.0000001192092896,
       "exact": 1,
-      "ref_ms": 0.9657183647155761,
-      "candidate_ms": 0.9657183647155761,
+      "ref_ms": 1.1820639610290526,
+      "candidate_ms": 1.1820639610290526,
       "passed": true,
       "fail_reasons": []
     },
@@ -260,8 +271,8 @@
       "rel_l2": 0.0,
       "cosine": 1.0,
       "exact": 1,
-      "ref_ms": 0.9648415565490722,
-      "candidate_ms": 0.9648415565490722,
+      "ref_ms": 1.0076959609985352,
+      "candidate_ms": 1.0076959609985352,
       "passed": true,
       "fail_reasons": []
     }

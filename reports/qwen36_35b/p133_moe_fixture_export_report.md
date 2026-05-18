@@ -95,8 +95,8 @@ P134 self-check verifies the fixtures are reproducible:
 | self-check verdict | GREEN |
 | passed / total | 18 / 18 |
 | max abs | 0.0 |
-| mean reference latency | 0.963 ms |
-| max reference latency | 0.983 ms |
+| mean reference latency | 1.022 ms |
+| max reference latency | 1.182 ms |
 | candidate-output-dir self-check | GREEN, 18/18 |
 
 This confirms the fixtures can serve as the Stream A native kernel admission

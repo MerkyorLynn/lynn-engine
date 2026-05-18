@@ -259,6 +259,22 @@ def _bench_fn(fn: Callable, warmup: int = 3, iters: int = 10) -> float:
         return (time.time() - t0) * 1000 / iters
 
 
+def _summary_metrics(results: list[ContractResult]) -> dict[str, Any]:
+    if not results:
+        return {}
+    return {
+        "max_abs_max": max(r.max_abs for r in results),
+        "mean_abs_mean": sum(r.mean_abs for r in results) / len(results),
+        "rel_l2_max": max(r.rel_l2 for r in results),
+        "cosine_min": min(r.cosine for r in results),
+        "exact_count": sum(r.exact for r in results),
+        "ref_ms_mean": sum(r.ref_ms for r in results) / len(results),
+        "ref_ms_max": max(r.ref_ms for r in results),
+        "candidate_ms_mean": sum(r.candidate_ms for r in results) / len(results),
+        "candidate_ms_max": max(r.candidate_ms for r in results),
+    }
+
+
 # ─────────────────────────────────────────────────────────────
 # Candidate backend loading
 # ─────────────────────────────────────────────────────────────
@@ -647,6 +663,7 @@ def main() -> int:
         "passed": sum(1 for r in results if r.passed),
         "failed": sum(1 for r in results if not r.passed),
         "verdict": "GREEN" if all(r.passed for r in results) else "RED",
+        "summary": _summary_metrics(results),
         "results": [r.to_dict() for r in results],
     }
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)

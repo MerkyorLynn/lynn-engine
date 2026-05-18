@@ -334,7 +334,7 @@ R6000 result:
 | P134 candidate-output-dir self-check | GREEN, 18/18 |
 | P134 routed-only self-check | GREEN, 18/18 |
 | max abs / mean abs | 0.0 / 0.0 |
-| mean reference latency | 0.963 ms |
+| mean reference latency | 1.022 ms |
 | routed-only mean reference latency | 0.914 ms |
 
 Decision: make P134 the first admission gate for Stream A native MoE kernel

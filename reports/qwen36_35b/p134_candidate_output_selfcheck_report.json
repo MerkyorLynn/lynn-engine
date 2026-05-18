@@ -1,6 +1,6 @@
 {
   "schema": "lynn-moe-contract-v2",
-  "created": "2026-05-18T18:24:36",
+  "created": "2026-05-18T19:27:06",
   "fixtures_dir": "/root/autodl-tmp/reports/qwen36_35b/p133_fixtures_official_w4a16",
   "model_dir": null,
   "candidate_backend": null,
@@ -12,6 +12,17 @@
   "passed": 18,
   "failed": 0,
   "verdict": "GREEN",
+  "summary": {
+    "max_abs_max": 0.0,
+    "mean_abs_mean": 0.0,
+    "rel_l2_max": 0.0,
+    "cosine_min": 0.9999997615814209,
+    "exact_count": 18,
+    "ref_ms_mean": 0.0,
+    "ref_ms_max": 0.0,
+    "candidate_ms_mean": 0.0,
+    "candidate_ms_max": 0.0
+  },
   "results": [
     {
       "fixture_file": "layer_00_prompt_00.safetensors",

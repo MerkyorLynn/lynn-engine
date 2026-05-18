@@ -124,8 +124,8 @@ Thresholds for native kernel acceptance:
 | mean abs | 0.0 |
 | rel L2 | 0.0 |
 | min cosine | 1.0 |
-| mean reference latency | 0.963 ms |
-| max reference latency | 0.983 ms |
+| mean reference latency | 1.022 ms |
+| max reference latency | 1.182 ms |
 | candidate-output-dir self-check | GREEN, 18/18 |
 | routed-only self-check | GREEN, 18/18 |
 | routed-only mean reference latency | 0.914 ms |
