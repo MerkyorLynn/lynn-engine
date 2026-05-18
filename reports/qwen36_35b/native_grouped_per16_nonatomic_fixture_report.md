@@ -42,10 +42,14 @@ However, a real P37 generate gate still closes this backend:
 
 | Gate | Result |
 |---|---|
-| P37 exact | RED |
-| candidate decode TPS mean | 134.41 |
-| median speedup | 1.249x |
-| failure shape | first token ok, then token id 0 / `!` repetition |
+| P37 graph-on exact | RED |
+| graph-on candidate decode TPS mean | 134.41 |
+| graph-on median speedup | 1.249x |
+| graph-on failure shape | first token ok, then token id 0 / `!` repetition |
+| P33 graph-off top1 follow | PASS for 3 steps |
+| P37 graph-off exact | RED |
+| graph-off candidate decode TPS mean | 29.89 |
+| graph-off median speedup | 0.306x |
 
 So this is the first clear 130+ TPS speed shape, but it is not promotable until the runtime contract is fixed.
 
@@ -54,9 +58,12 @@ Artifacts:
 - `reports/qwen36_35b/p135_moe_native_stage_drift_20260518.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_grouped_per16_nonatomic_stagechecked_20260518_stagechecked_p37_p37.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_grouped_per16_nonatomic_stagechecked_20260518_stagechecked_p37_promotion_summary.json`
+- `reports/qwen36_35b/p33_grouped_per16_nonatomic_first_divergence_20260518.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_grouped_per16_nonatomic_graphoff_20260518_grouped_nonatomic_graphoff_p37_p37.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_grouped_per16_nonatomic_graphoff_20260518_grouped_nonatomic_graphoff_p37_promotion_summary.json`
 
 Next useful work is to keep the output-owned/non-atomic scheduling shape, then fix the runtime contract:
 
-1. preserve the existing Triton two-stage contract and first replace only the down output-owned reduction;
-2. add a P37-side logit/activation probe for the first candidate-vs-baseline divergence, because fixture-level active-MoE stage drift is too small to explain the token-id-0 collapse by itself;
-3. only after that divergence is understood, wire the native path into P25/structured again.
+1. make the native MoE boundary CUDA-graph-capture safe, or exclude it from linear-block graph capture while keeping the rest of the graph reusable;
+2. preserve the existing Triton two-stage contract and first replace only the down output-owned reduction;
+3. only after P37 exact is fixed, wire the native path into P25/structured again.
