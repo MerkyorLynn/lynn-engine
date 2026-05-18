@@ -154,6 +154,31 @@ def _router_topk(
     return values, indices
 
 
+def _router_softmax(
+    routing_logits: torch.Tensor,
+    *,
+    scratch_owner: dict,
+) -> torch.Tensor:
+    """Run router softmax, optionally reusing a caller-owned float32 buffer."""
+    if not _env_bool("LYNN_ROUTER_SOFTMAX_OUT_BUFFER", False):
+        return F.softmax(routing_logits, dim=-1, dtype=torch.float32)[0].contiguous()
+    if routing_logits.ndim != 2 or routing_logits.shape[0] != 1:
+        return F.softmax(routing_logits, dim=-1, dtype=torch.float32)[0].contiguous()
+    values_key = "mlp.gate._softmax_values_scratch"
+    expected_shape = tuple(routing_logits.shape)
+    values = scratch_owner.get(values_key)
+    if (
+        values is None
+        or tuple(values.shape) != expected_shape
+        or values.device != routing_logits.device
+        or values.dtype != torch.float32
+    ):
+        values = torch.empty(expected_shape, device=routing_logits.device, dtype=torch.float32)
+        scratch_owner[values_key] = values
+    torch.softmax(routing_logits, dim=-1, dtype=torch.float32, out=values)
+    return values[0]
+
+
 def _skip_shared_from_env() -> bool:
     raw = _env_first(("LYNN_MOE_SKIP_SHARED", "LYNN_MOE_PROFILE_SKIP_SHARED"))
     if raw is None:
@@ -635,7 +660,7 @@ def _moe_forward_decode_packed_nvfp4_fixed_triton(h: torch.Tensor, w: dict, cfg:
         sorted=False,
         scratch_owner=w,
     )
-    routing_weights = F.softmax(routing_weights, dim=-1, dtype=torch.float32)[0].contiguous()
+    routing_weights = _router_softmax(routing_weights, scratch_owner=w)
     expert_ids = expert_indices[0].to(torch.int32).contiguous()
     limit = _topk_limit_from_env(top_k)
     if limit != top_k:
@@ -811,7 +836,7 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
         sorted=_env_bool("LYNN_ROUTER_TOPK_SORTED", False),
         scratch_owner=w,
     )
-    routing_weights = F.softmax(routing_weights, dim=-1, dtype=torch.float32)[0]
+    routing_weights = _router_softmax(routing_weights, scratch_owner=w)
     # Triton kernels consume int32 expert ids. Keep this as int32 once here so
     # gate/up and down do not each pay a tiny per-layer dtype conversion.
     expert_ids = expert_indices[0].to(torch.int32).contiguous()
