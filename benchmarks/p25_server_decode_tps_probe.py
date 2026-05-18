@@ -27,9 +27,9 @@ DEFAULT_PROMPT = (
 )
 
 
-def _post_json(url: str, payload: dict[str, Any], timeout: int) -> tuple[dict[str, Any], float]:
+def _post_json(url: str, endpoint: str, payload: dict[str, Any], timeout: int) -> tuple[dict[str, Any], float]:
     req = urllib.request.Request(
-        url.rstrip("/") + "/completions",
+        url.rstrip("/") + endpoint,
         data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
         headers={"Content-Type": "application/json"},
         method="POST",
@@ -47,19 +47,35 @@ def _run_one(
     prompt: str,
     max_tokens: int,
     timeout: int,
+    chat: bool,
 ) -> dict[str, Any]:
-    payload = {
-        "model": model,
-        "prompt": prompt,
-        "max_tokens": max_tokens,
-        "temperature": 0,
-    }
-    data, wall_s = _post_json(url, payload, timeout)
+    if chat:
+        payload = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": max_tokens,
+            "temperature": 0,
+        }
+        endpoint = "/chat/completions"
+    else:
+        payload = {
+            "model": model,
+            "prompt": prompt,
+            "max_tokens": max_tokens,
+            "temperature": 0,
+        }
+        endpoint = "/completions"
+    data, wall_s = _post_json(url, endpoint, payload, timeout)
     usage = data.get("usage", {})
     completion_tokens = int(usage.get("completion_tokens") or 0)
     metrics = data.get("_lynn_engine_metrics", {})
     timings = metrics.get("timings", {})
     decode_steps = timings.get("decode_step_seconds") or []
+    choice = (data.get("choices") or [{}])[0]
+    if chat:
+        preview = (choice.get("message") or {}).get("content", "")[:160]
+    else:
+        preview = choice.get("text", "")[:160]
     return {
         "wall_s": wall_s,
         "completion_tokens": completion_tokens,
@@ -74,7 +90,7 @@ def _run_one(
         "decode_step_count": len(decode_steps),
         "decode_step_ms_mean": (statistics.mean(decode_steps) * 1000.0) if decode_steps else None,
         "decode_step_ms_median": (statistics.median(decode_steps) * 1000.0) if decode_steps else None,
-        "preview": (data.get("choices") or [{}])[0].get("text", "")[:160],
+        "preview": preview,
     }
 
 
@@ -103,6 +119,7 @@ def main() -> int:
     ap.add_argument("--max-tokens", type=int, nargs="+", default=[64, 128, 256])
     ap.add_argument("--runs", type=int, default=1)
     ap.add_argument("--timeout", type=int, default=600)
+    ap.add_argument("--chat", action="store_true", help="Use /v1/chat/completions with a user message.")
     ap.add_argument("--out", required=True)
     args = ap.parse_args()
 
@@ -115,6 +132,7 @@ def main() -> int:
                 prompt=args.prompt,
                 max_tokens=max_tokens,
                 timeout=args.timeout,
+                chat=args.chat,
             )
             row["max_tokens"] = max_tokens
             row["run_idx"] = run_idx
@@ -130,6 +148,7 @@ def main() -> int:
         "schema_version": "lynn-engine-p25-server-decode-tps-probe-v1",
         "url": args.url,
         "model": args.model,
+        "chat": args.chat,
         "prompt_chars": len(args.prompt),
         "results": results,
         "summary_by_max_tokens": by_tokens,
@@ -142,4 +161,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

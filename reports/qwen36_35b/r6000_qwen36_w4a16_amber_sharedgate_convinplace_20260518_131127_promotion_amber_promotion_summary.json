@@ -1,0 +1,36 @@
+{
+  "schema_version": "lynn-qwen36-candidate-promotion-summary-v1",
+  "candidate_name": "amber_sharedgate_convinplace",
+  "stamp": "20260518_131127_promotion_amber",
+  "candidate_env": [
+    "LYNN_SHARED_EXPERT_GATE_BACKEND=triton",
+    "LYNN_LINEAR_ATTN_CONV_BACKEND=triton_inplace"
+  ],
+  "thresholds": {
+    "safe_default_tps": 107.0,
+    "default_threshold": 108.07000000000001,
+    "amber_threshold": 112.35000000000001
+  },
+  "returncodes": {
+    "p37": 1,
+    "p25": 0,
+    "hard_structured": 0
+  },
+  "metrics": {
+    "p37_exact": false,
+    "p37_median_speedup": 1.0622977376231448,
+    "p25_512_decode_tps": 114.04352713965301,
+    "hard_structured_ok": true,
+    "hard_structured_decode_tps_mean": 114.29799955436422
+  },
+  "reports": {
+    "p37": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_amber_sharedgate_convinplace_20260518_131127_promotion_amber_p37.json",
+    "p25": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_amber_sharedgate_convinplace_20260518_131127_promotion_amber_p25.json",
+    "hard_structured": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_amber_sharedgate_convinplace_20260518_131127_promotion_amber_hard_structured.json",
+    "p26": null,
+    "p28": null
+  },
+  "promote_default": false,
+  "promote_amber": true,
+  "decision": "AMBER_CANDIDATE: hard structured and P25 threshold passed, but exact-greedy default gate did not pass."
+}

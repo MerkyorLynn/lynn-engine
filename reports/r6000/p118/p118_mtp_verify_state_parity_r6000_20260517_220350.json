@@ -1,0 +1,1142 @@
+{
+  "schema_version": "lynn-p118-mtp-verify-state-parity-v1",
+  "decision": "GREEN: Python K=2 verify accept/reject commit semantics match direct base decode.",
+  "base_model": "/root/autodl-tmp/models/lynn-27b-a3b-w4a8-nvfp4-v2",
+  "use_chat_template": false,
+  "dtype": "bfloat16",
+  "max_seq_len": 4096,
+  "max_events_per_prompt": 8,
+  "tolerance": 0.0,
+  "summary": {
+    "prompt_count": 3,
+    "events": 24,
+    "passed_events": 24,
+    "pass_rate": 1.0,
+    "mean_prompt_events": 8.0,
+    "max_abs_diff": 0.0
+  },
+  "prompts": [
+    {
+      "id": "0",
+      "prompt": "Return one JSON object with keys city and unit for Berlin in metric units. No markdown.",
+      "prompt_tokens": 18,
+      "events": 8,
+      "passed": true,
+      "max_diffs": {
+        "kv": 0.0,
+        "recurrent": 0.0,
+        "conv": 0.0
+      },
+      "rows": [
+        {
+          "event": 0,
+          "position_start": 18,
+          "pending_id": 271,
+          "pending_text": "\n\n",
+          "base_after_pending_id": 248068,
+          "base_after_pending_text": "<think>",
+          "accept_case": {
+            "draft_id": 248068,
+            "draft_text": "<think>",
+            "argmax_after": [
+              248068,
+              271
+            ],
+            "commit_count": 2,
+            "expected_next_id": 271,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 20,
+              "observed_seq_len": 20,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          },
+          "reject_case": {
+            "draft_id": 4754,
+            "draft_text": "{\"",
+            "argmax_after": [
+              248068,
+              8656
+            ],
+            "commit_count": 1,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 19,
+              "observed_seq_len": 19,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          }
+        },
+        {
+          "event": 1,
+          "position_start": 19,
+          "pending_id": 248068,
+          "pending_text": "<think>",
+          "base_after_pending_id": 271,
+          "base_after_pending_text": "\n\n",
+          "accept_case": {
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "argmax_after": [
+              271,
+              248069
+            ],
+            "commit_count": 2,
+            "expected_next_id": 248069,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 21,
+              "observed_seq_len": 21,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          },
+          "reject_case": {
+            "draft_id": 198,
+            "draft_text": "\n",
+            "argmax_after": [
+              271,
+              90
+            ],
+            "commit_count": 1,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 20,
+              "observed_seq_len": 20,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          }
+        },
+        {
+          "event": 2,
+          "position_start": 20,
+          "pending_id": 271,
+          "pending_text": "\n\n",
+          "base_after_pending_id": 248069,
+          "base_after_pending_text": "</think>",
+          "accept_case": {
+            "draft_id": 248069,
+            "draft_text": "</think>",
+            "argmax_after": [
+              248069,
+              271
+            ],
+            "commit_count": 2,
+            "expected_next_id": 271,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 22,
+              "observed_seq_len": 22,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          },
+          "reject_case": {
+            "draft_id": 71093,
+            "draft_text": "```",
+            "argmax_after": [
+              248069,
+              2164
+            ],
+            "commit_count": 1,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 21,
+              "observed_seq_len": 21,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          }
+        },
+        {
+          "event": 3,
+          "position_start": 21,
+          "pending_id": 248069,
+          "pending_text": "</think>",
+          "base_after_pending_id": 271,
+          "base_after_pending_text": "\n\n",
+          "accept_case": {
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "argmax_after": [
+              271,
+              4754
+            ],
+            "commit_count": 2,
+            "expected_next_id": 4754,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 23,
+              "observed_seq_len": 23,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          },
+          "reject_case": {
+            "draft_id": 1358,
+            "draft_text": "\n\n\n",
+            "argmax_after": [
+              271,
+              71093
+            ],
+            "commit_count": 1,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 22,
+              "observed_seq_len": 22,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          }
+        },
+        {
+          "event": 4,
+          "position_start": 22,
+          "pending_id": 271,
+          "pending_text": "\n\n",
+          "base_after_pending_id": 4754,
+          "base_after_pending_text": "{\"",
+          "accept_case": {
+            "draft_id": 4754,
+            "draft_text": "{\"",
+            "argmax_after": [
+              4754,
+              8656
+            ],
+            "commit_count": 2,
+            "expected_next_id": 8656,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 24,
+              "observed_seq_len": 24,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          },
+          "reject_case": {
+            "draft_id": 90,
+            "draft_text": "{",
+            "argmax_after": [
+              4754,
+              198
+            ],
+            "commit_count": 1,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 23,
+              "observed_seq_len": 23,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          }
+        },
+        {
+          "event": 5,
+          "position_start": 23,
+          "pending_id": 4754,
+          "pending_text": "{\"",
+          "base_after_pending_id": 8656,
+          "base_after_pending_text": "city",
+          "accept_case": {
+            "draft_id": 8656,
+            "draft_text": "city",
+            "argmax_after": [
+              8656,
+              763
+            ],
+            "commit_count": 2,
+            "expected_next_id": 763,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 25,
+              "observed_seq_len": 25,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          },
+          "reject_case": {
+            "draft_id": 3715,
+            "draft_text": "unit",
+            "argmax_after": [
+              8656,
+              763
+            ],
+            "commit_count": 1,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 24,
+              "observed_seq_len": 24,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          }
+        },
+        {
+          "event": 6,
+          "position_start": 24,
+          "pending_id": 8656,
+          "pending_text": "city",
+          "base_after_pending_id": 763,
+          "base_after_pending_text": "\":",
+          "accept_case": {
+            "draft_id": 763,
+            "draft_text": "\":",
+            "argmax_after": [
+              763,
+              328
+            ],
+            "commit_count": 2,
+            "expected_next_id": 328,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 26,
+              "observed_seq_len": 26,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          },
+          "reject_case": {
+            "draft_id": 3147,
+            "draft_text": "\":\"",
+            "argmax_after": [
+              763,
+              91149
+            ],
+            "commit_count": 1,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 25,
+              "observed_seq_len": 25,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          }
+        },
+        {
+          "event": 7,
+          "position_start": 25,
+          "pending_id": 763,
+          "pending_text": "\":",
+          "base_after_pending_id": 328,
+          "base_after_pending_text": " \"",
+          "accept_case": {
+            "draft_id": 328,
+            "draft_text": " \"",
+            "argmax_after": [
+              328,
+              91149
+            ],
+            "commit_count": 2,
+            "expected_next_id": 91149,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 27,
+              "observed_seq_len": 27,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          },
+          "reject_case": {
+            "draft_id": 5046,
+            "draft_text": " {\"",
+            "argmax_after": [
+              328,
+              591
+            ],
+            "commit_count": 1,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 26,
+              "observed_seq_len": 26,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "1",
+      "prompt": "Write a Python function is_palindrome(s) that returns a boolean. Output code only.",
+      "prompt_tokens": 18,
+      "events": 8,
+      "passed": true,
+      "max_diffs": {
+        "kv": 0.0,
+        "recurrent": 0.0,
+        "conv": 0.0
+      },
+      "rows": [
+        {
+          "event": 0,
+          "position_start": 18,
+          "pending_id": 271,
+          "pending_text": "\n\n",
+          "base_after_pending_id": 248068,
+          "base_after_pending_text": "<think>",
+          "accept_case": {
+            "draft_id": 248068,
+            "draft_text": "<think>",
+            "argmax_after": [
+              248068,
+              271
+            ],
+            "commit_count": 2,
+            "expected_next_id": 271,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 20,
+              "observed_seq_len": 20,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          },
+          "reject_case": {
+            "draft_id": 71093,
+            "draft_text": "```",
+            "argmax_after": [
+              248068,
+              12305
+            ],
+            "commit_count": 1,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 19,
+              "observed_seq_len": 19,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          }
+        },
+        {
+          "event": 1,
+          "position_start": 19,
+          "pending_id": 248068,
+          "pending_text": "<think>",
+          "base_after_pending_id": 271,
+          "base_after_pending_text": "\n\n",
+          "accept_case": {
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "argmax_after": [
+              271,
+              248069
+            ],
+            "commit_count": 2,
+            "expected_next_id": 248069,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 21,
+              "observed_seq_len": 21,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          },
+          "reject_case": {
+            "draft_id": 198,
+            "draft_text": "\n",
+            "argmax_after": [
+              271,
+              760
+            ],
+            "commit_count": 1,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 20,
+              "observed_seq_len": 20,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          }
+        },
+        {
+          "event": 2,
+          "position_start": 20,
+          "pending_id": 271,
+          "pending_text": "\n\n",
+          "base_after_pending_id": 248069,
+          "base_after_pending_text": "</think>",
+          "accept_case": {
+            "draft_id": 248069,
+            "draft_text": "</think>",
+            "argmax_after": [
+              248069,
+              271
+            ],
+            "commit_count": 2,
+            "expected_next_id": 271,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 22,
+              "observed_seq_len": 22,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          },
+          "reject_case": {
+            "draft_id": 71093,
+            "draft_text": "```",
+            "argmax_after": [
+              248069,
+              12305
+            ],
+            "commit_count": 1,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 21,
+              "observed_seq_len": 21,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          }
+        },
+        {
+          "event": 3,
+          "position_start": 21,
+          "pending_id": 248069,
+          "pending_text": "</think>",
+          "base_after_pending_id": 271,
+          "base_after_pending_text": "\n\n",
+          "accept_case": {
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "argmax_after": [
+              271,
+              727
+            ],
+            "commit_count": 2,
+            "expected_next_id": 727,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 23,
+              "observed_seq_len": 23,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          },
+          "reject_case": {
+            "draft_id": 1358,
+            "draft_text": "\n\n\n",
+            "argmax_after": [
+              271,
+              727
+            ],
+            "commit_count": 1,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 22,
+              "observed_seq_len": 22,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          }
+        },
+        {
+          "event": 4,
+          "position_start": 22,
+          "pending_id": 271,
+          "pending_text": "\n\n",
+          "base_after_pending_id": 727,
+          "base_after_pending_text": "def",
+          "accept_case": {
+            "draft_id": 727,
+            "draft_text": "def",
+            "argmax_after": [
+              727,
+              369
+            ],
+            "commit_count": 2,
+            "expected_next_id": 369,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 24,
+              "observed_seq_len": 24,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          },
+          "reject_case": {
+            "draft_id": 284,
+            "draft_text": "is",
+            "argmax_after": [
+              727,
+              70817
+            ],
+            "commit_count": 1,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 23,
+              "observed_seq_len": 23,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          }
+        },
+        {
+          "event": 5,
+          "position_start": 23,
+          "pending_id": 727,
+          "pending_text": "def",
+          "base_after_pending_id": 369,
+          "base_after_pending_text": " is",
+          "accept_case": {
+            "draft_id": 369,
+            "draft_text": " is",
+            "argmax_after": [
+              369,
+              70817
+            ],
+            "commit_count": 2,
+            "expected_next_id": 70817,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 25,
+              "observed_seq_len": 25,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          },
+          "reject_case": {
+            "draft_id": 70613,
+            "draft_text": " palindrome",
+            "argmax_after": [
+              369,
+              1104
+            ],
+            "commit_count": 1,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 24,
+              "observed_seq_len": 24,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          }
+        },
+        {
+          "event": 6,
+          "position_start": 24,
+          "pending_id": 369,
+          "pending_text": " is",
+          "base_after_pending_id": 70817,
+          "base_after_pending_text": "_pal",
+          "accept_case": {
+            "draft_id": 70817,
+            "draft_text": "_pal",
+            "argmax_after": [
+              70817,
+              34864
+            ],
+            "commit_count": 2,
+            "expected_next_id": 34864,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 26,
+              "observed_seq_len": 26,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          },
+          "reject_case": {
+            "draft_id": 66372,
+            "draft_text": "Palindrome",
+            "argmax_after": [
+              70817,
+              1104
+            ],
+            "commit_count": 1,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 25,
+              "observed_seq_len": 25,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          }
+        },
+        {
+          "event": 7,
+          "position_start": 25,
+          "pending_id": 70817,
+          "pending_text": "_pal",
+          "base_after_pending_id": 34864,
+          "base_after_pending_text": "indrome",
+          "accept_case": {
+            "draft_id": 34864,
+            "draft_text": "indrome",
+            "argmax_after": [
+              34864,
+              1104
+            ],
+            "commit_count": 2,
+            "expected_next_id": 1104,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 27,
+              "observed_seq_len": 27,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          },
+          "reject_case": {
+            "draft_id": 474,
+            "draft_text": "ind",
+            "argmax_after": [
+              34864,
+              433
+            ],
+            "commit_count": 1,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 26,
+              "observed_seq_len": 26,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "prompt": "用一句中文短句说明 MoE router 的作用。必须以 router 开头。",
+      "prompt_tokens": 16,
+      "events": 8,
+      "passed": true,
+      "max_diffs": {
+        "kv": 0.0,
+        "recurrent": 0.0,
+        "conv": 0.0
+      },
+      "rows": [
+        {
+          "event": 0,
+          "position_start": 16,
+          "pending_id": 271,
+          "pending_text": "\n\n",
+          "base_after_pending_id": 248068,
+          "base_after_pending_text": "<think>",
+          "accept_case": {
+            "draft_id": 248068,
+            "draft_text": "<think>",
+            "argmax_after": [
+              248068,
+              271
+            ],
+            "commit_count": 2,
+            "expected_next_id": 271,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 18,
+              "observed_seq_len": 18,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          },
+          "reject_case": {
+            "draft_id": 9643,
+            "draft_text": "router",
+            "argmax_after": [
+              248068,
+              220
+            ],
+            "commit_count": 1,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 17,
+              "observed_seq_len": 17,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          }
+        },
+        {
+          "event": 1,
+          "position_start": 17,
+          "pending_id": 248068,
+          "pending_text": "<think>",
+          "base_after_pending_id": 271,
+          "base_after_pending_text": "\n\n",
+          "accept_case": {
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "argmax_after": [
+              271,
+              248069
+            ],
+            "commit_count": 2,
+            "expected_next_id": 248069,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 19,
+              "observed_seq_len": 19,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          },
+          "reject_case": {
+            "draft_id": 198,
+            "draft_text": "\n",
+            "argmax_after": [
+              271,
+              97237
+            ],
+            "commit_count": 1,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 18,
+              "observed_seq_len": 18,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          }
+        },
+        {
+          "event": 2,
+          "position_start": 18,
+          "pending_id": 271,
+          "pending_text": "\n\n",
+          "base_after_pending_id": 248069,
+          "base_after_pending_text": "</think>",
+          "accept_case": {
+            "draft_id": 248069,
+            "draft_text": "</think>",
+            "argmax_after": [
+              248069,
+              271
+            ],
+            "commit_count": 2,
+            "expected_next_id": 271,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 20,
+              "observed_seq_len": 20,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          },
+          "reject_case": {
+            "draft_id": 24797,
+            "draft_text": "Mo",
+            "argmax_after": [
+              248069,
+              36
+            ],
+            "commit_count": 1,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 19,
+              "observed_seq_len": 19,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          }
+        },
+        {
+          "event": 3,
+          "position_start": 19,
+          "pending_id": 248069,
+          "pending_text": "</think>",
+          "base_after_pending_id": 271,
+          "base_after_pending_text": "\n\n",
+          "accept_case": {
+            "draft_id": 271,
+            "draft_text": "\n\n",
+            "argmax_after": [
+              271,
+              24797
+            ],
+            "commit_count": 2,
+            "expected_next_id": 24797,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 21,
+              "observed_seq_len": 21,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          },
+          "reject_case": {
+            "draft_id": 198,
+            "draft_text": "\n",
+            "argmax_after": [
+              271,
+              24797
+            ],
+            "commit_count": 1,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 20,
+              "observed_seq_len": 20,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          }
+        },
+        {
+          "event": 4,
+          "position_start": 20,
+          "pending_id": 271,
+          "pending_text": "\n\n",
+          "base_after_pending_id": 24797,
+          "base_after_pending_text": "Mo",
+          "accept_case": {
+            "draft_id": 24797,
+            "draft_text": "Mo",
+            "argmax_after": [
+              24797,
+              36
+            ],
+            "commit_count": 2,
+            "expected_next_id": 36,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 22,
+              "observed_seq_len": 22,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          },
+          "reject_case": {
+            "draft_id": 9643,
+            "draft_text": "router",
+            "argmax_after": [
+              24797,
+              220
+            ],
+            "commit_count": 1,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 21,
+              "observed_seq_len": 21,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          }
+        },
+        {
+          "event": 5,
+          "position_start": 21,
+          "pending_id": 24797,
+          "pending_text": "Mo",
+          "base_after_pending_id": 36,
+          "base_after_pending_text": "E",
+          "accept_case": {
+            "draft_id": 36,
+            "draft_text": "E",
+            "argmax_after": [
+              36,
+              8997
+            ],
+            "commit_count": 2,
+            "expected_next_id": 8997,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 23,
+              "observed_seq_len": 23,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          },
+          "reject_case": {
+            "draft_id": 37,
+            "draft_text": "F",
+            "argmax_after": [
+              36,
+              220
+            ],
+            "commit_count": 1,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 22,
+              "observed_seq_len": 22,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          }
+        },
+        {
+          "event": 6,
+          "position_start": 22,
+          "pending_id": 36,
+          "pending_text": "E",
+          "base_after_pending_id": 8997,
+          "base_after_pending_text": " router",
+          "accept_case": {
+            "draft_id": 8997,
+            "draft_text": " router",
+            "argmax_after": [
+              8997,
+              220
+            ],
+            "commit_count": 2,
+            "expected_next_id": 220,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 24,
+              "observed_seq_len": 24,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          },
+          "reject_case": {
+            "draft_id": 104916,
+            "draft_text": "路由",
+            "argmax_after": [
+              8997,
+              97149
+            ],
+            "commit_count": 1,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 23,
+              "observed_seq_len": 23,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          }
+        },
+        {
+          "event": 7,
+          "position_start": 23,
+          "pending_id": 8997,
+          "pending_text": " router",
+          "base_after_pending_id": 220,
+          "base_after_pending_text": " ",
+          "accept_case": {
+            "draft_id": 220,
+            "draft_text": " ",
+            "argmax_after": [
+              220,
+              97149
+            ],
+            "commit_count": 2,
+            "expected_next_id": 97149,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 25,
+              "observed_seq_len": 25,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          },
+          "reject_case": {
+            "draft_id": 97279,
+            "draft_text": "负责",
+            "argmax_after": [
+              220,
+              97149
+            ],
+            "commit_count": 1,
+            "passed": true,
+            "diffs": {
+              "seq_len_match": true,
+              "expected_seq_len": 24,
+              "observed_seq_len": 24,
+              "max_kv_abs": 0.0,
+              "max_recurrent_abs": 0.0,
+              "max_conv_abs": 0.0
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -79,7 +79,17 @@ def _env_snapshot() -> dict[str, str | None]:
         "LYNN_FULL_TOKEN_GRAPH_SLOT",
         "LYNN_NATIVE_FP4_LM_HEAD",
         "LYNN_NATIVE_DOWN_BACKEND",
+        "LYNN_NATIVE_GATEUP_BACKEND",
+        "LYNN_LINEAR_ATTN_RECURRENT_BACKEND",
+        "LYNN_LINEAR_ATTN_RECURRENT_INPLACE",
+        "LYNN_LINEAR_ATTN_GQA_RECURRENT",
+        "LYNN_LINEAR_ATTN_CONV_BACKEND",
         "LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4",
+        "LYNN_FULL_ATTN_QKV_FUSED",
+        "LYNN_QK_NORM_ROPE_BACKEND",
+        "LYNN_RMSNORM_GATED_BACKEND",
+        "LYNN_SHARED_EXPERT_GATE_BACKEND",
+        "LYNN_DECODE_FAST_DISPATCH",
         "LYNN_PACKED_DECODE",
     ]
     return {name: os.environ.get(name) for name in names}

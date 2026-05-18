@@ -1,0 +1,9 @@
+{
+  "model": "Lynn-27B-A3B-lynn-v4pro-q4km",
+  "endpoint": "http://127.0.0.1:18097/v1",
+  "n": 198,
+  "correct": 84,
+  "accuracy": 0.42424242424242425,
+  "elapsed_sec": 77.2,
+  "qps": 2.57
+}

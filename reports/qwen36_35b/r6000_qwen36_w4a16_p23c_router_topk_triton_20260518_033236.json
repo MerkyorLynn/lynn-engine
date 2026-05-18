@@ -1,0 +1,192 @@
+{
+  "schema_version": "lynn-engine-p23c-router-topk-triton-probe-v1",
+  "model": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0",
+  "layers": [
+    {
+      "layer": 2,
+      "expert_count": 256,
+      "topk_same_set": true,
+      "ref_indices": [
+        3,
+        40,
+        57,
+        71,
+        158,
+        207,
+        235,
+        17
+      ],
+      "triton_indices": [
+        71,
+        235,
+        3,
+        57,
+        158,
+        207,
+        40,
+        17
+      ],
+      "weight_common_count": 8,
+      "weight_max_abs_on_common": 1.4901161193847656e-08,
+      "torch_router_ms": 0.04696906805038452,
+      "triton_cached_logits_ms": 0.04053999980290731,
+      "triton_full_router_ms": 0.05173413356145223
+    },
+    {
+      "layer": 8,
+      "expert_count": 256,
+      "topk_same_set": true,
+      "ref_indices": [
+        41,
+        54,
+        90,
+        121,
+        130,
+        151,
+        224,
+        165
+      ],
+      "triton_indices": [
+        41,
+        90,
+        151,
+        121,
+        130,
+        54,
+        224,
+        165
+      ],
+      "weight_common_count": 8,
+      "weight_max_abs_on_common": 2.9802322387695312e-08,
+      "torch_router_ms": 0.046369067827860516,
+      "triton_cached_logits_ms": 0.03982079823811849,
+      "triton_full_router_ms": 0.051442666848500566
+    },
+    {
+      "layer": 14,
+      "expert_count": 256,
+      "topk_same_set": true,
+      "ref_indices": [
+        58,
+        73,
+        115,
+        132,
+        189,
+        194,
+        201,
+        5
+      ],
+      "triton_indices": [
+        189,
+        58,
+        201,
+        194,
+        132,
+        115,
+        73,
+        5
+      ],
+      "weight_common_count": 8,
+      "weight_max_abs_on_common": 2.9802322387695312e-08,
+      "torch_router_ms": 0.04679893255233765,
+      "triton_cached_logits_ms": 0.040029867490132647,
+      "triton_full_router_ms": 0.05175333420435588
+    },
+    {
+      "layer": 20,
+      "expert_count": 256,
+      "topk_same_set": true,
+      "ref_indices": [
+        41,
+        53,
+        107,
+        121,
+        151,
+        172,
+        224,
+        233
+      ],
+      "triton_indices": [
+        41,
+        151,
+        224,
+        121,
+        53,
+        172,
+        107,
+        233
+      ],
+      "weight_common_count": 8,
+      "weight_max_abs_on_common": 1.4901161193847656e-08,
+      "torch_router_ms": 0.046203466256459554,
+      "triton_cached_logits_ms": 0.040078667799631755,
+      "triton_full_router_ms": 0.05160693327585856
+    },
+    {
+      "layer": 28,
+      "expert_count": 256,
+      "topk_same_set": true,
+      "ref_indices": [
+        12,
+        56,
+        67,
+        130,
+        173,
+        178,
+        234,
+        105
+      ],
+      "triton_indices": [
+        178,
+        130,
+        12,
+        234,
+        173,
+        56,
+        67,
+        105
+      ],
+      "weight_common_count": 8,
+      "weight_max_abs_on_common": 2.9802322387695312e-08,
+      "torch_router_ms": 0.04618399937947591,
+      "triton_cached_logits_ms": 0.040108001232147215,
+      "triton_full_router_ms": 0.05301599899927775
+    },
+    {
+      "layer": 36,
+      "expert_count": 256,
+      "topk_same_set": true,
+      "ref_indices": [
+        26,
+        47,
+        108,
+        158,
+        225,
+        240,
+        250,
+        124
+      ],
+      "triton_indices": [
+        158,
+        26,
+        250,
+        225,
+        47,
+        108,
+        240,
+        124
+      ],
+      "weight_common_count": 8,
+      "weight_max_abs_on_common": 2.9802322387695312e-08,
+      "torch_router_ms": 0.0463210662206014,
+      "triton_cached_logits_ms": 0.040103201071421304,
+      "triton_full_router_ms": 0.051732532183329266
+    }
+  ],
+  "all_same_set": true,
+  "max_weight_abs_on_common": 2.9802322387695312e-08,
+  "mean_torch_router_ms": 0.04647426671451993,
+  "mean_triton_cached_logits_ms": 0.04011342260572645,
+  "mean_triton_full_router_ms": 0.05188093317879571,
+  "top_mismatches": []
+}

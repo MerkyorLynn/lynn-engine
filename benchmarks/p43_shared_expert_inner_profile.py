@@ -18,6 +18,7 @@ sys.path.insert(0, str(ROOT))
 from benchmarks.p15_moe_packed_segment_profile import _bench, _diff, _prepare_layer_moe_input, _prefill  # noqa: E402
 from benchmarks.p38_moe_multilayer_profile import BEST_R6000_ENV  # noqa: E402
 from engine.inference_state import LAYER_TYPES, LynnInferenceState  # noqa: E402
+from engine.moe_packed_nvfp4 import _apply_shared_expert_gate  # noqa: E402
 from engine.resident_runner import LynnIncrementalRunner  # noqa: E402
 
 
@@ -34,9 +35,7 @@ def _shared_fused(h_flat: torch.Tensor, w: dict) -> torch.Tensor:
     gate_up_s = F.linear(h_flat, w["mlp.shared_expert._gate_up_proj.weight"])
     gate_s, up_s = gate_up_s.chunk(2, dim=-1)
     shared = F.linear(F.silu(gate_s) * up_s, w["mlp.shared_expert.down_proj.weight"])
-    if "mlp.shared_expert_gate.weight" in w:
-        shared = shared * torch.sigmoid(F.linear(h_flat, w["mlp.shared_expert_gate.weight"]))
-    return shared
+    return _apply_shared_expert_gate(h_flat, shared, w)
 
 
 def _profile_layer(
@@ -138,6 +137,7 @@ def main() -> int:
         "model": args.model,
         "decode_position": decode_position,
         "applied_env": applied_env,
+        "shared_expert_gate_backend": os.environ.get("LYNN_SHARED_EXPERT_GATE_BACKEND", "torch"),
         "summary": summary,
         "layers": rows,
     }

@@ -364,6 +364,7 @@ class PackedNVFP4FusedLinear:
     name: str
     weight_packed: torch.Tensor
     native_scale_b: torch.Tensor
+    native_weight_t: torch.Tensor | None = None
     default_backend: str = "native_fast_2d"
 
     @property
@@ -373,6 +374,11 @@ class PackedNVFP4FusedLinear:
     @property
     def in_features(self) -> int:
         return int(self.weight_packed.shape[1] * 2)
+
+    def _native_weight_t(self) -> torch.Tensor:
+        if self.native_weight_t is None:
+            self.native_weight_t = self.weight_packed.view(torch.float4_e2m1fn_x2).t()
+        return self.native_weight_t
 
     def forward_native_fast_2d(self, x_2d: torch.Tensor) -> torch.Tensor:
         if x_2d.ndim != 2 or x_2d.shape[0] != 1 or x_2d.shape[1] != self.in_features:
@@ -385,7 +391,7 @@ class PackedNVFP4FusedLinear:
         act_packed, scale_a = quantize_fp4_m1_native(x_2d)
         return torch._scaled_mm(
             act_packed.view(torch.float4_e2m1fn_x2),
-            self.weight_packed.view(torch.float4_e2m1fn_x2).t(),
+            self._native_weight_t(),
             scale_a=scale_a,
             scale_b=self.native_scale_b,
             out_dtype=torch.float16,

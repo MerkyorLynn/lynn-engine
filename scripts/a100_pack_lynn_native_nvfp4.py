@@ -89,6 +89,8 @@ def _patch_config(out: Path) -> None:
     cfg["quantization_config"] = {
         "quant_method": "lynn_native",
         "format": "nvfp4_e2m1_rowwise_per_16",
+        "weight_activation_contract": "W4A16_weight_only",
+        "activation_dtype": "bf16",
         "activation_contract": "w4a8_required_if_folded_manifest_present",
     }
     cfg_path.write_text(json.dumps(cfg, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -127,6 +129,8 @@ def main() -> int:
         "out_model": str(out),
         "quantization": {
             "format": "nvfp4_e2m1_rowwise_per_16",
+            "weight_activation_contract": "W4A16_weight_only",
+            "activation_dtype": "bf16",
             "group_size": 16,
             "global_scale_policy": "unit",
             "keep_regex": args.keep_regex,

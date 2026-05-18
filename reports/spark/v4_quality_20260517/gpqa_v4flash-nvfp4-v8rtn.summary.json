@@ -1,0 +1,9 @@
+{
+  "model": "Lynn-35B-A3B-v4flash-nvfp4-v8rtn",
+  "endpoint": "http://127.0.0.1:30001/v1",
+  "n": 198,
+  "correct": 75,
+  "accuracy": 0.3787878787878788,
+  "elapsed_sec": 28.3,
+  "qps": 6.99
+}

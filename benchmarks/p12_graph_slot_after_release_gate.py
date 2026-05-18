@@ -29,6 +29,8 @@ from engine.resident_runner import LynnIncrementalRunner, _encode_prompt  # noqa
 REQUIRED_ENV = {
     "LYNN_MOE_IMPL": "packed_nvfp4",
     "LYNN_LINEAR_ATTN_RECURRENT_INPLACE": "1",
+    "LYNN_LINEAR_ATTN_GQA_RECURRENT": "1",
+    "LYNN_LINEAR_ATTN_CONV_BACKEND": "triton_torch_silu",
     "LYNN_NATIVE_FP4_LM_HEAD": "1",
 }
 

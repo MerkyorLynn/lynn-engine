@@ -42,6 +42,7 @@ from engine.resident_runner import LynnIncrementalRunner, _encode_prompt  # noqa
 from triton_kernels.nvfp4_moe import (  # noqa: E402
     nvfp4_grouped_down_weighted_sum,
     nvfp4_grouped_gate_up_silu,
+    nvfp4_grouped_gate_up_silu_fast_decode,
 )
 
 
@@ -159,7 +160,12 @@ def _active_packed(
 ) -> torch.Tensor:
     expert_ids, routing_weights = _router_topk(h_flat, w, cfg)
     hidden = h_flat[0]
-    inter = nvfp4_grouped_gate_up_silu(
+    gate_up = (
+        nvfp4_grouped_gate_up_silu_fast_decode
+        if os.environ.get("LYNN_NATIVE_GATEUP_BACKEND") == "triton_fast_decode"
+        else nvfp4_grouped_gate_up_silu
+    )
+    inter = gate_up(
         hidden,
         expert_ids,
         w["mlp.experts._gate_up_packed"],

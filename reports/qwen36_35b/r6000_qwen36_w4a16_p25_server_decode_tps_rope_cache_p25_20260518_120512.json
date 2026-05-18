@@ -1,0 +1,164 @@
+{
+  "schema_version": "lynn-engine-p25-server-decode-tps-probe-v1",
+  "url": "http://127.0.0.1:18176/v1",
+  "model": "Qwen3.6-35B-A3B-W4A16-NVFP4-server-rope_cache_p25_20260518_120512",
+  "chat": true,
+  "prompt_chars": 66,
+  "results": [
+    {
+      "wall_s": 2.5004162788391113,
+      "completion_tokens": 128,
+      "wall_tps": 51.19147602871455,
+      "metrics_tokens_per_second": 52.147772395325816,
+      "decode_tps": 97.71630758122532,
+      "prefill_seconds": 1.1337332725524902,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.8192579746246338,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 127,
+      "decode_step_ms_mean": 10.233706376683994,
+      "decode_step_ms_median": 9.313821792602539,
+      "preview": "在构建下一代大规模语言模型推理系统时，架构层面的稀疏性与底层硬件加速能力的深度融合成为了提升性能的关键突破口，其中混合专家模型（Mixture of Experts, MoE）因其参数高效性而备受瞩目，但其推理过程中的动态路由机制往往导致计算图的不规则性和内存访问的非连续性，这直接催生了对 MoE 推理优化的迫切需求，",
+      "max_tokens": 128,
+      "run_idx": 0
+    },
+    {
+      "wall_s": 3.474973201751709,
+      "completion_tokens": 256,
+      "wall_tps": 73.66963286823399,
+      "metrics_tokens_per_second": 73.74796965743317,
+      "decode_tps": 95.07195547256796,
+      "prefill_seconds": 0.7674295902252197,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.8192579746246338,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 255,
+      "decode_step_ms_mean": 10.518348918241614,
+      "decode_step_ms_median": 9.31096076965332,
+      "preview": "在构建下一代大规模语言模型推理系统时，架构层面的稀疏性与底层硬件加速能力的深度融合成为了提升性能的关键突破口，其中混合专家模型（Mixture of Experts, MoE）因其参数高效性而备受瞩目，但其推理过程中的动态路由机制往往导致计算图的不规则性和内存访问的非连续性，这直接催生了对 MoE 推理优化的迫切需求，",
+      "max_tokens": 256,
+      "run_idx": 0
+    },
+    {
+      "wall_s": 4.490913391113281,
+      "completion_tokens": 393,
+      "wall_tps": 87.51003766353568,
+      "metrics_tokens_per_second": 87.63483045980173,
+      "decode_tps": 107.2378423957055,
+      "prefill_seconds": 0.8041372299194336,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.8192579746246338,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 392,
+      "decode_step_ms_mean": 9.325066391302615,
+      "decode_step_ms_median": 9.30178165435791,
+      "preview": "在构建下一代大规模语言模型推理系统时，架构层面的稀疏性与底层硬件加速能力的深度融合成为了提升性能的关键突破口，其中混合专家模型（Mixture of Experts, MoE）因其参数高效性而备受瞩目，但其推理过程中的动态路由机制往往导致计算图的不规则性和内存访问的非连续性，这直接催生了对 MoE 推理优化的迫切需求，",
+      "max_tokens": 512,
+      "run_idx": 0
+    }
+  ],
+  "summary_by_max_tokens": {
+    "128": {
+      "runs": 1,
+      "wall_tps": {
+        "mean": 51.19147602871455,
+        "median": 51.19147602871455,
+        "min": 51.19147602871455,
+        "max": 51.19147602871455
+      },
+      "metrics_tokens_per_second": {
+        "mean": 52.147772395325816,
+        "median": 52.147772395325816,
+        "min": 52.147772395325816,
+        "max": 52.147772395325816
+      },
+      "decode_tps": {
+        "mean": 97.71630758122532,
+        "median": 97.71630758122532,
+        "min": 97.71630758122532,
+        "max": 97.71630758122532
+      },
+      "prefill_seconds": {
+        "mean": 1.1337332725524902,
+        "median": 1.1337332725524902,
+        "min": 1.1337332725524902,
+        "max": 1.1337332725524902
+      },
+      "decode_step_ms_median": {
+        "mean": 9.313821792602539,
+        "median": 9.313821792602539,
+        "min": 9.313821792602539,
+        "max": 9.313821792602539
+      }
+    },
+    "256": {
+      "runs": 1,
+      "wall_tps": {
+        "mean": 73.66963286823399,
+        "median": 73.66963286823399,
+        "min": 73.66963286823399,
+        "max": 73.66963286823399
+      },
+      "metrics_tokens_per_second": {
+        "mean": 73.74796965743317,
+        "median": 73.74796965743317,
+        "min": 73.74796965743317,
+        "max": 73.74796965743317
+      },
+      "decode_tps": {
+        "mean": 95.07195547256796,
+        "median": 95.07195547256796,
+        "min": 95.07195547256796,
+        "max": 95.07195547256796
+      },
+      "prefill_seconds": {
+        "mean": 0.7674295902252197,
+        "median": 0.7674295902252197,
+        "min": 0.7674295902252197,
+        "max": 0.7674295902252197
+      },
+      "decode_step_ms_median": {
+        "mean": 9.31096076965332,
+        "median": 9.31096076965332,
+        "min": 9.31096076965332,
+        "max": 9.31096076965332
+      }
+    },
+    "512": {
+      "runs": 1,
+      "wall_tps": {
+        "mean": 87.51003766353568,
+        "median": 87.51003766353568,
+        "min": 87.51003766353568,
+        "max": 87.51003766353568
+      },
+      "metrics_tokens_per_second": {
+        "mean": 87.63483045980173,
+        "median": 87.63483045980173,
+        "min": 87.63483045980173,
+        "max": 87.63483045980173
+      },
+      "decode_tps": {
+        "mean": 107.2378423957055,
+        "median": 107.2378423957055,
+        "min": 107.2378423957055,
+        "max": 107.2378423957055
+      },
+      "prefill_seconds": {
+        "mean": 0.8041372299194336,
+        "median": 0.8041372299194336,
+        "min": 0.8041372299194336,
+        "max": 0.8041372299194336
+      },
+      "decode_step_ms_median": {
+        "mean": 9.30178165435791,
+        "median": 9.30178165435791,
+        "min": 9.30178165435791,
+        "max": 9.30178165435791
+      }
+    }
+  }
+}

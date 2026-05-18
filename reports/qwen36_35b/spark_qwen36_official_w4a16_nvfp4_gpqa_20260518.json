@@ -1,0 +1,9 @@
+{
+  "model": "Qwen3.6-35B-A3B-W4A16-NVFP4-official-n5",
+  "endpoint": "http://127.0.0.1:18098/v1",
+  "n": 198,
+  "correct": 98,
+  "accuracy": 0.494949494949495,
+  "elapsed_sec": 194.5,
+  "qps": 1.02
+}

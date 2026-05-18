@@ -1,0 +1,218 @@
+{
+  "schema_version": "lynn-engine-p25-server-decode-tps-probe-v1",
+  "url": "http://127.0.0.1:18167/v1",
+  "model": "Qwen3.6-35B-A3B-W4A16-graph-structured-20260518_013525",
+  "chat": true,
+  "prompt_chars": 66,
+  "results": [
+    {
+      "wall_s": 2.625741958618164,
+      "completion_tokens": 128,
+      "wall_tps": 48.74812606009538,
+      "metrics_tokens_per_second": 49.93652369574108,
+      "decode_tps": 81.43439183327155,
+      "prefill_seconds": 0.9840106964111328,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.8042054176330566,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 127,
+      "decode_step_ms_mean": 12.279824009091834,
+      "decode_step_ms_median": 12.146234512329102,
+      "preview": "在构建下一代大规模语言模型（LLM）推理系统时，性能优化与架构演进正呈现出多维度的深度融合趋势，其中混合专家模型（Mixture of Experts, MoE）的高效推理、新兴的低精度量化标准 NVFP4、计算图优化技术 CUDA Graph 以及服务化的工具调用机制，共同构成了提升吞吐量、降低延迟并增强模型实用性的",
+      "max_tokens": 128,
+      "run_idx": 0
+    },
+    {
+      "wall_s": 2.345310926437378,
+      "completion_tokens": 128,
+      "wall_tps": 54.576985318717284,
+      "metrics_tokens_per_second": 54.66785994127647,
+      "decode_tps": 81.01812759447726,
+      "prefill_seconds": 0.765833854675293,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.8042054176330566,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 127,
+      "decode_step_ms_mean": 12.342916698906366,
+      "decode_step_ms_median": 12.156009674072266,
+      "preview": "在构建下一代大规模语言模型（LLM）推理系统时，性能优化与架构演进正呈现出多维度的深度融合趋势，其中混合专家模型（Mixture of Experts, MoE）的高效推理、新兴的低精度量化标准 NVFP4、计算图优化技术 CUDA Graph 以及服务化的工具调用机制，共同构成了提升吞吐量、降低延迟并增强模型实用性的",
+      "max_tokens": 128,
+      "run_idx": 1
+    },
+    {
+      "wall_s": 3.908048391342163,
+      "completion_tokens": 256,
+      "wall_tps": 65.50584188444004,
+      "metrics_tokens_per_second": 65.56383181459171,
+      "decode_tps": 81.45710577140792,
+      "prefill_seconds": 0.7599215507507324,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.8042054176330566,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 255,
+      "decode_step_ms_mean": 12.276399836820714,
+      "decode_step_ms_median": 12.15362548828125,
+      "preview": "在构建下一代大规模语言模型（LLM）推理系统时，性能优化与架构演进正呈现出多维度的深度融合趋势，其中混合专家模型（Mixture of Experts, MoE）的高效推理、新兴的低精度量化标准 NVFP4、计算图优化技术 CUDA Graph 以及服务化的工具调用机制，共同构成了提升吞吐量、降低延迟并增强模型实用性的",
+      "max_tokens": 256,
+      "run_idx": 0
+    },
+    {
+      "wall_s": 3.886409282684326,
+      "completion_tokens": 256,
+      "wall_tps": 65.87057136277265,
+      "metrics_tokens_per_second": 65.96714992157298,
+      "decode_tps": 82.09009046624486,
+      "prefill_seconds": 0.7599070072174072,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.8042054176330566,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 255,
+      "decode_step_ms_mean": 12.181738311169195,
+      "decode_step_ms_median": 12.149333953857422,
+      "preview": "在构建下一代大规模语言模型（LLM）推理系统时，性能优化与架构演进正呈现出多维度的深度融合趋势，其中混合专家模型（Mixture of Experts, MoE）的高效推理、新兴的低精度量化标准 NVFP4、计算图优化技术 CUDA Graph 以及服务化的工具调用机制，共同构成了提升吞吐量、降低延迟并增强模型实用性的",
+      "max_tokens": 256,
+      "run_idx": 1
+    },
+    {
+      "wall_s": 7.016160249710083,
+      "completion_tokens": 512,
+      "wall_tps": 72.97438795260649,
+      "metrics_tokens_per_second": 73.03583126053968,
+      "decode_tps": 82.04490247621192,
+      "prefill_seconds": 0.7562086582183838,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.8042054176330566,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 511,
+      "decode_step_ms_mean": 12.18844766486181,
+      "decode_step_ms_median": 12.160301208496094,
+      "preview": "在构建下一代大规模语言模型（LLM）推理系统时，性能优化与架构演进正呈现出多维度的深度融合趋势，其中混合专家模型（Mixture of Experts, MoE）的高效推理、新兴的低精度量化标准 NVFP4、计算图优化技术 CUDA Graph 以及服务化的工具调用机制，共同构成了提升吞吐量、降低延迟并增强模型实用性的",
+      "max_tokens": 512,
+      "run_idx": 0
+    },
+    {
+      "wall_s": 7.058133363723755,
+      "completion_tokens": 512,
+      "wall_tps": 72.54042586266424,
+      "metrics_tokens_per_second": 72.5952991016707,
+      "decode_tps": 81.53196962672719,
+      "prefill_seconds": 0.7585670948028564,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.8042054176330566,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 511,
+      "decode_step_ms_mean": 12.265127465682953,
+      "decode_step_ms_median": 12.160301208496094,
+      "preview": "在构建下一代大规模语言模型（LLM）推理系统时，性能优化与架构演进正呈现出多维度的深度融合趋势，其中混合专家模型（Mixture of Experts, MoE）的高效推理、新兴的低精度量化标准 NVFP4、计算图优化技术 CUDA Graph 以及服务化的工具调用机制，共同构成了提升吞吐量、降低延迟并增强模型实用性的",
+      "max_tokens": 512,
+      "run_idx": 1
+    }
+  ],
+  "summary_by_max_tokens": {
+    "128": {
+      "runs": 2,
+      "wall_tps": {
+        "mean": 51.66255568940633,
+        "median": 51.66255568940633,
+        "min": 48.74812606009538,
+        "max": 54.576985318717284
+      },
+      "metrics_tokens_per_second": {
+        "mean": 52.302191818508774,
+        "median": 52.302191818508774,
+        "min": 49.93652369574108,
+        "max": 54.66785994127647
+      },
+      "decode_tps": {
+        "mean": 81.22625971387441,
+        "median": 81.22625971387441,
+        "min": 81.01812759447726,
+        "max": 81.43439183327155
+      },
+      "prefill_seconds": {
+        "mean": 0.8749222755432129,
+        "median": 0.8749222755432129,
+        "min": 0.765833854675293,
+        "max": 0.9840106964111328
+      },
+      "decode_step_ms_median": {
+        "mean": 12.151122093200684,
+        "median": 12.151122093200684,
+        "min": 12.146234512329102,
+        "max": 12.156009674072266
+      }
+    },
+    "256": {
+      "runs": 2,
+      "wall_tps": {
+        "mean": 65.68820662360635,
+        "median": 65.68820662360635,
+        "min": 65.50584188444004,
+        "max": 65.87057136277265
+      },
+      "metrics_tokens_per_second": {
+        "mean": 65.76549086808234,
+        "median": 65.76549086808234,
+        "min": 65.56383181459171,
+        "max": 65.96714992157298
+      },
+      "decode_tps": {
+        "mean": 81.77359811882638,
+        "median": 81.77359811882638,
+        "min": 81.45710577140792,
+        "max": 82.09009046624486
+      },
+      "prefill_seconds": {
+        "mean": 0.7599142789840698,
+        "median": 0.7599142789840698,
+        "min": 0.7599070072174072,
+        "max": 0.7599215507507324
+      },
+      "decode_step_ms_median": {
+        "mean": 12.151479721069336,
+        "median": 12.151479721069336,
+        "min": 12.149333953857422,
+        "max": 12.15362548828125
+      }
+    },
+    "512": {
+      "runs": 2,
+      "wall_tps": {
+        "mean": 72.75740690763536,
+        "median": 72.75740690763536,
+        "min": 72.54042586266424,
+        "max": 72.97438795260649
+      },
+      "metrics_tokens_per_second": {
+        "mean": 72.8155651811052,
+        "median": 72.8155651811052,
+        "min": 72.5952991016707,
+        "max": 73.03583126053968
+      },
+      "decode_tps": {
+        "mean": 81.78843605146955,
+        "median": 81.78843605146955,
+        "min": 81.53196962672719,
+        "max": 82.04490247621192
+      },
+      "prefill_seconds": {
+        "mean": 0.7573878765106201,
+        "median": 0.7573878765106201,
+        "min": 0.7562086582183838,
+        "max": 0.7585670948028564
+      },
+      "decode_step_ms_median": {
+        "mean": 12.160301208496094,
+        "median": 12.160301208496094,
+        "min": 12.160301208496094,
+        "max": 12.160301208496094
+      }
+    }
+  }
+}

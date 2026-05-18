@@ -1,0 +1,113 @@
+{
+  "schema_version": "lynn-engine-p25-server-decode-tps-probe-v1",
+  "url": "http://127.0.0.1:18172/v1",
+  "model": "Qwen3.6-35B-A3B-W4A16-NVFP4-server-20260518_0135_graph_inplace",
+  "chat": true,
+  "prompt_chars": 66,
+  "results": [
+    {
+      "wall_s": 2.437595844268799,
+      "completion_tokens": 128,
+      "wall_tps": 52.510755751799344,
+      "metrics_tokens_per_second": 53.805932362809735,
+      "decode_tps": 81.31758407015205,
+      "prefill_seconds": 0.8004589080810547,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.13211846351623535,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 127,
+      "decode_step_ms_mean": 12.297463229322057,
+      "decode_step_ms_median": 12.146234512329102,
+      "preview": "在构建下一代大规模语言模型（LLM）推理系统时，性能优化与架构演进正呈现出多维度的深度融合趋势，其中混合专家模型（Mixture of Experts, MoE）的高效推理、新兴的低精度量化标准 NVFP4、计算图优化技术 CUDA Graph 以及服务化的工具调用机制，共同构成了提升吞吐量、降低延迟并增强模型实用性的",
+      "max_tokens": 128,
+      "run_idx": 0
+    },
+    {
+      "wall_s": 3.8963229656219482,
+      "completion_tokens": 256,
+      "wall_tps": 65.70297233025603,
+      "metrics_tokens_per_second": 65.7904077804773,
+      "decode_tps": 82.09541481211808,
+      "prefill_seconds": 0.7687625885009766,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.13211846351623535,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 255,
+      "decode_step_ms_mean": 12.180948257446289,
+      "decode_step_ms_median": 12.13526725769043,
+      "preview": "在构建下一代大规模语言模型（LLM）推理系统时，性能优化与架构演进正呈现出多维度的深度融合趋势，其中混合专家模型（Mixture of Experts, MoE）的高效推理、新兴的低精度量化标准 NVFP4、计算图优化技术 CUDA Graph 以及服务化的工具调用机制，共同构成了提升吞吐量、降低延迟并增强模型实用性的",
+      "max_tokens": 256,
+      "run_idx": 0
+    }
+  ],
+  "summary_by_max_tokens": {
+    "128": {
+      "runs": 1,
+      "wall_tps": {
+        "mean": 52.510755751799344,
+        "median": 52.510755751799344,
+        "min": 52.510755751799344,
+        "max": 52.510755751799344
+      },
+      "metrics_tokens_per_second": {
+        "mean": 53.805932362809735,
+        "median": 53.805932362809735,
+        "min": 53.805932362809735,
+        "max": 53.805932362809735
+      },
+      "decode_tps": {
+        "mean": 81.31758407015205,
+        "median": 81.31758407015205,
+        "min": 81.31758407015205,
+        "max": 81.31758407015205
+      },
+      "prefill_seconds": {
+        "mean": 0.8004589080810547,
+        "median": 0.8004589080810547,
+        "min": 0.8004589080810547,
+        "max": 0.8004589080810547
+      },
+      "decode_step_ms_median": {
+        "mean": 12.146234512329102,
+        "median": 12.146234512329102,
+        "min": 12.146234512329102,
+        "max": 12.146234512329102
+      }
+    },
+    "256": {
+      "runs": 1,
+      "wall_tps": {
+        "mean": 65.70297233025603,
+        "median": 65.70297233025603,
+        "min": 65.70297233025603,
+        "max": 65.70297233025603
+      },
+      "metrics_tokens_per_second": {
+        "mean": 65.7904077804773,
+        "median": 65.7904077804773,
+        "min": 65.7904077804773,
+        "max": 65.7904077804773
+      },
+      "decode_tps": {
+        "mean": 82.09541481211808,
+        "median": 82.09541481211808,
+        "min": 82.09541481211808,
+        "max": 82.09541481211808
+      },
+      "prefill_seconds": {
+        "mean": 0.7687625885009766,
+        "median": 0.7687625885009766,
+        "min": 0.7687625885009766,
+        "max": 0.7687625885009766
+      },
+      "decode_step_ms_median": {
+        "mean": 12.13526725769043,
+        "median": 12.13526725769043,
+        "min": 12.13526725769043,
+        "max": 12.13526725769043
+      }
+    }
+  }
+}

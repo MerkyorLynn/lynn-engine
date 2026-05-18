@@ -41,10 +41,18 @@ except Exception:  # pragma: no cover - optional acceleration path.
     rms_norm_gated_triton = None
 
 try:
+    from triton_kernels.linear_conv import linear_conv1d_update_triton
+except Exception:  # pragma: no cover - optional acceleration path.
+    linear_conv1d_update_triton = None
+
+try:
     from triton_kernels.qk_norm_rope import qk_norm_rope_pair_triton, qk_norm_rope_triton
 except Exception:  # pragma: no cover - optional acceleration path.
     qk_norm_rope_pair_triton = None
     qk_norm_rope_triton = None
+
+
+_ROPE_TABLE_CACHE: dict[tuple[str, str, int, float, int], tuple[torch.Tensor, torch.Tensor]] = {}
 
 
 def _linear(x: torch.Tensor, weight) -> torch.Tensor:
@@ -86,6 +94,31 @@ def _rms_norm_gated_decode(x: torch.Tensor, weight: torch.Tensor, gate: torch.Te
     if backend != "torch":
         raise ValueError(f"unknown LYNN_RMSNORM_GATED_BACKEND={backend!r}")
     return rms_norm_gated(x, weight, gate, eps=RMS_EPS)
+
+
+def _linear_conv_update_decode(
+    mixed_new: torch.Tensor,
+    conv_state: torch.Tensor,
+    conv_weight: torch.Tensor,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    backend = os.environ.get("LYNN_LINEAR_ATTN_CONV_BACKEND", "torch")
+    if backend in {"triton", "triton_inplace", "triton_torch_silu", "triton_torch_silu_inplace"}:
+        if linear_conv1d_update_triton is None:
+            raise RuntimeError("LYNN_LINEAR_ATTN_CONV_BACKEND requested but Triton kernel is unavailable")
+        return linear_conv1d_update_triton(
+            mixed_new,
+            conv_state,
+            conv_weight,
+            inplace=backend.endswith("_inplace"),
+            torch_silu=backend.startswith("triton_torch_silu"),
+        )
+    if backend != "torch":
+        raise ValueError(f"unknown LYNN_LINEAR_ATTN_CONV_BACKEND={backend!r}")
+    conv_input = torch.cat([conv_state, mixed_new], dim=-1)
+    out_conv = F.conv1d(conv_input, conv_weight, bias=None, padding=0, groups=mixed_new.shape[1])
+    out_conv = F.silu(out_conv).transpose(1, 2)
+    new_conv_state = conv_input[:, :, 1:].contiguous()
+    return out_conv, new_conv_state
 
 
 def _qk_norm_rope_decode(x: torch.Tensor, weight: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor, rotary_dim: int) -> torch.Tensor:
@@ -147,6 +180,32 @@ def _build_rope_cos_sin(positions: torch.Tensor, rotary_dim: int, theta: float,
     freqs = positions.float()[:, :, None] * inv_freq[None, None, :]
     cos = freqs.cos()[:, None, :, :].to(dtype)  # [B, 1, T, half]
     sin = freqs.sin()[:, None, :, :].to(dtype)
+    return cos, sin
+
+
+def _build_rope_cos_sin_cached(positions: torch.Tensor, rotary_dim: int, theta: float, device, dtype):
+    """Optional full-attention decode RoPE table cache.
+
+    Rebuilding `arange -> inv_freq -> cos/sin` for every full-attention layer is
+    launch-heavy during one-token decode. The cache is opt-in so gates can prove
+    bitwise/greedy parity before it becomes a serving default.
+    """
+    max_seq = int(os.environ.get("LYNN_FULL_ATTN_ROPE_CACHE_MAX_SEQ", "65536"))
+    half = rotary_dim // 2
+    key = (str(torch.device(device)), str(dtype), int(rotary_dim), float(theta), max_seq)
+    cached = _ROPE_TABLE_CACHE.get(key)
+    if cached is None:
+        inv_freq = 1.0 / (
+            theta ** (torch.arange(0, rotary_dim, 2, device=device, dtype=torch.float32) / rotary_dim)
+        )
+        seq = torch.arange(max_seq, device=device, dtype=torch.float32)
+        freqs = seq[:, None] * inv_freq[None, :]
+        cached = (freqs.cos().to(dtype).contiguous(), freqs.sin().to(dtype).contiguous())
+        _ROPE_TABLE_CACHE[key] = cached
+    cos_table, sin_table = cached
+    flat = positions.reshape(-1).to(device=device, dtype=torch.long)
+    cos = cos_table.index_select(0, flat).reshape(*positions.shape, half).unsqueeze(1)
+    sin = sin_table.index_select(0, flat).reshape(*positions.shape, half).unsqueeze(1)
     return cos, sin
 
 
@@ -220,8 +279,12 @@ def prefill_full_attn(h, position_ids, w, cfg):
     k = _rms_norm(k, w["self_attn.k_norm.weight"])
 
     # 3. RoPE on q and k (both will be cached as post-RoPE for K)
-    cos, sin = _build_rope_cos_sin(position_ids, rotary_dim, rope_theta,
-                                   h.device, h.dtype)
+    rope_builder = (
+        _build_rope_cos_sin_cached
+        if os.environ.get("LYNN_FULL_ATTN_ROPE_CACHE", "0") == "1"
+        else _build_rope_cos_sin
+    )
+    cos, sin = rope_builder(position_ids, rotary_dim, rope_theta, h.device, h.dtype)
     q = _apply_partial_rope(q, cos, sin, rotary_dim)
     k = _apply_partial_rope(k, cos, sin, rotary_dim)
 
@@ -271,9 +334,16 @@ def decode_full_attn(h_new, new_position_id, w, cfg, K_cache_full, V_cache_full,
     rotary_dim = int(head_dim * cfg["partial_rotary_factor"])
 
     # 1. Q/K/V projection on the single new token
-    q_full = _linear(h_new, _decode_weight(w, "self_attn.q_proj.weight"))
-    k_new = _linear(h_new, _decode_weight(w, "self_attn.k_proj.weight"))
-    v_new = _linear(h_new, _decode_weight(w, "self_attn.v_proj.weight"))
+    if os.environ.get("LYNN_FULL_ATTN_QKV_FUSED", "0") == "1" and "self_attn._qkv_proj.weight" in w:
+        q_out = int(w["self_attn.q_proj.weight"].shape[0])
+        k_out = int(w["self_attn.k_proj.weight"].shape[0])
+        v_out = int(w["self_attn.v_proj.weight"].shape[0])
+        qkv = _linear(h_new, w["self_attn._qkv_proj.weight"])
+        q_full, k_new, v_new = qkv.split((q_out, k_out, v_out), dim=-1)
+    else:
+        q_full = _linear(h_new, _decode_weight(w, "self_attn.q_proj.weight"))
+        k_new = _linear(h_new, _decode_weight(w, "self_attn.k_proj.weight"))
+        v_new = _linear(h_new, _decode_weight(w, "self_attn.v_proj.weight"))
 
     q_full_view = q_full.view(B, 1, H_Q, head_dim * 2)
     q, gate = q_full_view.chunk(2, dim=-1)
@@ -289,8 +359,12 @@ def decode_full_attn(h_new, new_position_id, w, cfg, K_cache_full, V_cache_full,
         pos_tensor = new_position_id
     else:
         pos_tensor = torch.tensor([[new_position_id]], device=h_new.device, dtype=torch.long)
-    cos, sin = _build_rope_cos_sin(pos_tensor, rotary_dim, rope_theta,
-                                   h_new.device, h_new.dtype)
+    rope_builder = (
+        _build_rope_cos_sin_cached
+        if os.environ.get("LYNN_FULL_ATTN_ROPE_CACHE", "0") == "1"
+        else _build_rope_cos_sin
+    )
+    cos, sin = rope_builder(pos_tensor, rotary_dim, rope_theta, h_new.device, h_new.dtype)
     q, k_new = _qk_norm_rope_pair_decode(
         q,
         k_new,
@@ -514,16 +588,13 @@ def decode_linear_attn(h_new, w, recurrent_state, conv_state, *, recurrent_backe
         a = _linear(h_new, W("linear_attn.in_proj_a.weight"))
     mixed_new = mixed_new.transpose(1, 2)                              # [B, conv_dim, 1]
 
-    # 2. Causal conv1d update: prepend conv_state to mixed_new, run conv, take last 1 output
-    conv_input = torch.cat([conv_state, mixed_new], dim=-1)            # [B, conv_dim, kernel]
-    conv_w = W("linear_attn.conv1d.weight")
-    out_conv = F.conv1d(conv_input, conv_w, bias=None, padding=0,
-                        groups=mixed_new.shape[1])                     # [B, conv_dim, 1]
-    out_conv = F.silu(out_conv)
-    out_conv = out_conv.transpose(1, 2)                                # [B, 1, conv_dim]
-
-    # New conv_state = last (kernel-1) tokens of input (mixed_new is 1 new, conv_state is past)
-    new_conv_state = conv_input[:, :, 1:].contiguous()                  # drop oldest
+    # 2. Causal conv1d update: prepend conv_state to mixed_new, run conv, take last 1 output.
+    # Triton opt-in can fuse cat + depthwise conv + silu + state shift.
+    out_conv, new_conv_state = _linear_conv_update_decode(
+        mixed_new,
+        conv_state,
+        W("linear_attn.conv1d.weight"),
+    )
 
     # 3. Split q/k/v
     q, k, v = torch.split(out_conv, [KEY_DIM, KEY_DIM, VALUE_DIM], dim=-1)

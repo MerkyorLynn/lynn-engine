@@ -13,6 +13,10 @@ Current state:
 - v34 on R6000 is the best native sidecar at `65/121 = 53.72%`.
 - P113 cut the one-token draft path from about `7.6 ms` to `2.24 ms`.
 - P115 shows serial one-token MTP still misses 155 TPS.
+- P118 on R6000 passed Python K=2 accept/reject state parity:
+  `24/24` events, `max_abs_diff = 0.0`.
+- P119 on R6000 passed in-place KV plus linear-state scratch parity:
+  `24/24` events, `max_abs_diff = 0.0`, `64.39 MB` scratch per token.
 
 The next speed path therefore needs a verifier that can process candidate spans
 as K=2/K=3 batches, then commit or roll back state exactly.
@@ -250,13 +254,17 @@ continue optimizing active-MoE/MTP layer kernels.
 
 ## Implementation Order
 
-1. Add a Python-only `p118_mtp_verify_state_parity.py` that simulates the ABI
-   with cloned states. This freezes accept/commit semantics before C++ work.
-2. Add a tiny native extension boundary that only copies/commits linear
+1. DONE: add a Python-only `p118_mtp_verify_state_parity.py` that simulates
+   the ABI with cloned states. R6000 result:
+   `reports/r6000/p118/p118_mtp_verify_state_parity_r6000_20260517_220350.json`.
+2. DONE as Python contract: add P119 in-place KV plus linear-state scratch
+   parity. R6000 result:
+   `reports/r6000/p119/p119_mtp_inplace_scratch_parity_r6000_20260517_221000.json`.
+3. Add a tiny native extension boundary that only copies/commits linear
    recurrent and conv intermediates for K=2; leave layer math in Python.
-3. Move one full-attention layer verify into native/static boundary.
-4. Move active-MoE verify into the transposed/native layout.
-5. Only then replace the full verify loop with `lynn_verify_k`.
+4. Move one full-attention layer verify into native/static boundary.
+5. Move active-MoE verify into the transposed/native layout.
+6. Only then replace the full verify loop with `lynn_verify_k`.
 
 Initial P118 harness:
 

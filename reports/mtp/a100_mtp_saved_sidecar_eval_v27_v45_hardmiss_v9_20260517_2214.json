@@ -1,0 +1,510 @@
+{
+  "schema_version": "lynn-a100-mtp-saved-sidecar-eval-v1",
+  "base_model": "/mnt/data/lynn-a100/models/lynn-27b-variable-recovery-step5000-bf16-final",
+  "eval_prompts_file": "reports/mtp/mtp_fc_calibration_prompts_v9_v27_hardmiss_semantic_code.json",
+  "max_new_eval": 16,
+  "case_count": 171,
+  "rows": [
+    {
+      "label": "v27",
+      "sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v24-v7-weak-missintopk-fcnorms-v27-20260517_185051/mtp.safetensors",
+      "inventory": {
+        "metadata": {
+          "train_accept_rate_after": "0.2222222222222222",
+          "eval_accept_rate_after": "0.603448275862069",
+          "lynn_mtp_iterative_train": "true",
+          "source_sidecar": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-interp-v22-v23-v24-step1-3-8-11-20260517_152945/mtp.safetensors"
+        },
+        "tensors": {
+          "mtp.fc.weight": {
+            "shape": [
+              2048,
+              4096
+            ],
+            "dtype": "bfloat16",
+            "numel": 8388608
+          },
+          "mtp.layers.0.input_layernorm.weight": {
+            "shape": [
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 2048
+          },
+          "mtp.layers.0.mlp.experts.down_proj": {
+            "shape": [
+              254,
+              2048,
+              512
+            ],
+            "dtype": "bfloat16",
+            "numel": 266338304
+          },
+          "mtp.layers.0.mlp.experts.gate_up_proj": {
+            "shape": [
+              254,
+              1024,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 532676608
+          },
+          "mtp.layers.0.mlp.gate.weight": {
+            "shape": [
+              254,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 520192
+          },
+          "mtp.layers.0.mlp.shared_expert.down_proj.weight": {
+            "shape": [
+              2048,
+              512
+            ],
+            "dtype": "bfloat16",
+            "numel": 1048576
+          },
+          "mtp.layers.0.mlp.shared_expert.gate_proj.weight": {
+            "shape": [
+              512,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 1048576
+          },
+          "mtp.layers.0.mlp.shared_expert.up_proj.weight": {
+            "shape": [
+              512,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 1048576
+          },
+          "mtp.layers.0.mlp.shared_expert_gate.weight": {
+            "shape": [
+              1,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 2048
+          },
+          "mtp.layers.0.post_attention_layernorm.weight": {
+            "shape": [
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 2048
+          },
+          "mtp.layers.0.self_attn.k_norm.weight": {
+            "shape": [
+              256
+            ],
+            "dtype": "bfloat16",
+            "numel": 256
+          },
+          "mtp.layers.0.self_attn.k_proj.weight": {
+            "shape": [
+              512,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 1048576
+          },
+          "mtp.layers.0.self_attn.o_proj.weight": {
+            "shape": [
+              2048,
+              4096
+            ],
+            "dtype": "bfloat16",
+            "numel": 8388608
+          },
+          "mtp.layers.0.self_attn.q_norm.weight": {
+            "shape": [
+              256
+            ],
+            "dtype": "bfloat16",
+            "numel": 256
+          },
+          "mtp.layers.0.self_attn.q_proj.weight": {
+            "shape": [
+              8192,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 16777216
+          },
+          "mtp.layers.0.self_attn.v_proj.weight": {
+            "shape": [
+              512,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 1048576
+          },
+          "mtp.norm.weight": {
+            "shape": [
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 2048
+          },
+          "mtp.pre_fc_norm_embedding.weight": {
+            "shape": [
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 2048
+          },
+          "mtp.pre_fc_norm_hidden.weight": {
+            "shape": [
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 2048
+          }
+        }
+      },
+      "eval": {
+        "accepted": 84,
+        "case_count": 171,
+        "accept_rate": 0.49122807017543857,
+        "mean_loss": 4.198768568208866,
+        "by_step": {
+          "0": {
+            "events": 12,
+            "accepted": 8,
+            "accept_rate": 0.6666666666666666
+          },
+          "1": {
+            "events": 12,
+            "accepted": 5,
+            "accept_rate": 0.4166666666666667
+          },
+          "2": {
+            "events": 12,
+            "accepted": 12,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 12,
+            "accepted": 11,
+            "accept_rate": 0.9166666666666666
+          },
+          "4": {
+            "events": 12,
+            "accepted": 12,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 12,
+            "accepted": 8,
+            "accept_rate": 0.6666666666666666
+          },
+          "6": {
+            "events": 12,
+            "accepted": 3,
+            "accept_rate": 0.25
+          },
+          "7": {
+            "events": 12,
+            "accepted": 5,
+            "accept_rate": 0.4166666666666667
+          },
+          "8": {
+            "events": 12,
+            "accepted": 1,
+            "accept_rate": 0.08333333333333333
+          },
+          "9": {
+            "events": 12,
+            "accepted": 3,
+            "accept_rate": 0.25
+          },
+          "10": {
+            "events": 11,
+            "accepted": 4,
+            "accept_rate": 0.36363636363636365
+          },
+          "11": {
+            "events": 9,
+            "accepted": 3,
+            "accept_rate": 0.3333333333333333
+          },
+          "12": {
+            "events": 9,
+            "accepted": 3,
+            "accept_rate": 0.3333333333333333
+          },
+          "13": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "14": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "15": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          }
+        }
+      }
+    },
+    {
+      "label": "v45",
+      "sidecar_file": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v27-v10-guarded-hardmiss-fcnorms-v45-20260517_2058/mtp.safetensors",
+      "inventory": {
+        "metadata": {
+          "train_accept_rate_after": "0.0",
+          "eval_accept_rate_after": "0.603448275862069",
+          "source_sidecar": "/mnt/data2/lynn-a100/models/mtp_sidecars/qwen36-35b-a3b-mtp-lynn-iter-v24-v7-weak-missintopk-fcnorms-v27-20260517_185051/mtp.safetensors",
+          "lynn_mtp_iterative_train": "true"
+        },
+        "tensors": {
+          "mtp.fc.weight": {
+            "shape": [
+              2048,
+              4096
+            ],
+            "dtype": "bfloat16",
+            "numel": 8388608
+          },
+          "mtp.layers.0.input_layernorm.weight": {
+            "shape": [
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 2048
+          },
+          "mtp.layers.0.mlp.experts.down_proj": {
+            "shape": [
+              254,
+              2048,
+              512
+            ],
+            "dtype": "bfloat16",
+            "numel": 266338304
+          },
+          "mtp.layers.0.mlp.experts.gate_up_proj": {
+            "shape": [
+              254,
+              1024,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 532676608
+          },
+          "mtp.layers.0.mlp.gate.weight": {
+            "shape": [
+              254,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 520192
+          },
+          "mtp.layers.0.mlp.shared_expert.down_proj.weight": {
+            "shape": [
+              2048,
+              512
+            ],
+            "dtype": "bfloat16",
+            "numel": 1048576
+          },
+          "mtp.layers.0.mlp.shared_expert.gate_proj.weight": {
+            "shape": [
+              512,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 1048576
+          },
+          "mtp.layers.0.mlp.shared_expert.up_proj.weight": {
+            "shape": [
+              512,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 1048576
+          },
+          "mtp.layers.0.mlp.shared_expert_gate.weight": {
+            "shape": [
+              1,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 2048
+          },
+          "mtp.layers.0.post_attention_layernorm.weight": {
+            "shape": [
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 2048
+          },
+          "mtp.layers.0.self_attn.k_norm.weight": {
+            "shape": [
+              256
+            ],
+            "dtype": "bfloat16",
+            "numel": 256
+          },
+          "mtp.layers.0.self_attn.k_proj.weight": {
+            "shape": [
+              512,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 1048576
+          },
+          "mtp.layers.0.self_attn.o_proj.weight": {
+            "shape": [
+              2048,
+              4096
+            ],
+            "dtype": "bfloat16",
+            "numel": 8388608
+          },
+          "mtp.layers.0.self_attn.q_norm.weight": {
+            "shape": [
+              256
+            ],
+            "dtype": "bfloat16",
+            "numel": 256
+          },
+          "mtp.layers.0.self_attn.q_proj.weight": {
+            "shape": [
+              8192,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 16777216
+          },
+          "mtp.layers.0.self_attn.v_proj.weight": {
+            "shape": [
+              512,
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 1048576
+          },
+          "mtp.norm.weight": {
+            "shape": [
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 2048
+          },
+          "mtp.pre_fc_norm_embedding.weight": {
+            "shape": [
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 2048
+          },
+          "mtp.pre_fc_norm_hidden.weight": {
+            "shape": [
+              2048
+            ],
+            "dtype": "bfloat16",
+            "numel": 2048
+          }
+        }
+      },
+      "eval": {
+        "accepted": 83,
+        "case_count": 171,
+        "accept_rate": 0.4853801169590643,
+        "mean_loss": 4.191698718761579,
+        "by_step": {
+          "0": {
+            "events": 12,
+            "accepted": 8,
+            "accept_rate": 0.6666666666666666
+          },
+          "1": {
+            "events": 12,
+            "accepted": 5,
+            "accept_rate": 0.4166666666666667
+          },
+          "2": {
+            "events": 12,
+            "accepted": 12,
+            "accept_rate": 1.0
+          },
+          "3": {
+            "events": 12,
+            "accepted": 11,
+            "accept_rate": 0.9166666666666666
+          },
+          "4": {
+            "events": 12,
+            "accepted": 12,
+            "accept_rate": 1.0
+          },
+          "5": {
+            "events": 12,
+            "accepted": 8,
+            "accept_rate": 0.6666666666666666
+          },
+          "6": {
+            "events": 12,
+            "accepted": 3,
+            "accept_rate": 0.25
+          },
+          "7": {
+            "events": 12,
+            "accepted": 5,
+            "accept_rate": 0.4166666666666667
+          },
+          "8": {
+            "events": 12,
+            "accepted": 1,
+            "accept_rate": 0.08333333333333333
+          },
+          "9": {
+            "events": 12,
+            "accepted": 3,
+            "accept_rate": 0.25
+          },
+          "10": {
+            "events": 11,
+            "accepted": 4,
+            "accept_rate": 0.36363636363636365
+          },
+          "11": {
+            "events": 9,
+            "accepted": 3,
+            "accept_rate": 0.3333333333333333
+          },
+          "12": {
+            "events": 9,
+            "accepted": 3,
+            "accept_rate": 0.3333333333333333
+          },
+          "13": {
+            "events": 8,
+            "accepted": 2,
+            "accept_rate": 0.25
+          },
+          "14": {
+            "events": 8,
+            "accepted": 1,
+            "accept_rate": 0.125
+          },
+          "15": {
+            "events": 6,
+            "accepted": 2,
+            "accept_rate": 0.3333333333333333
+          }
+        }
+      }
+    }
+  ],
+  "best_label": "v27",
+  "best_accept_rate": 0.49122807017543857,
+  "decision": "AMBER: saved sidecars remain below serving multiplier threshold."
+}

@@ -66,33 +66,42 @@ reports/spark-sm121/
 
 ## Performance Expectations
 
-Spark at 24 tok/s is not an architectural ceiling. It is the scalar bridge
-baseline. If Spark can consume the same native packed path as R6000, a 50+
-tok/s target is reasonable. Treat 50+ as the Spark mid-term goal, not the
-current branch acceptance gate.
+Spark at 24 tok/s was the scalar bridge baseline, not the final product target.
+The official Qwen3.6-35B-A3B pivot and the 2026-05-18 three-way benchmark now
+change the Spark framing:
 
-2026-05-17 Atlas update:
+| Quant | Stack | Single-stream TPS |
+|---|---|---:|
+| BF16 official | SGLang dev-cu13 | 30.14 |
+| Q4_K_M-imatrix GGUF | llama.cpp server-cuda | 69.77 |
+| W4A16 NVFP4 Lynn-native | lynn-engine Config D | 38.96 |
 
-Atlas changes the long-term Spark expectation. Its public GB10 numbers show
-Qwen3.5-35B-A3B around `~130` tok/s peak / `~111` tok/s average with Rust+CUDA
-and MTP K=2, and about `70` tok/s without speculative decoding in its own README.
-Those are different model/runtime conditions and should not be pasted onto Lynn,
-but they prove Spark-class hardware can run far above the current Lynn Config D
-class when the engine owns CUDA kernels, buffer state, and speculative verify.
+Q4_K_M/llama.cpp is the current Spark single-stream serving default. It is the
+fastest tested Spark route and pairs with the checked quality result
+(`83.00%` MMLU / `50.00%` GPQA). Lynn-native W4A16 is highly stable on Spark
+(`0.09` TPS stddev) but much slower because `sm_121` does not expose the same
+native FP4 MMA path that makes R6000 fast.
 
-Updated Spark target ladder:
+Corrected Spark target ladder:
 
 | Stage | Target | Meaning |
 |---|---:|---|
 | Scalar fallback | 24 tok/s | Known-good quality baseline. |
-| Current Config D class | ~49 tok/s | Stable production-like floor. |
-| Native packed + W4A8 mirror | 60-90 tok/s | First serious llama.cpp comparison band. |
-| Native core + K=2 MTP verify | 90-130 tok/s | Atlas-like architecture band, not guaranteed. |
-| Lynn stretch | > llama.cpp on same prompt/token budget | Actual acceptance gate. |
+Current Lynn-native W4A16 | 39 tok/s | Stable fallback and compatibility path. |
+Spark serving default | 70 tok/s | Q4_K_M/llama.cpp user-facing route. |
+True Spark-native mirror | >70 tok/s | Only worth pursuing with a real FP8-friendly path. |
+Lynn stretch | > llama.cpp on same prompt/token budget | Acceptance gate for a Spark Lynn-native promotion. |
 
-Spark should not start from a full Rust rewrite. It should consume the same
-C++/CUDA decode-core gates as R6000, then wrap them in a cleaner server if the
-core beats llama.cpp on identical benchmarks.
+Spark should not start from a full Rust rewrite. It should only consume native
+kernel work if the kernel is compatible with `sm_121` and can beat the local
+llama.cpp Q4_K_M baseline on identical prompts. Otherwise, keep Spark serving on
+Q4_K_M and spend the main kernel budget on R6000.
+
+2026-05-17/18 Atlas correction:
+
+The widely repeated `130 TPS` Atlas number is for Qwen3.5-35B-A3B with MTP, not
+the official Qwen3.6-35B-A3B hybrid SSM route. Treat Atlas as an external
+reference, not as proof that Qwen3.6 Spark MTP is a solved 130 TPS path.
 
 Atlas reproduction on Spark is useful but not blocking. If Spark is idle, run
 the official Atlas image as an external baseline and record:

@@ -1,0 +1,76 @@
+{
+  "schema_version": "lynn-engine-p27-full-layer-configd-segment-profile-v1",
+  "model": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0",
+  "device": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+  "env": {
+    "LYNN_MOE_IMPL": "packed_nvfp4",
+    "LYNN_MOE_FAST_FIXED": "0",
+    "LYNN_NATIVE_DOWN_BACKEND": "triton",
+    "LYNN_PACKED_DECODE_FULL_ATTN": "0",
+    "LYNN_FULL_ATTN_DECODE_BACKEND": null,
+    "LYNN_QK_NORM_ROPE_BACKEND": null
+  },
+  "layer_profile": {
+    "layer": 31,
+    "seq_len": 48,
+    "segment_ms": {
+      "input_rmsnorm": 0.06212720274925232,
+      "attn.q_proj": 0.026904800534248353,
+      "attn.k_proj": 0.011188799887895584,
+      "attn.v_proj": 0.010951200127601623,
+      "attn.qk_norm_rope": 0.36197121143341066,
+      "attn.cache_write": 0.014963999390602112,
+      "attn.sdpa_gqa": 0.015139199793338776,
+      "attn.output_gate": 0.024931199848651886,
+      "attn.o_proj": 0.014472000300884247,
+      "attn.full_decode": 0.5312471866607666,
+      "post_attn_rmsnorm": 0.06191759705543518,
+      "moe.full": 0.21691839694976806,
+      "layer.full_decode": 1.023153591156006
+    },
+    "attn_parts_sum_ms": 0.48052241131663326,
+    "top_segments": [
+      {
+        "segment": "attn.full_decode",
+        "ms": 0.5312471866607666
+      },
+      {
+        "segment": "attn.qk_norm_rope",
+        "ms": 0.36197121143341066
+      },
+      {
+        "segment": "moe.full",
+        "ms": 0.21691839694976806
+      },
+      {
+        "segment": "input_rmsnorm",
+        "ms": 0.06212720274925232
+      },
+      {
+        "segment": "post_attn_rmsnorm",
+        "ms": 0.06191759705543518
+      },
+      {
+        "segment": "attn.q_proj",
+        "ms": 0.026904800534248353
+      },
+      {
+        "segment": "attn.output_gate",
+        "ms": 0.024931199848651886
+      },
+      {
+        "segment": "attn.sdpa_gqa",
+        "ms": 0.015139199793338776
+      },
+      {
+        "segment": "attn.cache_write",
+        "ms": 0.014963999390602112
+      },
+      {
+        "segment": "attn.o_proj",
+        "ms": 0.014472000300884247
+      }
+    ]
+  },
+  "decision": "Use this to decide whether full-attention eager cost is attention-core, packed MoE, or residual layer orchestration."
+}

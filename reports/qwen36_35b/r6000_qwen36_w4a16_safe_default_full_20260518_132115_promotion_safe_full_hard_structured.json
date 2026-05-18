@@ -1,0 +1,905 @@
+{
+  "schema_version": "lynn-openai-structured-tps-gate-v1",
+  "decision": "GREEN: structured serving meets target 107.00 decode TPS.",
+  "base_url": "http://127.0.0.1:18173",
+  "model": "Qwen36-35B-W4A16-safe_default_full-20260518_132115_promotion_safe_full",
+  "target_decode_tps": 107.0,
+  "max_tokens": 128,
+  "temperature": 0.0,
+  "summary": {
+    "request_count": 40,
+    "format_ok": 40,
+    "all_format_ok": true,
+    "all_finish_stop": true,
+    "decode_tps_mean": 107.85783516251004,
+    "decode_tps_min": 107.38582980621393,
+    "decode_tps_max": 108.46332775195403,
+    "http_tps_mean": 29.887604494929015
+  },
+  "rows": [
+    {
+      "idx": 0,
+      "id": "json_nested_weather_args",
+      "prompt": "Return exactly one JSON object for a get_weather tool call. Keys: tool, arguments. arguments must contain city=\"Tokyo\", unit=\"celsius\", days=3.",
+      "elapsed_seconds": 1.2919702529907227,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 47,
+      "decode_tps": 107.53642587857074,
+      "tokens_per_second_http": 37.37299112788039,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "arguments",
+          "tool"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"tool\": \"get_weather\",\n  \"arguments\": {\n    \"city\": \"Tokyo\",\n    \"unit\": \"celsius\",\n    \"days\": 3\n  }\n}"
+    },
+    {
+      "idx": 1,
+      "id": "json_schema_user_profile",
+      "prompt": "Return one JSON Schema object for a user profile with required string name and integer age. Include type, properties, required.",
+      "elapsed_seconds": 1.4389255046844482,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 74,
+      "decode_tps": 107.68707797376055,
+      "tokens_per_second_http": 51.52757231542505,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "properties",
+          "required",
+          "type"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"name\": {\n      \"type\": \"string\"\n    },\n    \"age\": {\n      \"type\": \"integer\"\n    }\n  },\n  \"required\": [\n    \"name\",\n    \"age\"\n  ]\n}"
+    },
+    {
+      "idx": 2,
+      "id": "json_function_args_normalize_city",
+      "prompt": "Return only the JSON arguments object for function normalize_city. Use city=\"New York\", country=\"US\", lowercase=false.",
+      "elapsed_seconds": 1.0268685817718506,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 28,
+      "decode_tps": 107.70049415497218,
+      "tokens_per_second_http": 27.337170545351363,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "city",
+          "country",
+          "lowercase"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"city\": \"New York\",\n  \"country\": \"US\",\n  \"lowercase\": false\n}"
+    },
+    {
+      "idx": 3,
+      "id": "python_palindrome_code_only",
+      "prompt": "Only output Python code, no markdown. Define is_palindrome(s: str) -> bool. It should ignore case and non-alphanumeric characters.",
+      "elapsed_seconds": 1.1186161041259766,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 39,
+      "decode_tps": 107.9671242081989,
+      "tokens_per_second_http": 34.948097613251655,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def is_palindrome(s: str) -> bool:\n    cleaned = ''.join(c.lower() for c in s if c.isalnum())\n    return cleaned == cleaned[::-1]"
+    },
+    {
+      "idx": 4,
+      "id": "python_normalize_city_code_only",
+      "prompt": "Only output Python code, no markdown. Define normalize_city(city: str) -> str that strips whitespace and title-cases words.",
+      "elapsed_seconds": 0.922248125076294,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 19,
+      "decode_tps": 108.15048175132291,
+      "tokens_per_second_http": 20.660364043627162,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def normalize_city(city: str) -> str:\n    return city.strip().title()"
+    },
+    {
+      "idx": 5,
+      "id": "yaml_openapi_request_body",
+      "prompt": "Output only an OpenAPI YAML requestBody for application/json with object properties email:string and subscribed:boolean. No explanation.",
+      "elapsed_seconds": 1.1751461029052734,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 49,
+      "decode_tps": 107.75768481641597,
+      "tokens_per_second_http": 41.81014347253373,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "```yaml\nrequestBody:\n  content:\n    application/json:\n      schema:\n        type: object\n        properties:\n          email:\n            type: string\n          subscribed:\n            type: boolean\n```"
+    },
+    {
+      "idx": 6,
+      "id": "router_zh_prefix",
+      "prompt": "用一句中文短句说明 MoE router 的作用。必须以 router 开头，必须包含 动态分配、专家、token。",
+      "elapsed_seconds": 0.8943190574645996,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 13,
+      "decode_tps": 108.46332775195403,
+      "tokens_per_second_http": 14.589320669943822,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "router 负责将 token 动态分配给合适的专家。"
+    },
+    {
+      "idx": 7,
+      "id": "linear_attention_zh_exact_terms",
+      "prompt": "用一句中文短句说明 linear attention 适合长上下文的原因。必须包含 计算复杂度、线性、长上下文。",
+      "elapsed_seconds": 0.9190912246704102,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 17,
+      "decode_tps": 107.9972835270376,
+      "tokens_per_second_http": 18.55414903602077,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "Linear attention 将计算复杂度降低为线性，从而高效处理长上下文。"
+    },
+    {
+      "idx": 8,
+      "id": "short_math_number_only",
+      "prompt": "Answer only with the number: 17 multiplied by 23.",
+      "elapsed_seconds": 0.7265784740447998,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 4,
+      "decode_tps": 107.78855033108611,
+      "tokens_per_second_http": 5.5251004019370695,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "391"
+    },
+    {
+      "idx": 9,
+      "id": "json_patch_ops",
+      "prompt": "Return one JSON array of JSON Patch operations to replace /name with \"Lynn\" and add /active true.",
+      "elapsed_seconds": 1.3598036766052246,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 63,
+      "decode_tps": 107.74200107971181,
+      "tokens_per_second_http": 46.42442675991803,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "[\n  {\n    \"op\": \"replace\",\n    \"path\": \"/name\",\n    \"value\": \"Lynn\"\n  },\n  {\n    \"op\": \"add\",\n    \"path\": \"/active\",\n    \"value\": true\n  }\n]"
+    },
+    {
+      "idx": 10,
+      "id": "json_nested_weather_args",
+      "prompt": "Return exactly one JSON object for a get_weather tool call. Keys: tool, arguments. arguments must contain city=\"Tokyo\", unit=\"celsius\", days=3.",
+      "elapsed_seconds": 1.2626590728759766,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 47,
+      "decode_tps": 107.43474944065858,
+      "tokens_per_second_http": 37.31396479698357,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "arguments",
+          "tool"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"tool\": \"get_weather\",\n  \"arguments\": {\n    \"city\": \"Tokyo\",\n    \"unit\": \"celsius\",\n    \"days\": 3\n  }\n}"
+    },
+    {
+      "idx": 11,
+      "id": "json_schema_user_profile",
+      "prompt": "Return one JSON Schema object for a user profile with required string name and integer age. Include type, properties, required.",
+      "elapsed_seconds": 1.4443163871765137,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 74,
+      "decode_tps": 107.57773243804738,
+      "tokens_per_second_http": 51.3388043382972,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "properties",
+          "required",
+          "type"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"name\": {\n      \"type\": \"string\"\n    },\n    \"age\": {\n      \"type\": \"integer\"\n    }\n  },\n  \"required\": [\n    \"name\",\n    \"age\"\n  ]\n}"
+    },
+    {
+      "idx": 12,
+      "id": "json_function_args_normalize_city",
+      "prompt": "Return only the JSON arguments object for function normalize_city. Use city=\"New York\", country=\"US\", lowercase=false.",
+      "elapsed_seconds": 1.0383241176605225,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 28,
+      "decode_tps": 107.72149565247169,
+      "tokens_per_second_http": 27.038413765586906,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "city",
+          "country",
+          "lowercase"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"city\": \"New York\",\n  \"country\": \"US\",\n  \"lowercase\": false\n}"
+    },
+    {
+      "idx": 13,
+      "id": "python_palindrome_code_only",
+      "prompt": "Only output Python code, no markdown. Define is_palindrome(s: str) -> bool. It should ignore case and non-alphanumeric characters.",
+      "elapsed_seconds": 1.1232073307037354,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 39,
+      "decode_tps": 107.38582980621393,
+      "tokens_per_second_http": 34.79530761322715,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def is_palindrome(s: str) -> bool:\n    cleaned = ''.join(c.lower() for c in s if c.isalnum())\n    return cleaned == cleaned[::-1]"
+    },
+    {
+      "idx": 14,
+      "id": "python_normalize_city_code_only",
+      "prompt": "Only output Python code, no markdown. Define normalize_city(city: str) -> str that strips whitespace and title-cases words.",
+      "elapsed_seconds": 0.9267475605010986,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 19,
+      "decode_tps": 108.39784345678657,
+      "tokens_per_second_http": 20.558107282603313,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def normalize_city(city: str) -> str:\n    return city.strip().title()"
+    },
+    {
+      "idx": 15,
+      "id": "yaml_openapi_request_body",
+      "prompt": "Output only an OpenAPI YAML requestBody for application/json with object properties email:string and subscribed:boolean. No explanation.",
+      "elapsed_seconds": 1.1712069511413574,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 49,
+      "decode_tps": 107.81140797131407,
+      "tokens_per_second_http": 41.92733863950949,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "```yaml\nrequestBody:\n  content:\n    application/json:\n      schema:\n        type: object\n        properties:\n          email:\n            type: string\n          subscribed:\n            type: boolean\n```"
+    },
+    {
+      "idx": 16,
+      "id": "router_zh_prefix",
+      "prompt": "用一句中文短句说明 MoE router 的作用。必须以 router 开头，必须包含 动态分配、专家、token。",
+      "elapsed_seconds": 0.8965208530426025,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 13,
+      "decode_tps": 108.17961569874909,
+      "tokens_per_second_http": 14.540695903822144,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "router 负责将 token 动态分配给合适的专家。"
+    },
+    {
+      "idx": 17,
+      "id": "linear_attention_zh_exact_terms",
+      "prompt": "用一句中文短句说明 linear attention 适合长上下文的原因。必须包含 计算复杂度、线性、长上下文。",
+      "elapsed_seconds": 0.9225788116455078,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 17,
+      "decode_tps": 107.87541472698747,
+      "tokens_per_second_http": 18.497294663858384,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "Linear attention 将计算复杂度降低为线性，从而高效处理长上下文。"
+    },
+    {
+      "idx": 18,
+      "id": "short_math_number_only",
+      "prompt": "Answer only with the number: 17 multiplied by 23.",
+      "elapsed_seconds": 0.7313618659973145,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 4,
+      "decode_tps": 107.94574793895356,
+      "tokens_per_second_http": 5.505555200052505,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "391"
+    },
+    {
+      "idx": 19,
+      "id": "json_patch_ops",
+      "prompt": "Return one JSON array of JSON Patch operations to replace /name with \"Lynn\" and add /active true.",
+      "elapsed_seconds": 1.360910415649414,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 63,
+      "decode_tps": 107.80408561916279,
+      "tokens_per_second_http": 46.43569332964296,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "[\n  {\n    \"op\": \"replace\",\n    \"path\": \"/name\",\n    \"value\": \"Lynn\"\n  },\n  {\n    \"op\": \"add\",\n    \"path\": \"/active\",\n    \"value\": true\n  }\n]"
+    },
+    {
+      "idx": 20,
+      "id": "json_nested_weather_args",
+      "prompt": "Return exactly one JSON object for a get_weather tool call. Keys: tool, arguments. arguments must contain city=\"Tokyo\", unit=\"celsius\", days=3.",
+      "elapsed_seconds": 1.2560181617736816,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 47,
+      "decode_tps": 107.58235706742174,
+      "tokens_per_second_http": 37.526277036004856,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "arguments",
+          "tool"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"tool\": \"get_weather\",\n  \"arguments\": {\n    \"city\": \"Tokyo\",\n    \"unit\": \"celsius\",\n    \"days\": 3\n  }\n}"
+    },
+    {
+      "idx": 21,
+      "id": "json_schema_user_profile",
+      "prompt": "Return one JSON Schema object for a user profile with required string name and integer age. Include type, properties, required.",
+      "elapsed_seconds": 1.4388861656188965,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 74,
+      "decode_tps": 107.63952887872983,
+      "tokens_per_second_http": 51.534724756612725,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "properties",
+          "required",
+          "type"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"name\": {\n      \"type\": \"string\"\n    },\n    \"age\": {\n      \"type\": \"integer\"\n    }\n  },\n  \"required\": [\n    \"name\",\n    \"age\"\n  ]\n}"
+    },
+    {
+      "idx": 22,
+      "id": "json_function_args_normalize_city",
+      "prompt": "Return only the JSON arguments object for function normalize_city. Use city=\"New York\", country=\"US\", lowercase=false.",
+      "elapsed_seconds": 1.0292246341705322,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 28,
+      "decode_tps": 108.20525001743763,
+      "tokens_per_second_http": 27.281654677178174,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "city",
+          "country",
+          "lowercase"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"city\": \"New York\",\n  \"country\": \"US\",\n  \"lowercase\": false\n}"
+    },
+    {
+      "idx": 23,
+      "id": "python_palindrome_code_only",
+      "prompt": "Only output Python code, no markdown. Define is_palindrome(s: str) -> bool. It should ignore case and non-alphanumeric characters.",
+      "elapsed_seconds": 1.117422103881836,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 39,
+      "decode_tps": 107.7370862695395,
+      "tokens_per_second_http": 34.991517472671475,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def is_palindrome(s: str) -> bool:\n    cleaned = ''.join(c.lower() for c in s if c.isalnum())\n    return cleaned == cleaned[::-1]"
+    },
+    {
+      "idx": 24,
+      "id": "python_normalize_city_code_only",
+      "prompt": "Only output Python code, no markdown. Define normalize_city(city: str) -> str that strips whitespace and title-cases words.",
+      "elapsed_seconds": 0.9221439361572266,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 19,
+      "decode_tps": 108.18209590843045,
+      "tokens_per_second_http": 20.681832833059882,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def normalize_city(city: str) -> str:\n    return city.strip().title()"
+    },
+    {
+      "idx": 25,
+      "id": "yaml_openapi_request_body",
+      "prompt": "Output only an OpenAPI YAML requestBody for application/json with object properties email:string and subscribed:boolean. No explanation.",
+      "elapsed_seconds": 1.1685936450958252,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 49,
+      "decode_tps": 107.90912389686473,
+      "tokens_per_second_http": 42.04905510750983,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "```yaml\nrequestBody:\n  content:\n    application/json:\n      schema:\n        type: object\n        properties:\n          email:\n            type: string\n          subscribed:\n            type: boolean\n```"
+    },
+    {
+      "idx": 26,
+      "id": "router_zh_prefix",
+      "prompt": "用一句中文短句说明 MoE router 的作用。必须以 router 开头，必须包含 动态分配、专家、token。",
+      "elapsed_seconds": 0.8915631771087646,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 13,
+      "decode_tps": 107.91982503537888,
+      "tokens_per_second_http": 14.62266329763526,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "router 负责将 token 动态分配给合适的专家。"
+    },
+    {
+      "idx": 27,
+      "id": "linear_attention_zh_exact_terms",
+      "prompt": "用一句中文短句说明 linear attention 适合长上下文的原因。必须包含 计算复杂度、线性、长上下文。",
+      "elapsed_seconds": 0.9136238098144531,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 17,
+      "decode_tps": 108.09539487460336,
+      "tokens_per_second_http": 18.65814588137767,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "Linear attention 将计算复杂度降低为线性，从而高效处理长上下文。"
+    },
+    {
+      "idx": 28,
+      "id": "short_math_number_only",
+      "prompt": "Answer only with the number: 17 multiplied by 23.",
+      "elapsed_seconds": 0.7224359512329102,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 4,
+      "decode_tps": 107.92723030869651,
+      "tokens_per_second_http": 5.555996885741072,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "391"
+    },
+    {
+      "idx": 29,
+      "id": "json_patch_ops",
+      "prompt": "Return one JSON array of JSON Patch operations to replace /name with \"Lynn\" and add /active true.",
+      "elapsed_seconds": 1.356553316116333,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 63,
+      "decode_tps": 107.53166981484728,
+      "tokens_per_second_http": 46.55297412554555,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "[\n  {\n    \"op\": \"replace\",\n    \"path\": \"/name\",\n    \"value\": \"Lynn\"\n  },\n  {\n    \"op\": \"add\",\n    \"path\": \"/active\",\n    \"value\": true\n  }\n]"
+    },
+    {
+      "idx": 30,
+      "id": "json_nested_weather_args",
+      "prompt": "Return exactly one JSON object for a get_weather tool call. Keys: tool, arguments. arguments must contain city=\"Tokyo\", unit=\"celsius\", days=3.",
+      "elapsed_seconds": 1.2578301429748535,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 47,
+      "decode_tps": 107.5424798348776,
+      "tokens_per_second_http": 37.508291095057004,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "arguments",
+          "tool"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"tool\": \"get_weather\",\n  \"arguments\": {\n    \"city\": \"Tokyo\",\n    \"unit\": \"celsius\",\n    \"days\": 3\n  }\n}"
+    },
+    {
+      "idx": 31,
+      "id": "json_schema_user_profile",
+      "prompt": "Return one JSON Schema object for a user profile with required string name and integer age. Include type, properties, required.",
+      "elapsed_seconds": 1.4375941753387451,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 74,
+      "decode_tps": 107.74145501403667,
+      "tokens_per_second_http": 51.6688575846698,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "properties",
+          "required",
+          "type"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"name\": {\n      \"type\": \"string\"\n    },\n    \"age\": {\n      \"type\": \"integer\"\n    }\n  },\n  \"required\": [\n    \"name\",\n    \"age\"\n  ]\n}"
+    },
+    {
+      "idx": 32,
+      "id": "json_function_args_normalize_city",
+      "prompt": "Return only the JSON arguments object for function normalize_city. Use city=\"New York\", country=\"US\", lowercase=false.",
+      "elapsed_seconds": 1.030433177947998,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 28,
+      "decode_tps": 107.45064268547361,
+      "tokens_per_second_http": 27.297882191928565,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": [
+          "city",
+          "country",
+          "lowercase"
+        ],
+        "ok": true
+      },
+      "text": "{\n  \"city\": \"New York\",\n  \"country\": \"US\",\n  \"lowercase\": false\n}"
+    },
+    {
+      "idx": 33,
+      "id": "python_palindrome_code_only",
+      "prompt": "Only output Python code, no markdown. Define is_palindrome(s: str) -> bool. It should ignore case and non-alphanumeric characters.",
+      "elapsed_seconds": 1.120149850845337,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 39,
+      "decode_tps": 107.91690218090473,
+      "tokens_per_second_http": 34.933819853339244,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def is_palindrome(s: str) -> bool:\n    cleaned = ''.join(c.lower() for c in s if c.isalnum())\n    return cleaned == cleaned[::-1]"
+    },
+    {
+      "idx": 34,
+      "id": "python_normalize_city_code_only",
+      "prompt": "Only output Python code, no markdown. Define normalize_city(city: str) -> str that strips whitespace and title-cases words.",
+      "elapsed_seconds": 0.9248363971710205,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 19,
+      "decode_tps": 108.0157093006786,
+      "tokens_per_second_http": 20.615997129501743,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "def normalize_city(city: str) -> str:\n    return city.strip().title()"
+    },
+    {
+      "idx": 35,
+      "id": "yaml_openapi_request_body",
+      "prompt": "Output only an OpenAPI YAML requestBody for application/json with object properties email:string and subscribed:boolean. No explanation.",
+      "elapsed_seconds": 1.1704907417297363,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 49,
+      "decode_tps": 107.89981274110788,
+      "tokens_per_second_http": 42.01413821102977,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "```yaml\nrequestBody:\n  content:\n    application/json:\n      schema:\n        type: object\n        properties:\n          email:\n            type: string\n          subscribed:\n            type: boolean\n```"
+    },
+    {
+      "idx": 36,
+      "id": "router_zh_prefix",
+      "prompt": "用一句中文短句说明 MoE router 的作用。必须以 router 开头，必须包含 动态分配、专家、token。",
+      "elapsed_seconds": 0.8932497501373291,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 13,
+      "decode_tps": 108.11733773263907,
+      "tokens_per_second_http": 14.610144903848035,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "router 负责将 token 动态分配给合适的专家。"
+    },
+    {
+      "idx": 37,
+      "id": "linear_attention_zh_exact_terms",
+      "prompt": "用一句中文短句说明 linear attention 适合长上下文的原因。必须包含 计算复杂度、线性、长上下文。",
+      "elapsed_seconds": 0.9163303375244141,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 17,
+      "decode_tps": 108.1706646378615,
+      "tokens_per_second_http": 18.606613900688934,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "Linear attention 将计算复杂度降低为线性，从而高效处理长上下文。"
+    },
+    {
+      "idx": 38,
+      "id": "short_math_number_only",
+      "prompt": "Answer only with the number: 17 multiplied by 23.",
+      "elapsed_seconds": 0.7285802364349365,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 4,
+      "decode_tps": 108.02544621011153,
+      "tokens_per_second_http": 5.508000730144597,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "391"
+    },
+    {
+      "idx": 39,
+      "id": "json_patch_ops",
+      "prompt": "Return one JSON array of JSON Patch operations to replace /name with \"Lynn\" and add /active true.",
+      "elapsed_seconds": 1.3545269966125488,
+      "finish_reason": "stop",
+      "stopped_reason": "stop_token",
+      "completion_tokens": 63,
+      "decode_tps": 107.77901986838408,
+      "tokens_per_second_http": 46.58508060414366,
+      "format": {
+        "starts_ok": true,
+        "missing": [],
+        "forbidden_hits": [],
+        "json_ok": true,
+        "json_error": null,
+        "parsed_keys": null,
+        "ok": true
+      },
+      "text": "[\n  {\n    \"op\": \"replace\",\n    \"path\": \"/name\",\n    \"value\": \"Lynn\"\n  },\n  {\n    \"op\": \"add\",\n    \"path\": \"/active\",\n    \"value\": true\n  }\n]"
+    }
+  ]
+}
