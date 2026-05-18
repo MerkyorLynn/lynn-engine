@@ -69,6 +69,12 @@ PY_EXEC="$PYTHON_BIN"
 if [[ ! -x "$PY_EXEC" ]]; then
     PY_EXEC="$(command -v python3 || true)"
 fi
+if [[ -z "$MMLU_RUNNER" && -f "$SCRIPT_DIR/openai_mmlu_500_5shot_eval.py" ]]; then
+    MMLU_RUNNER="$SCRIPT_DIR/openai_mmlu_500_5shot_eval.py"
+fi
+if [[ -z "$GPQA_RUNNER" && -f "$SCRIPT_DIR/openai_gpqa_diamond_eval.py" ]]; then
+    GPQA_RUNNER="$SCRIPT_DIR/openai_gpqa_diamond_eval.py"
+fi
 
 # ---------------------------------------------------------------------------
 # Helpers
