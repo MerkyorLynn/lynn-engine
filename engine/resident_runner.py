@@ -80,12 +80,15 @@ def _native_cuda_scalar_can_enter_linear_graph() -> bool:
 
 
 def _runtime_config(model_dir: str) -> tuple[dict[str, Any], int]:
+    from engine.inference_state import _infer_layer_types
+
     with open(Path(model_dir) / "config.json", encoding="utf-8") as f:
         full_cfg = json.load(f)
     tc = full_cfg["text_config"]
     rope_p = tc.get("rope_parameters", {})
     num_experts = tc.get("num_experts", 0)
     num_experts_per_tok = tc.get("num_experts_per_tok", 0)
+    layer_types = _infer_layer_types(tc)
     cfg: dict[str, Any] = {
         "hidden_size": tc["hidden_size"],
         "num_attention_heads": tc["num_attention_heads"],
@@ -94,13 +97,10 @@ def _runtime_config(model_dir: str) -> tuple[dict[str, Any], int]:
         "num_experts": num_experts,
         "num_experts_per_tok": num_experts_per_tok,
         "is_moe": num_experts > 0,
+        "layer_types": layer_types,
         "rope_theta": rope_p.get("rope_theta", tc.get("rope_theta", 1e6)),
         "partial_rotary_factor": rope_p.get("partial_rotary_factor", 1.0),
     }
-    cfg_layer_types = tc.get("layer_types")
-    if cfg_layer_types is not None and LAYER_TYPES != cfg_layer_types:
-        raise ValueError("layer_types config mismatch")
-    # dense models (is_moe=False) won't have "layer_types" in config — OK
     return cfg, tc["num_hidden_layers"]
 
 
@@ -245,6 +245,7 @@ class LynnIncrementalRunner:
         self.runtime_warnings: list[str] = []
         self.cfg, self.n_layers = _runtime_config(self.model_dir)
         self.is_moe = self.cfg.get("is_moe", True)
+        self.layer_types = self.cfg.get("layer_types", LAYER_TYPES)
         if not self.is_moe:
             print(f"[resident] dense model detected (num_experts=0), "
                   f"MoE paths will be skipped", flush=True)
@@ -910,8 +911,8 @@ class LynnIncrementalRunner:
         """
         if not self.device.startswith("cuda"):
             raise RuntimeError("full-attention layer graph slots require CUDA")
-        if LAYER_TYPES[layer_idx] != "full_attention":
-            raise ValueError(f"layer {layer_idx} is {LAYER_TYPES[layer_idx]!r}, expected full_attention")
+        if self.layer_types[layer_idx] != "full_attention":
+            raise ValueError(f"layer {layer_idx} is {self.layer_types[layer_idx]!r}, expected full_attention")
 
         seq_len = int(state.seq_len)
         input_buf = torch.empty_like(h_seed)
@@ -958,7 +959,7 @@ class LynnIncrementalRunner:
             return _decode_layer(
                 h,
                 pos_tensor,
-                LAYER_TYPES[layer_idx],
+                self.layer_types[layer_idx],
                 self.layer_weights[layer_idx],
                 self.layer_cfgs[layer_idx],
                 state,
@@ -967,7 +968,7 @@ class LynnIncrementalRunner:
         return _decode_layer(
             h,
             pos_tensor,
-            LAYER_TYPES[layer_idx],
+            self.layer_types[layer_idx],
             self.layer_weights[layer_idx],
             self.layer_cfgs[layer_idx],
             state,
@@ -1142,7 +1143,8 @@ class LynnIncrementalRunner:
         per-request state and is still run eagerly between graph blocks.
         """
         if self._linear_block_graph_slot is None:
-            graph_state = LynnInferenceState(
+            graph_state = LynnInferenceState.from_config(
+                self.cfg,
                 batch=1,
                 max_seq_len=self.max_seq_len,
                 device=self.device,
@@ -1179,7 +1181,7 @@ class LynnIncrementalRunner:
         blocks: list[dict[str, Any]] = []
         for start_layer in range(0, self.n_layers, 4):
             layers = [start_layer, start_layer + 1, start_layer + 2]
-            if any(LAYER_TYPES[i] != "linear_attention" for i in layers):
+            if any(self.layer_types[i] != "linear_attention" for i in layers):
                 raise RuntimeError(f"unexpected linear block layout at {layers}")
             input_buf = torch.empty_like(h_seed)
             output_buf = torch.empty_like(h_seed)
@@ -1210,7 +1212,8 @@ class LynnIncrementalRunner:
         recurrent/conv state. Prompt-specific values are copied into the slot
         before each request by `_get_reusable_linear_block_graphs`.
         """
-        graph_state = LynnInferenceState(
+        graph_state = LynnInferenceState.from_config(
+            self.cfg,
             batch=1,
             max_seq_len=self.max_seq_len,
             device=self.device,
@@ -1232,7 +1235,8 @@ class LynnIncrementalRunner:
     def _warmup_prefill_kernels(self) -> None:
         """Run one tiny prefill to compile kernels before serving requests."""
         ids = self.tokenizer("warmup", return_tensors="pt").input_ids.to(self.device)
-        state = LynnInferenceState(
+        state = LynnInferenceState.from_config(
+            self.cfg,
             batch=1,
             max_seq_len=self.max_seq_len,
             device=self.device,
@@ -1241,7 +1245,7 @@ class LynnIncrementalRunner:
         h = F.embedding(ids, self.outside["model.language_model.embed_tokens.weight"])
         pos = torch.arange(ids.shape[1], device=self.device, dtype=torch.long).unsqueeze(0)
         for i in range(self.n_layers):
-            h = _prefill_layer(h, pos, LAYER_TYPES[i], self.layer_weights[i], self.layer_cfgs[i], state, i)
+            h = _prefill_layer(h, pos, self.layer_types[i], self.layer_weights[i], self.layer_cfgs[i], state, i)
         h_final = _rms_norm(h, self.outside["model.language_model.norm.weight"])
         _ = self._lm_head_logits(h_final)
 
@@ -1267,7 +1271,8 @@ class LynnIncrementalRunner:
             ).input_ids
         forced_prefix_ids = [int(x) for x in (forced_prefix_ids or [])]
         T = ids.shape[1]
-        state = LynnInferenceState(
+        state = LynnInferenceState.from_config(
+            self.cfg,
             batch=1,
             max_seq_len=self.max_seq_len,
             device=self.device,
@@ -1280,7 +1285,7 @@ class LynnIncrementalRunner:
         h = F.embedding(ids, self.outside["model.language_model.embed_tokens.weight"])
         pos = torch.arange(T, device=self.device, dtype=torch.long).unsqueeze(0)
         for i in range(self.n_layers):
-            h = _prefill_layer(h, pos, LAYER_TYPES[i], self.layer_weights[i], self.layer_cfgs[i], state, i)
+            h = _prefill_layer(h, pos, self.layer_types[i], self.layer_weights[i], self.layer_cfgs[i], state, i)
         state.seq_len = T
         h_final = _rms_norm(h, self.outside["model.language_model.norm.weight"])
         logits = self._lm_head_logits(h_final)
