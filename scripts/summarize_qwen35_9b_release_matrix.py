@@ -214,6 +214,11 @@ def _extract_q4km(report_dir: Path) -> dict[str, Any]:
             e = lc.get(lk)
             if e and e.get("ok"):
                 entry["long_context"][label] = round(e.get("wall_tps", 0.0), 1)
+    long32_path = _latest("q4km_long32k_parallel1_*.json", report_dir)
+    if long32_path:
+        long32 = _load_json(long32_path)
+        if long32 and long32.get("ok"):
+            entry["long_context"]["32k"] = round(long32.get("wall_tps", 0.0), 1)
 
     # --- Quality (MMLU/GPQA) from Q4_K_M reports if present ---
     mmlu_data = report.get("mmlu", {})

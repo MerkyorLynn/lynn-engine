@@ -1,6 +1,6 @@
 {
   "schema": "lynn-qwen35-9b-release-matrix-v1",
-  "created": "2026-05-19T01:26:43+08:00",
+  "created": "2026-05-19T01:31:16+08:00",
   "model_id": "Qwen3.5-9B",
   "entries": [
     {
@@ -66,7 +66,7 @@
       "long_context": {
         "4k": 146.0,
         "16k": 123.9,
-        "32k": null
+        "32k": 72.2
       },
       "status": "DONE",
       "blocker": null

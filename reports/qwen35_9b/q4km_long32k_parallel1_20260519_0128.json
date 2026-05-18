@@ -1,0 +1,10 @@
+{
+  "ok": true,
+  "target_prompt_chars": 32768,
+  "actual_prompt_chars": 32768,
+  "prompt_tokens": 7757,
+  "completion_tokens": 128,
+  "wall_s": 1.772789716720581,
+  "wall_tps": 72.20258488230772,
+  "preview": "Based on the repetitive text provided, which lists specific technical components of the Lynn Engine, here are the five key engineering risks associated with implementing these features:\n\n*   **MoE Routing Instability**: Dynamic expert selec"
+}

@@ -1,6 +1,6 @@
 # Qwen3.5-9B Release Matrix
 
-**Generated:** 2026-05-19T01:26:43+08:00  
+**Generated:** 2026-05-19T01:31:16+08:00  
 **Schema:** `lynn-qwen35-9b-release-matrix-v1`  
 
 > Cross-variant benchmark matrix for BF16 (quality ceiling), Q4_K_M (llama.cpp / Mac), and NVFP4 (Lynn Engine / NVIDIA Blackwell).
@@ -10,7 +10,7 @@
 | Variant | Size (GiB) | Stack | Status | MMLU | GPQA | Single TPS | Concurrent TPS | Long Context | Blocker |
 |---------|-----------|-------|--------|------|------|------------|----------------|--------------|---------|
 | **BF16** | 18.0 | transformers-direct | 🟡 PARTIAL | 0.772 | 0.450 | — | — | — | No TPS benchmarks yet |
-| **Q4_K_M** | 5.5 | llama.cpp | 🟢 DONE | 0.760 | 0.374 | 128t=121.8 / 256t=165.2 / 512t=168.2 | x2=275.6 / x4=341.3 / x8=420.6 | 4k=146.0 / 16k=123.9 | — |
+| **Q4_K_M** | 5.5 | llama.cpp | 🟢 DONE | 0.760 | 0.374 | 128t=121.8 / 256t=165.2 / 512t=168.2 | x2=275.6 / x4=341.3 / x8=420.6 | 4k=146.0 / 16k=123.9 / 32k=72.2 | — |
 | **NVFP4** | 8.3 | Lynn Engine (CUDA) | 🔴 BLOCKED | — | — | — | — | — | Dense runtime not implemented yet; runner now fails loud instead of KeyError num_experts |
 
 ## BF16 Details
@@ -46,7 +46,7 @@
 |----------|-----------------------------------|-----------------------------------|-----------------------------------|
 | Single TPS | 121.8 TPS | 165.2 TPS | 168.2 TPS |
 | Concurrent TPS | 275.6 TPS | 341.3 TPS | 420.6 TPS |
-| Long Context | 146.0 TPS | 123.9 TPS | — |
+| Long Context | 146.0 TPS | 123.9 TPS | 72.2 TPS |
 
 ## NVFP4 Details
 
