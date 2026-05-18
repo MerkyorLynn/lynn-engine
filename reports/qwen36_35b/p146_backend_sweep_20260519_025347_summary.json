@@ -1,0 +1,142 @@
+{
+  "schema_version": "lynn-qwen36-p146-backend-sweep-v1",
+  "out_dir": "/root/autodl-tmp/reports/qwen36_35b/p146_backend_sweep_20260519_025347",
+  "total_reports": 3,
+  "p37_exact_backends": [],
+  "closed_backends": [
+    "cuda_scalar",
+    "cuda_scalar_contract",
+    "grouped_per16_nonatomic"
+  ],
+  "rows": [
+    {
+      "path": "/root/autodl-tmp/reports/qwen36_35b/p146_backend_sweep_20260519_025347/p146_cuda_scalar.json",
+      "candidate_backend": "cuda_scalar",
+      "extra_env": {},
+      "verdict": "CLOSED_P37_DRIFT",
+      "exact_count": 1,
+      "total_prompts": 3,
+      "collapse_detected": false,
+      "first_drift": {
+        "prompt_id": 0,
+        "drift_token_index": 2,
+        "baseline_ids": [
+          271,
+          248068,
+          271,
+          248069,
+          271,
+          24797,
+          36,
+          9616
+        ],
+        "candidate_ids": [
+          271,
+          248068,
+          198,
+          8160,
+          579,
+          264,
+          7047,
+          1817
+        ]
+      },
+      "candidate_tps": [
+        10.32310836720149,
+        32.51978259689712,
+        32.766573776364645
+      ],
+      "baseline_tps": [
+        26.73533319310093,
+        29.603558057910195,
+        29.186613582253504
+      ]
+    },
+    {
+      "path": "/root/autodl-tmp/reports/qwen36_35b/p146_backend_sweep_20260519_025347/p146_cuda_scalar_contract.json",
+      "candidate_backend": "cuda_scalar_contract",
+      "extra_env": {},
+      "verdict": "CLOSED_P37_DRIFT",
+      "exact_count": 1,
+      "total_prompts": 3,
+      "collapse_detected": false,
+      "first_drift": {
+        "prompt_id": 0,
+        "drift_token_index": 2,
+        "baseline_ids": [
+          271,
+          248068,
+          271,
+          248069,
+          271,
+          24797,
+          36,
+          9616
+        ],
+        "candidate_ids": [
+          271,
+          248068,
+          198,
+          8160,
+          579,
+          264,
+          7047,
+          1817
+        ]
+      },
+      "candidate_tps": [
+        11.025393970232317,
+        34.62495651261223,
+        34.56845312733639
+      ],
+      "baseline_tps": [
+        27.55771561049554,
+        30.387498952070555,
+        30.862061063727356
+      ]
+    },
+    {
+      "path": "/root/autodl-tmp/reports/qwen36_35b/p146_backend_sweep_20260519_025347/p146_grouped_per16_nonatomic.json",
+      "candidate_backend": "grouped_per16_nonatomic",
+      "extra_env": {},
+      "verdict": "CLOSED_P37_DRIFT",
+      "exact_count": 2,
+      "total_prompts": 3,
+      "collapse_detected": false,
+      "first_drift": {
+        "prompt_id": 2,
+        "drift_token_index": 2,
+        "baseline_ids": [
+          271,
+          248068,
+          271,
+          248069,
+          271,
+          37586,
+          1679,
+          9616
+        ],
+        "candidate_ids": [
+          271,
+          248068,
+          198,
+          8160,
+          579,
+          264,
+          7047,
+          1817
+        ]
+      },
+      "candidate_tps": [
+        10.465632346362442,
+        33.11067329629074,
+        33.14001142286967
+      ],
+      "baseline_tps": [
+        26.98623028088168,
+        29.865512197404477,
+        30.260249377997926
+      ]
+    }
+  ]
+}

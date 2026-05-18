@@ -1,0 +1,99 @@
+{
+  "probe": "p146_resident_moe_backend_p37",
+  "created": "2026-05-19T02:56:44",
+  "model": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0",
+  "candidate_backend": "cuda_scalar",
+  "graph_on": false,
+  "max_new": 8,
+  "extra_env": {},
+  "exact_count": 1,
+  "total_prompts": 3,
+  "collapse_detected": false,
+  "verdict": "CLOSED_P37_DRIFT",
+  "results": [
+    {
+      "prompt_id": 0,
+      "exact": false,
+      "drift_token_index": 2,
+      "collapse": false,
+      "baseline_ids": [
+        271,
+        248068,
+        271,
+        248069,
+        271,
+        24797,
+        36,
+        9616
+      ],
+      "candidate_ids": [
+        271,
+        248068,
+        198,
+        8160,
+        579,
+        264,
+        7047,
+        1817
+      ],
+      "baseline_tps": 26.73533319310093,
+      "candidate_tps": 10.32310836720149
+    },
+    {
+      "prompt_id": 1,
+      "exact": false,
+      "drift_token_index": 3,
+      "collapse": false,
+      "baseline_ids": [
+        198,
+        727,
+        51184,
+        318,
+        77,
+        1590,
+        198,
+        331
+      ],
+      "candidate_ids": [
+        198,
+        727,
+        51184,
+        1393,
+        1590,
+        198,
+        331,
+        307
+      ],
+      "baseline_tps": 29.603558057910195,
+      "candidate_tps": 32.51978259689712
+    },
+    {
+      "prompt_id": 2,
+      "exact": true,
+      "drift_token_index": null,
+      "collapse": false,
+      "baseline_ids": [
+        271,
+        248068,
+        271,
+        248069,
+        271,
+        37586,
+        1679,
+        9616
+      ],
+      "candidate_ids": [
+        271,
+        248068,
+        271,
+        248069,
+        271,
+        37586,
+        1679,
+        9616
+      ],
+      "baseline_tps": 29.186613582253504,
+      "candidate_tps": 32.766573776364645
+    }
+  ]
+}

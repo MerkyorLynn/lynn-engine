@@ -14,6 +14,7 @@ MAX_NEW="${MAX_NEW:-8}"
 STAMP="${STAMP:-$(date +%Y%m%d_%H%M%S)}"
 OUT_DIR="${OUT_DIR:-${REPORT_DIR}/p146_backend_sweep_${STAMP}}"
 SUMMARY_OUT="${SUMMARY_OUT:-${REPORT_DIR}/p146_backend_sweep_${STAMP}_summary.json}"
+ATTEMPTS_JSONL="${ATTEMPTS_JSONL:-${OUT_DIR}/attempts.jsonl}"
 
 # Format:
 #   backend
@@ -36,6 +37,7 @@ fi
 
 cd "${REPO_DIR}"
 mkdir -p "${OUT_DIR}" "$(dirname "${SUMMARY_OUT}")"
+rm -f "${ATTEMPTS_JSONL}"
 "${PY}" -m py_compile benchmarks/p146_resident_moe_backend_p37_probe.py
 
 echo "═══════════════════════════════════════════════════════════════════════"
@@ -79,21 +81,51 @@ while IFS= read -r spec; do
     rc=$?
     set -e
     echo "   rc=${rc} out=${out} log=${log}"
+    "${PY}" - "${ATTEMPTS_JSONL}" "${backend}" "${env_blob}" "${rc}" "${out}" "${log}" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+row = {
+    "candidate_backend": sys.argv[2],
+    "env_blob": sys.argv[3],
+    "return_code": int(sys.argv[4]),
+    "out": sys.argv[5],
+    "log": sys.argv[6],
+}
+with path.open("a", encoding="utf-8") as f:
+    f.write(json.dumps(row, ensure_ascii=False) + "\n")
+PY
 done <<< "${CANDIDATES}"
 
-"${PY}" - "${OUT_DIR}" "${SUMMARY_OUT}" <<'PY'
+"${PY}" - "${OUT_DIR}" "${SUMMARY_OUT}" "${ATTEMPTS_JSONL}" <<'PY'
 import json
 import sys
 from pathlib import Path
 
 out_dir = Path(sys.argv[1])
 summary_out = Path(sys.argv[2])
+attempts_path = Path(sys.argv[3])
+attempts = []
+if attempts_path.exists():
+    for line in attempts_path.read_text(encoding="utf-8").splitlines():
+        if line.strip():
+            attempts.append(json.loads(line))
+
+attempts_by_out = {Path(a["out"]).resolve(): a for a in attempts}
 rows = []
 for path in sorted(out_dir.glob("p146_*.json")):
+    attempt = attempts_by_out.get(path.resolve(), {})
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except Exception as exc:  # pragma: no cover - defensive summary path
-        rows.append({"path": str(path), "error": str(exc)})
+        rows.append({
+            "path": str(path),
+            "candidate_backend": attempt.get("candidate_backend"),
+            "return_code": attempt.get("return_code"),
+            "error": str(exc),
+        })
         continue
     results = data.get("results") or []
     rows.append(
@@ -101,6 +133,7 @@ for path in sorted(out_dir.glob("p146_*.json")):
             "path": str(path),
             "candidate_backend": data.get("candidate_backend"),
             "extra_env": data.get("extra_env", {}),
+            "return_code": attempt.get("return_code"),
             "verdict": data.get("verdict"),
             "exact_count": data.get("exact_count"),
             "total_prompts": data.get("total_prompts"),
@@ -123,12 +156,42 @@ for path in sorted(out_dir.glob("p146_*.json")):
         }
     )
 
+reported_outs = {Path(r["path"]).resolve() for r in rows if r.get("path")}
+for attempt in attempts:
+    out_path = Path(attempt["out"]).resolve()
+    if out_path in reported_outs:
+        continue
+    log_path = Path(attempt["log"])
+    tail = ""
+    if log_path.exists():
+        tail = "\n".join(log_path.read_text(encoding="utf-8", errors="replace").splitlines()[-20:])
+    rows.append(
+        {
+            "path": attempt["out"],
+            "candidate_backend": attempt["candidate_backend"],
+            "extra_env": attempt.get("env_blob") or {},
+            "return_code": attempt.get("return_code"),
+            "verdict": "ERROR_NO_REPORT",
+            "exact_count": None,
+            "total_prompts": None,
+            "collapse_detected": None,
+            "first_drift": None,
+            "candidate_tps": [],
+            "baseline_tps": [],
+            "log": attempt["log"],
+            "log_tail": tail,
+        }
+    )
+
 summary = {
     "schema_version": "lynn-qwen36-p146-backend-sweep-v1",
     "out_dir": str(out_dir),
+    "attempts_jsonl": str(attempts_path),
+    "total_attempts": len(attempts),
     "total_reports": len(rows),
     "p37_exact_backends": [r.get("candidate_backend") for r in rows if r.get("verdict") == "P37_EXACT"],
     "closed_backends": [r.get("candidate_backend") for r in rows if str(r.get("verdict", "")).startswith("CLOSED")],
+    "error_backends": [r.get("candidate_backend") for r in rows if str(r.get("verdict", "")).startswith("ERROR")],
     "rows": rows,
 }
 summary_out.write_text(json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
