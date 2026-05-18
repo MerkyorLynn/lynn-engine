@@ -432,6 +432,60 @@ def _active_moe_packed_pretransposed_graphsafe_v31(
     )
 
 
+def _prepare_graphsafe_v32_weights(w: dict, device) -> None:
+    """One-time scratch allocation for V3.2 graph-safe exact scalar path.
+
+    Does NOT pre-dequant weights. Keeps original packed NVFP4 weights.
+    Only allocates caller-owned scratch buffers for intermediate and output.
+    """
+    top_k = 8
+    w["_graphsafe_v32_inter_scratch"] = torch.empty(top_k, 512, device=device, dtype=torch.bfloat16)
+    w["_graphsafe_v32_out_scratch"] = torch.empty(2048, device=device, dtype=torch.bfloat16)
+
+
+def _active_moe_packed_pretransposed_graphsafe_v32_ordered(
+    hidden: torch.Tensor,
+    expert_ids: torch.Tensor,
+    routing_weights: torch.Tensor,
+    w: dict,
+) -> torch.Tensor:
+    """V3.2 graph-safe exact scalar MoE: caller-owned scratch, native FP4 dequant.
+
+    Load-time prep (lazy, first call only):
+      - Preallocate scratch: inter[8,512], out[2048]
+      - Weights stay in original packed NVFP4 format (no pre-dequant)
+
+    Hot path: native FP4→FP32 scalar gate/up + native FP4→FP32 scalar down.
+    No torch::empty/zeros/to/sum/new tensor in hot path.
+    Route weights kept in FP32 (no BF16 truncation).
+    Slot order strictly follows expert_ids.
+
+    Designed to match Triton reference exactly (P37 exact 3/3 target).
+    Slower than V3.1 cuBLAS path.
+    """
+    from engine.native_cuda import load_lynn_native_extension
+
+    if "_graphsafe_v32_inter_scratch" not in w:
+        _prepare_graphsafe_v32_weights(w, hidden.device)
+
+    ext = load_lynn_native_extension(verbose=_env_bool("LYNN_NATIVE_CUDA_VERBOSE", False))
+
+    ext.active_moe_scalar_out_reference(
+        hidden,
+        expert_ids,
+        routing_weights,
+        w["mlp.experts._gate_up_packed"],
+        w["mlp.experts._gate_up_scale"],
+        w["mlp.experts._gate_up_global_scale"],
+        w["mlp.experts._down_packed"],
+        w["mlp.experts._down_scale"],
+        w["mlp.experts._down_global_scale"],
+        w["_graphsafe_v32_inter_scratch"],
+        w["_graphsafe_v32_out_scratch"],
+    )
+    return w["_graphsafe_v32_out_scratch"]
+
+
 def _prepare_graphsafe_v31_weights(w: dict, device) -> None:
     """One-time scratch allocation for V3.1 graph-safe path.
 
@@ -739,6 +793,8 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
         down_backend = os.environ.get("LYNN_NATIVE_DOWN_BACKEND", "triton")
         if backend == "packed_pretransposed_graphsafe_v31":
             moe_out = _active_moe_packed_pretransposed_graphsafe_v31(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
+        elif backend == "packed_pretransposed_graphsafe_v32_ordered":
+            moe_out = _active_moe_packed_pretransposed_graphsafe_v32_ordered(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
         elif backend == "grouped_per16_nonatomic_out" and _layer_selected_for_native_cuda(cfg):
             moe_out = _active_moe_native_grouped_per16_nonatomic_out(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
         elif backend == "grouped_per16_nonatomic" and _layer_selected_for_native_cuda(cfg):
@@ -854,6 +910,7 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
                 "'cuda_scalar_contract', 'grouped_per16', 'grouped_per16_fused', "
                 "'grouped_per16_nonatomic', 'grouped_per16_nonatomic_out', "
                 "'packed_pretransposed_graphsafe_v31', "
+                "'packed_pretransposed_graphsafe_v32_ordered', "
                 f"got {backend!r}"
             )
 

@@ -185,6 +185,24 @@ torch::Tensor lynn_native_moe_packed_pretransposed_graphsafe_v3(
     torch::Tensor gate_up_scratch, torch::Tensor inter_scratch,
     torch::Tensor down_scratch, torch::Tensor out);
 
+// P145 graph-safe scalar MoE V3.2 (caller-owned scratch, exact reference)
+void lynn_native_gate_up_silu_scalar_out(
+    torch::Tensor x, torch::Tensor expert_ids,
+    torch::Tensor gate_up_packed, torch::Tensor gate_up_scale,
+    torch::Tensor gate_up_global_scale, torch::Tensor out);
+void lynn_native_down_weighted_sum_scalar_out(
+    torch::Tensor inter, torch::Tensor expert_ids,
+    torch::Tensor routing_weights, torch::Tensor down_packed,
+    torch::Tensor down_scale, torch::Tensor down_global_scale,
+    torch::Tensor out);
+void lynn_native_active_moe_scalar_out_reference(
+    torch::Tensor x, torch::Tensor expert_ids,
+    torch::Tensor routing_weights, torch::Tensor gate_up_packed,
+    torch::Tensor gate_up_scale, torch::Tensor gate_up_global_scale,
+    torch::Tensor down_packed, torch::Tensor down_scale,
+    torch::Tensor down_global_scale, torch::Tensor inter_out,
+    torch::Tensor out);
+
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
   m.def("add_one", &lynn_native_add_one, "Lynn native CUDA extension smoke kernel");
   m.def(
@@ -283,4 +301,16 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
       "moe_packed_pretransposed_graphsafe_v3",
       &lynn_native_moe_packed_pretransposed_graphsafe_v3,
       "P142 graph-safe pretransposed MoE V3 (caller-owned scratch, no alloc)");
+  m.def(
+      "gate_up_silu_scalar_out",
+      &lynn_native_gate_up_silu_scalar_out,
+      "P145 graph-safe scalar gate/up (caller-owned out, no alloc)");
+  m.def(
+      "down_weighted_sum_scalar_out",
+      &lynn_native_down_weighted_sum_scalar_out,
+      "P145 graph-safe scalar down weighted-sum (caller-owned out, no alloc)");
+  m.def(
+      "active_moe_scalar_out_reference",
+      &lynn_native_active_moe_scalar_out_reference,
+      "P145 graph-safe scalar active MoE V3.2 (caller-owned scratch, exact reference)");
 }
