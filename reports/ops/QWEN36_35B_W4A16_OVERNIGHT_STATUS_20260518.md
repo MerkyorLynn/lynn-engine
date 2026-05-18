@@ -579,6 +579,25 @@ This also is not promotable. It improves P37 median decode by only `1.011x`
 (`103.57 -> 104.67` TPS) and fails exact-greedy parity, so P25 was intentionally
 skipped.
 
+The hard structured prompt set was also used for a one-runner MoE budget
+frontier sweep. This checked whether reducing active top-k or skipping the
+shared expert could be a pragmatic route to 155 TPS. It is not:
+
+| MoE budget candidate | Median decode TPS | Exact / 10 | Min prefix |
+|---|---:|---:|---:|
+| top8 + shared, baseline | 107.98 | 10 | 22 |
+| top6 + shared | 107.67 | 1 | 1 |
+| top4 + shared | 109.18 | 1 | 1 |
+| top1 + shared | 110.18 | 0 | 1 |
+| top8, skip shared | 113.41 | 2 | 1 |
+| top4, skip shared | 114.40 | 1 | 1 |
+| top1, skip shared | 116.91 | 0 | 1 |
+
+Even the most destructive budget cut is only `1.083x` over baseline and fails
+from the first token on the hard structured set. This closes expert-dropping as
+a 155 TPS route; the remaining path has to preserve the full top-8/shared MoE
+contract and remove kernel boundaries or add a real accepted speculation path.
+
 Copied reports:
 
 - `reports/qwen36_35b/p43_shared_gate_torch_20260518_083212.json`
@@ -603,6 +622,7 @@ Copied reports:
 - `reports/qwen36_35b/p37_moe_inplace_combo_20260518_092445.json`
 - `reports/qwen36_35b/p25_moe_inplace_combo_20260518_092538.json`
 - `reports/qwen36_35b/p37_shared_scalar_add_triton_20260518_125634_shared_scalar_add.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_moe_topk_budget_hard_20260518_125907_topk_budget_hard.json`
 
 Negative probes from the same loop:
 
