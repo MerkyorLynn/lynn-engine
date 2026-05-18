@@ -1,0 +1,46 @@
+{
+  "schema_version": "lynn-qwen36-candidate-promotion-summary-v1",
+  "candidate_name": "linear_attn_conv_inplace_strict",
+  "stamp": "20260518_152731",
+  "candidate_env": [
+    "LYNN_LINEAR_ATTN_CONV_BACKEND=triton_inplace"
+  ],
+  "thresholds": {
+    "safe_default_tps": 107.0,
+    "default_threshold": 108.0,
+    "amber_threshold": 118.0,
+    "default_requires_structured": "40/40",
+    "amber_requires_structured": "70/70"
+  },
+  "returncodes": {
+    "p37": 1,
+    "p25": 0,
+    "hard_structured": 0
+  },
+  "metrics": {
+    "p37_exact": false,
+    "p37_median_speedup": 1.0147882227655776,
+    "p25_512_decode_tps": 108.39822325765161,
+    "hard_structured_ok": true,
+    "hard_structured_decode_tps_mean": 110.42691573401275,
+    "structured_prompt_file": "scripts/qwen36_structured_hard_prompts.json",
+    "structured_prompt_count": 10,
+    "structured_request_count": 40,
+    "structured_pass_count": 40,
+    "structured_pass_rate": 1.0,
+    "structured_pass_rate_40": 1.0,
+    "structured_pass_rate_70": null,
+    "structured_40_exact": true,
+    "structured_70_exact": false
+  },
+  "reports": {
+    "p37": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_linear_attn_conv_inplace_strict_20260518_152731_p37.json",
+    "p25": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_linear_attn_conv_inplace_strict_20260518_152731_p25.json",
+    "hard_structured": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_linear_attn_conv_inplace_strict_20260518_152731_hard_structured.json",
+    "p26": null,
+    "p28": null
+  },
+  "promote_default": false,
+  "promote_amber": false,
+  "decision": "RESEARCH_ONLY: speed/format may pass, but exact-greedy drift blocks default."
+}
