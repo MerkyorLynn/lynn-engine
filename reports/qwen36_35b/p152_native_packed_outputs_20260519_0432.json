@@ -1,0 +1,138 @@
+{
+  "schema": "lynn-p152-native-packed-moe-stage-output-v1",
+  "created": "2026-05-19T03:45:23",
+  "packed_fixtures": "/root/autodl-tmp/reports/qwen36_35b/p138_packed_slot_fixtures_kimi_20260518",
+  "candidate_output_dir": "/root/autodl-tmp/reports/qwen36_35b/p152_native_packed_outputs_20260519_0432",
+  "candidate": "moe_slot_packed_nvfp4_probe",
+  "total": 18,
+  "candidate_ms_mean": 0.09035914685991076,
+  "candidate_ms_max": 0.09055071830749511,
+  "results": [
+    {
+      "fixture_file": "layer_00_prompt_00_slot_packed.safetensors",
+      "candidate_file": "layer_00_prompt_00_slot_packed.safetensors",
+      "layer_id": 0,
+      "prompt_id": 0,
+      "candidate_ms": 0.09034879684448242
+    },
+    {
+      "fixture_file": "layer_04_prompt_00_slot_packed.safetensors",
+      "candidate_file": "layer_04_prompt_00_slot_packed.safetensors",
+      "layer_id": 4,
+      "prompt_id": 0,
+      "candidate_ms": 0.09030624389648438
+    },
+    {
+      "fixture_file": "layer_08_prompt_00_slot_packed.safetensors",
+      "candidate_file": "layer_08_prompt_00_slot_packed.safetensors",
+      "layer_id": 8,
+      "prompt_id": 0,
+      "candidate_ms": 0.09031871795654296
+    },
+    {
+      "fixture_file": "layer_16_prompt_00_slot_packed.safetensors",
+      "candidate_file": "layer_16_prompt_00_slot_packed.safetensors",
+      "layer_id": 16,
+      "prompt_id": 0,
+      "candidate_ms": 0.09030048370361328
+    },
+    {
+      "fixture_file": "layer_20_prompt_00_slot_packed.safetensors",
+      "candidate_file": "layer_20_prompt_00_slot_packed.safetensors",
+      "layer_id": 20,
+      "prompt_id": 0,
+      "candidate_ms": 0.0903007984161377
+    },
+    {
+      "fixture_file": "layer_28_prompt_00_slot_packed.safetensors",
+      "candidate_file": "layer_28_prompt_00_slot_packed.safetensors",
+      "layer_id": 28,
+      "prompt_id": 0,
+      "candidate_ms": 0.09031840324401856
+    },
+    {
+      "fixture_file": "layer_32_prompt_00_slot_packed.safetensors",
+      "candidate_file": "layer_32_prompt_00_slot_packed.safetensors",
+      "layer_id": 32,
+      "prompt_id": 0,
+      "candidate_ms": 0.09029279708862305
+    },
+    {
+      "fixture_file": "layer_36_prompt_00_slot_packed.safetensors",
+      "candidate_file": "layer_36_prompt_00_slot_packed.safetensors",
+      "layer_id": 36,
+      "prompt_id": 0,
+      "candidate_ms": 0.09049728393554687
+    },
+    {
+      "fixture_file": "layer_39_prompt_00_slot_packed.safetensors",
+      "candidate_file": "layer_39_prompt_00_slot_packed.safetensors",
+      "layer_id": 39,
+      "prompt_id": 0,
+      "candidate_ms": 0.09038047790527344
+    },
+    {
+      "fixture_file": "layer_00_prompt_01_slot_packed.safetensors",
+      "candidate_file": "layer_00_prompt_01_slot_packed.safetensors",
+      "layer_id": 0,
+      "prompt_id": 1,
+      "candidate_ms": 0.09037759780883789
+    },
+    {
+      "fixture_file": "layer_04_prompt_01_slot_packed.safetensors",
+      "candidate_file": "layer_04_prompt_01_slot_packed.safetensors",
+      "layer_id": 4,
+      "prompt_id": 1,
+      "candidate_ms": 0.09028512001037597
+    },
+    {
+      "fixture_file": "layer_08_prompt_01_slot_packed.safetensors",
+      "candidate_file": "layer_08_prompt_01_slot_packed.safetensors",
+      "layer_id": 8,
+      "prompt_id": 1,
+      "candidate_ms": 0.09034144401550293
+    },
+    {
+      "fixture_file": "layer_16_prompt_01_slot_packed.safetensors",
+      "candidate_file": "layer_16_prompt_01_slot_packed.safetensors",
+      "layer_id": 16,
+      "prompt_id": 1,
+      "candidate_ms": 0.09035903930664063
+    },
+    {
+      "fixture_file": "layer_20_prompt_01_slot_packed.safetensors",
+      "candidate_file": "layer_20_prompt_01_slot_packed.safetensors",
+      "layer_id": 20,
+      "prompt_id": 1,
+      "candidate_ms": 0.09054335594177246
+    },
+    {
+      "fixture_file": "layer_28_prompt_01_slot_packed.safetensors",
+      "candidate_file": "layer_28_prompt_01_slot_packed.safetensors",
+      "layer_id": 28,
+      "prompt_id": 1,
+      "candidate_ms": 0.09029120445251465
+    },
+    {
+      "fixture_file": "layer_32_prompt_01_slot_packed.safetensors",
+      "candidate_file": "layer_32_prompt_01_slot_packed.safetensors",
+      "layer_id": 32,
+      "prompt_id": 1,
+      "candidate_ms": 0.09035264015197754
+    },
+    {
+      "fixture_file": "layer_36_prompt_01_slot_packed.safetensors",
+      "candidate_file": "layer_36_prompt_01_slot_packed.safetensors",
+      "layer_id": 36,
+      "prompt_id": 1,
+      "candidate_ms": 0.09055071830749511
+    },
+    {
+      "fixture_file": "layer_39_prompt_01_slot_packed.safetensors",
+      "candidate_file": "layer_39_prompt_01_slot_packed.safetensors",
+      "layer_id": 39,
+      "prompt_id": 1,
+      "candidate_ms": 0.09029952049255371
+    }
+  ]
+}
