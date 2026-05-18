@@ -3,8 +3,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-PY="${PY:-/root/miniconda3/envs/lynn-engine/bin/python}"
-REPORT_DIR="${REPORT_DIR:-reports/qwen36_35b}"
+PY="${PY:-/root/autodl-tmp/conda-envs/r6000-eval/bin/python}"
+REPORT_DIR="${REPORT_DIR:-/root/autodl-tmp/reports/qwen36_35b}"
 
 ARGS=(
     --report-dir "$REPORT_DIR"
