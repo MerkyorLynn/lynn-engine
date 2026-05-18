@@ -30,6 +30,16 @@ Saved as safetensors (optionally `.safetensors.gz`):
 
 **Total per fixture:** ~15.6 MB (uncompressed) vs ~49 MB BF16 slot weights.
 
+### Compression (`--compress`)
+
+p138 supports `.safetensors.gz` output (~12–14 MB, ~72% reduction vs BF16).
+
+**Rule:** Gzip is **only for offline fixture distribution and storage**. Do **not** decompress on the hot inference path. A production kernel should consume either:
+- **Uncompressed safetensors** (fast `mmap` or direct load), or
+- **A sidecar memory-mapped buffer** where packed weights are kept in GPU/CPU memory without per-token I/O.
+
+Decompressing gzip during decode adds unnecessary CPU overhead and latency. Pre-decompress offline, or keep fixtures uncompressed on fast storage.
+
 ## NVFP4 E2M1 Encoding
 
 Each byte stores two FP4-E2M1 values:
