@@ -1,0 +1,28 @@
+{
+  "schema": "lynn-p143-resident-p37-admission-v1",
+  "created": "2026-05-19T00:08:03",
+  "report_dir": "/root/autodl-tmp/reports/qwen36_35b",
+  "inputs": {
+    "stage_report": {
+      "path": "/root/autodl-tmp/reports/qwen36_35b/p142_graphsafe_v31_fixture_report.json",
+      "candidate": "moe_packed_pretransposed_graphsafe_v3",
+      "verdict": "AMBER_GRAPHSAFE",
+      "max_max_abs": 0.001953125,
+      "avg_latency_ms": 0.04404271973503961,
+      "min_cosine": 0.9999876022338867
+    },
+    "p37_report": {
+      "path": null,
+      "found": false,
+      "exact": null,
+      "collapse": null,
+      "passed": null,
+      "total": null
+    }
+  },
+  "admission": {
+    "verdict": "WAITING_FOR_P37_REPORT",
+    "reason": "P37 report not found",
+    "default_promote_allowed": false
+  }
+}
