@@ -6,10 +6,13 @@ single JSON + Markdown table with per-candidate verdict and next-step
 recommendation.
 
 Auto-discovers reports by naming convention in --report-dir.
+Optionally merges reports from extra directories (--extra-report-dir) to
+pick up candidates from other worktrees (e.g. TensorCore probes).
 
 Usage:
   python scripts/summarize_qwen36_native_moe_candidates.py \\
     --report-dir reports/qwen36_35b \\
+    --extra-report-dir /path/to/other/reports/qwen36_35b \\
     --out reports/qwen36_35b/native_moe_candidate_summary.json \\
     --md-out reports/qwen36_35b/native_moe_candidate_summary.md
 """
@@ -47,9 +50,13 @@ def _load_json(path: Path) -> dict[str, Any] | None:
         return None
 
 
-def _find_latest(rd: Path, pattern: str) -> Path | None:
-    matches = sorted(rd.glob(pattern), key=lambda p: p.stat().st_mtime)
-    return matches[-1] if matches else None
+def _find_latest_in_dirs(dirs: list[Path], pattern: str) -> Path | None:
+    """Search multiple dirs in order; return the first match found."""
+    for d in dirs:
+        matches = sorted(d.glob(pattern), key=lambda p: p.stat().st_mtime)
+        if matches:
+            return matches[-1]
+    return None
 
 
 def _agg_cosine_min(data: dict[str, Any]) -> float | None:
@@ -91,7 +98,8 @@ def _agg_unique_max_abs(data: dict[str, Any]) -> float | None:
 
 def _classify(slot_abs: float | None, cos_min: float | None,
               lat: float | None, uniq_abs: float | None,
-              p140_recommend_p37: bool) -> tuple[str, str]:
+              p140_recommend_p37: bool,
+              pretransposed: bool = False) -> tuple[str, str]:
     """Return (verdict, recommend_next_step)."""
     if slot_abs is None or lat is None:
         return "MISSING", "no data"
@@ -106,9 +114,10 @@ def _classify(slot_abs: float | None, cos_min: float | None,
     if (lat <= AMBER_LATENCY_MS
             and slot_abs <= AMBER_SLOT_MAX_ABS
             and (uniq_abs is None or uniq_abs <= AMBER_UNIQUE_MAX_ABS)):
+        amber_label = "AMBER_FAST_PRETRANSPOSED" if pretransposed else "AMBER_FAST"
         if p140_recommend_p37:
-            return "AMBER_FAST", "P37 exploratory"
-        return "AMBER_FAST", "await P140 gate clearance"
+            return amber_label, "P37 exploratory"
+        return amber_label, "await P140 gate clearance"
 
     # Slow but exact
     if slot_abs == 0.0:
@@ -156,6 +165,8 @@ CANDIDATES = [
         "label": "native_slot_tc_bf16 (TensorCore probe)",
         "patterns": [
             "native_slot_tc_bf16*report*.json",
+            "native_slot_tensorcore_probe*report*.json",
+            "native_slot_tensorcore_probe*.json",
         ],
     },
     {
@@ -163,7 +174,18 @@ CANDIDATES = [
         "label": "native_slot_fused_bf16 (fused probe)",
         "patterns": [
             "native_slot_fused*report*.json",
+            "native_slot_tensorcore_fused_probe*report*.json",
+            "native_slot_tensorcore_fused_probe*.json",
         ],
+    },
+    {
+        "id": "native_slot_tensorcore_pretransposed_probe",
+        "label": "native_slot_tensorcore_pretransposed_probe (p139b)",
+        "patterns": [
+            "native_slot_tensorcore_pretransposed_probe*report*.json",
+            "native_slot_tensorcore_pretransposed_probe*.json",
+        ],
+        "pretransposed": True,
     },
 ]
 
@@ -172,25 +194,32 @@ CANDIDATES = [
 # Main
 # ─────────────────────────────────────────────────────────────
 
-def gather(report_dir: Path) -> dict[str, Any]:
-    """Gather all candidate data into a unified report."""
+def gather(report_dir: Path,
+           extra_dirs: list[Path] | None = None) -> dict[str, Any]:
+    """Gather all candidate data into a unified report.
+
+    ``report_dir`` is the primary search directory.  ``extra_dirs`` are
+    consulted in order when a report is not found locally.
+    """
+    search_dirs = [report_dir] + (extra_dirs or [])
+
     # ── p136 ──
-    p136_file = _find_latest(report_dir,
-                              "p136_slot_repack_contract_slotorder_report*.json")
+    p136_file = _find_latest_in_dirs(
+        search_dirs, "p136_slot_repack_contract_slotorder_report*.json")
     p136_data = _load_json(p136_file) if p136_file else None
 
-    # ── p140 gate ──
+    # ── p140 gate (local only — it is branch-specific) ──
     p140_file = report_dir / "p140_native_moe_risk_gate.json"
     p140_data = _load_json(p140_file)
     p140_recommend_p37 = bool(
         p140_data and p140_data.get("recommend_p37_exploratory"))
 
     # ── p137 (slot-order preferred) ──
-    p137_file = _find_latest(report_dir,
-                              "p137_moe_slot_stage_diagnostics*slotorder*.json")
+    p137_file = _find_latest_in_dirs(
+        search_dirs, "p137_moe_slot_stage_diagnostics*slotorder*.json")
     if not p137_file:
-        p137_file = _find_latest(
-            report_dir, "p137_moe_slot_stage_diagnostics*.json")
+        p137_file = _find_latest_in_dirs(
+            search_dirs, "p137_moe_slot_stage_diagnostics*.json")
     p137_data = _load_json(p137_file) if p137_file else None
 
     # ── Candidates ──
@@ -198,7 +227,7 @@ def gather(report_dir: Path) -> dict[str, Any]:
     for spec in CANDIDATES:
         report_path = None
         for pat in spec["patterns"]:
-            report_path = _find_latest(report_dir, pat)
+            report_path = _find_latest_in_dirs(search_dirs, pat)
             if report_path:
                 break
 
@@ -233,9 +262,11 @@ def gather(report_dir: Path) -> dict[str, Any]:
         uniq_abs = _agg_unique_max_abs(data)
         cos_min = _agg_cosine_min(data)
         lat = data.get("avg_latency_ms")
+        pretransposed = bool(spec.get("pretransposed"))
 
         verdict, next_step = _classify(
-            slot_abs, cos_min, lat, uniq_abs, p140_recommend_p37)
+            slot_abs, cos_min, lat, uniq_abs, p140_recommend_p37,
+            pretransposed=pretransposed)
 
         candidates.append({
             "id": spec["id"],
@@ -251,12 +282,13 @@ def gather(report_dir: Path) -> dict[str, Any]:
 
     # ── Assemble ──
     any_default = any(c["verdict"] == "DEFAULT" for c in candidates)
-    any_amber = any(c["verdict"] == "AMBER_FAST" for c in candidates)
+    any_amber = any(c["verdict"].startswith("AMBER_FAST") for c in candidates)
 
     return {
-        "schema": "lynn-native-moe-candidate-summary-v1",
+        "schema": "lynn-native-moe-candidate-summary-v2",
         "created": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "report_dir": str(report_dir),
+        "extra_report_dirs": [str(d) for d in (extra_dirs or [])],
         "p136": {
             "report": str(p136_file) if p136_file else None,
             "verdict": p136_data.get("verdict") if p136_data else None,
@@ -285,6 +317,9 @@ def gather(report_dir: Path) -> dict[str, Any]:
             "has_amber_candidate": any_amber,
             "best_verdict": (
                 "DEFAULT" if any_default
+                else "AMBER_FAST_PRETRANSPOSED" if any(
+                    c["verdict"] == "AMBER_FAST_PRETRANSPOSED"
+                    for c in candidates)
                 else "AMBER_FAST" if any_amber
                 else "CLOSED"
             ),
@@ -340,6 +375,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         badge = {
             "DEFAULT": "🟢",
             "AMBER_FAST": "🟡",
+            "AMBER_FAST_PRETRANSPOSED": "🟡",
             "EXACT_SLOW": "🔵",
             "CLOSED": "🔴",
             "MISSING": "⚪",
@@ -352,7 +388,8 @@ def render_markdown(report: dict[str, Any]) -> str:
 
     # Overall
     summ = report["summary"]
-    badge = {"DEFAULT": "🟢", "AMBER_FAST": "🟡", "CLOSED": "🔴"}.get(
+    badge = {"DEFAULT": "🟢", "AMBER_FAST": "🟡",
+             "AMBER_FAST_PRETRANSPOSED": "🟡", "CLOSED": "🔴"}.get(
         summ["best_verdict"], "⚪")
     lines.append("## Overall")
     lines.append("")
@@ -375,6 +412,10 @@ def main() -> int:
     ap = argparse.ArgumentParser(
         description="Unified Native MoE candidate summary")
     ap.add_argument("--report-dir", default="reports/qwen36_35b")
+    ap.add_argument("--extra-report-dir", action="append", default=[],
+                    metavar="DIR",
+                    help="Additional report directories to search "
+                         "(can be repeated)")
     ap.add_argument("--out", default=None)
     ap.add_argument("--md-out", default=None)
     args = ap.parse_args()
@@ -384,7 +425,9 @@ def main() -> int:
         print(f"[summary] ERROR: {report_dir} not found", file=sys.stderr)
         return 1
 
-    report = gather(report_dir)
+    extra_dirs = [Path(d) for d in args.extra_report_dir if Path(d).is_dir()]
+
+    report = gather(report_dir, extra_dirs=extra_dirs)
 
     out_json = Path(args.out or report_dir / "native_moe_candidate_summary.json")
     out_json.parent.mkdir(parents=True, exist_ok=True)
@@ -398,14 +441,16 @@ def main() -> int:
     print(" NATIVE MOE CANDIDATE SUMMARY")
     print(f"{'='*80}")
     for c in report["candidates"]:
-        badge = {"DEFAULT": "🟢", "AMBER_FAST": "🟡", "EXACT_SLOW": "🔵",
+        badge = {"DEFAULT": "🟢", "AMBER_FAST": "🟡",
+                 "AMBER_FAST_PRETRANSPOSED": "🟡", "EXACT_SLOW": "🔵",
                  "CLOSED": "🔴", "MISSING": "⚪"}.get(c["verdict"], "❓")
         lat = f"{c['avg_latency_ms']:.4f}ms" if c.get("avg_latency_ms") else "—"
         sa = f"{c['slot_max_abs']:.2e}" if c.get("slot_max_abs") is not None else "—"
         print(f"  {badge} {c['verdict']:<12} lat={lat:<12} abs={sa:<12} {c['recommend_next_step']}")
     print(f"{'='*80}")
     summ = report["summary"]
-    badge = {"DEFAULT": "🟢", "AMBER_FAST": "🟡", "CLOSED": "🔴"}.get(
+    badge = {"DEFAULT": "🟢", "AMBER_FAST": "🟡",
+             "AMBER_FAST_PRETRANSPOSED": "🟡", "CLOSED": "🔴"}.get(
         summ["best_verdict"], "⚪")
     print(f"  BEST: {badge} {summ['best_verdict']}")
     print(f"{'='*80}")

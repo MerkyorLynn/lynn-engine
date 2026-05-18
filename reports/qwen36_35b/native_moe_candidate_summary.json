@@ -1,7 +1,10 @@
 {
-  "schema": "lynn-native-moe-candidate-summary-v1",
-  "created": "2026-05-18T22:35:24",
+  "schema": "lynn-native-moe-candidate-summary-v2",
+  "created": "2026-05-18T22:43:04",
   "report_dir": "reports/qwen36_35b",
+  "extra_report_dirs": [
+    "/Users/lynn/Downloads/Lynn/lynn-engine-main/reports/qwen36_35b"
+  ],
   "p136": {
     "report": "reports/qwen36_35b/p136_slot_repack_contract_slotorder_report_20260518.json",
     "verdict": "GREEN",
@@ -66,31 +69,40 @@
     {
       "id": "native_slot_tc_bf16",
       "label": "native_slot_tc_bf16 (TensorCore probe)",
-      "report": null,
-      "status": "MISSING",
-      "slot_max_abs": null,
+      "report": "/Users/lynn/Downloads/Lynn/lynn-engine-main/reports/qwen36_35b/native_slot_tensorcore_probe_r6000_20260518.json",
+      "slot_max_abs": 0.001953125,
       "unique_max_abs": null,
-      "cosine_min": null,
-      "avg_latency_ms": null,
-      "verdict": "MISSING",
-      "recommend_next_step": "no report found"
+      "cosine_min": 0.9999891519546509,
+      "avg_latency_ms": 0.24557960722181532,
+      "verdict": "CLOSED",
+      "recommend_next_step": "no further action"
     },
     {
       "id": "native_slot_fused_bf16",
       "label": "native_slot_fused_bf16 (fused probe)",
-      "report": null,
-      "status": "MISSING",
-      "slot_max_abs": null,
+      "report": "/Users/lynn/Downloads/Lynn/lynn-engine-main/reports/qwen36_35b/native_slot_tensorcore_fused_probe_r6000_20260518.json",
+      "slot_max_abs": 0.001953125,
       "unique_max_abs": null,
-      "cosine_min": null,
-      "avg_latency_ms": null,
-      "verdict": "MISSING",
-      "recommend_next_step": "no report found"
+      "cosine_min": 0.9999891519546509,
+      "avg_latency_ms": 0.10877379523383246,
+      "verdict": "CLOSED",
+      "recommend_next_step": "no further action"
+    },
+    {
+      "id": "native_slot_tensorcore_pretransposed_probe",
+      "label": "native_slot_tensorcore_pretransposed_probe (p139b)",
+      "report": "/Users/lynn/Downloads/Lynn/lynn-engine-main/reports/qwen36_35b/native_slot_tensorcore_pretransposed_probe_r6000_20260518.json",
+      "slot_max_abs": 0.001953125,
+      "unique_max_abs": null,
+      "cosine_min": 0.9999890923500061,
+      "avg_latency_ms": 0.05266247987747193,
+      "verdict": "AMBER_FAST_PRETRANSPOSED",
+      "recommend_next_step": "P37 exploratory"
     }
   ],
   "summary": {
     "has_default_candidate": false,
     "has_amber_candidate": true,
-    "best_verdict": "AMBER_FAST"
+    "best_verdict": "AMBER_FAST_PRETRANSPOSED"
   }
 }
