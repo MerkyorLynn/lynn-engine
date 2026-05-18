@@ -37,6 +37,7 @@ COMMON_ENV = {
     "LYNN_LINEAR_ATTN_RECURRENT_BACKEND": "triton_fused_prepare",
     "LYNN_LINEAR_ATTN_RECURRENT_INPLACE": "1",
     "LYNN_LINEAR_ATTN_GQA_RECURRENT": "1",
+    "LYNN_LINEAR_ATTN_CONV_BACKEND": "triton_torch_silu",
     "LYNN_MOE_IMPL": "packed_nvfp4",
     "LYNN_MOE_FAST_FIXED": "1",
     "LYNN_MOE_GATE_BLOCK_INTER": "8",

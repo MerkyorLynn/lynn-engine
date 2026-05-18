@@ -357,7 +357,9 @@ def _decode_layer(
             recurrent_target = state.recurrent_state[layer_idx]
             if recurrent_target.data_ptr() != new_state.data_ptr():
                 recurrent_target.copy_(new_state)
-            state.conv_state[layer_idx].copy_(new_conv)
+            conv_target = state.conv_state[layer_idx]
+            if conv_target.data_ptr() != new_conv.data_ptr():
+                conv_target.copy_(new_conv)
         else:
             state.update_linear_attn_state(layer_idx, new_state, new_conv)
     else:

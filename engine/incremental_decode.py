@@ -41,6 +41,11 @@ except Exception:  # pragma: no cover - optional acceleration path.
     rms_norm_gated_triton = None
 
 try:
+    from triton_kernels.linear_conv import linear_conv1d_update_triton
+except Exception:  # pragma: no cover - optional acceleration path.
+    linear_conv1d_update_triton = None
+
+try:
     from triton_kernels.qk_norm_rope import qk_norm_rope_pair_triton, qk_norm_rope_triton
 except Exception:  # pragma: no cover - optional acceleration path.
     qk_norm_rope_pair_triton = None
@@ -86,6 +91,31 @@ def _rms_norm_gated_decode(x: torch.Tensor, weight: torch.Tensor, gate: torch.Te
     if backend != "torch":
         raise ValueError(f"unknown LYNN_RMSNORM_GATED_BACKEND={backend!r}")
     return rms_norm_gated(x, weight, gate, eps=RMS_EPS)
+
+
+def _linear_conv_update_decode(
+    mixed_new: torch.Tensor,
+    conv_state: torch.Tensor,
+    conv_weight: torch.Tensor,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    backend = os.environ.get("LYNN_LINEAR_ATTN_CONV_BACKEND", "torch")
+    if backend in {"triton", "triton_inplace", "triton_torch_silu", "triton_torch_silu_inplace"}:
+        if linear_conv1d_update_triton is None:
+            raise RuntimeError("LYNN_LINEAR_ATTN_CONV_BACKEND requested but Triton kernel is unavailable")
+        return linear_conv1d_update_triton(
+            mixed_new,
+            conv_state,
+            conv_weight,
+            inplace=backend.endswith("_inplace"),
+            torch_silu=backend.startswith("triton_torch_silu"),
+        )
+    if backend != "torch":
+        raise ValueError(f"unknown LYNN_LINEAR_ATTN_CONV_BACKEND={backend!r}")
+    conv_input = torch.cat([conv_state, mixed_new], dim=-1)
+    out_conv = F.conv1d(conv_input, conv_weight, bias=None, padding=0, groups=mixed_new.shape[1])
+    out_conv = F.silu(out_conv).transpose(1, 2)
+    new_conv_state = conv_input[:, :, 1:].contiguous()
+    return out_conv, new_conv_state
 
 
 def _qk_norm_rope_decode(x: torch.Tensor, weight: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor, rotary_dim: int) -> torch.Tensor:
@@ -514,16 +544,13 @@ def decode_linear_attn(h_new, w, recurrent_state, conv_state, *, recurrent_backe
         a = _linear(h_new, W("linear_attn.in_proj_a.weight"))
     mixed_new = mixed_new.transpose(1, 2)                              # [B, conv_dim, 1]
 
-    # 2. Causal conv1d update: prepend conv_state to mixed_new, run conv, take last 1 output
-    conv_input = torch.cat([conv_state, mixed_new], dim=-1)            # [B, conv_dim, kernel]
-    conv_w = W("linear_attn.conv1d.weight")
-    out_conv = F.conv1d(conv_input, conv_w, bias=None, padding=0,
-                        groups=mixed_new.shape[1])                     # [B, conv_dim, 1]
-    out_conv = F.silu(out_conv)
-    out_conv = out_conv.transpose(1, 2)                                # [B, 1, conv_dim]
-
-    # New conv_state = last (kernel-1) tokens of input (mixed_new is 1 new, conv_state is past)
-    new_conv_state = conv_input[:, :, 1:].contiguous()                  # drop oldest
+    # 2. Causal conv1d update: prepend conv_state to mixed_new, run conv, take last 1 output.
+    # Triton opt-in can fuse cat + depthwise conv + silu + state shift.
+    out_conv, new_conv_state = _linear_conv_update_decode(
+        mixed_new,
+        conv_state,
+        W("linear_attn.conv1d.weight"),
+    )
 
     # 3. Split q/k/v
     q, k, v = torch.split(out_conv, [KEY_DIM, KEY_DIM, VALUE_DIM], dim=-1)

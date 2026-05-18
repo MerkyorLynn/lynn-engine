@@ -247,6 +247,34 @@ in-proj plus the conv/recurrent setup rather than repeat materialization.
 | QKV split/no-repeat | 0.0072 ms | 0.0072 ms |
 | Full recomposed core | 0.3111 ms | 0.3101 ms |
 
+### Triton Conv Promotion
+
+`LYNN_LINEAR_ATTN_CONV_BACKEND=triton_torch_silu` is now the quality-safe conv
+decode path. The pure Triton SILU variants were faster locally but failed the
+P37 greedy gate. The promoted variant fuses `cat + depthwise conv + conv-state
+shift` in Triton, then keeps SILU on the Torch BF16 path; that preserves greedy
+tokens while still removing the expensive grouped `conv1d` call.
+
+| Probe | Result |
+|---|---:|
+| P10-C torch conv, layer 0 / 28 | 0.0332 / 0.0325 ms |
+| P10-C Triton conv, layer 0 / 28 | 0.0260 / 0.0259 ms |
+| P10-C Triton-inplace conv, layer 0 / 28 | 0.0241 / 0.0240 ms |
+| P37 `triton_torch_silu` greedy parity | 3/3 exact |
+| P37 median decode TPS | 102.94 -> 106.24 |
+| P37 median speedup | 1.032x |
+| P25 128-token wall / decode TPS | 54.67 / 102.74 |
+| P25 256-token wall / decode TPS | 79.83 / 104.71 |
+| P25 512-token wall / decode TPS | 86.95 / 104.73 |
+| Structured OpenAI gate | GREEN, 14/14 format-clean |
+| Structured gate decode TPS | mean 104.76, min 103.87 |
+
+The server watch script also now pins
+`LYNN_LINEAR_ATTN_RECURRENT_BACKEND=triton_fused_prepare` and
+`LYNN_LINEAR_ATTN_RECURRENT_INPLACE=1` explicitly. A manual service rerun that
+omitted those envs fell back to the torch recurrent path and dropped to about
+90 decode TPS, so this is a reproducibility fix as well as a conv promotion.
+
 ### Fast Dispatch Pin
 
 P36 was rerun after the GQA recurrent promotion to make sure the runner-fixed
@@ -270,6 +298,18 @@ Copied reports:
 - `reports/qwen36_35b/r6000_qwen36_w4a16_gqa_recurrent_openai_structured_gate_20260518_052455.json`
 - `reports/qwen36_35b/p10c_gqa_fused_cache_layer0_20260518_072610.json`
 - `reports/qwen36_35b/p10c_gqa_fused_cache_layer28_20260518_072610.json`
+- `reports/qwen36_35b/p10c_conv_torch_layer0_20260518_075306.json`
+- `reports/qwen36_35b/p10c_conv_torch_layer28_20260518_075306.json`
+- `reports/qwen36_35b/p10c_conv_triton_layer0_20260518_075306.json`
+- `reports/qwen36_35b/p10c_conv_triton_layer28_20260518_075306.json`
+- `reports/qwen36_35b/p10c_conv_triton_inplace_layer0_20260518_075306.json`
+- `reports/qwen36_35b/p10c_conv_triton_inplace_layer28_20260518_075306.json`
+- `reports/qwen36_35b/p37_conv_triton_gate_20260518_075613.json`
+- `reports/qwen36_35b/p37_conv_triton_inplace_gate_20260518_075512.json`
+- `reports/qwen36_35b/p37_conv_triton_torch_silu_gate_20260518_075752.json`
+- `reports/qwen36_35b/p37_conv_triton_torch_silu_inplace_gate_20260518_075752.json`
+- `reports/qwen36_35b/p25_server_conv_triton_recurrent_20260518_080129.json`
+- `reports/qwen36_35b/structured_gate_conv_triton_recurrent_20260518_080129.json`
 - `reports/qwen36_35b/p36_fast_dispatch_gqa_20260518_072216.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_gqa_recurrent_p10c_linear_layer0_20260518_052949.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_gqa_recurrent_p10c_linear_layer28_20260518_052949.json`

@@ -17,7 +17,7 @@ sys.path.insert(0, str(ROOT))
 
 from engine.full_forward import _prefill_layer, _rms_norm  # noqa: E402
 from engine.inference_state import LAYER_TYPES, LynnInferenceState  # noqa: E402
-from engine.incremental_decode import _linear, _rms_norm_gated_decode  # noqa: E402
+from engine.incremental_decode import _linear, _linear_conv_update_decode, _rms_norm_gated_decode  # noqa: E402
 from engine.qwen36_linear_attn_block import (  # noqa: E402
     HEAD_K_DIM,
     HEAD_V_DIM,
@@ -101,15 +101,7 @@ def main() -> int:
     )
 
     def conv_update():
-        conv_input = torch.cat([state.conv_state[args.layer], mixed_new_t], dim=-1)
-        out_conv = F.conv1d(
-            conv_input,
-            w["linear_attn.conv1d.weight"],
-            bias=None,
-            padding=0,
-            groups=mixed_new_t.shape[1],
-        )
-        return F.silu(out_conv).transpose(1, 2), conv_input[:, :, 1:].contiguous()
+        return _linear_conv_update_decode(mixed_new_t, state.conv_state[args.layer], w["linear_attn.conv1d.weight"])
 
     out_conv, _ = conv_update()
 
@@ -149,15 +141,7 @@ def main() -> int:
     def full_core():
         mixed, z0, b0, a0 = fused_inproj()
         mixed_t = mixed.transpose(1, 2)
-        conv_input = torch.cat([state.conv_state[args.layer], mixed_t], dim=-1)
-        conv = F.conv1d(
-            conv_input,
-            w["linear_attn.conv1d.weight"],
-            bias=None,
-            padding=0,
-            groups=mixed_t.shape[1],
-        )
-        conv = F.silu(conv).transpose(1, 2)
+        conv, _ = _linear_conv_update_decode(mixed_t, state.conv_state[args.layer], w["linear_attn.conv1d.weight"])
         q0, k0, v0 = torch.split(conv, [KEY_DIM, KEY_DIM, VALUE_DIM], dim=-1)
         q0 = q0.reshape(B, 1, NUM_K_HEADS, HEAD_K_DIM)
         k0 = k0.reshape(B, 1, NUM_K_HEADS, HEAD_K_DIM)
