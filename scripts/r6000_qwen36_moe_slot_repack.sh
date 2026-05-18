@@ -28,10 +28,12 @@ PY="${PY:-/root/autodl-tmp/conda-envs/r6000-eval/bin/python}"
 MODEL_DIR="${MODEL_DIR:-/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0}"
 P133_FIXTURES="${P133_FIXTURES:-/root/autodl-tmp/reports/qwen36_35b/p133_fixtures_official_w4a16}"
 P135_OUT="${P135_OUT:-/root/autodl-tmp/reports/qwen36_35b/p135_repacked_fixtures_official_w4a16}"
+P138_OUT="${P138_OUT:-/root/autodl-tmp/reports/qwen36_35b/p138_packed_slot_fixtures}"
 REPORT_DIR="${REPORT_DIR:-/root/autodl-tmp/reports/qwen36_35b}"
 DEVICE="${DEVICE:-cuda}"
 DTYPE="${DTYPE:-bf16}"
 RUN_NATIVE_SLOT_CANDIDATE="${RUN_NATIVE_SLOT_CANDIDATE:-1}"
+RUN_P138_P139="${RUN_P138_P139:-1}"
 NATIVE_BUILD_DIR="${NATIVE_BUILD_DIR:-/tmp/lynn_engine_native_build/slot_output_owned_bf16}"
 
 echo "═══════════════════════════════════════════════════════════════════════"
@@ -43,9 +45,11 @@ echo " Python:      ${PY}"
 echo " Model:       ${MODEL_DIR}"
 echo " p133 input:  ${P133_FIXTURES}"
 echo " p135 output: ${P135_OUT}"
+echo " p138 output: ${P138_OUT}"
 echo " Device:      ${DEVICE}"
 echo " Dtype:       ${DTYPE}"
 echo " Candidate:   ${RUN_NATIVE_SLOT_CANDIDATE}"
+echo " p138/p139:   ${RUN_P138_P139}"
 echo ""
 
 # ── Verify prerequisites ──
@@ -93,6 +97,12 @@ echo "  p136: OK"
 if [ "${RUN_NATIVE_SLOT_CANDIDATE}" = "1" ]; then
     "${PY}" -m py_compile benchmarks/candidates/native_slot_output_owned_bf16.py
     echo "  native_slot_output_owned_bf16: OK"
+fi
+if [ "${RUN_P138_P139}" = "1" ]; then
+    "${PY}" -m py_compile benchmarks/p138_pack_moe_fixture_slots_nvfp4.py
+    echo "  p138: OK"
+    "${PY}" -m py_compile benchmarks/p139_moe_slot_packed_contract.py
+    echo "  p139: OK"
 fi
 echo ""
 
@@ -212,7 +222,75 @@ elif [ "${RUN_NATIVE_SLOT_CANDIDATE}" = "1" ]; then
     echo ""
 fi
 
-# ── Step 4: Summary ──
+# ── Step 4: Packed slot export (p138) ──
+P138_EXIT=0
+P138_ELAPSED=0
+
+if [ "${RUN_P138_P139}" = "1" ]; then
+    echo "═══════════════════════════════════════════════════════════════════════"
+    echo " STEP 4: Packed slot export (p138)"
+    echo "═══════════════════════════════════════════════════════════════════════"
+    echo ""
+
+    mkdir -p "${P138_OUT}"
+
+    P138_START=$(date +%s)
+
+    set +e
+    "${PY}" benchmarks/p138_pack_moe_fixture_slots_nvfp4.py \
+        --fixtures "${P133_FIXTURES}" \
+        --model-dir "${MODEL_DIR}" \
+        --out "${P138_OUT}" \
+        --device "${DEVICE}"
+    P138_EXIT=$?
+    set -e
+    P138_END=$(date +%s)
+    P138_ELAPSED=$((P138_END - P138_START))
+
+    echo ""
+    echo "  p138 completed in ${P138_ELAPSED}s (exit code: ${P138_EXIT})"
+    echo ""
+
+    PACKED_COUNT=$(find "${P138_OUT}" -name "*.safetensors*" | wc -l | tr -d ' ')
+    echo "  Packed fixtures: ${PACKED_COUNT}"
+
+    if [ "${P138_EXIT}" -ne 0 ]; then
+        echo "  WARNING: p138 packed export failed."
+    fi
+    echo ""
+fi
+
+# ── Step 5: Packed slot decode contract (p139) ──
+P139_EXIT=0
+P139_ELAPSED=0
+
+if [ "${RUN_P138_P139}" = "1" ] && [ "${P138_EXIT}" -eq 0 ]; then
+    echo "═══════════════════════════════════════════════════════════════════════"
+    echo " STEP 5: Packed slot decode contract (p139)"
+    echo "═══════════════════════════════════════════════════════════════════════"
+    echo ""
+    echo "  Expected: ALL fixtures exact match (max_abs == 0)"
+    echo ""
+
+    P139_START=$(date +%s)
+
+    set +e
+    "${PY}" benchmarks/p139_moe_slot_packed_contract.py \
+        --p138-fixtures "${P138_OUT}" \
+        --p135-fixtures "${P135_OUT}" \
+        --device "${DEVICE}" \
+        --out "${REPORT_DIR}/p139_slot_packed_contract_report.json"
+    P139_EXIT=$?
+    set -e
+    P139_END=$(date +%s)
+    P139_ELAPSED=$((P139_END - P139_START))
+
+    echo ""
+    echo "  p139 completed in ${P139_ELAPSED}s (exit code: ${P139_EXIT})"
+    echo ""
+fi
+
+# ── Step 6: Summary ──
 echo "═══════════════════════════════════════════════════════════════════════"
 echo " SUMMARY"
 echo "═══════════════════════════════════════════════════════════════════════"
@@ -220,7 +298,14 @@ echo ""
 echo "  Slot repack (p135):         ${P135_ELAPSED}s"
 echo "  Contract check (p136):      ${P136_ELAPSED}s"
 echo "  Native slot candidate:      ${NATIVE_ELAPSED}s"
+if [ "${RUN_P138_P139}" = "1" ]; then
+    echo "  Packed export (p138):       ${P138_ELAPSED}s"
+    echo "  Packed contract (p139):     ${P139_ELAPSED}s"
+fi
 echo "  Fixtures repacked:          ${REPACK_COUNT} files"
+if [ "${RUN_P138_P139}" = "1" ]; then
+    echo "  Fixtures packed:            ${PACKED_COUNT} files"
+fi
 echo ""
 
 if [ "${P136_EXIT}" -eq 0 ]; then
@@ -248,11 +333,15 @@ echo "    ${REPORT_DIR}/p136_slot_repack_contract_report.json"
 if [ "${RUN_NATIVE_SLOT_CANDIDATE}" = "1" ]; then
     echo "    ${NATIVE_REPORT}"
 fi
+if [ "${RUN_P138_P139}" = "1" ]; then
+    echo "    ${P138_OUT}/manifest.json"
+    echo "    ${REPORT_DIR}/p139_slot_packed_contract_report.json"
+fi
 echo "    ${SUMMARY_REPORT}"
 echo ""
 echo "═══════════════════════════════════════════════════════════════════════"
 
-"${PY}" - "${P135_OUT}/manifest.json" "${REPORT_DIR}/p136_slot_repack_contract_report.json" "${NATIVE_REPORT}" "${SUMMARY_REPORT}" "${RUN_NATIVE_SLOT_CANDIDATE}" "${NATIVE_EXIT}" <<'PY'
+"${PY}" - "${P135_OUT}/manifest.json" "${REPORT_DIR}/p136_slot_repack_contract_report.json" "${NATIVE_REPORT}" "${SUMMARY_REPORT}" "${RUN_NATIVE_SLOT_CANDIDATE}" "${NATIVE_EXIT}" "${P138_OUT}/manifest.json" "${REPORT_DIR}/p139_slot_packed_contract_report.json" "${RUN_P138_P139}" "${P138_EXIT}" "${P139_EXIT}" <<'PY'
 import json
 import sys
 import time
@@ -264,6 +353,11 @@ native_path = Path(sys.argv[3])
 summary_path = Path(sys.argv[4])
 run_native = sys.argv[5] == "1"
 native_exit = int(sys.argv[6])
+p138_manifest_path = Path(sys.argv[7])
+p139_path = Path(sys.argv[8])
+run_p138 = sys.argv[9] == "1"
+p138_exit = int(sys.argv[10]) if sys.argv[10] else 0
+p139_exit = int(sys.argv[11]) if sys.argv[11] else 0
 
 def load_optional(path: Path):
     if not path.exists():
@@ -273,6 +367,9 @@ def load_optional(path: Path):
 manifest = load_optional(manifest_path) or {}
 p136 = load_optional(p136_path) or {}
 native = load_optional(native_path) if run_native and native_exit == 0 else None
+p138_manifest = load_optional(p138_manifest_path) if run_p138 and p138_exit == 0 else None
+p139 = load_optional(p139_path) if run_p138 and p139_exit == 0 else None
+
 summary = {
     "schema": "lynn-r6000-qwen36-moe-slot-repack-summary-v1",
     "created": time.strftime("%Y-%m-%dT%H:%M:%S"),
@@ -291,6 +388,8 @@ summary = {
         "slot_repack_ms_mean": p136.get("slot_repack_ms_mean"),
     },
     "native_slot_output_owned_bf16": None,
+    "p138": None,
+    "p139": None,
 }
 if native is not None:
     summary["native_slot_output_owned_bf16"] = {
@@ -304,6 +403,26 @@ if native is not None:
             if native.get("avg_latency_ms", 999) < native.get("triton_baseline_ms", 0.059)
             else "SLOW_OR_UNKNOWN"
         ),
+    }
+if p138_manifest is not None:
+    summary["p138"] = {
+        "manifest": str(p138_manifest_path),
+        "num_fixtures": p138_manifest.get("num_fixtures"),
+        "packed_bytes_per_fixture": (
+            p138_manifest["fixtures"][0].get("packed_bytes")
+            if p138_manifest.get("fixtures")
+            else None
+        ),
+    }
+if p139 is not None:
+    summary["p139"] = {
+        "report": str(p139_path),
+        "verdict": p139.get("verdict"),
+        "passed": p139.get("passed"),
+        "total": p139.get("total"),
+        "max_abs_max": p139.get("max_abs_max"),
+        "load_ms_mean": p139.get("load_ms_mean"),
+        "unpack_ms_mean": p139.get("unpack_ms_mean"),
     }
 summary_path.parent.mkdir(parents=True, exist_ok=True)
 summary_path.write_text(json.dumps(summary, indent=2) + "\n")
