@@ -1,0 +1,62 @@
+{
+  "schema_version": "lynn-engine-p25-server-decode-tps-probe-v1",
+  "url": "http://127.0.0.1:18171/v1",
+  "model": "Qwen36-35B-W4A16-smoke_safe_default128-20260518_130951_promotion_smoke128",
+  "chat": false,
+  "prompt_chars": 66,
+  "results": [
+    {
+      "wall_s": 5.546327114105225,
+      "completion_tokens": 512,
+      "wall_tps": 92.31334349138902,
+      "metrics_tokens_per_second": 92.49132073787919,
+      "decode_tps": 107.07446040858055,
+      "prefill_seconds": 0.6993532180786133,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.09976387023925781,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 511,
+      "decode_step_ms_mean": 9.33929525476146,
+      "decode_step_ms_median": 9.305238723754883,
+      "preview": "\n\n<think>\nHere's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Topic:** MoE (Mixture of Experts) inference optimization, NVFP4, CUDA Graph, and Tool C",
+      "max_tokens": 512,
+      "run_idx": 0
+    }
+  ],
+  "summary_by_max_tokens": {
+    "512": {
+      "runs": 1,
+      "wall_tps": {
+        "mean": 92.31334349138902,
+        "median": 92.31334349138902,
+        "min": 92.31334349138902,
+        "max": 92.31334349138902
+      },
+      "metrics_tokens_per_second": {
+        "mean": 92.49132073787919,
+        "median": 92.49132073787919,
+        "min": 92.49132073787919,
+        "max": 92.49132073787919
+      },
+      "decode_tps": {
+        "mean": 107.07446040858055,
+        "median": 107.07446040858055,
+        "min": 107.07446040858055,
+        "max": 107.07446040858055
+      },
+      "prefill_seconds": {
+        "mean": 0.6993532180786133,
+        "median": 0.6993532180786133,
+        "min": 0.6993532180786133,
+        "max": 0.6993532180786133
+      },
+      "decode_step_ms_median": {
+        "mean": 9.305238723754883,
+        "median": 9.305238723754883,
+        "min": 9.305238723754883,
+        "max": 9.305238723754883
+      }
+    }
+  }
+}

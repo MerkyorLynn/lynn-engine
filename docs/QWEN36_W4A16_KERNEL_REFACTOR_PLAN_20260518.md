@@ -197,6 +197,14 @@ Acceptance:
 The wrapper can reproduce the current safe default and AMBER results using only
 env vars and checked-in prompt files.
 
+2026-05-18 status: Stream C is implemented and validated on R6000. The safe
+default smoke run is a `DEFAULT_CANDIDATE` (`P37` exact, P25 512 decode TPS
+`107.07`, hard structured `3/3`), while the fastest shared-gate + conv-inplace
+profile is correctly classified as `AMBER_CANDIDATE` (`P37` drift, P25 512
+decode TPS `114.04`, hard structured `40/40`). Future agents should use
+`scripts/r6000_qwen36_candidate_promotion_gate.sh` before asking for default
+promotion.
+
 Expected upside: engineering velocity and fewer false positives.
 
 ### Stream D: MTP Reframing

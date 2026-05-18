@@ -1,0 +1,33 @@
+{
+  "schema_version": "lynn-qwen36-candidate-promotion-summary-v1",
+  "candidate_name": "smoke_safe_default128",
+  "stamp": "20260518_130951_promotion_smoke128",
+  "candidate_env": [],
+  "thresholds": {
+    "safe_default_tps": 50.0,
+    "default_threshold": 50.0,
+    "amber_threshold": 50.0
+  },
+  "returncodes": {
+    "p37": 0,
+    "p25": 0,
+    "hard_structured": 0
+  },
+  "metrics": {
+    "p37_exact": true,
+    "p37_median_speedup": 1.0040535269225124,
+    "p25_512_decode_tps": 107.07446040858055,
+    "hard_structured_ok": true,
+    "hard_structured_decode_tps_mean": 106.95531473516614
+  },
+  "reports": {
+    "p37": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_smoke_safe_default128_20260518_130951_promotion_smoke128_p37.json",
+    "p25": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_smoke_safe_default128_20260518_130951_promotion_smoke128_p25.json",
+    "hard_structured": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_smoke_safe_default128_20260518_130951_promotion_smoke128_hard_structured.json",
+    "p26": null,
+    "p28": null
+  },
+  "promote_default": true,
+  "promote_amber": true,
+  "decision": "DEFAULT_CANDIDATE: exact-greedy, hard structured, and P25 threshold passed."
+}

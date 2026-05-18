@@ -520,10 +520,40 @@ Copied reports:
 
 - `reports/qwen36_35b/p38_moe_amber_rope_20260518_125020.json`
 - `reports/qwen36_35b/p39_active_moe_amber_rope_20260518_125020.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_smoke_safe_default128_20260518_130951_promotion_smoke128_p37.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_smoke_safe_default128_20260518_130951_promotion_smoke128_p25.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_smoke_safe_default128_20260518_130951_promotion_smoke128_hard_structured.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_smoke_safe_default128_20260518_130951_promotion_smoke128_promotion_summary.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_amber_sharedgate_convinplace_20260518_131127_promotion_amber_p37.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_amber_sharedgate_convinplace_20260518_131127_promotion_amber_p25.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_amber_sharedgate_convinplace_20260518_131127_promotion_amber_hard_structured.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_amber_sharedgate_convinplace_20260518_131127_promotion_amber_promotion_summary.json`
 
 So this branch is viable as a controlled structured-serving fast mode and the
 current best practical serving candidate. It still remains opt-in for
 exact-parity-sensitive gates because exact greedy parity is known to drift.
+
+The unified promotion gate was then used to pin this distinction so future
+agents do not promote a fast but drifting profile by accident. The safe default
+smoke run passed as a `DEFAULT_CANDIDATE` with exact greedy parity, P25 512
+decode TPS `107.07`, and a short hard-structured smoke at `3/3`. The fastest
+AMBER profile (`LYNN_SHARED_EXPERT_GATE_BACKEND=triton` plus
+`LYNN_LINEAR_ATTN_CONV_BACKEND=triton_inplace`) passed the service and hard
+structured thresholds but still failed exact-greedy parity:
+
+| Promotion gate probe | Safe default smoke | AMBER shared-gate + conv-inplace |
+|---|---:|---:|
+| P37 exact greedy | GREEN | RED |
+| P37 median speedup | 1.004x | 1.062x |
+| P25 512-token decode TPS | 107.07 | 114.04 |
+| Hard structured format gate | GREEN, 3/3 | GREEN, 40/40 |
+| Hard structured mean decode TPS | 106.96 | 114.30 |
+| Decision | `DEFAULT_CANDIDATE` | `AMBER_CANDIDATE` |
+
+This is the current serving policy boundary: default remains the exact-greedy
+safe profile, while the AMBER profile is a controlled structured-serving mode
+for users who accept normal-looking greedy drift in exchange for about `1.06x`
+decode speed.
 
 `LYNN_SHARED_EXPERT_GATE_BACKEND=torch_inplace` was also checked as a safer
 middle ground. It keeps Torch `F.linear + sigmoid` for the scalar gate and only
