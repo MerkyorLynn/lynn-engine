@@ -45,6 +45,10 @@ LONG_CONTEXT_MAX_TOKENS="${LONG_CONTEXT_MAX_TOKENS:-128}"
 LLAMA_SERVER="${LLAMA_SERVER:-}"
 LLAMA_BENCH="${LLAMA_BENCH:-}"
 LLAMA_EXTRA_ARGS="${LLAMA_EXTRA_ARGS:-}"
+REASONING="${REASONING:-auto}"
+QUALITY="${QUALITY:-0}"
+MMLU_DATA_DIR="${MMLU_DATA_DIR:-/tmp/datasets/mmlu}"
+GPQA_CSV="${GPQA_CSV:-/tmp/datasets/gpqa/gpqa_diamond.csv}"
 HF_REPO="${HF_REPO:-}"
 MS_REPO="${MS_REPO:-}"
 GGUF_URL="${GGUF_URL:-}"
@@ -75,6 +79,15 @@ else
         break
       fi
     done
+    if [[ -z "$GGUF_FOUND" ]]; then
+      for candidate in "$MODEL_ROOT"/Qwen3.5-9B-GGUF/*.gguf \
+                       "$MODEL_ROOT"/Qwen3.5*9B*GGUF/*.gguf; do
+        if [[ -s "${candidate:-}" ]]; then
+          GGUF_FOUND="$candidate"
+          break
+        fi
+      done
+    fi
   fi
 fi
 
@@ -240,6 +253,7 @@ trap cleanup EXIT
   --threads "$THREADS" \
   --parallel "$PARALLEL" \
   --jinja \
+  --reasoning "$REASONING" \
   -a "$SERVED_NAME" \
   $LLAMA_EXTRA_ARGS > "$SERVER_LOG" 2>&1 &
 SERVER_PID=$!
@@ -423,6 +437,42 @@ with open(out_path, "w", encoding="utf-8") as f:
 
 print(f"\n[q4km-9b] Report written: {out_path}")
 PYEOF
+fi
+
+# ---------------------------------------------------------------------------
+# Optional quality evaluation (QUALITY=1)
+# ---------------------------------------------------------------------------
+if [[ "$QUALITY" == "1" ]]; then
+  echo "[q4km-9b] running quality evaluations..."
+  QUALITY_PREFIX="$REPORT_ROOT/q4km_llamacpp_${STAMP}"
+  MMLU_SCRIPT="$REPO_ROOT/scripts/openai_mmlu_500_5shot_eval.py"
+  GPQA_SCRIPT="$REPO_ROOT/scripts/openai_gpqa_diamond_eval.py"
+  if [[ -f "$MMLU_SCRIPT" && -d "$MMLU_DATA_DIR" ]]; then
+    echo "[q4km-9b] MMLU 500 5-shot..."
+    "$PY" "$MMLU_SCRIPT" \
+      --data-dir "$MMLU_DATA_DIR" \
+      --base-url "http://${HOST}:${PORT}/v1" \
+      --model "$SERVED_NAME" \
+      --out "${QUALITY_PREFIX}_mmlu_n500.jsonl" \
+      --concurrency 6 \
+      --shots 5 \
+      --sample 500 \
+      --timeout 120
+  else
+    echo "[q4km-9b] MMLU skipped: script=$MMLU_SCRIPT data_dir=$MMLU_DATA_DIR"
+  fi
+  if [[ -f "$GPQA_SCRIPT" && -f "$GPQA_CSV" ]]; then
+    echo "[q4km-9b] GPQA Diamond..."
+    "$PY" "$GPQA_SCRIPT" \
+      --csv "$GPQA_CSV" \
+      --base-url "http://${HOST}:${PORT}/v1" \
+      --model "$SERVED_NAME" \
+      --out "${QUALITY_PREFIX}_gpqa.jsonl" \
+      --concurrency 2 \
+      --timeout 120
+  else
+    echo "[q4km-9b] GPQA skipped: script=$GPQA_SCRIPT csv=$GPQA_CSV"
+  fi
 fi
 
 # ---------------------------------------------------------------------------

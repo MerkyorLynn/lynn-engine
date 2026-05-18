@@ -1,0 +1,109 @@
+{
+  "schema": "lynn-qwen35-9b-release-matrix-v1",
+  "created": "2026-05-19T01:26:43+08:00",
+  "model_id": "Qwen3.5-9B",
+  "entries": [
+    {
+      "variant": "BF16",
+      "size_gib": 18.0,
+      "stack": "transformers-direct",
+      "mmlu": {
+        "score": 0.772,
+        "correct": 386,
+        "total": 500,
+        "status": "DONE"
+      },
+      "gpqa": {
+        "score": 0.4495,
+        "correct": 89,
+        "total": 198,
+        "status": "DONE"
+      },
+      "single_tps": {
+        "128": null,
+        "256": null,
+        "512": null
+      },
+      "concurrent_tps": {
+        "2": null,
+        "4": null,
+        "8": null
+      },
+      "long_context": {
+        "4k": null,
+        "16k": null,
+        "32k": null
+      },
+      "status": "PARTIAL",
+      "blocker": "No TPS benchmarks yet"
+    },
+    {
+      "variant": "Q4_K_M",
+      "size_gib": 5.5,
+      "stack": "llama.cpp",
+      "mmlu": {
+        "score": 0.76,
+        "correct": 380,
+        "total": 500,
+        "status": "DONE"
+      },
+      "gpqa": {
+        "score": 0.3737,
+        "correct": 74,
+        "total": 198,
+        "status": "DONE"
+      },
+      "single_tps": {
+        "128": 121.8,
+        "256": 165.2,
+        "512": 168.2
+      },
+      "concurrent_tps": {
+        "2": 275.6,
+        "4": 341.3,
+        "8": 420.6
+      },
+      "long_context": {
+        "4k": 146.0,
+        "16k": 123.9,
+        "32k": null
+      },
+      "status": "DONE",
+      "blocker": null
+    },
+    {
+      "variant": "NVFP4",
+      "size_gib": 8.3,
+      "stack": "Lynn Engine (CUDA)",
+      "mmlu": {
+        "score": null,
+        "correct": null,
+        "total": null,
+        "status": "BLOCKED"
+      },
+      "gpqa": {
+        "score": null,
+        "correct": null,
+        "total": null,
+        "status": "BLOCKED"
+      },
+      "single_tps": {
+        "128": null,
+        "256": null,
+        "512": null
+      },
+      "concurrent_tps": {
+        "2": null,
+        "4": null,
+        "8": null
+      },
+      "long_context": {
+        "4k": null,
+        "16k": null,
+        "32k": null
+      },
+      "status": "BLOCKED",
+      "blocker": "Dense runtime not implemented yet; runner now fails loud instead of KeyError num_experts"
+    }
+  ]
+}
