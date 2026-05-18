@@ -142,6 +142,14 @@ cleanup() {
 }
 trap cleanup EXIT
 
+stop_server() {
+  if [[ -n "${SERVER_PID:-}" ]]; then
+    kill "$SERVER_PID" 2>/dev/null || true
+    wait "$SERVER_PID" 2>/dev/null || true
+    SERVER_PID=""
+  fi
+}
+
 echo "[promotion-gate] candidate=${CANDIDATE_NAME} stamp=${STAMP}"
 printf '[promotion-gate] candidate env:'
 printf ' %s' "${CANDIDATE_PAIRS[@]}"
@@ -235,6 +243,10 @@ STRUCTURED_RC=$?
 set -e
 
 if [[ "$RUN_PROFILES" == "1" ]]; then
+  # P26/P28 instantiate their own resident runner. Stop the OpenAI server first
+  # so the profiler does not OOM while a 90GB resident model is still live.
+  stop_server
+  sleep 5
   "$PY" benchmarks/p26_decode_phase_profile.py --model "$MODEL" --out "$P26_OUT" || true
   "$PY" benchmarks/p28_hybrid_block_timing_profile.py --model "$MODEL" --out "$P28_OUT" || true
 fi
