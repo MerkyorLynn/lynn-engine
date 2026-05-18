@@ -1,0 +1,33 @@
+{
+  "schema": "lynn-p142-packed-nvfp4-stage-admission-v1",
+  "created": "2026-05-18T23:25:53",
+  "report_dir": "reports/qwen36_35b",
+  "inputs": {
+    "p141_v2_report": {
+      "path": "reports/qwen36_35b/p141_v2_report.json",
+      "verdict": "AMBER_STAGE",
+      "max_max_abs": 0.001953125,
+      "avg_latency_ms": 0.0516851806640625,
+      "min_cosine": 0.9999890923500061
+    },
+    "p140_packed_nvfp4_probe": {
+      "path": "reports/qwen36_35b/p140_packed_nvfp4_probe_report.json",
+      "verdict": "CLOSED",
+      "max_max_abs": 0.00390625,
+      "avg_latency_ms": 0.09026956558227539,
+      "min_cosine": 0.9999736547470093
+    },
+    "candidate_summary": {
+      "path": "reports/qwen36_35b/native_moe_candidate_summary.json",
+      "best_verdict": "AMBER_FAST_PRETRANSPOSED",
+      "has_default_candidate": false,
+      "has_amber_candidate": true
+    }
+  },
+  "admission": {
+    "verdict": "DEFAULT_BLOCKED",
+    "reason": "p141 verdict AMBER_STAGE — fixture-stage AMBER prevents default/resident promote",
+    "default_promote_blocked": true,
+    "p37_exploratory_allowed": true
+  }
+}
