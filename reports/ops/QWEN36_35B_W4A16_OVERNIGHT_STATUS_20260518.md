@@ -22,12 +22,22 @@ Spark evaluation on the official N5 package:
 | Candidate | MMLU 500 5-shot | GPQA Diamond 198 0-shot |
 |---|---:|---:|
 | Qwen3.6-35B-A3B BF16 official | 86.40% | 45.45% |
+| Qwen3.6-35B-A3B Q4_K_M-imatrix GGUF | 83.00% | 50.00% |
 | Qwen3.6-35B-A3B Lynn-native W4A16 NVFP4 | 84.40% | 49.49% |
+| Delta Q4_K_M vs BF16 | -3.40pp | +4.55pp |
 | Delta W4A16 vs BF16 | -2.00pp | +4.04pp |
 
 This validates the pivot away from custom 27B recovery as the primary quality
 route. The model quality problem is no longer broad repair; it is preserving the
 official model through native quantization and runtime optimization.
+
+The Q4_K_M-imatrix row was completed by the Spark backstop at 2026-05-18
+05:54 CST. The llama.cpp served-name string in the summary still says
+`Lynn-27B-A3B-qwen36-q4km-imatrix`, but the backstop log records the actual
+artifact as
+`/home/merkyor/models/Qwen3.6-35B-A3B-GGUF-imatrix/Qwen3.6-35B-A3B-Q4_K_M-imatrix.gguf`
+with a 20G quantized size, so this is the official Qwen3.6-35B-A3B GGUF result,
+not a V4-Pro/Flash distill result.
 
 ## W4A16 Artifact
 
@@ -52,6 +62,9 @@ Copied summaries:
 
 - `reports/qwen36_35b/spark_qwen36_official_bf16_mmlu_n500_20260518.json`
 - `reports/qwen36_35b/spark_qwen36_official_bf16_gpqa_20260518.json`
+- `reports/qwen36_35b/spark_qwen36_official_q4km_imatrix_mmlu_n500_20260518.json`
+- `reports/qwen36_35b/spark_qwen36_official_q4km_imatrix_gpqa_20260518.json`
+- `reports/qwen36_35b/spark_qwen36_official_q4km_imatrix_backstop_20260518.log`
 - `reports/qwen36_35b/spark_qwen36_official_w4a16_nvfp4_mmlu_n500_20260518.json`
 - `reports/qwen36_35b/spark_qwen36_official_w4a16_nvfp4_gpqa_20260518.json`
 

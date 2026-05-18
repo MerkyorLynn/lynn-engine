@@ -1,0 +1,9 @@
+{
+  "model": "Lynn-27B-A3B-qwen36-q4km-imatrix",
+  "endpoint": "http://127.0.0.1:18097/v1",
+  "n": 198,
+  "correct": 99,
+  "accuracy": 0.5,
+  "elapsed_sec": 53.5,
+  "qps": 3.7
+}
