@@ -407,6 +407,23 @@ they still inherit the P37 exact-greedy drift from both the shared-gate and pure
 Triton conv reorderings. Default promote remains the stricter
 `triton_torch_silu` conv plus Torch shared gate path.
 
+`LYNN_SHARED_EXPERT_GATE_BACKEND=torch_inplace` was also checked as a safer
+middle ground. It keeps Torch `F.linear + sigmoid` for the scalar gate and only
+applies the final multiply in-place:
+
+| Probe | Result |
+|---|---:|
+| P37 greedy exact match | GREEN, 3/3 exact |
+| P37 median decode TPS | 104.15 -> 105.05 |
+| P37 median speedup | 1.009x |
+| P25 512-token wall / decode TPS | 87.12 / 104.81 |
+| Structured OpenAI gate | GREEN, 14/14 format-clean |
+| Structured gate decode TPS | mean 104.41, min 99.63 |
+
+This is a safe opt-in fallback, but not a default promotion: service TPS is
+effectively flat versus the current default P25 `104.73` decode TPS, and the
+structured mean is slightly below the default `104.76` run.
+
 Copied reports:
 
 - `reports/qwen36_35b/p43_shared_gate_torch_20260518_083212.json`
@@ -418,6 +435,9 @@ Copied reports:
 - `reports/qwen36_35b/structured_gate_amber_sharedgate_triton_20260518_085130.json`
 - `reports/qwen36_35b/p25_amber_sharedgate_triton_inplace_20260518_085210.json`
 - `reports/qwen36_35b/structured_gate_amber_sharedgate_triton_inplace_20260518_085210.json`
+- `reports/qwen36_35b/p37_shared_gate_torch_inplace_20260518_090215.json`
+- `reports/qwen36_35b/p25_shared_gate_torch_inplace_20260518_091020.json`
+- `reports/qwen36_35b/structured_gate_shared_gate_torch_inplace_20260518_091050.json`
 
 Negative probes from the same loop:
 

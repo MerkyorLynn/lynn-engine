@@ -114,11 +114,14 @@ def _apply_shared_expert_gate(h_flat: torch.Tensor, shared: torch.Tensor, w: dic
     backend = os.environ.get("LYNN_SHARED_EXPERT_GATE_BACKEND", "torch")
     if backend == "torch":
         return shared * torch.sigmoid(F.linear(h_flat, w["mlp.shared_expert_gate.weight"]))
+    if backend == "torch_inplace":
+        shared.mul_(torch.sigmoid(F.linear(h_flat, w["mlp.shared_expert_gate.weight"])))
+        return shared
     if backend == "triton":
         if not HAS_SHARED_EXPERT_GATE_TRITON:
             raise RuntimeError("LYNN_SHARED_EXPERT_GATE_BACKEND=triton requires Triton")
         return apply_shared_expert_gate_triton(shared, h_flat, w["mlp.shared_expert_gate.weight"])
-    raise ValueError("LYNN_SHARED_EXPERT_GATE_BACKEND must be 'torch' or 'triton', got " f"{backend!r}")
+    raise ValueError("LYNN_SHARED_EXPERT_GATE_BACKEND must be 'torch', 'torch_inplace', or 'triton', got " f"{backend!r}")
 
 
 def _layer_selected_for_native_cuda(cfg: dict) -> bool:
