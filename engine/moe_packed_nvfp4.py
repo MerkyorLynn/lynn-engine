@@ -392,6 +392,107 @@ def _active_moe_native_grouped_per16_nonatomic(
     )
 
 
+def _active_moe_packed_pretransposed_graphsafe_v31(
+    hidden: torch.Tensor,
+    expert_ids: torch.Tensor,
+    routing_weights: torch.Tensor,
+    w: dict,
+) -> torch.Tensor:
+    """V3.1 graph-safe pretransposed MoE: true zero-allocation hot path.
+
+    Load-time prep (lazy, first call only):
+      - Dequant packed NVFP4 gate_up/down weights to BF16
+      - Pretranspose: W_fused_T [2048, 8192], W_down_T [8, 512, 2048]
+      - Preallocate scratch: gate_up[1,8192], inter[8,1,512], down[8,1,2048], out[2048]
+
+    Hot path: mm_out + silu_out + mul_ + bmm_out + custom CUDA reduce kernel.
+    No torch::empty/zeros/to/sum/new tensor in hot path.
+    """
+    from engine.native_cuda import load_lynn_native_extension
+
+    # ── Lazy one-time weight prep (first call per layer) ──
+    if "_graphsafe_v31_W_fused_T" not in w:
+        _prepare_graphsafe_v31_weights(w, hidden.device)
+
+    ext = load_lynn_native_extension(verbose=_env_bool("LYNN_NATIVE_CUDA_VERBOSE", False))
+
+    # Gather experts into pretransposed scratch (pre-graph region)
+    _gather_and_pretranspose_v31(w, expert_ids)
+
+    x_2d = hidden.view(1, 2048)
+    return ext.moe_packed_pretransposed_graphsafe_v3(
+        x_2d,
+        routing_weights,
+        w["_graphsafe_v31_W_fused_T"],
+        w["_graphsafe_v31_W_down_T"],
+        w["_graphsafe_v31_gate_up_scratch"],
+        w["_graphsafe_v31_inter_scratch"],
+        w["_graphsafe_v31_down_scratch"],
+        w["_graphsafe_v31_out_scratch"],
+    )
+
+
+def _prepare_graphsafe_v31_weights(w: dict, device) -> None:
+    """One-time scratch allocation for V3.1 graph-safe path.
+
+    Does NOT pre-dequant all 256 experts (too much memory).
+    Instead, preallocates scratch buffers. Per-call dequant of 8 selected
+    experts happens in _gather_and_pretranspose_v31.
+    """
+    top_k = 8
+    w["_graphsafe_v31_W_fused_T"] = torch.empty(2048, top_k * 1024, device=device, dtype=torch.bfloat16)
+    w["_graphsafe_v31_W_down_T"] = torch.empty(top_k, 512, 2048, device=device, dtype=torch.bfloat16)
+    w["_graphsafe_v31_gate_up_scratch"] = torch.empty(1, top_k * 1024, device=device, dtype=torch.bfloat16)
+    w["_graphsafe_v31_inter_scratch"] = torch.empty(top_k, 1, 512, device=device, dtype=torch.bfloat16)
+    w["_graphsafe_v31_down_scratch"] = torch.empty(top_k, 1, 2048, device=device, dtype=torch.bfloat16)
+    w["_graphsafe_v31_out_scratch"] = torch.empty(2048, device=device, dtype=torch.bfloat16)
+
+
+def _dequant_nvfp4_slot(packed, scale, global_scale, device):
+    """Dequant a single slot [rows, cols/2] → [rows, cols] BF16."""
+    E2M1_TABLE = torch.tensor(
+        [0.0, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0], dtype=torch.float32, device=device)
+    low = (packed & 0x0F).int()
+    high = ((packed >> 4) & 0x0F).int()
+    low_val = E2M1_TABLE[low & 7] * (1 - 2 * ((low >> 3) & 1).float())
+    high_val = E2M1_TABLE[high & 7] * (1 - 2 * ((high >> 3) & 1).float())
+    K = packed.shape[-1] * 2
+    result = torch.zeros(*packed.shape[:-1], K, device=device, dtype=torch.float32)
+    result[..., 0::2] = low_val
+    result[..., 1::2] = high_val
+    inv_g = 1.0 / global_scale.float().item()
+    se = scale.float().unsqueeze(-1).expand(*scale.shape, 16).reshape(*packed.shape[:-1], K)
+    return (result * se * inv_g).to(torch.bfloat16)
+
+
+def _gather_and_pretranspose_v31(w: dict, expert_ids: torch.Tensor) -> None:
+    """Dequant + gather 8 selected experts into pretransposed scratch."""
+    device = expert_ids.device
+    gu_packed = w["mlp.experts._gate_up_packed"]       # [256, 1024, 1024]
+    gu_scale = w["mlp.experts._gate_up_scale"]         # [256, 1024, 128]
+    gu_global = w["mlp.experts._gate_up_global_scale"] # scalar
+    d_packed = w["mlp.experts._down_packed"]            # [256, 2048, 256]
+    d_scale = w["mlp.experts._down_scale"]              # [256, 2048, 32]
+    d_global = w["mlp.experts._down_global_scale"]      # scalar
+
+    W_fused_T = w["_graphsafe_v31_W_fused_T"]
+    W_down_T = w["_graphsafe_v31_W_down_T"]
+
+    ids = expert_ids.long()
+    # Dequant only the 8 selected experts
+    slot_gu_packed = gu_packed[ids]   # [8, 1024, 1024]
+    slot_gu_scale = gu_scale[ids]     # [8, 1024, 128]
+    slot_d_packed = d_packed[ids]     # [8, 2048, 256]
+    slot_d_scale = d_scale[ids]       # [8, 2048, 32]
+
+    slot_gu_bf16 = _dequant_nvfp4_slot(slot_gu_packed, slot_gu_scale, gu_global, device)  # [8, 1024, 2048]
+    slot_d_bf16 = _dequant_nvfp4_slot(slot_d_packed, slot_d_scale, d_global, device)      # [8, 2048, 512]
+
+    # Pretranspose into scratch
+    W_fused_T.copy_(slot_gu_bf16.reshape(8 * 1024, 2048).t())
+    W_down_T.copy_(slot_d_bf16.transpose(1, 2))
+
+
 def _active_moe_native_grouped_per16_nonatomic_out(
     hidden: torch.Tensor,
     expert_ids: torch.Tensor,
@@ -636,7 +737,9 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
     else:
         backend = os.environ.get("LYNN_NATIVE_ACTIVE_MOE_BACKEND", "triton")
         down_backend = os.environ.get("LYNN_NATIVE_DOWN_BACKEND", "triton")
-        if backend == "grouped_per16_nonatomic_out" and _layer_selected_for_native_cuda(cfg):
+        if backend == "packed_pretransposed_graphsafe_v31":
+            moe_out = _active_moe_packed_pretransposed_graphsafe_v31(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
+        elif backend == "grouped_per16_nonatomic_out" and _layer_selected_for_native_cuda(cfg):
             moe_out = _active_moe_native_grouped_per16_nonatomic_out(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
         elif backend == "grouped_per16_nonatomic" and _layer_selected_for_native_cuda(cfg):
             moe_out = _active_moe_native_grouped_per16_nonatomic(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
@@ -749,7 +852,8 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
             raise ValueError(
                 "LYNN_NATIVE_ACTIVE_MOE_BACKEND must be 'triton', 'cuda_scalar', "
                 "'cuda_scalar_contract', 'grouped_per16', 'grouped_per16_fused', "
-                "'grouped_per16_nonatomic', or 'grouped_per16_nonatomic_out', "
+                "'grouped_per16_nonatomic', 'grouped_per16_nonatomic_out', "
+                "'packed_pretransposed_graphsafe_v31', "
                 f"got {backend!r}"
             )
 

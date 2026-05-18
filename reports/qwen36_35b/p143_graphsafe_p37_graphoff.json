@@ -1,0 +1,94 @@
+{
+  "probe": "p143_resident_moe_graphsafe_p37",
+  "created": "2026-05-19T00:09:32",
+  "model": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0",
+  "graph_on": false,
+  "max_new": 8,
+  "exact_count": 2,
+  "total_prompts": 3,
+  "collapse_detected": false,
+  "verdict": "CLOSED_P37_DRIFT",
+  "results": [
+    {
+      "prompt_id": 0,
+      "exact": true,
+      "baseline_ids": [
+        271,
+        248068,
+        271,
+        248069,
+        271,
+        24797,
+        36,
+        9616
+      ],
+      "candidate_ids": [
+        271,
+        248068,
+        271,
+        248069,
+        271,
+        24797,
+        36,
+        9616
+      ],
+      "baseline_tps": 27.056285306178868,
+      "candidate_tps": 6.532750609772649,
+      "collapse": false
+    },
+    {
+      "prompt_id": 1,
+      "exact": false,
+      "baseline_ids": [
+        198,
+        727,
+        51184,
+        318,
+        77,
+        1590,
+        198,
+        331
+      ],
+      "candidate_ids": [
+        198,
+        727,
+        51184,
+        1393,
+        1590,
+        198,
+        331,
+        307
+      ],
+      "baseline_tps": 29.42129487203897,
+      "candidate_tps": 11.718294388933124,
+      "collapse": false
+    },
+    {
+      "prompt_id": 2,
+      "exact": true,
+      "baseline_ids": [
+        271,
+        248068,
+        271,
+        248069,
+        271,
+        37586,
+        1679,
+        9616
+      ],
+      "candidate_ids": [
+        271,
+        248068,
+        271,
+        248069,
+        271,
+        37586,
+        1679,
+        9616
+      ],
+      "baseline_tps": 29.45497301310219,
+      "candidate_tps": 11.726175817583675,
+      "collapse": false
+    }
+  ]
+}
