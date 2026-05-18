@@ -1,11 +1,11 @@
 {
   "schema": "lynn-qwen35-9b-release-gate-v1",
-  "created": "2026-05-19T02:02:54+08:00",
+  "created": "2026-05-19T02:14:22+08:00",
   "host": "MEKYORLIN-MC2",
   "model_id": "Qwen/Qwen3.5-9B",
   "model_root": "/root/autodl-tmp/models",
-  "report_dir": "/Users/lynn/Downloads/Lynn/worktrees/codex-main-overnight/reports/qwen35_9b",
-  "overall_decision": "PARTIAL_RELEASE_Q4KM_READY_NVFP4_BLOCKED",
+  "report_dir": "reports/qwen35_9b",
+  "overall_decision": "PARTIAL_RELEASE_Q4KM_READY_NVFP4_SMOKE_PASS",
   "variants": [
     {
       "variant": "BF16",
@@ -66,6 +66,18 @@
         }
       },
       "matrix_status": "PARTIAL",
+      "runtime_smoke": {
+        "status": "GENERATION_PASS",
+        "report": "reports/qwen35_9b/r6000_qwen35_9b_dense_runtime_smoke_decode4_codex_20260519_020912.json",
+        "completion_text": "\n\nOK.",
+        "decode_tps": 32.9217204289822,
+        "new_token_ids": [
+          271,
+          3793,
+          13,
+          248044
+        ]
+      },
       "decision": "PASS_QUALITY_CEILING",
       "blocker": "TPS not required for BF16 release ceiling"
     },
@@ -133,6 +145,10 @@
         }
       },
       "matrix_status": "DONE",
+      "runtime_smoke": {
+        "status": "PENDING",
+        "report": null
+      },
       "decision": "PASS_RELEASE",
       "blocker": null
     },
@@ -160,6 +176,7 @@
         ],
         "missing_required": [],
         "evidence_reports": [
+          "reports/qwen35_9b/r6000_qwen35_9b_nvfp4_dense_runtime_smoke_decode4_codex_20260519_021137.json",
           "reports/qwen35_9b/qwen35_9b_release_matrix.json"
         ]
       },
@@ -168,13 +185,15 @@
           "score": null,
           "correct": null,
           "total": null,
-          "status": "BLOCKED"
+          "status": "PENDING",
+          "blocker": "runtime smoke passes; quality gate not run yet"
         },
         "gpqa": {
           "score": null,
           "correct": null,
           "total": null,
-          "status": "BLOCKED"
+          "status": "PENDING",
+          "blocker": "runtime smoke passes; quality gate not run yet"
         }
       },
       "speed": {
@@ -195,13 +214,25 @@
         }
       },
       "matrix_status": "BLOCKED",
-      "decision": "BLOCKED_RUNTIME",
-      "blocker": "Lynn-native W4A16 NVFP4 pack exists/reported, but Qwen3.5 dense resident runtime is not implemented yet"
+      "runtime_smoke": {
+        "status": "GENERATION_PASS",
+        "report": "reports/qwen35_9b/r6000_qwen35_9b_nvfp4_dense_runtime_smoke_decode4_codex_20260519_021137.json",
+        "completion_text": "\n\nOK.",
+        "decode_tps": 36.96496778799122,
+        "new_token_ids": [
+          271,
+          3793,
+          13,
+          248044
+        ]
+      },
+      "decision": "PENDING_QUALITY_TPS",
+      "blocker": "NVFP4 dense resident generation smoke passes; MMLU/GPQA and serving TPS gates still pending"
     }
   ],
   "source_matrix": {
     "schema": "lynn-qwen35-9b-release-matrix-v1",
-    "created": "2026-05-19T02:02:54+08:00",
+    "created": "2026-05-19T02:14:22+08:00",
     "model_id": "Qwen3.5-9B",
     "entries": [
       {

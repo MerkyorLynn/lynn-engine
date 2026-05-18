@@ -150,7 +150,28 @@ def _tps(entry: dict[str, Any], group: str, key: str) -> float | None:
     return float(value) if value is not None else None
 
 
-def _variant_gate(variant: str, entry: dict[str, Any], artifact: dict[str, Any]) -> dict[str, Any]:
+def _runtime_smoke(path: Path | None) -> dict[str, Any]:
+    if path is None:
+        return {"status": "PENDING", "report": None}
+    payload = _json_load(path)
+    if not payload:
+        return {"status": "PENDING", "report": _display_path(path)}
+    return {
+        "status": payload.get("status") or "UNKNOWN",
+        "report": _display_path(path),
+        "completion_text": payload.get("completion_text"),
+        "decode_tps": payload.get("timings", {}).get("decode_tps"),
+        "new_token_ids": payload.get("new_token_ids"),
+    }
+
+
+def _variant_gate(
+    variant: str,
+    entry: dict[str, Any],
+    artifact: dict[str, Any],
+    *,
+    runtime_smoke: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     mmlu_done = _metric_status(entry.get("mmlu", {})) == "DONE"
     gpqa_done = _metric_status(entry.get("gpqa", {})) == "DONE"
     quality_done = mmlu_done and gpqa_done
@@ -185,27 +206,42 @@ def _variant_gate(variant: str, entry: dict[str, Any], artifact: dict[str, Any])
             decision = "PENDING"
             blocker = ", ".join(missing)
     elif variant == "NVFP4":
-        decision = "BLOCKED_RUNTIME"
-        blocker = "Lynn-native W4A16 NVFP4 pack exists/reported, but Qwen3.5 dense resident runtime is not implemented yet"
-        if not artifact_ok:
-            blocker += "; artifact presence still needs R6000 filesystem check"
+        smoke_pass = (runtime_smoke or {}).get("status") == "GENERATION_PASS"
+        if smoke_pass:
+            decision = "PENDING_QUALITY_TPS"
+            blocker = "NVFP4 dense resident generation smoke passes; MMLU/GPQA and serving TPS gates still pending"
+            if not artifact_ok:
+                blocker += "; artifact presence still needs R6000 filesystem check"
+        else:
+            decision = "BLOCKED_RUNTIME"
+            blocker = "Lynn-native W4A16 NVFP4 pack exists/reported, but Qwen3.5 dense resident runtime has not passed generation smoke yet"
+            if not artifact_ok:
+                blocker += "; artifact presence still needs R6000 filesystem check"
     else:
         decision = "PENDING"
         blocker = "unknown variant"
 
+    quality = {
+        "mmlu": dict(entry.get("mmlu", {})),
+        "gpqa": dict(entry.get("gpqa", {})),
+    }
+    if variant == "NVFP4" and (runtime_smoke or {}).get("status") == "GENERATION_PASS":
+        for metric in quality.values():
+            if metric.get("score") is None and metric.get("status") == "BLOCKED":
+                metric["status"] = "PENDING"
+                metric["blocker"] = "runtime smoke passes; quality gate not run yet"
+
     return {
         "variant": variant,
         "artifact": artifact,
-        "quality": {
-            "mmlu": entry.get("mmlu", {}),
-            "gpqa": entry.get("gpqa", {}),
-        },
+        "quality": quality,
         "speed": {
             "single_tps": entry.get("single_tps", {}),
             "concurrent_tps": entry.get("concurrent_tps", {}),
             "long_context": entry.get("long_context", {}),
         },
         "matrix_status": entry.get("status"),
+        "runtime_smoke": runtime_smoke or {"status": "PENDING", "report": None},
         "decision": decision,
         "blocker": blocker,
     }
@@ -233,6 +269,8 @@ def build_gate(args: argparse.Namespace) -> dict[str, Any]:
     latest_nvfp4_pack = _latest(report_dir, "r6000_qwen35_9b*_w4a16_pack_summary_*.json")
     if latest_nvfp4_pack is None:
         latest_nvfp4_pack = _latest(report_dir, "*w4a16_pack_summary*.json")
+    latest_bf16_smoke = _latest(report_dir, "r6000_qwen35_9b_dense_runtime_smoke*.json")
+    latest_nvfp4_smoke = _latest(report_dir, "r6000_qwen35_9b_nvfp4_dense_runtime_smoke*.json")
 
     artifacts = {
         "BF16": _artifact(
@@ -253,19 +291,21 @@ def build_gate(args: argparse.Namespace) -> dict[str, Any]:
             candidates=[nvfp4_path],
             required_children=["config.json", "lynn_quant_manifest.json"],
             reported_size_gib=entries["NVFP4"].get("size_gib"),
-            evidence_reports=[p for p in [latest_nvfp4_pack, args.release_matrix_json if args.release_matrix_json.exists() else None] if p],
+            evidence_reports=[p for p in [latest_nvfp4_pack, latest_nvfp4_smoke, args.release_matrix_json if args.release_matrix_json.exists() else None] if p],
         ),
     }
 
     variants = [
-        _variant_gate("BF16", entries["BF16"], artifacts["BF16"]),
+        _variant_gate("BF16", entries["BF16"], artifacts["BF16"], runtime_smoke=_runtime_smoke(latest_bf16_smoke)),
         _variant_gate("Q4_K_M", entries["Q4_K_M"], artifacts["Q4_K_M"]),
-        _variant_gate("NVFP4", entries["NVFP4"], artifacts["NVFP4"]),
+        _variant_gate("NVFP4", entries["NVFP4"], artifacts["NVFP4"], runtime_smoke=_runtime_smoke(latest_nvfp4_smoke)),
     ]
 
     decisions = {item["variant"]: item["decision"] for item in variants}
     if decisions["Q4_K_M"] == "PASS_RELEASE" and decisions["NVFP4"] == "BLOCKED_RUNTIME":
         overall = "PARTIAL_RELEASE_Q4KM_READY_NVFP4_BLOCKED"
+    elif decisions["Q4_K_M"] == "PASS_RELEASE" and decisions["NVFP4"] == "PENDING_QUALITY_TPS":
+        overall = "PARTIAL_RELEASE_Q4KM_READY_NVFP4_SMOKE_PASS"
     elif all(v.startswith("PASS") for v in decisions.values()):
         overall = "PASS_RELEASE"
     else:
@@ -341,7 +381,7 @@ def render_markdown(gate: dict[str, Any]) -> str:
             "",
             "- BF16 is the quality ceiling path. It has MMLU/GPQA data, but no serving TPS gate is required for release.",
             "- Q4_K_M is the current ready release path for llama.cpp/Mac and CUDA fallback users.",
-            "- Lynn-native W4A16 NVFP4 is blocked by Qwen3.5 dense resident runtime support. The pack is present or reported, but generation/TPS/quality gates must remain BLOCKED until runtime lands.",
+            "- Lynn-native W4A16 NVFP4 now has a dense resident generation smoke when the gate can find a `GENERATION_PASS` smoke report; full MMLU/GPQA and serving TPS gates remain pending until run.",
             "",
             "## Artifact Check Notes",
             "",
