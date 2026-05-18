@@ -91,6 +91,17 @@ else
   fi
 fi
 
+# Subdirectory format: MODEL_ROOT/Qwen3.5-9B-GGUF/Qwen_Qwen3.5-9B-Q4_K_M.gguf
+if [[ -z "$GGUF_FOUND" ]]; then
+  for candidate in "$MODEL_ROOT"/Qwen3.5-9B-GGUF/*.gguf \
+                   "$MODEL_ROOT"/Qwen3.5*9B*GGUF/*.gguf; do
+    if [[ -s "${candidate:-}" ]]; then
+      GGUF_FOUND="$candidate"
+      break
+    fi
+  done
+fi
+
 OUT="$REPORT_ROOT/r6000_qwen35_9b_q4km_baseline_${STAMP}.json"
 
 # ---------------------------------------------------------------------------
