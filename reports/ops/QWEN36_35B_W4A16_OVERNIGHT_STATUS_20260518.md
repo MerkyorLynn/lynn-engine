@@ -524,6 +524,10 @@ Copied reports:
 - `reports/qwen36_35b/r6000_qwen36_w4a16_smoke_safe_default128_20260518_130951_promotion_smoke128_p25.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_smoke_safe_default128_20260518_130951_promotion_smoke128_hard_structured.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_smoke_safe_default128_20260518_130951_promotion_smoke128_promotion_summary.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_safe_default_full_20260518_132115_promotion_safe_full_p37.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_safe_default_full_20260518_132115_promotion_safe_full_p25.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_safe_default_full_20260518_132115_promotion_safe_full_hard_structured.json`
+- `reports/qwen36_35b/r6000_qwen36_w4a16_safe_default_full_20260518_132115_promotion_safe_full_promotion_summary.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_amber_sharedgate_convinplace_20260518_131127_promotion_amber_p37.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_amber_sharedgate_convinplace_20260518_131127_promotion_amber_p25.json`
 - `reports/qwen36_35b/r6000_qwen36_w4a16_amber_sharedgate_convinplace_20260518_131127_promotion_amber_hard_structured.json`
@@ -554,6 +558,21 @@ This is the current serving policy boundary: default remains the exact-greedy
 safe profile, while the AMBER profile is a controlled structured-serving mode
 for users who accept normal-looking greedy drift in exchange for about `1.06x`
 decode speed.
+
+A follow-up full safe-default run used the real `SAFE_DEFAULT_TPS=107` threshold
+and the same 40-request hard structured set rather than the short smoke. It is
+the current default safety anchor:
+
+| Full safe-default promotion gate | Result |
+|---|---:|
+| P37 exact greedy | GREEN |
+| P37 median decode TPS | 108.28 |
+| P25 128-token wall / decode TPS | 66.51 / 106.23 |
+| P25 256-token wall / decode TPS | 83.83 / 107.67 |
+| P25 512-token wall / decode TPS | 93.85 / 107.43 |
+| Hard structured format gate | GREEN, 40/40 |
+| Hard structured mean / min decode TPS | 107.86 / 107.39 |
+| Decision | `DEFAULT_CANDIDATE` |
 
 `LYNN_SHARED_EXPERT_GATE_BACKEND=torch_inplace` was also checked as a safer
 middle ground. It keeps Torch `F.linear + sigmoid` for the scalar gate and only
