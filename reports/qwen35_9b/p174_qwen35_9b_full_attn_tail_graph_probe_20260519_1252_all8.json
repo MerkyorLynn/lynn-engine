@@ -1,0 +1,516 @@
+{
+  "schema_version": "lynn-engine-p174-qwen35-9b-full-attn-tail-graph-probe-v1",
+  "benchmark": "p174_qwen35_9b_full_attn_tail_graph_probe",
+  "model": "/root/autodl-tmp/models/Qwen3.5-9B-lynn-native-w4a16-nvfp4-v0",
+  "prompt": "用一句话解释 CUDA graph 为什么适合固定形状的推理尾部。",
+  "device_arg": "cuda",
+  "dtype": "bfloat16",
+  "max_seq_len": 4096,
+  "env_observed": {},
+  "layers": [
+    {
+      "layer": 3,
+      "layer_type": "full_attention",
+      "status": "ok",
+      "capture_isolated": true,
+      "extraction": {
+        "position": 13,
+        "input_shape": [
+          1,
+          1,
+          4096
+        ],
+        "after_attention_shape": [
+          1,
+          1,
+          4096
+        ],
+        "layer_keys_present": {
+          "post_attention_layernorm.weight": true,
+          "mlp.gate_proj.weight": true,
+          "mlp.up_proj.weight": true,
+          "mlp.down_proj.weight": true
+        }
+      },
+      "timing_ms": {
+        "eager_tail": 0.24816639423370362,
+        "cuda_graph_capture_wall": 5.592132918536663,
+        "cuda_graph_replay": 0.22701919078826904,
+        "cuda_graph_replay_with_input_copy": 0.22939839363098144,
+        "speedup_replay_vs_eager": 1.09315161142107,
+        "speedup_with_copy_vs_eager": 1.0818140018578903
+      },
+      "exactness": {
+        "tail_output_base": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0000001192092896
+        },
+        "tail_output_alt_input": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0000001192092896
+        },
+        "suffix_logits": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "greedy_local": {
+          "eager_token_id": 77517,
+          "graph_token_id": 77517,
+          "exact": true
+        }
+      },
+      "verdict": "pass"
+    },
+    {
+      "layer": 7,
+      "layer_type": "full_attention",
+      "status": "ok",
+      "capture_isolated": true,
+      "extraction": {
+        "position": 13,
+        "input_shape": [
+          1,
+          1,
+          4096
+        ],
+        "after_attention_shape": [
+          1,
+          1,
+          4096
+        ],
+        "layer_keys_present": {
+          "post_attention_layernorm.weight": true,
+          "mlp.gate_proj.weight": true,
+          "mlp.up_proj.weight": true,
+          "mlp.down_proj.weight": true
+        }
+      },
+      "timing_ms": {
+        "eager_tail": 0.24747200012207032,
+        "cuda_graph_capture_wall": 1.215207390487194,
+        "cuda_graph_replay": 0.22733800411224364,
+        "cuda_graph_replay_with_input_copy": 0.22947399616241454,
+        "speedup_replay_vs_eager": 1.0885641452182624,
+        "speedup_with_copy_vs_eager": 1.0784315620098295
+      },
+      "exactness": {
+        "tail_output_base": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "tail_output_alt_input": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "suffix_logits": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "greedy_local": {
+          "eager_token_id": 77517,
+          "graph_token_id": 77517,
+          "exact": true
+        }
+      },
+      "verdict": "pass"
+    },
+    {
+      "layer": 11,
+      "layer_type": "full_attention",
+      "status": "ok",
+      "capture_isolated": true,
+      "extraction": {
+        "position": 13,
+        "input_shape": [
+          1,
+          1,
+          4096
+        ],
+        "after_attention_shape": [
+          1,
+          1,
+          4096
+        ],
+        "layer_keys_present": {
+          "post_attention_layernorm.weight": true,
+          "mlp.gate_proj.weight": true,
+          "mlp.up_proj.weight": true,
+          "mlp.down_proj.weight": true
+        }
+      },
+      "timing_ms": {
+        "eager_tail": 0.24773759841918946,
+        "cuda_graph_capture_wall": 1.1457400396466255,
+        "cuda_graph_replay": 0.22730638980865478,
+        "cuda_graph_replay_with_input_copy": 0.2293760061264038,
+        "speedup_replay_vs_eager": 1.0898840047027871,
+        "speedup_with_copy_vs_eager": 1.0800501874754374
+      },
+      "exactness": {
+        "tail_output_base": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0000001192092896
+        },
+        "tail_output_alt_input": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0000001192092896
+        },
+        "suffix_logits": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "greedy_local": {
+          "eager_token_id": 77517,
+          "graph_token_id": 77517,
+          "exact": true
+        }
+      },
+      "verdict": "pass"
+    },
+    {
+      "layer": 15,
+      "layer_type": "full_attention",
+      "status": "ok",
+      "capture_isolated": true,
+      "extraction": {
+        "position": 13,
+        "input_shape": [
+          1,
+          1,
+          4096
+        ],
+        "after_attention_shape": [
+          1,
+          1,
+          4096
+        ],
+        "layer_keys_present": {
+          "post_attention_layernorm.weight": true,
+          "mlp.gate_proj.weight": true,
+          "mlp.up_proj.weight": true,
+          "mlp.down_proj.weight": true
+        }
+      },
+      "timing_ms": {
+        "eager_tail": 0.24791839122772216,
+        "cuda_graph_capture_wall": 1.138937659561634,
+        "cuda_graph_replay": 0.22946159839630126,
+        "cuda_graph_replay_with_input_copy": 0.23160040378570557,
+        "speedup_replay_vs_eager": 1.0804352142598794,
+        "speedup_with_copy_vs_eager": 1.070457508602253
+      },
+      "exactness": {
+        "tail_output_base": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0000001192092896
+        },
+        "tail_output_alt_input": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0000001192092896
+        },
+        "suffix_logits": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "greedy_local": {
+          "eager_token_id": 77517,
+          "graph_token_id": 77517,
+          "exact": true
+        }
+      },
+      "verdict": "pass"
+    },
+    {
+      "layer": 19,
+      "layer_type": "full_attention",
+      "status": "ok",
+      "capture_isolated": true,
+      "extraction": {
+        "position": 13,
+        "input_shape": [
+          1,
+          1,
+          4096
+        ],
+        "after_attention_shape": [
+          1,
+          1,
+          4096
+        ],
+        "layer_keys_present": {
+          "post_attention_layernorm.weight": true,
+          "mlp.gate_proj.weight": true,
+          "mlp.up_proj.weight": true,
+          "mlp.down_proj.weight": true
+        }
+      },
+      "timing_ms": {
+        "eager_tail": 0.24686241149902344,
+        "cuda_graph_capture_wall": 1.1298703029751778,
+        "cuda_graph_replay": 0.22828800678253175,
+        "cuda_graph_replay_with_input_copy": 0.23056681156158448,
+        "speedup_replay_vs_eager": 1.0813639094680334,
+        "speedup_with_copy_vs_eager": 1.0706762600700075
+      },
+      "exactness": {
+        "tail_output_base": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 0.9999998807907104
+        },
+        "tail_output_alt_input": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 0.9999998807907104
+        },
+        "suffix_logits": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "greedy_local": {
+          "eager_token_id": 77517,
+          "graph_token_id": 77517,
+          "exact": true
+        }
+      },
+      "verdict": "pass"
+    },
+    {
+      "layer": 23,
+      "layer_type": "full_attention",
+      "status": "ok",
+      "capture_isolated": true,
+      "extraction": {
+        "position": 13,
+        "input_shape": [
+          1,
+          1,
+          4096
+        ],
+        "after_attention_shape": [
+          1,
+          1,
+          4096
+        ],
+        "layer_keys_present": {
+          "post_attention_layernorm.weight": true,
+          "mlp.gate_proj.weight": true,
+          "mlp.up_proj.weight": true,
+          "mlp.down_proj.weight": true
+        }
+      },
+      "timing_ms": {
+        "eager_tail": 0.24688479900360108,
+        "cuda_graph_capture_wall": 1.1748122051358223,
+        "cuda_graph_replay": 0.22792680263519288,
+        "cuda_graph_replay_with_input_copy": 0.2306976079940796,
+        "speedup_replay_vs_eager": 1.0831758097302462,
+        "speedup_with_copy_vs_eager": 1.070166271554653
+      },
+      "exactness": {
+        "tail_output_base": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "tail_output_alt_input": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "suffix_logits": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "greedy_local": {
+          "eager_token_id": 77517,
+          "graph_token_id": 77517,
+          "exact": true
+        }
+      },
+      "verdict": "pass"
+    },
+    {
+      "layer": 27,
+      "layer_type": "full_attention",
+      "status": "ok",
+      "capture_isolated": true,
+      "extraction": {
+        "position": 13,
+        "input_shape": [
+          1,
+          1,
+          4096
+        ],
+        "after_attention_shape": [
+          1,
+          1,
+          4096
+        ],
+        "layer_keys_present": {
+          "post_attention_layernorm.weight": true,
+          "mlp.gate_proj.weight": true,
+          "mlp.up_proj.weight": true,
+          "mlp.down_proj.weight": true
+        }
+      },
+      "timing_ms": {
+        "eager_tail": 0.24796159267425538,
+        "cuda_graph_capture_wall": 1.131562516093254,
+        "cuda_graph_replay": 0.22951240539550782,
+        "cuda_graph_replay_with_input_copy": 0.23165481090545653,
+        "speedup_replay_vs_eager": 1.0803842705014353,
+        "speedup_with_copy_vs_eager": 1.0703925884597925
+      },
+      "exactness": {
+        "tail_output_base": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "tail_output_alt_input": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "suffix_logits": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "greedy_local": {
+          "eager_token_id": 77517,
+          "graph_token_id": 77517,
+          "exact": true
+        }
+      },
+      "verdict": "pass"
+    },
+    {
+      "layer": 31,
+      "layer_type": "full_attention",
+      "status": "ok",
+      "capture_isolated": true,
+      "extraction": {
+        "position": 13,
+        "input_shape": [
+          1,
+          1,
+          4096
+        ],
+        "after_attention_shape": [
+          1,
+          1,
+          4096
+        ],
+        "layer_keys_present": {
+          "post_attention_layernorm.weight": true,
+          "mlp.gate_proj.weight": true,
+          "mlp.up_proj.weight": true,
+          "mlp.down_proj.weight": true
+        }
+      },
+      "timing_ms": {
+        "eager_tail": 0.24808158874511718,
+        "cuda_graph_capture_wall": 1.1210422962903976,
+        "cuda_graph_replay": 0.22955598831176757,
+        "cuda_graph_replay_with_input_copy": 0.23167800903320312,
+        "speedup_replay_vs_eager": 1.080701882663106,
+        "speedup_with_copy_vs_eager": 1.0708033523784433
+      },
+      "exactness": {
+        "tail_output_base": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0000001192092896
+        },
+        "tail_output_alt_input": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0000001192092896
+        },
+        "suffix_logits": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "greedy_local": {
+          "eager_token_id": 77517,
+          "graph_token_id": 77517,
+          "exact": true
+        }
+      },
+      "verdict": "pass"
+    }
+  ],
+  "status": "ok",
+  "device": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+  "n_layers": 32,
+  "layer_types": {
+    "linear_attention": 24,
+    "full_attention": 8
+  },
+  "full_attention_layers": [
+    3,
+    7,
+    11,
+    15,
+    19,
+    23,
+    27,
+    31
+  ],
+  "probed_layers": [
+    3,
+    7,
+    11,
+    15,
+    19,
+    23,
+    27,
+    31
+  ],
+  "prompt_tokens": 13,
+  "prefill_next_token_id": 271,
+  "verdict": "pass",
+  "summary": "Dense full-attention tail graph replay is exact for probed layer(s).",
+  "elapsed_s": 6.452178239822388
+}

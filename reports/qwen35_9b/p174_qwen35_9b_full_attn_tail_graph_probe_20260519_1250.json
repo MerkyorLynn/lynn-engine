@@ -1,0 +1,156 @@
+{
+  "schema_version": "lynn-engine-p174-qwen35-9b-full-attn-tail-graph-probe-v1",
+  "benchmark": "p174_qwen35_9b_full_attn_tail_graph_probe",
+  "model": "/root/autodl-tmp/models/Qwen3.5-9B-lynn-native-w4a16-nvfp4-v0",
+  "prompt": "用一句话解释 CUDA graph 为什么适合固定形状的推理尾部。",
+  "device_arg": "cuda",
+  "dtype": "bfloat16",
+  "max_seq_len": 4096,
+  "env_observed": {},
+  "layers": [
+    {
+      "layer": 3,
+      "layer_type": "full_attention",
+      "status": "ok",
+      "capture_isolated": true,
+      "extraction": {
+        "position": 13,
+        "input_shape": [
+          1,
+          1,
+          4096
+        ],
+        "after_attention_shape": [
+          1,
+          1,
+          4096
+        ],
+        "layer_keys_present": {
+          "post_attention_layernorm.weight": true,
+          "mlp.gate_proj.weight": true,
+          "mlp.up_proj.weight": true,
+          "mlp.down_proj.weight": true
+        }
+      },
+      "timing_ms": {
+        "eager_tail": 0.24727296829223633,
+        "cuda_graph_capture_wall": 5.7607898488640785,
+        "cuda_graph_replay": 0.2269148826599121,
+        "cuda_graph_replay_with_input_copy": 0.22924095153808594,
+        "speedup_replay_vs_eager": 1.0897168374047808,
+        "speedup_with_copy_vs_eager": 1.0786596663168821
+      },
+      "exactness": {
+        "tail_output_base": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0000001192092896
+        },
+        "tail_output_alt_input": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0000001192092896
+        },
+        "suffix_logits": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "greedy_local": {
+          "eager_token_id": 77517,
+          "graph_token_id": 77517,
+          "exact": true
+        }
+      },
+      "verdict": "pass"
+    },
+    {
+      "layer": 7,
+      "layer_type": "full_attention",
+      "status": "ok",
+      "capture_isolated": true,
+      "extraction": {
+        "position": 13,
+        "input_shape": [
+          1,
+          1,
+          4096
+        ],
+        "after_attention_shape": [
+          1,
+          1,
+          4096
+        ],
+        "layer_keys_present": {
+          "post_attention_layernorm.weight": true,
+          "mlp.gate_proj.weight": true,
+          "mlp.up_proj.weight": true,
+          "mlp.down_proj.weight": true
+        }
+      },
+      "timing_ms": {
+        "eager_tail": 0.24809728622436522,
+        "cuda_graph_capture_wall": 1.2298673391342163,
+        "cuda_graph_replay": 0.2273164749145508,
+        "cuda_graph_replay_with_input_copy": 0.22941728591918945,
+        "speedup_replay_vs_eager": 1.0914179727519795,
+        "speedup_with_copy_vs_eager": 1.081423682746189
+      },
+      "exactness": {
+        "tail_output_base": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "tail_output_alt_input": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "suffix_logits": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "greedy_local": {
+          "eager_token_id": 77517,
+          "graph_token_id": 77517,
+          "exact": true
+        }
+      },
+      "verdict": "pass"
+    }
+  ],
+  "status": "ok",
+  "device": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+  "n_layers": 32,
+  "layer_types": {
+    "linear_attention": 24,
+    "full_attention": 8
+  },
+  "full_attention_layers": [
+    3,
+    7,
+    11,
+    15,
+    19,
+    23,
+    27,
+    31
+  ],
+  "probed_layers": [
+    3,
+    7
+  ],
+  "prompt_tokens": 13,
+  "prefill_next_token_id": 271,
+  "verdict": "pass",
+  "summary": "Dense full-attention tail graph replay is exact for probed layer(s).",
+  "elapsed_s": 6.107320547103882
+}
