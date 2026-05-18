@@ -1,0 +1,37 @@
+{
+  "schema_version": "lynn-qwen36-candidate-promotion-summary-v1",
+  "candidate_name": "strict_fused_boundary_fullattn_fastfixed",
+  "stamp": "20260518_154128",
+  "candidate_env": [
+    "LYNN_MOE_FAST_FIXED=1",
+    "LYNN_NATIVE_ACTIVE_MOE_BACKEND=strict_fused_boundary",
+    "LYNN_NATIVE_ACTIVE_MOE_LAYERS=full_attention"
+  ],
+  "thresholds": {
+    "safe_default_tps": 107.0,
+    "default_threshold": 108.07000000000001,
+    "amber_threshold": 112.35000000000001
+  },
+  "returncodes": {
+    "p37": 1,
+    "p25": 0,
+    "hard_structured": 1
+  },
+  "metrics": {
+    "p37_exact": false,
+    "p37_median_speedup": 0.904538533679343,
+    "p25_512_decode_tps": 96.67843855313342,
+    "hard_structured_ok": true,
+    "hard_structured_decode_tps_mean": 96.96053022066266
+  },
+  "reports": {
+    "p37": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_strict_fused_boundary_fullattn_fastfixed_20260518_154128_p37.json",
+    "p25": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_strict_fused_boundary_fullattn_fastfixed_20260518_154128_p25.json",
+    "hard_structured": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_strict_fused_boundary_fullattn_fastfixed_20260518_154128_hard_structured.json",
+    "p26": null,
+    "p28": null
+  },
+  "promote_default": false,
+  "promote_amber": false,
+  "decision": "CLOSED: P25 512 decode TPS is below safe default."
+}

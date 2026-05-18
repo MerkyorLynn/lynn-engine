@@ -21,6 +21,7 @@
 | `amber_sharedgate_convinplace` | CLOSED under new gate | drift | 113.08 | 69/70 | 113.60 | Fails 70-prompt gate and below 118 AMBER TPS |
 | `safe_default_70` | CLOSED diagnostic | exact | 107.31 | 59/70 | 107.49 | Ran against the later hard-v2 70 set, not the earlier AMBER 70 set |
 | `strict_fused_boundary_fullattn` | CLOSED | drift | 96.28 | 40/40 | 96.91 | Full-attn-only strict boundary is slower and not exact |
+| `strict_fused_boundary_fullattn_fastfixed` | CLOSED | drift | 96.68 | 40/40 | 96.96 | Fast-fixed variant is still slower and not exact |
 
 ## Failure Detail
 
@@ -29,6 +30,7 @@
 - This confirms the 70-prompt gate is catching exactly the structured-format drift that 40/40 could miss.
 - A later safe-default 70 run used a harder remote prompt file version and got 59/70, while keeping P37 exact. Treat that run as a diagnostic of the hard-v2 prompt set rather than as a default downgrade.
 - Stream B's single `LYNN_LINEAR_ATTN_CONV_BACKEND=triton_inplace` strict candidate is not strict enough: all three P37 prompts drift even though 40/40 structured serving passes.
+- Stream A's `strict_fused_boundary_fullattn_fastfixed` follow-up does not rescue the strict boundary path: it remains P37-drifting and stays around 96.7 TPS.
 
 ## Implication
 
