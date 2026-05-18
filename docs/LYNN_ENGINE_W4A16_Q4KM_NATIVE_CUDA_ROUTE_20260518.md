@@ -142,3 +142,118 @@ speed signal but fail generation:
 
 Both emitted repeated exclamation marks in P37. The useful lesson is the target
 shape and speed budget, not the numeric path itself.
+
+## R6000 llama.cpp Q4_K_M Baseline
+
+The clean R6000 CUDA reference is now:
+
+| Probe | Result |
+|---|---:|
+| Single 128 tokens | 154.39 wall TPS |
+| Single 256 tokens | 202.47 wall TPS |
+| Single 512 tokens | 207.29 wall TPS |
+| Concurrent 2 total | 306.34 wall TPS |
+| Concurrent 4 total | 400.39 wall TPS |
+| Concurrent 8 total | 500.66 wall TPS |
+| 5.8k prompt tokens + 128 decode | 91.13 wall TPS including prefill |
+| 11.6k prompt tokens + 128 decode | 84.19 wall TPS including prefill |
+
+This is the strongest evidence so far that W4A16-class quality does not cap the
+serving route near 110 TPS. Lynn's current gap is implementation structure:
+layout, launch count, and fused decode boundaries.
+
+## How Lynn Catches llama.cpp
+
+The plan is not to replace Lynn with llama.cpp. It is to copy the engineering
+shape in a license-clean way while keeping Lynn-native NVFP4 artifacts and
+promotion gates.
+
+### 1. Offline Repack First
+
+llama.cpp wins partly because GGUF is already a serving layout, not just a
+checkpoint layout. Lynn's safetensors + manifest format is flexible, but the
+decode kernel still pays for generic strides and intermediate layouts.
+
+Add a second, optional serving layout:
+
+```text
+manifest checkpoint layout
+  -> offline repack
+  -> decode_tile layout for active experts / shared expert / linear projections
+```
+
+Acceptance:
+
+- no quality change;
+- loader can fall back to the current manifest layout;
+- P25 gains are visible before any math rewrite;
+- artifacts remain compatible with `dl.merkyorlynn.com` distribution.
+
+### 2. Native Active-MoE Boundary
+
+Use llama.cpp's `topk-moe.cu` as a high-level MIT reference for the graph shape:
+fuse softmax/top-k/get_rows-style routing decisions and avoid scattering work
+back through many small operations. Do not reuse the source.
+
+For Lynn, the first safe kernel should still preserve:
+
+```text
+router logits
+  -> top-k ids and routing weights
+  -> gate/up
+  -> BF16 inter store
+  -> down
+  -> route weighted sum
+  -> shared expert add
+```
+
+Only after exact parity passes should the BF16 inter boundary be challenged.
+The P125 update shows current native candidates still drift too early, so the
+next change must tighten numeric order before chasing larger tiles.
+
+Target:
+
+- Stream A first useful step: P37 `3/3` exact and P25 512 decode >=115 TPS.
+- Stretch: >=120 TPS with hard structured gate clean.
+
+### 3. GDN/SSM Decode Boundary
+
+llama.cpp now has dedicated `gated_delta_net.cu` and `ssm-scan.cu` kernels.
+Those are directly relevant to Qwen3.6 hybrid SSM. Lynn already has Triton
+pieces for conv, recurrent update, and gated RMSNorm, but they are still
+multiple decode boundaries per linear-attention layer.
+
+For Lynn, Stream B should converge the current sequence:
+
+```text
+in_proj -> conv/silu -> split -> beta/g -> recurrent -> gated RMSNorm -> out_proj
+```
+
+into fewer explicit CUDA/Triton boundaries while preserving the current
+GQA-recurrent and BF16 rounding contract.
+
+Target:
+
+- first useful step: P37 `3/3` exact and P25 512 decode >=113 TPS;
+- stretch: >=118 TPS before revisiting service-loop C++.
+
+### 4. CUDA Graph and Scheduler Discipline
+
+llama.cpp reports `USE_GRAPHS=1` in the clean CUDA run. Lynn already benefits
+from graph reuse in linear blocks, but full-attention graph slots are not yet
+cross-prompt safe. Keep graph work at explicit subgraph boundaries instead of
+capturing whole decode per token.
+
+Target:
+
+- only promote reusable graph segments that pass fresh-prompt P37 and hard
+  structured gates;
+- never repeat the strict-slot whole-token graph path, which was already
+  measured as slower due to per-token capture.
+
+### 5. Defer W4A8 and MTP Credit
+
+llama.cpp's Q4_K_M win is W4A16-class. It does not justify sacrificing
+structured/tool-call quality for W4A8, and it does not prove MTP works on
+Qwen3.6 hybrid SSM. Keep W4A8 and MTP as gated acceleration branches after the
+W4A16 kernel route is closer to llama.cpp.
