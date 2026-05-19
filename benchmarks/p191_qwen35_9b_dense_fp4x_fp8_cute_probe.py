@@ -161,7 +161,7 @@ def main() -> int:
         else:
             max_abs = rel_l2 = cosine = None
 
-        # Benchmark
+        # Benchmark scalar
         for _ in range(10):
             ext.dense_fp4xfp8_scalar_reference(act_fp8, act_scale, w_packed, w_scale, w_global.view(-1))
         torch.cuda.synchronize()
@@ -174,19 +174,76 @@ def main() -> int:
         torch.cuda.synchronize()
         bench_ms = float(start.elapsed_time(end) / 50)
 
+        # MMA real compute (if available)
+        mma_max_abs = None
+        mma_cosine = None
+        mma_ms = None
+        mma_real_compute = False
+        mma_error = None
+        if has_mma:
+            try:
+                # Run MMA kernel: act_fp8 raw bytes (no per-16 scale applied — MMA sees raw E4M3)
+                # For this probe: feed raw FP8 bytes and raw packed weight
+                mma_out = ext.dense_fp4xfp8_mma_probe(act_fp8.contiguous(), w_packed.contiguous(), 1, N, K)
+                mma_real_compute = True
+                # Compare MMA vs scalar (both operate on same data)
+                # Note: MMA doesn't apply per-16 scales (raw dot product)
+                # Scalar does apply scales. So we compare MMA vs a "raw" scalar reference
+                # that also skips scales. For now just report MMA output stats.
+                mma_nonzero = int((mma_out != 0).sum().item())
+                mma_abs_max = float(mma_out.abs().max().item())
+                # Compare to scalar ref (imperfect — scale mismatch expected)
+                if out_scalar is not None:
+                    cf_mma = mma_out[:N].float()
+                    cf_scalar = out_scalar[:N].float()
+                    diff_mma = cf_mma - cf_scalar
+                    mma_max_abs = float(diff_mma.abs().max())
+                    mma_cosine = float(torch.dot(cf_mma, cf_scalar) / (
+                        torch.linalg.vector_norm(cf_mma).clamp_min(1e-12) *
+                        torch.linalg.vector_norm(cf_scalar).clamp_min(1e-12)))
+                # Benchmark MMA
+                for _ in range(10):
+                    ext.dense_fp4xfp8_mma_probe(act_fp8, w_packed, 1, N, K)
+                torch.cuda.synchronize()
+                s2 = torch.cuda.Event(enable_timing=True)
+                e2 = torch.cuda.Event(enable_timing=True)
+                s2.record()
+                for _ in range(50):
+                    ext.dense_fp4xfp8_mma_probe(act_fp8, w_packed, 1, N, K)
+                e2.record()
+                torch.cuda.synchronize()
+                mma_ms = float(s2.elapsed_time(e2) / 50)
+            except RuntimeError as e:
+                mma_error = str(e)[:200]
+                mma_real_compute = False
+
         result = {
             "layer_id": layer_id,
             "shape": f"[{N}, {K}]",
-            "max_abs_vs_bf16_ref": max_abs,
-            "rel_l2_vs_bf16_ref": rel_l2,
-            "cosine_vs_bf16_ref": cosine,
-            "scalar_ms": bench_ms,
-            "mma_available": mma_available,
+            "scalar_reference": {
+                "max_abs_vs_bf16_ref": max_abs,
+                "rel_l2_vs_bf16_ref": rel_l2,
+                "cosine_vs_bf16_ref": cosine,
+                "scalar_ms": bench_ms,
+            },
+            "mma_kernel": {
+                "available": mma_available,
+                "real_compute": mma_real_compute,
+                "mma_vs_scalar_max_abs": mma_max_abs,
+                "mma_vs_scalar_cosine": mma_cosine,
+                "mma_ms": mma_ms,
+                "error": mma_error,
+            },
         }
         results.append(result)
 
-        status = "GREEN" if (cosine and cosine > 0.99) else "AMBER"
-        print(f"    max_abs={max_abs:.4e} rel_l2={rel_l2:.4e} cos={cosine:.6f} ms={bench_ms:.3f} {status}")
+        print(f"    scalar: max_abs={max_abs:.4e} cos={cosine:.6f} ms={bench_ms:.3f}")
+        if mma_real_compute:
+            print(f"    MMA:    vs_scalar_cos={mma_cosine:.6f} ms={mma_ms:.3f}")
+        elif mma_error:
+            print(f"    MMA:    ERROR: {mma_error[:80]}")
+        else:
+            print(f"    MMA:    not available")
 
     # Summary
     report = {
