@@ -1,0 +1,15 @@
+{
+  "schema_version": "lynn-openai-mcq-thinking32-eval-v1",
+  "task": "gpqa",
+  "model": "Qwen3.6-35B-A3B-Q4KM-imatrix-thinking32",
+  "endpoint": "http://127.0.0.1:18196/v1",
+  "max_tokens": 32768,
+  "concurrency": 1,
+  "n": 50,
+  "correct": 39,
+  "accuracy": 0.78,
+  "parse_fail": 2,
+  "accuracy_excluding_parse_fail": 0.8125,
+  "elapsed_sec": 10536.681,
+  "qps": 0.0047
+}
