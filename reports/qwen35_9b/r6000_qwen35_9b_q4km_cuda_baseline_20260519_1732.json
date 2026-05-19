@@ -1,0 +1,87 @@
+{
+  "schema": "lynn-qwen35-9b-q4km-cuda-baseline-v1",
+  "status": "DONE",
+  "model_id": "Qwen3.5-9B",
+  "quant": "Q4_K_M-imatrix",
+  "engine": "llama.cpp CUDA",
+  "engine_detail": "CUDA 12.8, CMAKE_CUDA_ARCHITECTURES=120, flash-attn",
+  "model_path": "/root/autodl-tmp/models/Qwen3.5-9B-Q4_K_M.gguf",
+  "size_gib": "5.49",
+  "llama_cpp_binary": "/root/autodl-tmp/llama.cpp/build-cuda/bin/llama-server",
+  "git_rev": "856c3ad",
+  "n_gpu_layers": 99,
+  "ctx_size": 32768,
+  "parallel": 8,
+  "timestamp": "20260519_1732",
+  "single_tps": {
+    "128": {
+      "ok": true,
+      "max_tokens_req": 128,
+      "prompt_tokens": 28,
+      "completion_tokens": 128,
+      "elapsed_s": 1.016,
+      "wall_tps": 125.98,
+      "_key": "128"
+    },
+    "256": {
+      "ok": true,
+      "max_tokens_req": 256,
+      "prompt_tokens": 28,
+      "completion_tokens": 256,
+      "elapsed_s": 1.604,
+      "wall_tps": 159.6,
+      "_key": "256"
+    },
+    "512": {
+      "ok": true,
+      "max_tokens_req": 512,
+      "prompt_tokens": 28,
+      "completion_tokens": 512,
+      "elapsed_s": 3.112,
+      "wall_tps": 164.52,
+      "_key": "512"
+    }
+  },
+  "concurrent_tps": {
+    "2": {
+      "ok": true,
+      "concurrency": 2,
+      "max_tokens_req": 256,
+      "total_completion_tokens": 512,
+      "elapsed_s": 3.135,
+      "batch_wall_tps": 163.32,
+      "_key": "2"
+    },
+    "4": {
+      "ok": true,
+      "concurrency": 4,
+      "max_tokens_req": 256,
+      "total_completion_tokens": 1024,
+      "elapsed_s": 6.203,
+      "batch_wall_tps": 165.08,
+      "_key": "4"
+    },
+    "8": {
+      "ok": true,
+      "concurrency": 8,
+      "max_tokens_req": 256,
+      "total_completion_tokens": 2048,
+      "elapsed_s": 12.329,
+      "batch_wall_tps": 166.11,
+      "_key": "8"
+    }
+  },
+  "long_context": {
+    "32768": {
+      "ok": true,
+      "chars": 32768,
+      "concurrency": 1,
+      "total_prompt_tokens": 7156,
+      "total_completion_tokens": 64,
+      "elapsed_s": 1.153,
+      "wall_tps": 55.51,
+      "_key": "32768"
+    }
+  },
+  "errors": []
+}

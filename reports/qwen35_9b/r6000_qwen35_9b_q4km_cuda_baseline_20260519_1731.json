@@ -1,0 +1,107 @@
+{
+  "schema": "lynn-qwen35-9b-q4km-cuda-baseline-v1",
+  "status": "DONE",
+  "model_id": "Qwen3.5-9B",
+  "quant": "Q4_K_M-imatrix",
+  "engine": "llama.cpp CUDA",
+  "engine_detail": "CUDA 12.8, CMAKE_CUDA_ARCHITECTURES=120, flash-attn",
+  "model_path": "/root/autodl-tmp/models/Qwen3.5-9B-Q4_K_M.gguf",
+  "size_gib": "5.49",
+  "llama_cpp_binary": "/root/autodl-tmp/llama.cpp/build-cuda/bin/llama-server",
+  "git_rev": "856c3ad",
+  "n_gpu_layers": 99,
+  "ctx_size": 32768,
+  "parallel": 8,
+  "timestamp": "20260519_1731",
+  "single_tps": {
+    "128": {
+      "ok": true,
+      "max_tokens_req": 128,
+      "prompt_tokens": 28,
+      "completion_tokens": 128,
+      "elapsed_s": 0.973,
+      "wall_tps": 131.55,
+      "_key": "128"
+    },
+    "256": {
+      "ok": true,
+      "max_tokens_req": 256,
+      "prompt_tokens": 28,
+      "completion_tokens": 256,
+      "elapsed_s": 1.598,
+      "wall_tps": 160.2,
+      "_key": "256"
+    },
+    "512": {
+      "ok": true,
+      "max_tokens_req": 512,
+      "prompt_tokens": 28,
+      "completion_tokens": 512,
+      "elapsed_s": 3.089,
+      "wall_tps": 165.75,
+      "_key": "512"
+    }
+  },
+  "concurrent_tps": {
+    "2": {
+      "ok": true,
+      "concurrency": 2,
+      "max_tokens_req": 256,
+      "total_completion_tokens": 512,
+      "elapsed_s": 1.892,
+      "batch_wall_tps": 270.61,
+      "_key": "2"
+    },
+    "4": {
+      "ok": true,
+      "concurrency": 4,
+      "max_tokens_req": 256,
+      "total_completion_tokens": 1024,
+      "elapsed_s": 3.096,
+      "batch_wall_tps": 330.75,
+      "_key": "4"
+    },
+    "8": {
+      "ok": true,
+      "concurrency": 8,
+      "max_tokens_req": 256,
+      "total_completion_tokens": 2048,
+      "elapsed_s": 4.953,
+      "batch_wall_tps": 413.49,
+      "_key": "8"
+    }
+  },
+  "long_context": {
+    "4096": {
+      "ok": true,
+      "chars": 4096,
+      "concurrency": 4,
+      "total_prompt_tokens": 3704,
+      "total_completion_tokens": 256,
+      "elapsed_s": 1.473,
+      "wall_tps": 173.79,
+      "_key": "4096"
+    },
+    "16384": {
+      "ok": true,
+      "chars": 16384,
+      "concurrency": 4,
+      "total_prompt_tokens": 14384,
+      "total_completion_tokens": 256,
+      "elapsed_s": 2.238,
+      "wall_tps": 114.39,
+      "_key": "16384"
+    },
+    "32768": {
+      "ok": false,
+      "chars": 32768,
+      "concurrency": 4,
+      "total_prompt_tokens": 0,
+      "total_completion_tokens": 0,
+      "elapsed_s": 0.111,
+      "wall_tps": 0.0,
+      "_key": "32768"
+    }
+  },
+  "errors": []
+}

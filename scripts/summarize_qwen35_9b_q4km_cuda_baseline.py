@@ -128,21 +128,29 @@ def render_markdown(report: dict) -> str:
         lines.append("|---:|---:|---:|---:|---:|:---:|")
         for lc in sorted(long_ctx.keys(), key=int):
             d = long_ctx[lc]
+            lc_i = int(lc)
             ok = d.get("ok", False)
             status_icon = "✅" if ok else "❌"
             if ok:
                 lines.append(
-                    f"| {lc:,} | {d.get('total_prompt_tokens', 0):,} | "
+                    f"| {lc_i:,} | {d.get('total_prompt_tokens', 0):,} | "
                     f"{d.get('total_completion_tokens', 0)} | "
                     f"**{fmt_tps(d.get('wall_tps', 0))}** | "
                     f"{d.get('elapsed_s', 0):.3f} | {status_icon} |"
                 )
             else:
                 lines.append(
-                    f"| {lc:,} | — | — | — | — | "
+                    f"| {lc_i:,} | — | — | — | — | "
                     f"{status_icon} {d.get('error', 'failed')} |"
                 )
         lines.append("")
+        if any(not d.get("ok", False) for d in long_ctx.values()) and report.get("parallel", 1) != 1:
+            lines.append(
+                f"Note: failures at the largest context are likely affected by "
+                f"`--parallel {report.get('parallel')}` slot partitioning; rerun with `PARALLEL=1` "
+                "for true single-request long-context capacity."
+            )
+            lines.append("")
 
     # ── GPQA ───────────────────────────────────────────────────────────────
     gpqa = report.get("gpqa", {})

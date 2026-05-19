@@ -156,10 +156,10 @@ start_server() {
     --ctx-size "$CTX_SIZE" \
     --parallel "$PARALLEL" \
     --n-gpu-layers "$N_GPU_LAYERS" \
-    --flash-attn \
+    --flash-attn auto \
     --cont-batching \
     --log-disable \
-    2>&1 | tee "$SERVER_LOG" &
+    > "$SERVER_LOG" 2>&1 &
   SERVER_PID=$!
 
   log "Waiting for server to become ready (PID=$SERVER_PID)..."
@@ -172,7 +172,7 @@ start_server() {
       die "Server did not become ready within 120s. Check $SERVER_LOG"
     fi
     sleep 0.5
-    (( attempts++ ))
+    ((++attempts))
   done
   log "Server ready (took $((attempts / 2))s)"
 
@@ -405,10 +405,10 @@ print(' '.join(words)[:32768])
 
 # ── Assemble final report ────────────────────────────────────────────────────
 assemble_report() {
-  local report_file="$1" model="$2" server="$3" size_gib="$4" git_rev="$5"
-  shift 5
+  local report_file="$1" model="$2" server="$3" size_gib="$4" git_rev="$5" report_ts="$6"
+  shift 6
   # Remaining args: list of (section_name, json_file) pairs
-  python3 - "$report_file" "$model" "$server" "$size_gib" "$git_rev" "$@" <<'PYEOF'
+  python3 - "$report_file" "$model" "$server" "$size_gib" "$git_rev" "$report_ts" "$@" <<'PYEOF'
 import json, sys
 
 report_file = sys.argv[1]
@@ -416,6 +416,7 @@ model_path = sys.argv[2]
 binary = sys.argv[3]
 size_gib = sys.argv[4]
 git_rev = sys.argv[5]
+report_ts = sys.argv[6]
 
 report = {
     "schema": "lynn-qwen35-9b-q4km-cuda-baseline-v1",
@@ -431,7 +432,7 @@ report = {
     "n_gpu_layers": 99,
     "ctx_size": 32768,
     "parallel": 8,
-    "timestamp": sys.argv[5] if len(sys.argv) > 5 else "",
+    "timestamp": report_ts,
     "single_tps": {},
     "concurrent_tps": {},
     "long_context": {},
@@ -439,7 +440,7 @@ report = {
 }
 
 # Parse section_name=filepath pairs
-args = sys.argv[6:]
+args = sys.argv[7:]
 for i in range(0, len(args), 2):
     section = args[i]
     filepath = args[i + 1]
@@ -584,7 +585,7 @@ with open('$lfile', 'w') as f: json.dump(d, f, indent=2)
 
   # ── Assemble report ─────────────────────────────────────────────────────
   local report_file="$REPORT_ROOT/r6000_qwen35_9b_q4km_cuda_baseline_${report_ts}.json"
-  assemble_report "$report_file" "$model" "$server" "$size_gib" "$git_rev" "${report_args[@]}"
+  assemble_report "$report_file" "$model" "$server" "$size_gib" "$git_rev" "$report_ts" "${report_args[@]}"
 
   # Done
   stop_server
