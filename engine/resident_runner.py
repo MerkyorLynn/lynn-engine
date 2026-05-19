@@ -958,11 +958,15 @@ class LynnIncrementalRunner:
 
         # Resident tensors read by the captured graph at replay time.
         position_tensor = torch.tensor([bucket_start], dtype=torch.long, device=self.device)
-        # attn_mask is fp32-compatible to dtype: 0.0 means attend, -inf means mask.
+        # attn_mask: 0.0 = attend, -inf = mask. The captured SDPA kernel reads
+        # the live contents at replay, so the caller must keep it in sync
+        # ([0 .. state.seq_len] = 0.0). Initial value here is just enough to
+        # make the capture warmup forward numerically stable (SDPA softmax
+        # needs at least one attended position).
         attn_mask = torch.full(
             (bucket_end,), float("-inf"), dtype=self.dtype, device=self.device,
         )
-        attn_mask[0] = 0.0  # mark first position attended for the capture warmup
+        attn_mask[bucket_start] = 0.0
         input_buf = torch.zeros((1, 1, hidden_size), dtype=self.dtype, device=self.device)
         output_buf = torch.empty_like(input_buf)
 
@@ -1661,10 +1665,14 @@ class LynnIncrementalRunner:
                     full_layer = bi * 4 + 3
                     if full_attn_layer_graph_pool is not None:
                         slot = full_attn_layer_graph_pool.get(state, full_layer)
-                        # Update runtime tensors BEFORE replay so the captured
-                        # graph reads the current position + mask.
+                        # Mark [0..state.seq_len] as attended. This handles
+                        # both the cross-bucket-transition case (where the
+                        # slot was freshly captured and its mask only has
+                        # bucket_start = 0.0) and the within-bucket monotonic
+                        # advance (idempotent slice write). The unset tail
+                        # stays -inf as initialized.
+                        slot.attn_mask[: state.seq_len + 1] = 0.0
                         slot.position_tensor.fill_(state.seq_len)
-                        slot.attn_mask[state.seq_len] = 0.0
                         slot.input_buf.copy_(h)
                         slot.graph.replay()
                         h = slot.output_buf
