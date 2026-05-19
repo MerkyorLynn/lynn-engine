@@ -145,11 +145,20 @@ def mtp_logits(
     current_pos: int,
     device: str,
 ) -> torch.Tensor:
-    """Return MTP draft logits for the token after `current_token_id`."""
+    """Return MTP draft logits for the token after `current_token_id`.
+
+    The concat order is ``[embed_part, hidden_part]`` to match the official
+    Qwen3.6 NextN training contract (vLLM ``qwen3_next_mtp.py`` ships the
+    fused FC weight expecting ``cat([inputs_embeds, hidden_states], dim=-1)``).
+    A prior version of this file used ``cat([hidden_part, embed_part])`` —
+    that swap mapped the trained FC weight's left/right halves to the wrong
+    inputs, producing essentially random logits and ~0% MTP accept on Spark
+    against the official head. Verified 2026-05-19.
+    """
     input_embed = embed_weight[int(current_token_id)].view(1, 1, -1)
     hidden_part = _rms_norm(base_hidden, sidecar["mtp.pre_fc_norm_hidden.weight"])
     embed_part = _rms_norm(input_embed, sidecar["mtp.pre_fc_norm_embedding.weight"])
-    mtp_hidden = F.linear(torch.cat([hidden_part, embed_part], dim=-1), sidecar["mtp.fc.weight"])
+    mtp_hidden = F.linear(torch.cat([embed_part, hidden_part], dim=-1), sidecar["mtp.fc.weight"])
     pos = torch.tensor([[int(current_pos)]], device=device, dtype=torch.long)
     mtp_out = mtp_layer_forward(mtp_hidden, pos, mtp_w, mtp_cfg)
     mtp_normed = _rms_norm(mtp_out, sidecar["mtp.norm.weight"])
