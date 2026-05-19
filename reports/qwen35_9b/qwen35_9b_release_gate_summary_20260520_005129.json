@@ -1,0 +1,341 @@
+{
+  "schema": "lynn-qwen35-9b-release-gate-v1",
+  "created": "2026-05-20T00:51:29+08:00",
+  "host": "autodl-container-fu642y22eg-c952919a",
+  "model_id": "Qwen/Qwen3.5-9B",
+  "model_root": "/root/autodl-tmp/models",
+  "report_dir": "/root/autodl-tmp/reports/qwen35_9b",
+  "overall_decision": "PENDING",
+  "variants": [
+    {
+      "variant": "BF16",
+      "artifact": {
+        "name": "BF16",
+        "status": "PRESENT",
+        "selected_path": "/root/autodl-tmp/models/Qwen3.5-9B-BF16",
+        "bytes": 19329393248,
+        "size_gib": 18.002,
+        "reported_size_gib": 18.0,
+        "checked_paths": [
+          {
+            "path": "/root/autodl-tmp/models/Qwen3.5-9B-BF16",
+            "exists": true,
+            "bytes": 19329393248,
+            "size_gib": 18.002,
+            "missing_required": []
+          }
+        ],
+        "required_children": [
+          "config.json",
+          "model.safetensors.index.json"
+        ],
+        "missing_required": [],
+        "evidence_reports": [
+          "/root/autodl-tmp/reports/qwen35_9b/bf16_transformers_20260519_0102_quality_summary.json"
+        ]
+      },
+      "quality": {
+        "mmlu": {
+          "score": 0.772,
+          "correct": 386,
+          "total": 500,
+          "status": "DONE"
+        },
+        "gpqa": {
+          "score": 0.4495,
+          "correct": 89,
+          "total": 198,
+          "status": "DONE"
+        }
+      },
+      "speed": {
+        "single_tps": {
+          "128": null,
+          "256": null,
+          "512": null
+        },
+        "concurrent_tps": {
+          "2": null,
+          "4": null,
+          "8": null
+        },
+        "long_context": {
+          "4k": null,
+          "16k": null,
+          "32k": null
+        }
+      },
+      "matrix_status": "PARTIAL",
+      "runtime_smoke": {
+        "status": "GENERATION_PASS",
+        "report": "/root/autodl-tmp/reports/qwen35_9b/r6000_qwen35_9b_dense_runtime_smoke_decode4_codex_20260519_020912.json",
+        "completion_text": "\n\nOK.",
+        "decode_tps": 32.9217204289822,
+        "new_token_ids": [
+          271,
+          3793,
+          13,
+          248044
+        ]
+      },
+      "decision": "PASS_QUALITY_CEILING",
+      "blocker": "TPS not required for BF16 release ceiling"
+    },
+    {
+      "variant": "Q4_K_M",
+      "artifact": {
+        "name": "Q4_K_M",
+        "status": "PRESENT",
+        "selected_path": "/root/autodl-tmp/models/Qwen3.5-9B-Q4_K_M.gguf",
+        "bytes": 5889811552,
+        "size_gib": 5.485,
+        "reported_size_gib": 5.5,
+        "checked_paths": [
+          {
+            "path": "/root/autodl-tmp/models/Qwen3.5-9B-Q4_K_M.gguf",
+            "exists": true,
+            "bytes": 5889811552,
+            "size_gib": 5.485,
+            "missing_required": []
+          },
+          {
+            "path": "/root/autodl-tmp/models/Qwen3.5-9B-GGUF/Qwen_Qwen3.5-9B-Q4_K_M.gguf",
+            "exists": true,
+            "bytes": 5889811552,
+            "size_gib": 5.485,
+            "missing_required": []
+          }
+        ],
+        "required_children": [],
+        "missing_required": [],
+        "evidence_reports": [
+          "/root/autodl-tmp/reports/qwen35_9b/r6000_qwen35_9b_q4km_baseline_20260519_0107.json"
+        ]
+      },
+      "quality": {
+        "mmlu": {
+          "score": 0.76,
+          "correct": 380,
+          "total": 500,
+          "status": "DONE"
+        },
+        "gpqa": {
+          "score": null,
+          "correct": null,
+          "total": null,
+          "status": "PENDING"
+        }
+      },
+      "speed": {
+        "single_tps": {
+          "128": 121.8,
+          "256": 165.2,
+          "512": 168.2
+        },
+        "concurrent_tps": {
+          "2": 275.6,
+          "4": 341.3,
+          "8": 420.6
+        },
+        "long_context": {
+          "4k": 146.0,
+          "16k": 123.9,
+          "32k": 72.2
+        }
+      },
+      "matrix_status": "DONE",
+      "runtime_smoke": {
+        "status": "PENDING",
+        "report": null
+      },
+      "decision": "PENDING",
+      "blocker": "quality"
+    },
+    {
+      "variant": "NVFP4",
+      "artifact": {
+        "name": "NVFP4",
+        "status": "PRESENT",
+        "selected_path": "/root/autodl-tmp/models/Qwen3.5-9B-lynn-native-w4a16-nvfp4-v0",
+        "bytes": 8855899502,
+        "size_gib": 8.248,
+        "reported_size_gib": 8.3,
+        "checked_paths": [
+          {
+            "path": "/root/autodl-tmp/models/Qwen3.5-9B-lynn-native-w4a16-nvfp4-v0",
+            "exists": true,
+            "bytes": 8855899502,
+            "size_gib": 8.248,
+            "missing_required": []
+          }
+        ],
+        "required_children": [
+          "config.json",
+          "lynn_quant_manifest.json"
+        ],
+        "missing_required": [],
+        "evidence_reports": [
+          "/root/autodl-tmp/reports/qwen35_9b/r6000_qwen36_9b_official_w4a16_pack_summary_20260519_000117.json",
+          "/root/autodl-tmp/reports/qwen35_9b/r6000_qwen35_9b_nvfp4_dense_runtime_smoke_decode4_codex_20260519_021137.json",
+          "/root/autodl-tmp/reports/qwen35_9b/nvfp4_openai_quality_20260519_022635_mmlu_n500.summary.json",
+          "/root/autodl-tmp/reports/qwen35_9b/nvfp4_openai_quality_20260519_022635_gpqa.summary.json"
+        ]
+      },
+      "quality": {
+        "mmlu": {
+          "score": 0.752,
+          "correct": 376,
+          "total": 500,
+          "status": "DONE"
+        },
+        "gpqa": {
+          "score": 0.4293,
+          "correct": 85,
+          "total": 198,
+          "status": "DONE"
+        }
+      },
+      "speed": {
+        "single_tps": {
+          "128": 61.3,
+          "256": 62.2,
+          "512": 62.1
+        },
+        "concurrent_tps": {
+          "2": 60.0,
+          "4": 60.1,
+          "8": 60.1
+        },
+        "long_context": {
+          "4k": 56.1,
+          "16k": 51.4,
+          "32k": 45.0
+        }
+      },
+      "matrix_status": "DONE",
+      "runtime_smoke": {
+        "status": "GENERATION_PASS",
+        "report": "/root/autodl-tmp/reports/qwen35_9b/r6000_qwen35_9b_nvfp4_dense_runtime_smoke_decode4_codex_20260519_021137.json",
+        "completion_text": "\n\nOK.",
+        "decode_tps": 36.96496778799122,
+        "new_token_ids": [
+          271,
+          3793,
+          13,
+          248044
+        ]
+      },
+      "decision": "PASS_NVFP4_RUNTIME",
+      "blocker": null
+    }
+  ],
+  "source_matrix": {
+    "schema": "lynn-qwen35-9b-release-matrix-v1",
+    "created": "2026-05-20T00:51:29+08:00",
+    "model_id": "Qwen3.5-9B",
+    "entries": [
+      {
+        "variant": "BF16",
+        "size_gib": 18.0,
+        "stack": "transformers-direct",
+        "mmlu": {
+          "score": 0.772,
+          "correct": 386,
+          "total": 500,
+          "status": "DONE"
+        },
+        "gpqa": {
+          "score": 0.4495,
+          "correct": 89,
+          "total": 198,
+          "status": "DONE"
+        },
+        "single_tps": {
+          "128": null,
+          "256": null,
+          "512": null
+        },
+        "concurrent_tps": {
+          "2": null,
+          "4": null,
+          "8": null
+        },
+        "long_context": {
+          "4k": null,
+          "16k": null,
+          "32k": null
+        },
+        "status": "PARTIAL",
+        "blocker": "No TPS benchmarks yet"
+      },
+      {
+        "variant": "Q4_K_M",
+        "size_gib": 5.5,
+        "stack": "llama.cpp",
+        "mmlu": {
+          "score": 0.76,
+          "correct": 380,
+          "total": 500,
+          "status": "DONE"
+        },
+        "gpqa": {
+          "score": null,
+          "correct": null,
+          "total": null,
+          "status": "PENDING"
+        },
+        "single_tps": {
+          "128": 121.8,
+          "256": 165.2,
+          "512": 168.2
+        },
+        "concurrent_tps": {
+          "2": 275.6,
+          "4": 341.3,
+          "8": 420.6
+        },
+        "long_context": {
+          "4k": 146.0,
+          "16k": 123.9,
+          "32k": 72.2
+        },
+        "status": "DONE",
+        "blocker": null
+      },
+      {
+        "variant": "NVFP4",
+        "size_gib": 8.3,
+        "stack": "Lynn Engine (CUDA)",
+        "mmlu": {
+          "score": 0.752,
+          "correct": 376,
+          "total": 500,
+          "status": "DONE"
+        },
+        "gpqa": {
+          "score": 0.4293,
+          "correct": 85,
+          "total": 198,
+          "status": "DONE"
+        },
+        "single_tps": {
+          "128": 61.3,
+          "256": 62.2,
+          "512": 62.1
+        },
+        "concurrent_tps": {
+          "2": 60.0,
+          "4": 60.1,
+          "8": 60.1
+        },
+        "long_context": {
+          "4k": 56.1,
+          "16k": 51.4,
+          "32k": 45.0
+        },
+        "status": "DONE",
+        "blocker": null
+      }
+    ]
+  }
+}
