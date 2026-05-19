@@ -1,0 +1,97 @@
+{
+  "schema": "lynn-compact-nvfp4-shrink-gate-v1",
+  "p199_source": "/root/autodl-tmp/reports/qwen35_9b/p199_nvfp4_size_audit_20260519_live_size2.json",
+  "source_model_dir": "/root/autodl-tmp/models/Qwen3.5-9B-lynn-native-w4a16-nvfp4-v0",
+  "current_artifact_gib": 8.2477,
+  "q4km_target_gib": 5.3,
+  "p199_summary": {
+    "quantized_total_gib": 4.4339,
+    "kept_bf16_total_gib": 3.7918,
+    "embed_tokens_gib": 1.8945,
+    "lm_head_gib": 1.8945,
+    "non_tensor_metadata_gib": 0.022
+  },
+  "key_facts": [
+    "Current stable NVFP4 W4A16 artifact is 8.248 GiB.",
+    "embed_tokens (1.895 GiB) and lm_head (1.895 GiB) are the two largest BF16 tensors.",
+    "They are NOT tied — cosine similarity 0.0198, must be quantized independently.",
+    "Quantizing one saves ~1.27 GiB; quantizing both saves ~2.55 GiB.",
+    "Compact NVFP4 is NOT a transparent repack — it changes quantization of output-critical tensors.",
+    "lm_head FP4 exact-match gate currently FAILS on 9B (P136b: exact 1/3).",
+    "embed_tokens FP4 exact-match gate has NOT been tested on 9B.",
+    "Quality impact must be measured before any compact tier can be promoted."
+  ],
+  "tiers": [
+    {
+      "tier": "SAFE_NO_CHANGE",
+      "verdict": "PASS_STABLE",
+      "description": "Ship current artifact as-is.  No embed/lm_head quantization.  Known-good quality.  Size 8.248 GiB.",
+      "estimated_size_gib": 8.248,
+      "size_delta_gib": 0.0,
+      "vs_q4km_delta_gib": 2.948,
+      "changes": [],
+      "quality_risk": "none",
+      "required_gates": []
+    },
+    {
+      "tier": "COMPACT_EMBED_ONLY",
+      "verdict": "NEEDS_QUALITY_GATE",
+      "description": "Quantize embed_tokens.weight from BF16 (1.895 GiB) to NVFP4 (~0.62 GiB).  lm_head stays BF16.  Saves ~1.27 GiB.",
+      "estimated_size_gib": 6.973,
+      "size_delta_gib": -1.274,
+      "vs_q4km_delta_gib": 1.673,
+      "changes": [
+        "quantize model.language_model.embed_tokens.weight (1.895 GiB BF16 → ~0.62 GiB NVFP4)"
+      ],
+      "quality_risk": "moderate",
+      "required_gates": [
+        "MMLU_500        — ≥ baseline NVFP4 score (no >1pp regression)",
+        "GPQA_Diamond    — ≥ baseline NVFP4 score (no >1pp regression)",
+        "Structured_Content  — 10 multi-format prompts, GREEN overall",
+        "Context_32K_Smoke   — long-context generation, no crash / garbage",
+        "R6000_TPS           — tokens/sec ≥ 90%% of baseline NVFP4"
+      ]
+    },
+    {
+      "tier": "COMPACT_LMHEAD_ONLY",
+      "verdict": "NEEDS_QUALITY_GATE",
+      "description": "Quantize lm_head.weight from BF16 (1.895 GiB) to NVFP4 (~0.62 GiB).  embed_tokens stays BF16.  Saves ~1.27 GiB.",
+      "estimated_size_gib": 6.973,
+      "size_delta_gib": -1.274,
+      "vs_q4km_delta_gib": 1.673,
+      "changes": [
+        "quantize lm_head.weight (1.895 GiB BF16 → ~0.62 GiB NVFP4)"
+      ],
+      "quality_risk": "high",
+      "required_gates": [
+        "MMLU_500        — ≥ baseline NVFP4 score (no >1pp regression)",
+        "GPQA_Diamond    — ≥ baseline NVFP4 score (no >1pp regression)",
+        "Structured_Content  — 10 multi-format prompts, GREEN overall",
+        "Context_32K_Smoke   — long-context generation, no crash / garbage",
+        "R6000_TPS           — tokens/sec ≥ 90%% of baseline NVFP4"
+      ]
+    },
+    {
+      "tier": "COMPACT_EMBED_LMHEAD",
+      "verdict": "NEEDS_FULL_MMLU_GPQA_STRUCTURED_GATE",
+      "description": "Quantize both embed_tokens and lm_head from BF16 to NVFP4.  Saves ~2.55 GiB.  Target range 5.3–5.6 GiB.  Highest quality risk of all tiers.",
+      "estimated_size_gib": 5.699,
+      "size_delta_gib": -2.549,
+      "vs_q4km_delta_gib": 0.399,
+      "changes": [
+        "quantize model.language_model.embed_tokens.weight (1.895 GiB BF16 → ~0.62 GiB NVFP4)",
+        "quantize lm_head.weight (1.895 GiB BF16 → ~0.62 GiB NVFP4)"
+      ],
+      "quality_risk": "very high",
+      "required_gates": [
+        "MMLU_500        — ≥ baseline NVFP4 score (no >1pp regression)",
+        "GPQA_Diamond    — ≥ baseline NVFP4 score (no >1pp regression)",
+        "Structured_Content  — 10 multi-format prompts, GREEN overall",
+        "Context_32K_Smoke   — long-context generation, no crash / garbage",
+        "R6000_TPS           — tokens/sec ≥ 90%% of baseline NVFP4"
+      ]
+    }
+  ],
+  "recommended_tier": "SAFE_NO_CHANGE",
+  "recommended_reason": "All compact tiers are NEEDS_* — no quality data exists for embed/lm_head quantization on Qwen3.5-9B.  Ship SAFE_NO_CHANGE now; run quality gates on COMPACT_EMBED_LMHEAD in parallel.  Promote only after full gate pass."
+}
