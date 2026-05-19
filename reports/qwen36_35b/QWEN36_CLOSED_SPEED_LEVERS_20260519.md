@@ -23,6 +23,7 @@ layout/repack work. Do not keep spending P37/P25 time on the closed knobs below.
 | Native FP4 activation scratch | closed for default | P169 fixtures 20/20 exact; P37 exact; P25 512 107.07 TPS; hard structured 40/40 mean 107.43 TPS | Local in-proj win did not convert into service promotion; below safe default 108/109 bar | Keep as opt-in plumbing for a larger 35B linear-core boundary |
 | Recurrent from `out_conv` | closed for default | P169 20/20 exact; P37 exact; P37 speedup 1.0042x; P25 512 107.996 TPS; structured 40/40 mean 107.865 TPS | Fixture boundary improved to 0.309 ms, but q/k/v split elimination alone is too small once linear-block graph/service overhead is included | Fuse a larger boundary such as `conv + gate + recurrent`, or remove allocation/launches beyond q/k/v views |
 | Recurrent from `out_conv` + A/B gate | closed / not exact | P176 total 0.286 ms but P169 0/20, max_abs 0.01534, cosine_min 0.999995 | Moving sigmoid/softplus beta/g prep into Triton is faster but violates exactness | Keep PyTorch-produced `beta`/`g` explicit unless the default quality contract changes |
+| Router linear out-buffer | closed / service-flat | P177 fixture 18/18 exact; router 0.04434 -> 0.03896 ms/layer; P37 exact but P25 512 106.77 TPS | Caller-owned `torch.mm(..., out=...)` helps the fixture router, but the resident transposed weights/scratch do not move service TPS and sit below safe default | Keep `LYNN_ROUTER_LINEAR_OUT_BUFFER=1` diagnostic-only; do not promote standalone |
 | 9B act-scratch stacked service gate | closed / flat | P175 stack 128/256/512 decode TPS 61.82 / 62.42 / 62.52 vs P173 62.55 at 512 | Adding `LYNN_NATIVE_FP4_ACT_SCRATCH=1` on top of dense gate/up + RoPE cache does not move 9B service TPS | Continue 9B work on larger dense FFN/TensorCore repack or server batching, not act scratch |
 | Native packed MoE gate/up replacement | research-only; no resident promotion | P160 partial exact 0/18, max diff 4.768e-7; P161 terms exact; P162 simple trees fail Triton `tl.sum`; P146 resident backends fail P37 | Drift is Triton reduction-tree mismatch, not FP4 decode/scale math. Approximate native output cannot enter exact-first P37/P25 | Keep Triton active-MoE as exact authority; either reproduce Triton lowering deliberately or fuse around Triton boundaries |
 
@@ -176,6 +177,34 @@ Guardrail: do not escalate this candidate to resident serving. The current
 default-quality contract requires PyTorch-equivalent sigmoid/softplus behavior,
 so `beta` and `g` should remain explicit inputs unless a future gate explicitly
 allows relaxed math.
+
+### Router Linear Out-Buffer
+
+Candidate: `LYNN_ROUTER_LINEAR_OUT_BUFFER=1`.
+
+P177 proved that the decode router projection can use a pre-transposed router
+weight and caller-owned logits tensor exactly:
+
+| Metric | Result |
+|---|---:|
+| fixture exact | 18/18 |
+| logits max_abs | 0 |
+| route max_abs | 0 |
+| router boundary | 0.04434 -> 0.03896 ms/layer |
+
+The resident service gate did not improve:
+
+| Gate | Result |
+|---|---:|
+| P37 exact | true |
+| P37 median speedup | 0.9954x |
+| P25 512 decode TPS | 106.77 |
+| hard structured | 40/40 |
+| hard structured mean | 106.51 |
+
+Guardrail: keep this as opt-in diagnostic plumbing only. The fixture-level
+allocation cleanup is real, but it is too small and the extra resident weight
+transpose/scratch does not clear the service bar.
 
 ### 9B Act-Scratch Stacked Service Gate
 

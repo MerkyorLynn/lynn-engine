@@ -240,6 +240,7 @@ class LynnIncrementalRunner:
         self.moe_repack_sidecar_load_seconds: float | None = None
         self.moe_active_scratch_attached = 0
         self.moe_effective_scale_attached = 0
+        self.router_linear_out_buffer_attached = 0
         self.packed_decode_backend = os.environ.get("LYNN_PACKED_DECODE_BACKEND", "scalar_bridge")
         self.packed_decode_aliases_attached = 0
         self.packed_decode_native_prepared = 0
@@ -307,6 +308,8 @@ class LynnIncrementalRunner:
             self._prepare_dense_ffn_gate_up_fused()
         if self.is_moe and impl == "packed_nvfp4":
             self._prepare_packed_nvfp4_moe_layout()
+        if self.is_moe and os.environ.get("LYNN_ROUTER_LINEAR_OUT_BUFFER", "0") == "1":
+            self._prepare_router_linear_out_buffer()
         if (
             os.environ.get("LYNN_PACKED_DECODE", "0") == "1"
             or os.environ.get("LYNN_PACKED_DECODE_LINEAR_ATTN", "0") == "1"
@@ -615,6 +618,28 @@ class LynnIncrementalRunner:
         self.shared_expert_gate_up_fused_attached = attached
         if self.verbose:
             print(f"[resident] shared expert fused gate/up attached={attached}", flush=True)
+
+    def _prepare_router_linear_out_buffer(self) -> None:
+        """Attach router projection transposed weights and logits scratch.
+
+        P177 proved the decode-shape router can use `torch.mm(..., out=...)`
+        exactly when the transposed weight and output tensor are caller-owned.
+        """
+        attached = 0
+        for w, cfg in zip(self.layer_weights, self.layer_cfgs):
+            if not cfg.get("is_moe", True) or "mlp.gate.weight" not in w:
+                continue
+            gate_w = w["mlp.gate.weight"]
+            w["mlp.gate.weight_t"] = gate_w.t().contiguous()
+            w["mlp.gate._logits_scratch"] = torch.empty(
+                (1, gate_w.shape[0]),
+                device=self.device,
+                dtype=gate_w.dtype,
+            )
+            attached += 1
+        self.router_linear_out_buffer_attached = attached
+        if self.verbose:
+            print(f"[resident] router linear out-buffer attached={attached}", flush=True)
 
     def _prepare_dense_ffn_gate_up_fused(self) -> None:
         """Attach BF16 fused dense-FFN gate/up weights.

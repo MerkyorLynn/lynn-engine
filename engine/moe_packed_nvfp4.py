@@ -156,6 +156,32 @@ def _router_topk(
     return values, indices
 
 
+def _router_linear(h_flat: torch.Tensor, w: dict) -> torch.Tensor:
+    """Run the MoE router projection, optionally with caller-owned output.
+
+    P177 showed `torch.mm(hidden, gate_weight.t(), out=logits_scratch)` is
+    bit-exact for the single-token decode router and removes a small allocation
+    boundary. The transposed weight and scratch are attached at load time by the
+    resident runner.
+    """
+    if not _env_bool("LYNN_ROUTER_LINEAR_OUT_BUFFER", False):
+        return F.linear(h_flat, w["mlp.gate.weight"])
+    weight_t = w.get("mlp.gate.weight_t")
+    logits = w.get("mlp.gate._logits_scratch")
+    if (
+        weight_t is None
+        or logits is None
+        or h_flat.ndim != 2
+        or h_flat.shape[0] != 1
+        or logits.shape != (1, w["mlp.gate.weight"].shape[0])
+        or logits.device != h_flat.device
+        or logits.dtype != h_flat.dtype
+    ):
+        return F.linear(h_flat, w["mlp.gate.weight"])
+    torch.mm(h_flat, weight_t, out=logits)
+    return logits
+
+
 def _router_softmax(
     routing_logits: torch.Tensor,
     *,
@@ -654,7 +680,7 @@ def _active_moe_native_grouped_per16_nonatomic_out(
 def _moe_forward_decode_packed_nvfp4_fixed_triton(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
     """Fixed-config production fast path for the current R6000 best profile."""
     h_flat = h.reshape(-1, h.shape[-1])
-    router_logits = F.linear(h_flat, w["mlp.gate.weight"])
+    router_logits = _router_linear(h_flat, w)
     top_k = int(cfg["num_experts_per_tok"])
     routing_weights, expert_indices = _router_topk(
         router_logits,
@@ -870,7 +896,7 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
             raise RuntimeError("LYNN_MOE_FAST_FIXED only supports the current R6000 best MoE kernel config")
         return _moe_forward_decode_packed_nvfp4_fixed_triton(h, w, cfg)
 
-    router_logits = F.linear(h_flat, w["mlp.gate.weight"])
+    router_logits = _router_linear(h_flat, w)
     routing_weights, expert_indices = _router_topk(
         router_logits,
         int(cfg["num_experts_per_tok"]),
