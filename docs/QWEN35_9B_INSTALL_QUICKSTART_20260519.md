@@ -1,13 +1,13 @@
 # Qwen3.5-9B Local Install Quickstart · 2026-05-19
 
-This is the first-release local deployment path for Qwen3.5-9B. It intentionally covers install, artifact download scaffolding, and endpoint smoke tests only. It does not change CUDA kernels.
+This is the first-release local deployment path for Qwen3.5-9B. It intentionally covers install, artifact download scaffolding, checksum verification, and endpoint smoke tests only. It does not change CUDA kernels.
 
 ## Release paths
 
 | Platform | Runtime | Artifact | Status |
 |---|---|---|---|
-| macOS Apple Silicon | llama.cpp | Q4_K_M GGUF | first-release path |
-| NVIDIA Linux Blackwell | Lynn Engine | Lynn-native NVFP4 W4A16 | first-release path |
+| macOS Apple Silicon | llama.cpp | Q4_K_M imatrix GGUF | stable first-release path |
+| NVIDIA Linux Blackwell | Lynn Engine | Lynn-native NVFP4 W4A16, 8.248 GiB package | stable first-release path |
 | Windows | WSL2 or Docker | same as NVIDIA Linux | beta; no native Windows promise |
 
 Default model root:
@@ -30,7 +30,7 @@ bash scripts/local_qwen35_9b_download.sh --source ms --artifact all --dry-run
 bash scripts/local_qwen35_9b_download.sh --source dl --artifact all --dry-run
 ```
 
-Checksum status: public SHA256 values are TODO. Until the final `checksums.sha256` is published, treat all checksum lines emitted by the script as placeholders to be replaced before release.
+Checksum status: public SHA256 values are TODO. Until the final `checksums.sha256` is published, treat all checksum lines emitted by the script as placeholders to be replaced before release. Checksum generation and verification are handled by `scripts/qwen35_9b_release_checksums.py` and `scripts/local_qwen35_9b_verify_checksums.sh`.
 
 ### Verify checksums after download
 
@@ -54,7 +54,7 @@ python3 scripts/qwen35_9b_release_checksums.py generate \
 
 Verification fails nonzero if any file is missing, has a size mismatch, or has a SHA256 mismatch.
 
-## macOS: llama.cpp + Q4_K_M GGUF
+## macOS: llama.cpp + Q4_K_M imatrix GGUF
 
 ### 1. Install llama.cpp
 
@@ -73,7 +73,7 @@ cmake --build "$HOME/llama.cpp/build" -j
 export LLAMA_SERVER="$HOME/llama.cpp/build/bin/llama-server"
 ```
 
-### 2. Prepare Q4_K_M artifact
+### 2. Prepare Q4_K_M imatrix artifact
 
 Print the exact download command for the selected source:
 
@@ -127,7 +127,7 @@ Target environment:
 - Linux host with NVIDIA Blackwell GPU.
 - CUDA/PyTorch environment already installed for Lynn Engine.
 - Lynn Engine repo checked out locally.
-- Qwen3.5-9B Lynn-native NVFP4 W4A16 artifact downloaded to the model root.
+- Qwen3.5-9B Lynn-native NVFP4 W4A16 artifact downloaded to the model root. Current release package size is 8.248 GiB because BF16 `embed_tokens` and `lm_head` are kept.
 
 ### 1. Prepare NVFP4 artifact
 
@@ -197,6 +197,10 @@ Passing smoke criteria:
 - Chat completion returns non-empty text.
 - Optional P25 smoke writes a JSON report without runtime errors.
 
+## W4A8 / FP4xFP8 resident status
+
+W4A8 / FP4xFP8 resident remains experimental and is not a default install path. P193-style promotion requires P185/P190/P197/P198 gates and currently blocks promotion if the W4A8 quality report is missing.
+
 ## Windows beta
 
 Windows is supported only through Linux-compatible environments for the first release:
@@ -212,3 +216,4 @@ Native Windows binaries are not promised for the first Qwen3.5-9B release.
 - TODO: publish final ModelScope repo IDs for Q4_K_M and NVFP4 W4A16.
 - TODO: publish final Lynn download URLs under `dl.merkyorlynn.com`.
 - TODO: publish `checksums.sha256` with final SHA256 values for GGUF, NVFP4 shards, manifests, and tokenizer files.
+- Note: 32K thinking-on GPQA is long-running; do not treat p201 live summaries as final full 198-question scores.
