@@ -108,27 +108,26 @@ __device__ __forceinline__ void fill_a_fp8_fragment(
     int lane,
     uint32_t* a  // [4]
 ) {
-    // For m16n8k32 TN: A is row-major M×K.
-    // With M=16, the 32 threads of a warp cover the 16 rows.
-    // Thread mapping: lane/2 = row, lane%2 = k-half.
-    // Each thread holds 4 uint32 = 16 bytes of E4M3 (K=32 / 2 halves = 16 per half)
-    // Actually for mma.sync m16n8k32 with E4M3 (1 byte each):
-    //   Total A elements = 16 * 32 = 512. 512 bytes / 32 threads = 16 bytes/thread = 4 uint32.
-    // Standard layout: thread t holds elements at logical positions determined by
-    // the hardware-defined fragment mapping. Without exact doc, we try the linear layout:
-    //   thread t holds A[t*16 .. t*16+15] in row-major order
-    // This is likely WRONG for the actual instruction but will compile.
-    const int base = lane * 16;
-    const uint8_t* src = act + k_offset;
-    // Pack 4 bytes per uint32
+    // P87/P88-proven CuTe fragment layout for SM120 m16n8k32 TN.
+    // We broadcast the single decode-token activation across all 16 logical M rows.
+    a[0] = 0u;
+    a[1] = 0u;
+    a[2] = 0u;
+    a[3] = 0u;
+    const int t0 = lane & 3;
+    const int t1 = lane >> 2;
     for (int i = 0; i < 4; ++i) {
-        uint32_t val = 0;
-        for (int j = 0; j < 4; ++j) {
-            int idx = base + i * 4 + j;
-            uint8_t byte = (idx < 512) ? src[idx] : 0;
-            val |= (uint32_t)byte << (j * 8);
-        }
-        a[i] = val;
+        a[i] = 0u;
+    }
+#pragma unroll
+    for (int v = 0; v < 16; ++v) {
+        const int v0 = v & 3;
+        const int v1 = (v >> 2) & 1;
+        const int v2 = (v >> 3) & 1;
+        const int offset = t0 * 64 + t1 + v0 * 16 + v1 * 8 + v2 * 256;
+        const int k = offset >> 4;
+        const uint8_t byte = act[k_offset + k];
+        a[v >> 2] |= static_cast<uint32_t>(byte) << (8 * (v & 3));
     }
 }
 
@@ -144,26 +143,32 @@ __device__ __forceinline__ void fill_b_fp4_fragment(
     int lane,
     uint32_t* b  // [2]
 ) {
-    // K32×N8, col-major in register. 256 nibbles total.
-    // Pack: each thread gets 256/32 = 8 nibbles = 4 bytes = 1 uint32? No, it's 2 uint32 = 8 bytes = 16 nibbles.
-    // Try linear: thread t holds nibbles [t*8 .. t*8+7] across K×N
-    const int base_nibble = lane * 8;
     b[0] = 0;
     b[1] = 0;
-    for (int i = 0; i < 8; ++i) {
-        int nib_idx = base_nibble + i;
-        int k = nib_idx / 8;  // which of 32 K values
-        int n = nib_idx % 8;  // which of 8 N values
-        // Weight at (n_offset+n, k_offset+k): packed at byte (k/2), nibble k%2
-        int byte_offset = (n_offset + n) * stride_n + (k_offset + k) / 2;
+    const int t0 = lane & 3;
+    const int t1 = lane >> 2;
+#pragma unroll
+    for (int v = 0; v < 8; ++v) {
+        const int v0 = v & 3;
+        const int v1 = (v >> 2) & 1;
+        const int offset = t0 * 32 + t1 + v0 * 8 + v1 * 128;
+        const int n = offset & 7;
+        const int k = offset >> 3;
+        const int byte_offset = (n_offset + n) * stride_n + (k_offset + k) / 2;
         uint8_t byte_val = weight[byte_offset];
         uint8_t nibble = ((k_offset + k) & 1) == 0 ? (byte_val & 0x0F) : ((byte_val >> 4) & 0x0F);
-        // Pack nibble into the register words: 2 nibbles per byte, 4 bytes per uint32
-        // nibble i goes to: word = i/8, byte_in_word = (i%8)/2, nibble_in_byte = i%2
-        int word_idx = i / 8;
-        int shift = (i % 8) * 4;
-        b[word_idx] |= ((uint32_t)(nibble & 0x0F)) << shift;
+        b[v >> 2] |= static_cast<uint32_t>((nibble & 0x0F) << 2) << (8 * (v & 3));
     }
+}
+
+__device__ __forceinline__ void c_coord_from_lane_value(int lane, int v, int* m, int* n) {
+    const int t0 = lane & 3;
+    const int t1 = lane >> 2;
+    const int v0 = v & 1;
+    const int v1 = (v >> 1) & 1;
+    const int offset = t0 * 32 + t1 + v0 * 16 + v1 * 8;
+    *m = offset & 15;
+    *n = offset >> 4;
 }
 
 __global__ void dense_fp4xfp8_mma_real_kernel(
@@ -200,18 +205,13 @@ __global__ void dense_fp4xfp8_mma_real_kernel(
                 d[0], d[1], d[2], d[3]);
     }
 
-    // Write results: MMA output fragment d[4] maps to M16×N8 output.
-    // Each thread contributes to specific (m,n) positions.
-    // For a M=1 activation (single token), we only need row 0 of the M16 tile.
-    // The exact mapping: d[v] corresponds to output[m,n] where:
-    //   For m16n8k32: thread (lane) produces outputs at positions determined by
-    //   the hardware mapping. We write all 4 values and let the caller pick row 0.
-    // Store at output[n_offset + lane-derived position]
-    // Since we don't know exact mapping, store raw d values for validation:
-    if (lane < 8) {
-        // First 8 lanes write their d[0] as a probe output
-        if (n_offset + lane < N) {
-            output[n_offset + lane] = d[0];
+    #pragma unroll
+    for (int v = 0; v < 4; ++v) {
+        int m = 0;
+        int n = 0;
+        c_coord_from_lane_value(lane, v, &m, &n);
+        if (m == 0 && n_offset + n < N) {
+            output[n_offset + n] = d[v];
         }
     }
 }

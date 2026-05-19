@@ -40,6 +40,28 @@ def _quantize_to_fp8_e4m3(x: torch.Tensor):
     return packed, scale
 
 
+def _raw_fp4xfp8_reference(act_fp8: torch.Tensor, w_packed: torch.Tensor) -> torch.Tensor:
+    """Raw MMA-domain reference without Lynn per-16 scales.
+
+    This isolates the E4M3×E2M1 fragment layout.  It intentionally does not
+    apply act_scale, weight_scale, or global_scale.
+    """
+    act = act_fp8.view(torch.float8_e4m3fn).float()
+    n, k_half = w_packed.shape
+    k = k_half * 2
+    codes = torch.empty((n, k), device=w_packed.device, dtype=torch.uint8)
+    codes[:, 0::2] = w_packed & 0x0F
+    codes[:, 1::2] = (w_packed >> 4) & 0x0F
+    table = torch.tensor(
+        [0.0, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0,
+         -0.0, -0.5, -1.0, -1.5, -2.0, -3.0, -4.0, -6.0],
+        device=w_packed.device,
+        dtype=torch.float32,
+    )
+    weight = table[codes.long()]
+    return weight @ act
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--fixtures", required=True, help="P159 fixture dir")
@@ -186,16 +208,10 @@ def main() -> int:
                 # For this probe: feed raw FP8 bytes and raw packed weight
                 mma_out = ext.dense_fp4xfp8_mma_probe(act_fp8.contiguous(), w_packed.contiguous(), 1, N, K)
                 mma_real_compute = True
-                # Compare MMA vs scalar (both operate on same data)
-                # Note: MMA doesn't apply per-16 scales (raw dot product)
-                # Scalar does apply scales. So we compare MMA vs a "raw" scalar reference
-                # that also skips scales. For now just report MMA output stats.
-                mma_nonzero = int((mma_out != 0).sum().item())
-                mma_abs_max = float(mma_out.abs().max().item())
-                # Compare to scalar ref (imperfect — scale mismatch expected)
-                if out_scalar is not None:
+                raw_ref = _raw_fp4xfp8_reference(act_fp8, w_packed)
+                if raw_ref is not None:
                     cf_mma = mma_out[:N].float()
-                    cf_scalar = out_scalar[:N].float()
+                    cf_scalar = raw_ref[:N].float()
                     diff_mma = cf_mma - cf_scalar
                     mma_max_abs = float(diff_mma.abs().max())
                     mma_cosine = float(torch.dot(cf_mma, cf_scalar) / (
