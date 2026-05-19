@@ -32,6 +32,28 @@ bash scripts/local_qwen35_9b_download.sh --source dl --artifact all --dry-run
 
 Checksum status: public SHA256 values are TODO. Until the final `checksums.sha256` is published, treat all checksum lines emitted by the script as placeholders to be replaced before release.
 
+### Verify checksums after download
+
+After downloading Q4_K_M from Hugging Face, ModelScope, or `dl.merkyorlynn.com`, place the released `checksums.sha256` under the model root and verify before running smoke tests:
+
+```bash
+export MODEL_ROOT="$HOME/Models/Lynn/Qwen3.5-9B"
+bash scripts/local_qwen35_9b_verify_checksums.sh \
+  --root "$MODEL_ROOT" \
+  --manifest "$MODEL_ROOT/checksums.sha256" \
+  --out reports/qwen35_9b/local_checksum_verify.json
+```
+
+For release packaging, generate a manifest from local Q4_K_M and NVFP4 artifacts without downloading anything:
+
+```bash
+python3 scripts/qwen35_9b_release_checksums.py generate \
+  --paths "$MODEL_ROOT/q4_k_m" "$MODEL_ROOT/nvfp4-w4a16" \
+  --out "$MODEL_ROOT/checksums.sha256"
+```
+
+Verification fails nonzero if any file is missing, has a size mismatch, or has a SHA256 mismatch.
+
 ## macOS: llama.cpp + Q4_K_M GGUF
 
 ### 1. Install llama.cpp
