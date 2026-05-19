@@ -13,8 +13,9 @@ set -euo pipefail
 #   2. Plain English chat
 #   3. Chinese chat
 #   4. JSON response_format
-#   5. Short multi-turn (2 rounds)
-#   6. 32K-ish long context (opt-in: SKIP_LONG=0)
+#   5. OpenAI tool-call contract
+#   6. Short multi-turn (2 rounds)
+#   7. 32K-ish long context (opt-in: SKIP_LONG=0)
 #
 # Output: JSON report to reports/qwen35_9b/local_qwen35_9b_release_qa_smoke_<stamp>.json
 #
@@ -210,9 +211,53 @@ except Exception as e:
     record("json_format", False, str(e))
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Test 5: Multi-turn (2 rounds)
+# Test 5: OpenAI tool-call contract
 # ─────────────────────────────────────────────────────────────────────────────
-print("━━━ Test 5: Multi-turn ━━━")
+print("━━━ Test 5: Tool call contract ━━━")
+try:
+    r = post("chat/completions", {
+        "model": model,
+        "messages": [
+            {"role": "user", "content": "Call get_weather for Beijing. Do not answer directly."},
+        ],
+        "tools": [
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_weather",
+                    "description": "Get weather for one city.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "location": {"type": "string"},
+                        },
+                        "required": ["location"],
+                    },
+                },
+            }
+        ],
+        "tool_choice": "auto",
+        "max_tokens": 128,
+        "temperature": 0,
+    })
+    choice = (r["data"].get("choices") or [{}])[0]
+    message = choice.get("message") or {}
+    tool_calls = message.get("tool_calls") or []
+    raw = json.dumps(message, ensure_ascii=False)
+    ok = any(
+        (call.get("function") or {}).get("name") == "get_weather"
+        and "beijing" in json.dumps(call.get("function") or {}, ensure_ascii=False).lower()
+        for call in tool_calls
+    )
+    record("tool_call_weather", ok, raw[:200], elapsed_sec=r["elapsed_sec"],
+           finish_reason=choice.get("finish_reason"), tool_calls=tool_calls)
+except Exception as e:
+    record("tool_call_weather", False, str(e))
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Test 6: Multi-turn (2 rounds)
+# ─────────────────────────────────────────────────────────────────────────────
+print("━━━ Test 6: Multi-turn ━━━")
 try:
     messages = [{"role": "user", "content": "Remember this number: 42."}]
     r1 = post("chat/completions", {
@@ -238,9 +283,9 @@ except Exception as e:
     record("multi_turn", False, str(e))
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Test 6: 32K-ish long context (opt-in)
+# Test 7: 32K-ish long context (opt-in)
 # ─────────────────────────────────────────────────────────────────────────────
-print("━━━ Test 6: Long context (32K) ━━━")
+print("━━━ Test 7: Long context (32K) ━━━")
 if skip_long:
     record("long_context_32k", True, "SKIPPED (SKIP_LONG=1)", skipped=True)
 else:

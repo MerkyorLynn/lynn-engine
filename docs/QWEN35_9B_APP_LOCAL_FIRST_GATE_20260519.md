@@ -102,7 +102,8 @@ For the current Mac 9B offer this is:
   "download_manifest",
   "sha256",
   "llama_cpp_v1_models",
-  "chat_32_tokens"
+  "chat_32_tokens",
+  "tool_call_weather"
 ]
 ```
 
@@ -202,7 +203,8 @@ The app should treat these as product rules, not merely diagnostics.
     "download_manifest",
     "sha256",
     "llama_cpp_v1_models",
-    "chat_32_tokens"
+    "chat_32_tokens",
+    "tool_call_weather"
   ]
 }
 ```
@@ -224,6 +226,7 @@ The app should treat these as product rules, not merely diagnostics.
     "sha256",
     "llama_cpp_v1_models",
     "chat_32_tokens",
+    "tool_call_weather",
     "short_structured_smoke"
   ]
 }
@@ -237,6 +240,7 @@ The app should treat these as product rules, not merely diagnostics.
 | `sha256` | Local file SHA256 matches manifest. |
 | `llama_cpp_v1_models` | `llama-server` starts and `/v1/models` returns the selected model name. |
 | `chat_32_tokens` | `/v1/chat/completions` returns non-empty text with `max_tokens` near 32. |
+| `tool_call_weather` | OpenAI-compatible `tools` request returns a `get_weather` function call with the requested city. |
 | `short_structured_smoke` | Optional 35B structured output smoke returns parseable short JSON or equivalent app-defined structured response. |
 
 ## Provider activation contract
