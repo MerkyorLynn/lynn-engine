@@ -910,14 +910,29 @@ class LynnIncrementalRunner:
             return logits
         assert self._native_fp4_lm_head_weight is not None
         assert self._native_fp4_lm_head_scale_b is not None
-        act_packed, scale_a = quantize_fp4_m1_native(h2d.contiguous())
-        logits = torch._scaled_mm(
-            act_packed.view(torch.float4_e2m1fn_x2),
-            self._native_fp4_lm_head_weight.t(),
-            scale_a=scale_a,
-            scale_b=self._native_fp4_lm_head_scale_b,
-            out_dtype=torch.float16,
-        )
+        if h2d.ndim == 2 and h2d.shape[0] != 1:
+            logits_rows = []
+            for row in h2d:
+                act_packed, scale_a = quantize_fp4_m1_native(row.contiguous())
+                logits_rows.append(
+                    torch._scaled_mm(
+                        act_packed.view(torch.float4_e2m1fn_x2),
+                        self._native_fp4_lm_head_weight.t(),
+                        scale_a=scale_a,
+                        scale_b=self._native_fp4_lm_head_scale_b,
+                        out_dtype=torch.float16,
+                    )
+                )
+            logits = torch.cat(logits_rows, dim=0)
+        else:
+            act_packed, scale_a = quantize_fp4_m1_native(h2d.contiguous())
+            logits = torch._scaled_mm(
+                act_packed.view(torch.float4_e2m1fn_x2),
+                self._native_fp4_lm_head_weight.t(),
+                scale_a=scale_a,
+                scale_b=self._native_fp4_lm_head_scale_b,
+                out_dtype=torch.float16,
+            )
         if restore_shape is not None:
             logits = logits.reshape(restore_shape[0], restore_shape[1], -1)
         return logits
