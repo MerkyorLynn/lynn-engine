@@ -1,8 +1,8 @@
 # Qwen3.5-9B 首发 QA Status · 2026-05-19
 
 **Generated:** 2026-05-19
-**Branch:** `deepseek/qwen35-9b-release-qa-checklist-20260519`
-**Overall decision:** `PENDING_QA`
+**Branch:** `main` + `qwen35_9b_release_qa_status_collect.py`
+**Overall decision:** `PENDING_QA` (collector updated 2026-05-19T13:05:30Z)
 
 ---
 
@@ -72,7 +72,7 @@ QA 尚未执行。本文件随 QA 推进持续更新。每条检查项的状态�
 | A.6.2 | 32K 补全不空洞 | PENDING | |
 | A.6.3 | 32K 后继续对话 | PENDING | |
 | A.6.4 | 32K decode TPS ≥ 20 | PENDING | 记录 wall-clock TPS |
-| A.6.5 | parallel=1 32K 确认 | PENDING | 参考 `reports/qwen35_9b/q4km_long32k_parallel1_20260519_0128.md` |
+| A.6.5 | parallel=1 32K 确认 | PASS | Q4_K_M CUDA long32k parallel=1: 72.20 TPS, 32K context confirmed |
 
 ### A.7 压力边界
 
@@ -82,7 +82,7 @@ QA 尚未执行。本文件随 QA 推进持续更新。每条检查项的状态�
 | A.7.2 | max_tokens=0 不崩溃 | PENDING | |
 | A.7.3 | 超长 max_tokens 截断 | PENDING | |
 
-**Track A 小计:** 0 PASS / 0 FAIL / 22 PENDING
+**Track A 小计:** 1 PASS / 0 FAIL / 0 BLOCKED / 26 PENDING
 
 ---
 
@@ -102,7 +102,7 @@ QA 尚未执行。本文件随 QA 推进持续更新。每条检查项的状态�
 | B.1.4 | tokenizer_config.json 存在 | PENDING | |
 | B.1.5 | model.safetensors.index.json 存在 | PENDING | |
 | B.1.6 | safetensors shard 存在 | PENDING | |
-| B.1.7 | 总大小 ~8.3 GiB | PENDING | |
+| B.1.7 | 总大小 ~8.3 GiB | PASS | P199 size audit: 8.25 GiB, 19 files, 1511 tensors, manifest=yes |
 
 ### B.2 Manifest 校验
 
@@ -161,7 +161,7 @@ QA 尚未执行。本文件随 QA 推进持续更新。每条检查项的状态�
 | B.7.3 | W4A16 回滚路径验证 | PENDING | |
 | B.7.4 | W4A16 无 structured 退化 | PENDING | |
 
-**Track B 小计:** 0 PASS / 0 FAIL / 23 PENDING
+**Track B 小计:** 1 PASS / 0 FAIL / 0 BLOCKED / 33 PENDING
 
 ---
 
@@ -173,16 +173,16 @@ QA 尚未执行。本文件随 QA 推进持续更新。每条检查项的状态�
 
 | # | 检查项 | 状态 | 证据 / 备注 |
 |---|--------|------|-------------|
-| C.1.1 | P197 drift probe 通过 | PENDING | `reports/qwen35_9b/p197_*_drift_*.json` |
+| C.1.1 | P197 drift probe 通过 | BLOCKED | P197: AMBER on fake-W4A8 path; true resident requires P190/P198 gate |
 | C.1.2 | P190 true FP8 resident gate 通过 | PENDING | `reports/qwen35_9b/p190_qwen35_9b_true_fp8_resident_gate_*.json` → `TRUE_FP8_RESIDENT_EXACT` |
 | C.1.3 | P196 W4A8 column 通过 | PENDING | |
-| C.1.4 | P193 boundary admission GREEN | PENDING | `python3 benchmarks/p193_qwen35_9b_native_boundary_admission.py` |
+| C.1.4 | P193 boundary admission GREEN | BLOCKED | P193: PROMOTE_BLOCKED — P185 report absent -- W4A8 quality not verified; missing required reports for native boundary promotion: P185 |
 
 ### C.2 Experimental 定位声明
 
 | # | 检查项 | 状态 | 证据 / 备注 |
 |---|--------|------|-------------|
-| C.2.1 | 本文件标记 experimental | PASS | Track C 标题含 **experimental** |
+| C.2.1 | 本文件标记 experimental | PASS | Track C title contains **experimental** (by construction) |
 | C.2.2 | Release Matrix 标记 experimental | PENDING | `docs/QWEN35_9B_RELEASE_MATRIX_20260519.md` |
 | C.2.3 | Model Card 区分 stable vs experimental | PENDING | |
 | C.2.4 | 用户文档不含 W4A8 安装步骤 | PENDING | |
@@ -195,18 +195,18 @@ QA 尚未执行。本文件随 QA 推进持续更新。每条检查项的状态�
 | C.3.2 | W4A8 加载不 crash (dev) | PENDING | |
 | C.3.3 | W4A8 decode TPS speedup | PENDING | |
 
-**Track C 小计:** 1 PASS / 0 FAIL / 10 PENDING
+**Track C 小计:** 1 PASS / 0 FAIL / 2 BLOCKED / 8 PENDING
 
 ---
 
 ## Overall Summary
 
-| Track | Items | PASS | FAIL | PENDING | Decision |
-|-------|-------|------|------|---------|----------|
-| A: Mac Q4_K_M | 22 | 0 | 0 | 22 | PENDING_QA |
-| B: NVIDIA NVFP4 W4A16 | 23 | 0 | 0 | 23 | PENDING_QA |
-| C: Experimental W4A8 | 11 | 1 | 0 | 10 | PENDING_GATE (P197/P190) |
-| **Total** | **56** | **1** | **0** | **55** | **PENDING_QA** |
+| Track | Items | PASS | FAIL | BLOCKED | PENDING | Decision |
+|-------|-------|------|------|---------|---------|----------|
+| A: Mac Q4_K_M | 27 | 1 | 0 | 0 | 26 | PENDING_QA |
+| B: NVIDIA NVFP4 W4A16 | 34 | 1 | 0 | 0 | 33 | PENDING_QA |
+| C: Experimental W4A8 | 11 | 1 | 0 | 2 | 8 | PENDING_BLOCKED |
+| **Total** | **72** | **3** | **0** | **2** | **67** | **PENDING_BLOCKED** |
 
 ---
 
@@ -234,4 +234,4 @@ QA 尚未执行。本文件随 QA 推进持续更新。每条检查项的状态�
 
 ---
 
-*QA 状态文件，随每次执行更新。最后更新: 2026-05-19 (initial).*
+*QA 状态文件，随每次执行更新。最后更新: 2026-05-19 (collector v2).*
