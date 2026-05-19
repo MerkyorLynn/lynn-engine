@@ -1,7 +1,7 @@
-# Qwen3.6 Official MTP → Lynn Fused Converter Plan
+# Qwen3.6 Official MTP → Lynn Fused Converter Plan (V2)
 
 **Date:** 2026-05-19
-**Status:** CONVERTER READY — needs official `mtp.safetensors` on Spark/R6000 to run
+**Status:** CONVERTER V2 READY — block-scale FP8 dequant, 256 experts
 **Model:** Qwen3.6-35B-A3B-FP8 official MTP head (1560 keys, ~815 MiB)
 
 ---
@@ -9,13 +9,16 @@
 ## Problem
 
 The official Qwen3.6-35B-A3B-FP8 model ships MTP heads in `mtp.safetensors` with:
-- Per-expert layout: `mtp.layers.0.mlp.experts.{N}.gate_proj.weight` (64 experts)
-- FP8 E4M3 weights with per-channel `*_scale_inv` tensors
+- **256 experts** (per-expert layout: `experts.{0..255}.gate_proj.weight`)
+- FP8 E4M3 weights with **block-wise** `*_scale_inv` tensors (128×128 blocks)
+  - Example: gate_proj weight [512, 2048] → scale_inv [4, 16]
+  - Example: down_proj weight [2048, 512] → scale_inv [16, 4]
 - Pre-FC norms present: `mtp.pre_fc_norm_embedding.weight`, `mtp.pre_fc_norm_hidden.weight`
+- hidden=2048, intermediate=512 (inferred from tensor shapes)
 
 Lynn's `engine/mtp_sidecar.py` expects a fused layout:
-- `mtp.layers.0.mlp.experts.gate_up_proj` — shape `[64, 2816, 2048]` (fused gate+up)
-- `mtp.layers.0.mlp.experts.down_proj` — shape `[64, 2048, 1408]` (stacked down)
+- `mtp.layers.0.mlp.experts.gate_up_proj` — shape `[256, 1024, 2048]` (fused gate+up)
+- `mtp.layers.0.mlp.experts.down_proj` — shape `[256, 2048, 512]` (stacked down)
 - All tensors in BF16
 
 The blocker is the layout/FP8 adapter, not missing norms.
@@ -36,9 +39,9 @@ Converts official → Lynn fused:
 
 | Official Layout | Lynn Fused Layout |
 |-----------------|-------------------|
-| `experts.{N}.gate_proj.weight` (FP8) + `scale_inv` | `mtp.layers.0.mlp.experts.gate_up_proj` [64, 2816, 2048] BF16 |
-| `experts.{N}.up_proj.weight` (FP8) + `scale_inv` | (fused with gate above) |
-| `experts.{N}.down_proj.weight` (FP8) + `scale_inv` | `mtp.layers.0.mlp.experts.down_proj` [64, 2048, 1408] BF16 |
+| `experts.{N}.gate_proj.weight` (FP8) + `scale_inv` [4,16] | `mtp.layers.0.mlp.experts.gate_up_proj` [256, 1024, 2048] BF16 |
+| `experts.{N}.up_proj.weight` (FP8) + `scale_inv` [4,16] | (fused with gate above) |
+| `experts.{N}.down_proj.weight` (FP8) + `scale_inv` [16,4] | `mtp.layers.0.mlp.experts.down_proj` [256, 2048, 512] BF16 |
 | `self_attn.q_proj.weight` (FP8) + `scale_inv` | `mtp.layers.0.self_attn.q_proj.weight` BF16 |
 | `shared_expert.gate_proj.weight` (FP8) + `scale_inv` | `mtp.layers.0.mlp.shared_expert.gate_proj.weight` BF16 |
 | `mtp.pre_fc_norm_embedding.weight` | `mtp.pre_fc_norm_embedding.weight` (passthrough) |
@@ -46,14 +49,21 @@ Converts official → Lynn fused:
 | `*.fc.weight` | `mtp.fc.weight` (passthrough/dequant) |
 | `*.norm.weight` | `mtp.norm.weight` (passthrough) |
 
-### FP8 Dequantization
+### FP8 Block-Scale Dequantization (V2)
 
-Since Lynn runtime currently does NOT consume FP8 `scale_inv` directly:
-- All FP8 tensors are dequantized: `bf16_value = fp8_value * scale_inv`
-- Output is pure BF16 safetensors
-- Metadata records: `source_dtype=fp8_e4m3fn`, `conversion=fp8_to_bf16_fused`
+The official FP8 format uses 128×128 block quantization:
+```
+weight shape: [R, C]  (e.g. [512, 2048])
+scale_inv shape: [R/128, C/128]  (e.g. [4, 16])
 
-Future: if Lynn adds native FP8 MTP path, produce FP8 fused output instead.
+dequant:
+  scale_expanded = scale_inv.repeat_interleave(128, dim=0)[:R].repeat_interleave(128, dim=1)[:, :C]
+  bf16_value = fp8_value.float() * scale_expanded
+```
+
+This is NOT a per-channel scale. Each 128×128 block of the weight matrix shares
+one scale factor. The converter expands the block scale to full weight shape
+before pointwise multiplication.
 
 ## Commands
 
@@ -79,29 +89,33 @@ print('LOAD OK:', sorted(w.keys()))
 "
 ```
 
-## Output Key List (Expected)
+## Output Key List (Expected — 256 experts, hidden=2048, intermediate=512)
 
 ```
 mtp.fc.weight                                          bfloat16     [2048, 4096]
 mtp.layers.0.input_layernorm.weight                    bfloat16     [2048]
-mtp.layers.0.mlp.experts.down_proj                     bfloat16     [64, 2048, 1408]
-mtp.layers.0.mlp.experts.gate_up_proj                  bfloat16     [64, 2816, 2048]
-mtp.layers.0.mlp.gate.weight                           bfloat16     [64, 2048]
-mtp.layers.0.mlp.shared_expert.down_proj.weight        bfloat16     [2048, 5632]
-mtp.layers.0.mlp.shared_expert.gate_proj.weight        bfloat16     [5632, 2048]
-mtp.layers.0.mlp.shared_expert.up_proj.weight          bfloat16     [5632, 2048]
+mtp.layers.0.mlp.experts.down_proj                     bfloat16     [256, 2048, 512]
+mtp.layers.0.mlp.experts.gate_up_proj                  bfloat16     [256, 1024, 2048]
+mtp.layers.0.mlp.gate.weight                           bfloat16     [256, 2048]
+mtp.layers.0.mlp.shared_expert.down_proj.weight        bfloat16     [2048, ...]
+mtp.layers.0.mlp.shared_expert.gate_proj.weight        bfloat16     [..., 2048]
+mtp.layers.0.mlp.shared_expert.up_proj.weight          bfloat16     [..., 2048]
 mtp.layers.0.mlp.shared_expert_gate.weight             bfloat16     [1]
 mtp.layers.0.post_attention_layernorm.weight           bfloat16     [2048]
 mtp.layers.0.self_attn.k_norm.weight                   bfloat16     [128]
-mtp.layers.0.self_attn.k_proj.weight                   bfloat16     [512, 2048]
+mtp.layers.0.self_attn.k_proj.weight                   bfloat16     [256, 2048]
 mtp.layers.0.self_attn.o_proj.weight                   bfloat16     [2048, 2048]
 mtp.layers.0.self_attn.q_norm.weight                   bfloat16     [128]
 mtp.layers.0.self_attn.q_proj.weight                   bfloat16     [2048, 2048]
-mtp.layers.0.self_attn.v_proj.weight                   bfloat16     [512, 2048]
+mtp.layers.0.self_attn.v_proj.weight                   bfloat16     [256, 2048]
 mtp.norm.weight                                        bfloat16     [2048]
 mtp.pre_fc_norm_embedding.weight                       bfloat16     [2048]
 mtp.pre_fc_norm_hidden.weight                          bfloat16     [2048]
 ```
+
+NOTE: Actual shared_expert and q/k_norm shapes depend on the official model's
+num_key_value_heads and shared_expert_intermediate_size. The shapes above are
+educated estimates — the converter infers from actual tensor shapes.
 
 ## Metadata Written
 
@@ -109,16 +123,27 @@ mtp.pre_fc_norm_hidden.weight                          bfloat16     [2048]
 {
   "source_path": "/home/merkyor/models/Qwen3.6-35B-A3B-FP8/mtp.safetensors",
   "source_key_count": "1560",
-  "expert_count": "64",
-  "hidden_size": "2048",
-  "intermediate_size": "1408",
-  "conversion_mode": "fp8_to_bf16_fused",
-  "fp8_tensors_dequanted": "198",
+  "detected_expert_count": "256",
+  "hidden_inferred": "2048",
+  "intermediate_inferred": "512",
+  "scale_block": "128,128",
+  "conversion": "fp8_block_scale_to_bf16_fused",
+  "fp8_tensors_dequanted": "~780",
   "output_key_count": "19",
-  "converter": "qwen36_convert_official_mtp_to_lynn_fused.py",
-  "sha256_prefix": "a1b2c3d4..."
+  "converter": "qwen36_convert_official_mtp_to_lynn_fused.py_v2"
 }
 ```
+
+## Self-Test
+
+```bash
+python scripts/qwen36_convert_official_mtp_to_lynn_fused.py --self-test
+```
+
+Validates block-scale dequant with synthetic data:
+- weight [512,2048] + scale [4,16] → correct block expansion
+- weight [384,2048] + scale [3,16] → no broadcast error
+- Verifies each 128×128 block gets its own scale value
 
 ## Next Steps After Conversion
 

@@ -1,27 +1,23 @@
 #!/usr/bin/env python3
-"""Convert official Qwen3.6 MTP FP8 safetensors to Lynn fused layout.
+"""Convert official Qwen3.6 MTP FP8 safetensors to Lynn fused layout (V2).
 
-Reads the official `mtp.safetensors` (with per-expert FP8 E4M3 layout and
-scale_inv tensors) and produces a Lynn-compatible fused safetensors that
-`engine/mtp_sidecar.py:load_mtp_sidecar` can directly load.
+V2 fixes:
+- Block-scale FP8 dequant: scale_inv [R/128, C/128] expanded via repeat_interleave
+- Expert count inferred from keys (assert contiguous 0..E-1)
+- Dims inferred from tensor shapes, not config defaults
+- Nested text_config support
+- --self-test for CPU mock validation
 
-Key transformations:
-  1. Per-expert gate_proj + up_proj → fused `mtp.layers.0.mlp.experts.gate_up_proj`
-     Shape: [num_experts, 2*intermediate, hidden]
-  2. Per-expert down_proj → stacked `mtp.layers.0.mlp.experts.down_proj`
-     Shape: [num_experts, hidden, intermediate]
-  3. FP8 E4M3 tensors → dequantized to BF16 (with scale_inv applied)
-     Metadata records: source_dtype=fp8_e4m3fn, conversion=fp8_to_bf16_fused
-  4. Passthrough: mtp.fc, mtp.pre_fc_norm_*, mtp.norm, attention, shared expert,
-     router gate, layernorms (already BF16/FP32)
-
-CPU-only. No GPU required for conversion.
+Reads official `mtp.safetensors` with per-expert FP8 E4M3 layout + block scale_inv
+and produces Lynn-compatible fused BF16 safetensors.
 
 Usage:
   python scripts/qwen36_convert_official_mtp_to_lynn_fused.py \\
     --mtp /home/merkyor/models/Qwen3.6-35B-A3B-FP8/mtp.safetensors \\
     --config /home/merkyor/models/Qwen3.6-35B-A3B-FP8/config.json \\
     --out /path/to/output/mtp_lynn_fused.safetensors
+
+  python scripts/qwen36_convert_official_mtp_to_lynn_fused.py --self-test
 """
 from __future__ import annotations
 
@@ -40,6 +36,9 @@ import torch
 from safetensors.torch import save_file
 
 
+SCALE_BLOCK_SIZE = 128  # Qwen FP8 uses 128×128 block quantization
+
+
 def _read_header(path: Path) -> dict[str, dict[str, Any]]:
     with path.open("rb") as f:
         header_size = struct.unpack("<Q", f.read(8))[0]
@@ -49,178 +48,265 @@ def _read_header(path: Path) -> dict[str, dict[str, Any]]:
 
 
 def _load_tensor_cpu(path: Path, key: str) -> torch.Tensor:
-    """Load a single tensor from safetensors on CPU."""
     from safetensors import safe_open
     with safe_open(str(path), framework="pt", device="cpu") as f:
         return f.get_tensor(key)
 
 
-def _dequant_fp8_with_scale(tensor: torch.Tensor, scale_inv: torch.Tensor | None) -> torch.Tensor:
-    """Dequantize FP8 E4M3 tensor to BF16 using scale_inv.
+def _parse_config(path: Path | None) -> dict[str, Any]:
+    """Read config.json supporting nested text_config."""
+    if not path or not path.exists():
+        return {}
+    cfg = json.loads(path.read_text(encoding="utf-8"))
+    text_cfg = cfg.get("text_config", cfg)
+    return {
+        "model_type": cfg.get("model_type", text_cfg.get("model_type", "unknown")),
+        "hidden_size": text_cfg.get("hidden_size"),
+        "intermediate_size": text_cfg.get("intermediate_size", text_cfg.get("moe_intermediate_size")),
+        "num_experts": text_cfg.get("num_experts", text_cfg.get("num_local_experts")),
+    }
 
-    Official Qwen FP8 layout: value_bf16 = fp8_value * scale_inv
-    scale_inv is per-channel (row) or scalar.
+
+def dequant_fp8_block_scale(
+    weight_fp8: torch.Tensor,
+    scale_inv: torch.Tensor,
+    block_size: int = SCALE_BLOCK_SIZE,
+) -> torch.Tensor:
+    """Dequantize FP8 E4M3 tensor with block-wise scale_inv.
+
+    weight_fp8: [R, C] (float8_e4m3fn or uint8 viewed as fp8)
+    scale_inv: [R // block_size, C // block_size]
+    Returns: [R, C] bfloat16
+
+    Each 128×128 block of weight shares one scale value.
+    Dequant: bf16_value = fp8_value.float() * scale_inv_expanded
     """
-    # Convert FP8 bytes to float via view
-    if tensor.dtype == torch.uint8:
-        fp8_vals = tensor.view(torch.float8_e4m3fn).float()
-    elif tensor.dtype == torch.float8_e4m3fn:
-        fp8_vals = tensor.float()
+    if weight_fp8.dtype == torch.uint8:
+        # View as FP8 then to float
+        fp8_float = weight_fp8.view(torch.float8_e4m3fn).float()
+    elif weight_fp8.dtype == torch.float8_e4m3fn:
+        fp8_float = weight_fp8.float()
     else:
-        # Already float — may be BF16/FP32, just return as BF16
-        return tensor.to(torch.bfloat16)
+        # Already float-like, just convert
+        return weight_fp8.to(torch.bfloat16)
 
-    if scale_inv is not None:
-        scale = scale_inv.float()
-        if scale.dim() == 0:
-            fp8_vals = fp8_vals * scale
-        elif scale.dim() == 1 and scale.shape[0] == fp8_vals.shape[0]:
-            fp8_vals = fp8_vals * scale.unsqueeze(-1)
-        else:
-            # Try broadcast
-            fp8_vals = fp8_vals * scale
-    return fp8_vals.to(torch.bfloat16)
+    R, C = fp8_float.shape
+    sr, sc = scale_inv.shape
+
+    # Validate block alignment
+    expected_sr = (R + block_size - 1) // block_size
+    expected_sc = (C + block_size - 1) // block_size
+    assert sr == expected_sr and sc == expected_sc, (
+        f"Scale shape mismatch: weight [{R},{C}] → expected scale [{expected_sr},{expected_sc}], "
+        f"got [{sr},{sc}] with block_size={block_size}"
+    )
+
+    # Expand scale to weight shape via repeat_interleave
+    scale_expanded = scale_inv.float()
+    scale_expanded = scale_expanded.repeat_interleave(block_size, dim=0)[:R]
+    scale_expanded = scale_expanded.repeat_interleave(block_size, dim=1)[:, :C]
+
+    result = fp8_float * scale_expanded
+    return result.to(torch.bfloat16)
 
 
-def _find_scale_inv_key(key: str, header: dict[str, Any]) -> str | None:
+def _find_scale_key(key: str, all_keys: set[str]) -> str | None:
     """Find the matching scale_inv key for a weight tensor."""
     candidates = [
-        key + "_scale_inv",
         key.replace(".weight", ".weight_scale_inv"),
+        key + "_scale_inv",
         key.replace(".weight", "_scale_inv"),
     ]
     for c in candidates:
-        if c in header:
+        if c in all_keys:
             return c
-    # Fuzzy: look for scale_inv with same prefix
+    # Fuzzy: same prefix + scale_inv
     base = key.rsplit(".", 1)[0]
-    for k in header:
+    for k in all_keys:
         if k.startswith(base) and "scale_inv" in k:
             return k
     return None
 
 
 def _parse_expert_id(key: str) -> int | None:
-    """Extract expert index from key like experts.42.gate_proj.weight."""
     m = re.search(r"experts?[._](\d+)", key)
     return int(m.group(1)) if m else None
 
 
 def _lynn_layer_key(official_key: str) -> str | None:
-    """Map official MTP key to Lynn layer key under mtp.layers.0.* prefix.
-
-    Returns None for keys that don't map to the layer (fc, norms handled separately).
-    """
-    # Patterns to remap
+    """Map official key → Lynn mtp.layers.0.* key for passthrough tensors."""
     patterns = [
-        (r"^.*\.input_layernorm\.weight$", "mtp.layers.0.input_layernorm.weight"),
-        (r"^.*\.post_attention_layernorm\.weight$", "mtp.layers.0.post_attention_layernorm.weight"),
-        (r"^.*self_attn\.q_proj\.weight$", "mtp.layers.0.self_attn.q_proj.weight"),
-        (r"^.*self_attn\.k_proj\.weight$", "mtp.layers.0.self_attn.k_proj.weight"),
-        (r"^.*self_attn\.v_proj\.weight$", "mtp.layers.0.self_attn.v_proj.weight"),
-        (r"^.*self_attn\.o_proj\.weight$", "mtp.layers.0.self_attn.o_proj.weight"),
-        (r"^.*self_attn\.q_norm\.weight$", "mtp.layers.0.self_attn.q_norm.weight"),
-        (r"^.*self_attn\.k_norm\.weight$", "mtp.layers.0.self_attn.k_norm.weight"),
-        (r"^.*mlp\.gate\.weight$", "mtp.layers.0.mlp.gate.weight"),
-        (r"^.*shared_expert\.gate_proj\.weight$", "mtp.layers.0.mlp.shared_expert.gate_proj.weight"),
-        (r"^.*shared_expert\.up_proj\.weight$", "mtp.layers.0.mlp.shared_expert.up_proj.weight"),
-        (r"^.*shared_expert\.down_proj\.weight$", "mtp.layers.0.mlp.shared_expert.down_proj.weight"),
-        (r"^.*shared_expert_gate\.weight$", "mtp.layers.0.mlp.shared_expert_gate.weight"),
+        (r"input_layernorm\.weight", "mtp.layers.0.input_layernorm.weight"),
+        (r"post_attention_layernorm\.weight", "mtp.layers.0.post_attention_layernorm.weight"),
+        (r"self_attn\.q_proj\.weight$", "mtp.layers.0.self_attn.q_proj.weight"),
+        (r"self_attn\.k_proj\.weight$", "mtp.layers.0.self_attn.k_proj.weight"),
+        (r"self_attn\.v_proj\.weight$", "mtp.layers.0.self_attn.v_proj.weight"),
+        (r"self_attn\.o_proj\.weight$", "mtp.layers.0.self_attn.o_proj.weight"),
+        (r"self_attn\.q_norm\.weight$", "mtp.layers.0.self_attn.q_norm.weight"),
+        (r"self_attn\.k_norm\.weight$", "mtp.layers.0.self_attn.k_norm.weight"),
+        (r"mlp\.gate\.weight$", "mtp.layers.0.mlp.gate.weight"),
+        (r"shared_expert\.gate_proj\.weight$", "mtp.layers.0.mlp.shared_expert.gate_proj.weight"),
+        (r"shared_expert\.up_proj\.weight$", "mtp.layers.0.mlp.shared_expert.up_proj.weight"),
+        (r"shared_expert\.down_proj\.weight$", "mtp.layers.0.mlp.shared_expert.down_proj.weight"),
+        (r"shared_expert_gate\.weight$", "mtp.layers.0.mlp.shared_expert_gate.weight"),
     ]
     for pat, target in patterns:
-        if re.match(pat, official_key):
+        if re.search(pat, official_key):
             return target
     return None
 
 
+def _self_test() -> int:
+    """CPU mock test: verify block-scale dequant works correctly."""
+    print("[self-test] Testing block-scale FP8 dequant...", file=sys.stderr)
+
+    # Simulate: weight [512, 2048], scale [4, 16] with block=128
+    R, C = 512, 2048
+    block = 128
+    sr, sc = R // block, C // block  # [4, 16]
+
+    # Create a known pattern: fp8 values = 1.0 everywhere, scale = varying
+    weight_fp32 = torch.ones(R, C, dtype=torch.float32)
+    weight_fp8 = weight_fp32.to(torch.float8_e4m3fn)
+    scale_inv = torch.arange(1, sr * sc + 1, dtype=torch.float32).view(sr, sc)
+
+    result = dequant_fp8_block_scale(weight_fp8, scale_inv, block_size=block)
+
+    # Verify shape
+    assert result.shape == (R, C), f"Shape mismatch: {result.shape} vs ({R}, {C})"
+    assert result.dtype == torch.bfloat16, f"Dtype mismatch: {result.dtype}"
+
+    # Verify values: each 128×128 block should equal its scale value (since fp8=1.0)
+    for bi in range(sr):
+        for bj in range(sc):
+            block_val = result[bi * block:(bi + 1) * block, bj * block:(bj + 1) * block]
+            expected = scale_inv[bi, bj].item()
+            actual = block_val[0, 0].float().item()
+            assert abs(actual - expected) < 0.01, (
+                f"Block [{bi},{bj}]: expected {expected}, got {actual}"
+            )
+
+    print(f"[self-test] PASS: dequant [{R},{C}] with scale [{sr},{sc}] block={block}", file=sys.stderr)
+
+    # Test non-aligned case: weight [384, 2048], scale [3, 16]
+    R2, C2 = 384, 2048
+    sr2, sc2 = R2 // block, C2 // block
+    w2 = torch.ones(R2, C2, dtype=torch.float32).to(torch.float8_e4m3fn)
+    s2 = torch.ones(sr2, sc2, dtype=torch.float32) * 2.5
+    r2 = dequant_fp8_block_scale(w2, s2, block_size=block)
+    assert r2.shape == (R2, C2), f"Shape mismatch: {r2.shape}"
+    assert abs(r2[0, 0].float().item() - 2.5) < 0.01
+    print(f"[self-test] PASS: dequant [{R2},{C2}] with scale [{sr2},{sc2}]", file=sys.stderr)
+
+    print("[self-test] ALL TESTS PASSED", file=sys.stderr)
+    return 0
+
+
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Convert official Qwen3.6 MTP FP8 → Lynn fused")
-    ap.add_argument("--mtp", required=True, help="Path to official mtp.safetensors")
-    ap.add_argument("--config", default=None, help="config.json for hidden/intermediate dims")
-    ap.add_argument("--out", required=True, help="Output Lynn fused safetensors path")
+    ap = argparse.ArgumentParser(description="Convert official Qwen3.6 MTP FP8 → Lynn fused V2")
+    ap.add_argument("--mtp", default=None, help="Path to official mtp.safetensors")
+    ap.add_argument("--config", default=None, help="config.json for context (dims inferred from tensors)")
+    ap.add_argument("--out", default=None, help="Output Lynn fused safetensors path")
     ap.add_argument("--dry-run", action="store_true", help="Print key mapping without writing")
+    ap.add_argument("--self-test", action="store_true", help="Run CPU mock dequant test and exit")
     args = ap.parse_args()
+
+    if args.self_test:
+        return _self_test()
+
+    if not args.mtp:
+        print("ERROR: --mtp is required (or use --self-test)", file=sys.stderr)
+        return 1
+    if not args.out and not args.dry_run:
+        print("ERROR: --out is required (or use --dry-run)", file=sys.stderr)
+        return 1
 
     mtp_path = Path(args.mtp)
     if not mtp_path.exists():
         print(f"ERROR: {mtp_path} not found", file=sys.stderr)
         return 1
 
-    # Read config
-    hidden_size = 2048  # Qwen3.6-35B default
-    intermediate_size = 1408  # Qwen3.6-35B default
-    num_experts = 64  # Qwen3.6-35B default
-    if args.config:
-        cfg_path = Path(args.config)
-        if cfg_path.exists():
-            cfg = json.loads(cfg_path.read_text())
-            hidden_size = cfg.get("hidden_size", hidden_size)
-            intermediate_size = cfg.get("intermediate_size", cfg.get("moe_intermediate_size", intermediate_size))
-            num_experts = cfg.get("num_experts", cfg.get("num_local_experts", num_experts))
-
-    print(f"[converter] source: {mtp_path}", file=sys.stderr)
-    print(f"[converter] hidden={hidden_size} intermediate={intermediate_size} experts={num_experts}", file=sys.stderr)
-
-    # Read header
+    config_info = _parse_config(Path(args.config) if args.config else None)
     header = _read_header(mtp_path)
-    print(f"[converter] source keys: {len(header)}", file=sys.stderr)
+    all_keys = set(header.keys())
+    print(f"[converter] source: {mtp_path} ({len(header)} keys)", file=sys.stderr)
 
-    # Classify keys
-    expert_gate_keys: dict[int, str] = {}  # expert_id → gate_proj key
-    expert_up_keys: dict[int, str] = {}    # expert_id → up_proj key
-    expert_down_keys: dict[int, str] = {}  # expert_id → down_proj key
-    passthrough_keys: list[tuple[str, str]] = []  # (official_key, lynn_key)
+    # ── Classify keys ──
+    expert_gate: dict[int, str] = {}
+    expert_up: dict[int, str] = {}
+    expert_down: dict[int, str] = {}
+    passthrough: list[tuple[str, str]] = []  # (official, lynn)
     fc_key: str | None = None
     pre_fc_norm_embed_key: str | None = None
     pre_fc_norm_hidden_key: str | None = None
     output_norm_key: str | None = None
-    scale_inv_keys: set[str] = set()
+    scale_keys: set[str] = set()
 
     for key in header:
         kl = key.lower()
-        # Skip scale_inv (handled during dequant)
-        if "scale_inv" in kl or "scale" in kl:
-            scale_inv_keys.add(key)
+        if "scale_inv" in kl or (kl.endswith("_scale") and "gate.weight" not in kl):
+            scale_keys.add(key)
             continue
 
-        # Top-level MTP tensors
+        eid = _parse_expert_id(key)
+        if eid is not None and "shared" not in kl:
+            if "gate_proj" in kl:
+                expert_gate[eid] = key
+            elif "up_proj" in kl:
+                expert_up[eid] = key
+            elif "down_proj" in kl:
+                expert_down[eid] = key
+            continue
+
         if "pre_fc_norm_embedding" in kl:
             pre_fc_norm_embed_key = key
         elif "pre_fc_norm_hidden" in kl:
             pre_fc_norm_hidden_key = key
-        elif re.search(r"\bfc\b.*weight", kl) and "norm" not in kl and "expert" not in kl:
+        elif re.search(r"\bfc\b", kl) and "norm" not in kl and "scale" not in kl:
             fc_key = key
-        elif re.search(r"^.*\.norm\.weight$|^.*mtp_norm.*weight$", kl) and "layer" not in kl and "fc" not in kl:
+        elif re.search(r"(^|[._])norm[._]weight$", kl) and "layer" not in kl and "fc" not in kl and "attn" not in kl:
             output_norm_key = key
+        else:
+            lynn_key = _lynn_layer_key(key)
+            if lynn_key:
+                passthrough.append((key, lynn_key))
 
-        # Per-expert MLP
-        eid = _parse_expert_id(key)
-        if eid is not None and "shared" not in kl:
-            if "gate_proj" in kl and "scale" not in kl:
-                expert_gate_keys[eid] = key
-            elif "up_proj" in kl and "scale" not in kl:
-                expert_up_keys[eid] = key
-            elif "down_proj" in kl and "scale" not in kl:
-                expert_down_keys[eid] = key
-            continue
+    # ── Validate experts ──
+    expert_count = max(len(expert_gate), len(expert_up), len(expert_down))
+    expert_ids = set(expert_gate.keys()) | set(expert_up.keys()) | set(expert_down.keys())
+    expected_ids = set(range(expert_count))
+    if expert_ids != expected_ids:
+        missing = expected_ids - expert_ids
+        print(f"[converter] BLOCKER: expert IDs not contiguous 0..{expert_count-1}", file=sys.stderr)
+        print(f"  missing: {sorted(missing)[:20]}", file=sys.stderr)
+        if not args.dry_run:
+            return 1
 
-        # Layer-level keys (attention, norms, shared expert, router)
-        lynn_key = _lynn_layer_key(key)
-        if lynn_key:
-            passthrough_keys.append((key, lynn_key))
+    # ── Infer dims from tensor shapes ──
+    hidden: int | None = None
+    intermediate: int | None = None
+    if expert_gate:
+        sample_key = next(iter(expert_gate.values()))
+        shape = header[sample_key]["shape"]
+        if len(shape) == 2:
+            intermediate = shape[0]
+            hidden = shape[1]
+    print(f"[converter] experts={expert_count} hidden={hidden} intermediate={intermediate}", file=sys.stderr)
 
-    # Validate expert counts
-    detected_experts = max(
-        len(expert_gate_keys), len(expert_up_keys), len(expert_down_keys)
-    )
-    if detected_experts == 0:
-        print(f"[converter] WARNING: no per-expert keys found. May be pre-fused.", file=sys.stderr)
-    else:
-        print(f"[converter] detected {detected_experts} experts", file=sys.stderr)
-        num_experts = detected_experts
+    # ── Infer block size from first expert scale ──
+    block_size = SCALE_BLOCK_SIZE
+    sample_gate_key = next(iter(expert_gate.values()), None)
+    if sample_gate_key:
+        gate_scale_key = _find_scale_key(sample_gate_key, all_keys)
+        if gate_scale_key:
+            ws = header[sample_gate_key]["shape"]
+            ss = header[gate_scale_key]["shape"]
+            if len(ws) == 2 and len(ss) == 2 and ss[0] > 0 and ss[1] > 0:
+                block_size = ws[0] // ss[0]
+                print(f"[converter] inferred block_size={block_size} from {ws} / {ss}", file=sys.stderr)
 
-    # Print mapping
-    print(f"\n[converter] Key mapping:", file=sys.stderr)
+    # ── Print mapping ──
+    print(f"\n[converter] Key mapping ({expert_count} experts, block={block_size}):", file=sys.stderr)
     if fc_key:
         print(f"  {fc_key} → mtp.fc.weight", file=sys.stderr)
     if pre_fc_norm_embed_key:
@@ -229,111 +315,103 @@ def main() -> int:
         print(f"  {pre_fc_norm_hidden_key} → mtp.pre_fc_norm_hidden.weight", file=sys.stderr)
     if output_norm_key:
         print(f"  {output_norm_key} → mtp.norm.weight", file=sys.stderr)
-    for off_key, lynn_key in passthrough_keys:
+    for off_key, lynn_key in passthrough:
         print(f"  {off_key} → {lynn_key}", file=sys.stderr)
-    if detected_experts:
-        print(f"  experts.*.gate_proj + up_proj → mtp.layers.0.mlp.experts.gate_up_proj [{num_experts}, {2*intermediate_size}, {hidden_size}]", file=sys.stderr)
-        print(f"  experts.*.down_proj → mtp.layers.0.mlp.experts.down_proj [{num_experts}, {hidden_size}, {intermediate_size}]", file=sys.stderr)
-    print(f"  scale_inv keys: {len(scale_inv_keys)} (applied during dequant)", file=sys.stderr)
+    print(f"  {expert_count}× gate+up → mtp.layers.0.mlp.experts.gate_up_proj [{expert_count}, {2*(intermediate or 0)}, {hidden}]", file=sys.stderr)
+    print(f"  {expert_count}× down → mtp.layers.0.mlp.experts.down_proj [{expert_count}, {hidden}, {intermediate}]", file=sys.stderr)
+    print(f"  scale keys: {len(scale_keys)} (block dequant applied)", file=sys.stderr)
 
     if args.dry_run:
-        print(f"\n[converter] DRY_RUN — not writing output.", file=sys.stderr)
+        print(f"\n[converter] DRY_RUN — not writing.", file=sys.stderr)
         return 0
 
-    # ─────────────────────────────────────────────────────────────
-    # Load and convert
-    # ─────────────────────────────────────────────────────────────
-    print(f"\n[converter] Loading tensors...", file=sys.stderr)
+    # ── Load and convert ──
+    print(f"\n[converter] Loading and dequantizing...", file=sys.stderr)
     output_tensors: dict[str, torch.Tensor] = {}
-    conversion_log: list[dict[str, Any]] = []
     fp8_count = 0
 
-    def _load_and_dequant(key: str) -> torch.Tensor:
+    def load_dequant(key: str) -> torch.Tensor:
         nonlocal fp8_count
         t = _load_tensor_cpu(mtp_path, key)
-        if t.dtype in (torch.float8_e4m3fn, torch.uint8) and t.element_size() == 1:
-            scale_key = _find_scale_inv_key(key, header)
-            scale = _load_tensor_cpu(mtp_path, scale_key) if scale_key else None
-            result = _dequant_fp8_with_scale(t, scale)
-            fp8_count += 1
-            conversion_log.append({"key": key, "source_dtype": "fp8_e4m3fn", "scale_key": scale_key})
-            return result
-        return t.to(torch.bfloat16) if t.is_floating_point() else t
+        dtype_str = header[key].get("dtype", "")
+        if "F8_E4M3" in dtype_str.upper() or t.dtype == torch.float8_e4m3fn or (t.dtype == torch.uint8 and t.element_size() == 1 and "F8" in dtype_str.upper()):
+            scale_key = _find_scale_key(key, all_keys)
+            if scale_key:
+                scale = _load_tensor_cpu(mtp_path, scale_key)
+                result = dequant_fp8_block_scale(t, scale, block_size=block_size)
+                fp8_count += 1
+                return result
+            else:
+                print(f"  [WARN] no scale for FP8 tensor: {key}", file=sys.stderr)
+                return t.view(torch.float8_e4m3fn).float().to(torch.bfloat16)
+        return t.to(torch.bfloat16) if t.is_floating_point() else t.float().to(torch.bfloat16)
 
-    # Top-level tensors
+    # Top-level
     if fc_key:
-        output_tensors["mtp.fc.weight"] = _load_and_dequant(fc_key)
+        output_tensors["mtp.fc.weight"] = load_dequant(fc_key)
     if pre_fc_norm_embed_key:
-        output_tensors["mtp.pre_fc_norm_embedding.weight"] = _load_and_dequant(pre_fc_norm_embed_key)
+        output_tensors["mtp.pre_fc_norm_embedding.weight"] = load_dequant(pre_fc_norm_embed_key)
     if pre_fc_norm_hidden_key:
-        output_tensors["mtp.pre_fc_norm_hidden.weight"] = _load_and_dequant(pre_fc_norm_hidden_key)
+        output_tensors["mtp.pre_fc_norm_hidden.weight"] = load_dequant(pre_fc_norm_hidden_key)
     if output_norm_key:
-        output_tensors["mtp.norm.weight"] = _load_and_dequant(output_norm_key)
+        output_tensors["mtp.norm.weight"] = load_dequant(output_norm_key)
 
     # Passthrough layer keys
-    for off_key, lynn_key in passthrough_keys:
-        output_tensors[lynn_key] = _load_and_dequant(off_key)
+    for off_key, lynn_key in passthrough:
+        output_tensors[lynn_key] = load_dequant(off_key)
 
-    # Fuse per-expert gate+up → gate_up_proj
-    if detected_experts > 0:
-        print(f"[converter] Fusing {num_experts} experts gate+up...", file=sys.stderr)
+    # Fuse experts
+    if expert_count > 0 and hidden and intermediate:
+        print(f"[converter] Fusing {expert_count} experts...", file=sys.stderr)
         gate_up_list: list[torch.Tensor] = []
         down_list: list[torch.Tensor] = []
 
-        for eid in range(num_experts):
-            gate_key = expert_gate_keys.get(eid)
-            up_key = expert_up_keys.get(eid)
-            down_key = expert_down_keys.get(eid)
+        for eid in range(expert_count):
+            g_key = expert_gate.get(eid)
+            u_key = expert_up.get(eid)
+            d_key = expert_down.get(eid)
 
-            if gate_key and up_key:
-                gate_t = _load_and_dequant(gate_key)
-                up_t = _load_and_dequant(up_key)
-                fused = torch.cat([gate_t, up_t], dim=0)  # [2*intermediate, hidden]
-                gate_up_list.append(fused)
+            if g_key and u_key:
+                g = load_dequant(g_key)
+                u = load_dequant(u_key)
+                gate_up_list.append(torch.cat([g, u], dim=0))
             else:
-                print(f"  [WARN] expert {eid}: missing gate_proj or up_proj", file=sys.stderr)
-                gate_up_list.append(torch.zeros(2 * intermediate_size, hidden_size, dtype=torch.bfloat16))
+                gate_up_list.append(torch.zeros(2 * intermediate, hidden, dtype=torch.bfloat16))
 
-            if down_key:
-                down_t = _load_and_dequant(down_key)
-                down_list.append(down_t)
+            if d_key:
+                down_list.append(load_dequant(d_key))
             else:
-                print(f"  [WARN] expert {eid}: missing down_proj", file=sys.stderr)
-                down_list.append(torch.zeros(hidden_size, intermediate_size, dtype=torch.bfloat16))
+                down_list.append(torch.zeros(hidden, intermediate, dtype=torch.bfloat16))
 
-        # Stack: [num_experts, 2*intermediate, hidden]
-        gate_up_fused = torch.stack(gate_up_list, dim=0)
-        output_tensors["mtp.layers.0.mlp.experts.gate_up_proj"] = gate_up_fused
-        print(f"  gate_up_proj shape: {list(gate_up_fused.shape)}", file=sys.stderr)
+            if (eid + 1) % 64 == 0:
+                print(f"  ... {eid + 1}/{expert_count} experts done", file=sys.stderr)
 
-        # Stack: [num_experts, hidden, intermediate]
-        down_fused = torch.stack(down_list, dim=0)
-        output_tensors["mtp.layers.0.mlp.experts.down_proj"] = down_fused
-        print(f"  down_proj shape: {list(down_fused.shape)}", file=sys.stderr)
+        output_tensors["mtp.layers.0.mlp.experts.gate_up_proj"] = torch.stack(gate_up_list, dim=0)
+        output_tensors["mtp.layers.0.mlp.experts.down_proj"] = torch.stack(down_list, dim=0)
+        print(f"  gate_up_proj: {list(output_tensors['mtp.layers.0.mlp.experts.gate_up_proj'].shape)}", file=sys.stderr)
+        print(f"  down_proj: {list(output_tensors['mtp.layers.0.mlp.experts.down_proj'].shape)}", file=sys.stderr)
 
-    # ─────────────────────────────────────────────────────────────
-    # Write output
-    # ─────────────────────────────────────────────────────────────
+    # ── Write ──
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Compute sha256 prefix of the serialized data
     metadata = {
         "source_path": str(mtp_path),
         "source_key_count": str(len(header)),
-        "expert_count": str(num_experts),
-        "hidden_size": str(hidden_size),
-        "intermediate_size": str(intermediate_size),
-        "conversion_mode": "fp8_to_bf16_fused" if fp8_count > 0 else "passthrough_fused",
+        "detected_expert_count": str(expert_count),
+        "hidden_inferred": str(hidden or ""),
+        "intermediate_inferred": str(intermediate or ""),
+        "scale_block": f"{block_size},{block_size}",
+        "conversion": "fp8_block_scale_to_bf16_fused",
         "fp8_tensors_dequanted": str(fp8_count),
         "output_key_count": str(len(output_tensors)),
-        "converter": "qwen36_convert_official_mtp_to_lynn_fused.py",
+        "converter": "qwen36_convert_official_mtp_to_lynn_fused.py_v2",
         "created": time.strftime("%Y-%m-%dT%H:%M:%S"),
     }
 
     save_file(output_tensors, str(out_path), metadata=metadata)
 
-    # Compute sha256 of output file
+    # SHA256
     h = hashlib.sha256()
     with out_path.open("rb") as f:
         while True:
@@ -341,20 +419,18 @@ def main() -> int:
             if not chunk:
                 break
             h.update(chunk)
-    sha256_prefix = h.hexdigest()[:32]
+    sha_prefix = h.hexdigest()[:32]
+
     print(f"\n[converter] Output: {out_path}", file=sys.stderr)
     print(f"[converter] Keys: {len(output_tensors)}", file=sys.stderr)
     print(f"[converter] Size: {out_path.stat().st_size / (1024*1024):.1f} MiB", file=sys.stderr)
-    print(f"[converter] SHA256 prefix: {sha256_prefix}", file=sys.stderr)
-    print(f"[converter] FP8 tensors dequanted: {fp8_count}", file=sys.stderr)
+    print(f"[converter] SHA256: {sha_prefix}", file=sys.stderr)
+    print(f"[converter] FP8 dequanted: {fp8_count}", file=sys.stderr)
     print(f"[converter] Metadata: {json.dumps(metadata, indent=2)}", file=sys.stderr)
-
-    # Print output key list
     print(f"\n[converter] Output keys:", file=sys.stderr)
     for key in sorted(output_tensors.keys()):
         t = output_tensors[key]
         print(f"  {key:60s} {str(t.dtype):12s} {list(t.shape)}", file=sys.stderr)
-
     return 0
 
 

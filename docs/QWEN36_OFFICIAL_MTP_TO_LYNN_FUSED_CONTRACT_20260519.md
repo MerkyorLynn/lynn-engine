@@ -49,11 +49,13 @@ Official mtp.safetensors (FP8, per-expert)
 
 | Rule | Description |
 |------|-------------|
-| FP8 → BF16 | `value_bf16 = fp8_e4m3_value.float() * scale_inv` |
-| gate + up fuse | `cat([gate_proj, up_proj], dim=0)` per expert, then `stack` |
-| down stack | `stack([down_proj_0, ..., down_proj_63], dim=0)` |
+| FP8 block-scale → BF16 | `scale_expanded = scale_inv.repeat_interleave(128, dim=0/1)`, then `bf16 = fp8.float() * scale_expanded` |
+| gate + up fuse | `cat([gate_proj, up_proj], dim=0)` per expert, then `stack` across 256 experts |
+| down stack | `stack([down_proj_0, ..., down_proj_255], dim=0)` |
 | Passthrough | Norms, fc, gate remain as-is (cast to BF16) |
-| Metadata | Records source_dtype, conversion_mode, sha256_prefix |
+| Metadata | Records source_dtype, block_size=(128,128), conversion_mode, sha256_prefix |
+| Expert validation | Assert IDs contiguous 0..E-1; BLOCKER if not |
+| Dim inference | hidden/intermediate from actual tensor shapes, NOT config defaults |
 
 ## Verification Contract
 
