@@ -97,40 +97,27 @@ def main() -> int:
         ffn_output_ref = fixture["ffn_output"].to(torch.bfloat16)  # [1, 4096] BF16 ground truth
 
         # Load packed weights for this layer
-        model_st = model_dir / "model.safetensors"
-        if not model_st.exists():
-            # Multi-file model
-            idx_path = model_dir / "model.safetensors.index.json"
-            if idx_path.exists():
-                with open(idx_path) as f:
-                    idx = json.load(f)
-                # Find gate_proj packed for this layer
-                gate_key = f"model.layers.{layer_id}.mlp.gate_proj.weight_packed"
-                if gate_key not in idx["weight_map"]:
-                    gate_key = f"model.language_model.layers.{layer_id}.mlp.gate_proj.weight_packed"
-                if gate_key not in idx["weight_map"]:
-                    print(f"  L{layer_id:02d}: SKIP (weight key not found)")
-                    continue
-                model_st = model_dir / idx["weight_map"][gate_key]
+        # Key format: model.language_model.layers.{L}.mlp.gate_proj.weight.packed
+        packed_key = f"model.language_model.layers.{layer_id}.mlp.gate_proj.weight.packed"
+        scale_key = f"model.language_model.layers.{layer_id}.mlp.gate_proj.weight.scale"
+        global_key = f"model.language_model.layers.{layer_id}.mlp.gate_proj.weight.global_scale"
+
+        idx_path = model_dir / "model.safetensors.index.json"
+        if idx_path.exists():
+            with open(idx_path) as f:
+                idx = json.load(f)
+            if packed_key not in idx["weight_map"]:
+                print(f"  L{layer_id:02d}: SKIP (key {packed_key} not in index)")
+                continue
+            model_st = model_dir / idx["weight_map"][packed_key]
+        else:
+            model_st = model_dir / "model.safetensors"
 
         # For this PoC: test gate_proj only (4096 -> 12288)
-        prefix = f"model.language_model.layers.{layer_id}.mlp.gate_proj"
         with safe_open(str(model_st), framework="pt", device="cuda") as st:
-            keys = list(st.keys())
-            # Try to find the right key
-            packed_key = None
-            for k in keys:
-                if f"layers.{layer_id}.mlp.gate_proj.weight_packed" in k:
-                    packed_key = k
-                    break
-            if packed_key is None:
-                print(f"  L{layer_id:02d}: SKIP (gate_proj.weight_packed not in {model_st.name})")
-                continue
-
-            base = packed_key.replace(".weight_packed", "")
             w_packed = st.get_tensor(packed_key)          # [N, K/2]
-            w_scale = st.get_tensor(base + ".weight_scale").float()  # [N, K/16]
-            w_global = st.get_tensor(base + ".weight_global_scale").float()  # scalar
+            w_scale = st.get_tensor(scale_key).float()    # [N, K/16]
+            w_global = st.get_tensor(global_key).float()  # scalar
 
         N, K_half = w_packed.shape
         K = K_half * 2
