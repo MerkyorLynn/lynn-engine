@@ -70,6 +70,9 @@ BASE_ENV = {
     "LYNN_PACKED_DECODE": "1",
     "LYNN_PACKED_SHARED_EXPERT": "1",
     "LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4": "1",
+    # K1-light: fused QKV projection for full-attn layers (10 launches / token
+    # saved on Lynn 35B-A3B; smaller win than a full graph reuse pool but free).
+    "LYNN_FULL_ATTN_QKV_FUSED": "1",
     "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True",
 }
 

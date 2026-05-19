@@ -437,17 +437,24 @@ def decode_full_attn_k2(
     rope_theta = cfg["rope_theta"]
     rotary_dim = int(head_dim * cfg["partial_rotary_factor"])
 
-    # 1. Q/K/V projection
-    if os.environ.get("LYNN_FULL_ATTN_QKV_FUSED", "0") == "1" and "self_attn._qkv_proj.weight" in w:
+    # 1. Q/K/V projection.
+    # The packed NVFP4 ``native_fast_2d`` linear path is T=1-only (same
+    # constraint as the MoE backend). For K=2 batched verify we force the
+    # BF16 ``F.linear`` path — same trade-off as ``_decode_layer_k2`` falling
+    # back to optimized MoE: slower per call but T-capable, and avoids a
+    # kernel rewrite.
+    if "self_attn._qkv_proj.weight" in w and not isinstance(
+        w["self_attn._qkv_proj.weight"], (PackedNVFP4Linear, PackedNVFP4FusedLinear),
+    ):
         q_out = int(w["self_attn.q_proj.weight"].shape[0])
         k_out = int(w["self_attn.k_proj.weight"].shape[0])
         v_out = int(w["self_attn.v_proj.weight"].shape[0])
-        qkv = _linear(h_new_k2, w["self_attn._qkv_proj.weight"])
+        qkv = F.linear(h_new_k2, w["self_attn._qkv_proj.weight"])
         q_full, k_new, v_new = qkv.split((q_out, k_out, v_out), dim=-1)
     else:
-        q_full = _linear(h_new_k2, _decode_weight(w, "self_attn.q_proj.weight"))
-        k_new = _linear(h_new_k2, _decode_weight(w, "self_attn.k_proj.weight"))
-        v_new = _linear(h_new_k2, _decode_weight(w, "self_attn.v_proj.weight"))
+        q_full = F.linear(h_new_k2, w["self_attn.q_proj.weight"])
+        k_new = F.linear(h_new_k2, w["self_attn.k_proj.weight"])
+        v_new = F.linear(h_new_k2, w["self_attn.v_proj.weight"])
 
     q_full_view = q_full.view(B, 2, H_Q, head_dim * 2)
     q, gate = q_full_view.chunk(2, dim=-1)
@@ -512,9 +519,9 @@ def decode_full_attn_k2(
     # 7. attn_output_gate
     attn_out = attn_out * torch.sigmoid(gate.float()).to(attn_out.dtype)
 
-    # 8. o_proj
+    # 8. o_proj — same T=1-constraint workaround as Q/K/V above.
     attn_out = attn_out.transpose(1, 2).contiguous().view(B, 2, H_Q * head_dim)
-    return _linear(attn_out, _decode_weight(w, "self_attn.o_proj.weight"))
+    return F.linear(attn_out, w["self_attn.o_proj.weight"])
 
 
 # ============================================================================
