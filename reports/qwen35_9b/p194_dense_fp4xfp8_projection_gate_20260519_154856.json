@@ -1,0 +1,130 @@
+{
+  "schema": "lynn-qwen35-9b-p194-fp4x-fp8-projection-gate-v1",
+  "created": "2026-05-19T15:49:57+0800",
+  "fixtures_dir": "/root/autodl-tmp/reports/qwen35_9b/p159_dense_ffn_fixtures_20260519_0458",
+  "sidecar_dir": "/root/autodl-tmp/reports/qwen35_9b/p192_dense_fp4x_fp8_sidecar",
+  "layers": [
+    0,
+    16
+  ],
+  "projections": [
+    "gate_proj",
+    "up_proj",
+    "down_proj"
+  ],
+  "thresholds": {
+    "scaled_cosine_min": 0.999999,
+    "scaled_rel_l2_max": 1e-05
+  },
+  "results": [
+    {
+      "layer": 0,
+      "projection": "gate_proj",
+      "shape": [
+        12288,
+        4096
+      ],
+      "scalar_vs_bf16_cosine": 0.9998985528945923,
+      "scalar_vs_bf16_rel_l2": 0.014264714904129505,
+      "scalar_vs_bf16_max_abs": 0.006163664162158966,
+      "scaled_vs_scalar_cosine": 0.9999998807907104,
+      "scaled_vs_scalar_rel_l2": 9.522696586827806e-07,
+      "scaled_vs_scalar_max_abs": 1.043081283569336e-06,
+      "scalar_ms": 0.5259423828125,
+      "scaled_ms": 0.0697983980178833,
+      "speedup_vs_scalar": 7.535164097573507,
+      "ok": true
+    },
+    {
+      "layer": 0,
+      "projection": "up_proj",
+      "shape": [
+        12288,
+        4096
+      ],
+      "scalar_vs_bf16_cosine": 0.9998789429664612,
+      "scalar_vs_bf16_rel_l2": 0.015555853955447674,
+      "scalar_vs_bf16_max_abs": 0.005090773105621338,
+      "scaled_vs_scalar_cosine": 1.0000001192092896,
+      "scaled_vs_scalar_rel_l2": 9.821774256124627e-07,
+      "scaled_vs_scalar_max_abs": 8.344650268554688e-07,
+      "scalar_ms": 0.526368637084961,
+      "scaled_ms": 0.07036799907684327,
+      "speedup_vs_scalar": 7.480227432787393,
+      "ok": true
+    },
+    {
+      "layer": 0,
+      "projection": "down_proj",
+      "shape": [
+        4096,
+        12288
+      ],
+      "scalar_vs_bf16_cosine": 0.9999474883079529,
+      "scalar_vs_bf16_rel_l2": 0.010264585725963116,
+      "scalar_vs_bf16_max_abs": 0.0009469781070947647,
+      "scaled_vs_scalar_cosine": 1.0,
+      "scaled_vs_scalar_rel_l2": 1.6972734329101513e-06,
+      "scaled_vs_scalar_max_abs": 9.685754776000977e-08,
+      "scalar_ms": 1.855164794921875,
+      "scaled_ms": 0.18276479721069336,
+      "speedup_vs_scalar": 10.150558659188727,
+      "ok": true
+    },
+    {
+      "layer": 16,
+      "projection": "gate_proj",
+      "shape": [
+        12288,
+        4096
+      ],
+      "scalar_vs_bf16_cosine": 0.9999237060546875,
+      "scalar_vs_bf16_rel_l2": 0.012368887662887573,
+      "scalar_vs_bf16_max_abs": 0.03641629219055176,
+      "scaled_vs_scalar_cosine": 1.0,
+      "scaled_vs_scalar_rel_l2": 8.062855272328306e-07,
+      "scaled_vs_scalar_max_abs": 4.0531158447265625e-06,
+      "scalar_ms": 0.5261721420288086,
+      "scaled_ms": 0.06980031967163086,
+      "speedup_vs_scalar": 7.5382483132475135,
+      "ok": true
+    },
+    {
+      "layer": 16,
+      "projection": "up_proj",
+      "shape": [
+        12288,
+        4096
+      ],
+      "scalar_vs_bf16_cosine": 0.9998475313186646,
+      "scalar_vs_bf16_rel_l2": 0.017468927428126335,
+      "scalar_vs_bf16_max_abs": 0.03785935044288635,
+      "scaled_vs_scalar_cosine": 1.0,
+      "scaled_vs_scalar_rel_l2": 1.0297858352714684e-06,
+      "scaled_vs_scalar_max_abs": 3.933906555175781e-06,
+      "scalar_ms": 0.5266515350341797,
+      "scaled_ms": 0.0698528003692627,
+      "speedup_vs_scalar": 7.53944769930687,
+      "ok": true
+    },
+    {
+      "layer": 16,
+      "projection": "down_proj",
+      "shape": [
+        4096,
+        12288
+      ],
+      "scalar_vs_bf16_cosine": 0.9998626708984375,
+      "scalar_vs_bf16_rel_l2": 0.016573838889598846,
+      "scalar_vs_bf16_max_abs": 0.010622292757034302,
+      "scaled_vs_scalar_cosine": 1.0000001192092896,
+      "scaled_vs_scalar_rel_l2": 1.8819964680005796e-06,
+      "scaled_vs_scalar_max_abs": 2.205371856689453e-06,
+      "scalar_ms": 1.8404998779296875,
+      "scaled_ms": 0.18303552627563477,
+      "speedup_vs_scalar": 10.05542429592637,
+      "ok": true
+    }
+  ],
+  "overall": "GREEN"
+}
