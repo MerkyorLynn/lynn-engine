@@ -142,6 +142,7 @@ def load_lynn_native_extension(*, build_dir: str | None = None, verbose: bool = 
             str(ROOT / "csrc" / "lynn_native" / "moe_slot_packed_nvfp4_probe.cu"),
             str(ROOT / "csrc" / "lynn_native" / "moe_packed_graphsafe_v3.cu"),
             str(ROOT / "csrc" / "lynn_native" / "moe_scalar_out_reference.cu"),
+            str(ROOT / "csrc" / "lynn_native" / "dense_fp4x_fp8_poc.cu"),
         ],
         build_directory=str(build_root),
         extra_cflags=["-O3"],
