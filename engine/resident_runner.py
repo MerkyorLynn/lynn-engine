@@ -31,6 +31,7 @@ from engine.full_forward import (
 from engine.inference_state import LAYER_TYPES, LynnInferenceState
 from engine.loader import load_qwen36_layer
 from engine.mtp_sidecar import load_mtp_sidecar, mtp_layer_config, mtp_layer_weights, mtp_logits
+from engine.mtp_serving import speculative_step_k1
 from engine.nvfp4_runtime import (
     _compact_scale_to_swizzled_fp8,
     load_grouped_nvfp4_weight,
@@ -1326,7 +1327,93 @@ class LynnIncrementalRunner:
         if next_id in self.stop_token_ids:
             stopped_reason = "stop_token"
 
+        # ---- MTP speculative serving (opt-in via LYNN_MTP_SPECULATIVE=1) ----
+        # When the sidecar is loaded and speculative mode is requested, replace
+        # the single-token decode loop with K=1 speculative steps from
+        # ``engine.mtp_serving`` (P118-validated commit/verify math). The path
+        # is eager (no graph capture); a future batched K-position verify is
+        # the next ROI unlock (see M5-M6 in task list).
+        mtp_speculative_active = (
+            self.mtp_sidecar_loaded
+            and os.environ.get("LYNN_MTP_SPECULATIVE", "0") == "1"
+        )
+        mtp_speculative_stats: dict[str, Any] = {
+            "active": mtp_speculative_active,
+            "events": 0,
+            "accepted_events": 0,
+            "tokens_committed": 0,
+            "step_seconds": [],
+            "drafts": [],
+        }
+        if mtp_speculative_active and full_token_graph_slot_enabled:
+            raise RuntimeError(
+                "LYNN_MTP_SPECULATIVE and LYNN_FULL_TOKEN_GRAPH_SLOT cannot both be "
+                "set — speculative serving runs eager decode and would invalidate "
+                "graph-slot KV assumptions. Unset one."
+            )
+        if mtp_speculative_active and linear_block_graphs is not None:
+            raise RuntimeError(
+                "LYNN_MTP_SPECULATIVE is not compatible with LYNN_LINEAR_BLOCK_GRAPH. "
+                "Captured graphs assume single-token decode flow without rollback."
+            )
+        if mtp_speculative_active and stopped_reason != "stop_token":
+            pending_id = int(next_id)
+            pending_base_hidden = h[:, -1:, :].contiguous()
+            pending_pos = int(state.seq_len - 1)
+            first_step = True
+            while len(new_ids) < max_new and stopped_reason != "stop_token":
+                spec_t0 = time.time()
+                spec_result = speculative_step_k1(
+                    self,
+                    state,
+                    pending_id,
+                    pending_base_hidden,
+                    pending_pos,
+                )
+                if self.device.startswith("cuda"):
+                    torch.cuda.synchronize()
+                elapsed = time.time() - spec_t0
+                mtp_speculative_stats["step_seconds"].append(elapsed)
+                mtp_speculative_stats["events"] += 1
+                mtp_speculative_stats["accepted_events"] += int(spec_result.accepted)
+                mtp_speculative_stats["drafts"].append({
+                    "event": mtp_speculative_stats["events"] - 1,
+                    "draft_id": int(spec_result.draft_id),
+                    "draft_text": tok.decode([int(spec_result.draft_id)]),
+                    "accepted": bool(spec_result.accepted),
+                    "committed_count": len(spec_result.committed_tokens),
+                    "step_seconds": elapsed,
+                })
+                # First step's pending_id was already pre-emitted as new_ids[0]
+                # from the prefill argmax — skip re-emitting it.
+                emit_from = 1 if first_step else 0
+                for tok_id in spec_result.committed_tokens[emit_from:]:
+                    new_ids.append(int(tok_id))
+                    mtp_speculative_stats["tokens_committed"] += 1
+                    if int(tok_id) in self.stop_token_ids:
+                        stopped_reason = "stop_token"
+                        break
+                    if len(new_ids) >= max_new:
+                        stopped_reason = "max_new"
+                        break
+                first_step = False
+                if stopped_reason == "stop_token" or len(new_ids) >= max_new:
+                    break
+                pending_id = int(spec_result.next_pending_id)
+                pending_base_hidden = spec_result.next_base_hidden
+                pending_pos = int(spec_result.next_pos)
+                if self.verbose:
+                    print(
+                        f"  [resident-spec] event={mtp_speculative_stats['events']} "
+                        f"committed_total={len(new_ids)} accepted={spec_result.accepted} "
+                        f"draft={tok.decode([int(spec_result.draft_id)])!r} "
+                        f"{elapsed * 1000:.0f}ms",
+                        flush=True,
+                    )
+
         for step in range(1, max_new):
+            if mtp_speculative_active:
+                break
             if stopped_reason == "stop_token":
                 break
             step_t0 = time.time()
@@ -1408,6 +1495,37 @@ class LynnIncrementalRunner:
         full_text = tok.decode(ids[0].tolist() + new_ids)
         completion_text_raw = tok.decode(new_ids)
         completion_text = tok.decode(new_ids, skip_special_tokens=True)
+
+        spec_event_count = mtp_speculative_stats["events"]
+        spec_step_seconds = mtp_speculative_stats["step_seconds"]
+        mtp_speculative_summary = {
+            "active": mtp_speculative_stats["active"],
+            "events": spec_event_count,
+            "accepted_events": mtp_speculative_stats["accepted_events"],
+            "tokens_committed": mtp_speculative_stats["tokens_committed"],
+            "accept_rate": (
+                mtp_speculative_stats["accepted_events"] / spec_event_count
+                if spec_event_count
+                else None
+            ),
+            "tokens_per_event": (
+                mtp_speculative_stats["tokens_committed"] / spec_event_count
+                if spec_event_count
+                else None
+            ),
+            "step_seconds": spec_step_seconds,
+            "event_tps": (
+                spec_event_count / sum(spec_step_seconds)
+                if spec_step_seconds
+                else None
+            ),
+            "effective_token_tps": (
+                mtp_speculative_stats["tokens_committed"] / sum(spec_step_seconds)
+                if spec_step_seconds
+                else None
+            ),
+            "drafts": mtp_speculative_stats["drafts"],
+        }
         mtp_shadow_accepted = sum(1 for row in mtp_shadow_trace if row["accepted"])
         mtp_shadow_summary = {
             "loaded": self.mtp_sidecar_loaded,
@@ -1464,8 +1582,14 @@ class LynnIncrementalRunner:
                     for key, value in mtp_shadow_summary.items()
                     if key != "trace"
                 },
+                "mtp_speculative": {
+                    key: value
+                    for key, value in mtp_speculative_summary.items()
+                    if key != "drafts"
+                },
             },
             "mtp_shadow": mtp_shadow_summary,
+            "mtp_speculative": mtp_speculative_summary,
             "stopped_reason": stopped_reason,
             "stop_token_ids": sorted(self.stop_token_ids),
         }
