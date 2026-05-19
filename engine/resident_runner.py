@@ -894,19 +894,33 @@ class LynnIncrementalRunner:
 
     def _lm_head_logits(self, hidden: torch.Tensor) -> torch.Tensor:
         """Project final hidden state to logits using BF16 or opt-in native FP4."""
-        h2d = hidden[:, -1, :] if hidden.ndim == 3 else hidden
+        restore_shape: tuple[int, int] | None = None
+        if hidden.ndim == 3:
+            if hidden.shape[1] == 1:
+                h2d = hidden[:, -1, :]
+            else:
+                restore_shape = (int(hidden.shape[0]), int(hidden.shape[1]))
+                h2d = hidden.reshape(-1, hidden.shape[-1])
+        else:
+            h2d = hidden
         if not self.native_fp4_lm_head_enabled:
-            return F.linear(h2d, self.outside["lm_head.weight"])
+            logits = F.linear(h2d, self.outside["lm_head.weight"])
+            if restore_shape is not None:
+                logits = logits.reshape(restore_shape[0], restore_shape[1], -1)
+            return logits
         assert self._native_fp4_lm_head_weight is not None
         assert self._native_fp4_lm_head_scale_b is not None
         act_packed, scale_a = quantize_fp4_m1_native(h2d.contiguous())
-        return torch._scaled_mm(
+        logits = torch._scaled_mm(
             act_packed.view(torch.float4_e2m1fn_x2),
             self._native_fp4_lm_head_weight.t(),
             scale_a=scale_a,
             scale_b=self._native_fp4_lm_head_scale_b,
             out_dtype=torch.float16,
         )
+        if restore_shape is not None:
+            logits = logits.reshape(restore_shape[0], restore_shape[1], -1)
+        return logits
 
     def _mtp_draft_logits(
         self,
