@@ -1,31 +1,43 @@
-# Qwen3.6 35B MTP Offset-2 Retrain Plan - 2026-05-19
+# Qwen3.5/3.6 MTP Contract Plan - 2026-05-19
 
 ## Decision
 
-MTP remains a required acceleration branch. The current Qwen3.6 35B sidecar must
-not be counted as TPS credit because Spark measured about 0.30% accept rate. The
-root cause is not a serving wire failure; it is a target-contract mismatch:
+MTP remains a required acceleration branch for both current Lynn release tracks:
+
+- Qwen3.5-9B dense, which is now the release mainline;
+- Qwen3.6-35B-A3B MoE, which remains the high-end/NVFP4 research line.
+
+Both local configs inspected on R6000 expose `text_config.mtp_num_hidden_layers=1`.
+The public model cards also document MTP/NextN serving for Qwen3.5-9B and
+Qwen3.6-35B-A3B through SGLang `NEXTN` and vLLM `qwen3_next_mtp`.
+
+The current Qwen3.6 35B sidecar must not be counted as TPS credit because Spark
+measured about 0.30% accept rate. The root cause is not a serving wire failure;
+it is likely a target-contract mismatch:
 
 - existing calibration scripts train the head to reproduce the base model's
   immediate next-token prediction from the current hidden state (`offset=1`);
 - speculative verification needs the draft head to predict the token after the
   accepted draft token (`offset=2`).
 
-The next useful MTP task is therefore an explicit offset-2 trainer and gate.
+The next useful MTP task is therefore a public-head contract audit first, then
+an explicit offset-2 trainer and gate only if the public head cannot be made to
+match the SGLang/vLLM contract.
 
 ## Public-Head First
 
-Before retraining, Lynn should first verify the public Qwen3.6 MTP head contract.
-The official `Qwen/Qwen3.6-35B-A3B` release reports MTP as "trained with
-multi-steps" and documents both SGLang `NEXTN` and vLLM `qwen3_next_mtp`
-serving modes. Several public GGUF releases also preserve the embedded NextN
-head in the same artifact as the trunk.
+Before retraining, Lynn should first verify the public Qwen MTP head contract.
+The official Qwen3.5-9B and Qwen3.6-35B-A3B model pages document SGLang
+`--speculative-algo NEXTN` and vLLM `qwen3_next_mtp` serving modes. SGLang's
+Qwen3.6 documentation also states that both MoE and dense variants ship
+`mtp.safetensors`.
 
 This changes the near-term plan:
 
 1. Extract the official public `mtp.*` tensors directly from the HF safetensors
-   shards and record their SHA256/key inventory.
-2. Compare them against the current Lynn sidecar and any calibrated sidecars.
+   shards for both Qwen3.5-9B and Qwen3.6-35B-A3B, then record their SHA256/key
+   inventory.
+2. Compare them against the current Lynn sidecars and any calibrated sidecars.
    A mismatch means Lynn may have been testing a warm-start/calibrated head
    rather than the official production NextN head.
 3. Run a Spark/SGLang reference probe with the exact official model and record
@@ -33,10 +45,20 @@ This changes the near-term plan:
 4. Run the same prompt set through Lynn's MTP wire using the official public
    head unchanged.
 5. Only start offset-2 retraining if the public head cannot reach useful accept
-   in Lynn after the SGLang contract is reproduced.
+   in Lynn after the SGLang/vLLM contract is reproduced.
 
 In short: public NextN first, retrain second. Retraining is still the fallback
 if the public head is incompatible with Lynn's serving state layout.
+
+## 9B and 35B Unified Work Items
+
+| Track | Public MTP expected? | First action | Promotion target |
+| --- | --- | --- | --- |
+| Qwen3.5-9B dense | Yes | Extract official `mtp.*`, run SGLang/vLLM contract reference, then Lynn accept probe | 10-20% TPS over Q4_K_M/NVFP4 baseline without quality drift |
+| Qwen3.6-35B-A3B MoE | Yes | Re-extract official `mtp.*`, compare with current sidecar, reproduce SGLang NEXTN accept contract | 10-20% TPS over 107-108 TPS safe W4A16 baseline |
+
+The first pass should be GPU-light and evidence-first. Do not train until the
+public-head inventory and reference accept numbers are known.
 
 ## R6000 Feasibility
 
