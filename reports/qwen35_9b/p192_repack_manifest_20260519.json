@@ -1,0 +1,5200 @@
+{
+  "schema_version": "qwen35-9b-dense-fp4x-fp8-repack-v1",
+  "source_model": "/root/autodl-tmp/models/Qwen3.5-9B-lynn-native-w4a16-nvfp4-v0",
+  "source_hashes": {
+    "config_sha256": "1bfafec061b61e06aade6d1b6bd810b9df90580393fd2444ccf1835de8ac78a6",
+    "index_sha256": "2aa537f7466b7a5fee751d3e5f08d6e8652b47d54c3daf2776a3fba61e3fb972",
+    "lynn_manifest_sha256": "a4e3201b379919e4501a40c4eed8262ede5cdcb4881447b0f0e39d00c6a02fda"
+  },
+  "created": "2026-05-19T14:56:42+0800",
+  "n_layers": 32,
+  "layers": {
+    "0": {
+      "file": "layer_00.safetensors",
+      "sha256": "d67b3e218eef95ef3758ac9c4f3e1ad25a050ac8c36dbe2da8a54d7f5113d95d",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "1": {
+      "file": "layer_01.safetensors",
+      "sha256": "a4fc01dd748bd720ceb9d90292cddb7ce1db4bfda595d647660c155901abaee4",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "2": {
+      "file": "layer_02.safetensors",
+      "sha256": "667819af38316677b66a30019fca0643bcc8fcadac7f2bbd517681c8cedd6352",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "3": {
+      "file": "layer_03.safetensors",
+      "sha256": "c2b6111d41d41a955e7e494a5fa597828053b1a438681a8615cc57514e8ae0a5",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "4": {
+      "file": "layer_04.safetensors",
+      "sha256": "a76510f1428ce254855b71690aee81f21b9c5a47ebe376fdc29ba0221c960b28",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "5": {
+      "file": "layer_05.safetensors",
+      "sha256": "0540fc38d623b634ff096a3328b8466cbb6eb4cc7bb0d674ae694d79936b8904",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "6": {
+      "file": "layer_06.safetensors",
+      "sha256": "0bcd579ab200fe1ff1f37a59ba83940b10a3f42d2f4ac64b990c8104eeee706c",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "7": {
+      "file": "layer_07.safetensors",
+      "sha256": "dd89fca6b0a93570d65f9a1d8e9c62c62d5098519054e52ef05bb5a69a8f10c6",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "8": {
+      "file": "layer_08.safetensors",
+      "sha256": "f5d66445fe4dd69ffef457533ff9161ce8b54c6c7e6ff555a5089fe3cb37daab",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "9": {
+      "file": "layer_09.safetensors",
+      "sha256": "8ea2600971dc1d89d9a05c80d4328710f7f3c0eaae9692b55abe51a9293fc27f",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "10": {
+      "file": "layer_10.safetensors",
+      "sha256": "0bdeb1bb6e9576c03892b7a53eae7e78f7e10e562eb74813d9db1ec6df5ae652",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "11": {
+      "file": "layer_11.safetensors",
+      "sha256": "a004acc9ca2a9d1aef16e84f53525b5be07071796fbc643e90a70de8974e1f2f",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "12": {
+      "file": "layer_12.safetensors",
+      "sha256": "9ef0ca97ca4213a0de4d19b1a806859a3901f6ef6661f71dcbdf8941772e69fe",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "13": {
+      "file": "layer_13.safetensors",
+      "sha256": "e440a8d5fc4b3b51a631920eba074bd4e93fa2bc86e96cf38ed94f82dbcdb39f",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "14": {
+      "file": "layer_14.safetensors",
+      "sha256": "dce6859df644857dd23d85f87dc4cc5e36f56e314846be1141975ff725cafada",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "15": {
+      "file": "layer_15.safetensors",
+      "sha256": "aff59fc3664422ac2cacebcaaa354c70ed5e3286470bb1dd6f9b4eb578cf787a",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "16": {
+      "file": "layer_16.safetensors",
+      "sha256": "d8e25a25898e4368bab9d1f96f4757793fd27e73d39bce461ee66091264f184c",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "17": {
+      "file": "layer_17.safetensors",
+      "sha256": "e68e7b96d645309d8d6b748c724e5fd8c6bd7025024cccd4029a9225cc285f3d",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "18": {
+      "file": "layer_18.safetensors",
+      "sha256": "dfbe4f7ae57b0ea88153be9ee2fbca62b6b8b9c06e41a0029bf70929915b4d5e",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "19": {
+      "file": "layer_19.safetensors",
+      "sha256": "6df6bfb92e01c9a4a9ecfc59c29f5c91399f1b8e506a61b283b6a9c62bdbfade",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "20": {
+      "file": "layer_20.safetensors",
+      "sha256": "264850a465319665d75e7cf6b11f73e5026bb500cfea0aac1385063494d35138",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "21": {
+      "file": "layer_21.safetensors",
+      "sha256": "1701e54416930f6219ce29385037ab5a16c5cc2e83b762411f22d3ae72d7dee2",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "22": {
+      "file": "layer_22.safetensors",
+      "sha256": "3ef90268c517d5b6f071ffa7395ecfc27066e820906a08f800b86d57ff96e007",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "23": {
+      "file": "layer_23.safetensors",
+      "sha256": "bfbc1a47128d061a275d0579eaae43f8fab29400d1279d2557f45b7693bec138",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "24": {
+      "file": "layer_24.safetensors",
+      "sha256": "0383ce594200834b1512f8a3893e5c67ace97375d370f91ce173e6864fc6956d",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "25": {
+      "file": "layer_25.safetensors",
+      "sha256": "60a0d89dee482c1c1b593a96a6c7e831c2b8646c90c0d154e1c2258843918b39",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "26": {
+      "file": "layer_26.safetensors",
+      "sha256": "b7ddc2cde313d855041bcba1ca7efbfad9ff1bfc1cc42411b50ee9b6f5d241f9",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "27": {
+      "file": "layer_27.safetensors",
+      "sha256": "7286cae72ded4454388f88f915afdefb93c95023ebfcb40e2ee0f9d42ba30a72",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "28": {
+      "file": "layer_28.safetensors",
+      "sha256": "eaaa06e469e84bc0295b1f8693bff30ecb308716bcdf675f2db92d439e1a33f3",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "29": {
+      "file": "layer_29.safetensors",
+      "sha256": "85a803d01cc11c0e41047f42be37f04c63a0f78282faab4b3e457a44c8c5587c",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "30": {
+      "file": "layer_30.safetensors",
+      "sha256": "cd40c7af52119eb58d9001fcccfa29cd4ba273b8db1ded9dd461df1627edbcec",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    },
+    "31": {
+      "file": "layer_31.safetensors",
+      "sha256": "9b385148eeb24db3bfa8e1bcd6479f7577fa83febf329ccbe4fff389ac9398c0",
+      "tensors": {
+        "gate_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "gate_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "gate_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "gate_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "gate_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "up_proj.weight_packed": {
+          "shape": [
+            12288,
+            2048
+          ],
+          "stride": [
+            2048,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "up_proj.weight_t_packed": {
+          "shape": [
+            2048,
+            12288
+          ],
+          "stride": [
+            12288,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "up_proj.weight_scale": {
+          "shape": [
+            12288,
+            256
+          ],
+          "stride": [
+            256,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "up_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "up_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        },
+        "down_proj.weight_packed": {
+          "shape": [
+            4096,
+            6144
+          ],
+          "stride": [
+            6144,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8"
+        },
+        "down_proj.weight_t_packed": {
+          "shape": [
+            6144,
+            4096
+          ],
+          "stride": [
+            4096,
+            1
+          ],
+          "dtype": "uint8",
+          "storage_dtype": "uint8",
+          "note": "contiguous byte transpose of [N, K/2] packed E2M1 x2 elements"
+        },
+        "down_proj.weight_scale": {
+          "shape": [
+            4096,
+            768
+          ],
+          "stride": [
+            768,
+            1
+          ],
+          "dtype": "float32"
+        },
+        "down_proj.weight_global_scale": {
+          "shape": [],
+          "stride": [],
+          "dtype": "float32"
+        },
+        "down_proj.scale_b_native": {
+          "shape": [
+            3145728
+          ],
+          "stride": [
+            1
+          ],
+          "dtype": "float8_e4m3fn",
+          "storage_dtype": "uint8",
+          "note": "view as float8_e4m3fn before passing to torch._scaled_mm"
+        }
+      }
+    }
+  },
+  "elapsed_seconds": 18.81446623802185,
+  "sidecar_total_bytes": 6341833856,
+  "sidecar_total_mib": 6048.04
+}

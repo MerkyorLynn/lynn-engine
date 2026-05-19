@@ -1,6 +1,6 @@
 {
   "schema": "lynn-qwen35-9b-dense-fp4x-fp8-repack-contract-v1",
-  "created": "2026-05-19T14:49:12+0800",
+  "created": "2026-05-19T14:57:04+0800",
   "model_dir": "/root/autodl-tmp/models/Qwen3.5-9B-lynn-native-w4a16-nvfp4-v0",
   "sidecar_dir": "/root/autodl-tmp/reports/qwen35_9b/p192_dense_fp4x_fp8_sidecar",
   "layers_checked": [
@@ -9,7 +9,7 @@
     16,
     31
   ],
-  "elapsed_seconds": 1.3739805221557617,
+  "elapsed_seconds": 1.342958927154541,
   "results": [
     {
       "layer": 0,
