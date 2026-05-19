@@ -20,7 +20,7 @@ For each prompt, two `LynnIncrementalRunner` instances are loaded sequentially:
 - **Candidate default:** `true_fp4xfp8`, using
   `LYNN_DENSE_FFN_TRUE_FP8=1` plus the packed FP4xFP8 sidecar
 - **Candidate optional:** `fake_w4a8`, using
-  `LYNN_W4A8_FAKE_QUANT_ACTIVE=1` for quality/noise isolation only
+  `LYNN_W4A8_FAKE_QUANT_ACTIVE=full` for quality/noise isolation only
 
 Both generate with `top_k=5`, collecting `{ids, values}` at every step.
 Per-step similarity:
