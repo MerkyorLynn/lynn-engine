@@ -25,6 +25,7 @@ layout/repack work. Do not keep spending P37/P25 time on the closed knobs below.
 | Recurrent from `out_conv` + A/B gate | closed / not exact | P176 total 0.286 ms but P169 0/20, max_abs 0.01534, cosine_min 0.999995 | Moving sigmoid/softplus beta/g prep into Triton is faster but violates exactness | Keep PyTorch-produced `beta`/`g` explicit unless the default quality contract changes |
 | Router linear out-buffer | closed / service-flat | P177 fixture 18/18 exact; router 0.04434 -> 0.03896 ms/layer; P37 exact but P25 512 106.77 TPS | Caller-owned `torch.mm(..., out=...)` helps the fixture router, but the resident transposed weights/scratch do not move service TPS and sit below safe default | Keep `LYNN_ROUTER_LINEAR_OUT_BUFFER=1` diagnostic-only; do not promote standalone |
 | Full-layer-only native active-MoE | closed / P37 drift | `grouped_per16_nonatomic_out` and `grouped_per16_nonatomic` both P37 0/3; no token-0 collapse; prompt 1/2 around 105 TPS | Restricting native MoE to eager full-attention layers avoids CUDA graph collapse but still changes early greedy tokens at indices 2-3 | Do not run P25/structured; either reproduce Triton active-MoE exactness or optimize a larger boundary around Triton |
+| Full-attn MoE tail graph wrapper | blocked / graph unsafe | P179 probed 10/10 full-attn layers; 0/10 captured; `cudaErrorStreamCaptureInvalidated` | The exact Triton MoE tail is not CUDA graph-capture safe as a black box | Move scratch/output ownership into exact MoE first, then retry tail capture |
 | 9B act-scratch stacked service gate | closed / flat | P175 stack 128/256/512 decode TPS 61.82 / 62.42 / 62.52 vs P173 62.55 at 512 | Adding `LYNN_NATIVE_FP4_ACT_SCRATCH=1` on top of dense gate/up + RoPE cache does not move 9B service TPS | Continue 9B work on larger dense FFN/TensorCore repack or server batching, not act scratch |
 | Native packed MoE gate/up replacement | research-only; no resident promotion | P160 partial exact 0/18, max diff 4.768e-7; P161 terms exact; P162 simple trees fail Triton `tl.sum`; P146 resident backends fail P37 | Drift is Triton reduction-tree mismatch, not FP4 decode/scale math. Approximate native output cannot enter exact-first P37/P25 | Keep Triton active-MoE as exact authority; either reproduce Triton lowering deliberately or fuse around Triton boundaries |
 
@@ -225,6 +226,22 @@ Guardrail: do not run P25/structured for these backends. Full-layer-only native
 MoE is closed until the native path either matches Triton's exact reduction and
 BF16 rounding contract or becomes part of a larger boundary where Triton remains
 the numerical authority.
+
+### Full-Attention MoE Tail Graph Wrapper
+
+P179 tried to capture the exact full-attention tail boundary while keeping
+Triton MoE as the authority:
+
+```text
+post_attention_layernorm -> resident FFN/MoE -> residual add
+```
+
+All ten Qwen3.6 full-attention layers failed CUDA graph capture with
+`cudaErrorStreamCaptureInvalidated`.
+
+Guardrail: do not wire this wrapper into resident serving as-is. The next MoE
+work needs a graph-safe scratch/output ABI inside the exact Triton active-MoE
+path, then P179 can be rerun as an admission probe.
 
 ### 9B Act-Scratch Stacked Service Gate
 

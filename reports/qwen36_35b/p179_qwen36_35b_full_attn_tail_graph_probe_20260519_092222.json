@@ -1,0 +1,262 @@
+{
+  "schema_version": "lynn-engine-p179-qwen36-35b-full-attn-tail-graph-probe-v1",
+  "benchmark": "p179_qwen36_35b_full_attn_tail_graph_probe",
+  "model": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0",
+  "prompt": "用一句话解释 MoE 推理里为什么要先保证数值严格再谈速度。",
+  "device_arg": "cuda",
+  "dtype": "bfloat16",
+  "max_seq_len": 4096,
+  "env_observed": {
+    "LYNN_MOE_FAST_FIXED": "1",
+    "LYNN_FULL_ATTN_ROPE_CACHE": "1",
+    "LYNN_QK_NORM_ROPE_BACKEND": "triton_pair"
+  },
+  "layers": [
+    {
+      "layer": 3,
+      "layer_type": "full_attention",
+      "status": "error",
+      "capture_isolated": false,
+      "error": {
+        "type": "AcceleratorError",
+        "message": "CUDA error: operation failed due to a previous error during capture\nSearch for `cudaErrorStreamCaptureInvalidated' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.\nCUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.\nFor debugging consider passing CUDA_LAUNCH_BLOCKING=1\nCompile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.\n",
+        "traceback_tail": [
+          "  File \"/root/autodl-tmp/conda-envs/r6000-eval/lib/python3.12/site-packages/torch/cuda/graphs.py\", line 130, in capture_end",
+          "    super().capture_end()",
+          "torch.AcceleratorError: CUDA error: operation failed due to a previous error during capture",
+          "Search for `cudaErrorStreamCaptureInvalidated' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.",
+          "CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.",
+          "For debugging consider passing CUDA_LAUNCH_BLOCKING=1",
+          "Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.",
+          ""
+        ]
+      },
+      "verdict": "error"
+    },
+    {
+      "layer": 7,
+      "layer_type": "full_attention",
+      "status": "error",
+      "capture_isolated": false,
+      "error": {
+        "type": "AcceleratorError",
+        "message": "CUDA error: operation failed due to a previous error during capture\nSearch for `cudaErrorStreamCaptureInvalidated' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.\nCUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.\nFor debugging consider passing CUDA_LAUNCH_BLOCKING=1\nCompile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.\n",
+        "traceback_tail": [
+          "  File \"/root/autodl-tmp/conda-envs/r6000-eval/lib/python3.12/site-packages/torch/cuda/graphs.py\", line 130, in capture_end",
+          "    super().capture_end()",
+          "torch.AcceleratorError: CUDA error: operation failed due to a previous error during capture",
+          "Search for `cudaErrorStreamCaptureInvalidated' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.",
+          "CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.",
+          "For debugging consider passing CUDA_LAUNCH_BLOCKING=1",
+          "Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.",
+          ""
+        ]
+      },
+      "verdict": "error"
+    },
+    {
+      "layer": 11,
+      "layer_type": "full_attention",
+      "status": "error",
+      "capture_isolated": false,
+      "error": {
+        "type": "AcceleratorError",
+        "message": "CUDA error: operation failed due to a previous error during capture\nSearch for `cudaErrorStreamCaptureInvalidated' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.\nCUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.\nFor debugging consider passing CUDA_LAUNCH_BLOCKING=1\nCompile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.\n",
+        "traceback_tail": [
+          "  File \"/root/autodl-tmp/conda-envs/r6000-eval/lib/python3.12/site-packages/torch/cuda/graphs.py\", line 130, in capture_end",
+          "    super().capture_end()",
+          "torch.AcceleratorError: CUDA error: operation failed due to a previous error during capture",
+          "Search for `cudaErrorStreamCaptureInvalidated' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.",
+          "CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.",
+          "For debugging consider passing CUDA_LAUNCH_BLOCKING=1",
+          "Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.",
+          ""
+        ]
+      },
+      "verdict": "error"
+    },
+    {
+      "layer": 15,
+      "layer_type": "full_attention",
+      "status": "error",
+      "capture_isolated": false,
+      "error": {
+        "type": "AcceleratorError",
+        "message": "CUDA error: operation failed due to a previous error during capture\nSearch for `cudaErrorStreamCaptureInvalidated' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.\nCUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.\nFor debugging consider passing CUDA_LAUNCH_BLOCKING=1\nCompile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.\n",
+        "traceback_tail": [
+          "  File \"/root/autodl-tmp/conda-envs/r6000-eval/lib/python3.12/site-packages/torch/cuda/graphs.py\", line 130, in capture_end",
+          "    super().capture_end()",
+          "torch.AcceleratorError: CUDA error: operation failed due to a previous error during capture",
+          "Search for `cudaErrorStreamCaptureInvalidated' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.",
+          "CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.",
+          "For debugging consider passing CUDA_LAUNCH_BLOCKING=1",
+          "Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.",
+          ""
+        ]
+      },
+      "verdict": "error"
+    },
+    {
+      "layer": 19,
+      "layer_type": "full_attention",
+      "status": "error",
+      "capture_isolated": false,
+      "error": {
+        "type": "AcceleratorError",
+        "message": "CUDA error: operation failed due to a previous error during capture\nSearch for `cudaErrorStreamCaptureInvalidated' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.\nCUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.\nFor debugging consider passing CUDA_LAUNCH_BLOCKING=1\nCompile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.\n",
+        "traceback_tail": [
+          "  File \"/root/autodl-tmp/conda-envs/r6000-eval/lib/python3.12/site-packages/torch/cuda/graphs.py\", line 130, in capture_end",
+          "    super().capture_end()",
+          "torch.AcceleratorError: CUDA error: operation failed due to a previous error during capture",
+          "Search for `cudaErrorStreamCaptureInvalidated' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.",
+          "CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.",
+          "For debugging consider passing CUDA_LAUNCH_BLOCKING=1",
+          "Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.",
+          ""
+        ]
+      },
+      "verdict": "error"
+    },
+    {
+      "layer": 23,
+      "layer_type": "full_attention",
+      "status": "error",
+      "capture_isolated": false,
+      "error": {
+        "type": "AcceleratorError",
+        "message": "CUDA error: operation failed due to a previous error during capture\nSearch for `cudaErrorStreamCaptureInvalidated' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.\nCUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.\nFor debugging consider passing CUDA_LAUNCH_BLOCKING=1\nCompile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.\n",
+        "traceback_tail": [
+          "  File \"/root/autodl-tmp/conda-envs/r6000-eval/lib/python3.12/site-packages/torch/cuda/graphs.py\", line 130, in capture_end",
+          "    super().capture_end()",
+          "torch.AcceleratorError: CUDA error: operation failed due to a previous error during capture",
+          "Search for `cudaErrorStreamCaptureInvalidated' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.",
+          "CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.",
+          "For debugging consider passing CUDA_LAUNCH_BLOCKING=1",
+          "Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.",
+          ""
+        ]
+      },
+      "verdict": "error"
+    },
+    {
+      "layer": 27,
+      "layer_type": "full_attention",
+      "status": "error",
+      "capture_isolated": false,
+      "error": {
+        "type": "AcceleratorError",
+        "message": "CUDA error: operation failed due to a previous error during capture\nSearch for `cudaErrorStreamCaptureInvalidated' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.\nCUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.\nFor debugging consider passing CUDA_LAUNCH_BLOCKING=1\nCompile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.\n",
+        "traceback_tail": [
+          "  File \"/root/autodl-tmp/conda-envs/r6000-eval/lib/python3.12/site-packages/torch/cuda/graphs.py\", line 130, in capture_end",
+          "    super().capture_end()",
+          "torch.AcceleratorError: CUDA error: operation failed due to a previous error during capture",
+          "Search for `cudaErrorStreamCaptureInvalidated' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.",
+          "CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.",
+          "For debugging consider passing CUDA_LAUNCH_BLOCKING=1",
+          "Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.",
+          ""
+        ]
+      },
+      "verdict": "error"
+    },
+    {
+      "layer": 31,
+      "layer_type": "full_attention",
+      "status": "error",
+      "capture_isolated": false,
+      "error": {
+        "type": "AcceleratorError",
+        "message": "CUDA error: operation failed due to a previous error during capture\nSearch for `cudaErrorStreamCaptureInvalidated' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.\nCUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.\nFor debugging consider passing CUDA_LAUNCH_BLOCKING=1\nCompile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.\n",
+        "traceback_tail": [
+          "  File \"/root/autodl-tmp/conda-envs/r6000-eval/lib/python3.12/site-packages/torch/cuda/graphs.py\", line 130, in capture_end",
+          "    super().capture_end()",
+          "torch.AcceleratorError: CUDA error: operation failed due to a previous error during capture",
+          "Search for `cudaErrorStreamCaptureInvalidated' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.",
+          "CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.",
+          "For debugging consider passing CUDA_LAUNCH_BLOCKING=1",
+          "Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.",
+          ""
+        ]
+      },
+      "verdict": "error"
+    },
+    {
+      "layer": 35,
+      "layer_type": "full_attention",
+      "status": "error",
+      "capture_isolated": false,
+      "error": {
+        "type": "AcceleratorError",
+        "message": "CUDA error: operation failed due to a previous error during capture\nSearch for `cudaErrorStreamCaptureInvalidated' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.\nCUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.\nFor debugging consider passing CUDA_LAUNCH_BLOCKING=1\nCompile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.\n",
+        "traceback_tail": [
+          "  File \"/root/autodl-tmp/conda-envs/r6000-eval/lib/python3.12/site-packages/torch/cuda/graphs.py\", line 130, in capture_end",
+          "    super().capture_end()",
+          "torch.AcceleratorError: CUDA error: operation failed due to a previous error during capture",
+          "Search for `cudaErrorStreamCaptureInvalidated' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.",
+          "CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.",
+          "For debugging consider passing CUDA_LAUNCH_BLOCKING=1",
+          "Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.",
+          ""
+        ]
+      },
+      "verdict": "error"
+    },
+    {
+      "layer": 39,
+      "layer_type": "full_attention",
+      "status": "error",
+      "capture_isolated": false,
+      "error": {
+        "type": "AcceleratorError",
+        "message": "CUDA error: operation failed due to a previous error during capture\nSearch for `cudaErrorStreamCaptureInvalidated' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.\nCUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.\nFor debugging consider passing CUDA_LAUNCH_BLOCKING=1\nCompile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.\n",
+        "traceback_tail": [
+          "  File \"/root/autodl-tmp/conda-envs/r6000-eval/lib/python3.12/site-packages/torch/cuda/graphs.py\", line 130, in capture_end",
+          "    super().capture_end()",
+          "torch.AcceleratorError: CUDA error: operation failed due to a previous error during capture",
+          "Search for `cudaErrorStreamCaptureInvalidated' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.",
+          "CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.",
+          "For debugging consider passing CUDA_LAUNCH_BLOCKING=1",
+          "Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.",
+          ""
+        ]
+      },
+      "verdict": "error"
+    }
+  ],
+  "status": "ok",
+  "device": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+  "n_layers": 40,
+  "layer_types": {
+    "linear_attention": 30,
+    "full_attention": 10
+  },
+  "full_attention_layers": [
+    3,
+    7,
+    11,
+    15,
+    19,
+    23,
+    27,
+    31,
+    35,
+    39
+  ],
+  "probed_layers": [
+    3,
+    7,
+    11,
+    15,
+    19,
+    23,
+    27,
+    31,
+    35,
+    39
+  ],
+  "prompt_tokens": 17,
+  "prefill_next_token_id": 271,
+  "verdict": "blocked",
+  "summary": "No probed full-attention MoE tail could be captured.",
+  "elapsed_sec": 11.995
+}
