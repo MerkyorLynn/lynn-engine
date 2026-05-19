@@ -358,7 +358,14 @@ def run_gate(args: argparse.Namespace) -> dict[str, Any]:
     if p192_data is not None:
         sources["p192"] = _extract_p192(p192_data)
 
-    decision, reasons = _decide(p160_data, p185_data, p189_data, p191_data, p192_data, thresholds)
+    decision, reasons = _decide(
+        sources.get("p160"),
+        sources.get("p185"),
+        sources.get("p189"),
+        sources.get("p191"),
+        sources.get("p192"),
+        thresholds,
+    )
 
     report: dict[str, Any] = {
         "schema": SCHEMA,
