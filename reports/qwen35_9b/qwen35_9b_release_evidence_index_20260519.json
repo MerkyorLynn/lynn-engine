@@ -1,0 +1,109 @@
+{
+  "schema": "lynn-qwen35-9b-release-evidence-index-v1",
+  "created": "2026-05-19T21:12:00+0800",
+  "model": "Qwen3.5-9B",
+  "stable_tracks": [
+    {
+      "id": "mac_q4km",
+      "label": "Mac Stable: Q4_K_M imatrix GGUF + llama.cpp",
+      "artifact_size_gib": 5.49,
+      "runtime": "llama.cpp",
+      "quality_mmlu_500": 0.76,
+      "quality_gpqa_diamond": 0.3737,
+      "speed_single_512_tps": 164.5,
+      "speed_concurrent_8_tps": 166.1,
+      "speed_32k_single_tps": 55.5,
+      "install_quickstart": "docs/QWEN35_9B_INSTALL_QUICKSTART_20260519.md",
+      "qa_status": "PENDING_QA",
+      "qa_report": "reports/qwen35_9b/QWEN35_9B_RELEASE_QA_STATUS_20260519.md"
+    },
+    {
+      "id": "nvidia_nvfp4_w4a16",
+      "label": "NVIDIA Stable: Lynn-native NVFP4 W4A16",
+      "artifact_size_gib": 8.25,
+      "runtime": "Lynn Engine",
+      "quality_mmlu_500": 0.752,
+      "quality_gpqa_diamond": 0.4293,
+      "speed_safe_decode_tps": 61.0,
+      "size_audit": "reports/qwen35_9b/P199_QWEN35_9B_NVFP4_SIZE_AUDIT_20260519.md",
+      "qa_status": "PASS_SAFE"
+    }
+  ],
+  "experimental_tracks": [
+    {
+      "id": "w4a8_fp4xfp8",
+      "label": "Experimental: W4A8 / FP4xFP8 resident decode",
+      "status": "NOT_PROMOTED",
+      "p197_verdict": "AMBER",
+      "p197_exact_match": "32/40",
+      "p197_drift_ratio": 0.2,
+      "p197_combined_score": 0.975,
+      "p191_mma_fragment": "BROKEN",
+      "blocker": "MMA fragment layout + P185 quality gate absent"
+    },
+    {
+      "id": "compact_nvfp4_5gib",
+      "label": "Candidate: Compact NVFP4 5.70 GiB (embed+lm_head quantized)",
+      "status": "CANDIDATE_ONLY",
+      "estimated_size_gib": 5.7,
+      "blocker": "No MMLU/GPQA quality gate executed on compact artifact",
+      "source": "reports/qwen35_9b/compact_nvfp4_shrink_gate_20260519_live_compact.json"
+    }
+  ],
+  "blockers": [
+    {
+      "id": "mac_qa_pending",
+      "affects": "mac_q4km",
+      "description": "Mac QA checklist not executed on real hardware",
+      "severity": "medium"
+    },
+    {
+      "id": "thinking32_gpqa_in_progress",
+      "affects": "mac_q4km",
+      "description": "32K thinking-on GPQA Diamond eval running on R6000, not final",
+      "severity": "low"
+    },
+    {
+      "id": "p193_closed_mma",
+      "affects": "w4a8_fp4xfp8",
+      "description": "P193 CLOSED due to MMA fragment layout cosine=-0.015",
+      "severity": "high"
+    },
+    {
+      "id": "compact_no_quality_gate",
+      "affects": "compact_nvfp4_5gib",
+      "description": "Compact NVFP4 has no MMLU/GPQA quality verification",
+      "severity": "high"
+    }
+  ],
+  "live_jobs": [
+    {
+      "id": "q4km_gpqa_thinking32",
+      "description": "Q4_K_M GPQA Diamond thinking-on 198 questions (32K context)",
+      "r6000_port": 18197,
+      "status": "RUNNING",
+      "output_pattern": "thinking32/qwen35_9b_q4km_gpqa_thinking32_20260519_*.jsonl",
+      "latest_live_summary": "reports/qwen35_9b/p201_gpqa_live_summary_20260519_live_210912.md",
+      "latest_progress": "94/198; 68 correct; 11 parse_fail; naive 72.3%; excluding parse fail 81.9%"
+    }
+  ],
+  "latest_commits_seen": [
+    "52c3d30 docs: record qwen36 mtp offset finding",
+    "8c5309e bench: archive qwen35 gpqa thinking32 live 94",
+    "fcd66e1 bench: add qwen35 release qa collector",
+    "4f5cd1a bench: archive qwen35 compact shrink live gate",
+    "c617e8e P200: compact NVFP4 shrink gate"
+  ],
+  "source_reports": {
+    "overnight_status": "reports/qwen35_9b/QWEN35_9B_OVERNIGHT_STATUS_20260519.md",
+    "release_matrix": "docs/QWEN35_9B_RELEASE_MATRIX_20260519.md",
+    "model_card_draft": "docs/QWEN35_9B_MODEL_CARD_DRAFT_20260519.md",
+    "q4km_cuda_baseline": "reports/qwen35_9b/r6000_qwen35_9b_q4km_cuda_baseline_20260519_1732.json",
+    "nvfp4_gpqa_summary": "reports/qwen35_9b/nvfp4_openai_quality_20260519_022635_gpqa.summary.json",
+    "p199_size_audit": "reports/qwen35_9b/P199_QWEN35_9B_NVFP4_SIZE_AUDIT_20260519.md",
+    "p197_drift": "reports/qwen35_9b/p197_fp4xfp8_token_drift_20260519_1850_fake_p197.json",
+    "compact_shrink_gate": "reports/qwen35_9b/compact_nvfp4_shrink_gate_20260519_live_compact.json",
+    "qa_checklist": "reports/qwen35_9b/QWEN35_9B_RELEASE_QA_STATUS_20260519.md",
+    "p201_live_94": "reports/qwen35_9b/p201_gpqa_live_summary_20260519_live_210912.md"
+  }
+}
