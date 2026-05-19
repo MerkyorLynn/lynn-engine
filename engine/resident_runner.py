@@ -306,6 +306,9 @@ class LynnIncrementalRunner:
             self._prepare_shared_expert_gate_up_fused()
         if (not self.is_moe) and os.environ.get("LYNN_DENSE_FFN_GATE_UP_FUSED", "0") == "1":
             self._prepare_dense_ffn_gate_up_fused()
+        dense_true_fp8_mode = os.environ.get("LYNN_DENSE_FFN_TRUE_FP8", "0").strip().lower()
+        if (not self.is_moe) and dense_true_fp8_mode not in {"0", "off", "false", "no"}:
+            self._prepare_dense_ffn_true_fp8()
         if self.is_moe and impl == "packed_nvfp4":
             self._prepare_packed_nvfp4_moe_layout()
         if self.is_moe and os.environ.get("LYNN_ROUTER_LINEAR_OUT_BUFFER", "0") == "1":

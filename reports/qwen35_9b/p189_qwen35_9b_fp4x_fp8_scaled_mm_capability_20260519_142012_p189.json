@@ -1,0 +1,56 @@
+{
+  "schema": "lynn-qwen35-9b-p189-fp4x-fp8-scaled-mm-capability-v1",
+  "created": "2026-05-19T14:20:15+0800",
+  "device": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+  "capability": [
+    12,
+    0
+  ],
+  "torch": "2.10.0+cu128",
+  "torch_cuda": "12.8",
+  "k": 2048,
+  "n": 4096,
+  "include_paths": [
+    "/root/miniconda3/lib/python3.12/site-packages/deep_gemm/include"
+  ],
+  "cute_sm120_e4m3_e2m1_header": true,
+  "attempts": [
+    {
+      "name": "fp4_x_fp4_control",
+      "ok": true,
+      "elapsed_ms": 50.08268356323242,
+      "shape": [
+        1,
+        4096
+      ],
+      "dtype": "torch.bfloat16",
+      "mean_abs": 105.63191986083984
+    },
+    {
+      "name": "fp8_x_fp8_control",
+      "ok": true,
+      "elapsed_ms": 3.4470558166503906,
+      "shape": [
+        1,
+        4096
+      ],
+      "dtype": "torch.bfloat16",
+      "mean_abs": 36.71830749511719
+    },
+    {
+      "name": "fp8_x_fp4_natural_checkpoint_layout",
+      "ok": false,
+      "elapsed_ms": 0.46753883361816406,
+      "error_type": "RuntimeError",
+      "error": "mat1 and mat2 shapes cannot be multiplied (1x2048 and 1024x4096)"
+    },
+    {
+      "name": "fp8_x_fp4_expanded_logical_k_layout",
+      "ok": false,
+      "elapsed_ms": 0.06008148193359375,
+      "error_type": "RuntimeError",
+      "error": "Invalid scaling configuration."
+    }
+  ],
+  "decision": "TORCH_MIXED_FP4XFP8_UNAVAILABLE_CUTE_REQUIRED"
+}
