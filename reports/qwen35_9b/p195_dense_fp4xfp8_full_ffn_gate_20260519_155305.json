@@ -1,0 +1,62 @@
+{
+  "schema": "lynn-qwen35-9b-p195-fp4x-fp8-full-ffn-gate-v1",
+  "created": "2026-05-19T15:54:06+0800",
+  "fixtures_dir": "/root/autodl-tmp/reports/qwen35_9b/p159_dense_ffn_fixtures_20260519_0458",
+  "sidecar_dir": "/root/autodl-tmp/reports/qwen35_9b/p192_dense_fp4x_fp8_sidecar",
+  "candidate_output_dir": "/root/autodl-tmp/reports/qwen35_9b/p195_dense_fp4xfp8_candidate_outputs_20260519_155305",
+  "layers": [
+    0,
+    16
+  ],
+  "thresholds": {
+    "scaled_cosine_min": 0.999999,
+    "scaled_rel_l2_max": 1e-05
+  },
+  "results": [
+    {
+      "layer": 0,
+      "scalar_ms": 2.9805007934570313,
+      "scaled_mma_ms": 0.38375680446624755,
+      "speedup_vs_scalar": 7.766639597706924,
+      "scaled_vs_scalar": {
+        "max_abs": 2.0954757928848267e-07,
+        "rel_l2": 2.1312901026249165e-06,
+        "cosine": 1.000000238418579
+      },
+      "scaled_vs_bf16": {
+        "max_abs": 0.0005273455753922462,
+        "rel_l2": 0.016531407833099365,
+        "cosine": 0.9998642802238464
+      },
+      "scalar_vs_bf16": {
+        "max_abs": 0.0005273311398923397,
+        "rel_l2": 0.016531284898519516,
+        "cosine": 0.999864399433136
+      },
+      "ok": true
+    },
+    {
+      "layer": 16,
+      "scalar_ms": 2.998195266723633,
+      "scaled_mma_ms": 0.3845423936843872,
+      "speedup_vs_scalar": 7.796787339874934,
+      "scaled_vs_scalar": {
+        "max_abs": 2.3245811462402344e-06,
+        "rel_l2": 2.3989698547666194e-06,
+        "cosine": 1.0000001192092896
+      },
+      "scaled_vs_bf16": {
+        "max_abs": 0.016360044479370117,
+        "rel_l2": 0.028838546946644783,
+        "cosine": 0.999586284160614
+      },
+      "scalar_vs_bf16": {
+        "max_abs": 0.016360409557819366,
+        "rel_l2": 0.028838515281677246,
+        "cosine": 0.999586284160614
+      },
+      "ok": true
+    }
+  ],
+  "overall": "GREEN"
+}
