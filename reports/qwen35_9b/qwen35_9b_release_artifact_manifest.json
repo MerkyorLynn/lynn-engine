@@ -1,0 +1,58 @@
+{
+  "schema": "lynn-qwen35-9b-release-artifact-manifest-v1",
+  "created": "2026-05-20T00:00:00+08:00",
+  "model_id": "Qwen/Qwen3.5-9B",
+  "artifacts": {
+    "mac_q4km_imatrix": {
+      "label": "Mac Q4_K_M imatrix GGUF",
+      "type": "file",
+      "filename": "Qwen3.5-9B-Q4_K_M-imatrix.gguf",
+      "path_hint": "${MODEL_ROOT}/Qwen3.5-9B-Q4_K_M-imatrix.gguf",
+      "expected_size_gib": 5.49,
+      "runtime": "llama.cpp",
+      "decision": "PROMOTE_READY_FOR_MAC_CONDITIONAL",
+      "decision_reasons": [
+        "MMLU 0.76 >= 0.74",
+        "GPQA thinking-off 0.374 < 0.41 floor — overridden by thinking32 ex-parse-fail 0.819 >= 0.80",
+        "TPS decode 512 168.2 >= 155",
+        "Structured content gate PASS"
+      ]
+    },
+    "nvidia_nvfp4_w4a16": {
+      "label": "NVIDIA NVFP4 W4A16 (Lynn-native)",
+      "type": "directory",
+      "dirname": "Qwen3.5-9B-lynn-native-w4a16-nvfp4-v0",
+      "path_hint": "${MODEL_ROOT}/Qwen3.5-9B-lynn-native-w4a16-nvfp4-v0",
+      "expected_size_gib": 8.25,
+      "critical_files": [
+        "config.json",
+        "tokenizer.json",
+        "tokenizer_config.json",
+        "model.safetensors.index.json",
+        "lynn_quant_manifest.json"
+      ],
+      "runtime": "Lynn Engine (CUDA)",
+      "decision": "QUALITY_OK_TPS_BLOCKED",
+      "classification": "compatibility / research",
+      "decision_reasons": [
+        "MMLU 0.752 >= 0.74",
+        "GPQA 0.429 >= 0.41",
+        "Structured content gate PASS",
+        "TPS decode 512 62.5 < 155 — fundamental bandwidth limitation"
+      ]
+    },
+    "bf16_reference": {
+      "label": "BF16 reference (safetensors)",
+      "type": "directory",
+      "dirname": "Qwen3.5-9B-BF16",
+      "path_hint": "${MODEL_ROOT}/Qwen3.5-9B-BF16",
+      "expected_size_gib": 18.0,
+      "critical_files": [
+        "config.json",
+        "model.safetensors.index.json"
+      ],
+      "runtime": "transformers-direct",
+      "decision": "QUALITY_REFERENCE"
+    }
+  }
+}
