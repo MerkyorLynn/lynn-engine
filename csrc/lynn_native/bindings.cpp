@@ -243,6 +243,15 @@ void lynn_native_active_moe_scalar_out_reference(
     torch::Tensor down_global_scale, torch::Tensor inter_out,
     torch::Tensor out);
 
+// P191 Dense FP4xFP8 PoC
+torch::Tensor lynn_dense_fp4xfp8_scalar_reference(
+    torch::Tensor act_fp8, torch::Tensor act_scale,
+    torch::Tensor weight_packed, torch::Tensor weight_scale,
+    torch::Tensor weight_global);
+torch::Tensor lynn_dense_fp4xfp8_mma_probe(
+    torch::Tensor act_fp8, torch::Tensor weight_packed,
+    int64_t M, int64_t N, int64_t K);
+
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
   m.def("add_one", &lynn_native_add_one, "Lynn native CUDA extension smoke kernel");
   m.def(
@@ -381,4 +390,12 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
       "active_moe_scalar_out_reference",
       &lynn_native_active_moe_scalar_out_reference,
       "P145 graph-safe scalar active MoE V3.2 (caller-owned scratch, exact reference)");
+  m.def(
+      "dense_fp4xfp8_scalar_reference",
+      &lynn_dense_fp4xfp8_scalar_reference,
+      "P191 scalar FP4xFP8 dense FFN reference (E4M3 act x E2M1 weight)");
+  m.def(
+      "dense_fp4xfp8_mma_probe",
+      &lynn_dense_fp4xfp8_mma_probe,
+      "P191 SM120a FP4 MMA compilation/capability probe");
 }
