@@ -25,10 +25,11 @@ any native FP4×FP8 packed boundary reaches resident serving.
 | P160 | `p160_` | decision, cosine_min, max_abs_max, passed/total |
 | P185 | `p185_` | decision, cosine_min, rel_l2_max, speedup_vs_ref_mean |
 | P189 | `p189_` | decision, cute_sm120_e4m3_e2m1_header |
-| P191 | `p191_` | decision, scalar_ref_cosine_min, scalar_ref_max_abs_max |
-| P192 | `p192_` | decision, cosine_min, max_abs_max |
+| P191 | `p191_` | mma_compiled, scalar_reference_available, results[].{cosine_vs_bf16_ref, rel_l2_vs_bf16_ref, max_abs_vs_bf16_ref, mma_available} |
+| P192 | `p192b_` or `p192_` | overall (GREEN/RED), results[].ok / layers{}.ok |
 
 All reports are optional. Absent reports are skipped (not treated as failures).
+P192 auto-discovers `p192b_` (contract) before `p192_` (manifest).
 
 ## Default Thresholds
 

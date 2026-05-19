@@ -15,7 +15,7 @@ echo ""
 
 # Count available upstream reports
 FOUND=0
-for prefix in p160_ p185_ p189_ p191_ p192_; do
+for prefix in p160_ p185_ p189_ p191_ p192b_ p192_; do
     COUNT=$(find "$REPORT_DIR" -maxdepth 1 -name "${prefix}*.json" 2>/dev/null | wc -l | tr -d ' ')
     if [ "$COUNT" -gt 0 ]; then
         LATEST=$(find "$REPORT_DIR" -maxdepth 1 -name "${prefix}*.json" -exec ls -t {} + 2>/dev/null | head -1)

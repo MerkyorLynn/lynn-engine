@@ -80,8 +80,14 @@ def load_p191(report_dir: Path, explicit: Path | None) -> dict[str, Any] | None:
 
 
 def load_p192(report_dir: Path, explicit: Path | None) -> dict[str, Any] | None:
-    path = explicit or _find_latest(report_dir, "p192_")
-    return _load_json(path) if path else None
+    if explicit:
+        return _load_json(explicit)
+    # Try p192b_ (contract) first, then p192_ (manifest)
+    for prefix in ("p192b_", "p192_"):
+        path = _find_latest(report_dir, prefix)
+        if path:
+            return _load_json(path)
+    return None
 
 
 # ── Gate extractors ───────────────────────────────────────────────────────────
@@ -127,22 +133,69 @@ def _extract_p189(data: dict[str, Any]) -> dict[str, Any]:
 
 
 def _extract_p191(data: dict[str, Any]) -> dict[str, Any]:
-    """Extract key metrics from P191 CuTe PoC kernel report."""
+    """Extract key metrics from P191 CuTe PoC kernel report.
+
+    Real P191 schema (p191_dense_fp4xfp8_poc):
+      mma_compiled: bool
+      scalar_reference_available: bool
+      results[]: layer_id, max_abs_vs_bf16_ref, rel_l2_vs_bf16_ref,
+                 cosine_vs_bf16_ref, scalar_ms, mma_available
+    """
+    results = data.get("results", [])
+    cosines = [r["cosine_vs_bf16_ref"] for r in results if "cosine_vs_bf16_ref" in r]
+    rel_l2s = [r["rel_l2_vs_bf16_ref"] for r in results if "rel_l2_vs_bf16_ref" in r]
+    max_abs = [r["max_abs_vs_bf16_ref"] for r in results if "max_abs_vs_bf16_ref" in r]
     return {
         "gate": "P191",
-        "decision": data.get("decision", "UNKNOWN"),
-        "scalar_ref_cosine_min": data.get("scalar_ref_cosine_min"),
-        "scalar_ref_max_abs_max": data.get("scalar_ref_max_abs_max"),
+        "mma_compiled": data.get("mma_compiled"),
+        "scalar_reference_available": data.get("scalar_reference_available"),
+        "layers_tested": len(results),
+        "cosine_min": min(cosines) if cosines else None,
+        "rel_l2_max": max(rel_l2s) if rel_l2s else None,
+        "max_abs_max": max(max_abs) if max_abs else None,
+        "mma_available_all": all(r.get("mma_available", False) for r in results) if results else None,
     }
 
 
 def _extract_p192(data: dict[str, Any]) -> dict[str, Any]:
-    """Extract key metrics from P192 repack manifest."""
+    """Extract key metrics from P192 repack contract.
+
+    Supports two schemas:
+      p192_  (repack manifest): schema_version, layers{}, overall
+      p192b_ (contract):        schema=...repack-contract-v1, results[], overall
+    """
+    schema = data.get("schema", data.get("schema_version", ""))
+    overall = data.get("overall", "UNKNOWN")
+
+    # P192b contract: results[].ok per layer
+    results = data.get("results", [])
+    if results:
+        all_ok = all(r.get("ok", False) for r in results)
+        failed_layers = [r["layer"] for r in results if not r.get("ok", False)]
+        return {
+            "gate": "P192",
+            "schema": schema,
+            "overall": "GREEN" if all_ok else "RED",
+            "layers_checked": len(results),
+            "failed_layers": failed_layers,
+        }
+
+    # P192 repack manifest: layers{} per layer
+    layers = data.get("layers", {})
+    if layers:
+        failed = [int(k) for k, v in layers.items() if "error" in v or v.get("ok") is False]
+        return {
+            "gate": "P192",
+            "schema": schema,
+            "overall": overall,
+            "layers_checked": len(layers),
+            "failed_layers": failed,
+        }
+
     return {
         "gate": "P192",
-        "decision": data.get("decision", "UNKNOWN"),
-        "repack_cosine_min": data.get("cosine_min"),
-        "repack_max_abs_max": data.get("max_abs_max"),
+        "schema": schema,
+        "overall": overall,
     }
 
 
@@ -200,22 +253,27 @@ def _decide(
 
     # ── P191 kernel numeric check ─────────────────────────────────────────
     if p191 is not None:
-        cos = p191.get("scalar_ref_cosine_min")
+        cos = p191.get("cosine_min")
+        r2 = p191.get("rel_l2_max")
+        mma = p191.get("mma_available_all")
         if cos is not None and cos < thresholds["cosine_closed"]:
-            reasons.append(f"P191 scalar_ref_cosine_min={cos:.6f} < {thresholds['cosine_closed']}")
+            reasons.append(f"P191 cosine_min={cos:.6f} < {thresholds['cosine_closed']}")
+            return "CLOSED_NUMERIC", reasons
+        if r2 is not None and r2 > thresholds["rel_l2_closed"]:
+            reasons.append(f"P191 rel_l2_max={r2:.6f} > {thresholds['rel_l2_closed']}")
             return "CLOSED_NUMERIC", reasons
         if cos is not None and cos < thresholds["cosine_green"]:
+            numeric_green = False
+            reasons.append(f"P191 cosine_min={cos:.6f} < green {thresholds['cosine_green']}")
+        if r2 is not None and r2 > thresholds["rel_l2_green"]:
             numeric_green = False
 
     # ── P192 repack contract check ────────────────────────────────────────
     if p192 is not None:
-        p192_decision = p192.get("decision", "")
-        if "RED" in p192_decision or "FAIL" in p192_decision.upper():
-            reasons.append(f"P192 decision={p192_decision}")
-            return "CLOSED_NUMERIC", reasons
-        cos = p192.get("repack_cosine_min")
-        if cos is not None and cos < thresholds["cosine_closed"]:
-            reasons.append(f"P192 repack_cosine_min={cos:.6f} < {thresholds['cosine_closed']}")
+        p192_overall = p192.get("overall", "UNKNOWN")
+        if p192_overall == "RED":
+            failed = p192.get("failed_layers", [])
+            reasons.append(f"P192 overall=RED, failed layers: {failed}")
             return "CLOSED_NUMERIC", reasons
 
     # ── Speed check (AMBER_FIXTURE_FAST) ──────────────────────────────────
@@ -244,15 +302,17 @@ def _decide(
             capability_blocked = True
 
     if p191 is not None:
-        p191_decision = p191.get("decision", "")
-        if "RED" in p191_decision or "FAIL" in p191_decision.upper():
-            reasons.append(f"P191 kernel decision={p191_decision}")
+        # If MMA didn't compile, the kernel path is blocked
+        if not p191.get("mma_compiled", False):
+            reasons.append("P191: MMA instruction did not compile")
+            capability_blocked = True
+        if not p191.get("scalar_reference_available", False):
+            reasons.append("P191: scalar reference unavailable")
             capability_blocked = True
 
     if p192 is not None:
-        p192_decision = p192.get("decision", "")
-        if "RED" in p192_decision or "FAIL" in p192_decision.upper():
-            reasons.append(f"P192 repack decision={p192_decision}")
+        if p192.get("overall") == "RED":
+            reasons.append(f"P192 repack contract RED, failed: {p192.get('failed_layers', [])}")
             capability_blocked = True
 
     if capability_blocked:
