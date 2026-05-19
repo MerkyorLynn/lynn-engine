@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO=${REPO:-/root/autodl-tmp/lynn-engine}
+REPO=${REPO:-/root/autodl-tmp/lynn-engine-main}
 PY=${PY:-/root/autodl-tmp/conda-envs/r6000-eval/bin/python}
 REPORT_ROOT=${REPORT_ROOT:-/root/autodl-tmp/reports}
 P199_JSON=${P199_JSON:-$REPORT_ROOT/qwen35_9b/p199_nvfp4_size_audit_20260519_live_size2.json}
