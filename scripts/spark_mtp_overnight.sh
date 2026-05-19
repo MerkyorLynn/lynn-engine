@@ -32,7 +32,9 @@ RUN_DIR=$REPORT_ROOT/$TS
 LOG=$RUN_DIR/run.log
 
 mkdir -p "$RUN_DIR"
-ln -sfn "$RUN_DIR" "$REPORT_ROOT/latest"
+# Relative symlink so host bind mounts resolve it correctly (container's
+# absolute /reports/<TS> would be unreachable from host /home/merkyor/reports/).
+ln -sfn "$TS" "$REPORT_ROOT/latest"
 
 # Redirect all subsequent output to the log file
 exec > "$LOG" 2>&1

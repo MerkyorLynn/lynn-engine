@@ -60,10 +60,16 @@ DEFAULT_PROMPTS = [
 ]
 
 BASE_ENV = {
+    # Spark Config D (production NVFP4 W4A16 path that hit 42.55-45.39 TPS in
+    # memory project_overnight_results_20260517 + 42.85 in
+    # project_spark_27b_42tps_milestone_20260515).
     "LYNN_MOE_IMPL": "packed_nvfp4",
     "LYNN_LINEAR_ATTN_RECURRENT_INPLACE": "1",
     "LYNN_NATIVE_FP4_LM_HEAD": "1",
     "LYNN_PACKED_DECODE_BACKEND": "native_fast_2d",
+    "LYNN_PACKED_DECODE": "1",
+    "LYNN_PACKED_SHARED_EXPERT": "1",
+    "LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4": "1",
     "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True",
 }
 
@@ -204,18 +210,39 @@ def main() -> int:
                 "Check the path + safetensors integrity."
             )
 
+        # baseline + shadow run with the linear-block graph fast path for
+        # the canonical Config D 40+ TPS. spec_k1 is graph-incompatible (rollback
+        # invalidates captured graphs) and runs eager; that means the TPS
+        # comparison is unfair but reveals whether speculative wins at all.
         configs = [
             {
                 "label": "baseline",
-                "env": {"LYNN_MTP_SHADOW_VERIFY": "0", "LYNN_MTP_SPECULATIVE": "0"},
+                "env": {
+                    "LYNN_MTP_SHADOW_VERIFY": "0",
+                    "LYNN_MTP_SPECULATIVE": "0",
+                    "LYNN_LINEAR_BLOCK_GRAPH": "1",
+                    "LYNN_LINEAR_BLOCK_GRAPH_REUSE": "1",
+                },
             },
             {
                 "label": "shadow",
-                "env": {"LYNN_MTP_SHADOW_VERIFY": "1", "LYNN_MTP_SPECULATIVE": "0"},
+                "env": {
+                    "LYNN_MTP_SHADOW_VERIFY": "1",
+                    "LYNN_MTP_SPECULATIVE": "0",
+                    "LYNN_LINEAR_BLOCK_GRAPH": "1",
+                    "LYNN_LINEAR_BLOCK_GRAPH_REUSE": "1",
+                },
             },
             {
                 "label": "spec_k1",
-                "env": {"LYNN_MTP_SHADOW_VERIFY": "0", "LYNN_MTP_SPECULATIVE": "1"},
+                "env": {
+                    "LYNN_MTP_SHADOW_VERIFY": "0",
+                    "LYNN_MTP_SPECULATIVE": "1",
+                    # Speculative path is eager-only — graph captures cannot be
+                    # rolled back on draft reject.
+                    "LYNN_LINEAR_BLOCK_GRAPH": "0",
+                    "LYNN_LINEAR_BLOCK_GRAPH_REUSE": "0",
+                },
             },
         ]
 
