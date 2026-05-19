@@ -1,0 +1,18 @@
+[
+  {"id": "en_short_explain", "prompt": "Explain the difference between Q4_K_M and NVFP4 quantization in two sentences."},
+  {"id": "en_short_code", "prompt": "Write a Python function that returns the n-th Fibonacci number iteratively."},
+  {"id": "en_short_math", "prompt": "If a train travels 60 mph for 2.5 hours, how far does it go?"},
+  {"id": "en_short_summary", "prompt": "Summarize the role of the MoE router in one paragraph."},
+  {"id": "en_short_creative", "prompt": "Write a haiku about a winter mountain at sunrise."},
+  {"id": "en_mid_reasoning", "prompt": "A bookshelf has 3 shelves with 7 books each. After taking 4 books for reading, then adding 9 from a friend, how many books are on the shelf? Show step by step."},
+  {"id": "zh_short_explain", "prompt": "用一句话解释 speculative decoding 的核心思想。"},
+  {"id": "zh_short_summary", "prompt": "总结一下 MoE 模型里 router 和 expert 的分工。"},
+  {"id": "zh_short_code", "prompt": "请写一个 Python 函数,判断字符串是否是回文。"},
+  {"id": "zh_mid_factual", "prompt": "用 3 句话介绍 transformer 架构里的 multi-head attention 是怎么工作的。"},
+  {"id": "zh_mid_creative", "prompt": "请写一首关于深夜程序员调 bug 的短诗。"},
+  {"id": "json_simple", "prompt": "请输出一个 JSON: {\"city\": \"Tokyo\", \"unit\": \"celsius\"}"},
+  {"id": "json_nested", "prompt": "Return a JSON object with fields user.name='Alice', user.age=30, and prefs=['dark_mode','english']. Strict JSON only."},
+  {"id": "tool_call_like", "prompt": "User wants weather in Beijing. Output exactly: get_weather(location=\"Beijing\")"},
+  {"id": "en_long_explain", "prompt": "Compare the architectural trade-offs between dense and Mixture-of-Experts (MoE) large language models in terms of: 1) compute efficiency at inference, 2) memory footprint, 3) routing overhead, 4) quality scaling. Be specific."},
+  {"id": "zh_long_reasoning", "prompt": "请解释 linear attention(线性注意力)和标准 attention 在长 context 推理时的延迟、内存、质量三个维度的差异,并给出实际部署的取舍建议。"}
+]
