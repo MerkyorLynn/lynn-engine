@@ -1,0 +1,441 @@
+{
+  "schema": "lynn-nvfp4-size-audit-v1",
+  "model_dir": "/root/autodl-tmp/models/Qwen3.5-9B-lynn-native-w4a16-nvfp4-v0",
+  "total_gib": 8.2477,
+  "total_bytes": 8855899502,
+  "n_files": 19,
+  "n_tensors": 1511,
+  "q4km_reference_gib": 5.3,
+  "delta_gib": 2.9477,
+  "manifest_present": true,
+  "manifest_schema": "lynn-variable-nvfp4-pack-v1",
+  "keep_regex": "(embed_tokens|lm_head|rotary|norm|mlp\\.gate\\.weight)",
+  "category_breakdown": {
+    "quantized_packed": {
+      "gib": 3.5471,
+      "count": 368
+    },
+    "quantized_scale": {
+      "gib": 0.8868,
+      "count": 368
+    },
+    "quantized_global_scale": {
+      "gib": 0.0,
+      "count": 368
+    },
+    "quantized_total": {
+      "gib": 4.4339
+    },
+    "kept_bf16_total": {
+      "gib": 3.7918
+    },
+    "non_tensor_metadata": {
+      "gib": 0.022
+    }
+  },
+  "kept_bf16_breakdown": {
+    "lm_head": {
+      "gib": 1.8945,
+      "count": 1
+    },
+    "embed_tokens": {
+      "gib": 1.8945,
+      "count": 1
+    },
+    "other": {
+      "gib": 0.0024,
+      "count": 72
+    },
+    "visual": {
+      "gib": 0.0,
+      "count": 111
+    },
+    "norms": {
+      "gib": 0.0,
+      "count": 222
+    }
+  },
+  "kept_bf16_top30": [
+    {
+      "key": "lm_head.weight",
+      "category": "lm_head",
+      "shape": [
+        248320,
+        4096
+      ],
+      "dtype": "BF16",
+      "nbytes": 2034237440,
+      "gib": 1.8945
+    },
+    {
+      "key": "model.language_model.embed_tokens.weight",
+      "category": "embed_tokens",
+      "shape": [
+        248320,
+        4096
+      ],
+      "dtype": "BF16",
+      "nbytes": 2034237440,
+      "gib": 1.8945
+    },
+    {
+      "key": "model.language_model.layers.0.linear_attn.conv1d.weight",
+      "category": "other",
+      "shape": [
+        8192,
+        1,
+        4
+      ],
+      "dtype": "BF16",
+      "nbytes": 65536,
+      "gib": 0.0001
+    },
+    {
+      "key": "model.language_model.layers.1.linear_attn.conv1d.weight",
+      "category": "other",
+      "shape": [
+        8192,
+        1,
+        4
+      ],
+      "dtype": "BF16",
+      "nbytes": 65536,
+      "gib": 0.0001
+    },
+    {
+      "key": "model.language_model.layers.10.linear_attn.conv1d.weight",
+      "category": "other",
+      "shape": [
+        8192,
+        1,
+        4
+      ],
+      "dtype": "BF16",
+      "nbytes": 65536,
+      "gib": 0.0001
+    },
+    {
+      "key": "model.language_model.layers.12.linear_attn.conv1d.weight",
+      "category": "other",
+      "shape": [
+        8192,
+        1,
+        4
+      ],
+      "dtype": "BF16",
+      "nbytes": 65536,
+      "gib": 0.0001
+    },
+    {
+      "key": "model.language_model.layers.13.linear_attn.conv1d.weight",
+      "category": "other",
+      "shape": [
+        8192,
+        1,
+        4
+      ],
+      "dtype": "BF16",
+      "nbytes": 65536,
+      "gib": 0.0001
+    },
+    {
+      "key": "model.language_model.layers.14.linear_attn.conv1d.weight",
+      "category": "other",
+      "shape": [
+        8192,
+        1,
+        4
+      ],
+      "dtype": "BF16",
+      "nbytes": 65536,
+      "gib": 0.0001
+    },
+    {
+      "key": "model.language_model.layers.16.linear_attn.conv1d.weight",
+      "category": "other",
+      "shape": [
+        8192,
+        1,
+        4
+      ],
+      "dtype": "BF16",
+      "nbytes": 65536,
+      "gib": 0.0001
+    },
+    {
+      "key": "model.language_model.layers.17.linear_attn.conv1d.weight",
+      "category": "other",
+      "shape": [
+        8192,
+        1,
+        4
+      ],
+      "dtype": "BF16",
+      "nbytes": 65536,
+      "gib": 0.0001
+    },
+    {
+      "key": "model.language_model.layers.18.linear_attn.conv1d.weight",
+      "category": "other",
+      "shape": [
+        8192,
+        1,
+        4
+      ],
+      "dtype": "BF16",
+      "nbytes": 65536,
+      "gib": 0.0001
+    },
+    {
+      "key": "model.language_model.layers.2.linear_attn.conv1d.weight",
+      "category": "other",
+      "shape": [
+        8192,
+        1,
+        4
+      ],
+      "dtype": "BF16",
+      "nbytes": 65536,
+      "gib": 0.0001
+    },
+    {
+      "key": "model.language_model.layers.20.linear_attn.conv1d.weight",
+      "category": "other",
+      "shape": [
+        8192,
+        1,
+        4
+      ],
+      "dtype": "BF16",
+      "nbytes": 65536,
+      "gib": 0.0001
+    },
+    {
+      "key": "model.language_model.layers.21.linear_attn.conv1d.weight",
+      "category": "other",
+      "shape": [
+        8192,
+        1,
+        4
+      ],
+      "dtype": "BF16",
+      "nbytes": 65536,
+      "gib": 0.0001
+    },
+    {
+      "key": "model.language_model.layers.22.linear_attn.conv1d.weight",
+      "category": "other",
+      "shape": [
+        8192,
+        1,
+        4
+      ],
+      "dtype": "BF16",
+      "nbytes": 65536,
+      "gib": 0.0001
+    },
+    {
+      "key": "model.language_model.layers.24.linear_attn.conv1d.weight",
+      "category": "other",
+      "shape": [
+        8192,
+        1,
+        4
+      ],
+      "dtype": "BF16",
+      "nbytes": 65536,
+      "gib": 0.0001
+    },
+    {
+      "key": "model.language_model.layers.25.linear_attn.conv1d.weight",
+      "category": "other",
+      "shape": [
+        8192,
+        1,
+        4
+      ],
+      "dtype": "BF16",
+      "nbytes": 65536,
+      "gib": 0.0001
+    },
+    {
+      "key": "model.language_model.layers.26.linear_attn.conv1d.weight",
+      "category": "other",
+      "shape": [
+        8192,
+        1,
+        4
+      ],
+      "dtype": "BF16",
+      "nbytes": 65536,
+      "gib": 0.0001
+    },
+    {
+      "key": "model.language_model.layers.28.linear_attn.conv1d.weight",
+      "category": "other",
+      "shape": [
+        8192,
+        1,
+        4
+      ],
+      "dtype": "BF16",
+      "nbytes": 65536,
+      "gib": 0.0001
+    },
+    {
+      "key": "model.language_model.layers.29.linear_attn.conv1d.weight",
+      "category": "other",
+      "shape": [
+        8192,
+        1,
+        4
+      ],
+      "dtype": "BF16",
+      "nbytes": 65536,
+      "gib": 0.0001
+    },
+    {
+      "key": "model.language_model.layers.30.linear_attn.conv1d.weight",
+      "category": "other",
+      "shape": [
+        8192,
+        1,
+        4
+      ],
+      "dtype": "BF16",
+      "nbytes": 65536,
+      "gib": 0.0001
+    },
+    {
+      "key": "model.language_model.layers.4.linear_attn.conv1d.weight",
+      "category": "other",
+      "shape": [
+        8192,
+        1,
+        4
+      ],
+      "dtype": "BF16",
+      "nbytes": 65536,
+      "gib": 0.0001
+    },
+    {
+      "key": "model.language_model.layers.5.linear_attn.conv1d.weight",
+      "category": "other",
+      "shape": [
+        8192,
+        1,
+        4
+      ],
+      "dtype": "BF16",
+      "nbytes": 65536,
+      "gib": 0.0001
+    },
+    {
+      "key": "model.language_model.layers.6.linear_attn.conv1d.weight",
+      "category": "other",
+      "shape": [
+        8192,
+        1,
+        4
+      ],
+      "dtype": "BF16",
+      "nbytes": 65536,
+      "gib": 0.0001
+    },
+    {
+      "key": "model.language_model.layers.8.linear_attn.conv1d.weight",
+      "category": "other",
+      "shape": [
+        8192,
+        1,
+        4
+      ],
+      "dtype": "BF16",
+      "nbytes": 65536,
+      "gib": 0.0001
+    },
+    {
+      "key": "model.language_model.layers.9.linear_attn.conv1d.weight",
+      "category": "other",
+      "shape": [
+        8192,
+        1,
+        4
+      ],
+      "dtype": "BF16",
+      "nbytes": 65536,
+      "gib": 0.0001
+    },
+    {
+      "key": "model.visual.merger.linear_fc1.bias",
+      "category": "visual",
+      "shape": [
+        4608
+      ],
+      "dtype": "BF16",
+      "nbytes": 9216,
+      "gib": 0.0
+    },
+    {
+      "key": "model.visual.blocks.0.mlp.linear_fc1.bias",
+      "category": "visual",
+      "shape": [
+        4304
+      ],
+      "dtype": "BF16",
+      "nbytes": 8608,
+      "gib": 0.0
+    },
+    {
+      "key": "model.visual.blocks.1.mlp.linear_fc1.bias",
+      "category": "visual",
+      "shape": [
+        4304
+      ],
+      "dtype": "BF16",
+      "nbytes": 8608,
+      "gib": 0.0
+    },
+    {
+      "key": "model.visual.blocks.10.mlp.linear_fc1.bias",
+      "category": "visual",
+      "shape": [
+        4304
+      ],
+      "dtype": "BF16",
+      "nbytes": 8608,
+      "gib": 0.0
+    }
+  ],
+  "shrink_options": [
+    {
+      "tier": "SAFE_NO_CHANGE",
+      "description": "Ship current artifact as-is.  No quality risk.",
+      "expected_size_gib": 8.2477,
+      "quality_risk": "none",
+      "changes": []
+    },
+    {
+      "tier": "MODERATE_QUANTIZE_EMBED_LMHEAD",
+      "description": "Quantize embed_tokens + lm_head to NVFP4.  Saves ~3.5 GiB but lm_head FP4 exact gate currently fails on 9B.  Needs MMLU/GPQA spot-check before promotion.",
+      "expected_size_gib": 5.26,
+      "quality_risk": "high",
+      "changes": [
+        "quantize embed_tokens.weight (currently 1.89 GiB BF16)",
+        "quantize lm_head.weight (currently 1.89 GiB BF16)"
+      ]
+    },
+    {
+      "tier": "AGGRESSIVE_QUANTIZE_MORE_KEEPERS",
+      "description": "Quantize embed_tokens + lm_head + prune visual/MTP for text-only. Saves ~4+ GiB.  Highest quality risk.  Only after MODERATE tier passes.",
+      "expected_size_gib": 4.75,
+      "quality_risk": "very high",
+      "changes": [
+        "quantize embed_tokens.weight (1.89 GiB)",
+        "quantize lm_head.weight (1.89 GiB)",
+        "prune visual tensors (~0.21 GiB)",
+        "prune MTP tensors (~0.00 GiB)"
+      ]
+    }
+  ]
+}
