@@ -62,7 +62,7 @@ CONVSTRICT_ENV = _merge(
 W4A8_FAKE_ENV = _merge(
     CONVSTRICT_ENV,
     {
-        "LYNN_W4A8_FAKE_QUANT_ACTIVE": "1",
+        "LYNN_W4A8_FAKE_QUANT_ACTIVE": "full",
         "LYNN_W4A8_FAKE_QUANT_FORMAT": "FP4_E2M1xFP8_E4M3",
         "LYNN_W4A8_FAKE_QUANT_GRANULARITY": "128",
     },
@@ -106,7 +106,8 @@ def _generate_with_topk(runner: Any, prompt: str, max_new: int, top_k: int) -> d
     """Generate tokens and collect per-step top-k logits."""
     result = runner.generate(
         prompt,
-        max_new_values=[max_new],
+        max_new=max_new,
+        use_chat_template=False,
         top_k=top_k,
     )
     return result.get("topk_trace", {})
