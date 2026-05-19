@@ -1,0 +1,28 @@
+{
+  "probe": "p191_dense_fp4xfp8_poc",
+  "created": "2026-05-19T14:31:14",
+  "fixtures_dir": "/root/autodl-tmp/reports/qwen35_9b/p159_dense_ffn_fixtures_20260519_0458",
+  "model_dir": "/root/autodl-tmp/models/Qwen3.5-9B-lynn-native-w4a16-nvfp4-v0",
+  "mma_compiled": true,
+  "scalar_reference_available": true,
+  "results": [
+    {
+      "layer_id": 0,
+      "shape": "[12288, 4096]",
+      "max_abs_vs_bf16_ref": 0.006163664162158966,
+      "rel_l2_vs_bf16_ref": 0.014264714904129505,
+      "cosine_vs_bf16_ref": 0.9998985528945923,
+      "scalar_ms": 0.5260416030883789,
+      "mma_available": true
+    },
+    {
+      "layer_id": 16,
+      "shape": "[12288, 4096]",
+      "max_abs_vs_bf16_ref": 0.03641629219055176,
+      "rel_l2_vs_bf16_ref": 0.012368887662887573,
+      "cosine_vs_bf16_ref": 0.9999237060546875,
+      "scalar_ms": 0.5262284851074219,
+      "mma_available": true
+    }
+  ]
+}
