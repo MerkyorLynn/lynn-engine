@@ -1450,7 +1450,15 @@ class LynnIncrementalRunner:
         raw_next_id = int(logits[0].argmax().item())
         mtp_shadow_trace: list[dict[str, Any]] = []
         mtp_shadow_step_seconds: list[float] = []
-        mtp_shadow_active = self.mtp_sidecar_loaded and self.mtp_shadow_verify_enabled
+        # Read LYNN_MTP_SHADOW_VERIFY per-call so a runner instance can switch
+        # between configs without re-init (smoke runner config sweep relies on this).
+        # ``self.mtp_shadow_verify_enabled`` is the init-time default for legacy
+        # callers that don't override the env.
+        _shadow_env = os.environ.get(
+            "LYNN_MTP_SHADOW_VERIFY",
+            os.environ.get("LYNN_MTP_VERIFY", "1" if self.mtp_shadow_verify_enabled else "0"),
+        )
+        mtp_shadow_active = self.mtp_sidecar_loaded and _shadow_env == "1"
         mtp_shadow_disabled_reason = None
         if (
             mtp_shadow_active
