@@ -9,6 +9,7 @@ STAMP=${STAMP:-$(date +%Y%m%d_%H%M%S)}
 FIXTURES=${FIXTURES:-$REPORT_DIR/p169_linear_core_fixtures_official_w4a16_20260519_0750}
 OUT=${OUT:-$REPORT_DIR/p174_linear_boundary_stage_timing_${STAMP}.json}
 DEVICE=${DEVICE:-cuda}
+STATE_COPY_MODE=${STATE_COPY_MODE:-inside}
 
 cd "$REPO"
 export PYTHONPATH="$REPO:${PYTHONPATH:-}"
@@ -24,7 +25,7 @@ mkdir -p "$REPORT_DIR"
   --model "$MODEL" \
   --fixtures "$FIXTURES" \
   --out "$OUT" \
-  --device "$DEVICE"
+  --device "$DEVICE" \
+  --state-copy-mode "$STATE_COPY_MODE"
 
 echo "[p174] report: $OUT"
-

@@ -70,7 +70,13 @@ def _sync(device: str) -> None:
         torch.cuda.synchronize()
 
 
-def _time_one_boundary(tensors: dict[str, torch.Tensor], w: dict[str, Any], device: str) -> tuple[dict[str, float], dict[str, torch.Tensor]]:
+def _time_one_boundary(
+    tensors: dict[str, torch.Tensor],
+    w: dict[str, Any],
+    device: str,
+    *,
+    state_copy_mode: str,
+) -> tuple[dict[str, float], dict[str, torch.Tensor]]:
     h_norm = tensors["h_norm"]
     recurrent_state_in = tensors["recurrent_state_in"]
     conv_state_in = tensors["conv_state_in"]
@@ -79,6 +85,15 @@ def _time_one_boundary(tensors: dict[str, torch.Tensor], w: dict[str, Any], devi
         raise RuntimeError(f"{fused_key} missing; set LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1")
     batch = h_norm.shape[0]
     times: dict[str, float] = {}
+
+    if state_copy_mode == "outside":
+        conv_state_arg = conv_state_in.clone()
+        recurrent_state_arg = recurrent_state_in.clone()
+    elif state_copy_mode == "inside":
+        conv_state_arg = conv_state_in
+        recurrent_state_arg = recurrent_state_in
+    else:
+        raise ValueError(f"unknown state_copy_mode={state_copy_mode!r}")
 
     _sync(device)
     total_start = time.perf_counter()
@@ -101,7 +116,7 @@ def _time_one_boundary(tensors: dict[str, torch.Tensor], w: dict[str, Any], devi
     start = time.perf_counter()
     out_conv, conv_state_out = _linear_conv_update_decode(
         mixed_for_conv,
-        conv_state_in.clone(),
+        conv_state_arg.clone() if state_copy_mode == "inside" else conv_state_arg,
         w["linear_attn.conv1d.weight"],
     )
     _sync(device)
@@ -130,7 +145,7 @@ def _time_one_boundary(tensors: dict[str, torch.Tensor], w: dict[str, Any], devi
         v,
         g,
         beta,
-        recurrent_state_in.clone(),
+        recurrent_state_arg.clone() if state_copy_mode == "inside" else recurrent_state_arg,
     )
     _sync(device)
     times["recurrent_gdn"] = (time.perf_counter() - start) * 1000.0
@@ -177,11 +192,21 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         layer = int(item["layer_id"])
         tensors = load_file(str(fixtures_dir / fixture_file), device=args.device)
         for _ in range(args.warmup_runs):
-            _time_one_boundary(tensors, runner.layer_weights[layer], args.device)
+            _time_one_boundary(
+                tensors,
+                runner.layer_weights[layer],
+                args.device,
+                state_copy_mode=args.state_copy_mode,
+            )
         samples: list[dict[str, float]] = []
         last_outputs: dict[str, torch.Tensor] | None = None
         for _ in range(max(args.timed_runs, 1)):
-            times, last_outputs = _time_one_boundary(tensors, runner.layer_weights[layer], args.device)
+            times, last_outputs = _time_one_boundary(
+                tensors,
+                runner.layer_weights[layer],
+                args.device,
+                state_copy_mode=args.state_copy_mode,
+            )
             samples.append(times)
         assert last_outputs is not None
         med = {name: float(median(sample[name] for sample in samples)) for name in STAGE_NAMES}
@@ -217,6 +242,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "device": args.device,
         "warmup_runs": int(args.warmup_runs),
         "timed_runs": int(args.timed_runs),
+        "state_copy_mode": args.state_copy_mode,
         "summary": {
             "total_fixtures": len(rows),
             "passed_exact": sum(1 for row in rows if row["passed_exact"]),
@@ -236,6 +262,16 @@ def main() -> int:
     parser.add_argument("--max-seq-len", type=int, default=2048)
     parser.add_argument("--warmup-runs", type=int, default=1)
     parser.add_argument("--timed-runs", type=int, default=5)
+    parser.add_argument(
+        "--state-copy-mode",
+        choices=("inside", "outside"),
+        default="inside",
+        help=(
+            "'inside' preserves the original fixture-pure timing by cloning "
+            "state inside conv/recurrent stages. 'outside' prepares state "
+            "scratch before timing to approximate serving in-place state cost."
+        ),
+    )
     args = parser.parse_args()
     report = run(args)
     out = Path(args.out)
@@ -247,4 +283,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

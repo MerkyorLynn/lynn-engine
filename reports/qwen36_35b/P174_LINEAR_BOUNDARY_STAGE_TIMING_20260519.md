@@ -17,6 +17,7 @@ It keeps the same exactness target as P173 and does not change serving defaults.
 - Probe: `benchmarks/p174_qwen36_linear_boundary_stage_timing.py`
 - R6000 wrapper: `scripts/r6000_qwen36_linear_boundary_stage_timing.sh`
 - JSON report: `reports/qwen36_35b/p174_linear_boundary_stage_timing_20260519_0830_stage.json`
+- Serving-like state-scratch report: `reports/qwen36_35b/p174_linear_boundary_stage_timing_20260519_0839_stage_outside.json`
 
 ## R6000 Result
 
@@ -53,3 +54,17 @@ The admission rule remains strict:
 3. Pass P172 diagnostics if exact hashes are expected.
 4. Only then run P37/P25/structured.
 
+## State Scratch Check
+
+A follow-up run used `STATE_COPY_MODE=outside`, preparing state scratch before timing to better approximate the serving in-place state path. It also passed 20/20 exact:
+
+| Stage | Median ms |
+|---|---:|
+| `in_proj` | 0.115953 |
+| `split` | 0.017939 |
+| `conv` | 0.066647 |
+| `reshape_gate` | 0.067724 |
+| `recurrent_gdn` | 0.066492 |
+| `total` | 0.336122 |
+
+This is the same class as the original `0.324505 ms` total, so the boundary is not hiding a large state-clone tax. The next fused candidate should focus on removing inter-stage materialization and launches, not on fixture clone mechanics.
