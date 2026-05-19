@@ -52,6 +52,15 @@ R6000 Lynn-native NVFP4 W4A16:
 | Windows | WSL2/Docker beta only |
 | Spark / GB10 | Q4_K_M or SGLang/Lynn experiments; not the main Lynn-native speed target yet |
 
+## Installation Links
+
+- Quickstart: `docs/QWEN35_9B_INSTALL_QUICKSTART_20260519.md`
+- Download scaffold: `scripts/local_qwen35_9b_download.sh`
+- Public docs TODO: `https://engine.merkyorlynn.com/docs/qwen35-9b/`
+- Q4_K_M artifact TODO: `https://dl.merkyorlynn.com/models/qwen35-9b/q4_k_m/`
+- NVFP4 W4A16 artifact TODO: `https://dl.merkyorlynn.com/models/qwen35-9b/nvfp4-w4a16/`
+- Checksum TODO: publish final `checksums.sha256` before release.
+
 ## Known Limits
 
 - Lynn Engine 9B NVFP4 currently trails llama.cpp Q4_K_M in raw R6000 TPS.
