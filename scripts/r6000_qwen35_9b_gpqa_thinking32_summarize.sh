@@ -23,10 +23,7 @@ if [[ -z "$JSONL" ]]; then
   JSONL="$(ls -t "$REPORT_DIR"/thinking32/*thinking32*gpqa*.jsonl "$REPORT_DIR"/thinking32/*gpqa*thinking32*.jsonl 2>/dev/null | head -1 || true)"
 fi
 if [[ -z "$JSONL" ]]; then
-  JSONL="$(ls -t "$REPORT_DIR"/*thinking32*gpqa*.jsonl "$REPORT_DIR"/*q4km*gpqa*.jsonl 2>/dev/null | head -1 || true)"
-fi
-if [[ -z "$JSONL" ]]; then
-  JSONL="$(ls -t "$REPORT_DIR"/*gpqa*.jsonl 2>/dev/null | head -1 || true)"
+  JSONL="$(ls -t "$REPORT_DIR"/*thinking32*gpqa*.jsonl "$REPORT_DIR"/*gpqa*thinking32*.jsonl 2>/dev/null | head -1 || true)"
 fi
 
 if [[ -z "$JSONL" || ! -f "$JSONL" ]]; then
@@ -36,13 +33,16 @@ if [[ -z "$JSONL" || ! -f "$JSONL" ]]; then
 fi
 
 OUT_JSON="${REPORT_DIR}/p201_gpqa_live_summary_${STAMP}.json"
+OUT_MD="${REPORT_DIR}/p201_gpqa_live_summary_${STAMP}.md"
 
 cd "$ROOT"
 echo "[p201] JSONL: $JSONL ($(wc -l < "$JSONL") lines)"
 echo "[p201] Output: $OUT_JSON"
+echo "[p201] Markdown: $OUT_MD"
 echo ""
 
 exec "$PYTHON_BIN" scripts/p201_gpqa_thinking32_live_summarizer.py \
-  "$JSONL" \
+  --jsonl "$JSONL" \
   --out "$OUT_JSON" \
+  --md-out "$OUT_MD" \
   "$@"

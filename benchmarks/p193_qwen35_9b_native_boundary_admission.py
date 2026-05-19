@@ -4,12 +4,15 @@
 Unifies upstream quality/speed/capability gates into a single decision
 before any native FP4×FP8 packed boundary reaches resident serving.
 
-Consumed reports (all optional; absent = skipped):
+Consumed reports:
   - P160  dense FFN fixture contract  (cosine, max_abs, exact)
   - P185  dense W4A8 fixture gate     (cosine, rel_l2, speedup)
   - P189  FP4×FP8 capability probe    (torch._scaled_mm vs CuTe)
   - P191  CuTe PoC kernel report      (scalar ref correctness)
   - P192  offline repack manifest     (repack contract pass/fail)
+
+All reports are required for GREEN/PROMOTE.  Missing inputs produce
+PROMOTE_BLOCKED instead of a misleading GREEN based on partial evidence.
 
 Decision levels (strictest → loosest):
   CLOSED_NUMERIC       cosine/rel_l2 outside safe envelope or P160 RED
@@ -303,6 +306,7 @@ def _decide(
 ) -> tuple[str, list[str]]:
     """Return (decision, reasons)."""
     reasons: list[str] = []
+    missing_required: list[str] = []
 
     # ── Numeric envelope check ────────────────────────────────────────────
     numeric_ok = True
@@ -321,7 +325,7 @@ def _decide(
             reasons.append(f"P160 cosine_min={cos:.6f} < green threshold {thresholds['cosine_green']}")
     else:
         reasons.append("P160 report absent -- numeric baseline missing")
-        numeric_green = False
+        missing_required.append("P160")
 
     if p185 is not None:
         p185_decision = p185["decision"]
@@ -342,6 +346,7 @@ def _decide(
             numeric_green = False
     else:
         reasons.append("P185 report absent -- W4A8 quality not verified")
+        missing_required.append("P185")
 
     # ── P191 kernel numeric check ─────────────────────────────────────────
     if p191 is not None:
@@ -391,6 +396,20 @@ def _decide(
             failed = p192.get("failed_layers", [])
             reasons.append(f"P192 overall=RED, failed layers: {failed}")
             return "CLOSED_NUMERIC", reasons
+    else:
+        reasons.append("P192 report absent -- offline repack contract not verified")
+        missing_required.append("P192")
+
+    if p189 is None:
+        reasons.append("P189 report absent -- FP4×FP8 capability not verified")
+        missing_required.append("P189")
+    if p191 is None:
+        reasons.append("P191 report absent -- native kernel numeric/proof not verified")
+        missing_required.append("P191")
+
+    if missing_required:
+        reasons.append("missing required reports for native boundary promotion: " + ",".join(missing_required))
+        return "PROMOTE_BLOCKED", reasons
 
     # ── Speed check (AMBER_FIXTURE_FAST) ──────────────────────────────────
     speedup = None
