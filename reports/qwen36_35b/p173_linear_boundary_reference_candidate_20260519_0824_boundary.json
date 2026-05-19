@@ -1,0 +1,1055 @@
+{
+  "schema": "lynn-qwen36-linear-boundary-reference-candidate-v1",
+  "created": "2026-05-19T08:12:45+0800",
+  "model": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0",
+  "fixtures": "/root/autodl-tmp/reports/qwen36_35b/p169_linear_core_fixtures_official_w4a16_20260519_0750",
+  "candidate_output_dir": "/root/autodl-tmp/reports/qwen36_35b/p173_linear_boundary_reference_candidate_20260519_0824_boundary",
+  "device": "cuda",
+  "boundary": "in_proj->conv->recurrent_gdn",
+  "warmup_runs": 1,
+  "timed_runs": 3,
+  "elapsed_seconds": 0.5469567775726318,
+  "summary": {
+    "total_fixtures": 20,
+    "total_tensors_written": 80,
+    "keys_written": [
+      "core_attn_out",
+      "recurrent_state_out",
+      "conv_state_out",
+      "z"
+    ],
+    "compute_ms_mean": 0.37005546813209855,
+    "compute_ms_median_of_medians": 0.3576003946363926,
+    "compute_ms_min": 0.3428952768445015,
+    "compute_ms_max": 0.4046754911541939
+  },
+  "results": [
+    {
+      "fixture_file": "layer_00_prompt_00.safetensors",
+      "layer_id": 0,
+      "prompt_id": 0,
+      "compute_ms_mean": 0.49282827725013095,
+      "compute_ms_median": 0.4046754911541939,
+      "compute_ms_samples": [
+        0.7072426378726959,
+        0.4046754911541939,
+        0.3665667027235031
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ],
+      "tensor_shapes": {
+        "core_attn_out": [
+          1,
+          1,
+          32,
+          128
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ],
+        "z": [
+          1,
+          1,
+          32,
+          128
+        ]
+      },
+      "tensor_dtypes": {
+        "core_attn_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16",
+        "z": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_04_prompt_00.safetensors",
+      "layer_id": 4,
+      "prompt_id": 0,
+      "compute_ms_mean": 0.3683539107441902,
+      "compute_ms_median": 0.3611147403717041,
+      "compute_ms_samples": [
+        0.4011224955320358,
+        0.3611147403717041,
+        0.3428244963288307
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ],
+      "tensor_shapes": {
+        "core_attn_out": [
+          1,
+          1,
+          32,
+          128
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ],
+        "z": [
+          1,
+          1,
+          32,
+          128
+        ]
+      },
+      "tensor_dtypes": {
+        "core_attn_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16",
+        "z": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_08_prompt_00.safetensors",
+      "layer_id": 8,
+      "prompt_id": 0,
+      "compute_ms_mean": 0.37639526029427844,
+      "compute_ms_median": 0.37132762372493744,
+      "compute_ms_samples": [
+        0.3909049555659294,
+        0.36695320159196854,
+        0.37132762372493744
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ],
+      "tensor_shapes": {
+        "core_attn_out": [
+          1,
+          1,
+          32,
+          128
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ],
+        "z": [
+          1,
+          1,
+          32,
+          128
+        ]
+      },
+      "tensor_dtypes": {
+        "core_attn_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16",
+        "z": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_12_prompt_00.safetensors",
+      "layer_id": 12,
+      "prompt_id": 0,
+      "compute_ms_mean": 0.3563081845641136,
+      "compute_ms_median": 0.34758448600769043,
+      "compute_ms_samples": [
+        0.3832438960671425,
+        0.34758448600769043,
+        0.33809617161750793
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ],
+      "tensor_shapes": {
+        "core_attn_out": [
+          1,
+          1,
+          32,
+          128
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ],
+        "z": [
+          1,
+          1,
+          32,
+          128
+        ]
+      },
+      "tensor_dtypes": {
+        "core_attn_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16",
+        "z": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_16_prompt_00.safetensors",
+      "layer_id": 16,
+      "prompt_id": 0,
+      "compute_ms_mean": 0.36856190611918765,
+      "compute_ms_median": 0.35818759351968765,
+      "compute_ms_samples": [
+        0.3932276740670204,
+        0.35818759351968765,
+        0.35427045077085495
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ],
+      "tensor_shapes": {
+        "core_attn_out": [
+          1,
+          1,
+          32,
+          128
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ],
+        "z": [
+          1,
+          1,
+          32,
+          128
+        ]
+      },
+      "tensor_dtypes": {
+        "core_attn_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16",
+        "z": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_20_prompt_00.safetensors",
+      "layer_id": 20,
+      "prompt_id": 0,
+      "compute_ms_mean": 0.369207002222538,
+      "compute_ms_median": 0.3603929653763771,
+      "compute_ms_samples": [
+        0.3940165042877197,
+        0.3603929653763771,
+        0.35321153700351715
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ],
+      "tensor_shapes": {
+        "core_attn_out": [
+          1,
+          1,
+          32,
+          128
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ],
+        "z": [
+          1,
+          1,
+          32,
+          128
+        ]
+      },
+      "tensor_dtypes": {
+        "core_attn_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16",
+        "z": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_24_prompt_00.safetensors",
+      "layer_id": 24,
+      "prompt_id": 0,
+      "compute_ms_mean": 0.3706095740199089,
+      "compute_ms_median": 0.3686118870973587,
+      "compute_ms_samples": [
+        0.3985520452260971,
+        0.3686118870973587,
+        0.3446647897362709
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ],
+      "tensor_shapes": {
+        "core_attn_out": [
+          1,
+          1,
+          32,
+          128
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ],
+        "z": [
+          1,
+          1,
+          32,
+          128
+        ]
+      },
+      "tensor_dtypes": {
+        "core_attn_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16",
+        "z": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_28_prompt_00.safetensors",
+      "layer_id": 28,
+      "prompt_id": 0,
+      "compute_ms_mean": 0.368355152507623,
+      "compute_ms_median": 0.35754311829805374,
+      "compute_ms_samples": [
+        0.3902493044734001,
+        0.35727303475141525,
+        0.35754311829805374
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ],
+      "tensor_shapes": {
+        "core_attn_out": [
+          1,
+          1,
+          32,
+          128
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ],
+        "z": [
+          1,
+          1,
+          32,
+          128
+        ]
+      },
+      "tensor_dtypes": {
+        "core_attn_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16",
+        "z": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_32_prompt_00.safetensors",
+      "layer_id": 32,
+      "prompt_id": 0,
+      "compute_ms_mean": 0.34801506747802097,
+      "compute_ms_median": 0.3428952768445015,
+      "compute_ms_samples": [
+        0.37212297320365906,
+        0.3428952768445015,
+        0.3290269523859024
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ],
+      "tensor_shapes": {
+        "core_attn_out": [
+          1,
+          1,
+          32,
+          128
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ],
+        "z": [
+          1,
+          1,
+          32,
+          128
+        ]
+      },
+      "tensor_dtypes": {
+        "core_attn_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16",
+        "z": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_36_prompt_00.safetensors",
+      "layer_id": 36,
+      "prompt_id": 0,
+      "compute_ms_mean": 0.36119110882282257,
+      "compute_ms_median": 0.35499315708875656,
+      "compute_ms_samples": [
+        0.3865109756588936,
+        0.35499315708875656,
+        0.34206919372081757
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ],
+      "tensor_shapes": {
+        "core_attn_out": [
+          1,
+          1,
+          32,
+          128
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ],
+        "z": [
+          1,
+          1,
+          32,
+          128
+        ]
+      },
+      "tensor_dtypes": {
+        "core_attn_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16",
+        "z": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_00_prompt_01.safetensors",
+      "layer_id": 0,
+      "prompt_id": 1,
+      "compute_ms_mean": 0.3733945389588674,
+      "compute_ms_median": 0.36994554102420807,
+      "compute_ms_samples": [
+        0.39756856858730316,
+        0.36994554102420807,
+        0.35266950726509094
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ],
+      "tensor_shapes": {
+        "core_attn_out": [
+          1,
+          1,
+          32,
+          128
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ],
+        "z": [
+          1,
+          1,
+          32,
+          128
+        ]
+      },
+      "tensor_dtypes": {
+        "core_attn_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16",
+        "z": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_04_prompt_01.safetensors",
+      "layer_id": 4,
+      "prompt_id": 1,
+      "compute_ms_mean": 0.34901561836401623,
+      "compute_ms_median": 0.34318864345550537,
+      "compute_ms_samples": [
+        0.37225522100925446,
+        0.34318864345550537,
+        0.3316029906272888
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ],
+      "tensor_shapes": {
+        "core_attn_out": [
+          1,
+          1,
+          32,
+          128
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ],
+        "z": [
+          1,
+          1,
+          32,
+          128
+        ]
+      },
+      "tensor_dtypes": {
+        "core_attn_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16",
+        "z": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_08_prompt_01.safetensors",
+      "layer_id": 8,
+      "prompt_id": 1,
+      "compute_ms_mean": 0.3659687936306,
+      "compute_ms_median": 0.35765767097473145,
+      "compute_ms_samples": [
+        0.38498546928167343,
+        0.35765767097473145,
+        0.35526324063539505
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ],
+      "tensor_shapes": {
+        "core_attn_out": [
+          1,
+          1,
+          32,
+          128
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ],
+        "z": [
+          1,
+          1,
+          32,
+          128
+        ]
+      },
+      "tensor_dtypes": {
+        "core_attn_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16",
+        "z": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_12_prompt_01.safetensors",
+      "layer_id": 12,
+      "prompt_id": 1,
+      "compute_ms_mean": 0.35164660463730496,
+      "compute_ms_median": 0.34512393176555634,
+      "compute_ms_samples": [
+        0.37824828177690506,
+        0.34512393176555634,
+        0.33156760036945343
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ],
+      "tensor_shapes": {
+        "core_attn_out": [
+          1,
+          1,
+          32,
+          128
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ],
+        "z": [
+          1,
+          1,
+          32,
+          128
+        ]
+      },
+      "tensor_dtypes": {
+        "core_attn_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16",
+        "z": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_16_prompt_01.safetensors",
+      "layer_id": 16,
+      "prompt_id": 1,
+      "compute_ms_mean": 0.37510041147470474,
+      "compute_ms_median": 0.3780350089073181,
+      "compute_ms_samples": [
+        0.3950009122490883,
+        0.3780350089073181,
+        0.3522653132677078
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ],
+      "tensor_shapes": {
+        "core_attn_out": [
+          1,
+          1,
+          32,
+          128
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ],
+        "z": [
+          1,
+          1,
+          32,
+          128
+        ]
+      },
+      "tensor_dtypes": {
+        "core_attn_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16",
+        "z": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_20_prompt_01.safetensors",
+      "layer_id": 20,
+      "prompt_id": 1,
+      "compute_ms_mean": 0.3608480716745059,
+      "compute_ms_median": 0.3550928086042404,
+      "compute_ms_samples": [
+        0.39129331707954407,
+        0.3550928086042404,
+        0.3361580893397331
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ],
+      "tensor_shapes": {
+        "core_attn_out": [
+          1,
+          1,
+          32,
+          128
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ],
+        "z": [
+          1,
+          1,
+          32,
+          128
+        ]
+      },
+      "tensor_dtypes": {
+        "core_attn_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16",
+        "z": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_24_prompt_01.safetensors",
+      "layer_id": 24,
+      "prompt_id": 1,
+      "compute_ms_mean": 0.35919124881426495,
+      "compute_ms_median": 0.3526490181684494,
+      "compute_ms_samples": [
+        0.3810897469520569,
+        0.3526490181684494,
+        0.3438349813222885
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ],
+      "tensor_shapes": {
+        "core_attn_out": [
+          1,
+          1,
+          32,
+          128
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ],
+        "z": [
+          1,
+          1,
+          32,
+          128
+        ]
+      },
+      "tensor_dtypes": {
+        "core_attn_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16",
+        "z": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_28_prompt_01.safetensors",
+      "layer_id": 28,
+      "prompt_id": 1,
+      "compute_ms_mean": 0.35226096709569293,
+      "compute_ms_median": 0.34656282514333725,
+      "compute_ms_samples": [
+        0.37744268774986267,
+        0.34656282514333725,
+        0.33277738839387894
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ],
+      "tensor_shapes": {
+        "core_attn_out": [
+          1,
+          1,
+          32,
+          128
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ],
+        "z": [
+          1,
+          1,
+          32,
+          128
+        ]
+      },
+      "tensor_dtypes": {
+        "core_attn_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16",
+        "z": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_32_prompt_01.safetensors",
+      "layer_id": 32,
+      "prompt_id": 1,
+      "compute_ms_mean": 0.3696599354346593,
+      "compute_ms_median": 0.36398880183696747,
+      "compute_ms_samples": [
+        0.3855321556329727,
+        0.3594588488340378,
+        0.36398880183696747
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ],
+      "tensor_shapes": {
+        "core_attn_out": [
+          1,
+          1,
+          32,
+          128
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ],
+        "z": [
+          1,
+          1,
+          32,
+          128
+        ]
+      },
+      "tensor_dtypes": {
+        "core_attn_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16",
+        "z": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_36_prompt_01.safetensors",
+      "layer_id": 36,
+      "prompt_id": 1,
+      "compute_ms_mean": 0.3641977285345395,
+      "compute_ms_median": 0.3549698740243912,
+      "compute_ms_samples": [
+        0.4001688212156296,
+        0.3549698740243912,
+        0.33745449036359787
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ],
+      "tensor_shapes": {
+        "core_attn_out": [
+          1,
+          1,
+          32,
+          128
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ],
+        "z": [
+          1,
+          1,
+          32,
+          128
+        ]
+      },
+      "tensor_dtypes": {
+        "core_attn_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16",
+        "z": "torch.bfloat16"
+      }
+    }
+  ],
+  "p169_check_command": [
+    "/root/autodl-tmp/conda-envs/r6000-eval/bin/python",
+    "/root/autodl-tmp/lynn-engine/benchmarks/p169_qwen36_linear_core_fixture_contract.py",
+    "--fixtures",
+    "/root/autodl-tmp/reports/qwen36_35b/p169_linear_core_fixtures_official_w4a16_20260519_0750",
+    "--candidate-output-dir",
+    "/root/autodl-tmp/reports/qwen36_35b/p173_linear_boundary_reference_candidate_20260519_0824_boundary",
+    "--out",
+    "/root/autodl-tmp/reports/qwen36_35b/p173_linear_boundary_reference_candidate_20260519_0824_boundary_p169_check.json",
+    "--check",
+    "--device",
+    "cuda",
+    "--max-abs-threshold",
+    "0.0",
+    "--cosine-threshold",
+    "0.999999"
+  ],
+  "p169_check": {
+    "command": [
+      "/root/autodl-tmp/conda-envs/r6000-eval/bin/python",
+      "/root/autodl-tmp/lynn-engine/benchmarks/p169_qwen36_linear_core_fixture_contract.py",
+      "--fixtures",
+      "/root/autodl-tmp/reports/qwen36_35b/p169_linear_core_fixtures_official_w4a16_20260519_0750",
+      "--candidate-output-dir",
+      "/root/autodl-tmp/reports/qwen36_35b/p173_linear_boundary_reference_candidate_20260519_0824_boundary",
+      "--out",
+      "/root/autodl-tmp/reports/qwen36_35b/p173_linear_boundary_reference_candidate_20260519_0824_boundary_p169_check.json",
+      "--check",
+      "--device",
+      "cuda",
+      "--max-abs-threshold",
+      "0.0",
+      "--cosine-threshold",
+      "0.999999"
+    ],
+    "returncode": 0,
+    "stdout": "{\n  \"passed\": 20,\n  \"total\": 20,\n  \"max_abs_max\": 0.0,\n  \"cosine_min\": 0.9999998211860657,\n  \"all_passed\": true\n}\n",
+    "stderr": "",
+    "report": "/root/autodl-tmp/reports/qwen36_35b/p173_linear_boundary_reference_candidate_20260519_0824_boundary_p169_check.json",
+    "summary": {
+      "passed": 20,
+      "total": 20,
+      "max_abs_max": 0.0,
+      "cosine_min": 0.9999998211860657,
+      "all_passed": true
+    }
+  }
+}
