@@ -1,6 +1,6 @@
 # Qwen3.5-9B Release Status
 
-**Generated:** 2026-05-19T02:31:14+08:00  
+**Generated:** 2026-05-19T09:10:46+08:00  
 **Overall decision:** `PASS_RELEASE`  
 
 ## Compact Gate Matrix
@@ -9,7 +9,7 @@
 |---|---:|---:|---:|---:|---:|---:|---|---|
 | BF16 | REPORTED_PRESENT (18.0 GiB) | 77.20% | 44.95% | PENDING | PENDING | PENDING | `PASS_QUALITY_CEILING` | TPS not required for BF16 release ceiling |
 | Q4_K_M | REPORTED_PRESENT (5.5 GiB) | 76.00% | 37.37% | 168.2 | 420.6 | 72.2 | `PASS_RELEASE` | - |
-| NVFP4 | REPORTED_PRESENT (8.3 GiB) | 75.20% | 42.93% | 40.9 | 40.2 | 34.5 | `PASS_NVFP4_RUNTIME` | - |
+| NVFP4 | REPORTED_PRESENT (8.3 GiB) | 75.20% | 42.93% | 62.5 | 60.1 | 45.0 | `PASS_NVFP4_RUNTIME` | - |
 
 ## Explicit Blockers
 

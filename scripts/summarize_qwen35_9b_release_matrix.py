@@ -429,6 +429,37 @@ def _extract_nvfp4(report_dir: Path) -> dict[str, Any]:
                         elif isinstance(e, (int, float)):
                             entry["single_tps"][key] = round(float(e), 1)
 
+    # The promoted 9B NVFP4 path is the linear-block graph profile.  Its P150
+    # single-stream gate reports decode TPS, while P151 reports wall TPS plus
+    # concurrency and long-context smoke.  These files do not use the older
+    # `*_openai_matrix*` names, so keep them as first-class release inputs.
+    p151_summary_path = _latest("p151_qwen35_9b_nvfp4_linear_graph_matrix_summary_*.json", report_dir)
+    if p151_summary_path:
+        p151 = _load_json(p151_summary_path)
+        if p151:
+            for key, value in (p151.get("single_wall_tps") or {}).items():
+                if key in entry["single_tps"] and isinstance(value, (int, float)):
+                    entry["single_tps"][key] = round(float(value), 1)
+            for key, value in (p151.get("concurrent_total_tps") or {}).items():
+                if key in entry["concurrent_tps"] and isinstance(value, (int, float)):
+                    entry["concurrent_tps"][key] = round(float(value), 1)
+            long_map = {"4096": "4k", "16384": "16k", "32768": "32k"}
+            for key, value in (p151.get("long_context_wall_tps") or {}).items():
+                label = long_map.get(str(key), str(key))
+                if label in entry["long_context"] and isinstance(value, (int, float)):
+                    entry["long_context"][label] = round(float(value), 1)
+
+    p150_summary_path = _latest("p150_qwen35_9b_nvfp4_linear_graph_summary_*.json", report_dir)
+    if p150_summary_path:
+        p150 = _load_json(p150_summary_path)
+        if p150:
+            # Prefer the newer P150 decode-TPS single-stream gate when present;
+            # it is the stable service-line number we quote for Lynn-native
+            # NVFP4.  P151 remains the source for concurrency and long context.
+            for key, value in (p150.get("decode_tps") or {}).items():
+                if key in entry["single_tps"] and isinstance(value, (int, float)):
+                    entry["single_tps"][key] = round(float(value), 1)
+
     # Derive status
     has_quality = entry["mmlu"]["status"] == "DONE" or entry["gpqa"]["status"] == "DONE"
     has_tps = any(v is not None for v in entry["single_tps"].values())

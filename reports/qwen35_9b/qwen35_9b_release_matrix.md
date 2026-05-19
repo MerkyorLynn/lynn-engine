@@ -1,6 +1,6 @@
 # Qwen3.5-9B Release Matrix
 
-**Generated:** 2026-05-19T02:31:14+08:00  
+**Generated:** 2026-05-19T09:10:46+08:00  
 **Schema:** `lynn-qwen35-9b-release-matrix-v1`  
 
 > Cross-variant benchmark matrix for BF16 (quality ceiling), Q4_K_M (llama.cpp / Mac), and NVFP4 (Lynn Engine / NVIDIA Blackwell).
@@ -11,7 +11,7 @@
 |---------|-----------|-------|--------|------|------|------------|----------------|--------------|---------|
 | **BF16** | 18.0 | transformers-direct | 🟡 PARTIAL | 0.772 | 0.450 | — | — | — | No TPS benchmarks yet |
 | **Q4_K_M** | 5.5 | llama.cpp | 🟢 DONE | 0.760 | 0.374 | 128t=121.8 / 256t=165.2 / 512t=168.2 | x2=275.6 / x4=341.3 / x8=420.6 | 4k=146.0 / 16k=123.9 / 32k=72.2 | — |
-| **NVFP4** | 8.3 | Lynn Engine (CUDA) | 🟢 DONE | 0.752 | 0.429 | 128t=35.1 / 256t=41.0 / 512t=40.9 | x2=40.4 / x4=40.2 / x8=40.2 | 4k=39.7 / 16k=37.7 / 32k=34.5 | — |
+| **NVFP4** | 8.3 | Lynn Engine (CUDA) | 🟢 DONE | 0.752 | 0.429 | 128t=61.8 / 256t=62.4 / 512t=62.5 | x2=60.0 / x4=60.1 / x8=60.1 | 4k=56.1 / 16k=51.4 / 32k=45.0 | — |
 
 ## BF16 Details
 
@@ -61,9 +61,9 @@
 
 | TPS Type | 128 tok / 2 concurrency / 4k ctx | 256 tok / 4 concurrency / 16k ctx | 512 tok / 8 concurrency / 32k ctx |
 |----------|-----------------------------------|-----------------------------------|-----------------------------------|
-| Single TPS | 35.1 TPS | 41.0 TPS | 40.9 TPS |
-| Concurrent TPS | 40.4 TPS | 40.2 TPS | 40.2 TPS |
-| Long Context | 39.7 TPS | 37.7 TPS | 34.5 TPS |
+| Single TPS | 61.8 TPS | 62.4 TPS | 62.5 TPS |
+| Concurrent TPS | 60.0 TPS | 60.1 TPS | 60.1 TPS |
+| Long Context | 56.1 TPS | 51.4 TPS | 45.0 TPS |
 
 ## Status Legend
 
