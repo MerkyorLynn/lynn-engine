@@ -55,7 +55,7 @@ Options:
   --gpu-layers N        Layers to offload to GPU (default: 999=all)
   --gguf PATH           GGUF model file path (overrides auto-discovery)
   --llama-server PATH   llama-server binary path (overrides auto-discovery)
-  --flash-attn          Enable flash attention (default: off)
+  --flash-attn [MODE]   Enable flash attention with MODE auto/on/off (default: off)
   --dry-run             Print resolved config and exit without starting
   --help, -h            Show this help message
 
@@ -84,7 +84,7 @@ HELP
   exit 0
 }
 
-FLASH_ATTN=""
+FLASH_ATTN_MODE=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -97,7 +97,15 @@ while [[ $# -gt 0 ]]; do
     --gpu-layers)    N_GPU_LAYERS="$2"; shift 2 ;;
     --gguf)          GGUF="$2"; shift 2 ;;
     --llama-server)  LLAMA_SERVER="$2"; shift 2 ;;
-    --flash-attn)    FLASH_ATTN="--flash-attn"; shift ;;
+    --flash-attn)
+      if [[ $# -ge 2 && ! "$2" =~ ^-- ]]; then
+        FLASH_ATTN_MODE="$2"
+        shift 2
+      else
+        FLASH_ATTN_MODE="auto"
+        shift
+      fi
+      ;;
     --dry-run)       DRY_RUN=1; shift ;;
     --help|-h)       show_help ;;
     *)               echo "[qwen35-q4km-local] Unknown flag: $1" >&2; exit 1 ;;
@@ -270,7 +278,7 @@ cat <<EOF
   Threads:       $THREADS
   Parallel:      $PARALLEL
   GPU layers:    $N_GPU_LAYERS
-  Flash attn:    ${FLASH_ATTN:-off}
+  Flash attn:    ${FLASH_ATTN_MODE:-off}
   Log:           $LOG_FILE
 
   Connect your agent:
@@ -311,8 +319,8 @@ if [[ -n "$LLAMA_REASONING_ARGS" ]]; then
 fi
 
 # Flash attention
-if [[ -n "$FLASH_ATTN" ]]; then
-  CMD+=("$FLASH_ATTN")
+if [[ -n "$FLASH_ATTN_MODE" ]]; then
+  CMD+=(--flash-attn "$FLASH_ATTN_MODE")
 fi
 
 # Extra args (space-separated, intentionally unquoted for word-splitting)

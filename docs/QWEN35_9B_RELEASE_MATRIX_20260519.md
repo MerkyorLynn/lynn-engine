@@ -1,97 +1,93 @@
-# Qwen3.5-9B Release Matrix
+# Qwen3.5-9B Release Matrix · 2026-05-19
 
-**Generated:** 2026-05-19T02:31:14+08:00  
-**Schema:** `lynn-qwen35-9b-release-matrix-v1`  
+## Release Decision
 
-> Cross-variant benchmark matrix for BF16 (quality ceiling), Q4_K_M (llama.cpp / Mac), and NVFP4 (Lynn Engine / NVIDIA Blackwell).
+Qwen3.5-9B Dense is the first-release model line.
 
-## Summary Matrix
+| Track | Default Runtime | Default Artifact | Status |
+|---|---|---|---|
+| Mac / general local agents | llama.cpp | Q4_K_M GGUF | stable |
+| NVIDIA Linux / Blackwell | Lynn Engine | Lynn-native NVFP4 W4A16 | safe |
+| NVIDIA Linux / speed research | Lynn Engine | W4A8 / FP4xFP8 resident | experimental |
+| Windows | WSL2 or Docker | same as NVIDIA Linux | beta |
 
-| Variant | Size (GiB) | Stack | Status | MMLU | GPQA | Single TPS | Concurrent TPS | Long Context | Blocker |
-|---------|-----------|-------|--------|------|------|------------|----------------|--------------|---------|
-| **BF16** | 18.0 | transformers-direct | 🟡 PARTIAL | 0.772 | 0.450 | — | — | — | No TPS benchmarks yet |
-| **Q4_K_M** | 5.5 | llama.cpp | 🟢 DONE | 0.760 | 0.374 | 128t=121.8 / 256t=165.2 / 512t=168.2 | x2=275.6 / x4=341.3 / x8=420.6 | 4k=146.0 / 16k=123.9 / 32k=72.2 | — |
-| **NVFP4** | 8.3 | Lynn Engine (CUDA) | 🟢 DONE | 0.752 | 0.429 | 128t=35.1 / 256t=41.0 / 512t=40.9 | x2=40.4 / x4=40.2 / x8=40.2 | 4k=39.7 / 16k=37.7 / 32k=34.5 | — |
+The release should not be framed as a single experimental engine.  It should
+ship two practical paths: Q4_K_M for the llama.cpp/Mac ecosystem and NVFP4 for
+the NVIDIA/Lynn Engine ecosystem.
 
-**Runtime update:** P149 found a safe opt-in `linear_graph_only` NVFP4 profile
-for direct resident generation, and P150 confirmed it in the OpenAI/P25 serving
-path. The new safe NVFP4 service line is 60.80 / 61.47 / 61.69 decode TPS at
-128 / 256 / 512 tokens. The table above still shows the original full release
-matrix because it is generated from the original summary. P151 reran the serving
-matrix with the linear-graph profile: single 512 wall TPS is 60.09, concurrent
-x2/x4/x8 total TPS stays flat at 60.03/60.08/60.11, and long-context
-4k/16k/32k is 56.11/51.38/45.02 TPS. The next 9B runtime bottleneck is server
-concurrency/batching plus dense FFN fused kernels.
+## Quality Matrix
 
-## BF16 Details
+These are thinking-off, apples-to-apples quality numbers unless explicitly
+marked otherwise.
 
-- **Stack:** transformers-direct
-- **Size:** 18.0 GiB
-- **Status:** 🟡 PARTIAL
-- **Blocker:** No TPS benchmarks yet
+| Variant | Size | MMLU 500 | GPQA Diamond | Release Role |
+|---|---:|---:|---:|---|
+| BF16 official | ~18-19 GB | 77.20% | 44.95% | reference |
+| Q4_K_M GGUF | 5.49 GB | 76.00% | 37.37% | Mac stable |
+| Lynn-native W4A16 NVFP4 | 8.25 GB | 75.20-76.00% | 42.93% | NVIDIA safe |
+| Lynn W4A8 fake-quant | 8.25 GB | 75.80% | 43.94% | NVIDIA experimental |
+| Q4_K_M thinking-on 50-sample | 5.49 GB | 81.00% sample | 50.00% naive / 83.33% excl. parse-fail | capability signal |
 
-| Metric | Score | Correct | Total | Status |
-|--------|-------|---------|-------|--------|
-| MMLU | 0.7720 | 386 | 500 | 🟢 DONE |
-| GPQA | 0.4495 | 89 | 198 | 🟢 DONE |
+Quality takeaways:
 
-| TPS Type | 128 tok / 2 concurrency / 4k ctx | 256 tok / 4 concurrency / 16k ctx | 512 tok / 8 concurrency / 32k ctx |
-|----------|-----------------------------------|-----------------------------------|-----------------------------------|
-| Single TPS | — | — | — |
-| Concurrent TPS | — | — | — |
-| Long Context | — | — | — |
+- Q4_K_M is the smallest stable artifact, but GPQA drops more than NVFP4 in the
+  thinking-off grid.
+- Lynn-native NVFP4 preserves GPQA much better than Q4_K_M while keeping MMLU
+  within roughly 1-2 pp of BF16.
+- W4A8 fake-quant quality is essentially flat versus W4A16 in the Spark grid.
+  It is not a default until the resident FP4xFP8 path passes exact/structured
+  runtime gates.
 
-## Q4_K_M Details
+## R6000 Runtime Matrix
 
-- **Stack:** llama.cpp
-- **Size:** 5.5 GiB
-- **Status:** 🟢 DONE
+| Variant | Runtime | 512-token Single | Concurrent / Batch | Long Context | Notes |
+|---|---|---:|---:|---:|---|
+| Q4_K_M GGUF | llama.cpp CUDA, `parallel=8` | 165.8 TPS | 413.5 TPS at 8 requests | 16K chars 114.4 TPS | best competitive baseline |
+| Q4_K_M GGUF | llama.cpp CUDA, `parallel=1` | 164.5 TPS | no batching gain | 32K chars 55.5 TPS | true single-request 32K |
+| NVFP4 W4A16 | Lynn Engine safe profile | ~60-62 decode TPS | flat single-prompt service | 32K path measured in earlier gate | safe NVIDIA default |
+| W4A8 FP4xFP8 | Lynn Engine resident | not promoted | not promoted | not promoted | P190/P197 drift investigation |
 
-| Metric | Score | Correct | Total | Status |
-|--------|-------|---------|-------|--------|
-| MMLU | 0.7600 | 380 | 500 | 🟢 DONE |
-| GPQA | 0.3737 | 74 | 198 | 🟢 DONE |
+Important context:
 
-| TPS Type | 128 tok / 2 concurrency / 4k ctx | 256 tok / 4 concurrency / 16k ctx | 512 tok / 8 concurrency / 32k ctx |
-|----------|-----------------------------------|-----------------------------------|-----------------------------------|
-| Single TPS | 121.8 TPS | 165.2 TPS | 168.2 TPS |
-| Concurrent TPS | 275.6 TPS | 341.3 TPS | 420.6 TPS |
-| Long Context | 146.0 TPS | 123.9 TPS | 72.2 TPS |
+- The earlier `parallel=8` 32K failure on Q4_K_M is a llama.cpp slot partition
+  issue, not proof that the model cannot handle 32K.  The `parallel=1` rerun
+  passed 32K chars.
+- Q4_K_M is currently much faster than Lynn-native NVFP4 on 9B because
+  llama.cpp has a mature repacked CUDA path and batching.  Lynn's NVIDIA track
+  remains valuable because it gives us a native NVFP4/FP4xFP8 engine path and
+  better GPQA preservation than Q4_K_M.
 
-## NVFP4 Details
+## Distribution
 
-- **Stack:** Lynn Engine (CUDA)
-- **Size:** 8.3 GiB
-- **Status:** 🟢 DONE
+| Domain | Purpose |
+|---|---|
+| `engine.merkyorlynn.com` | docs, install entrypoint, model cards, API guides |
+| `dl.merkyorlynn.com` | model bundles, GGUF, NVFP4 packs, wheels, checksums |
+| `mirror.merkyorlynn.com` | optional mainland-China mirror if needed |
 
-| Metric | Score | Correct | Total | Status |
-|--------|-------|---------|-------|--------|
-| MMLU | 0.7520 | 376 | 500 | 🟢 DONE |
-| GPQA | 0.4293 | 85 | 198 | 🟢 DONE |
+Suggested public layout:
 
-| TPS Type | 128 tok / 2 concurrency / 4k ctx | 256 tok / 4 concurrency / 16k ctx | 512 tok / 8 concurrency / 32k ctx |
-|----------|-----------------------------------|-----------------------------------|-----------------------------------|
-| Single TPS | 35.1 TPS | 41.0 TPS | 40.9 TPS |
-| Concurrent TPS | 40.4 TPS | 40.2 TPS | 40.2 TPS |
-| Long Context | 39.7 TPS | 37.7 TPS | 34.5 TPS |
+```text
+https://engine.merkyorlynn.com/docs/qwen35-9b/
+https://engine.merkyorlynn.com/docs/qwen35-9b/model-card
+https://dl.merkyorlynn.com/models/qwen35-9b/q4_k_m/
+https://dl.merkyorlynn.com/models/qwen35-9b/nvfp4-w4a16/
+https://dl.merkyorlynn.com/models/qwen35-9b/checksums.sha256
+```
 
-## Status Legend
+## Promotion Rules
 
-| Icon | Meaning |
-|------|---------|
-| 🟢 DONE | All benchmarks complete |
-| 🟡 PARTIAL | Some benchmarks complete, more pending |
-| ⏳ PENDING | No benchmark data yet |
-| 🔴 BLOCKED | Blocked by known issue |
+| Candidate | Promotion Rule |
+|---|---|
+| Q4_K_M Mac path | llama.cpp endpoint smoke passes `/v1/models`, chat, and JSON prompt |
+| NVFP4 W4A16 | remains NVIDIA safe default while exact/structured gates pass |
+| W4A8 / FP4xFP8 | can only move beyond experimental after P197/P190 token drift is resolved and P196 structured gate holds |
+| 35B A3B | side track; Spark MTP reproduction must prove no-MTP vs MTP uplift, accept rate, accept length, and quality smoke |
 
-## Source Report Files
+## Source Reports
 
-This matrix was auto-generated from the following report patterns:
-
-- `bf16_*_quality_summary.json` / `bf16_*_mmlu*.summary.json` / `bf16_*_gpqa*.summary.json`
-- `r6000_qwen35_9b_q4km_baseline_*.json`
-- `*nvfp4*matrix*.json` / `*nvfp4*watch*.json` / `nvfp4*_mmlu*.summary.json` / `nvfp4*_gpqa*.summary.json`
-- `*release_matrix*.json` (previous run, for diff)
-
----
-*Generated by `scripts/summarize_qwen35_9b_release_matrix.py`*
+- `reports/qwen35_9b/r6000_qwen35_9b_q4km_cuda_baseline_20260519_1731.md`
+- `reports/qwen35_9b/r6000_qwen35_9b_q4km_cuda_baseline_20260519_1732.md`
+- `reports/qwen35_9b/P196_W4A8_STRUCTURED_CONTENT_GATE_20260519.md`
+- `reports/qwen35_9b/qwen35_9b_release_matrix.md`
+- `docs/QWEN36_35B_SPARK_MTP_REPRO_GATE_20260519.md`
