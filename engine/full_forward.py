@@ -579,17 +579,30 @@ def _decode_layer_k2(
 
     residual = h
     h_norm = _rms_norm(h, w["post_attention_layernorm.weight"])
-    # Force the T-agnostic active-expert MoE for K=2 path. The packed_nvfp4
-    # backend (default for Spark Config D) is T=1-only — its fused Triton
-    # kernel hard-codes h.shape[1] == 1. The "optimized" variant uses BF16
-    # expert weights which are retained in memory as long as the runner did
-    # not call ``release_decode_bf16_shadows`` (default off). This is a known
-    # perf compromise: BF16 MoE is slower per call than packed NVFP4, but
-    # ships the batched verify path without a kernel rewrite. Future work:
-    # extend ``moe_forward_decode_packed_nvfp4`` to T>=2 so the K=2 path
-    # inherits the fast NVFP4 expert kernels.
-    moe_fn_k2 = _resolve_decode_moe_impl("optimized")
-    moe_out = moe_fn_k2(h_norm, w, cfg)
+    # MoE for K=2: the packed_nvfp4 backend (Spark Config D default) is
+    # T=1-only — its fused Triton kernel hard-codes h.shape[1] == 1. The
+    # cheap fallback ``moe_fn=optimized`` (BF16 active-expert loop) works
+    # at T>=2 but uses different kernels from the T=1 production path —
+    # the resulting numerical drift broke MTP speculative accept (was 11%
+    # with BF16 fallback vs 77% with sequential T=1 packed_nvfp4).
+    #
+    # The fix is to keep the same backend the runner is configured for
+    # but call it ONCE PER TOKEN (T=1 invocations), then concat the
+    # outputs. This trades a tiny per-position Python launch for backend
+    # consistency, which is critical for the K=1 batched MTP verify path
+    # (M9 — confirmed on Spark 2026-05-19).
+    base_moe_fn = moe_fn if moe_fn is not None else _resolve_decode_moe_impl(
+        os.environ.get("LYNN_MOE_IMPL", "optimized")
+    )
+    if h_norm.shape[1] == 1:
+        moe_out = base_moe_fn(h_norm, w, cfg)
+    else:
+        # Per-position T=1 MoE for backend consistency.
+        moe_per_token = [
+            base_moe_fn(h_norm[:, t : t + 1, :].contiguous(), w, cfg)
+            for t in range(h_norm.shape[1])
+        ]
+        moe_out = torch.cat(moe_per_token, dim=1)
     return residual + moe_out
 
 
