@@ -545,7 +545,7 @@ def _decode_layer_k2(
 
     Returns: ``h_new_k2 [B, 2, HIDDEN]`` after one decoder block.
     """
-    from engine.incremental_decode import decode_full_attn_k2, decode_linear_attn_k2
+    from engine.incremental_decode import decode_full_attn, decode_full_attn_k2, decode_linear_attn_k2
 
     residual = h_new_k2
     h_norm = _rms_norm(h_new_k2, w["input_layernorm.weight"])
@@ -571,10 +571,36 @@ def _decode_layer_k2(
             state.update_linear_attn_state(layer_idx, new_state, new_conv)
     else:
         K, V = state.kv_cache[layer_idx]
-        attn_out = decode_full_attn_k2(
-            h_norm, position_ids_k2, w, cfg, K, V,
-            cached_seq_len=state.seq_len,
-        )
+        if os.environ.get("LYNN_FULL_ATTN_K2_BACKEND", "k2") == "t1_loop":
+            # Strict verifier fallback: reuse the exact T=1 full-attention
+            # primitive twice so Q/K/V/O projection, RoPE, SDPA, and cache
+            # writes match the sequential speculative verifier. This is an
+            # opt-in correctness bridge for MTP K=2 while the true batched
+            # full-attention path is being made bit-stable.
+            attn0 = decode_full_attn(
+                h_norm[:, 0:1, :].contiguous(),
+                position_ids_k2[:, 0:1].contiguous(),
+                w,
+                cfg,
+                K,
+                V,
+                cached_seq_len=state.seq_len,
+            )
+            attn1 = decode_full_attn(
+                h_norm[:, 1:2, :].contiguous(),
+                position_ids_k2[:, 1:2].contiguous(),
+                w,
+                cfg,
+                K,
+                V,
+                cached_seq_len=state.seq_len + 1,
+            )
+            attn_out = torch.cat([attn0, attn1], dim=1)
+        else:
+            attn_out = decode_full_attn_k2(
+                h_norm, position_ids_k2, w, cfg, K, V,
+                cached_seq_len=state.seq_len,
+            )
     h = residual + attn_out
 
     residual = h
