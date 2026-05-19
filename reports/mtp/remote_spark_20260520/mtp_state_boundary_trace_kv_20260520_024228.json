@@ -1,0 +1,212 @@
+{
+  "schema_version": "lynn-mtp-state-boundary-trace-v1",
+  "model": "/home/merkyor/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-from-r6000",
+  "sidecar": "/home/merkyor/models/mtp_sidecars/qwen36-35b-a3b-mtp-official-lynn-fused/mtp.safetensors",
+  "prompt": "Explain the difference between Q4_K_M and NVFP4 quantization in two sentences.",
+  "max_events": 12,
+  "include_kv": true,
+  "first_bad": {
+    "event": 5,
+    "accepted": true,
+    "committed_tokens": [
+      25,
+      271
+    ],
+    "draft_id": 271,
+    "baseline_next_pending": 16,
+    "spec_next_pending": 16,
+    "next_pending_match": true,
+    "baseline_seq_len": 29,
+    "spec_seq_len": 29,
+    "state_worst": {
+      "kind": "conv",
+      "layer": 38,
+      "name": "conv",
+      "max_abs": 0.25,
+      "mean_abs": 0.003247647313401103,
+      "rel_l2": 0.0034622265957295895,
+      "cosine": 0.9999943375587463
+    },
+    "next_hidden": {
+      "max_abs": 0.046875,
+      "mean_abs": 0.0038357339799404144,
+      "rel_l2": 0.021126030012965202,
+      "cosine": 0.9997861385345459
+    }
+  },
+  "events": [
+    {
+      "event": 0,
+      "accepted": false,
+      "committed_tokens": [
+        271
+      ],
+      "draft_id": 332,
+      "baseline_next_pending": 248068,
+      "spec_next_pending": 248068,
+      "next_pending_match": true,
+      "baseline_seq_len": 20,
+      "spec_seq_len": 20,
+      "state_worst": {
+        "kind": "recurrent",
+        "layer": 0,
+        "name": "recurrent",
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "next_hidden": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "event": 1,
+      "accepted": false,
+      "committed_tokens": [
+        248068
+      ],
+      "draft_id": 271,
+      "baseline_next_pending": 198,
+      "spec_next_pending": 198,
+      "next_pending_match": true,
+      "baseline_seq_len": 21,
+      "spec_seq_len": 21,
+      "state_worst": {
+        "kind": "recurrent",
+        "layer": 0,
+        "name": "recurrent",
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104
+      },
+      "next_hidden": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "event": 2,
+      "accepted": true,
+      "committed_tokens": [
+        198,
+        8160
+      ],
+      "draft_id": 8160,
+      "baseline_next_pending": 579,
+      "spec_next_pending": 579,
+      "next_pending_match": true,
+      "baseline_seq_len": 23,
+      "spec_seq_len": 23,
+      "state_worst": {
+        "kind": "recurrent",
+        "layer": 0,
+        "name": "recurrent",
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "next_hidden": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "event": 3,
+      "accepted": true,
+      "committed_tokens": [
+        579,
+        264
+      ],
+      "draft_id": 264,
+      "baseline_next_pending": 7047,
+      "spec_next_pending": 7047,
+      "next_pending_match": true,
+      "baseline_seq_len": 25,
+      "spec_seq_len": 25,
+      "state_worst": {
+        "kind": "recurrent",
+        "layer": 0,
+        "name": "recurrent",
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896
+      },
+      "next_hidden": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "event": 4,
+      "accepted": true,
+      "committed_tokens": [
+        7047,
+        1817
+      ],
+      "draft_id": 1817,
+      "baseline_next_pending": 25,
+      "spec_next_pending": 25,
+      "next_pending_match": true,
+      "baseline_seq_len": 27,
+      "spec_seq_len": 27,
+      "state_worst": {
+        "kind": "recurrent",
+        "layer": 0,
+        "name": "recurrent",
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998211860657
+      },
+      "next_hidden": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      }
+    },
+    {
+      "event": 5,
+      "accepted": true,
+      "committed_tokens": [
+        25,
+        271
+      ],
+      "draft_id": 271,
+      "baseline_next_pending": 16,
+      "spec_next_pending": 16,
+      "next_pending_match": true,
+      "baseline_seq_len": 29,
+      "spec_seq_len": 29,
+      "state_worst": {
+        "kind": "conv",
+        "layer": 38,
+        "name": "conv",
+        "max_abs": 0.25,
+        "mean_abs": 0.003247647313401103,
+        "rel_l2": 0.0034622265957295895,
+        "cosine": 0.9999943375587463
+      },
+      "next_hidden": {
+        "max_abs": 0.046875,
+        "mean_abs": 0.0038357339799404144,
+        "rel_l2": 0.021126030012965202,
+        "cosine": 0.9997861385345459
+      }
+    }
+  ],
+  "elapsed_seconds": 322.7274878025055
+}

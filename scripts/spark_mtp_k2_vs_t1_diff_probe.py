@@ -110,6 +110,25 @@ def main() -> int:
     ap.add_argument("--sidecar", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--prompt", default="Explain the difference between Q4_K_M and NVFP4 quantization in two sentences.")
+    ap.add_argument(
+        "--advance-token-id",
+        action="append",
+        type=int,
+        default=[],
+        help="Decode these token ids with canonical T=1 before comparing K=2.",
+    )
+    ap.add_argument("--pending-id", type=int, default=None)
+    ap.add_argument("--draft-id", type=int, default=None)
+    ap.add_argument(
+        "--call-mtp-before-compare",
+        action="store_true",
+        help="Run runner._mtp_draft_logits once before taking the compare snapshot.",
+    )
+    ap.add_argument(
+        "--k2-first",
+        action="store_true",
+        help="Run the K=2 verifier before the sequential verifier to expose order-dependent scratch effects.",
+    )
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--dtype", default="bfloat16", choices=["bfloat16", "float16"])
     ap.add_argument("--drift-max-abs", type=float, default=1e-3)
@@ -145,51 +164,105 @@ def main() -> int:
 
         h_norm = _rms_norm(h, runner.outside["model.language_model.norm.weight"])
         pending_id = _argmax_id(runner._lm_head_logits(h_norm))
-        draft_logits = runner._mtp_draft_logits(
-            base_hidden=h[:, -1:, :],
-            current_token_id=int(ids[0, -1].item()),
-            current_pos=T - 1,
-        )
-        draft_id = _argmax_id(draft_logits)
+        pending_base_hidden = h[:, -1:, :].contiguous()
+        pending_pos = T - 1
+        last_token_for_mtp = int(ids[0, -1].item())
+
+        for token_id in args.advance_token_id:
+            token = torch.tensor([[int(token_id)]], device=runner.device, dtype=torch.long)
+            pos_one = torch.tensor([[int(state.seq_len)]], device=runner.device, dtype=torch.long)
+            h_adv = F.embedding(token, runner.outside["model.language_model.embed_tokens.weight"])
+            for i in range(runner.n_layers):
+                h_adv = runner._decode_layer_fast(h_adv, pos_one, state, i)
+            state.seq_len += 1
+            pending_base_hidden = h_adv.contiguous()
+            pending_pos = int(state.seq_len - 1)
+            last_token_for_mtp = int(token_id)
+            pending_id = _argmax_id(
+                runner._lm_head_logits(
+                    _rms_norm(h_adv, runner.outside["model.language_model.norm.weight"])
+                )
+            )
+
+        if args.pending_id is not None:
+            pending_id = int(args.pending_id)
+        if args.draft_id is not None:
+            draft_id = int(args.draft_id)
+        else:
+            draft_logits = runner._mtp_draft_logits(
+                base_hidden=pending_base_hidden,
+                current_token_id=last_token_for_mtp,
+                current_pos=pending_pos,
+            )
+            draft_id = _argmax_id(draft_logits)
+        if args.call_mtp_before_compare:
+            _ = runner._mtp_draft_logits(
+                base_hidden=pending_base_hidden,
+                current_token_id=last_token_for_mtp,
+                current_pos=pending_pos,
+            )
         pre_snap = runner._snapshot_state(state)
 
-        # Sequential T=1 + T=1 verifier.
-        runner._restore_state(state, pre_snap)
-        token0 = torch.tensor([[pending_id]], device=runner.device, dtype=torch.long)
-        pos0 = torch.tensor([[T]], device=runner.device, dtype=torch.long)
-        h0 = F.embedding(token0, runner.outside["model.language_model.embed_tokens.weight"])
-        seq0_by_layer: list[torch.Tensor] = []
-        for i in range(runner.n_layers):
-            h0 = runner._decode_layer_fast(h0, pos0, state, i)
-            seq0_by_layer.append(h0.detach().clone())
-        state.seq_len += 1
+        def run_sequential() -> tuple[torch.Tensor, torch.Tensor, dict[str, Any], list[torch.Tensor], list[torch.Tensor]]:
+            runner._restore_state(state, pre_snap)
+            token0 = torch.tensor([[pending_id]], device=runner.device, dtype=torch.long)
+            pos0 = torch.tensor([[int(pre_snap["seq_len"])]], device=runner.device, dtype=torch.long)
+            h0 = F.embedding(token0, runner.outside["model.language_model.embed_tokens.weight"])
+            seq0_layers: list[torch.Tensor] = []
+            for layer_idx in range(runner.n_layers):
+                h0 = runner._decode_layer_fast(h0, pos0, state, layer_idx)
+                seq0_layers.append(h0.detach().clone())
+            state.seq_len += 1
 
-        token1 = torch.tensor([[draft_id]], device=runner.device, dtype=torch.long)
-        pos1 = torch.tensor([[T + 1]], device=runner.device, dtype=torch.long)
-        h1 = F.embedding(token1, runner.outside["model.language_model.embed_tokens.weight"])
-        seq1_by_layer: list[torch.Tensor] = []
-        for i in range(runner.n_layers):
-            h1 = runner._decode_layer_fast(h1, pos1, state, i)
-            seq1_by_layer.append(h1.detach().clone())
-        state.seq_len += 1
-        seq_h = torch.cat([h0, h1], dim=1)
-        seq_logits = runner._lm_head_logits(
-            _rms_norm(seq_h, runner.outside["model.language_model.norm.weight"]),
-            all_positions=True,
-        )
-        seq_snap = runner._snapshot_state(state)
+            token1 = torch.tensor([[draft_id]], device=runner.device, dtype=torch.long)
+            pos1 = torch.tensor([[int(pre_snap["seq_len"]) + 1]], device=runner.device, dtype=torch.long)
+            h1 = F.embedding(token1, runner.outside["model.language_model.embed_tokens.weight"])
+            seq1_layers: list[torch.Tensor] = []
+            for layer_idx in range(runner.n_layers):
+                h1 = runner._decode_layer_fast(h1, pos1, state, layer_idx)
+                seq1_layers.append(h1.detach().clone())
+            state.seq_len += 1
+            seq_hidden = torch.cat([h0, h1], dim=1)
+            seq_out_logits = runner._lm_head_logits(
+                _rms_norm(seq_hidden, runner.outside["model.language_model.norm.weight"]),
+                all_positions=True,
+            )
+            seq_out_snap = runner._snapshot_state(state)
+            return seq_hidden, seq_out_logits, seq_out_snap, seq0_layers, seq1_layers
 
-        # Batched K=2 verifier.
-        runner._restore_state(state, pre_snap)
-        tokens_k2 = torch.tensor([[pending_id, draft_id]], device=runner.device, dtype=torch.long)
-        pos_k2 = torch.tensor([[T, T + 1]], device=runner.device, dtype=torch.long)
-        hk2 = F.embedding(tokens_k2, runner.outside["model.language_model.embed_tokens.weight"])
+        def run_k2() -> tuple[torch.Tensor, torch.Tensor, dict[str, Any], list[torch.Tensor]]:
+            runner._restore_state(state, pre_snap)
+            tokens = torch.tensor([[pending_id, draft_id]], device=runner.device, dtype=torch.long)
+            pos = torch.tensor(
+                [[int(pre_snap["seq_len"]), int(pre_snap["seq_len"]) + 1]],
+                device=runner.device,
+                dtype=torch.long,
+            )
+            hk = F.embedding(tokens, runner.outside["model.language_model.embed_tokens.weight"])
+            layers: list[torch.Tensor] = []
+            for layer_idx in range(runner.n_layers):
+                hk = runner._decode_layer_k2_fast(hk, pos, state, layer_idx)
+                layers.append(hk.detach().clone())
+            state.seq_len += 2
+            logits = runner._lm_head_logits(
+                _rms_norm(hk, runner.outside["model.language_model.norm.weight"]),
+                all_positions=True,
+            )
+            snap = runner._snapshot_state(state)
+            return hk, logits, snap, layers
+
+        if args.k2_first:
+            hk2, k2_logits, k2_snap, k2_by_layer = run_k2()
+            seq_h, seq_logits, seq_snap, seq0_by_layer, seq1_by_layer = run_sequential()
+        else:
+            seq_h, seq_logits, seq_snap, seq0_by_layer, seq1_by_layer = run_sequential()
+            hk2, k2_logits, k2_snap, k2_by_layer = run_k2()
+
         layer_rows: list[dict[str, Any]] = []
         first_bad: dict[str, Any] | None = None
-        for i in range(runner.n_layers):
-            hk2 = runner._decode_layer_k2_fast(hk2, pos_k2, state, i)
-            c0 = _cmp(seq0_by_layer[i], hk2[:, 0:1, :])
-            c1 = _cmp(seq1_by_layer[i], hk2[:, 1:2, :])
+        for i, hk2_layer in enumerate(k2_by_layer):
+            c0 = _cmp(seq0_by_layer[i], hk2_layer[:, 0:1, :])
+            c1 = _cmp(seq1_by_layer[i], hk2_layer[:, 1:2, :])
             row = {
                 "layer": i,
                 "layer_type": runner.layer_types[i],
@@ -209,12 +282,7 @@ def main() -> int:
                         "pos0": c0,
                         "pos1": c1,
                     }
-        state.seq_len += 2
-        k2_logits = runner._lm_head_logits(
-            _rms_norm(hk2, runner.outside["model.language_model.norm.weight"]),
-            all_positions=True,
-        )
-        k2_snap = runner._snapshot_state(state)
+
         state_diff = _state_cmp(seq_snap, k2_snap)
 
         report = {
@@ -223,6 +291,10 @@ def main() -> int:
             "sidecar": args.sidecar,
             "prompt": args.prompt,
             "prompt_len": T,
+            "advance_token_ids": [int(x) for x in args.advance_token_id],
+            "state_seq_len_before_compare": int(pre_snap["seq_len"]),
+            "called_mtp_before_compare": bool(args.call_mtp_before_compare),
+            "k2_first": bool(args.k2_first),
             "pending_id": pending_id,
             "pending_text": tok.decode([pending_id]),
             "draft_id": draft_id,
