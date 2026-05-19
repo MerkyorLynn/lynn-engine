@@ -30,10 +30,12 @@ try:
     from triton_kernels.gated_delta import (
         recurrent_gated_delta_fused_prepare,
         recurrent_gated_delta_fused_prepare_gqa,
+        recurrent_gated_delta_fused_prepare_from_outconv_gqa,
     )
 except Exception:  # pragma: no cover - optional acceleration path.
     recurrent_gated_delta_fused_prepare = None
     recurrent_gated_delta_fused_prepare_gqa = None
+    recurrent_gated_delta_fused_prepare_from_outconv_gqa = None
 
 try:
     from triton_kernels.rmsnorm_gated import rms_norm_gated_triton
@@ -596,13 +598,7 @@ def decode_linear_attn(h_new, w, recurrent_state, conv_state, *, recurrent_backe
         W("linear_attn.conv1d.weight"),
     )
 
-    # 3. Split q/k/v
-    q, k, v = torch.split(out_conv, [KEY_DIM, KEY_DIM, VALUE_DIM], dim=-1)
-    q = q.reshape(B, 1, NUM_K_HEADS, HEAD_K_DIM)
-    k = k.reshape(B, 1, NUM_K_HEADS, HEAD_K_DIM)
-    v = v.reshape(B, 1, NUM_V_HEADS, HEAD_V_DIM)
-
-    # 4. z, beta, g (using h_new)
+    # 3. z, beta, g (using h_new)
     z = z.reshape(B, 1, NUM_V_HEADS, HEAD_V_DIM)
     beta = b.sigmoid()
     dt_bias = W("linear_attn.dt_bias")
@@ -611,19 +607,37 @@ def decode_linear_attn(h_new, w, recurrent_state, conv_state, *, recurrent_backe
         neg_exp_A_log = -W("linear_attn.A_log").float().exp()
     g = neg_exp_A_log * F.softplus(a.float() + dt_bias.float())
 
-    # 5. q, k repeat by V_PER_K. P10-D can avoid this materialization for the
+    # 4. q, k repeat by V_PER_K. P10-D can avoid this materialization for the
     # Triton recurrent path by reading q/k as grouped-query heads directly.
     use_gqa_recurrent = (
         recurrent_backend == "triton_fused_prepare"
         and V_PER_K > 1
         and os.environ.get("LYNN_LINEAR_ATTN_GQA_RECURRENT", "0") == "1"
     )
-    if V_PER_K > 1 and not use_gqa_recurrent:
-        q = q.repeat_interleave(V_PER_K, dim=2)
-        k = k.repeat_interleave(V_PER_K, dim=2)
 
-    # 6. recurrent gated delta rule (single-step)
-    if recurrent_backend == "torch":
+    use_outconv_recurrent = (
+        use_gqa_recurrent
+        and os.environ.get("LYNN_LINEAR_ATTN_RECURRENT_FROM_OUTCONV", "0") == "1"
+    )
+    if use_outconv_recurrent:
+        if recurrent_gated_delta_fused_prepare_from_outconv_gqa is None:
+            raise RuntimeError("outconv recurrent requested but Triton kernel is unavailable")
+        core_attn_out, new_recurrent_state = recurrent_gated_delta_fused_prepare_from_outconv_gqa(
+            out_conv, g, beta, recurrent_state
+        )
+    else:
+        q, k, v = torch.split(out_conv, [KEY_DIM, KEY_DIM, VALUE_DIM], dim=-1)
+        q = q.reshape(B, 1, NUM_K_HEADS, HEAD_K_DIM)
+        k = k.reshape(B, 1, NUM_K_HEADS, HEAD_K_DIM)
+        v = v.reshape(B, 1, NUM_V_HEADS, HEAD_V_DIM)
+        if V_PER_K > 1 and not use_gqa_recurrent:
+            q = q.repeat_interleave(V_PER_K, dim=2)
+            k = k.repeat_interleave(V_PER_K, dim=2)
+
+    # 5. recurrent gated delta rule (single-step)
+    if use_outconv_recurrent:
+        pass
+    elif recurrent_backend == "torch":
         core_attn_out, new_recurrent_state = _recurrent_gated_delta_rule(
             q, k, v, g, beta, recurrent_state
         )

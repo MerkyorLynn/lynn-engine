@@ -1,0 +1,46 @@
+{
+  "schema_version": "lynn-qwen36-candidate-promotion-summary-v1",
+  "candidate_name": "recurrent_from_outconv",
+  "stamp": "20260519_0902_outconv_resident",
+  "candidate_env": [
+    "LYNN_LINEAR_ATTN_RECURRENT_FROM_OUTCONV=1"
+  ],
+  "thresholds": {
+    "safe_default_tps": 108.0,
+    "default_threshold": 109.0,
+    "amber_threshold": 118.0,
+    "default_requires_structured": "40/40",
+    "amber_requires_structured": "70/70"
+  },
+  "returncodes": {
+    "p37": 0,
+    "p25": 0,
+    "hard_structured": 1
+  },
+  "metrics": {
+    "p37_exact": true,
+    "p37_median_speedup": 1.0042334382482496,
+    "p25_512_decode_tps": 107.9959332901979,
+    "hard_structured_ok": true,
+    "hard_structured_decode_tps_mean": 107.86484671409411,
+    "structured_prompt_file": "scripts/qwen36_structured_hard_prompts.json",
+    "structured_prompt_count": 10,
+    "structured_request_count": 40,
+    "structured_pass_count": 40,
+    "structured_pass_rate": 1.0,
+    "structured_pass_rate_40": 1.0,
+    "structured_pass_rate_70": null,
+    "structured_40_exact": true,
+    "structured_70_exact": false
+  },
+  "reports": {
+    "p37": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_recurrent_from_outconv_20260519_0902_outconv_resident_p37.json",
+    "p25": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_recurrent_from_outconv_20260519_0902_outconv_resident_p25.json",
+    "hard_structured": "/root/autodl-tmp/reports/qwen36_35b/r6000_qwen36_w4a16_recurrent_from_outconv_20260519_0902_outconv_resident_hard_structured.json",
+    "p26": null,
+    "p28": null
+  },
+  "promote_default": false,
+  "promote_amber": false,
+  "decision": "CLOSED: P25 512 decode TPS is below safe default."
+}

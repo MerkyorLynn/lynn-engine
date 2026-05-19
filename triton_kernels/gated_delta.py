@@ -115,6 +115,50 @@ if HAS_TRITON:
         tl.store(s_new_ptr + s_offsets, s_new)
         tl.store(out_ptr + head * HEAD_V + offs_v, out)
 
+    @triton.jit
+    def _recurrent_fused_prepare_from_outconv_gqa_kernel(
+        out_conv_ptr,
+        g_ptr,
+        beta_ptr,
+        s_prev_ptr,
+        out_ptr,
+        s_new_ptr,
+        BLOCK_K: tl.constexpr,
+        BLOCK_V: tl.constexpr,
+        HEAD_V: tl.constexpr,
+        NUM_K: tl.constexpr,
+        NUM_V: tl.constexpr,
+        V_PER_K: tl.constexpr,
+    ):
+        head = tl.program_id(0)
+        kv_head = head // V_PER_K
+        v_block = tl.program_id(1)
+        offs_k = tl.arange(0, BLOCK_K)
+        offs_v = v_block * BLOCK_V + tl.arange(0, BLOCK_V)
+
+        q_base = kv_head * BLOCK_K
+        k_base = NUM_K * BLOCK_K + kv_head * BLOCK_K
+        v_base = NUM_K * BLOCK_K * 2 + head * HEAD_V
+        q_raw = tl.load(out_conv_ptr + q_base + offs_k).to(tl.float32)
+        k_raw = tl.load(out_conv_ptr + k_base + offs_k).to(tl.float32)
+        q_norm = tl.rsqrt(tl.sum(q_raw * q_raw, axis=0) + 1.0e-6)
+        k_norm = tl.rsqrt(tl.sum(k_raw * k_raw, axis=0) + 1.0e-6)
+        q = q_raw * q_norm * 0.08838834764831845
+        k = k_raw * k_norm
+        v = tl.load(out_conv_ptr + v_base + offs_v).to(tl.float32)
+        g_exp = tl.exp(tl.load(g_ptr + head).to(tl.float32))
+        beta = tl.load(beta_ptr + head).to(tl.float32)
+
+        s_offsets = head * BLOCK_K * HEAD_V + offs_k[:, None] * HEAD_V + offs_v[None, :]
+        s_prev = tl.load(s_prev_ptr + s_offsets).to(tl.float32)
+        s_decay = s_prev * g_exp
+        kv_mem = tl.sum(s_decay * k[:, None], axis=0)
+        delta = (v - kv_mem) * beta
+        s_new = s_decay + k[:, None] * delta[None, :]
+        out = tl.sum(s_new * q[:, None], axis=0)
+        tl.store(s_new_ptr + s_offsets, s_new)
+        tl.store(out_ptr + head * HEAD_V + offs_v, out)
+
 
 def recurrent_gated_delta_fused_prepare(
     q: torch.Tensor,
@@ -200,6 +244,50 @@ def recurrent_gated_delta_fused_prepare_gqa(
         BLOCK_K=HEAD_K_DIM,
         BLOCK_V=32,
         HEAD_V=HEAD_V_DIM,
+        V_PER_K=2,
+        num_warps=4,
+    )
+    return out.reshape(1, 1, NUM_V_HEADS, HEAD_V_DIM).to(initial_dtype), s_new
+
+
+def recurrent_gated_delta_fused_prepare_from_outconv_gqa(
+    out_conv: torch.Tensor,
+    g: torch.Tensor,
+    beta: torch.Tensor,
+    s_prev: torch.Tensor,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """GQA recurrent update that reads q/k/v directly from conv output.
+
+    This preserves the existing recurrent math while avoiding q/k/v split,
+    reshape, and contiguous materialization in Python. `out_conv` uses the
+    linear-attention decode layout `[1,1,8192]`:
+
+      q [0:2048], k [2048:4096], v [4096:8192].
+    """
+    _require_triton()
+    conv_dim = NUM_K_HEADS * HEAD_K_DIM * 2 + NUM_V_HEADS * HEAD_V_DIM
+    if out_conv.shape != (1, 1, conv_dim):
+        raise ValueError(f"out_conv shape must be [1,1,{conv_dim}], got {tuple(out_conv.shape)}")
+    if g.shape != (1, 1, NUM_V_HEADS) or beta.shape != (1, 1, NUM_V_HEADS):
+        raise ValueError(f"unexpected g/beta shape: g={tuple(g.shape)} beta={tuple(beta.shape)}")
+    if s_prev.shape != (1, NUM_V_HEADS, HEAD_K_DIM, HEAD_V_DIM):
+        raise ValueError(f"state shape must be [1,{NUM_V_HEADS},{HEAD_K_DIM},{HEAD_V_DIM}], got {tuple(s_prev.shape)}")
+    initial_dtype = out_conv.dtype
+    out = torch.empty((NUM_V_HEADS, HEAD_V_DIM), device=out_conv.device, dtype=torch.float32)
+    inplace_state = os.environ.get("LYNN_LINEAR_ATTN_RECURRENT_INPLACE", "0") == "1"
+    s_new = s_prev if inplace_state else torch.empty_like(s_prev)
+    _recurrent_fused_prepare_from_outconv_gqa_kernel[(NUM_V_HEADS, 4)](
+        out_conv.contiguous().reshape(conv_dim),
+        g.contiguous().reshape(NUM_V_HEADS),
+        beta.contiguous().reshape(NUM_V_HEADS),
+        s_prev.contiguous().reshape(NUM_V_HEADS, HEAD_K_DIM, HEAD_V_DIM),
+        out,
+        s_new.reshape(NUM_V_HEADS, HEAD_K_DIM, HEAD_V_DIM),
+        BLOCK_K=HEAD_K_DIM,
+        BLOCK_V=32,
+        HEAD_V=HEAD_V_DIM,
+        NUM_K=NUM_K_HEADS,
+        NUM_V=NUM_V_HEADS,
         V_PER_K=2,
         num_warps=4,
     )
