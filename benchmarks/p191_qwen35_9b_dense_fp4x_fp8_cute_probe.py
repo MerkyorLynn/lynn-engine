@@ -91,8 +91,10 @@ def main() -> int:
     ext = load_lynn_native_extension(verbose=False)
     has_scalar = hasattr(ext, "dense_fp4xfp8_scalar_reference")
     has_mma = hasattr(ext, "dense_fp4xfp8_mma_probe")
+    has_scaled_mma = hasattr(ext, "dense_fp4xfp8_mma_scaled_probe")
     print(f"[p191] Scalar reference: {has_scalar}")
     print(f"[p191] MMA probe: {has_mma}")
+    print(f"[p191] Scaled MMA probe: {has_scaled_mma}")
 
     if not has_scalar:
         print("[p191] ERROR: scalar reference kernel not found")
@@ -219,6 +221,12 @@ def main() -> int:
         mma_ms = None
         mma_real_compute = False
         mma_error = None
+        scaled_max_abs = None
+        scaled_rel_l2 = None
+        scaled_cosine = None
+        scaled_ms = None
+        scaled_real_compute = False
+        scaled_error = None
         if has_mma:
             try:
                 # Run MMA kernel: act_fp8 raw bytes (no per-16 scale applied — MMA sees raw E4M3)
@@ -250,6 +258,46 @@ def main() -> int:
                 mma_error = str(e)[:200]
                 mma_real_compute = False
 
+        if has_scaled_mma:
+            try:
+                scaled_out = ext.dense_fp4xfp8_mma_scaled_probe(
+                    act_fp8.contiguous(),
+                    act_scale.contiguous(),
+                    w_packed.contiguous(),
+                    w_scale.contiguous(),
+                    w_global.contiguous().view(-1),
+                    1,
+                    N,
+                    K,
+                )
+                scaled_real_compute = True
+                sf = scaled_out[:N].float()
+                ref = out_scalar[:N].float()
+                diff_scaled = sf - ref
+                scaled_max_abs = float(diff_scaled.abs().max())
+                scaled_rel_l2 = float(torch.linalg.vector_norm(diff_scaled) / torch.linalg.vector_norm(ref).clamp_min(1e-12))
+                scaled_cosine = float(torch.dot(sf, ref) / (
+                    torch.linalg.vector_norm(sf).clamp_min(1e-12) *
+                    torch.linalg.vector_norm(ref).clamp_min(1e-12)))
+                for _ in range(10):
+                    ext.dense_fp4xfp8_mma_scaled_probe(
+                        act_fp8, act_scale, w_packed, w_scale, w_global.view(-1), 1, N, K
+                    )
+                torch.cuda.synchronize()
+                s3 = torch.cuda.Event(enable_timing=True)
+                e3 = torch.cuda.Event(enable_timing=True)
+                s3.record()
+                for _ in range(50):
+                    ext.dense_fp4xfp8_mma_scaled_probe(
+                        act_fp8, act_scale, w_packed, w_scale, w_global.view(-1), 1, N, K
+                    )
+                e3.record()
+                torch.cuda.synchronize()
+                scaled_ms = float(s3.elapsed_time(e3) / 50)
+            except RuntimeError as e:
+                scaled_error = str(e)[:200]
+                scaled_real_compute = False
+
         result = {
             "layer_id": layer_id,
             "weight_source": weight_source,
@@ -268,6 +316,15 @@ def main() -> int:
                 "mma_ms": mma_ms,
                 "error": mma_error,
             },
+            "scaled_mma_kernel": {
+                "available": has_scaled_mma,
+                "real_compute": scaled_real_compute,
+                "scaled_vs_scalar_max_abs": scaled_max_abs,
+                "scaled_vs_scalar_rel_l2": scaled_rel_l2,
+                "scaled_vs_scalar_cosine": scaled_cosine,
+                "scaled_ms": scaled_ms,
+                "error": scaled_error,
+            },
         }
         results.append(result)
 
@@ -278,6 +335,10 @@ def main() -> int:
             print(f"    MMA:    ERROR: {mma_error[:80]}")
         else:
             print(f"    MMA:    not available")
+        if scaled_real_compute:
+            print(f"    scaled: vs_scalar_cos={scaled_cosine:.6f} rel_l2={scaled_rel_l2:.4e} ms={scaled_ms:.3f}")
+        elif scaled_error:
+            print(f"    scaled: ERROR: {scaled_error[:80]}")
 
     # Summary
     report = {

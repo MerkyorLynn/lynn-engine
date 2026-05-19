@@ -168,6 +168,11 @@ def _extract_p191(data: dict[str, Any]) -> dict[str, Any]:
     mma_ms: list[float] = []
     mma_real_flags: list[bool] = []
     mma_available_flags: list[bool] = []
+    scaled_cosines: list[float] = []
+    scaled_rel_l2s: list[float] = []
+    scaled_max_abs: list[float] = []
+    scaled_ms: list[float] = []
+    scaled_real_flags: list[bool] = []
 
     for row in results:
         scalar = row.get("scalar_reference") if isinstance(row.get("scalar_reference"), dict) else row
@@ -198,6 +203,22 @@ def _extract_p191(data: dict[str, Any]) -> dict[str, Any]:
             mma_available_flags.append(bool(mma.get("available")))
         elif "mma_available" in row:
             mma_available_flags.append(bool(row.get("mma_available")))
+        scaled = row.get("scaled_mma_kernel")
+        if isinstance(scaled, dict):
+            value = _finite(scaled.get("scaled_vs_scalar_cosine"))
+            if value is not None:
+                scaled_cosines.append(value)
+            value = _finite(scaled.get("scaled_vs_scalar_rel_l2"))
+            if value is not None:
+                scaled_rel_l2s.append(value)
+            value = _finite(scaled.get("scaled_vs_scalar_max_abs"))
+            if value is not None:
+                scaled_max_abs.append(value)
+            value = _finite(scaled.get("scaled_ms"))
+            if value is not None:
+                scaled_ms.append(value)
+            if "real_compute" in scaled:
+                scaled_real_flags.append(bool(scaled.get("real_compute")))
 
     scalar_ms_mean = sum(scalar_ms) / len(scalar_ms) if scalar_ms else None
     mma_ms_mean = sum(mma_ms) / len(mma_ms) if mma_ms else None
@@ -220,6 +241,11 @@ def _extract_p191(data: dict[str, Any]) -> dict[str, Any]:
             if scalar_ms_mean is not None and mma_ms_mean is not None and mma_ms_mean > 0
             else None
         ),
+        "scaled_mma_real_compute_all": all(scaled_real_flags) if scaled_real_flags else None,
+        "scaled_vs_scalar_cosine_min": min(scaled_cosines) if scaled_cosines else None,
+        "scaled_vs_scalar_rel_l2_max": max(scaled_rel_l2s) if scaled_rel_l2s else None,
+        "scaled_vs_scalar_max_abs_max": max(scaled_max_abs) if scaled_max_abs else None,
+        "scaled_ms_mean": (sum(scaled_ms) / len(scaled_ms)) if scaled_ms else None,
     }
 
 
@@ -336,6 +362,22 @@ def _decide(
                     f"mma_vs_scalar_cosine_min={mma_cos}"
                 )
                 return "CLOSED_NUMERIC", reasons
+        scaled_real = p191.get("scaled_mma_real_compute_all")
+        scaled_cos = p191.get("scaled_vs_scalar_cosine_min")
+        scaled_r2 = p191.get("scaled_vs_scalar_rel_l2_max")
+        if scaled_real:
+            if scaled_cos is None or scaled_cos < thresholds["cosine_green"]:
+                reasons.append(
+                    "P191 scaled MMA does not match scalar reference: "
+                    f"scaled_vs_scalar_cosine_min={scaled_cos}"
+                )
+                return "CLOSED_NUMERIC", reasons
+            if scaled_r2 is not None and scaled_r2 > thresholds["rel_l2_green"]:
+                reasons.append(
+                    "P191 scaled MMA rel_l2 outside green envelope: "
+                    f"scaled_vs_scalar_rel_l2_max={scaled_r2:.6f}"
+                )
+                return "CLOSED_NUMERIC", reasons
         if cos is not None and cos < thresholds["cosine_green"]:
             numeric_green = False
             reasons.append(f"P191 cosine_min={cos:.6f} < green {thresholds['cosine_green']}")
@@ -388,6 +430,9 @@ def _decide(
             capability_blocked = True
         if not p191.get("mma_real_compute_all", False):
             reasons.append("P191: real MMA compute not available yet")
+            capability_blocked = True
+        if p191.get("scaled_mma_real_compute_all") is False:
+            reasons.append("P191: scaled MMA compute not available yet")
             capability_blocked = True
 
     if p192 is not None:
