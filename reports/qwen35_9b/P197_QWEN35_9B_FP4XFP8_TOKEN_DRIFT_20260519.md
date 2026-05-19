@@ -17,7 +17,10 @@ these cases.
 
 For each prompt, two `LynnIncrementalRunner` instances are loaded sequentially:
 - **Reference:** CONVSTRICT_W4A16 (safe baseline profile)
-- **Candidate:** CONVSTRICT_W4A8 with `LYNN_W4A8_FAKE_QUANT_ACTIVE=1`
+- **Candidate default:** `true_fp4xfp8`, using
+  `LYNN_DENSE_FFN_TRUE_FP8=1` plus the packed FP4xFP8 sidecar
+- **Candidate optional:** `fake_w4a8`, using
+  `LYNN_W4A8_FAKE_QUANT_ACTIVE=1` for quality/noise isolation only
 
 Both generate with `top_k=5`, collecting `{ids, values}` at every step.
 Per-step similarity:
@@ -47,7 +50,9 @@ set membership) and **how much** the logits shifted (magnitude on shared tokens)
   "created": "ISO-8601",
   "model": "path to model dir",
   "reference_profile": "convstrict_w4a16",
-  "candidate_profile": "convstrict_w4a8_fp4xfp8",
+  "candidate_profile": "convstrict_true_fp4xfp8_dense_ffn",
+  "candidate_mode": "true_fp4xfp8",
+  "sidecar_dir": "/root/autodl-tmp/reports/qwen35_9b/p192_dense_fp4x_fp8_sidecar",
   "max_seq_len": 4096,
   "n_prompts": 5,
   "elapsed_s": 123.4,
@@ -72,6 +77,9 @@ bash scripts/r6000_qwen35_9b_fp4xfp8_token_drift_probe.sh
 
 # Custom parameters:
 LIMIT=70 MAX_NEW=64 bash scripts/r6000_qwen35_9b_fp4xfp8_token_drift_probe.sh
+
+# Fake-quant comparison only, useful when the native FP4 extension is absent:
+CANDIDATE_PROFILE=fake_w4a8 bash scripts/r6000_qwen35_9b_fp4xfp8_token_drift_probe.sh
 ```
 
 ### Expected Output

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """P197 · Qwen3.5-9B W4A16 vs W4A8 per-step token drift probe.
 
-Compares CONVSTRICT_W4A16 (reference) against CONVSTRICT_W4A8 (candidate)
-at each decoding step using top-5 logit ID agreement + shared-cosine.
+Compares CONVSTRICT_W4A16 (reference) against either the true resident
+FP4xFP8 path or the fake-quant W4A8 approximation at each decoding step using
+top-5 logit ID agreement + shared-cosine.
 
 Metric: combined = 0.5 * jaccard(top5_ids) + 0.5 * shared_cosine(shared_ids).
   - jaccard  = |A ∩ B| / |A ∪ B|
@@ -58,7 +59,7 @@ CONVSTRICT_ENV = _merge(
     },
 )
 
-W4A8_ENV = _merge(
+W4A8_FAKE_ENV = _merge(
     CONVSTRICT_ENV,
     {
         "LYNN_W4A8_FAKE_QUANT_ACTIVE": "1",
@@ -66,6 +67,16 @@ W4A8_ENV = _merge(
         "LYNN_W4A8_FAKE_QUANT_GRANULARITY": "128",
     },
 )
+
+
+def _true_fp4xfp8_env(sidecar_dir: str) -> dict[str, str]:
+    return _merge(
+        CONVSTRICT_ENV,
+        {
+            "LYNN_DENSE_FFN_TRUE_FP8": "1",
+            "LYNN_DENSE_FFN_TRUE_FP8_SIDECAR_DIR": sidecar_dir,
+        },
+    )
 
 
 def _topk_similarity(ref: dict[str, Any], cand: dict[str, Any]) -> dict[str, float]:
@@ -81,8 +92,8 @@ def _topk_similarity(ref: dict[str, Any], cand: dict[str, Any]) -> dict[str, flo
         ref_map = dict(zip(ref["ids"], ref["values"]))
         cand_map = dict(zip(cand["ids"], cand["values"]))
         dot = sum(ref_map[i] * cand_map[i] for i in inter)
-        norm_r = math.sqrt(sum(v * v for v in ref_map.values()))
-        norm_c = math.sqrt(sum(v * v for v in cand_map.values()))
+        norm_r = math.sqrt(sum(ref_map[i] * ref_map[i] for i in inter))
+        norm_c = math.sqrt(sum(cand_map[i] * cand_map[i] for i in inter))
         shared_cosine = dot / (norm_r * norm_c) if norm_r > 0 and norm_c > 0 else 0.0
     else:
         shared_cosine = 0.0
@@ -107,6 +118,7 @@ def _compare_drift(
     max_new: int,
     max_seq_len: int,
     top_k: int,
+    candidate_env: dict[str, str],
 ) -> dict[str, Any]:
     """Run both modes and collect per-step drift data."""
     from engine.resident_runner import LynnIncrementalRunner
@@ -128,8 +140,8 @@ def _compare_drift(
         finally:
             _restore_env(old_ref)
 
-        # --- candidate (W4A8) ---
-        old_cand = _set_env(W4A8_ENV)
+        # --- candidate (W4A8/FP4xFP8) ---
+        old_cand = _set_env(candidate_env)
         try:
             runner_cand = LynnIncrementalRunner(
                 model, device="cuda", dtype=torch.bfloat16,
@@ -229,14 +241,35 @@ def main() -> int:
     ap.add_argument("--max-new", type=int, default=8)
     ap.add_argument("--max-seq-len", type=int, default=4096)
     ap.add_argument("--limit", type=int, default=5, help="Max prompts to probe.")
+    ap.add_argument(
+        "--candidate-profile",
+        choices=("true_fp4xfp8", "fake_w4a8"),
+        default="true_fp4xfp8",
+        help="Candidate path to compare against W4A16 reference.",
+    )
+    ap.add_argument(
+        "--sidecar-dir",
+        default="/root/autodl-tmp/reports/qwen35_9b/p192_dense_fp4x_fp8_sidecar",
+        help="Packed FP4xFP8 sidecar dir for --candidate-profile true_fp4xfp8.",
+    )
     ap.add_argument("--out", required=True, help="Output JSON path.")
     args = ap.parse_args()
 
     prompts = PROMPTS[: args.limit]
+    candidate_env = (
+        _true_fp4xfp8_env(args.sidecar_dir)
+        if args.candidate_profile == "true_fp4xfp8"
+        else W4A8_FAKE_ENV
+    )
+    candidate_label = (
+        "convstrict_true_fp4xfp8_dense_ffn"
+        if args.candidate_profile == "true_fp4xfp8"
+        else "convstrict_fake_w4a8"
+    )
 
     print(f"[p197] model={args.model}")
     print(f"[p197] prompts={len(prompts)} max_new={args.max_new} max_seq_len={args.max_seq_len}")
-    print(f"[p197] reference=CONVSTRICT_W4A16  candidate=CONVSTRICT_W4A8")
+    print(f"[p197] reference=CONVSTRICT_W4A16  candidate={candidate_label}")
     print(f"[p197] metric: combined = 0.5*jaccard + 0.5*shared_cosine")
     print(f"[p197] thresholds: STRICT=0 drift; AMBER=combined≥0.80 & drift_ratio≤0.25; else CLOSED")
     print()
@@ -248,6 +281,7 @@ def main() -> int:
         max_new=args.max_new,
         max_seq_len=args.max_seq_len,
         top_k=5,
+        candidate_env=candidate_env,
     )
     elapsed = round(time.time() - t0, 1)
     print(f"[p197] generation + comparison done in {elapsed}s")
@@ -259,7 +293,9 @@ def main() -> int:
         "created": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "model": args.model,
         "reference_profile": "convstrict_w4a16",
-        "candidate_profile": "convstrict_w4a8_fp4xfp8",
+        "candidate_profile": candidate_label,
+        "candidate_mode": args.candidate_profile,
+        "sidecar_dir": args.sidecar_dir if args.candidate_profile == "true_fp4xfp8" else None,
         "max_seq_len": args.max_seq_len,
         "n_prompts": len(prompts),
         "elapsed_s": elapsed,
