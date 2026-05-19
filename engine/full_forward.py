@@ -287,8 +287,33 @@ def _fake_quant_fp8_activation(x: torch.Tensor) -> torch.Tensor:
     raise ValueError("LYNN_W4A8_FAKE_QUANT_GRANULARITY must be tensor, row, or per16")
 
 
+def _dense_fp4xfp8_project_scalar(x: torch.Tensor, w: dict, proj: str) -> torch.Tensor:
+    """Run one dense FFN projection through the SCALAR REFERENCE kernel (P191 GREEN)."""
+    prefix = f"mlp._fp4xfp8.{proj}."
+    packed = w[prefix + "weight_packed"]
+    scale = w[prefix + "weight_scale"].float()
+    global_scale = w[prefix + "weight_global_scale"].float().view(-1)
+    n, k_half = packed.shape
+    k = k_half * 2
+    act_fp8, act_scale = _quantize_to_fp8_e4m3_per16(x.reshape(-1)[:k])
+    out = _dense_fp4xfp8_extension().dense_fp4xfp8_scalar_reference(
+        act_fp8,
+        act_scale,
+        packed.contiguous(),
+        scale.contiguous(),
+        global_scale.contiguous(),
+    )
+    return out.reshape(*x.shape[:-1], int(n))
+
+
 def _dense_ffn_forward(h: torch.Tensor, w: dict) -> torch.Tensor:
-    """Dense Qwen FFN: down_proj(silu(gate_proj(x)) * up_proj(x))."""
+    """Dense Qwen FFN: down_proj(silu(gate_proj(x)) * up_proj(x)).
+
+    Env knobs for isolation:
+      LYNN_DENSE_FFN_TRUE_FP8=1          Enable true FP8 path
+      LYNN_DENSE_FFN_TRUE_FP8_KERNEL=    mma (default) | scalar
+      LYNN_DENSE_FFN_TRUE_FP8_SCOPE=     full (default) | gateup | down
+    """
     true_fp8_mode = os.environ.get("LYNN_DENSE_FFN_TRUE_FP8", "0").strip().lower()
     is_single_decode_token = h.reshape(-1, h.shape[-1]).shape[0] == 1
     if (
@@ -296,11 +321,41 @@ def _dense_ffn_forward(h: torch.Tensor, w: dict) -> torch.Tensor:
         and is_single_decode_token
         and _has_dense_fp4xfp8_sidecar(w)
     ):
-        gate = _dense_fp4xfp8_project(h, w, "gate_proj")
-        up = _dense_fp4xfp8_project(h, w, "up_proj")
-        inter = F.silu(gate.float()) * up.float()
-        out = _dense_fp4xfp8_project(inter, w, "down_proj")
-        return out.to(h.dtype)
+        kernel = os.environ.get("LYNN_DENSE_FFN_TRUE_FP8_KERNEL", "mma").strip().lower()
+        scope = os.environ.get("LYNN_DENSE_FFN_TRUE_FP8_SCOPE", "full").strip().lower()
+
+        # Select projection function based on kernel type
+        if kernel == "scalar":
+            proj_fn = _dense_fp4xfp8_project_scalar
+        else:
+            proj_fn = _dense_fp4xfp8_project
+
+        if scope == "gateup":
+            # Only gate/up through FP8; down stays BF16
+            gate = proj_fn(h, w, "gate_proj")
+            up = proj_fn(h, w, "up_proj")
+            inter = F.silu(gate.float()) * up.float()
+            out = F.linear(inter.to(h.dtype), w["mlp.down_proj.weight"])
+            return out
+        elif scope == "down":
+            # gate/up stay BF16; only down through FP8
+            fused = w.get("mlp._gate_up_proj.weight")
+            if fused is not None:
+                gate_up = F.linear(h, fused)
+                gate, up = gate_up.chunk(2, dim=-1)
+            else:
+                gate = F.linear(h, w["mlp.gate_proj.weight"])
+                up = F.linear(h, w["mlp.up_proj.weight"])
+            inter = F.silu(gate) * up
+            out = proj_fn(inter, w, "down_proj")
+            return out.to(h.dtype)
+        else:
+            # full: all three projections through FP8
+            gate = proj_fn(h, w, "gate_proj")
+            up = proj_fn(h, w, "up_proj")
+            inter = F.silu(gate.float()) * up.float()
+            out = proj_fn(inter, w, "down_proj")
+            return out.to(h.dtype)
 
     w4a8_mode = _w4a8_fake_quant_mode()
     active_h = _fake_quant_fp8_activation(h) if w4a8_mode in {"gateup", "full"} else h
