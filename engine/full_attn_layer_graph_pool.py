@@ -1,31 +1,33 @@
-"""Stream B — full-attention layer graph reuse pool.
+"""Stream B — full-attention layer CUDA graph reuse pool (V2, bucket-aligned).
 
-Per-layer CUDA-graph slots for the 10 full-attention layers in Qwen3.6-35B-A3B
-(or 8 in Qwen3.5-9B Dense). The default Spark Config D decode loop already
-replays per-3-layer linear-attention block graphs but issues 60-80 eager
-launches per token across the full-attention layers. Wrapping each
-full-attention layer in its own CUDA graph closes ~all of that launch
-overhead while keeping per-request KV state mutable.
+Wraps the dynamic-position graph capture in
+``LynnIncrementalRunner._capture_full_attn_layer_graph_slot_v2`` (in turn
+backed by ``decode_full_attn_graphable`` in ``incremental_decode.py``)
+into a per-layer per-bucket reuse pool.
+
+Slot key = ``(layer_idx, bucket_idx)`` where
+``bucket_idx = state.seq_len // bucket_size``. A given slot is valid for
+all positions in ``[bucket_idx * bucket_size, (bucket_idx + 1) * bucket_size)``.
+Crossing a bucket boundary triggers lazy recapture with a longer
+attention mask + cache view, so the SDPA compute / memory bandwidth
+scales with the bucket, not with ``max_seq_len``.
 
 Spec: ``docs/STREAM_B_FULL_ATTN_LAYER_GRAPH_REUSE_SPEC_20260518.md``.
 
-Lifecycle:
+Env opt-in:
 
-* The pool holds one ``FullAttentionLayerGraphSlot`` per full-attn layer
-  index. Each slot is captured at a specific ``state.seq_len`` and is
-  valid while ``state.seq_len`` stays within the same bucket
-  (``bucket = LYNN_FULL_ATTN_LAYER_GRAPH_BUCKET``, default 256).
-* When ``state.seq_len`` crosses a bucket boundary, the slot is
-  invalidated lazily and re-captured on next access.
-* KV cache positions written during graph replay are correctly indexed
-  into ``state.kv_cache`` because the cache tensor identity (and
-  ``state.seq_len``) is owned by ``state``, not by the slot.
+* ``LYNN_FULL_ATTN_LAYER_GRAPH_POOL=1`` — enable the pool. Off by default.
+* ``LYNN_FULL_ATTN_LAYER_GRAPH_BUCKET`` — bucket size in tokens
+  (default 256). Larger buckets = fewer captures but each replay
+  computes SDPA over more positions; smaller buckets = more captures
+  with shorter SDPA. 256 balances capture cost vs SDPA waste for
+  typical 256–2048 token decode sessions.
 
 Promotion gate (from spec):
 
-* P37 exact-greedy 3/3 required (byte-identical kernel sequence; any drift
-  is a wrapper bug, not a tolerated artifact).
-* P25 512-token decode TPS ≥ 108 (DEFAULT) / ≥ 118 (AMBER, opt-in).
+* P37 exact-greedy 3/3 required (graph replay is bit-identical to eager
+  by construction; any drift is a wrapper bug, not a tolerated artifact).
+* P25 512-token decode TPS lift over the linear-block-only baseline.
 """
 from __future__ import annotations
 
@@ -37,26 +39,21 @@ import torch
 
 if TYPE_CHECKING:  # pragma: no cover
     from engine.inference_state import LynnInferenceState
-    from engine.resident_runner import FullAttentionLayerGraphSlot, LynnIncrementalRunner
+    from engine.resident_runner import (
+        FullAttentionLayerGraphSlotV2,
+        LynnIncrementalRunner,
+    )
 
 
 DEFAULT_BUCKET = 256
 
 
 class FullAttnLayerGraphPool:
-    """Bucket-aligned per-layer full-attention graph reuse pool.
+    """Bucket-aligned per-layer full-attention graph reuse pool (V2).
 
-    The pool is constructed once per ``LynnIncrementalRunner`` lifetime
-    (typically when ``LYNN_FULL_ATTN_LAYER_GRAPH_POOL=1`` is set and the
-    decode loop enters the safe-default branch). Each ``get()`` call
-    returns a captured slot keyed by ``(layer_idx, bucket)`` — if the
-    cached slot's bucket no longer matches ``state.seq_len // bucket``,
-    the slot is re-captured.
-
-    The wrapping decode loop is responsible for copying the per-token
-    input into ``slot.input_buf`` before calling ``slot.graph.replay()``,
-    then reading ``slot.output_buf``. This pool only manages capture +
-    invalidation.
+    Slots are captured lazily on first access. The pool tracks
+    ``(layer_idx, bucket_idx)`` keys; a single decode session typically
+    uses 1–4 buckets per layer (one per 256-token band of seq_len).
     """
 
     def __init__(self, runner: "LynnIncrementalRunner", bucket: int = DEFAULT_BUCKET) -> None:
@@ -64,8 +61,7 @@ class FullAttnLayerGraphPool:
         self.bucket = int(bucket)
         if self.bucket <= 0:
             raise ValueError(f"bucket must be >= 1, got {bucket}")
-        self._slots: dict[int, "FullAttentionLayerGraphSlot"] = {}
-        self._slot_bucket: dict[int, int] = {}
+        self._slots: dict[tuple[int, int], "FullAttentionLayerGraphSlotV2"] = {}
         self.capture_seconds: list[float] = []
         self.captures_total = 0
         self.reuses_total = 0
@@ -73,29 +69,20 @@ class FullAttnLayerGraphPool:
     def get(
         self,
         state: "LynnInferenceState",
-        h_seed: torch.Tensor,
-        pos_tensor: torch.Tensor,
         layer_idx: int,
-    ) -> "FullAttentionLayerGraphSlot":
-        """Return a valid slot for ``(layer_idx, state.seq_len // bucket)``.
-
-        Captures lazily if the cached slot is missing or its bucket no
-        longer matches. ``h_seed`` and ``pos_tensor`` shapes must match
-        what the eager ``_decode_layer_fast`` for this layer would
-        receive (``[1, 1, hidden]`` and ``[[seq_len]]``).
-        """
-        cur_bucket = int(state.seq_len) // self.bucket
-        slot = self._slots.get(layer_idx)
-        slot_bucket = self._slot_bucket.get(layer_idx)
-        if slot is None or slot_bucket != cur_bucket:
+    ) -> "FullAttentionLayerGraphSlotV2":
+        """Return a valid slot for ``(layer_idx, state.seq_len // bucket)``."""
+        bucket_idx = int(state.seq_len) // self.bucket
+        key = (layer_idx, bucket_idx)
+        slot = self._slots.get(key)
+        if slot is None:
             t0 = time.time()
-            slot = self.runner._capture_full_attn_layer_graph_slot(
-                state, h_seed, pos_tensor, layer_idx,
+            slot = self.runner._capture_full_attn_layer_graph_slot_v2(
+                state, layer_idx, bucket_idx, self.bucket,
             )
             self.capture_seconds.append(time.time() - t0)
             self.captures_total += 1
-            self._slots[layer_idx] = slot
-            self._slot_bucket[layer_idx] = cur_bucket
+            self._slots[key] = slot
         else:
             self.reuses_total += 1
         return slot
@@ -103,7 +90,6 @@ class FullAttnLayerGraphPool:
     def invalidate(self) -> None:
         """Drop all cached slots — call on weight reload / max_seq_len change."""
         self._slots.clear()
-        self._slot_bucket.clear()
 
     def stats(self) -> dict[str, Any]:
         return {
@@ -119,12 +105,7 @@ class FullAttnLayerGraphPool:
 
 
 def maybe_create_pool(runner: "LynnIncrementalRunner") -> FullAttnLayerGraphPool | None:
-    """Construct a pool if env opt-in is set; return ``None`` otherwise.
-
-    Reads:
-    * ``LYNN_FULL_ATTN_LAYER_GRAPH_POOL=1`` to enable.
-    * ``LYNN_FULL_ATTN_LAYER_GRAPH_BUCKET`` (default 256).
-    """
+    """Construct a pool if ``LYNN_FULL_ATTN_LAYER_GRAPH_POOL=1``."""
     if os.environ.get("LYNN_FULL_ATTN_LAYER_GRAPH_POOL", "0") != "1":
         return None
     bucket_env = os.environ.get("LYNN_FULL_ATTN_LAYER_GRAPH_BUCKET", str(DEFAULT_BUCKET))

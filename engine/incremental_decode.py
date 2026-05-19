@@ -399,6 +399,105 @@ def decode_full_attn(h_new, new_position_id, w, cfg, K_cache_full, V_cache_full,
     return _linear(attn_out, _decode_weight(w, "self_attn.o_proj.weight"))
 
 
+def decode_full_attn_graphable(
+    h_new,
+    position_tensor,
+    attn_mask,
+    w,
+    cfg,
+    K_cache_full,
+    V_cache_full,
+):
+    """Graph-capture-friendly T=1 full-attention decode.
+
+    Unlike :func:`decode_full_attn`, this variant uses runtime tensors for
+    the only quantities that change between tokens:
+
+    * ``position_tensor`` — int64 ``[1]`` tensor whose single element is
+      the position to write the new K, V into the cache. Updated in-place
+      (``position_tensor.fill_(seq_len)``) BEFORE each graph replay so
+      the captured ``index_copy_`` kernel reads it at execution time.
+    * ``attn_mask`` — fp16/bf16/fp32 ``[K_len]`` mask (or 4D broadcastable
+      shape) with 0.0 for attended positions and ``-inf`` for masked-out
+      positions. Updated in-place per replay so SDPA attends only the
+      currently-valid prefix. ``K_len`` is the bucket-aligned cache
+      length captured into this slot (not necessarily ``max_seq_len``).
+
+    The captured kernel sequence is independent of ``state.seq_len`` —
+    one captured graph slot serves all positions within the bucket whose
+    ``attn_mask`` length matches.
+    """
+    B = h_new.shape[0]
+    H_Q = cfg["num_attention_heads"]
+    H_KV = cfg["num_key_value_heads"]
+    head_dim = cfg["head_dim"]
+    rope_theta = cfg["rope_theta"]
+    rotary_dim = int(head_dim * cfg["partial_rotary_factor"])
+
+    # 1. Q/K/V projection. Force F.linear (BF16 path) since this is a
+    # graph-capture target; the packed NVFP4 native_fast_2d kernel was
+    # designed for the eager T=1 hot loop and has different graph capture
+    # constraints. Within a CUDA graph the difference is just kernel
+    # selection — replay cost is dominated by the same kernel ops.
+    if "self_attn._qkv_proj.weight" in w and not isinstance(
+        w["self_attn._qkv_proj.weight"], (PackedNVFP4Linear, PackedNVFP4FusedLinear),
+    ):
+        q_out = int(w["self_attn.q_proj.weight"].shape[0])
+        k_out = int(w["self_attn.k_proj.weight"].shape[0])
+        v_out = int(w["self_attn.v_proj.weight"].shape[0])
+        qkv = F.linear(h_new, w["self_attn._qkv_proj.weight"])
+        q_full, k_new, v_new = qkv.split((q_out, k_out, v_out), dim=-1)
+    else:
+        q_full = F.linear(h_new, w["self_attn.q_proj.weight"])
+        k_new = F.linear(h_new, w["self_attn.k_proj.weight"])
+        v_new = F.linear(h_new, w["self_attn.v_proj.weight"])
+
+    q_full_view = q_full.view(B, 1, H_Q, head_dim * 2)
+    q, gate = q_full_view.chunk(2, dim=-1)
+    q = q.transpose(1, 2)
+    gate = gate.transpose(1, 2)
+    k_new = k_new.view(B, 1, H_KV, head_dim).transpose(1, 2)
+    v_new = v_new.view(B, 1, H_KV, head_dim).transpose(1, 2)
+
+    # 2+3. q/k norm + RoPE. RoPE position uses position_tensor directly,
+    # so the RoPE table lookup reads the current position at replay time.
+    pos_2d = position_tensor.view(1, 1)
+    rope_builder = (
+        _build_rope_cos_sin_cached
+        if os.environ.get("LYNN_FULL_ATTN_ROPE_CACHE", "0") == "1"
+        else _build_rope_cos_sin
+    )
+    cos, sin = rope_builder(pos_2d, rotary_dim, rope_theta, h_new.device, h_new.dtype)
+    q, k_new = _qk_norm_rope_pair_decode(
+        q, k_new, w["self_attn.q_norm.weight"], w["self_attn.k_norm.weight"], cos, sin, rotary_dim,
+    )
+
+    # 4. Write K, V into cache at runtime position. ``index_copy_`` records
+    # the kernel reading position_tensor at runtime — replay picks up the
+    # current value.
+    # k_new shape [B, H, 1, head_dim] → flatten the T=1 dim away
+    K_cache_full.index_copy_(2, position_tensor, k_new)
+    V_cache_full.index_copy_(2, position_tensor, v_new)
+
+    # 5. Attention over the FULL bucket-length cache. attn_mask gates
+    # which positions are visible.
+    # attn_mask shape: [K_len] (broadcastable to [B, H, 1, K_len])
+    attn_mask_4d = attn_mask.view(1, 1, 1, -1)
+    attn_out = F.scaled_dot_product_attention(
+        q, K_cache_full, V_cache_full,
+        attn_mask=attn_mask_4d,
+        is_causal=False,
+        enable_gqa=(H_KV != H_Q),
+    )
+
+    # 6. attn_output_gate
+    attn_out = attn_out * torch.sigmoid(gate.float()).to(attn_out.dtype)
+
+    # 7. o_proj
+    attn_out = attn_out.transpose(1, 2).contiguous().view(B, 1, H_Q * head_dim)
+    return F.linear(attn_out, w["self_attn.o_proj.weight"])
+
+
 def decode_full_attn_k2(
     h_new_k2,
     new_position_ids,

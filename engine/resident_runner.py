@@ -31,6 +31,7 @@ from engine.full_forward import (
 from engine.inference_state import LAYER_TYPES, LynnInferenceState
 from engine.loader import load_qwen36_layer
 from engine.mtp_sidecar import load_mtp_sidecar, mtp_layer_config, mtp_layer_weights, mtp_logits
+from engine.full_attn_layer_graph_pool import maybe_create_pool as _maybe_create_full_attn_graph_pool
 from engine.mtp_serving import speculative_step_k1, speculative_step_k1_batched
 from engine.nvfp4_runtime import (
     _compact_scale_to_swizzled_fp8,
@@ -186,6 +187,47 @@ class FullAttentionLayerGraphSlot:
         self.seq_len = int(seq_len)
         self.input_buf = input_buf
         self.output_buf = output_buf
+        self.graph = graph
+
+
+class FullAttentionLayerGraphSlotV2:
+    """Bucket-aligned dynamic-position full-attention layer CUDA graph slot.
+
+    Unlike the V1 slot (one slot per position), V2 captures a graph whose
+    KV write index is a CUDA tensor read at replay time, and whose SDPA
+    attention mask is also a CUDA tensor read at replay time. Within a
+    single bucket (e.g. positions ``[bucket_start, bucket_end)``), one
+    captured graph serves all positions — the caller updates
+    ``position_tensor`` and zeros the new entry of ``attn_mask`` between
+    replays.
+
+    Slot is valid as long as ``state.seq_len`` stays in
+    ``[bucket_start, bucket_end)``. Crossing the bucket boundary
+    invalidates the slot (pool re-captures lazily with a longer
+    ``attn_mask`` / cache view).
+    """
+
+    def __init__(
+        self,
+        *,
+        layer_idx: int,
+        bucket_idx: int,
+        bucket_start: int,
+        bucket_end: int,
+        input_buf: torch.Tensor,
+        output_buf: torch.Tensor,
+        position_tensor: torch.Tensor,
+        attn_mask: torch.Tensor,
+        graph: torch.cuda.CUDAGraph,
+    ) -> None:
+        self.layer_idx = int(layer_idx)
+        self.bucket_idx = int(bucket_idx)
+        self.bucket_start = int(bucket_start)
+        self.bucket_end = int(bucket_end)
+        self.input_buf = input_buf
+        self.output_buf = output_buf
+        self.position_tensor = position_tensor
+        self.attn_mask = attn_mask
         self.graph = graph
         self.replays = 0
 
@@ -847,6 +889,124 @@ class LynnIncrementalRunner:
             linear_state_update=self.decode_linear_state_update,
         )
 
+    def _decode_full_attn_layer_graphable_body(
+        self,
+        h: torch.Tensor,
+        position_tensor: torch.Tensor,
+        attn_mask: torch.Tensor,
+        state: LynnInferenceState,
+        layer_idx: int,
+        bucket_end: int,
+    ) -> torch.Tensor:
+        """Layer body using ``decode_full_attn_graphable`` for CUDA graph capture.
+
+        Mirrors ``_decode_layer`` for the ``layer_type == "full_attention"``
+        branch but routes the attention call to the graph-capture-friendly
+        variant. The KV cache is sliced to ``bucket_end`` length so SDPA
+        compute + memory bandwidth scales with the bucket, not the
+        configured ``max_seq_len``. The MoE post-attention block stays
+        ``packed_nvfp4`` (T=1) — it works fine inside CUDA graph capture.
+        """
+        from engine.incremental_decode import decode_full_attn_graphable
+
+        w = self.layer_weights[layer_idx]
+        cfg = self.layer_cfgs[layer_idx]
+        K_full, V_full = state.kv_cache[layer_idx]
+        # View into the first ``bucket_end`` cache positions — metadata only,
+        # baked into the captured graph kernels.
+        K_view = K_full[:, :, :bucket_end, :]
+        V_view = V_full[:, :, :bucket_end, :]
+
+        residual = h
+        h_norm = _rms_norm(h, w["input_layernorm.weight"])
+        attn_out = decode_full_attn_graphable(
+            h_norm, position_tensor, attn_mask, w, cfg, K_view, V_view,
+        )
+        h = residual + attn_out
+
+        residual = h
+        h_norm = _rms_norm(h, w["post_attention_layernorm.weight"])
+        moe_fn = self.decode_moe_fn if self.decode_fast_dispatch else _resolve_decode_moe_impl(
+            os.environ.get("LYNN_MOE_IMPL", "optimized")
+        )
+        moe_out = moe_fn(h_norm, w, cfg)
+        return residual + moe_out
+
+    def _capture_full_attn_layer_graph_slot_v2(
+        self,
+        state: LynnInferenceState,
+        layer_idx: int,
+        bucket_idx: int,
+        bucket_size: int,
+    ) -> FullAttentionLayerGraphSlotV2:
+        """Capture a bucket-aligned, dynamic-index full-attn layer graph slot.
+
+        The captured graph reads ``position_tensor`` and ``attn_mask`` at
+        replay time, so one slot covers all positions within the bucket
+        ``[bucket_idx * bucket_size, (bucket_idx + 1) * bucket_size)``.
+        Caller updates ``position_tensor.fill_(seq_len)`` and zeros the
+        relevant entry of ``attn_mask`` before each replay.
+        """
+        if not self.device.startswith("cuda"):
+            raise RuntimeError("full-attention layer graph slots require CUDA")
+        if LAYER_TYPES[layer_idx] != "full_attention":
+            raise ValueError(f"layer {layer_idx} is {LAYER_TYPES[layer_idx]!r}, expected full_attention")
+
+        bucket_start = bucket_idx * bucket_size
+        bucket_end = (bucket_idx + 1) * bucket_size
+        hidden_size = int(self.outside["model.language_model.embed_tokens.weight"].shape[1])
+
+        # Resident tensors read by the captured graph at replay time.
+        position_tensor = torch.tensor([bucket_start], dtype=torch.long, device=self.device)
+        # attn_mask is fp32-compatible to dtype: 0.0 means attend, -inf means mask.
+        attn_mask = torch.full(
+            (bucket_end,), float("-inf"), dtype=self.dtype, device=self.device,
+        )
+        attn_mask[0] = 0.0  # mark first position attended for the capture warmup
+        input_buf = torch.zeros((1, 1, hidden_size), dtype=self.dtype, device=self.device)
+        output_buf = torch.empty_like(input_buf)
+
+        # Snapshot the bucket_start KV slot so warmup writes don't pollute state.
+        K_cache, V_cache = state.kv_cache[layer_idx]
+        k_slot_snapshot = K_cache[:, :, bucket_start:bucket_start + 1, :].clone()
+        v_slot_snapshot = V_cache[:, :, bucket_start:bucket_start + 1, :].clone()
+
+        # Eager warmup — populates lazy caches (e.g. RoPE table) so the
+        # CUDA graph capture records steady-state kernels only.
+        _ = self._decode_full_attn_layer_graphable_body(
+            input_buf, position_tensor, attn_mask, state, layer_idx, bucket_end,
+        )
+        torch.cuda.synchronize()
+
+        # Restore KV at the bucket_start slot (warmup wrote there).
+        K_cache[:, :, bucket_start:bucket_start + 1, :].copy_(k_slot_snapshot)
+        V_cache[:, :, bucket_start:bucket_start + 1, :].copy_(v_slot_snapshot)
+
+        # Capture graph.
+        graph = torch.cuda.CUDAGraph()
+        with torch.cuda.graph(graph):
+            out = self._decode_full_attn_layer_graphable_body(
+                input_buf, position_tensor, attn_mask, state, layer_idx, bucket_end,
+            )
+            output_buf.copy_(out)
+        torch.cuda.synchronize()
+
+        # Capture also touched the bucket_start slot — restore once more.
+        K_cache[:, :, bucket_start:bucket_start + 1, :].copy_(k_slot_snapshot)
+        V_cache[:, :, bucket_start:bucket_start + 1, :].copy_(v_slot_snapshot)
+
+        return FullAttentionLayerGraphSlotV2(
+            layer_idx=layer_idx,
+            bucket_idx=bucket_idx,
+            bucket_start=bucket_start,
+            bucket_end=bucket_end,
+            input_buf=input_buf,
+            output_buf=output_buf,
+            position_tensor=position_tensor,
+            attn_mask=attn_mask,
+            graph=graph,
+        )
+
     def _decode_layer_k2_fast(
         self,
         h_k2: torch.Tensor,
@@ -1305,6 +1465,10 @@ class LynnIncrementalRunner:
         linear_block_graph_state = state
         graph_capture_seconds = None
         graph_reused = None
+        # Stream B: full-attn layer graph reuse pool (V2, bucket-aligned).
+        # Off by default; enable with LYNN_FULL_ATTN_LAYER_GRAPH_POOL=1 +
+        # LYNN_FULL_ATTN_LAYER_GRAPH_BUCKET=N. Captures lazily per layer per bucket.
+        full_attn_layer_graph_pool = _maybe_create_full_attn_graph_pool(self)
         full_token_graph_slot_enabled = (
             os.environ.get("LYNN_FULL_TOKEN_GRAPH_SLOT", "0") == "1"
             and self.device.startswith("cuda")
@@ -1495,7 +1659,17 @@ class LynnIncrementalRunner:
                     block["graph"].replay()
                     h = block["output"]
                     full_layer = bi * 4 + 3
-                    h = self._decode_layer_fast(h, pos_tensor, state, full_layer)
+                    if full_attn_layer_graph_pool is not None:
+                        slot = full_attn_layer_graph_pool.get(state, full_layer)
+                        # Update runtime tensors BEFORE replay so the captured
+                        # graph reads the current position + mask.
+                        slot.position_tensor.fill_(state.seq_len)
+                        slot.attn_mask[state.seq_len] = 0.0
+                        slot.input_buf.copy_(h)
+                        slot.graph.replay()
+                        h = slot.output_buf
+                    else:
+                        h = self._decode_layer_fast(h, pos_tensor, state, full_layer)
             if not full_token_graph_slot_enabled:
                 state.seq_len += 1
                 h_final = _rms_norm(h, self.outside["model.language_model.norm.weight"])
