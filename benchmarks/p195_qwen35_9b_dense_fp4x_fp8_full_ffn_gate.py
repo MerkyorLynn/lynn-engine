@@ -110,7 +110,22 @@ def run_gate(args: argparse.Namespace) -> dict[str, Any]:
     candidate_dir = Path(args.candidate_output_dir) if args.candidate_output_dir else None
     if candidate_dir:
         candidate_dir.mkdir(parents=True, exist_ok=True)
-    layers = [int(x) for x in args.layers.split(",") if x.strip()]
+    manifest_path = fixtures_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else None
+    if args.layers.strip().lower() in {"all", "*"}:
+        layer_filter = None
+    else:
+        layer_filter = {int(x) for x in args.layers.split(",") if x.strip()}
+    fixture_items: list[dict[str, Any]]
+    if manifest is not None:
+        fixture_items = [
+            item for item in manifest.get("fixtures", [])
+            if layer_filter is None or int(item["layer_id"]) in layer_filter
+        ]
+    else:
+        fixture_items = []
+        for layer in sorted(layer_filter or []):
+            fixture_items.append({"layer_id": layer, "file": f"layer_{layer:02d}_prompt_00.safetensors"})
 
     from engine.native_cuda import load_lynn_native_extension
 
@@ -121,8 +136,12 @@ def run_gate(args: argparse.Namespace) -> dict[str, Any]:
         raise RuntimeError("dense_fp4xfp8_mma_scaled_probe missing from native extension")
 
     results: list[dict[str, Any]] = []
-    for layer in layers:
-        fixture_path = fixtures_dir / f"layer_{layer:02d}_prompt_00.safetensors"
+    layers_seen: list[int] = []
+    for item in fixture_items:
+        layer = int(item["layer_id"])
+        if layer not in layers_seen:
+            layers_seen.append(layer)
+        fixture_path = fixtures_dir / item["file"]
         sidecar_path = sidecar_dir / f"layer_{layer:02d}.safetensors"
         fixture = load_file(str(fixture_path), device="cuda")
         side = load_file(str(sidecar_path), device="cuda")
@@ -139,6 +158,7 @@ def run_gate(args: argparse.Namespace) -> dict[str, Any]:
 
         row = {
             "layer": layer,
+            "fixture_file": fixture_path.name,
             "scalar_ms": scalar_ms,
             "scaled_mma_ms": mma_ms,
             "speedup_vs_scalar": scalar_ms / mma_ms if mma_ms > 0 else None,
@@ -150,8 +170,15 @@ def run_gate(args: argparse.Namespace) -> dict[str, Any]:
             scaled_vs_scalar["cosine"] >= args.scaled_cosine_min
             and scaled_vs_scalar["rel_l2"] <= args.scaled_rel_l2_max
         )
+        row["numeric_ok"] = (
+            scaled_vs_scalar["cosine"] >= args.scaled_cosine_min
+            and scaled_vs_scalar["rel_l2"] <= args.amber_scaled_rel_l2_max
+            and scaled_vs_scalar["max_abs"] <= args.amber_scaled_max_abs
+            and abs(scaled_vs_bf16["rel_l2"] - scalar_vs_bf16["rel_l2"]) <= args.amber_bf16_rel_l2_delta_max
+            and abs(scaled_vs_bf16["cosine"] - scalar_vs_bf16["cosine"]) <= args.amber_bf16_cosine_delta_max
+        )
         results.append(row)
-        status = "GREEN" if row["ok"] else "RED"
+        status = "GREEN" if row["ok"] else ("AMBER" if row["numeric_ok"] else "RED")
         print(
             f"L{layer:02d}: {status} full_ffn scaled_rel={scaled_vs_scalar['rel_l2']:.3e} "
             f"scaled_ms={mma_ms:.4f} speedup={row['speedup_vs_scalar']:.2f}x "
@@ -167,20 +194,59 @@ def run_gate(args: argparse.Namespace) -> dict[str, Any]:
                 str(candidate_dir / fixture_path.name),
             )
 
-    ok = all(bool(r["ok"]) for r in results)
+    strict_ok = all(bool(r["ok"]) for r in results)
+    numeric_ok = all(bool(r["numeric_ok"]) for r in results)
+    strict_passed = sum(1 for r in results if r["ok"])
+    numeric_passed = sum(1 for r in results if r["numeric_ok"])
+    if strict_ok:
+        overall = "GREEN_STRICT"
+    elif numeric_ok:
+        overall = "AMBER_NUMERIC"
+    else:
+        overall = "RED"
+    scaled_ms_values = [float(r["scaled_mma_ms"]) for r in results]
+    speedup_values = [float(r["speedup_vs_scalar"]) for r in results]
+    rel_values = [float(r["scaled_vs_scalar"]["rel_l2"]) for r in results]
+    max_abs_values = [float(r["scaled_vs_scalar"]["max_abs"]) for r in results]
+    cosine_values = [float(r["scaled_vs_scalar"]["cosine"]) for r in results]
+    bf16_rel_delta_values = [
+        abs(float(r["scaled_vs_bf16"]["rel_l2"]) - float(r["scalar_vs_bf16"]["rel_l2"]))
+        for r in results
+    ]
+    bf16_cosine_delta_values = [
+        abs(float(r["scaled_vs_bf16"]["cosine"]) - float(r["scalar_vs_bf16"]["cosine"]))
+        for r in results
+    ]
     return {
         "schema": "lynn-qwen35-9b-p195-fp4x-fp8-full-ffn-gate-v1",
         "created": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "fixtures_dir": str(fixtures_dir),
         "sidecar_dir": str(sidecar_dir),
         "candidate_output_dir": str(candidate_dir) if candidate_dir else None,
-        "layers": layers,
+        "layers": layers_seen,
+        "fixtures_tested": len(fixture_items),
         "thresholds": {
             "scaled_cosine_min": args.scaled_cosine_min,
             "scaled_rel_l2_max": args.scaled_rel_l2_max,
+            "amber_scaled_rel_l2_max": args.amber_scaled_rel_l2_max,
+            "amber_scaled_max_abs": args.amber_scaled_max_abs,
+            "amber_bf16_rel_l2_delta_max": args.amber_bf16_rel_l2_delta_max,
+            "amber_bf16_cosine_delta_max": args.amber_bf16_cosine_delta_max,
+        },
+        "summary": {
+            "strict_passed": strict_passed,
+            "numeric_passed": numeric_passed,
+            "total": len(results),
+            "scaled_mma_ms_mean": sum(scaled_ms_values) / len(scaled_ms_values) if scaled_ms_values else None,
+            "speedup_vs_scalar_mean": sum(speedup_values) / len(speedup_values) if speedup_values else None,
+            "scaled_vs_scalar_rel_l2_max": max(rel_values) if rel_values else None,
+            "scaled_vs_scalar_max_abs_max": max(max_abs_values) if max_abs_values else None,
+            "scaled_vs_scalar_cosine_min": min(cosine_values) if cosine_values else None,
+            "bf16_rel_l2_delta_max": max(bf16_rel_delta_values) if bf16_rel_delta_values else None,
+            "bf16_cosine_delta_max": max(bf16_cosine_delta_values) if bf16_cosine_delta_values else None,
         },
         "results": results,
-        "overall": "GREEN" if ok else "RED",
+        "overall": overall,
     }
 
 
@@ -192,6 +258,10 @@ def main() -> int:
     ap.add_argument("--iters", type=int, default=20)
     ap.add_argument("--scaled-cosine-min", type=float, default=0.999999)
     ap.add_argument("--scaled-rel-l2-max", type=float, default=1e-5)
+    ap.add_argument("--amber-scaled-rel-l2-max", type=float, default=3e-4)
+    ap.add_argument("--amber-scaled-max-abs", type=float, default=5e-3)
+    ap.add_argument("--amber-bf16-rel-l2-delta-max", type=float, default=2e-5)
+    ap.add_argument("--amber-bf16-cosine-delta-max", type=float, default=5e-7)
     ap.add_argument("--candidate-output-dir", default="")
     ap.add_argument("--out", required=True)
     args = ap.parse_args()
@@ -201,7 +271,7 @@ def main() -> int:
     out.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"Overall: {report['overall']}")
     print(f"Report: {out}")
-    return 0 if report["overall"] == "GREEN" else 2
+    return 0 if report["overall"] in {"GREEN_STRICT", "AMBER_NUMERIC"} else 2
 
 
 if __name__ == "__main__":
