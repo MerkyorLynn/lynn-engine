@@ -31,7 +31,7 @@ from engine.full_forward import (
 from engine.inference_state import LAYER_TYPES, LynnInferenceState
 from engine.loader import load_qwen36_layer
 from engine.mtp_sidecar import load_mtp_sidecar, mtp_layer_config, mtp_layer_weights, mtp_logits
-from engine.mtp_serving import speculative_step_k1
+from engine.mtp_serving import speculative_step_k1, speculative_step_k1_batched
 from engine.nvfp4_runtime import (
     _compact_scale_to_swizzled_fp8,
     load_grouped_nvfp4_weight,
@@ -847,6 +847,36 @@ class LynnIncrementalRunner:
             linear_state_update=self.decode_linear_state_update,
         )
 
+    def _decode_layer_k2_fast(
+        self,
+        h_k2: torch.Tensor,
+        pos_tensor_k2: torch.Tensor,
+        state: LynnInferenceState,
+        layer_idx: int,
+    ) -> torch.Tensor:
+        """K=2 batched analogue of ``_decode_layer_fast``.
+
+        Used by the M5 batched K=1 speculative path. Reuses the runner-fixed
+        dispatch knobs (moe_fn, recurrent_backend, linear_state_update) so
+        the K=2 path inherits packed_nvfp4 + recurrent_inplace + native FP4
+        configuration without re-reading env per layer.
+        """
+        from engine.full_forward import _decode_layer_k2
+        if not self.decode_fast_dispatch:
+            return _decode_layer_k2(
+                h_k2, pos_tensor_k2, LAYER_TYPES[layer_idx],
+                self.layer_weights[layer_idx], self.layer_cfgs[layer_idx],
+                state, layer_idx,
+            )
+        return _decode_layer_k2(
+            h_k2, pos_tensor_k2, LAYER_TYPES[layer_idx],
+            self.layer_weights[layer_idx], self.layer_cfgs[layer_idx],
+            state, layer_idx,
+            moe_fn=self.decode_moe_fn,
+            recurrent_backend=self.decode_recurrent_backend,
+            linear_state_update=self.decode_linear_state_update,
+        )
+
     def release_decode_bf16_shadows(
         self,
         *,
@@ -1356,6 +1386,17 @@ class LynnIncrementalRunner:
                 "LYNN_MTP_SPECULATIVE is not compatible with LYNN_LINEAR_BLOCK_GRAPH. "
                 "Captured graphs assume single-token decode flow without rollback."
             )
+        # LYNN_MTP_SPECULATIVE_BATCHED=1 swaps the sequential K=1 path for the
+        # M5 batched variant (single K=2 forward instead of two T=1 forwards).
+        # Useful once OFFSET=2 head is trained — until then both produce
+        # 0.30% accept and serve as correctness validation.
+        spec_step_fn = (
+            speculative_step_k1_batched
+            if os.environ.get("LYNN_MTP_SPECULATIVE_BATCHED", "0") == "1"
+            else speculative_step_k1
+        )
+        mtp_speculative_stats["batched"] = spec_step_fn is speculative_step_k1_batched
+
         if mtp_speculative_active and stopped_reason != "stop_token":
             pending_id = int(next_id)
             pending_base_hidden = h[:, -1:, :].contiguous()
@@ -1363,7 +1404,7 @@ class LynnIncrementalRunner:
             first_step = True
             while len(new_ids) < max_new and stopped_reason != "stop_token":
                 spec_t0 = time.time()
-                spec_result = speculative_step_k1(
+                spec_result = spec_step_fn(
                     self,
                     state,
                     pending_id,
