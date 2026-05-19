@@ -1,0 +1,102 @@
+{
+  "schema": "lynn-qwen35-9b-dense-release-matrix-v2",
+  "date": "2026-05-19",
+  "model": "Qwen3.5-9B-Dense",
+  "branch": "kimi/qwen35-9b-release-matrix-v2-20260519",
+  "tiers": [
+    {
+      "platform": "Mac (Apple Silicon)",
+      "runtime": "llama.cpp",
+      "format": "Q4_K_M-imatrix",
+      "size_gib": 5.5,
+      "single_tps": null,
+      "batch_tps": null,
+      "long_context": null,
+      "status": "stable",
+      "note": "M3 Max/M4 Max target; llama.cpp主场. Apple Silicon has no NVFP4 tensor cores.",
+      "evidence": []
+    },
+    {
+      "platform": "NVIDIA Linux (R6000)",
+      "runtime": "llama.cpp CUDA",
+      "format": "Q4_K_M-imatrix",
+      "size_gib": 5.5,
+      "single_tps": { "128": 131.55, "256": 160.2, "512": 165.75 },
+      "batch_tps": { "2": 270.61, "4": 330.75, "8": 413.49 },
+      "long_context": { "4K": 173.79, "16K": 114.39, "32K": null },
+      "status": "baseline",
+      "note": "llama.cpp b8563ad, CUDA 12.8, CMAKE_CUDA_ARCHITECTURES=120, flash-attn, parallel=8. parallel=1 baseline in 1732.",
+      "evidence": [
+        "reports/qwen35_9b/r6000_qwen35_9b_q4km_cuda_baseline_20260519_1731.md",
+        "reports/qwen35_9b/r6000_qwen35_9b_q4km_cuda_baseline_20260519_1732.md"
+      ]
+    },
+    {
+      "platform": "NVIDIA Linux (R6000)",
+      "runtime": "Lynn Engine",
+      "format": "NVFP4 W4A16",
+      "size_gib": 8.2,
+      "single_tps": { "128": 61.3, "256": 62.2, "512": 62.1 },
+      "batch_tps": null,
+      "long_context": { "4K": 60, "16K": null, "32K": null },
+      "status": "safe",
+      "note": "LYNN_LINEAR_BLOCK_GRAPH=1/REUSE=1/PREWARM=1, convstrict serving guard. P25_READY verdict. ~40% of Q4_K_M parallel=1.",
+      "evidence": [
+        "reports/qwen35_9b/p150_qwen35_9b_nvfp4_linear_graph_summary_20260519_120000_convstrict.json",
+        "reports/qwen35_9b/p183_qwen35_9b_nvfp4_exact_fast_isolation_20260519_115751.json",
+        "reports/qwen35_9b/p184_qwen35_9b_nvfp4_convstrict_exact_gate_20260519_120255.json"
+      ]
+    },
+    {
+      "platform": "NVIDIA Linux (R6000)",
+      "runtime": "Lynn Engine",
+      "format": "W4A8 fake-quant",
+      "size_gib": 8.2,
+      "single_tps": { "128": 58, "256": 60, "512": 58 },
+      "batch_tps": null,
+      "long_context": null,
+      "status": "experimental",
+      "note": "Fake-quant validation only. 70-prompt structured gate pass rate 90%. Speed does not exceed W4A16.",
+      "evidence": [
+        "reports/qwen35_9b/p196_qwen35_9b_w4a8_structured_content_gate_20260519_1718_p196_chat70.json"
+      ]
+    },
+    {
+      "platform": "Windows (WSL2/Docker)",
+      "runtime": "Lynn Engine Docker",
+      "format": "NVFP4 W4A16",
+      "size_gib": 8.2,
+      "single_tps": null,
+      "batch_tps": null,
+      "long_context": null,
+      "status": "beta",
+      "note": "WSL2 + CUDA 12.8+ required. No native Windows binary. Docker image pins CUDA runtime + PyTorch + Lynn Engine.",
+      "evidence": []
+    },
+    {
+      "platform": "DGX Spark (GB10)",
+      "runtime": "Lynn Engine",
+      "format": "NVFP4 W4A16",
+      "size_gib": 8.2,
+      "single_tps": null,
+      "batch_tps": null,
+      "long_context": null,
+      "status": "pending",
+      "note": "GB10 sm_121 env parity gate needed. 119 GB unified memory.",
+      "evidence": []
+    }
+  ],
+  "distribution": {
+    "docs_domain": "engine.merkyorlynn.com",
+    "download_domain": "dl.merkyorlynn.com",
+    "mirror_domain": "mirror.merkyorlynn.com",
+    "model_path": "models/qwen35-9b-dense/",
+    "install_script": "https://engine.merkyorlynn.com/install.sh"
+  },
+  "lifecycle": {
+    "beta": "2026-05-19 → 2026-06-01",
+    "rc": "2026-06-01 → 2026-06-15",
+    "ga": "2026-06-15 → 2026-09-15",
+    "maintenance": "2026-09-15 → 2026-12-31"
+  }
+}
