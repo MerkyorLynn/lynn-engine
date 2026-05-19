@@ -183,16 +183,63 @@ def _moe_forward(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
     return moe_out.view(B, M, D)
 
 
+def _w4a8_fake_quant_mode() -> str:
+    """Opt-in FP8 activation round-trip used by W4A8 quality gates.
+
+    The default stays off.  This is intentionally a runtime gate rather than a
+    model-format gate so W4A16 artifacts can be compared against W4A8-active
+    semantics before native FP8 kernels are promoted.
+    """
+    mode = os.environ.get("LYNN_W4A8_FAKE_QUANT_ACTIVE", "off").lower()
+    if mode not in {"off", "gateup", "full"}:
+        raise ValueError("LYNN_W4A8_FAKE_QUANT_ACTIVE must be off, gateup, or full")
+    return mode
+
+
+def _fake_quant_fp8_activation(x: torch.Tensor) -> torch.Tensor:
+    fmt = os.environ.get("LYNN_W4A8_FAKE_QUANT_FORMAT", "e4m3").lower()
+    granularity = os.environ.get("LYNN_W4A8_FAKE_QUANT_GRANULARITY", "per16").lower()
+    if fmt == "e4m3":
+        fp8_dtype = torch.float8_e4m3fn
+        qmax = 448.0
+    elif fmt == "e5m2":
+        fp8_dtype = torch.float8_e5m2
+        qmax = 57344.0
+    else:
+        raise ValueError("LYNN_W4A8_FAKE_QUANT_FORMAT must be e4m3 or e5m2")
+
+    x_float = x.float()
+    if granularity == "tensor":
+        scale = x_float.abs().amax().clamp_min(1.0e-6) / qmax
+        return (x_float / scale).to(fp8_dtype).to(torch.float32).mul(scale).to(x.dtype)
+    if granularity == "row":
+        scale = x_float.abs().amax(dim=-1, keepdim=True).clamp_min(1.0e-6) / qmax
+        return (x_float / scale).to(fp8_dtype).to(torch.float32).mul(scale).to(x.dtype)
+    if granularity == "per16":
+        if x.shape[-1] % 16 != 0:
+            raise ValueError(f"W4A8 per16 fake quant requires last dim divisible by 16, got {tuple(x.shape)}")
+        groups = x_float.reshape(*x_float.shape[:-1], x_float.shape[-1] // 16, 16)
+        scale = groups.abs().amax(dim=-1, keepdim=True).clamp_min(1.0e-6) / qmax
+        rounded = (groups / scale).to(fp8_dtype).to(torch.float32).mul(scale)
+        return rounded.reshape_as(x_float).to(x.dtype)
+    raise ValueError("LYNN_W4A8_FAKE_QUANT_GRANULARITY must be tensor, row, or per16")
+
+
 def _dense_ffn_forward(h: torch.Tensor, w: dict) -> torch.Tensor:
     """Dense Qwen FFN: down_proj(silu(gate_proj(x)) * up_proj(x))."""
+    w4a8_mode = _w4a8_fake_quant_mode()
+    active_h = _fake_quant_fp8_activation(h) if w4a8_mode in {"gateup", "full"} else h
     fused = w.get("mlp._gate_up_proj.weight")
     if fused is not None:
-        gate_up = F.linear(h, fused)
+        gate_up = F.linear(active_h, fused)
         gate, up = gate_up.chunk(2, dim=-1)
     else:
-        gate = F.linear(h, w["mlp.gate_proj.weight"])
-        up = F.linear(h, w["mlp.up_proj.weight"])
-    return F.linear(F.silu(gate) * up, w["mlp.down_proj.weight"])
+        gate = F.linear(active_h, w["mlp.gate_proj.weight"])
+        up = F.linear(active_h, w["mlp.up_proj.weight"])
+    inter = F.silu(gate) * up
+    if w4a8_mode == "full":
+        inter = _fake_quant_fp8_activation(inter)
+    return F.linear(inter, w["mlp.down_proj.weight"])
 
 
 def _ffn_forward(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
