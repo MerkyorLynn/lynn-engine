@@ -47,6 +47,68 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 
+_DENSE_FP4XFP8_EXT = None
+
+
+def _quantize_to_fp8_e4m3_per16(x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    """Quantize a single decode activation to E4M3 with per-16 FP32 scale."""
+    x_flat = x.view(-1).float()
+    if x_flat.numel() % 16 != 0:
+        raise ValueError(f"FP4xFP8 activation length must be divisible by 16, got {x_flat.numel()}")
+    grouped = x_flat.view(x_flat.numel() // 16, 16)
+    scale = (grouped.abs().amax(dim=-1) / 448.0).clamp_min(1e-8)
+    fp8 = (grouped / scale.unsqueeze(-1)).to(torch.float8_e4m3fn)
+    return fp8.view(torch.uint8).view(-1).contiguous(), scale.contiguous()
+
+
+def _dense_fp4xfp8_extension():
+    global _DENSE_FP4XFP8_EXT
+    if _DENSE_FP4XFP8_EXT is None:
+        from engine.native_cuda import load_lynn_native_extension
+
+        _DENSE_FP4XFP8_EXT = load_lynn_native_extension(verbose=False)
+        if not hasattr(_DENSE_FP4XFP8_EXT, "dense_fp4xfp8_mma_scaled_probe"):
+            raise RuntimeError("dense_fp4xfp8_mma_scaled_probe missing from native extension")
+    return _DENSE_FP4XFP8_EXT
+
+
+def _dense_fp4xfp8_project(x: torch.Tensor, w: dict, proj: str) -> torch.Tensor:
+    """Run one dense FFN projection through the R6000 native E4M3xE2M1 MMA bridge."""
+    prefix = f"mlp._fp4xfp8.{proj}."
+    packed = w[prefix + "weight_packed"]
+    scale = w[prefix + "weight_scale"].float()
+    global_scale = w[prefix + "weight_global_scale"].float().view(-1)
+    n, k_half = packed.shape
+    k = k_half * 2
+    act_fp8, act_scale = _quantize_to_fp8_e4m3_per16(x.reshape(-1)[:k])
+    out = _dense_fp4xfp8_extension().dense_fp4xfp8_mma_scaled_probe(
+        act_fp8,
+        act_scale,
+        packed.contiguous(),
+        scale.contiguous(),
+        global_scale.contiguous(),
+        1,
+        int(n),
+        int(k),
+    )
+    return out.reshape(*x.shape[:-1], int(n))
+
+
+def _has_dense_fp4xfp8_sidecar(w: dict) -> bool:
+    required = (
+        "mlp._fp4xfp8.gate_proj.weight_packed",
+        "mlp._fp4xfp8.gate_proj.weight_scale",
+        "mlp._fp4xfp8.gate_proj.weight_global_scale",
+        "mlp._fp4xfp8.up_proj.weight_packed",
+        "mlp._fp4xfp8.up_proj.weight_scale",
+        "mlp._fp4xfp8.up_proj.weight_global_scale",
+        "mlp._fp4xfp8.down_proj.weight_packed",
+        "mlp._fp4xfp8.down_proj.weight_scale",
+        "mlp._fp4xfp8.down_proj.weight_global_scale",
+    )
+    return all(k in w for k in required)
+
+
 def _rms_norm(x: torch.Tensor, weight: torch.Tensor, eps: float = 1e-6) -> torch.Tensor:
     """Qwen3_5MoeRMSNorm — note the `(1.0 + weight)` factor, not plain `weight`.
 
@@ -227,6 +289,19 @@ def _fake_quant_fp8_activation(x: torch.Tensor) -> torch.Tensor:
 
 def _dense_ffn_forward(h: torch.Tensor, w: dict) -> torch.Tensor:
     """Dense Qwen FFN: down_proj(silu(gate_proj(x)) * up_proj(x))."""
+    true_fp8_mode = os.environ.get("LYNN_DENSE_FFN_TRUE_FP8", "0").strip().lower()
+    is_single_decode_token = h.reshape(-1, h.shape[-1]).shape[0] == 1
+    if (
+        true_fp8_mode not in {"0", "off", "false", "no"}
+        and is_single_decode_token
+        and _has_dense_fp4xfp8_sidecar(w)
+    ):
+        gate = _dense_fp4xfp8_project(h, w, "gate_proj")
+        up = _dense_fp4xfp8_project(h, w, "up_proj")
+        inter = F.silu(gate.float()) * up.float()
+        out = _dense_fp4xfp8_project(inter, w, "down_proj")
+        return out.to(h.dtype)
+
     w4a8_mode = _w4a8_fake_quant_mode()
     active_h = _fake_quant_fp8_activation(h) if w4a8_mode in {"gateup", "full"} else h
     fused = w.get("mlp._gate_up_proj.weight")

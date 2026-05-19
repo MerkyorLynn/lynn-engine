@@ -234,6 +234,7 @@ class LynnIncrementalRunner:
         self.decode_fast_dispatch = os.environ.get("LYNN_DECODE_FAST_DISPATCH", "1") != "0"
         self.shared_expert_gate_up_fused_attached = 0
         self.dense_ffn_gate_up_fused_attached = 0
+        self.dense_ffn_true_fp8_attached = 0
         self.packed_nvfp4_moe_aliases_attached = 0
         self.moe_repack_sidecar_dir = os.environ.get("LYNN_MOE_REPACK_SIDECAR_DIR") or None
         self.moe_repack_sidecar_layers_attached = 0
@@ -670,6 +671,75 @@ class LynnIncrementalRunner:
         self.dense_ffn_gate_up_fused_attached = attached
         if self.verbose:
             print(f"[resident] dense FFN fused gate/up attached={attached}", flush=True)
+
+    def _prepare_dense_ffn_true_fp8(self) -> None:
+        """Attach Qwen3.5-9B dense FP4xFP8 sidecar tensors.
+
+        P191-P195 validate the true E4M3xE2M1 R6000 MMA bridge on fixture
+        outputs. This resident hook is opt-in and only attaches the already
+        repacked sidecar tensors; default BF16/W4A16 serving is unchanged.
+        """
+        raw_dir = os.environ.get("LYNN_DENSE_FFN_TRUE_FP8_SIDECAR_DIR", "").strip()
+        if not raw_dir:
+            raise RuntimeError("LYNN_DENSE_FFN_TRUE_FP8 requires LYNN_DENSE_FFN_TRUE_FP8_SIDECAR_DIR")
+        sidecar_dir = Path(raw_dir)
+        if not sidecar_dir.exists():
+            raise FileNotFoundError(f"dense FP4xFP8 sidecar dir not found: {sidecar_dir}")
+
+        def selected_layers() -> set[int] | None:
+            raw = os.environ.get("LYNN_DENSE_FFN_TRUE_FP8_LAYERS", "").strip()
+            if not raw or raw.lower() in {"all", "*"}:
+                return None
+            selected: set[int] = set()
+            for part in raw.split(","):
+                item = part.strip()
+                if not item:
+                    continue
+                if "-" in item:
+                    lo, hi = item.split("-", 1)
+                    selected.update(range(int(lo), int(hi) + 1))
+                else:
+                    selected.add(int(item))
+            return selected
+
+        from safetensors.torch import load_file
+
+        layer_filter = selected_layers()
+        attached = 0
+        for layer_idx, w in enumerate(self.layer_weights):
+            if layer_filter is not None and layer_idx not in layer_filter:
+                continue
+            sidecar_path = sidecar_dir / f"layer_{layer_idx:02d}.safetensors"
+            if not sidecar_path.exists():
+                continue
+            side = load_file(str(sidecar_path), device=self.device)
+            ok = True
+            for proj in ("gate_proj", "up_proj", "down_proj"):
+                for src_suffix, dst_suffix in (
+                    ("weight_packed", "weight_packed"),
+                    ("weight_scale", "weight_scale"),
+                    ("weight_global_scale", "weight_global_scale"),
+                ):
+                    src = f"{proj}.{src_suffix}"
+                    if src not in side:
+                        ok = False
+                        break
+                    w[f"mlp._fp4xfp8.{proj}.{dst_suffix}"] = side[src].contiguous()
+                if not ok:
+                    break
+            if ok:
+                attached += 1
+        if attached:
+            # Build/load the extension during runner init, not on the first
+            # decode token, so P190/P150 timings measure the runtime path.
+            from engine.native_cuda import load_lynn_native_extension
+
+            ext = load_lynn_native_extension(verbose=False)
+            if not hasattr(ext, "dense_fp4xfp8_mma_scaled_probe"):
+                raise RuntimeError("dense_fp4xfp8_mma_scaled_probe missing from native extension")
+        self.dense_ffn_true_fp8_attached = attached
+        if self.verbose:
+            print(f"[resident] dense FFN true FP8 sidecar attached={attached}", flush=True)
 
     def _prepare_full_attn_qkv_fused(self) -> None:
         """Attach BF16 fused full-attention Q/K/V projection weights.
