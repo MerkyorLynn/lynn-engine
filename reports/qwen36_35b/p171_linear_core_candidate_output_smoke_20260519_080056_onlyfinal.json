@@ -1,0 +1,747 @@
+{
+  "schema": "lynn-qwen36-linear-core-candidate-output-smoke-v1",
+  "created": "2026-05-19T08:01:20+0800",
+  "fixtures": "/root/autodl-tmp/reports/qwen36_35b/p169_linear_core_fixtures_official_w4a16_20260519_0750",
+  "fixture_manifest": "/root/autodl-tmp/reports/qwen36_35b/p169_linear_core_fixtures_official_w4a16_20260519_0750/manifest.json",
+  "candidate_output_dir": "/root/autodl-tmp/reports/qwen36_35b/p171_linear_core_identity_candidate_20260519_080056_onlyfinal",
+  "device": "cpu",
+  "only_final": true,
+  "custom_keys": "",
+  "elapsed_seconds": 0.045824527740478516,
+  "summary": {
+    "total_fixtures": 20,
+    "total_tensors_written": 60,
+    "keys_mode": "only-final",
+    "all_checked_keys_written": false
+  },
+  "p169_candidate_output_dir": "/root/autodl-tmp/reports/qwen36_35b/p171_linear_core_identity_candidate_20260519_080056_onlyfinal",
+  "results": [
+    {
+      "fixture_file": "layer_00_prompt_00.safetensors",
+      "output_file": "layer_00_prompt_00.safetensors",
+      "layer_id": 0,
+      "prompt_id": 0,
+      "keys_written": [
+        "linear_core_out",
+        "recurrent_state_out",
+        "conv_state_out"
+      ],
+      "tensor_shapes": {
+        "linear_core_out": [
+          1,
+          1,
+          2048
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ]
+      },
+      "tensor_dtypes": {
+        "linear_core_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_04_prompt_00.safetensors",
+      "output_file": "layer_04_prompt_00.safetensors",
+      "layer_id": 4,
+      "prompt_id": 0,
+      "keys_written": [
+        "linear_core_out",
+        "recurrent_state_out",
+        "conv_state_out"
+      ],
+      "tensor_shapes": {
+        "linear_core_out": [
+          1,
+          1,
+          2048
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ]
+      },
+      "tensor_dtypes": {
+        "linear_core_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_08_prompt_00.safetensors",
+      "output_file": "layer_08_prompt_00.safetensors",
+      "layer_id": 8,
+      "prompt_id": 0,
+      "keys_written": [
+        "linear_core_out",
+        "recurrent_state_out",
+        "conv_state_out"
+      ],
+      "tensor_shapes": {
+        "linear_core_out": [
+          1,
+          1,
+          2048
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ]
+      },
+      "tensor_dtypes": {
+        "linear_core_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_12_prompt_00.safetensors",
+      "output_file": "layer_12_prompt_00.safetensors",
+      "layer_id": 12,
+      "prompt_id": 0,
+      "keys_written": [
+        "linear_core_out",
+        "recurrent_state_out",
+        "conv_state_out"
+      ],
+      "tensor_shapes": {
+        "linear_core_out": [
+          1,
+          1,
+          2048
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ]
+      },
+      "tensor_dtypes": {
+        "linear_core_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_16_prompt_00.safetensors",
+      "output_file": "layer_16_prompt_00.safetensors",
+      "layer_id": 16,
+      "prompt_id": 0,
+      "keys_written": [
+        "linear_core_out",
+        "recurrent_state_out",
+        "conv_state_out"
+      ],
+      "tensor_shapes": {
+        "linear_core_out": [
+          1,
+          1,
+          2048
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ]
+      },
+      "tensor_dtypes": {
+        "linear_core_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_20_prompt_00.safetensors",
+      "output_file": "layer_20_prompt_00.safetensors",
+      "layer_id": 20,
+      "prompt_id": 0,
+      "keys_written": [
+        "linear_core_out",
+        "recurrent_state_out",
+        "conv_state_out"
+      ],
+      "tensor_shapes": {
+        "linear_core_out": [
+          1,
+          1,
+          2048
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ]
+      },
+      "tensor_dtypes": {
+        "linear_core_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_24_prompt_00.safetensors",
+      "output_file": "layer_24_prompt_00.safetensors",
+      "layer_id": 24,
+      "prompt_id": 0,
+      "keys_written": [
+        "linear_core_out",
+        "recurrent_state_out",
+        "conv_state_out"
+      ],
+      "tensor_shapes": {
+        "linear_core_out": [
+          1,
+          1,
+          2048
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ]
+      },
+      "tensor_dtypes": {
+        "linear_core_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_28_prompt_00.safetensors",
+      "output_file": "layer_28_prompt_00.safetensors",
+      "layer_id": 28,
+      "prompt_id": 0,
+      "keys_written": [
+        "linear_core_out",
+        "recurrent_state_out",
+        "conv_state_out"
+      ],
+      "tensor_shapes": {
+        "linear_core_out": [
+          1,
+          1,
+          2048
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ]
+      },
+      "tensor_dtypes": {
+        "linear_core_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_32_prompt_00.safetensors",
+      "output_file": "layer_32_prompt_00.safetensors",
+      "layer_id": 32,
+      "prompt_id": 0,
+      "keys_written": [
+        "linear_core_out",
+        "recurrent_state_out",
+        "conv_state_out"
+      ],
+      "tensor_shapes": {
+        "linear_core_out": [
+          1,
+          1,
+          2048
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ]
+      },
+      "tensor_dtypes": {
+        "linear_core_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_36_prompt_00.safetensors",
+      "output_file": "layer_36_prompt_00.safetensors",
+      "layer_id": 36,
+      "prompt_id": 0,
+      "keys_written": [
+        "linear_core_out",
+        "recurrent_state_out",
+        "conv_state_out"
+      ],
+      "tensor_shapes": {
+        "linear_core_out": [
+          1,
+          1,
+          2048
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ]
+      },
+      "tensor_dtypes": {
+        "linear_core_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_00_prompt_01.safetensors",
+      "output_file": "layer_00_prompt_01.safetensors",
+      "layer_id": 0,
+      "prompt_id": 1,
+      "keys_written": [
+        "linear_core_out",
+        "recurrent_state_out",
+        "conv_state_out"
+      ],
+      "tensor_shapes": {
+        "linear_core_out": [
+          1,
+          1,
+          2048
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ]
+      },
+      "tensor_dtypes": {
+        "linear_core_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_04_prompt_01.safetensors",
+      "output_file": "layer_04_prompt_01.safetensors",
+      "layer_id": 4,
+      "prompt_id": 1,
+      "keys_written": [
+        "linear_core_out",
+        "recurrent_state_out",
+        "conv_state_out"
+      ],
+      "tensor_shapes": {
+        "linear_core_out": [
+          1,
+          1,
+          2048
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ]
+      },
+      "tensor_dtypes": {
+        "linear_core_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_08_prompt_01.safetensors",
+      "output_file": "layer_08_prompt_01.safetensors",
+      "layer_id": 8,
+      "prompt_id": 1,
+      "keys_written": [
+        "linear_core_out",
+        "recurrent_state_out",
+        "conv_state_out"
+      ],
+      "tensor_shapes": {
+        "linear_core_out": [
+          1,
+          1,
+          2048
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ]
+      },
+      "tensor_dtypes": {
+        "linear_core_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_12_prompt_01.safetensors",
+      "output_file": "layer_12_prompt_01.safetensors",
+      "layer_id": 12,
+      "prompt_id": 1,
+      "keys_written": [
+        "linear_core_out",
+        "recurrent_state_out",
+        "conv_state_out"
+      ],
+      "tensor_shapes": {
+        "linear_core_out": [
+          1,
+          1,
+          2048
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ]
+      },
+      "tensor_dtypes": {
+        "linear_core_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_16_prompt_01.safetensors",
+      "output_file": "layer_16_prompt_01.safetensors",
+      "layer_id": 16,
+      "prompt_id": 1,
+      "keys_written": [
+        "linear_core_out",
+        "recurrent_state_out",
+        "conv_state_out"
+      ],
+      "tensor_shapes": {
+        "linear_core_out": [
+          1,
+          1,
+          2048
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ]
+      },
+      "tensor_dtypes": {
+        "linear_core_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_20_prompt_01.safetensors",
+      "output_file": "layer_20_prompt_01.safetensors",
+      "layer_id": 20,
+      "prompt_id": 1,
+      "keys_written": [
+        "linear_core_out",
+        "recurrent_state_out",
+        "conv_state_out"
+      ],
+      "tensor_shapes": {
+        "linear_core_out": [
+          1,
+          1,
+          2048
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ]
+      },
+      "tensor_dtypes": {
+        "linear_core_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_24_prompt_01.safetensors",
+      "output_file": "layer_24_prompt_01.safetensors",
+      "layer_id": 24,
+      "prompt_id": 1,
+      "keys_written": [
+        "linear_core_out",
+        "recurrent_state_out",
+        "conv_state_out"
+      ],
+      "tensor_shapes": {
+        "linear_core_out": [
+          1,
+          1,
+          2048
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ]
+      },
+      "tensor_dtypes": {
+        "linear_core_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_28_prompt_01.safetensors",
+      "output_file": "layer_28_prompt_01.safetensors",
+      "layer_id": 28,
+      "prompt_id": 1,
+      "keys_written": [
+        "linear_core_out",
+        "recurrent_state_out",
+        "conv_state_out"
+      ],
+      "tensor_shapes": {
+        "linear_core_out": [
+          1,
+          1,
+          2048
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ]
+      },
+      "tensor_dtypes": {
+        "linear_core_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_32_prompt_01.safetensors",
+      "output_file": "layer_32_prompt_01.safetensors",
+      "layer_id": 32,
+      "prompt_id": 1,
+      "keys_written": [
+        "linear_core_out",
+        "recurrent_state_out",
+        "conv_state_out"
+      ],
+      "tensor_shapes": {
+        "linear_core_out": [
+          1,
+          1,
+          2048
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ]
+      },
+      "tensor_dtypes": {
+        "linear_core_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16"
+      }
+    },
+    {
+      "fixture_file": "layer_36_prompt_01.safetensors",
+      "output_file": "layer_36_prompt_01.safetensors",
+      "layer_id": 36,
+      "prompt_id": 1,
+      "keys_written": [
+        "linear_core_out",
+        "recurrent_state_out",
+        "conv_state_out"
+      ],
+      "tensor_shapes": {
+        "linear_core_out": [
+          1,
+          1,
+          2048
+        ],
+        "recurrent_state_out": [
+          1,
+          32,
+          128,
+          128
+        ],
+        "conv_state_out": [
+          1,
+          8192,
+          3
+        ]
+      },
+      "tensor_dtypes": {
+        "linear_core_out": "torch.bfloat16",
+        "recurrent_state_out": "torch.float32",
+        "conv_state_out": "torch.bfloat16"
+      }
+    }
+  ],
+  "p169_check_command": [
+    "/root/autodl-tmp/conda-envs/r6000-eval/bin/python",
+    "/root/autodl-tmp/lynn-engine/benchmarks/p169_qwen36_linear_core_fixture_contract.py",
+    "--fixtures",
+    "/root/autodl-tmp/reports/qwen36_35b/p169_linear_core_fixtures_official_w4a16_20260519_0750",
+    "--out",
+    "/root/autodl-tmp/reports/qwen36_35b/p171_linear_core_candidate_output_smoke_20260519_080056_onlyfinal_p169_check.json",
+    "--check",
+    "--candidate-output-dir",
+    "/root/autodl-tmp/reports/qwen36_35b/p171_linear_core_identity_candidate_20260519_080056_onlyfinal",
+    "--device",
+    "cpu",
+    "--max-abs-threshold",
+    "0.0",
+    "--cosine-threshold",
+    "0.999999"
+  ],
+  "p169_check": {
+    "command": [
+      "/root/autodl-tmp/conda-envs/r6000-eval/bin/python",
+      "/root/autodl-tmp/lynn-engine/benchmarks/p169_qwen36_linear_core_fixture_contract.py",
+      "--fixtures",
+      "/root/autodl-tmp/reports/qwen36_35b/p169_linear_core_fixtures_official_w4a16_20260519_0750",
+      "--out",
+      "/root/autodl-tmp/reports/qwen36_35b/p171_linear_core_candidate_output_smoke_20260519_080056_onlyfinal_p169_check.json",
+      "--check",
+      "--candidate-output-dir",
+      "/root/autodl-tmp/reports/qwen36_35b/p171_linear_core_identity_candidate_20260519_080056_onlyfinal",
+      "--device",
+      "cpu",
+      "--max-abs-threshold",
+      "0.0",
+      "--cosine-threshold",
+      "0.999999"
+    ],
+    "returncode": 0,
+    "stdout": "{\n  \"passed\": 20,\n  \"total\": 20,\n  \"max_abs_max\": 0.0,\n  \"cosine_min\": 0.9999998211860657,\n  \"all_passed\": true\n}\n",
+    "stderr": "",
+    "report": "/root/autodl-tmp/reports/qwen36_35b/p171_linear_core_candidate_output_smoke_20260519_080056_onlyfinal_p169_check.json",
+    "summary": {
+      "passed": 20,
+      "total": 20,
+      "max_abs_max": 0.0,
+      "cosine_min": 0.9999998211860657,
+      "all_passed": true
+    }
+  }
+}
