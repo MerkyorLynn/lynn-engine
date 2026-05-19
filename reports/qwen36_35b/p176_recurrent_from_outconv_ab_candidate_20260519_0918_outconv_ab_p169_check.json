@@ -1,0 +1,682 @@
+{
+  "contract": {
+    "schema_version": "lynn-qwen36-linear-core-fixture-contract-v1",
+    "mode": "candidate-output-dir",
+    "fixtures": "/root/autodl-tmp/reports/qwen36_35b/p169_linear_core_fixtures_official_w4a16_20260519_0750",
+    "candidate_output_dir": "/root/autodl-tmp/reports/qwen36_35b/p176_recurrent_from_outconv_ab_candidate_20260519_0918_outconv_ab",
+    "model": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0",
+    "thresholds": {
+      "max_abs_threshold": 0.0,
+      "cosine_threshold": 0.999999
+    },
+    "summary": {
+      "passed": 0,
+      "total": 20,
+      "max_abs_max": 0.015341758728027344,
+      "cosine_min": 0.9999949932098389,
+      "all_passed": false
+    },
+    "results": [
+      {
+        "fixture_file": "layer_00_prompt_00.safetensors",
+        "layer_id": 0,
+        "prompt_id": 0,
+        "passed": false,
+        "per_tensor": {
+          "conv_state_out": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 1.0,
+            "exact": 1
+          },
+          "core_attn_out": {
+            "max_abs": 0.0009765625,
+            "mean_abs": 7.660854635105352e-07,
+            "rel_l2": 0.0009514815872346009,
+            "cosine": 0.9999996423721313,
+            "exact": 0
+          },
+          "recurrent_state_out": {
+            "max_abs": 0.010902881622314453,
+            "mean_abs": 3.3679948501230683e-06,
+            "rel_l2": 0.0006751359538318352,
+            "cosine": 0.9999998211860657,
+            "exact": 0
+          }
+        },
+        "fail_reasons": [
+          "core_attn_out exceeds thresholds",
+          "recurrent_state_out exceeds thresholds"
+        ]
+      },
+      {
+        "fixture_file": "layer_04_prompt_00.safetensors",
+        "layer_id": 4,
+        "prompt_id": 0,
+        "passed": false,
+        "per_tensor": {
+          "conv_state_out": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 1.0,
+            "exact": 1
+          },
+          "core_attn_out": {
+            "max_abs": 3.0517578125e-05,
+            "mean_abs": 2.40012596464112e-08,
+            "rel_l2": 0.0009368631426957551,
+            "cosine": 0.999999463558197,
+            "exact": 0
+          },
+          "recurrent_state_out": {
+            "max_abs": 0.0013039112091064453,
+            "mean_abs": 5.591216449829517e-07,
+            "rel_l2": 0.00045964742632188446,
+            "cosine": 0.9999998211860657,
+            "exact": 0
+          }
+        },
+        "fail_reasons": [
+          "core_attn_out exceeds thresholds",
+          "recurrent_state_out exceeds thresholds"
+        ]
+      },
+      {
+        "fixture_file": "layer_08_prompt_00.safetensors",
+        "layer_id": 8,
+        "prompt_id": 0,
+        "passed": false,
+        "per_tensor": {
+          "conv_state_out": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 0.9999999403953552,
+            "exact": 1
+          },
+          "core_attn_out": {
+            "max_abs": 0.000244140625,
+            "mean_abs": 9.893117436376997e-08,
+            "rel_l2": 0.0008339945904235816,
+            "cosine": 0.9999997615814209,
+            "exact": 0
+          },
+          "recurrent_state_out": {
+            "max_abs": 0.0022890567779541016,
+            "mean_abs": 1.0008858453147695e-06,
+            "rel_l2": 0.00035739211598780497,
+            "cosine": 1.0,
+            "exact": 0
+          }
+        },
+        "fail_reasons": [
+          "core_attn_out exceeds thresholds",
+          "recurrent_state_out exceeds thresholds"
+        ]
+      },
+      {
+        "fixture_file": "layer_12_prompt_00.safetensors",
+        "layer_id": 12,
+        "prompt_id": 0,
+        "passed": false,
+        "per_tensor": {
+          "conv_state_out": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 1.0,
+            "exact": 1
+          },
+          "core_attn_out": {
+            "max_abs": 1.52587890625e-05,
+            "mean_abs": 4.296023092820178e-08,
+            "rel_l2": 0.00027585487972734893,
+            "cosine": 0.9999998807907104,
+            "exact": 0
+          },
+          "recurrent_state_out": {
+            "max_abs": 0.0022840499877929688,
+            "mean_abs": 5.990492581986473e-07,
+            "rel_l2": 0.0007394324970508363,
+            "cosine": 0.9999997019767761,
+            "exact": 0
+          }
+        },
+        "fail_reasons": [
+          "core_attn_out exceeds thresholds",
+          "recurrent_state_out exceeds thresholds"
+        ]
+      },
+      {
+        "fixture_file": "layer_16_prompt_00.safetensors",
+        "layer_id": 16,
+        "prompt_id": 0,
+        "passed": false,
+        "per_tensor": {
+          "conv_state_out": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 1.0000001192092896,
+            "exact": 1
+          },
+          "core_attn_out": {
+            "max_abs": 7.62939453125e-06,
+            "mean_abs": 2.336211935016763e-08,
+            "rel_l2": 0.00011995021212173983,
+            "cosine": 1.0,
+            "exact": 0
+          },
+          "recurrent_state_out": {
+            "max_abs": 0.0004380345344543457,
+            "mean_abs": 6.76884837957914e-07,
+            "rel_l2": 0.0003050079049954434,
+            "cosine": 1.0,
+            "exact": 0
+          }
+        },
+        "fail_reasons": [
+          "core_attn_out exceeds thresholds",
+          "recurrent_state_out exceeds thresholds"
+        ]
+      },
+      {
+        "fixture_file": "layer_20_prompt_00.safetensors",
+        "layer_id": 20,
+        "prompt_id": 0,
+        "passed": false,
+        "per_tensor": {
+          "conv_state_out": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 1.0,
+            "exact": 1
+          },
+          "core_attn_out": {
+            "max_abs": 1.52587890625e-05,
+            "mean_abs": 5.045451700880221e-08,
+            "rel_l2": 0.00011184768707042356,
+            "cosine": 1.0,
+            "exact": 0
+          },
+          "recurrent_state_out": {
+            "max_abs": 0.0023397207260131836,
+            "mean_abs": 1.0049740239992389e-06,
+            "rel_l2": 0.00036938227886833405,
+            "cosine": 0.9999998211860657,
+            "exact": 0
+          }
+        },
+        "fail_reasons": [
+          "core_attn_out exceeds thresholds",
+          "recurrent_state_out exceeds thresholds"
+        ]
+      },
+      {
+        "fixture_file": "layer_24_prompt_00.safetensors",
+        "layer_id": 24,
+        "prompt_id": 0,
+        "passed": false,
+        "per_tensor": {
+          "conv_state_out": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 0.9999999403953552,
+            "exact": 1
+          },
+          "core_attn_out": {
+            "max_abs": 7.62939453125e-06,
+            "mean_abs": 3.035350104596546e-08,
+            "rel_l2": 0.0003197038031137431,
+            "cosine": 1.0,
+            "exact": 0
+          },
+          "recurrent_state_out": {
+            "max_abs": 0.0013284683227539062,
+            "mean_abs": 6.299932806541619e-07,
+            "rel_l2": 0.00039627564650670773,
+            "cosine": 0.9999998807907104,
+            "exact": 0
+          }
+        },
+        "fail_reasons": [
+          "core_attn_out exceeds thresholds",
+          "recurrent_state_out exceeds thresholds"
+        ]
+      },
+      {
+        "fixture_file": "layer_28_prompt_00.safetensors",
+        "layer_id": 28,
+        "prompt_id": 0,
+        "passed": false,
+        "per_tensor": {
+          "conv_state_out": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 0.9999999403953552,
+            "exact": 1
+          },
+          "core_attn_out": {
+            "max_abs": 3.814697265625e-06,
+            "mean_abs": 2.4630153916405106e-08,
+            "rel_l2": 0.00013570197436330736,
+            "cosine": 0.9999999403953552,
+            "exact": 0
+          },
+          "recurrent_state_out": {
+            "max_abs": 0.0005421340465545654,
+            "mean_abs": 6.393274816218764e-07,
+            "rel_l2": 0.000297303062001179,
+            "cosine": 0.9999998807907104,
+            "exact": 0
+          }
+        },
+        "fail_reasons": [
+          "core_attn_out exceeds thresholds",
+          "recurrent_state_out exceeds thresholds"
+        ]
+      },
+      {
+        "fixture_file": "layer_32_prompt_00.safetensors",
+        "layer_id": 32,
+        "prompt_id": 0,
+        "passed": false,
+        "per_tensor": {
+          "conv_state_out": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 1.0000001192092896,
+            "exact": 1
+          },
+          "core_attn_out": {
+            "max_abs": 6.103515625e-05,
+            "mean_abs": 7.873290996940341e-08,
+            "rel_l2": 0.0009591554123680842,
+            "cosine": 0.999999463558197,
+            "exact": 0
+          },
+          "recurrent_state_out": {
+            "max_abs": 0.0042002201080322266,
+            "mean_abs": 6.866852118037059e-07,
+            "rel_l2": 0.001198979264001609,
+            "cosine": 0.9999995231628418,
+            "exact": 0
+          }
+        },
+        "fail_reasons": [
+          "core_attn_out exceeds thresholds",
+          "recurrent_state_out exceeds thresholds"
+        ]
+      },
+      {
+        "fixture_file": "layer_36_prompt_00.safetensors",
+        "layer_id": 36,
+        "prompt_id": 0,
+        "passed": false,
+        "per_tensor": {
+          "conv_state_out": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 1.0,
+            "exact": 1
+          },
+          "core_attn_out": {
+            "max_abs": 0.00048828125,
+            "mean_abs": 3.466740849944472e-07,
+            "rel_l2": 0.0017584459406301324,
+            "cosine": 0.9999985098838806,
+            "exact": 0
+          },
+          "recurrent_state_out": {
+            "max_abs": 0.0020825862884521484,
+            "mean_abs": 1.6666630244799308e-06,
+            "rel_l2": 0.0003873688026328695,
+            "cosine": 0.9999999403953552,
+            "exact": 0
+          }
+        },
+        "fail_reasons": [
+          "core_attn_out exceeds thresholds",
+          "recurrent_state_out exceeds thresholds"
+        ]
+      },
+      {
+        "fixture_file": "layer_00_prompt_01.safetensors",
+        "layer_id": 0,
+        "prompt_id": 1,
+        "passed": false,
+        "per_tensor": {
+          "conv_state_out": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 1.0000001192092896,
+            "exact": 1
+          },
+          "core_attn_out": {
+            "max_abs": 0.0001220703125,
+            "mean_abs": 8.246543359291536e-08,
+            "rel_l2": 7.478612150151322e-05,
+            "cosine": 1.0,
+            "exact": 0
+          },
+          "recurrent_state_out": {
+            "max_abs": 0.015341758728027344,
+            "mean_abs": 2.34670415011351e-06,
+            "rel_l2": 0.0005620265849876818,
+            "cosine": 0.9999999403953552,
+            "exact": 0
+          }
+        },
+        "fail_reasons": [
+          "core_attn_out exceeds thresholds",
+          "recurrent_state_out exceeds thresholds"
+        ]
+      },
+      {
+        "fixture_file": "layer_04_prompt_01.safetensors",
+        "layer_id": 4,
+        "prompt_id": 1,
+        "passed": false,
+        "per_tensor": {
+          "conv_state_out": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 1.0000001192092896,
+            "exact": 1
+          },
+          "core_attn_out": {
+            "max_abs": 1.52587890625e-05,
+            "mean_abs": 2.1278616202380363e-08,
+            "rel_l2": 0.0006237835165798736,
+            "cosine": 0.9999997615814209,
+            "exact": 0
+          },
+          "recurrent_state_out": {
+            "max_abs": 0.0019888877868652344,
+            "mean_abs": 5.038285166847345e-07,
+            "rel_l2": 0.000650978355251083,
+            "cosine": 0.9999997615814209,
+            "exact": 0
+          }
+        },
+        "fail_reasons": [
+          "core_attn_out exceeds thresholds",
+          "recurrent_state_out exceeds thresholds"
+        ]
+      },
+      {
+        "fixture_file": "layer_08_prompt_01.safetensors",
+        "layer_id": 8,
+        "prompt_id": 1,
+        "passed": false,
+        "per_tensor": {
+          "conv_state_out": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 0.9999998807907104,
+            "exact": 1
+          },
+          "core_attn_out": {
+            "max_abs": 0.0001220703125,
+            "mean_abs": 8.002660933925654e-08,
+            "rel_l2": 0.00046869300111190577,
+            "cosine": 0.9999998807907104,
+            "exact": 0
+          },
+          "recurrent_state_out": {
+            "max_abs": 0.002881646156311035,
+            "mean_abs": 1.0309087201676448e-06,
+            "rel_l2": 0.00044816054676634825,
+            "cosine": 1.0,
+            "exact": 0
+          }
+        },
+        "fail_reasons": [
+          "core_attn_out exceeds thresholds",
+          "recurrent_state_out exceeds thresholds"
+        ]
+      },
+      {
+        "fixture_file": "layer_12_prompt_01.safetensors",
+        "layer_id": 12,
+        "prompt_id": 1,
+        "passed": false,
+        "per_tensor": {
+          "conv_state_out": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 1.0,
+            "exact": 1
+          },
+          "core_attn_out": {
+            "max_abs": 0.000244140625,
+            "mean_abs": 8.861469780185871e-08,
+            "rel_l2": 0.0038578602522834895,
+            "cosine": 0.9999949932098389,
+            "exact": 0
+          },
+          "recurrent_state_out": {
+            "max_abs": 0.0015949010848999023,
+            "mean_abs": 4.524679013684363e-07,
+            "rel_l2": 0.0007398038840830272,
+            "cosine": 0.9999997615814209,
+            "exact": 0
+          }
+        },
+        "fail_reasons": [
+          "core_attn_out exceeds thresholds",
+          "recurrent_state_out exceeds thresholds"
+        ]
+      },
+      {
+        "fixture_file": "layer_16_prompt_01.safetensors",
+        "layer_id": 16,
+        "prompt_id": 1,
+        "passed": false,
+        "per_tensor": {
+          "conv_state_out": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 1.0000001192092896,
+            "exact": 1
+          },
+          "core_attn_out": {
+            "max_abs": 7.62939453125e-06,
+            "mean_abs": 1.852868081186898e-08,
+            "rel_l2": 0.00011209122818542153,
+            "cosine": 0.9999998807907104,
+            "exact": 0
+          },
+          "recurrent_state_out": {
+            "max_abs": 0.0006970763206481934,
+            "mean_abs": 5.826404958497733e-07,
+            "rel_l2": 0.00028134201236743034,
+            "cosine": 0.9999999403953552,
+            "exact": 0
+          }
+        },
+        "fail_reasons": [
+          "core_attn_out exceeds thresholds",
+          "recurrent_state_out exceeds thresholds"
+        ]
+      },
+      {
+        "fixture_file": "layer_20_prompt_01.safetensors",
+        "layer_id": 20,
+        "prompt_id": 1,
+        "passed": false,
+        "per_tensor": {
+          "conv_state_out": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 0.9999998807907104,
+            "exact": 1
+          },
+          "core_attn_out": {
+            "max_abs": 3.0517578125e-05,
+            "mean_abs": 4.8282004172506277e-08,
+            "rel_l2": 0.0001402089642694304,
+            "cosine": 1.0000001192092896,
+            "exact": 0
+          },
+          "recurrent_state_out": {
+            "max_abs": 0.0038268566131591797,
+            "mean_abs": 9.142122507910244e-07,
+            "rel_l2": 0.00041086270490557294,
+            "cosine": 0.9999999403953552,
+            "exact": 0
+          }
+        },
+        "fail_reasons": [
+          "core_attn_out exceeds thresholds",
+          "recurrent_state_out exceeds thresholds"
+        ]
+      },
+      {
+        "fixture_file": "layer_24_prompt_01.safetensors",
+        "layer_id": 24,
+        "prompt_id": 1,
+        "passed": false,
+        "per_tensor": {
+          "conv_state_out": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 0.9999999403953552,
+            "exact": 1
+          },
+          "core_attn_out": {
+            "max_abs": 6.103515625e-05,
+            "mean_abs": 4.645456641583223e-08,
+            "rel_l2": 0.0008190108827632255,
+            "cosine": 0.9999997019767761,
+            "exact": 0
+          },
+          "recurrent_state_out": {
+            "max_abs": 0.002763509750366211,
+            "mean_abs": 6.864424904051702e-07,
+            "rel_l2": 0.0009978256663914413,
+            "cosine": 0.9999995827674866,
+            "exact": 0
+          }
+        },
+        "fail_reasons": [
+          "core_attn_out exceeds thresholds",
+          "recurrent_state_out exceeds thresholds"
+        ]
+      },
+      {
+        "fixture_file": "layer_28_prompt_01.safetensors",
+        "layer_id": 28,
+        "prompt_id": 1,
+        "passed": false,
+        "per_tensor": {
+          "conv_state_out": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 1.0000001192092896,
+            "exact": 1
+          },
+          "core_attn_out": {
+            "max_abs": 1.52587890625e-05,
+            "mean_abs": 2.526042486294955e-08,
+            "rel_l2": 0.00015753658392037454,
+            "cosine": 1.0000001192092896,
+            "exact": 0
+          },
+          "recurrent_state_out": {
+            "max_abs": 0.0006262362003326416,
+            "mean_abs": 4.8814729325386e-07,
+            "rel_l2": 0.0002911754936881448,
+            "cosine": 1.0000001192092896,
+            "exact": 0
+          }
+        },
+        "fail_reasons": [
+          "core_attn_out exceeds thresholds",
+          "recurrent_state_out exceeds thresholds"
+        ]
+      },
+      {
+        "fixture_file": "layer_32_prompt_01.safetensors",
+        "layer_id": 32,
+        "prompt_id": 1,
+        "passed": false,
+        "per_tensor": {
+          "conv_state_out": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 0.9999998807907104,
+            "exact": 1
+          },
+          "core_attn_out": {
+            "max_abs": 0.0001220703125,
+            "mean_abs": 7.637577681407492e-08,
+            "rel_l2": 0.0022785252547501624,
+            "cosine": 0.999997615814209,
+            "exact": 0
+          },
+          "recurrent_state_out": {
+            "max_abs": 0.001848459243774414,
+            "mean_abs": 7.465214935109543e-07,
+            "rel_l2": 0.0007733799297190859,
+            "cosine": 0.9999997615814209,
+            "exact": 0
+          }
+        },
+        "fail_reasons": [
+          "core_attn_out exceeds thresholds",
+          "recurrent_state_out exceeds thresholds"
+        ]
+      },
+      {
+        "fixture_file": "layer_36_prompt_01.safetensors",
+        "layer_id": 36,
+        "prompt_id": 1,
+        "passed": false,
+        "per_tensor": {
+          "conv_state_out": {
+            "max_abs": 0.0,
+            "mean_abs": 0.0,
+            "rel_l2": 0.0,
+            "cosine": 1.0,
+            "exact": 1
+          },
+          "core_attn_out": {
+            "max_abs": 0.000244140625,
+            "mean_abs": 3.4080986210938136e-07,
+            "rel_l2": 0.0011832805187586286,
+            "cosine": 0.9999993443489075,
+            "exact": 0
+          },
+          "recurrent_state_out": {
+            "max_abs": 0.002475142478942871,
+            "mean_abs": 1.9881254047504626e-06,
+            "rel_l2": 0.00042959887286755564,
+            "cosine": 1.0,
+            "exact": 0
+          }
+        },
+        "fail_reasons": [
+          "core_attn_out exceeds thresholds",
+          "recurrent_state_out exceeds thresholds"
+        ]
+      }
+    ]
+  }
+}

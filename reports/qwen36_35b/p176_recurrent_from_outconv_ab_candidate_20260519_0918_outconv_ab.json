@@ -1,0 +1,1177 @@
+{
+  "schema": "lynn-qwen36-recurrent-from-outconv-ab-candidate-v1",
+  "created": "2026-05-19T08:35:35+0800",
+  "model": "/root/autodl-tmp/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-v0",
+  "fixtures": "/root/autodl-tmp/reports/qwen36_35b/p169_linear_core_fixtures_official_w4a16_20260519_0750",
+  "candidate_output_dir": "/root/autodl-tmp/reports/qwen36_35b/p176_recurrent_from_outconv_ab_candidate_20260519_0918_outconv_ab",
+  "device": "cuda",
+  "summary": {
+    "total_fixtures": 20,
+    "total_tensors_written": 80,
+    "keys_written": [
+      "core_attn_out",
+      "recurrent_state_out",
+      "conv_state_out",
+      "z"
+    ],
+    "stage_ms": {
+      "in_proj": {
+        "median": 0.11369539424777031,
+        "mean": 0.11376636102795601,
+        "min": 0.10708719491958618,
+        "max": 0.12474041432142258
+      },
+      "split_zab": {
+        "median": 0.019125640392303467,
+        "mean": 0.019273580983281136,
+        "min": 0.017647631466388702,
+        "max": 0.021629035472869873
+      },
+      "conv": {
+        "median": 0.0693928450345993,
+        "mean": 0.0697658397257328,
+        "min": 0.06523076444864273,
+        "max": 0.0795368105173111
+      },
+      "recurrent_from_outconv_ab": {
+        "median": 0.08383812382817268,
+        "mean": 0.08431677706539631,
+        "min": 0.08092913776636124,
+        "max": 0.09091012179851532
+      },
+      "total": {
+        "median": 0.2856459468603134,
+        "mean": 0.28768223710358143,
+        "min": 0.2743816003203392,
+        "max": 0.31573325395584106
+      }
+    }
+  },
+  "results": [
+    {
+      "fixture_file": "layer_00_prompt_00.safetensors",
+      "layer_id": 0,
+      "prompt_id": 0,
+      "stage_ms_median": {
+        "in_proj": 0.12474041432142258,
+        "split_zab": 0.021629035472869873,
+        "conv": 0.0795368105173111,
+        "recurrent_from_outconv_ab": 0.09091012179851532,
+        "total": 0.31573325395584106
+      },
+      "stage_ms_samples": [
+        {
+          "in_proj": 0.4223063588142395,
+          "split_zab": 0.04698336124420166,
+          "conv": 0.14983583241701126,
+          "recurrent_from_outconv_ab": 0.11870730668306351,
+          "total": 0.7410617545247078
+        },
+        {
+          "in_proj": 0.14511402696371078,
+          "split_zab": 0.023136846721172333,
+          "conv": 0.08371658623218536,
+          "recurrent_from_outconv_ab": 0.09430665522813797,
+          "total": 0.347943976521492
+        },
+        {
+          "in_proj": 0.12474041432142258,
+          "split_zab": 0.021022744476795197,
+          "conv": 0.0770697370171547,
+          "recurrent_from_outconv_ab": 0.09055156260728836,
+          "total": 0.31503476202487946
+        },
+        {
+          "in_proj": 0.12209545820951462,
+          "split_zab": 0.021629035472869873,
+          "conv": 0.0795368105173111,
+          "recurrent_from_outconv_ab": 0.09091012179851532,
+          "total": 0.31573325395584106
+        },
+        {
+          "in_proj": 0.11933781206607819,
+          "split_zab": 0.019115395843982697,
+          "conv": 0.07268320769071579,
+          "recurrent_from_outconv_ab": 0.08634384721517563,
+          "total": 0.299002043902874
+        }
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ]
+    },
+    {
+      "fixture_file": "layer_04_prompt_00.safetensors",
+      "layer_id": 4,
+      "prompt_id": 0,
+      "stage_ms_median": {
+        "in_proj": 0.11709518730640411,
+        "split_zab": 0.018922612071037292,
+        "conv": 0.06915628910064697,
+        "recurrent_from_outconv_ab": 0.08399784564971924,
+        "total": 0.2875570207834244
+      },
+      "stage_ms_samples": [
+        {
+          "in_proj": 0.1416616141796112,
+          "split_zab": 0.021770596504211426,
+          "conv": 0.0983336940407753,
+          "recurrent_from_outconv_ab": 0.09522028267383575,
+          "total": 0.3584371879696846
+        },
+        {
+          "in_proj": 0.13522803783416748,
+          "split_zab": 0.02055056393146515,
+          "conv": 0.07308926433324814,
+          "recurrent_from_outconv_ab": 0.08615013211965561,
+          "total": 0.3165239468216896
+        },
+        {
+          "in_proj": 0.11709518730640411,
+          "split_zab": 0.018724240362644196,
+          "conv": 0.06915628910064697,
+          "recurrent_from_outconv_ab": 0.08145533502101898,
+          "total": 0.2875570207834244
+        },
+        {
+          "in_proj": 0.1089833676815033,
+          "split_zab": 0.018922612071037292,
+          "conv": 0.06716419011354446,
+          "recurrent_from_outconv_ab": 0.08191727101802826,
+          "total": 0.2781013026833534
+        },
+        {
+          "in_proj": 0.11136941611766815,
+          "split_zab": 0.01860596239566803,
+          "conv": 0.06839726120233536,
+          "recurrent_from_outconv_ab": 0.08399784564971924,
+          "total": 0.28388481587171555
+        }
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ]
+    },
+    {
+      "fixture_file": "layer_08_prompt_00.safetensors",
+      "layer_id": 8,
+      "prompt_id": 0,
+      "stage_ms_median": {
+        "in_proj": 0.1078406348824501,
+        "split_zab": 0.017647631466388702,
+        "conv": 0.06523076444864273,
+        "recurrent_from_outconv_ab": 0.08220598101615906,
+        "total": 0.27617067098617554
+      },
+      "stage_ms_samples": [
+        {
+          "in_proj": 0.13212766498327255,
+          "split_zab": 0.02095382660627365,
+          "conv": 0.07332023233175278,
+          "recurrent_from_outconv_ab": 0.08528400212526321,
+          "total": 0.31308457255363464
+        },
+        {
+          "in_proj": 0.11342857033014297,
+          "split_zab": 0.018936581909656525,
+          "conv": 0.06769411265850067,
+          "recurrent_from_outconv_ab": 0.08220598101615906,
+          "total": 0.28344523161649704
+        },
+        {
+          "in_proj": 0.1078406348824501,
+          "split_zab": 0.017647631466388702,
+          "conv": 0.06523076444864273,
+          "recurrent_from_outconv_ab": 0.08407328277826309,
+          "total": 0.27617067098617554
+        },
+        {
+          "in_proj": 0.10381452739238739,
+          "split_zab": 0.01655425876379013,
+          "conv": 0.06298348307609558,
+          "recurrent_from_outconv_ab": 0.07838103920221329,
+          "total": 0.26300176978111267
+        },
+        {
+          "in_proj": 0.10277330875396729,
+          "split_zab": 0.01647602766752243,
+          "conv": 0.0623827800154686,
+          "recurrent_from_outconv_ab": 0.07850583642721176,
+          "total": 0.2612946555018425
+        }
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ]
+    },
+    {
+      "fixture_file": "layer_12_prompt_00.safetensors",
+      "layer_id": 12,
+      "prompt_id": 0,
+      "stage_ms_median": {
+        "in_proj": 0.12118741869926453,
+        "split_zab": 0.01996103674173355,
+        "conv": 0.07230881601572037,
+        "recurrent_from_outconv_ab": 0.08827075362205505,
+        "total": 0.3031054511666298
+      },
+      "stage_ms_samples": [
+        {
+          "in_proj": 0.1367339864373207,
+          "split_zab": 0.021821819245815277,
+          "conv": 0.0789416953921318,
+          "recurrent_from_outconv_ab": 0.09165238589048386,
+          "total": 0.3305962309241295
+        },
+        {
+          "in_proj": 0.12118741869926453,
+          "split_zab": 0.01996103674173355,
+          "conv": 0.07230881601572037,
+          "recurrent_from_outconv_ab": 0.08827075362205505,
+          "total": 0.3031054511666298
+        },
+        {
+          "in_proj": 0.14338642358779907,
+          "split_zab": 0.02037547528743744,
+          "conv": 0.0746753066778183,
+          "recurrent_from_outconv_ab": 0.08942186832427979,
+          "total": 0.3295578062534332
+        },
+        {
+          "in_proj": 0.11615734547376633,
+          "split_zab": 0.019573606550693512,
+          "conv": 0.0698920339345932,
+          "recurrent_from_outconv_ab": 0.08476432412862778,
+          "total": 0.29164180159568787
+        },
+        {
+          "in_proj": 0.10861363261938095,
+          "split_zab": 0.019000843167304993,
+          "conv": 0.06585102528333664,
+          "recurrent_from_outconv_ab": 0.08038058876991272,
+          "total": 0.2749226987361908
+        }
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ]
+    },
+    {
+      "fixture_file": "layer_16_prompt_00.safetensors",
+      "layer_id": 16,
+      "prompt_id": 0,
+      "stage_ms_median": {
+        "in_proj": 0.1131836324930191,
+        "split_zab": 0.019414350390434265,
+        "conv": 0.072503462433815,
+        "recurrent_from_outconv_ab": 0.08671171963214874,
+        "total": 0.290614552795887
+      },
+      "stage_ms_samples": [
+        {
+          "in_proj": 0.1330804079771042,
+          "split_zab": 0.02070050686597824,
+          "conv": 0.07590558379888535,
+          "recurrent_from_outconv_ab": 0.08974876254796982,
+          "total": 0.3210129216313362
+        },
+        {
+          "in_proj": 0.12028031051158905,
+          "split_zab": 0.020361505448818207,
+          "conv": 0.0729728490114212,
+          "recurrent_from_outconv_ab": 0.08702650666236877,
+          "total": 0.30240975320339203
+        },
+        {
+          "in_proj": 0.11136103421449661,
+          "split_zab": 0.018722377717494965,
+          "conv": 0.072503462433815,
+          "recurrent_from_outconv_ab": 0.08671171963214874,
+          "total": 0.290614552795887
+        },
+        {
+          "in_proj": 0.1131836324930191,
+          "split_zab": 0.019414350390434265,
+          "conv": 0.06651226431131363,
+          "recurrent_from_outconv_ab": 0.08267723023891449,
+          "total": 0.2831313759088516
+        },
+        {
+          "in_proj": 0.10877754539251328,
+          "split_zab": 0.017471611499786377,
+          "conv": 0.06720144301652908,
+          "recurrent_from_outconv_ab": 0.07947534322738647,
+          "total": 0.27404725551605225
+        }
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ]
+    },
+    {
+      "fixture_file": "layer_20_prompt_00.safetensors",
+      "layer_id": 20,
+      "prompt_id": 0,
+      "stage_ms_median": {
+        "in_proj": 0.11990871280431747,
+        "split_zab": 0.0192299485206604,
+        "conv": 0.07063057273626328,
+        "recurrent_from_outconv_ab": 0.084693543612957,
+        "total": 0.2957722172141075
+      },
+      "stage_ms_samples": [
+        {
+          "in_proj": 0.13312045484781265,
+          "split_zab": 0.020680949091911316,
+          "conv": 0.07589999586343765,
+          "recurrent_from_outconv_ab": 0.08954666554927826,
+          "total": 0.32071489840745926
+        },
+        {
+          "in_proj": 0.11990871280431747,
+          "split_zab": 0.0192299485206604,
+          "conv": 0.07063057273626328,
+          "recurrent_from_outconv_ab": 0.08461810648441315,
+          "total": 0.2957722172141075
+        },
+        {
+          "in_proj": 0.11363811790943146,
+          "split_zab": 0.01883041113615036,
+          "conv": 0.06850529462099075,
+          "recurrent_from_outconv_ab": 0.084693543612957,
+          "total": 0.28712302446365356
+        },
+        {
+          "in_proj": 0.12328661978244781,
+          "split_zab": 0.01942366361618042,
+          "conv": 0.07176026701927185,
+          "recurrent_from_outconv_ab": 0.08532218635082245,
+          "total": 0.3012409433722496
+        },
+        {
+          "in_proj": 0.11196080595254898,
+          "split_zab": 0.018876977264881134,
+          "conv": 0.06763823330402374,
+          "recurrent_from_outconv_ab": 0.08135940879583359,
+          "total": 0.28124917298555374
+        }
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ]
+    },
+    {
+      "fixture_file": "layer_24_prompt_00.safetensors",
+      "layer_id": 24,
+      "prompt_id": 0,
+      "stage_ms_median": {
+        "in_proj": 0.11564325541257858,
+        "split_zab": 0.019555911421775818,
+        "conv": 0.0692242756485939,
+        "recurrent_from_outconv_ab": 0.08497107774019241,
+        "total": 0.2914806827902794
+      },
+      "stage_ms_samples": [
+        {
+          "in_proj": 0.1323958858847618,
+          "split_zab": 0.020695850253105164,
+          "conv": 0.07670372724533081,
+          "recurrent_from_outconv_ab": 0.0867694616317749,
+          "total": 0.31810346990823746
+        },
+        {
+          "in_proj": 0.11564325541257858,
+          "split_zab": 0.02012588083744049,
+          "conv": 0.06943009793758392,
+          "recurrent_from_outconv_ab": 0.08497107774019241,
+          "total": 0.2914806827902794
+        },
+        {
+          "in_proj": 0.11102855205535889,
+          "split_zab": 0.01840386539697647,
+          "conv": 0.0670701265335083,
+          "recurrent_from_outconv_ab": 0.08137337863445282,
+          "total": 0.27925800532102585
+        },
+        {
+          "in_proj": 0.11477619409561157,
+          "split_zab": 0.019555911421775818,
+          "conv": 0.0692242756485939,
+          "recurrent_from_outconv_ab": 0.098399817943573,
+          "total": 0.3033038228750229
+        },
+        {
+          "in_proj": 0.11615641415119171,
+          "split_zab": 0.018893741071224213,
+          "conv": 0.06837304681539536,
+          "recurrent_from_outconv_ab": 0.08193030953407288,
+          "total": 0.28680358082056046
+        }
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ]
+    },
+    {
+      "fixture_file": "layer_28_prompt_00.safetensors",
+      "layer_id": 28,
+      "prompt_id": 0,
+      "stage_ms_median": {
+        "in_proj": 0.1120399683713913,
+        "split_zab": 0.019021332263946533,
+        "conv": 0.06870832294225693,
+        "recurrent_from_outconv_ab": 0.08399505168199539,
+        "total": 0.28457120060920715
+      },
+      "stage_ms_samples": [
+        {
+          "in_proj": 0.13180915266275406,
+          "split_zab": 0.020862556993961334,
+          "conv": 0.07499102503061295,
+          "recurrent_from_outconv_ab": 0.0879429280757904,
+          "total": 0.31699053943157196
+        },
+        {
+          "in_proj": 0.11447258293628693,
+          "split_zab": 0.01954939216375351,
+          "conv": 0.06884429603815079,
+          "recurrent_from_outconv_ab": 0.08399505168199539,
+          "total": 0.28823036700487137
+        },
+        {
+          "in_proj": 0.1120399683713913,
+          "split_zab": 0.019021332263946533,
+          "conv": 0.06696302443742752,
+          "recurrent_from_outconv_ab": 0.08243881165981293,
+          "total": 0.28180330991744995
+        },
+        {
+          "in_proj": 0.11048279702663422,
+          "split_zab": 0.018913298845291138,
+          "conv": 0.06870832294225693,
+          "recurrent_from_outconv_ab": 0.08530262857675552,
+          "total": 0.28457120060920715
+        },
+        {
+          "in_proj": 0.11026766151189804,
+          "split_zab": 0.01761317253112793,
+          "conv": 0.0661136582493782,
+          "recurrent_from_outconv_ab": 0.08196849375963211,
+          "total": 0.2773366868495941
+        }
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ]
+    },
+    {
+      "fixture_file": "layer_32_prompt_00.safetensors",
+      "layer_id": 32,
+      "prompt_id": 0,
+      "stage_ms_median": {
+        "in_proj": 0.11398270726203918,
+        "split_zab": 0.018829479813575745,
+        "conv": 0.0695614144206047,
+        "recurrent_from_outconv_ab": 0.08482299745082855,
+        "total": 0.28514303267002106
+      },
+      "stage_ms_samples": [
+        {
+          "in_proj": 0.1583285629749298,
+          "split_zab": 0.022746622562408447,
+          "conv": 0.08072517812252045,
+          "recurrent_from_outconv_ab": 0.08972268551588058,
+          "total": 0.3533344715833664
+        },
+        {
+          "in_proj": 0.11951662600040436,
+          "split_zab": 0.018829479813575745,
+          "conv": 0.06976258009672165,
+          "recurrent_from_outconv_ab": 0.08482299745082855,
+          "total": 0.29434915632009506
+        },
+        {
+          "in_proj": 0.11374149471521378,
+          "split_zab": 0.018193386495113373,
+          "conv": 0.06937701255083084,
+          "recurrent_from_outconv_ab": 0.08244253695011139,
+          "total": 0.28514303267002106
+        },
+        {
+          "in_proj": 0.1078341156244278,
+          "split_zab": 0.018246471881866455,
+          "conv": 0.0695614144206047,
+          "recurrent_from_outconv_ab": 0.08529424667358398,
+          "total": 0.2823248505592346
+        },
+        {
+          "in_proj": 0.11398270726203918,
+          "split_zab": 0.019179657101631165,
+          "conv": 0.06663426756858826,
+          "recurrent_from_outconv_ab": 0.08075777441263199,
+          "total": 0.2818005159497261
+        }
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ]
+    },
+    {
+      "fixture_file": "layer_36_prompt_00.safetensors",
+      "layer_id": 36,
+      "prompt_id": 0,
+      "stage_ms_median": {
+        "in_proj": 0.11631380766630173,
+        "split_zab": 0.019723549485206604,
+        "conv": 0.07128249853849411,
+        "recurrent_from_outconv_ab": 0.08368119597434998,
+        "total": 0.2924678847193718
+      },
+      "stage_ms_samples": [
+        {
+          "in_proj": 0.13242848217487335,
+          "split_zab": 0.020475126802921295,
+          "conv": 0.07508136332035065,
+          "recurrent_from_outconv_ab": 0.08827727288007736,
+          "total": 0.3177076578140259
+        },
+        {
+          "in_proj": 0.11722836643457413,
+          "split_zab": 0.019955448806285858,
+          "conv": 0.07128249853849411,
+          "recurrent_from_outconv_ab": 0.08269492536783218,
+          "total": 0.2924678847193718
+        },
+        {
+          "in_proj": 0.11605024337768555,
+          "split_zab": 0.019723549485206604,
+          "conv": 0.07345248013734818,
+          "recurrent_from_outconv_ab": 0.08642207831144333,
+          "total": 0.2973368391394615
+        },
+        {
+          "in_proj": 0.11631380766630173,
+          "split_zab": 0.019674189388751984,
+          "conv": 0.06950926035642624,
+          "recurrent_from_outconv_ab": 0.08368119597434998,
+          "total": 0.290614552795887
+        },
+        {
+          "in_proj": 0.11279433965682983,
+          "split_zab": 0.017557293176651,
+          "conv": 0.06695277988910675,
+          "recurrent_from_outconv_ab": 0.08157454431056976,
+          "total": 0.28016045689582825
+        }
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ]
+    },
+    {
+      "fixture_file": "layer_00_prompt_01.safetensors",
+      "layer_id": 0,
+      "prompt_id": 1,
+      "stage_ms_median": {
+        "in_proj": 0.11426210403442383,
+        "split_zab": 0.019826926290988922,
+        "conv": 0.06883125752210617,
+        "recurrent_from_outconv_ab": 0.0845789909362793,
+        "total": 0.2861488610506058
+      },
+      "stage_ms_samples": [
+        {
+          "in_proj": 0.13160239905118942,
+          "split_zab": 0.0219075009226799,
+          "conv": 0.08047651499509811,
+          "recurrent_from_outconv_ab": 0.08683744817972183,
+          "total": 0.32221339643001556
+        },
+        {
+          "in_proj": 0.11219456791877747,
+          "split_zab": 0.019973143935203552,
+          "conv": 0.06833299994468689,
+          "recurrent_from_outconv_ab": 0.08419714868068695,
+          "total": 0.2861488610506058
+        },
+        {
+          "in_proj": 0.1170523464679718,
+          "split_zab": 0.01923833042383194,
+          "conv": 0.07038842886686325,
+          "recurrent_from_outconv_ab": 0.08509960025548935,
+          "total": 0.2931486815214157
+        },
+        {
+          "in_proj": 0.10941457003355026,
+          "split_zab": 0.01832563430070877,
+          "conv": 0.06883125752210617,
+          "recurrent_from_outconv_ab": 0.0845789909362793,
+          "total": 0.28258468955755234
+        },
+        {
+          "in_proj": 0.11426210403442383,
+          "split_zab": 0.019826926290988922,
+          "conv": 0.06710179150104523,
+          "recurrent_from_outconv_ab": 0.08155126124620438,
+          "total": 0.28414465487003326
+        }
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ]
+    },
+    {
+      "fixture_file": "layer_04_prompt_01.safetensors",
+      "layer_id": 4,
+      "prompt_id": 1,
+      "stage_ms_median": {
+        "in_proj": 0.11091958731412888,
+        "split_zab": 0.019661150872707367,
+        "conv": 0.06869062781333923,
+        "recurrent_from_outconv_ab": 0.08217152208089828,
+        "total": 0.2820407971739769
+      },
+      "stage_ms_samples": [
+        {
+          "in_proj": 0.13338960707187653,
+          "split_zab": 0.020147301256656647,
+          "conv": 0.07476657629013062,
+          "recurrent_from_outconv_ab": 0.08656177669763565,
+          "total": 0.316353514790535
+        },
+        {
+          "in_proj": 0.11485256254673004,
+          "split_zab": 0.020094215869903564,
+          "conv": 0.06946548819541931,
+          "recurrent_from_outconv_ab": 0.08249934762716293,
+          "total": 0.2884743735194206
+        },
+        {
+          "in_proj": 0.11064205318689346,
+          "split_zab": 0.01912936568260193,
+          "conv": 0.06869062781333923,
+          "recurrent_from_outconv_ab": 0.08217152208089828,
+          "total": 0.2820407971739769
+        },
+        {
+          "in_proj": 0.10927766561508179,
+          "split_zab": 0.018397346138954163,
+          "conv": 0.06531365215778351,
+          "recurrent_from_outconv_ab": 0.08120201528072357,
+          "total": 0.27543120086193085
+        },
+        {
+          "in_proj": 0.11091958731412888,
+          "split_zab": 0.019661150872707367,
+          "conv": 0.06846524775028229,
+          "recurrent_from_outconv_ab": 0.08025113493204117,
+          "total": 0.2805180847644806
+        }
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ]
+    },
+    {
+      "fixture_file": "layer_08_prompt_01.safetensors",
+      "layer_id": 8,
+      "prompt_id": 1,
+      "stage_ms_median": {
+        "in_proj": 0.10915938764810562,
+        "split_zab": 0.019004568457603455,
+        "conv": 0.06738025695085526,
+        "recurrent_from_outconv_ab": 0.08327420800924301,
+        "total": 0.2845423296093941
+      },
+      "stage_ms_samples": [
+        {
+          "in_proj": 0.12643542140722275,
+          "split_zab": 0.02023298293352127,
+          "conv": 0.07109623402357101,
+          "recurrent_from_outconv_ab": 0.08512474596500397,
+          "total": 0.3043143078684807
+        },
+        {
+          "in_proj": 0.11297594755887985,
+          "split_zab": 0.01950375735759735,
+          "conv": 0.06738025695085526,
+          "recurrent_from_outconv_ab": 0.08327420800924301,
+          "total": 0.2845423296093941
+        },
+        {
+          "in_proj": 0.10890047997236252,
+          "split_zab": 0.01838337630033493,
+          "conv": 0.06629806011915207,
+          "recurrent_from_outconv_ab": 0.08076243102550507,
+          "total": 0.27542654424905777
+        },
+        {
+          "in_proj": 0.1053912565112114,
+          "split_zab": 0.017688609659671783,
+          "conv": 0.06411504000425339,
+          "recurrent_from_outconv_ab": 0.07944554090499878,
+          "total": 0.267932191491127
+        },
+        {
+          "in_proj": 0.10915938764810562,
+          "split_zab": 0.019004568457603455,
+          "conv": 0.06777606904506683,
+          "recurrent_from_outconv_ab": 0.092371366918087,
+          "total": 0.28963852673768997
+        }
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ]
+    },
+    {
+      "fixture_file": "layer_12_prompt_01.safetensors",
+      "layer_id": 12,
+      "prompt_id": 1,
+      "stage_ms_median": {
+        "in_proj": 0.10819640010595322,
+        "split_zab": 0.018232502043247223,
+        "conv": 0.06736256182193756,
+        "recurrent_from_outconv_ab": 0.08092913776636124,
+        "total": 0.2748817205429077
+      },
+      "stage_ms_samples": [
+        {
+          "in_proj": 0.12921076267957687,
+          "split_zab": 0.020706094801425934,
+          "conv": 0.09047705680131912,
+          "recurrent_from_outconv_ab": 0.08579902350902557,
+          "total": 0.3275470808148384
+        },
+        {
+          "in_proj": 0.12079905718564987,
+          "split_zab": 0.018946826457977295,
+          "conv": 0.06912834942340851,
+          "recurrent_from_outconv_ab": 0.0820998102426529,
+          "total": 0.29221270233392715
+        },
+        {
+          "in_proj": 0.10819640010595322,
+          "split_zab": 0.017690472304821014,
+          "conv": 0.0644288957118988,
+          "recurrent_from_outconv_ab": 0.08053984493017197,
+          "total": 0.2720821648836136
+        },
+        {
+          "in_proj": 0.10458845645189285,
+          "split_zab": 0.017274171113967896,
+          "conv": 0.06669294089078903,
+          "recurrent_from_outconv_ab": 0.08032005280256271,
+          "total": 0.27007143944501877
+        },
+        {
+          "in_proj": 0.10704901069402695,
+          "split_zab": 0.018232502043247223,
+          "conv": 0.06736256182193756,
+          "recurrent_from_outconv_ab": 0.08092913776636124,
+          "total": 0.2748817205429077
+        }
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ]
+    },
+    {
+      "fixture_file": "layer_16_prompt_01.safetensors",
+      "layer_id": 16,
+      "prompt_id": 1,
+      "stage_ms_median": {
+        "in_proj": 0.11171028017997742,
+        "split_zab": 0.018619000911712646,
+        "conv": 0.06605777889490128,
+        "recurrent_from_outconv_ab": 0.08147675544023514,
+        "total": 0.2766130492091179
+      },
+      "stage_ms_samples": [
+        {
+          "in_proj": 0.12918561697006226,
+          "split_zab": 0.019907020032405853,
+          "conv": 0.07367879152297974,
+          "recurrent_from_outconv_ab": 0.08578412234783173,
+          "total": 0.3099646419286728
+        },
+        {
+          "in_proj": 0.11224672198295593,
+          "split_zab": 0.019570812582969666,
+          "conv": 0.06788037717342377,
+          "recurrent_from_outconv_ab": 0.08271168917417526,
+          "total": 0.2837143838405609
+        },
+        {
+          "in_proj": 0.10688044130802155,
+          "split_zab": 0.01720525324344635,
+          "conv": 0.06577000021934509,
+          "recurrent_from_outconv_ab": 0.07937848567962646,
+          "total": 0.270577147603035
+        },
+        {
+          "in_proj": 0.10667461901903152,
+          "split_zab": 0.017665326595306396,
+          "conv": 0.0658547505736351,
+          "recurrent_from_outconv_ab": 0.08147675544023514,
+          "total": 0.27315225452184677
+        },
+        {
+          "in_proj": 0.11171028017997742,
+          "split_zab": 0.018619000911712646,
+          "conv": 0.06605777889490128,
+          "recurrent_from_outconv_ab": 0.07900223135948181,
+          "total": 0.2766130492091179
+        }
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ]
+    },
+    {
+      "fixture_file": "layer_20_prompt_01.safetensors",
+      "layer_id": 20,
+      "prompt_id": 1,
+      "stage_ms_median": {
+        "in_proj": 0.10708719491958618,
+        "split_zab": 0.019016675651073456,
+        "conv": 0.0696275383234024,
+        "recurrent_from_outconv_ab": 0.08290354162454605,
+        "total": 0.28407108038663864
+      },
+      "stage_ms_samples": [
+        {
+          "in_proj": 0.12748781591653824,
+          "split_zab": 0.02023298293352127,
+          "conv": 0.07267948240041733,
+          "recurrent_from_outconv_ab": 0.08622650057077408,
+          "total": 0.3080526366829872
+        },
+        {
+          "in_proj": 0.11216849088668823,
+          "split_zab": 0.019016675651073456,
+          "conv": 0.0696275383234024,
+          "recurrent_from_outconv_ab": 0.08183624595403671,
+          "total": 0.28407108038663864
+        },
+        {
+          "in_proj": 0.10634399950504303,
+          "split_zab": 0.019150786101818085,
+          "conv": 0.06541982293128967,
+          "recurrent_from_outconv_ab": 0.08006766438484192,
+          "total": 0.2722349017858505
+        },
+        {
+          "in_proj": 0.10708719491958618,
+          "split_zab": 0.018195249140262604,
+          "conv": 0.0743689015507698,
+          "recurrent_from_outconv_ab": 0.08290354162454605,
+          "total": 0.28376467525959015
+        },
+        {
+          "in_proj": 0.10563898831605911,
+          "split_zab": 0.017537735402584076,
+          "conv": 0.06401259452104568,
+          "recurrent_from_outconv_ab": 0.10682083666324615,
+          "total": 0.295393168926239
+        }
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ]
+    },
+    {
+      "fixture_file": "layer_24_prompt_01.safetensors",
+      "layer_id": 24,
+      "prompt_id": 1,
+      "stage_ms_median": {
+        "in_proj": 0.11582951992750168,
+        "split_zab": 0.020439736545085907,
+        "conv": 0.07081963121891022,
+        "recurrent_from_outconv_ab": 0.08731614798307419,
+        "total": 0.2941116690635681
+      },
+      "stage_ms_samples": [
+        {
+          "in_proj": 0.1315232366323471,
+          "split_zab": 0.021494925022125244,
+          "conv": 0.07571280002593994,
+          "recurrent_from_outconv_ab": 0.08822139352560043,
+          "total": 0.3182440996170044
+        },
+        {
+          "in_proj": 0.1180814579129219,
+          "split_zab": 0.020439736545085907,
+          "conv": 0.07081963121891022,
+          "recurrent_from_outconv_ab": 0.08731614798307419,
+          "total": 0.2982383593916893
+        },
+        {
+          "in_proj": 0.11313892900943756,
+          "split_zab": 0.019604340195655823,
+          "conv": 0.07244385778903961,
+          "recurrent_from_outconv_ab": 0.08760206401348114,
+          "total": 0.2941116690635681
+        },
+        {
+          "in_proj": 0.11582951992750168,
+          "split_zab": 0.020897947251796722,
+          "conv": 0.06928667426109314,
+          "recurrent_from_outconv_ab": 0.08331052958965302,
+          "total": 0.29067322611808777
+        },
+        {
+          "in_proj": 0.11082552373409271,
+          "split_zab": 0.018056482076644897,
+          "conv": 0.06509106606245041,
+          "recurrent_from_outconv_ab": 0.08094776421785355,
+          "total": 0.276247039437294
+        }
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ]
+    },
+    {
+      "fixture_file": "layer_28_prompt_01.safetensors",
+      "layer_id": 28,
+      "prompt_id": 1,
+      "stage_ms_median": {
+        "in_proj": 0.11536478996276855,
+        "split_zab": 0.019883736968040466,
+        "conv": 0.07049459964036942,
+        "recurrent_from_outconv_ab": 0.08355733007192612,
+        "total": 0.2897661179304123
+      },
+      "stage_ms_samples": [
+        {
+          "in_proj": 0.1322813332080841,
+          "split_zab": 0.020654872059822083,
+          "conv": 0.07457844913005829,
+          "recurrent_from_outconv_ab": 0.08885283023118973,
+          "total": 0.31768158078193665
+        },
+        {
+          "in_proj": 0.11580716818571091,
+          "split_zab": 0.019883736968040466,
+          "conv": 0.08041877299547195,
+          "recurrent_from_outconv_ab": 0.09062327444553375,
+          "total": 0.30837953090667725
+        },
+        {
+          "in_proj": 0.11536478996276855,
+          "split_zab": 0.020098872482776642,
+          "conv": 0.07049459964036942,
+          "recurrent_from_outconv_ab": 0.08238479495048523,
+          "total": 0.2897661179304123
+        },
+        {
+          "in_proj": 0.10938569903373718,
+          "split_zab": 0.018115155398845673,
+          "conv": 0.06569456309080124,
+          "recurrent_from_outconv_ab": 0.08218269795179367,
+          "total": 0.27669407427310944
+        },
+        {
+          "in_proj": 0.11186487972736359,
+          "split_zab": 0.019204802811145782,
+          "conv": 0.06794743239879608,
+          "recurrent_from_outconv_ab": 0.08355733007192612,
+          "total": 0.2840310335159302
+        }
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ]
+    },
+    {
+      "fixture_file": "layer_32_prompt_01.safetensors",
+      "layer_id": 32,
+      "prompt_id": 1,
+      "stage_ms_median": {
+        "in_proj": 0.11340808123350143,
+        "split_zab": 0.01878943294286728,
+        "conv": 0.06997305899858475,
+        "recurrent_from_outconv_ab": 0.08330214768648148,
+        "total": 0.2844715490937233
+      },
+      "stage_ms_samples": [
+        {
+          "in_proj": 0.1316666603088379,
+          "split_zab": 0.021375715732574463,
+          "conv": 0.08590053766965866,
+          "recurrent_from_outconv_ab": 0.0890018418431282,
+          "total": 0.32934918999671936
+        },
+        {
+          "in_proj": 0.1184241846203804,
+          "split_zab": 0.020048581063747406,
+          "conv": 0.07056072354316711,
+          "recurrent_from_outconv_ab": 0.08330214768648148,
+          "total": 0.2936096861958504
+        },
+        {
+          "in_proj": 0.11340808123350143,
+          "split_zab": 0.018700025975704193,
+          "conv": 0.06755627691745758,
+          "recurrent_from_outconv_ab": 0.08232053369283676,
+          "total": 0.2833465114235878
+        },
+        {
+          "in_proj": 0.11016428470611572,
+          "split_zab": 0.018722377717494965,
+          "conv": 0.06997305899858475,
+          "recurrent_from_outconv_ab": 0.0841999426484108,
+          "total": 0.2844715490937233
+        },
+        {
+          "in_proj": 0.11268910020589828,
+          "split_zab": 0.01878943294286728,
+          "conv": 0.06545893847942352,
+          "recurrent_from_outconv_ab": 0.08226372301578522,
+          "total": 0.2804221585392952
+        }
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ]
+    },
+    {
+      "fixture_file": "layer_36_prompt_01.safetensors",
+      "layer_id": 36,
+      "prompt_id": 1,
+      "stage_ms_median": {
+        "in_proj": 0.10745413601398468,
+        "split_zab": 0.018063001334667206,
+        "conv": 0.0679362565279007,
+        "recurrent_from_outconv_ab": 0.08256547152996063,
+        "total": 0.2743816003203392
+      },
+      "stage_ms_samples": [
+        {
+          "in_proj": 0.1315642148256302,
+          "split_zab": 0.020976178348064423,
+          "conv": 0.07392372936010361,
+          "recurrent_from_outconv_ab": 0.08690636605024338,
+          "total": 0.31466130167245865
+        },
+        {
+          "in_proj": 0.11328235268592834,
+          "split_zab": 0.018890947103500366,
+          "conv": 0.0679362565279007,
+          "recurrent_from_outconv_ab": 0.08380971848964691,
+          "total": 0.28550904244184494
+        },
+        {
+          "in_proj": 0.10745413601398468,
+          "split_zab": 0.017445534467697144,
+          "conv": 0.06560515612363815,
+          "recurrent_from_outconv_ab": 0.08256547152996063,
+          "total": 0.2743816003203392
+        },
+        {
+          "in_proj": 0.1059509813785553,
+          "split_zab": 0.018063001334667206,
+          "conv": 0.06463192403316498,
+          "recurrent_from_outconv_ab": 0.080060213804245,
+          "total": 0.27000997215509415
+        },
+        {
+          "in_proj": 0.10557379573583603,
+          "split_zab": 0.017842277884483337,
+          "conv": 0.06796512752771378,
+          "recurrent_from_outconv_ab": 0.08143484592437744,
+          "total": 0.2740556374192238
+        }
+      ],
+      "keys_written": [
+        "core_attn_out",
+        "recurrent_state_out",
+        "conv_state_out",
+        "z"
+      ]
+    }
+  ],
+  "p169_check": {
+    "command": [
+      "/root/autodl-tmp/conda-envs/r6000-eval/bin/python",
+      "/root/autodl-tmp/lynn-engine/benchmarks/p169_qwen36_linear_core_fixture_contract.py",
+      "--fixtures",
+      "/root/autodl-tmp/reports/qwen36_35b/p169_linear_core_fixtures_official_w4a16_20260519_0750",
+      "--candidate-output-dir",
+      "/root/autodl-tmp/reports/qwen36_35b/p176_recurrent_from_outconv_ab_candidate_20260519_0918_outconv_ab",
+      "--out",
+      "/root/autodl-tmp/reports/qwen36_35b/p176_recurrent_from_outconv_ab_candidate_20260519_0918_outconv_ab_p169_check.json",
+      "--check",
+      "--device",
+      "cuda"
+    ],
+    "returncode": 0,
+    "stdout": "{\n  \"passed\": 0,\n  \"total\": 20,\n  \"max_abs_max\": 0.015341758728027344,\n  \"cosine_min\": 0.9999949932098389,\n  \"all_passed\": false\n}\n",
+    "stderr": "",
+    "summary": {
+      "passed": 0,
+      "total": 20,
+      "max_abs_max": 0.015341758728027344,
+      "cosine_min": 0.9999949932098389,
+      "all_passed": false
+    }
+  }
+}

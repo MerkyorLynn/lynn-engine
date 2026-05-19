@@ -22,6 +22,7 @@ layout/repack work. Do not keep spending P37/P25 time on the closed knobs below.
 | Shared prepared / shared `mm_out` | closed as promotion | shared `mm_out` 18/18 exact, 0.03489 -> 0.03304 ms/layer; finalize prepared exact but ~0.065 ms vs 0.02977 ms default | Shared body saves only ~0.00185 ms/layer; prepared finalize variants are much slower | Fold shared work only as part of a larger MoE finalize boundary |
 | Native FP4 activation scratch | closed for default | P169 fixtures 20/20 exact; P37 exact; P25 512 107.07 TPS; hard structured 40/40 mean 107.43 TPS | Local in-proj win did not convert into service promotion; below safe default 108/109 bar | Keep as opt-in plumbing for a larger 35B linear-core boundary |
 | Recurrent from `out_conv` | closed for default | P169 20/20 exact; P37 exact; P37 speedup 1.0042x; P25 512 107.996 TPS; structured 40/40 mean 107.865 TPS | Fixture boundary improved to 0.309 ms, but q/k/v split elimination alone is too small once linear-block graph/service overhead is included | Fuse a larger boundary such as `conv + gate + recurrent`, or remove allocation/launches beyond q/k/v views |
+| Recurrent from `out_conv` + A/B gate | closed / not exact | P176 total 0.286 ms but P169 0/20, max_abs 0.01534, cosine_min 0.999995 | Moving sigmoid/softplus beta/g prep into Triton is faster but violates exactness | Keep PyTorch-produced `beta`/`g` explicit unless the default quality contract changes |
 | 9B act-scratch stacked service gate | closed / flat | P175 stack 128/256/512 decode TPS 61.82 / 62.42 / 62.52 vs P173 62.55 at 512 | Adding `LYNN_NATIVE_FP4_ACT_SCRATCH=1` on top of dense gate/up + RoPE cache does not move 9B service TPS | Continue 9B work on larger dense FFN/TensorCore repack or server batching, not act scratch |
 | Native packed MoE gate/up replacement | research-only; no resident promotion | P160 partial exact 0/18, max diff 4.768e-7; P161 terms exact; P162 simple trees fail Triton `tl.sum`; P146 resident backends fail P37 | Drift is Triton reduction-tree mismatch, not FP4 decode/scale math. Approximate native output cannot enter exact-first P37/P25 | Keep Triton active-MoE as exact authority; either reproduce Triton lowering deliberately or fuse around Triton boundaries |
 
@@ -154,6 +155,28 @@ Guardrail: keep the opt-in path for future larger fused-boundary experiments,
 but do not promote or rerun it alone. It proves q/k/v view removal is exact but
 too small.
 
+### Recurrent From `out_conv` + A/B Gate
+
+P176 moved beta/g computation into the Triton recurrent kernel:
+
+```text
+out_conv + a_raw + b_raw + A/dt -> recurrent/GDN
+```
+
+It was faster at the fixture boundary but not exact:
+
+| Metric | Result |
+|---|---:|
+| P169 passed | 0/20 |
+| max_abs_max | 0.01534 |
+| cosine_min | 0.999995 |
+| fixture total | 0.286 ms |
+
+Guardrail: do not escalate this candidate to resident serving. The current
+default-quality contract requires PyTorch-equivalent sigmoid/softplus behavior,
+so `beta` and `g` should remain explicit inputs unless a future gate explicitly
+allows relaxed math.
+
 ### 9B Act-Scratch Stacked Service Gate
 
 P175 stacked act scratch on top of the already-clean 9B P173 stack:
@@ -216,6 +239,7 @@ Use P168 as the main 35B next-step compass:
 - `reports/qwen36_35b/P167_SHARED_EXPERT_PREPARED_PROBE_20260519.md`
 - `reports/qwen36_35b/P170_NATIVE_FP4_ACT_SCRATCH_CLOSED_20260519.md`
 - `reports/qwen36_35b/P175_RECURRENT_FROM_OUTCONV_CANDIDATE_20260519.md`
+- `reports/qwen36_35b/P176_RECURRENT_FROM_OUTCONV_AB_CANDIDATE_20260519.md`
 - `reports/qwen35_9b/P175_ACT_SCRATCH_STACKED_SERVICE_GATE_20260519.md`
 - `reports/qwen36_35b/P160_NATIVE_MOE_GATEUP_PARTIAL_TRACE_20260519.md`
 - `reports/qwen36_35b/P161_NATIVE_MOE_GATEUP_TERM_TRACE_20260519.md`
