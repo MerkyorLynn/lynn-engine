@@ -6,6 +6,35 @@
 
 口径与首发官网文案保持一致：Mac 稳定轨是 Qwen3.5-9B Q4_K_M imatrix GGUF + llama.cpp / LM Studio；NVIDIA 轨另走 Lynn Engine + NVFP4 W4A16。
 
+## 0. App 向导策略
+
+首发 Mac 端不要把本地模型设成强制前置条件。默认路径是先完成 App 安装和云端/MIMO fallback 配置，再由向导引导用户安装本地端侧模型；只有本地 runtime smoke 通过后，客户端才切到 local-first。
+
+推荐向导决策：
+
+| Probe | Recommendation | Default |
+|---|---|---|
+| 可用磁盘 < 8 GiB | 暂不下载本地模型，保留 MIMO fallback | MIMO-first |
+| Apple Silicon + 可用磁盘 >= 8 GiB | 推荐 Qwen3.5-9B Q4_K_M imatrix | local-first after smoke |
+| 统一内存 >= 32 GiB + 可用磁盘 >= 30 GiB | 可提示尝试 Qwen3.6-35B Q4_K_M imatrix | opt-in only |
+| 本地模型加载失败 / smoke 失败 | 自动回退 MIMO，不阻断 App | MIMO-first |
+
+向导必须做三步验收：
+
+1. 下载文件存在、大小和 sha256/manifest 状态通过。
+2. llama.cpp 或 LM Studio OpenAI-compatible endpoint 返回 `/v1/models`。
+3. 32 token chat smoke 返回非空文本。
+
+通过后再写入：
+
+```text
+local_provider.enabled = true
+local_provider.priority = first
+fallback_provider = mimo
+```
+
+这条路径的产品口径是“本地优先，云端兜底”，不是“用户必须先会部署模型才能使用 App”。
+
 ## 1. 推荐下载
 
 推荐 Mac 用户下载：
