@@ -68,6 +68,7 @@ def _offer(
     priority: str,
     reason: str,
     download_gib: float,
+    download_url_hint: str,
     min_memory_gib: int,
     min_disk_gib: int,
     smoke_required: list[str],
@@ -79,6 +80,7 @@ def _offer(
         "priority": priority,
         "reason": reason,
         "download_gib": download_gib,
+        "download_url_hint": download_url_hint,
         "min_unified_memory_gib": min_memory_gib,
         "min_free_disk_gib": min_disk_gib,
         "smoke_required": smoke_required,
@@ -107,7 +109,8 @@ def build_recommendation(model_root: Path) -> dict[str, Any]:
                 runtime="llama.cpp-metal",
                 priority="recommended",
                 reason="Apple Silicon with enough unified memory and disk for the stable 9B local-agent path.",
-                download_gib=5.3,
+                download_gib=5.49,
+                download_url_hint="https://dl.merkyorlynn.com/models/qwen35-9b/q4_k_m/Qwen3.5-9B-Q4_K_M-imatrix.gguf",
                 min_memory_gib=8,
                 min_disk_gib=8,
                 smoke_required=[
@@ -128,6 +131,7 @@ def build_recommendation(model_root: Path) -> dict[str, Any]:
                 priority="optional",
                 reason="Large-memory Mac can try the 35B quality path, but it stays opt-in.",
                 download_gib=20.0,
+                download_url_hint="https://dl.merkyorlynn.com/models/qwen36-35b/q4_k_m/",
                 min_memory_gib=32,
                 min_disk_gib=30,
                 smoke_required=[
@@ -141,6 +145,41 @@ def build_recommendation(model_root: Path) -> dict[str, Any]:
         )
 
     local_first_allowed = bool(offers)
+
+    # Build exclusion reasons for offers that were not made.
+    excluded: list[dict[str, str]] = []
+    if not is_macos_arm:
+        excluded.append({
+            "offer_id": "qwen35-9b-q4km-imatrix-gguf",
+            "reason": "Not Apple Silicon (system={}, machine={}).".format(system, machine),
+        })
+        excluded.append({
+            "offer_id": "qwen36-35b-a3b-q4km-imatrix-gguf",
+            "reason": "Not Apple Silicon (system={}, machine={}).".format(system, machine),
+        })
+    else:
+        if mem_for_offer < 8:
+            excluded.append({
+                "offer_id": "qwen35-9b-q4km-imatrix-gguf",
+                "reason": "Unified memory {:.1f} GiB < 8 GiB minimum.".format(mem_for_offer),
+            })
+        elif disk_for_offer < 8:
+            excluded.append({
+                "offer_id": "qwen35-9b-q4km-imatrix-gguf",
+                "reason": "Free disk {:.1f} GiB < 8 GiB minimum.".format(disk_for_offer),
+            })
+        # 35B exclusion
+        if mem_for_offer < 32:
+            excluded.append({
+                "offer_id": "qwen36-35b-a3b-q4km-imatrix-gguf",
+                "reason": "Unified memory {:.1f} GiB < 32 GiB minimum.".format(mem_for_offer),
+            })
+        elif disk_for_offer < 30:
+            excluded.append({
+                "offer_id": "qwen36-35b-a3b-q4km-imatrix-gguf",
+                "reason": "Free disk {:.1f} GiB < 30 GiB minimum.".format(disk_for_offer),
+            })
+
     return {
         "schema_version": "lynn-app-local-model-probe-v1",
         "platform": {
@@ -155,6 +194,7 @@ def build_recommendation(model_root: Path) -> dict[str, Any]:
         "fallback_provider": "mimo",
         "local_first_allowed_after_smoke": local_first_allowed,
         "offers": offers,
+        "offer_excluded_reasons": excluded,
         "decision": (
             "offer_local_models_after_app_setup"
             if offers
