@@ -92,13 +92,102 @@ api_key=local
 model=qwen35-9b-q4km
 ```
 
-The install helper can later emit concrete snippets for:
+Concrete agent configuration snippets:
 
-- Claude Code;
-- Cline;
-- OpenCode;
-- Continue;
-- LM Studio compatible clients.
+### Claude Code
+
+```bash
+# ~/.claude/settings.json or environment:
+export OPENAI_BASE_URL=http://127.0.0.1:18099/v1
+export OPENAI_API_KEY=local
+
+# Then run:
+claude --model qwen35-9b-q4km
+```
+
+Or in `~/.claude/settings.json`:
+```json
+{
+  "model": "qwen35-9b-q4km",
+  "provider": "openai-compatible",
+  "providers": {
+    "openai-compatible": {
+      "baseUrl": "http://127.0.0.1:18099/v1",
+      "apiKey": "local"
+    }
+  }
+}
+```
+
+### Cline (VS Code)
+
+Settings > Cline > API Provider: **OpenAI Compatible**
+
+| Field | Value |
+|-------|-------|
+| Base URL | `http://127.0.0.1:18099/v1` |
+| API Key | `local` |
+| Model ID | `qwen35-9b-q4km` |
+
+### OpenCode
+
+`~/.opencode/config.yaml`:
+```yaml
+providers:
+  local-qwen:
+    kind: openai
+    apiKey: local
+    baseURL: http://127.0.0.1:18099/v1
+    models:
+      qwen35-9b-q4km:
+        maxTokens: 32768
+        contextWindow: 32768
+        supportsStreaming: true
+```
+
+### Continue (VS Code / JetBrains)
+
+`~/.continue/config.yaml`:
+```yaml
+models:
+  - title: Qwen3.5-9B Local
+    provider: openai
+    model: qwen35-9b-q4km
+    apiBase: http://127.0.0.1:18099/v1
+    apiKey: local
+```
+
+### aider
+
+```bash
+aider --openai-api-base http://127.0.0.1:18099/v1 \
+      --openai-api-key local \
+      --model openai/qwen35-9b-q4km
+```
+
+### Generic OpenAI SDK (Python)
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://127.0.0.1:18099/v1",
+    api_key="local",
+)
+resp = client.chat.completions.create(
+    model="qwen35-9b-q4km",
+    messages=[{"role": "user", "content": "Hello!"}],
+)
+print(resp.choices[0].message.content)
+```
+
+### curl
+
+```bash
+curl http://127.0.0.1:18099/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"model":"qwen35-9b-q4km","messages":[{"role":"user","content":"Hi"}],"max_tokens":64}'
+```
 
 ## Release Gates
 
