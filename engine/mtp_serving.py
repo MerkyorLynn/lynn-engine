@@ -34,6 +34,7 @@ place.
 """
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from typing import Any
 
@@ -220,6 +221,15 @@ def speculative_step_k1_batched(
     overwritten by the next round's K=2 forward, so KV does not need
     restoration.
     """
+    if os.environ.get("LYNN_MTP_K2_VERIFY_MODE", "").lower() == "t1_canonical":
+        return speculative_step_k1(
+            runner=runner,
+            state=state,
+            pending_id=pending_id,
+            pending_base_hidden=pending_base_hidden,
+            pending_pos=pending_pos,
+        )
+
     # 1. MTP draft (same as sequential variant — head-internal cost).
     draft_logits = runner._mtp_draft_logits(
         base_hidden=pending_base_hidden,
