@@ -8,7 +8,7 @@
 
 ## 0. App 向导策略
 
-首发 Mac 端不要把本地模型设成强制前置条件。默认路径是先完成 App 安装和云端/MIMO fallback 配置，再由向导引导用户安装本地端侧模型；只有本地 runtime smoke 通过后，客户端才切到 local-first。
+首发 Mac 端不要把本地模型设成强制前置条件。默认路径是先完成 App 安装和云端/MIMO fallback 配置，再由向导引导用户安装本地端侧模型；只有本地 runtime smoke 通过后，客户端才切到 local-first。这个探测逻辑可以由 `scripts/local_lynn_app_model_probe.py` 输出 JSON 给 App 向导消费。
 
 推荐向导决策：
 
@@ -18,6 +18,19 @@
 | Apple Silicon + 可用磁盘 >= 8 GiB | 推荐 Qwen3.5-9B Q4_K_M imatrix | local-first after smoke |
 | 统一内存 >= 32 GiB + 可用磁盘 >= 30 GiB | 可提示尝试 Qwen3.6-35B Q4_K_M imatrix | opt-in only |
 | 本地模型加载失败 / smoke 失败 | 自动回退 MIMO，不阻断 App | MIMO-first |
+
+向导探测命令：
+
+```bash
+python3 scripts/local_lynn_app_model_probe.py --pretty
+```
+
+推荐交互：
+
+1. 先让用户完成 App 登录和 MIMO fallback 配置。
+2. 如果探测返回 `qwen35-9b-q4km-imatrix-gguf`，提示“是否安装 9B 本地模型”；默认不强制下载。
+3. 如果探测同时返回 `qwen36-35b-a3b-q4km-imatrix-gguf`，只作为高级选项提示“是否尝试 35B 高质量本地模型”。
+4. 任何下载、校验、server smoke 失败，都保持 MIMO active，不打断主流程。
 
 向导必须做三步验收：
 
