@@ -1,0 +1,317 @@
+{
+  "schema": "lynn-p201-gpqa-thinking32-summary-v2",
+  "created": "2026-05-19T23:54:02",
+  "source": "/root/autodl-tmp/reports/qwen35_9b/thinking32/qwen35_9b_q4km_gpqa_thinking32_20260519_182901.jsonl",
+  "progress": "198/198",
+  "overall": {
+    "n": 198,
+    "correct": 143,
+    "accuracy": 0.7222222222222222,
+    "parse_fail": 23,
+    "parse_fail_rate": 0.11616161616161616,
+    "excl_parse_fail": 0.8171428571428572,
+    "accuracy_excluding_parse_fail": 0.8171428571428572
+  },
+  "elapsed_sec": {
+    "count": 198,
+    "mean": 96.93133838383838,
+    "median": 62.07599999999999,
+    "p95": 201.141
+  },
+  "raw_chars": {
+    "count": 198,
+    "mean": 31312.747474747473,
+    "median": 2690.5,
+    "p95": 114211.0
+  },
+  "tokens": {
+    "prompt": {
+      "count": 198,
+      "mean": 284.0,
+      "median": 250.5,
+      "p95": 492.0
+    },
+    "completion": {
+      "count": 198,
+      "mean": 15932.348484848484,
+      "median": 10497.0,
+      "p95": 32589.0
+    },
+    "total": {
+      "count": 198,
+      "mean": 16216.348484848484,
+      "median": 10780.0,
+      "p95": 32768.0
+    }
+  },
+  "top5_best": [
+    {
+      "subject": "Electromagnetism and Photonics",
+      "n": 6,
+      "correct": 6,
+      "accuracy": 1.0,
+      "accuracy_excl_pf": 1.0,
+      "parse_fail": 0
+    },
+    {
+      "subject": "High-energy particle physics",
+      "n": 14,
+      "correct": 14,
+      "accuracy": 1.0,
+      "accuracy_excl_pf": 1.0,
+      "parse_fail": 0
+    },
+    {
+      "subject": "Quantum Mechanics",
+      "n": 25,
+      "correct": 23,
+      "accuracy": 0.92,
+      "accuracy_excl_pf": 1.0,
+      "parse_fail": 2
+    },
+    {
+      "subject": "Physics (general)",
+      "n": 19,
+      "correct": 17,
+      "accuracy": 0.8947368421052632,
+      "accuracy_excl_pf": 0.9444444444444444,
+      "parse_fail": 1
+    },
+    {
+      "subject": "Relativistic Mechanics",
+      "n": 7,
+      "correct": 6,
+      "accuracy": 0.8571428571428571,
+      "accuracy_excl_pf": 0.8571428571428571,
+      "parse_fail": 0
+    }
+  ],
+  "top5_worst": [
+    {
+      "subject": "Genetics",
+      "n": 4,
+      "correct": 2,
+      "accuracy": 0.5,
+      "accuracy_excl_pf": 0.5,
+      "parse_fail": 0
+    },
+    {
+      "subject": "Organic Chemistry",
+      "n": 72,
+      "correct": 38,
+      "accuracy": 0.5277777777777778,
+      "accuracy_excl_pf": 0.6440677966101694,
+      "parse_fail": 13
+    },
+    {
+      "subject": "Chemistry (general)",
+      "n": 20,
+      "correct": 14,
+      "accuracy": 0.7,
+      "accuracy_excl_pf": 0.8235294117647058,
+      "parse_fail": 3
+    },
+    {
+      "subject": "Molecular Biology",
+      "n": 15,
+      "correct": 11,
+      "accuracy": 0.7333333333333333,
+      "accuracy_excl_pf": 0.8461538461538461,
+      "parse_fail": 2
+    },
+    {
+      "subject": "Astrophysics",
+      "n": 13,
+      "correct": 10,
+      "accuracy": 0.7692307692307693,
+      "accuracy_excl_pf": 0.9090909090909091,
+      "parse_fail": 2
+    }
+  ],
+  "top5_parse_fail": [
+    {
+      "subject": "Organic Chemistry",
+      "n": 72,
+      "correct": 38,
+      "accuracy": 0.5277777777777778,
+      "accuracy_excl_pf": 0.6440677966101694,
+      "parse_fail": 13
+    },
+    {
+      "subject": "Chemistry (general)",
+      "n": 20,
+      "correct": 14,
+      "accuracy": 0.7,
+      "accuracy_excl_pf": 0.8235294117647058,
+      "parse_fail": 3
+    },
+    {
+      "subject": "Astrophysics",
+      "n": 13,
+      "correct": 10,
+      "accuracy": 0.7692307692307693,
+      "accuracy_excl_pf": 0.9090909090909091,
+      "parse_fail": 2
+    },
+    {
+      "subject": "Molecular Biology",
+      "n": 15,
+      "correct": 11,
+      "accuracy": 0.7333333333333333,
+      "accuracy_excl_pf": 0.8461538461538461,
+      "parse_fail": 2
+    },
+    {
+      "subject": "Quantum Mechanics",
+      "n": 25,
+      "correct": 23,
+      "accuracy": 0.92,
+      "accuracy_excl_pf": 1.0,
+      "parse_fail": 2
+    }
+  ],
+  "hard_subjects": {
+    "Organic Chemistry": {
+      "n": 72,
+      "correct": 38,
+      "accuracy": 0.5277777777777778,
+      "accuracy_excl_pf": 0.6440677966101694,
+      "parse_fail": 13
+    },
+    "Chemistry (general)": {
+      "n": 20,
+      "correct": 14,
+      "accuracy": 0.7,
+      "accuracy_excl_pf": 0.8235294117647058,
+      "parse_fail": 3
+    },
+    "Quantum Mechanics": {
+      "n": 25,
+      "correct": 23,
+      "accuracy": 0.92,
+      "accuracy_excl_pf": 1.0,
+      "parse_fail": 2
+    },
+    "Molecular Biology": {
+      "n": 15,
+      "correct": 11,
+      "accuracy": 0.7333333333333333,
+      "accuracy_excl_pf": 0.8461538461538461,
+      "parse_fail": 2
+    },
+    "Genetics": {
+      "n": 4,
+      "correct": 2,
+      "accuracy": 0.5,
+      "accuracy_excl_pf": 0.5,
+      "parse_fail": 0
+    },
+    "Condensed Matter Physics": {
+      "n": 1,
+      "correct": 1,
+      "accuracy": 1.0,
+      "accuracy_excl_pf": 1.0,
+      "parse_fail": 0
+    },
+    "Astrophysics": {
+      "n": 13,
+      "correct": 10,
+      "accuracy": 0.7692307692307693,
+      "accuracy_excl_pf": 0.9090909090909091,
+      "parse_fail": 2
+    }
+  },
+  "by_subject": {
+    "Astrophysics": {
+      "n": 13,
+      "correct": 10,
+      "accuracy": 0.7692307692307693,
+      "accuracy_excl_pf": 0.9090909090909091,
+      "parse_fail": 2
+    },
+    "Chemistry (general)": {
+      "n": 20,
+      "correct": 14,
+      "accuracy": 0.7,
+      "accuracy_excl_pf": 0.8235294117647058,
+      "parse_fail": 3
+    },
+    "Condensed Matter Physics": {
+      "n": 1,
+      "correct": 1,
+      "accuracy": 1.0,
+      "accuracy_excl_pf": 1.0,
+      "parse_fail": 0
+    },
+    "Electromagnetism and Photonics": {
+      "n": 6,
+      "correct": 6,
+      "accuracy": 1.0,
+      "accuracy_excl_pf": 1.0,
+      "parse_fail": 0
+    },
+    "Genetics": {
+      "n": 4,
+      "correct": 2,
+      "accuracy": 0.5,
+      "accuracy_excl_pf": 0.5,
+      "parse_fail": 0
+    },
+    "High-energy particle physics": {
+      "n": 14,
+      "correct": 14,
+      "accuracy": 1.0,
+      "accuracy_excl_pf": 1.0,
+      "parse_fail": 0
+    },
+    "Inorganic Chemistry": {
+      "n": 1,
+      "correct": 0,
+      "accuracy": 0.0,
+      "accuracy_excl_pf": 0.0,
+      "parse_fail": 0
+    },
+    "Molecular Biology": {
+      "n": 15,
+      "correct": 11,
+      "accuracy": 0.7333333333333333,
+      "accuracy_excl_pf": 0.8461538461538461,
+      "parse_fail": 2
+    },
+    "Optics and Acoustics": {
+      "n": 1,
+      "correct": 1,
+      "accuracy": 1.0,
+      "accuracy_excl_pf": 1.0,
+      "parse_fail": 0
+    },
+    "Organic Chemistry": {
+      "n": 72,
+      "correct": 38,
+      "accuracy": 0.5277777777777778,
+      "accuracy_excl_pf": 0.6440677966101694,
+      "parse_fail": 13
+    },
+    "Physics (general)": {
+      "n": 19,
+      "correct": 17,
+      "accuracy": 0.8947368421052632,
+      "accuracy_excl_pf": 0.9444444444444444,
+      "parse_fail": 1
+    },
+    "Quantum Mechanics": {
+      "n": 25,
+      "correct": 23,
+      "accuracy": 0.92,
+      "accuracy_excl_pf": 1.0,
+      "parse_fail": 2
+    },
+    "Relativistic Mechanics": {
+      "n": 7,
+      "correct": 6,
+      "accuracy": 0.8571428571428571,
+      "accuracy_excl_pf": 0.8571428571428571,
+      "parse_fail": 0
+    }
+  }
+}

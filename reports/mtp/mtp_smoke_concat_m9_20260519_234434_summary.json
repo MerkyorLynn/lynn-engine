@@ -1,0 +1,51 @@
+{
+  "summary": {
+    "baseline": {
+      "exact_match_count": 6,
+      "n_prompts": 6,
+      "exact_match_rate": 1.0,
+      "mean_prefix_match_len": 128.0,
+      "mean_decode_tps_baseline_loop": 37.99639559254927,
+      "mean_spec_effective_tps": null,
+      "mean_spec_accept_rate": null,
+      "mean_shadow_accept_rate": null
+    },
+    "shadow": {
+      "exact_match_count": 0,
+      "n_prompts": 6,
+      "exact_match_rate": 0.0,
+      "mean_prefix_match_len": 1.6666666666666667,
+      "mean_decode_tps_baseline_loop": 33.909658816237446,
+      "mean_spec_effective_tps": null,
+      "mean_spec_accept_rate": null,
+      "mean_shadow_accept_rate": 0.009114583333333334
+    },
+    "spec_k1": {
+      "exact_match_count": 0,
+      "n_prompts": 6,
+      "exact_match_rate": 0.0,
+      "mean_prefix_match_len": 1.0,
+      "mean_decode_tps_baseline_loop": null,
+      "mean_spec_effective_tps": 24.801483358998855,
+      "mean_spec_accept_rate": 0.7688078201958958,
+      "mean_shadow_accept_rate": null
+    },
+    "spec_k1_batched": {
+      "exact_match_count": 0,
+      "n_prompts": 6,
+      "exact_match_rate": 0.0,
+      "mean_prefix_match_len": 1.0,
+      "mean_decode_tps_baseline_loop": null,
+      "mean_spec_effective_tps": 12.558266004622055,
+      "mean_spec_accept_rate": 0.1539269792633776,
+      "mean_shadow_accept_rate": null
+    }
+  },
+  "gates": {
+    "correctness_spec_k1_matches_baseline": false,
+    "correctness_spec_k1_batched_matches_baseline": false,
+    "tps_ratio_spec_over_baseline": 0.6527325282364991,
+    "tps_ratio_spec_batched_over_baseline": 0.3305120343331885,
+    "note": "spec_k1 (sequential): 2 base forwards/round + MTP \u2014 bounded by 1 + accept rate / cost; with OFFSET=1 head accept ~0.3% (random), TPS ratio ~0.4-0.5x. spec_k1_batched (M5): 1 K=2 batched forward + MTP, with reject penalty = +1 T=1 forward; ROI bounded by 1.0-1.1x on Lynn 30/40 hybrid SSM arch even at 65% accept. Real unlock = M8 A100 retrain at OFFSET=2."
+  }
+}
