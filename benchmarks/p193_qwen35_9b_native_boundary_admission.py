@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 import time
 from pathlib import Path
@@ -135,25 +136,90 @@ def _extract_p189(data: dict[str, Any]) -> dict[str, Any]:
 def _extract_p191(data: dict[str, Any]) -> dict[str, Any]:
     """Extract key metrics from P191 CuTe PoC kernel report.
 
-    Real P191 schema (p191_dense_fp4xfp8_poc):
+    Original P191 schema (p191_dense_fp4xfp8_poc):
       mma_compiled: bool
       scalar_reference_available: bool
       results[]: layer_id, max_abs_vs_bf16_ref, rel_l2_vs_bf16_ref,
                  cosine_vs_bf16_ref, scalar_ms, mma_available
+
+    Real-MMA P191 schema (p191_dense_fp4xfp8_mma_real):
+      results[].scalar_reference.{max_abs_vs_bf16_ref, rel_l2_vs_bf16_ref,
+                                  cosine_vs_bf16_ref, scalar_ms}
+      results[].mma_kernel.{available, real_compute, mma_vs_scalar_max_abs,
+                            mma_vs_scalar_cosine, mma_ms, error}
     """
     results = data.get("results", [])
-    cosines = [r["cosine_vs_bf16_ref"] for r in results if "cosine_vs_bf16_ref" in r]
-    rel_l2s = [r["rel_l2_vs_bf16_ref"] for r in results if "rel_l2_vs_bf16_ref" in r]
-    max_abs = [r["max_abs_vs_bf16_ref"] for r in results if "max_abs_vs_bf16_ref" in r]
+
+    def _finite(value: Any) -> float | None:
+        if value is None:
+            return None
+        try:
+            f = float(value)
+        except (TypeError, ValueError):
+            return None
+        return f if math.isfinite(f) else None
+
+    scalar_cosines: list[float] = []
+    scalar_rel_l2s: list[float] = []
+    scalar_max_abs: list[float] = []
+    scalar_ms: list[float] = []
+    mma_cosines: list[float] = []
+    mma_max_abs: list[float] = []
+    mma_ms: list[float] = []
+    mma_real_flags: list[bool] = []
+    mma_available_flags: list[bool] = []
+
+    for row in results:
+        scalar = row.get("scalar_reference") if isinstance(row.get("scalar_reference"), dict) else row
+        mma = row.get("mma_kernel") if isinstance(row.get("mma_kernel"), dict) else row
+
+        for target, key in (
+            (scalar_cosines, "cosine_vs_bf16_ref"),
+            (scalar_rel_l2s, "rel_l2_vs_bf16_ref"),
+            (scalar_max_abs, "max_abs_vs_bf16_ref"),
+            (scalar_ms, "scalar_ms"),
+        ):
+            value = _finite(scalar.get(key))
+            if value is not None:
+                target.append(value)
+
+        value = _finite(mma.get("mma_vs_scalar_cosine"))
+        if value is not None:
+            mma_cosines.append(value)
+        value = _finite(mma.get("mma_vs_scalar_max_abs"))
+        if value is not None:
+            mma_max_abs.append(value)
+        value = _finite(mma.get("mma_ms"))
+        if value is not None:
+            mma_ms.append(value)
+        if "real_compute" in mma:
+            mma_real_flags.append(bool(mma.get("real_compute")))
+        if "available" in mma:
+            mma_available_flags.append(bool(mma.get("available")))
+        elif "mma_available" in row:
+            mma_available_flags.append(bool(row.get("mma_available")))
+
+    scalar_ms_mean = sum(scalar_ms) / len(scalar_ms) if scalar_ms else None
+    mma_ms_mean = sum(mma_ms) / len(mma_ms) if mma_ms else None
     return {
         "gate": "P191",
         "mma_compiled": data.get("mma_compiled"),
         "scalar_reference_available": data.get("scalar_reference_available"),
         "layers_tested": len(results),
-        "cosine_min": min(cosines) if cosines else None,
-        "rel_l2_max": max(rel_l2s) if rel_l2s else None,
-        "max_abs_max": max(max_abs) if max_abs else None,
-        "mma_available_all": all(r.get("mma_available", False) for r in results) if results else None,
+        "cosine_min": min(scalar_cosines) if scalar_cosines else None,
+        "rel_l2_max": max(scalar_rel_l2s) if scalar_rel_l2s else None,
+        "max_abs_max": max(scalar_max_abs) if scalar_max_abs else None,
+        "scalar_ms_mean": scalar_ms_mean,
+        "mma_available_all": all(mma_available_flags) if mma_available_flags else None,
+        "mma_real_compute_all": all(mma_real_flags) if mma_real_flags else None,
+        "mma_vs_scalar_cosine_min": min(mma_cosines) if mma_cosines else None,
+        "mma_vs_scalar_max_abs_max": max(mma_max_abs) if mma_max_abs else None,
+        "mma_ms_mean": mma_ms_mean,
+        "mma_speedup_vs_scalar": (
+            scalar_ms_mean / mma_ms_mean
+            if scalar_ms_mean is not None and mma_ms_mean is not None and mma_ms_mean > 0
+            else None
+        ),
     }
 
 
@@ -255,13 +321,21 @@ def _decide(
     if p191 is not None:
         cos = p191.get("cosine_min")
         r2 = p191.get("rel_l2_max")
-        mma = p191.get("mma_available_all")
+        mma_real = p191.get("mma_real_compute_all")
+        mma_cos = p191.get("mma_vs_scalar_cosine_min")
         if cos is not None and cos < thresholds["cosine_closed"]:
             reasons.append(f"P191 cosine_min={cos:.6f} < {thresholds['cosine_closed']}")
             return "CLOSED_NUMERIC", reasons
         if r2 is not None and r2 > thresholds["rel_l2_closed"]:
             reasons.append(f"P191 rel_l2_max={r2:.6f} > {thresholds['rel_l2_closed']}")
             return "CLOSED_NUMERIC", reasons
+        if mma_real:
+            if mma_cos is None or mma_cos < thresholds["cosine_green"]:
+                reasons.append(
+                    "P191 real MMA fragment layout incorrect: "
+                    f"mma_vs_scalar_cosine_min={mma_cos}"
+                )
+                return "CLOSED_NUMERIC", reasons
         if cos is not None and cos < thresholds["cosine_green"]:
             numeric_green = False
             reasons.append(f"P191 cosine_min={cos:.6f} < green {thresholds['cosine_green']}")
@@ -308,6 +382,9 @@ def _decide(
             capability_blocked = True
         if not p191.get("scalar_reference_available", False):
             reasons.append("P191: scalar reference unavailable")
+            capability_blocked = True
+        if not p191.get("mma_real_compute_all", False):
+            reasons.append("P191: real MMA compute not available yet")
             capability_blocked = True
 
     if p192 is not None:

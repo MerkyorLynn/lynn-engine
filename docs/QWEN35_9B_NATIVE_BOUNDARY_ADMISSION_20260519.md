@@ -31,6 +31,26 @@ any native FP4×FP8 packed boundary reaches resident serving.
 All reports are optional. Absent reports are skipped (not treated as failures).
 P192 auto-discovers `p192b_` (contract) before `p192_` (manifest).
 
+P191 supports both the original flat scalar-reference schema and the real-MMA
+nested schema:
+
+```json
+{
+  "results": [{
+    "scalar_reference": {"cosine_vs_bf16_ref": 0.9999, "scalar_ms": 0.526},
+    "mma_kernel": {
+      "real_compute": true,
+      "mma_vs_scalar_cosine": -0.015,
+      "mma_ms": 0.049
+    }
+  }]
+}
+```
+
+If real MMA runs but `mma_vs_scalar_cosine_min` is below the green threshold,
+P193 returns `CLOSED_NUMERIC` with a fragment-layout reason.  Fast but wrong
+MMA is never allowed to become AMBER.
+
 ## Default Thresholds
 
 | Threshold | Default | Effect |
@@ -51,6 +71,7 @@ P192 auto-discovers `p192b_` (contract) before `p192_` (manifest).
    - P185 RED → CLOSED_NUMERIC
    - P185 cosine < cosine_closed or rel_l2 > rel_l2_closed → CLOSED_NUMERIC
    - P191 cosine < cosine_closed → CLOSED_NUMERIC
+   - P191 real-MMA cosine vs scalar < cosine_green → CLOSED_NUMERIC
    - P192 RED/FAIL → CLOSED_NUMERIC
 3. Speed check:
    - numeric below green BUT speedup >= speedup_amber → AMBER_FIXTURE_FAST
