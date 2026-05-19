@@ -1,0 +1,272 @@
+{
+  "schema_version": "lynn-engine-p25-server-decode-tps-probe-v1",
+  "url": "http://127.0.0.1:18192/v1",
+  "model": "qwen35-9b-nvfp4-fast-no-packed-service",
+  "chat": true,
+  "prompt_chars": 66,
+  "results": [
+    {
+      "wall_s": 1.9266116619110107,
+      "completion_tokens": 128,
+      "wall_tps": 66.43788290632295,
+      "metrics_tokens_per_second": 69.36486071817517,
+      "decode_tps": 75.35185898242939,
+      "prefill_seconds": 0.1428065299987793,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.06164097785949707,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 127,
+      "decode_step_ms_mean": 13.271072718102163,
+      "decode_step_ms_median": 13.174057006835938,
+      "preview": "在大型语言模型（LLM）推理架构的演进中，混合专家模型（MoE）因其稀疏激活特性而成为提升模型容量与效率的关键方向，然而 MoE 推理面临着动态路由计算开销大、显存带宽压力大以及专家间通信延迟高等挑战。针对这些痛点，NVFP4（NVIDIA FP4）作为一种新兴的低精度浮点格式，通过压缩浮点数的尾数和指数位，在保持较高",
+      "max_tokens": 128,
+      "run_idx": 0
+    },
+    {
+      "wall_s": 1.7954323291778564,
+      "completion_tokens": 128,
+      "wall_tps": 71.2920213810633,
+      "metrics_tokens_per_second": 71.45800353702342,
+      "decode_tps": 76.14446613266472,
+      "prefill_seconds": 0.11327695846557617,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.06164097785949707,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 127,
+      "decode_step_ms_mean": 13.132930740596741,
+      "decode_step_ms_median": 13.127565383911133,
+      "preview": "在大型语言模型（LLM）推理架构的演进中，混合专家模型（MoE）因其稀疏激活特性而成为提升模型容量与效率的关键方向，然而 MoE 推理面临着动态路由计算开销大、显存带宽压力大以及专家间通信延迟高等挑战。针对这些痛点，NVFP4（NVIDIA FP4）作为一种新兴的低精度浮点格式，通过压缩浮点数的尾数和指数位，在保持较高",
+      "max_tokens": 128,
+      "run_idx": 1
+    },
+    {
+      "wall_s": 1.789907455444336,
+      "completion_tokens": 128,
+      "wall_tps": 71.51207712480566,
+      "metrics_tokens_per_second": 71.66254390052502,
+      "decode_tps": 76.35713428709164,
+      "prefill_seconds": 0.11262154579162598,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.06164097785949707,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 127,
+      "decode_step_ms_mean": 13.096353200476939,
+      "decode_step_ms_median": 13.120174407958984,
+      "preview": "在大型语言模型（LLM）推理架构的演进中，混合专家模型（MoE）因其稀疏激活特性而成为提升模型容量与效率的关键方向，然而 MoE 推理面临着动态路由计算开销大、显存带宽压力大以及专家间通信延迟高等挑战。针对这些痛点，NVFP4（NVIDIA FP4）作为一种新兴的低精度浮点格式，通过压缩浮点数的尾数和指数位，在保持较高",
+      "max_tokens": 128,
+      "run_idx": 2
+    },
+    {
+      "wall_s": 3.4506897926330566,
+      "completion_tokens": 256,
+      "wall_tps": 74.18806539681987,
+      "metrics_tokens_per_second": 74.28790301451018,
+      "decode_tps": 76.95926341132773,
+      "prefill_seconds": 0.11287212371826172,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.06164097785949707,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 255,
+      "decode_step_ms_mean": 12.993887359020757,
+      "decode_step_ms_median": 12.990951538085938,
+      "preview": "在大型语言模型（LLM）推理架构的演进中，混合专家模型（MoE）因其稀疏激活特性而成为提升模型容量与效率的关键方向，然而 MoE 推理面临着动态路由计算开销大、显存带宽压力大以及专家间通信延迟高等挑战。针对这些痛点，NVFP4（NVIDIA FP4）作为一种新兴的低精度浮点格式，通过压缩浮点数的尾数和指数位，在保持较高",
+      "max_tokens": 256,
+      "run_idx": 0
+    },
+    {
+      "wall_s": 3.4479992389678955,
+      "completion_tokens": 256,
+      "wall_tps": 74.2459560625163,
+      "metrics_tokens_per_second": 74.33276868843876,
+      "decode_tps": 77.00565770241599,
+      "prefill_seconds": 0.1143043041229248,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.06164097785949707,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 255,
+      "decode_step_ms_mean": 12.986058814852845,
+      "decode_step_ms_median": 12.985706329345703,
+      "preview": "在大型语言模型（LLM）推理架构的演进中，混合专家模型（MoE）因其稀疏激活特性而成为提升模型容量与效率的关键方向，然而 MoE 推理面临着动态路由计算开销大、显存带宽压力大以及专家间通信延迟高等挑战。针对这些痛点，NVFP4（NVIDIA FP4）作为一种新兴的低精度浮点格式，通过压缩浮点数的尾数和指数位，在保持较高",
+      "max_tokens": 256,
+      "run_idx": 1
+    },
+    {
+      "wall_s": 3.4480175971984863,
+      "completion_tokens": 256,
+      "wall_tps": 74.24556075583835,
+      "metrics_tokens_per_second": 74.37233077490568,
+      "decode_tps": 77.04327183159485,
+      "prefill_seconds": 0.11412978172302246,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.06164097785949707,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 255,
+      "decode_step_ms_mean": 12.979718750598384,
+      "decode_step_ms_median": 12.980222702026367,
+      "preview": "在大型语言模型（LLM）推理架构的演进中，混合专家模型（MoE）因其稀疏激活特性而成为提升模型容量与效率的关键方向，然而 MoE 推理面临着动态路由计算开销大、显存带宽压力大以及专家间通信延迟高等挑战。针对这些痛点，NVFP4（NVIDIA FP4）作为一种新兴的低精度浮点格式，通过压缩浮点数的尾数和指数位，在保持较高",
+      "max_tokens": 256,
+      "run_idx": 2
+    },
+    {
+      "wall_s": 4.5016188621521,
+      "completion_tokens": 336,
+      "wall_tps": 74.63981520624954,
+      "metrics_tokens_per_second": 74.74319041631513,
+      "decode_tps": 76.94004314712724,
+      "prefill_seconds": 0.11550545692443848,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.06164097785949707,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 335,
+      "decode_step_ms_mean": 12.997133340408553,
+      "decode_step_ms_median": 12.989044189453125,
+      "preview": "在大型语言模型（LLM）推理架构的演进中，混合专家模型（MoE）因其稀疏激活特性而成为提升模型容量与效率的关键方向，然而 MoE 推理面临着动态路由计算开销大、显存带宽压力大以及专家间通信延迟高等挑战。针对这些痛点，NVFP4（NVIDIA FP4）作为一种新兴的低精度浮点格式，通过压缩浮点数的尾数和指数位，在保持较高",
+      "max_tokens": 512,
+      "run_idx": 0
+    },
+    {
+      "wall_s": 4.490881443023682,
+      "completion_tokens": 336,
+      "wall_tps": 74.81827437728424,
+      "metrics_tokens_per_second": 74.91744906900347,
+      "decode_tps": 77.05852028354805,
+      "prefill_seconds": 0.11425089836120605,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.06164097785949707,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 335,
+      "decode_step_ms_mean": 12.977150304993588,
+      "decode_step_ms_median": 12.986898422241211,
+      "preview": "在大型语言模型（LLM）推理架构的演进中，混合专家模型（MoE）因其稀疏激活特性而成为提升模型容量与效率的关键方向，然而 MoE 推理面临着动态路由计算开销大、显存带宽压力大以及专家间通信延迟高等挑战。针对这些痛点，NVFP4（NVIDIA FP4）作为一种新兴的低精度浮点格式，通过压缩浮点数的尾数和指数位，在保持较高",
+      "max_tokens": 512,
+      "run_idx": 1
+    },
+    {
+      "wall_s": 4.489548683166504,
+      "completion_tokens": 336,
+      "wall_tps": 74.8404848041468,
+      "metrics_tokens_per_second": 74.96639134213449,
+      "decode_tps": 77.09944613293084,
+      "prefill_seconds": 0.11225509643554688,
+      "linear_block_graph_reused": true,
+      "linear_block_graph_capture_seconds": 0.0,
+      "linear_block_graph_prewarm_seconds": 0.06164097785949707,
+      "native_fp4_lm_head_enabled": true,
+      "decode_step_count": 335,
+      "decode_step_ms_mean": 12.97026178730068,
+      "decode_step_ms_median": 12.981891632080078,
+      "preview": "在大型语言模型（LLM）推理架构的演进中，混合专家模型（MoE）因其稀疏激活特性而成为提升模型容量与效率的关键方向，然而 MoE 推理面临着动态路由计算开销大、显存带宽压力大以及专家间通信延迟高等挑战。针对这些痛点，NVFP4（NVIDIA FP4）作为一种新兴的低精度浮点格式，通过压缩浮点数的尾数和指数位，在保持较高",
+      "max_tokens": 512,
+      "run_idx": 2
+    }
+  ],
+  "summary_by_max_tokens": {
+    "128": {
+      "runs": 3,
+      "wall_tps": {
+        "mean": 69.7473271373973,
+        "median": 71.2920213810633,
+        "min": 66.43788290632295,
+        "max": 71.51207712480566
+      },
+      "metrics_tokens_per_second": {
+        "mean": 70.8284693852412,
+        "median": 71.45800353702342,
+        "min": 69.36486071817517,
+        "max": 71.66254390052502
+      },
+      "decode_tps": {
+        "mean": 75.95115313406191,
+        "median": 76.14446613266472,
+        "min": 75.35185898242939,
+        "max": 76.35713428709164
+      },
+      "prefill_seconds": {
+        "mean": 0.12290167808532715,
+        "median": 0.11327695846557617,
+        "min": 0.11262154579162598,
+        "max": 0.1428065299987793
+      },
+      "decode_step_ms_median": {
+        "mean": 13.140598932902018,
+        "median": 13.127565383911133,
+        "min": 13.120174407958984,
+        "max": 13.174057006835938
+      }
+    },
+    "256": {
+      "runs": 3,
+      "wall_tps": {
+        "mean": 74.22652740505818,
+        "median": 74.24556075583835,
+        "min": 74.18806539681987,
+        "max": 74.2459560625163
+      },
+      "metrics_tokens_per_second": {
+        "mean": 74.33100082595153,
+        "median": 74.33276868843876,
+        "min": 74.28790301451018,
+        "max": 74.37233077490568
+      },
+      "decode_tps": {
+        "mean": 77.00273098177952,
+        "median": 77.00565770241599,
+        "min": 76.95926341132773,
+        "max": 77.04327183159485
+      },
+      "prefill_seconds": {
+        "mean": 0.113768736521403,
+        "median": 0.11412978172302246,
+        "min": 0.11287212371826172,
+        "max": 0.1143043041229248
+      },
+      "decode_step_ms_median": {
+        "mean": 12.985626856486002,
+        "median": 12.985706329345703,
+        "min": 12.980222702026367,
+        "max": 12.990951538085938
+      }
+    },
+    "512": {
+      "runs": 3,
+      "wall_tps": {
+        "mean": 74.76619146256019,
+        "median": 74.81827437728424,
+        "min": 74.63981520624954,
+        "max": 74.8404848041468
+      },
+      "metrics_tokens_per_second": {
+        "mean": 74.87567694248436,
+        "median": 74.91744906900347,
+        "min": 74.74319041631513,
+        "max": 74.96639134213449
+      },
+      "decode_tps": {
+        "mean": 77.03266985453537,
+        "median": 77.05852028354805,
+        "min": 76.94004314712724,
+        "max": 77.09944613293084
+      },
+      "prefill_seconds": {
+        "mean": 0.11400381724039714,
+        "median": 0.11425089836120605,
+        "min": 0.11225509643554688,
+        "max": 0.11550545692443848
+      },
+      "decode_step_ms_median": {
+        "mean": 12.985944747924805,
+        "median": 12.986898422241211,
+        "min": 12.981891632080078,
+        "max": 12.989044189453125
+      }
+    }
+  }
+}
