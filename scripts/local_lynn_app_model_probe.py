@@ -70,6 +70,7 @@ def _offer(
     download_gib: float,
     min_memory_gib: int,
     min_disk_gib: int,
+    download_url_hint: str,
     smoke_required: list[str],
 ) -> dict[str, Any]:
     return {
@@ -79,6 +80,7 @@ def _offer(
         "priority": priority,
         "reason": reason,
         "download_gib": download_gib,
+        "download_url_hint": download_url_hint,
         "min_unified_memory_gib": min_memory_gib,
         "min_free_disk_gib": min_disk_gib,
         "smoke_required": smoke_required,
@@ -98,6 +100,7 @@ def build_recommendation(model_root: Path) -> dict[str, Any]:
     disk_for_offer = free_gib if free_gib is not None else 0.0
 
     offers: list[dict[str, Any]] = []
+    offer_excluded_reasons: list[dict[str, Any]] = []
 
     if is_macos_arm and mem_for_offer >= 8 and disk_for_offer >= 8:
         offers.append(
@@ -107,9 +110,10 @@ def build_recommendation(model_root: Path) -> dict[str, Any]:
                 runtime="llama.cpp-metal",
                 priority="recommended",
                 reason="Apple Silicon with enough unified memory and disk for the stable 9B local-agent path.",
-                download_gib=5.3,
+                download_gib=5.49,
                 min_memory_gib=8,
                 min_disk_gib=8,
+                download_url_hint="https://dl.merkyorlynn.com/models/qwen35-9b/q4_k_m/",
                 smoke_required=[
                     "download_manifest",
                     "sha256",
@@ -117,6 +121,22 @@ def build_recommendation(model_root: Path) -> dict[str, Any]:
                     "chat_32_tokens",
                 ],
             )
+        )
+    else:
+        offer_excluded_reasons.append(
+            {
+                "artifact_id": "qwen35-9b-q4km-imatrix-gguf",
+                "required": {
+                    "is_macos_apple_silicon": True,
+                    "unified_memory_gib": 8,
+                    "free_disk_gib": 8,
+                },
+                "observed": {
+                    "is_macos_apple_silicon": is_macos_arm,
+                    "unified_memory_gib": mem_gib,
+                    "free_disk_gib": free_gib,
+                },
+            }
         )
 
     if is_macos_arm and mem_for_offer >= 32 and disk_for_offer >= 30:
@@ -130,6 +150,7 @@ def build_recommendation(model_root: Path) -> dict[str, Any]:
                 download_gib=20.0,
                 min_memory_gib=32,
                 min_disk_gib=30,
+                download_url_hint="https://dl.merkyorlynn.com/models/qwen36-35b-a3b/q4_k_m/",
                 smoke_required=[
                     "download_manifest",
                     "sha256",
@@ -138,6 +159,22 @@ def build_recommendation(model_root: Path) -> dict[str, Any]:
                     "short_structured_smoke",
                 ],
             )
+        )
+    else:
+        offer_excluded_reasons.append(
+            {
+                "artifact_id": "qwen36-35b-a3b-q4km-imatrix-gguf",
+                "required": {
+                    "is_macos_apple_silicon": True,
+                    "unified_memory_gib": 32,
+                    "free_disk_gib": 30,
+                },
+                "observed": {
+                    "is_macos_apple_silicon": is_macos_arm,
+                    "unified_memory_gib": mem_gib,
+                    "free_disk_gib": free_gib,
+                },
+            }
         )
 
     local_first_allowed = bool(offers)
@@ -155,6 +192,7 @@ def build_recommendation(model_root: Path) -> dict[str, Any]:
         "fallback_provider": "mimo",
         "local_first_allowed_after_smoke": local_first_allowed,
         "offers": offers,
+        "offer_excluded_reasons": offer_excluded_reasons,
         "decision": (
             "offer_local_models_after_app_setup"
             if offers
