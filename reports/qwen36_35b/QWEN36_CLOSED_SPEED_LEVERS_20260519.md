@@ -24,6 +24,7 @@ layout/repack work. Do not keep spending P37/P25 time on the closed knobs below.
 | Recurrent from `out_conv` | closed for default | P169 20/20 exact; P37 exact; P37 speedup 1.0042x; P25 512 107.996 TPS; structured 40/40 mean 107.865 TPS | Fixture boundary improved to 0.309 ms, but q/k/v split elimination alone is too small once linear-block graph/service overhead is included | Fuse a larger boundary such as `conv + gate + recurrent`, or remove allocation/launches beyond q/k/v views |
 | Recurrent from `out_conv` + A/B gate | closed / not exact | P176 total 0.286 ms but P169 0/20, max_abs 0.01534, cosine_min 0.999995 | Moving sigmoid/softplus beta/g prep into Triton is faster but violates exactness | Keep PyTorch-produced `beta`/`g` explicit unless the default quality contract changes |
 | Router linear out-buffer | closed / service-flat | P177 fixture 18/18 exact; router 0.04434 -> 0.03896 ms/layer; P37 exact but P25 512 106.77 TPS | Caller-owned `torch.mm(..., out=...)` helps the fixture router, but the resident transposed weights/scratch do not move service TPS and sit below safe default | Keep `LYNN_ROUTER_LINEAR_OUT_BUFFER=1` diagnostic-only; do not promote standalone |
+| Full-layer-only native active-MoE | closed / P37 drift | `grouped_per16_nonatomic_out` and `grouped_per16_nonatomic` both P37 0/3; no token-0 collapse; prompt 1/2 around 105 TPS | Restricting native MoE to eager full-attention layers avoids CUDA graph collapse but still changes early greedy tokens at indices 2-3 | Do not run P25/structured; either reproduce Triton active-MoE exactness or optimize a larger boundary around Triton |
 | 9B act-scratch stacked service gate | closed / flat | P175 stack 128/256/512 decode TPS 61.82 / 62.42 / 62.52 vs P173 62.55 at 512 | Adding `LYNN_NATIVE_FP4_ACT_SCRATCH=1` on top of dense gate/up + RoPE cache does not move 9B service TPS | Continue 9B work on larger dense FFN/TensorCore repack or server batching, not act scratch |
 | Native packed MoE gate/up replacement | research-only; no resident promotion | P160 partial exact 0/18, max diff 4.768e-7; P161 terms exact; P162 simple trees fail Triton `tl.sum`; P146 resident backends fail P37 | Drift is Triton reduction-tree mismatch, not FP4 decode/scale math. Approximate native output cannot enter exact-first P37/P25 | Keep Triton active-MoE as exact authority; either reproduce Triton lowering deliberately or fuse around Triton boundaries |
 
@@ -205,6 +206,25 @@ The resident service gate did not improve:
 Guardrail: keep this as opt-in diagnostic plumbing only. The fixture-level
 allocation cleanup is real, but it is too small and the extra resident weight
 transpose/scratch does not clear the service bar.
+
+### Full-Layer-Only Native Active-MoE
+
+P178 tested whether native packed-NVFP4 active-MoE can be restricted to the
+full-attention layers, which run eager and therefore avoid the linear-block
+CUDA graph capture hazard.
+
+| Backend | P37 exact | Collapse | Readout |
+|---|---:|---:|---|
+| `grouped_per16_nonatomic_out` | 0/3 | false | prompt 1/2 around 105 TPS, prompt 0 stalled |
+| `grouped_per16_nonatomic` | 0/3 | false | prompt 1/2 around 105 TPS, prompt 0 around 42 TPS |
+
+The failure mode changed from graph token-0 collapse to ordinary early-token
+drift at token index 2-3. That is useful evidence, but not a promotion path.
+
+Guardrail: do not run P25/structured for these backends. Full-layer-only native
+MoE is closed until the native path either matches Triton's exact reduction and
+BF16 rounding contract or becomes part of a larger boundary where Triton remains
+the numerical authority.
 
 ### 9B Act-Scratch Stacked Service Gate
 
