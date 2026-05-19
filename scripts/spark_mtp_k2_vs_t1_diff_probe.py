@@ -78,6 +78,32 @@ def _argmax_id(logits: torch.Tensor) -> int:
     return int(logits[0].argmax().item())
 
 
+def _state_cmp(seq_snap: dict[str, Any], k2_snap: dict[str, Any]) -> dict[str, Any]:
+    rows: list[dict[str, Any]] = []
+    worst: dict[str, Any] | None = None
+
+    def add(kind: str, layer: int, name: str, a: torch.Tensor, b: torch.Tensor) -> None:
+        nonlocal worst
+        c = _cmp(a, b)
+        row = {"kind": kind, "layer": int(layer), "name": name, **c}
+        rows.append(row)
+        if worst is None or row["max_abs"] > worst["max_abs"]:
+            worst = row
+
+    for layer, tensor in seq_snap.get("recurrent", {}).items():
+        add("recurrent", int(layer), "recurrent", tensor, k2_snap["recurrent"][layer])
+    for layer, tensor in seq_snap.get("conv", {}).items():
+        add("conv", int(layer), "conv", tensor, k2_snap["conv"][layer])
+    for layer, (k_seq, v_seq) in seq_snap.get("kv", {}).items():
+        k_k2, v_k2 = k2_snap["kv"][layer]
+        add("kv", int(layer), "K", k_seq, k_k2)
+        add("kv", int(layer), "V", v_seq, v_k2)
+    return {
+        "worst": worst,
+        "rows": rows,
+    }
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", required=True)
@@ -151,6 +177,7 @@ def main() -> int:
             _rms_norm(seq_h, runner.outside["model.language_model.norm.weight"]),
             all_positions=True,
         )
+        seq_snap = runner._snapshot_state(state)
 
         # Batched K=2 verifier.
         runner._restore_state(state, pre_snap)
@@ -187,6 +214,8 @@ def main() -> int:
             _rms_norm(hk2, runner.outside["model.language_model.norm.weight"]),
             all_positions=True,
         )
+        k2_snap = runner._snapshot_state(state)
+        state_diff = _state_cmp(seq_snap, k2_snap)
 
         report = {
             "schema_version": "lynn-mtp-k2-vs-two-t1-diff-probe-v1",
@@ -204,6 +233,7 @@ def main() -> int:
             "k2_argmax_pos1": int(k2_logits[0, 1].argmax().item()),
             "logits_pos0": _cmp(seq_logits[:, 0, :], k2_logits[:, 0, :]),
             "logits_pos1": _cmp(seq_logits[:, 1, :], k2_logits[:, 1, :]),
+            "state_diff": state_diff,
             "first_bad_layer": first_bad,
             "layers": layer_rows,
             "elapsed_seconds": time.time() - t0,

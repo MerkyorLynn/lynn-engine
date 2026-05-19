@@ -1,0 +1,752 @@
+{
+  "schema_version": "lynn-mtp-batched-commit-trace-v1",
+  "model": "/home/merkyor/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-from-r6000",
+  "sidecar": "/home/merkyor/models/mtp_sidecars/qwen36-35b-a3b-mtp-official-lynn-fused/mtp.safetensors",
+  "prompt": "Explain the difference between Q4_K_M and NVFP4 quantization in two sentences.",
+  "max_new": 96,
+  "baseline_ids": [
+    271,
+    248068,
+    198,
+    8160,
+    579,
+    264,
+    7047,
+    1817,
+    25,
+    271,
+    16,
+    13,
+    220,
+    2972,
+    2014,
+    53983,
+    2570,
+    5396,
+    64700,
+    198,
+    256,
+    471,
+    2972,
+    25562,
+    64700,
+    1167,
+    19,
+    9802,
+    1203,
+    5972,
+    23683,
+    11361,
+    19,
+    9966,
+    1954,
+    198,
+    256,
+    471,
+    2972,
+    17355,
+    64700,
+    79091,
+    279,
+    6463,
+    303,
+    6681,
+    1330,
+    22157,
+    13,
+    271,
+    17,
+    13,
+    220,
+    2972,
+    15771,
+    2598,
+    279,
+    73182,
+    64700,
+    198,
+    256,
+    471,
+    2972,
+    48,
+    19,
+    9802,
+    1203,
+    64700,
+    357,
+    9966,
+    1954,
+    1654,
+    494,
+    90448,
+    6982,
+    318,
+    21563,
+    19913,
+    3443,
+    553,
+    1049,
+    579,
+    264,
+    9238,
+    12,
+    26308,
+    9966,
+    1954,
+    421,
+    5038,
+    13914,
+    1083,
+    9714,
+    321,
+    48233,
+    2086
+  ],
+  "generated_ids": [
+    271,
+    248068,
+    198,
+    8160,
+    579,
+    264,
+    7047,
+    1817,
+    25,
+    271,
+    16,
+    13,
+    220,
+    2972,
+    2014,
+    53983,
+    2570,
+    5396,
+    64700,
+    198,
+    256,
+    471,
+    2972,
+    25562,
+    64700,
+    1167,
+    19,
+    9802,
+    1203,
+    5972,
+    23683,
+    11361,
+    19,
+    9966,
+    1954,
+    198,
+    256,
+    471,
+    2972,
+    73211,
+    64700
+  ],
+  "exact_match": false,
+  "prefix_match_len": 39,
+  "baseline_head": "\n\n<think>\nHere's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Topic:** Q4_K_M vs NVFP4 quantization\n   - **Constraint:** Explain the difference in exactly two sentences.\n\n2.  **Understand the Concepts:**\n   - **Q4_K_M:** A quanti",
+  "generated_head": "\n\n<think>\nHere's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Topic:** Q4_K_M vs NVFP4 quantization\n   - **Requirement:**",
+  "first_divergence": {
+    "event": 26,
+    "prefix_match_len": 39,
+    "baseline_tail": [
+      11361,
+      19,
+      9966,
+      1954,
+      198,
+      256,
+      471,
+      2972,
+      17355,
+      64700,
+      79091,
+      279,
+      6463,
+      303,
+      6681,
+      1330
+    ],
+    "generated_tail": [
+      11361,
+      19,
+      9966,
+      1954,
+      198,
+      256,
+      471,
+      2972,
+      73211,
+      64700
+    ],
+    "baseline_tail_text": "FP4 quantization\n   - **Constraint:** Explain the difference in exactly two",
+    "generated_tail_text": "FP4 quantization\n   - **Requirement:**",
+    "event_snapshot": {
+      "event": 26,
+      "elapsed_seconds": 0.07681703567504883,
+      "state_seq_len": 60,
+      "accepted": true,
+      "draft_id": 64700,
+      "draft_text": ":**",
+      "committed_tokens": [
+        73211,
+        64700
+      ],
+      "emitted_tokens": [
+        73211,
+        64700
+      ],
+      "next_pending_id": 79091,
+      "next_pending_text": " Explain",
+      "next_pos": 59,
+      "generated_len": 41,
+      "prefix_match_len": 39,
+      "first_divergence_here": true
+    }
+  },
+  "events": [
+    {
+      "event": 0,
+      "elapsed_seconds": 0.12226462364196777,
+      "state_seq_len": 20,
+      "accepted": false,
+      "draft_id": 332,
+      "draft_text": "**",
+      "committed_tokens": [
+        271
+      ],
+      "emitted_tokens": [],
+      "next_pending_id": 248068,
+      "next_pending_text": "<think>",
+      "next_pos": 19,
+      "generated_len": 1,
+      "prefix_match_len": 1
+    },
+    {
+      "event": 1,
+      "elapsed_seconds": 0.11669683456420898,
+      "state_seq_len": 21,
+      "accepted": false,
+      "draft_id": 271,
+      "draft_text": "\n\n",
+      "committed_tokens": [
+        248068
+      ],
+      "emitted_tokens": [
+        248068
+      ],
+      "next_pending_id": 198,
+      "next_pending_text": "\n",
+      "next_pos": 20,
+      "generated_len": 2,
+      "prefix_match_len": 2
+    },
+    {
+      "event": 2,
+      "elapsed_seconds": 0.07655525207519531,
+      "state_seq_len": 23,
+      "accepted": true,
+      "draft_id": 8160,
+      "draft_text": "Here",
+      "committed_tokens": [
+        198,
+        8160
+      ],
+      "emitted_tokens": [
+        198,
+        8160
+      ],
+      "next_pending_id": 579,
+      "next_pending_text": "'s",
+      "next_pos": 22,
+      "generated_len": 4,
+      "prefix_match_len": 4
+    },
+    {
+      "event": 3,
+      "elapsed_seconds": 0.07748198509216309,
+      "state_seq_len": 25,
+      "accepted": true,
+      "draft_id": 264,
+      "draft_text": " a",
+      "committed_tokens": [
+        579,
+        264
+      ],
+      "emitted_tokens": [
+        579,
+        264
+      ],
+      "next_pending_id": 7047,
+      "next_pending_text": " thinking",
+      "next_pos": 24,
+      "generated_len": 6,
+      "prefix_match_len": 6
+    },
+    {
+      "event": 4,
+      "elapsed_seconds": 0.07686305046081543,
+      "state_seq_len": 27,
+      "accepted": true,
+      "draft_id": 1817,
+      "draft_text": " process",
+      "committed_tokens": [
+        7047,
+        1817
+      ],
+      "emitted_tokens": [
+        7047,
+        1817
+      ],
+      "next_pending_id": 25,
+      "next_pending_text": ":",
+      "next_pos": 26,
+      "generated_len": 8,
+      "prefix_match_len": 8
+    },
+    {
+      "event": 5,
+      "elapsed_seconds": 0.07693147659301758,
+      "state_seq_len": 29,
+      "accepted": true,
+      "draft_id": 271,
+      "draft_text": "\n\n",
+      "committed_tokens": [
+        25,
+        271
+      ],
+      "emitted_tokens": [
+        25,
+        271
+      ],
+      "next_pending_id": 16,
+      "next_pending_text": "1",
+      "next_pos": 28,
+      "generated_len": 10,
+      "prefix_match_len": 10
+    },
+    {
+      "event": 6,
+      "elapsed_seconds": 0.07716751098632812,
+      "state_seq_len": 31,
+      "accepted": true,
+      "draft_id": 13,
+      "draft_text": ".",
+      "committed_tokens": [
+        16,
+        13
+      ],
+      "emitted_tokens": [
+        16,
+        13
+      ],
+      "next_pending_id": 220,
+      "next_pending_text": " ",
+      "next_pos": 30,
+      "generated_len": 12,
+      "prefix_match_len": 12
+    },
+    {
+      "event": 7,
+      "elapsed_seconds": 0.11654257774353027,
+      "state_seq_len": 32,
+      "accepted": false,
+      "draft_id": 16,
+      "draft_text": "1",
+      "committed_tokens": [
+        220
+      ],
+      "emitted_tokens": [
+        220
+      ],
+      "next_pending_id": 2972,
+      "next_pending_text": " **",
+      "next_pos": 31,
+      "generated_len": 13,
+      "prefix_match_len": 13
+    },
+    {
+      "event": 8,
+      "elapsed_seconds": 0.11652493476867676,
+      "state_seq_len": 33,
+      "accepted": false,
+      "draft_id": 3950,
+      "draft_text": "LL",
+      "committed_tokens": [
+        2972
+      ],
+      "emitted_tokens": [
+        2972
+      ],
+      "next_pending_id": 2014,
+      "next_pending_text": "An",
+      "next_pos": 32,
+      "generated_len": 14,
+      "prefix_match_len": 14
+    },
+    {
+      "event": 9,
+      "elapsed_seconds": 0.0772709846496582,
+      "state_seq_len": 35,
+      "accepted": true,
+      "draft_id": 53983,
+      "draft_text": "alyze",
+      "committed_tokens": [
+        2014,
+        53983
+      ],
+      "emitted_tokens": [
+        2014,
+        53983
+      ],
+      "next_pending_id": 2570,
+      "next_pending_text": " User",
+      "next_pos": 34,
+      "generated_len": 16,
+      "prefix_match_len": 16
+    },
+    {
+      "event": 10,
+      "elapsed_seconds": 0.0769498348236084,
+      "state_seq_len": 37,
+      "accepted": true,
+      "draft_id": 5396,
+      "draft_text": " Input",
+      "committed_tokens": [
+        2570,
+        5396
+      ],
+      "emitted_tokens": [
+        2570,
+        5396
+      ],
+      "next_pending_id": 64700,
+      "next_pending_text": ":**",
+      "next_pos": 36,
+      "generated_len": 18,
+      "prefix_match_len": 18
+    },
+    {
+      "event": 11,
+      "elapsed_seconds": 0.07677268981933594,
+      "state_seq_len": 39,
+      "accepted": true,
+      "draft_id": 198,
+      "draft_text": "\n",
+      "committed_tokens": [
+        64700,
+        198
+      ],
+      "emitted_tokens": [
+        64700,
+        198
+      ],
+      "next_pending_id": 256,
+      "next_pending_text": "  ",
+      "next_pos": 38,
+      "generated_len": 20,
+      "prefix_match_len": 20
+    },
+    {
+      "event": 12,
+      "elapsed_seconds": 0.07751297950744629,
+      "state_seq_len": 41,
+      "accepted": true,
+      "draft_id": 471,
+      "draft_text": " -",
+      "committed_tokens": [
+        256,
+        471
+      ],
+      "emitted_tokens": [
+        256,
+        471
+      ],
+      "next_pending_id": 2972,
+      "next_pending_text": " **",
+      "next_pos": 40,
+      "generated_len": 22,
+      "prefix_match_len": 22
+    },
+    {
+      "event": 13,
+      "elapsed_seconds": 0.07699131965637207,
+      "state_seq_len": 43,
+      "accepted": true,
+      "draft_id": 25562,
+      "draft_text": "Topic",
+      "committed_tokens": [
+        2972,
+        25562
+      ],
+      "emitted_tokens": [
+        2972,
+        25562
+      ],
+      "next_pending_id": 64700,
+      "next_pending_text": ":**",
+      "next_pos": 42,
+      "generated_len": 24,
+      "prefix_match_len": 24
+    },
+    {
+      "event": 14,
+      "elapsed_seconds": 0.07731437683105469,
+      "state_seq_len": 45,
+      "accepted": true,
+      "draft_id": 1167,
+      "draft_text": " Q",
+      "committed_tokens": [
+        64700,
+        1167
+      ],
+      "emitted_tokens": [
+        64700,
+        1167
+      ],
+      "next_pending_id": 19,
+      "next_pending_text": "4",
+      "next_pos": 44,
+      "generated_len": 26,
+      "prefix_match_len": 26
+    },
+    {
+      "event": 15,
+      "elapsed_seconds": 0.11600112915039062,
+      "state_seq_len": 46,
+      "accepted": false,
+      "draft_id": 19,
+      "draft_text": "4",
+      "committed_tokens": [
+        19
+      ],
+      "emitted_tokens": [
+        19
+      ],
+      "next_pending_id": 9802,
+      "next_pending_text": "_K",
+      "next_pos": 45,
+      "generated_len": 27,
+      "prefix_match_len": 27
+    },
+    {
+      "event": 16,
+      "elapsed_seconds": 0.11571598052978516,
+      "state_seq_len": 47,
+      "accepted": false,
+      "draft_id": 9802,
+      "draft_text": "_K",
+      "committed_tokens": [
+        9802
+      ],
+      "emitted_tokens": [
+        9802
+      ],
+      "next_pending_id": 1203,
+      "next_pending_text": "_M",
+      "next_pos": 46,
+      "generated_len": 28,
+      "prefix_match_len": 28
+    },
+    {
+      "event": 17,
+      "elapsed_seconds": 0.11581730842590332,
+      "state_seq_len": 48,
+      "accepted": false,
+      "draft_id": 1203,
+      "draft_text": "_M",
+      "committed_tokens": [
+        1203
+      ],
+      "emitted_tokens": [
+        1203
+      ],
+      "next_pending_id": 5972,
+      "next_pending_text": " vs",
+      "next_pos": 47,
+      "generated_len": 29,
+      "prefix_match_len": 29
+    },
+    {
+      "event": 18,
+      "elapsed_seconds": 0.11742711067199707,
+      "state_seq_len": 49,
+      "accepted": false,
+      "draft_id": 9966,
+      "draft_text": " quant",
+      "committed_tokens": [
+        5972
+      ],
+      "emitted_tokens": [
+        5972
+      ],
+      "next_pending_id": 23683,
+      "next_pending_text": " NV",
+      "next_pos": 48,
+      "generated_len": 30,
+      "prefix_match_len": 30
+    },
+    {
+      "event": 19,
+      "elapsed_seconds": 0.11661100387573242,
+      "state_seq_len": 50,
+      "accepted": false,
+      "draft_id": 23683,
+      "draft_text": " NV",
+      "committed_tokens": [
+        23683
+      ],
+      "emitted_tokens": [
+        23683
+      ],
+      "next_pending_id": 11361,
+      "next_pending_text": "FP",
+      "next_pos": 49,
+      "generated_len": 31,
+      "prefix_match_len": 31
+    },
+    {
+      "event": 20,
+      "elapsed_seconds": 0.11567974090576172,
+      "state_seq_len": 51,
+      "accepted": false,
+      "draft_id": 11361,
+      "draft_text": "FP",
+      "committed_tokens": [
+        11361
+      ],
+      "emitted_tokens": [
+        11361
+      ],
+      "next_pending_id": 19,
+      "next_pending_text": "4",
+      "next_pos": 50,
+      "generated_len": 32,
+      "prefix_match_len": 32
+    },
+    {
+      "event": 21,
+      "elapsed_seconds": 0.11587691307067871,
+      "state_seq_len": 52,
+      "accepted": false,
+      "draft_id": 19,
+      "draft_text": "4",
+      "committed_tokens": [
+        19
+      ],
+      "emitted_tokens": [
+        19
+      ],
+      "next_pending_id": 9966,
+      "next_pending_text": " quant",
+      "next_pos": 51,
+      "generated_len": 33,
+      "prefix_match_len": 33
+    },
+    {
+      "event": 22,
+      "elapsed_seconds": 0.07682538032531738,
+      "state_seq_len": 54,
+      "accepted": true,
+      "draft_id": 1954,
+      "draft_text": "ization",
+      "committed_tokens": [
+        9966,
+        1954
+      ],
+      "emitted_tokens": [
+        9966,
+        1954
+      ],
+      "next_pending_id": 198,
+      "next_pending_text": "\n",
+      "next_pos": 53,
+      "generated_len": 35,
+      "prefix_match_len": 35
+    },
+    {
+      "event": 23,
+      "elapsed_seconds": 0.11646056175231934,
+      "state_seq_len": 55,
+      "accepted": false,
+      "draft_id": 3950,
+      "draft_text": "LL",
+      "committed_tokens": [
+        198
+      ],
+      "emitted_tokens": [
+        198
+      ],
+      "next_pending_id": 256,
+      "next_pending_text": "  ",
+      "next_pos": 54,
+      "generated_len": 36,
+      "prefix_match_len": 36
+    },
+    {
+      "event": 24,
+      "elapsed_seconds": 0.07738375663757324,
+      "state_seq_len": 57,
+      "accepted": true,
+      "draft_id": 471,
+      "draft_text": " -",
+      "committed_tokens": [
+        256,
+        471
+      ],
+      "emitted_tokens": [
+        256,
+        471
+      ],
+      "next_pending_id": 2972,
+      "next_pending_text": " **",
+      "next_pos": 56,
+      "generated_len": 38,
+      "prefix_match_len": 38
+    },
+    {
+      "event": 25,
+      "elapsed_seconds": 0.11665701866149902,
+      "state_seq_len": 58,
+      "accepted": false,
+      "draft_id": 6065,
+      "draft_text": "Task",
+      "committed_tokens": [
+        2972
+      ],
+      "emitted_tokens": [
+        2972
+      ],
+      "next_pending_id": 73211,
+      "next_pending_text": "Requirement",
+      "next_pos": 57,
+      "generated_len": 39,
+      "prefix_match_len": 39
+    },
+    {
+      "event": 26,
+      "elapsed_seconds": 0.07681703567504883,
+      "state_seq_len": 60,
+      "accepted": true,
+      "draft_id": 64700,
+      "draft_text": ":**",
+      "committed_tokens": [
+        73211,
+        64700
+      ],
+      "emitted_tokens": [
+        73211,
+        64700
+      ],
+      "next_pending_id": 79091,
+      "next_pending_text": " Explain",
+      "next_pos": 59,
+      "generated_len": 41,
+      "prefix_match_len": 39,
+      "first_divergence_here": true
+    }
+  ]
+}

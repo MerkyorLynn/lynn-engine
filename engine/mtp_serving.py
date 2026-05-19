@@ -275,10 +275,15 @@ def speculative_step_k1_batched(
     # decode of pending alone. KV[pending_pos+1] becomes stale but is
     # naturally overwritten on the next K=2 forward.
     restore_recurrent_conv(state, snap_pre_batch)
-    h_after_pending, _, _ = decode_one_to_logits_and_hidden(runner, state, pending_id)
+    h_after_pending, _, argmax_after_pending = decode_one_to_logits_and_hidden(runner, state, pending_id)
     return SpeculativeStepResult(
         committed_tokens=[pending_id],
-        next_pending_id=argmax_at_pos0,
+        # Use the canonical T=1 re-decode result for the next pending token.
+        # K=2 pos-0 logits can be close but not bit-identical in long-running
+        # state after prior accepts/rejects; using them here caused exact
+        # generation drift even though the rejected pending token itself was
+        # committed correctly.
+        next_pending_id=argmax_after_pending,
         next_base_hidden=h_after_pending,
         next_pos=state.seq_len - 1,
         accepted=False,
