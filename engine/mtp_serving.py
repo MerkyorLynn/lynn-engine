@@ -248,9 +248,9 @@ def speculative_step_k1_batched(
         h_k2 = runner._decode_layer_k2_fast(h_k2, pos_k2, state, layer_idx)
     state.seq_len += 2
     h_norm_k2 = _rms_norm(h_k2, runner.outside["model.language_model.norm.weight"])
-    # lm_head accepts [B, T, D] — returns [B, T, V] via F.linear in baseline path,
-    # or [B*T, V] in native FP4 path. Normalize via reshape.
-    logits_k2 = runner._lm_head_logits(h_norm_k2)
+    # MTP K=2 needs logits for both positions. Normal decode/generate keeps the
+    # historical final-token-only lm_head contract.
+    logits_k2 = runner._lm_head_logits(h_norm_k2, all_positions=True)
     if logits_k2.ndim == 2:
         # Native FP4 lm_head squeezes [B, T, D] → [B*T, V]; un-batch back to [B, T, V].
         logits_k2 = logits_k2.view(h_k2.shape[0], h_k2.shape[1], -1)

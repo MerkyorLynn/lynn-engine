@@ -892,11 +892,16 @@ class LynnIncrementalRunner:
                 flush=True,
             )
 
-    def _lm_head_logits(self, hidden: torch.Tensor) -> torch.Tensor:
-        """Project final hidden state to logits using BF16 or opt-in native FP4."""
+    def _lm_head_logits(self, hidden: torch.Tensor, *, all_positions: bool = False) -> torch.Tensor:
+        """Project hidden state to logits using BF16 or opt-in native FP4.
+
+        By default this preserves the decode/generate contract and projects only
+        the final sequence position for 3D input. MTP K=2 verification opts into
+        all-position logits so it can compare both pending and draft positions.
+        """
         restore_shape: tuple[int, int] | None = None
         if hidden.ndim == 3:
-            if hidden.shape[1] == 1:
+            if hidden.shape[1] == 1 or not all_positions:
                 h2d = hidden[:, -1, :]
             else:
                 restore_shape = (int(hidden.shape[0]), int(hidden.shape[1]))
