@@ -1,0 +1,81 @@
+{
+  "schema": "lynn-qwen35-9b-release-gate-summary-collection-v1",
+  "created": "2026-05-19T22:03:42+08:00",
+  "reports_dir": "/Users/lynn/Downloads/Lynn/worktrees/codex-main-overnight/reports/qwen35_9b",
+  "thresholds": {
+    "mmlu_min": 0.74,
+    "gpqa_min": 0.41,
+    "gpqa_thinking32_ex_parse_min": 0.8,
+    "gpqa_thinking32_parse_fail_max": 0.25,
+    "structured_pass": true,
+    "tps_decode_512_min": 155.0
+  },
+  "variants": [
+    {
+      "schema": "lynn-qwen35-9b-release-gate-summary-v1",
+      "created": "2026-05-19T22:03:42+08:00",
+      "reports_dir": "/Users/lynn/Downloads/Lynn/worktrees/codex-main-overnight/reports/qwen35_9b",
+      "variant": "NVFP4",
+      "quant": "nvfp4",
+      "model_size_gb": 8.3,
+      "mmlu": 0.752,
+      "gpqa": 0.4292929292929293,
+      "gpqa_thinking32_naive": 0.723404255319149,
+      "gpqa_thinking32_ex_parse_fail": 0.8192771084337349,
+      "parse_fail_rate": 0.11702127659574468,
+      "tps_decode_512": 62.5,
+      "structured_pass": true,
+      "decision": "CLOSED",
+      "decision_reasons": [
+        "MMLU 0.7520 >= 0.74 OK",
+        "GPQA 0.4293 >= 0.41 OK",
+        "Structured content gate PASS",
+        "TPS decode 512 62.5 < 155.0"
+      ]
+    },
+    {
+      "schema": "lynn-qwen35-9b-release-gate-summary-v1",
+      "created": "2026-05-19T22:03:42+08:00",
+      "reports_dir": "/Users/lynn/Downloads/Lynn/worktrees/codex-main-overnight/reports/qwen35_9b",
+      "variant": "Q4_K_M",
+      "quant": "q4km",
+      "model_size_gb": 5.5,
+      "mmlu": 0.76,
+      "gpqa": 0.37373737373737376,
+      "gpqa_thinking32_naive": 0.723404255319149,
+      "gpqa_thinking32_ex_parse_fail": 0.8192771084337349,
+      "parse_fail_rate": 0.11702127659574468,
+      "tps_decode_512": 168.2,
+      "structured_pass": true,
+      "decision": "PROMOTE_READY",
+      "decision_reasons": [
+        "MMLU 0.7600 >= 0.74 OK",
+        "GPQA reasoning-off below floor but thinking32 clears gate: ex_parse_fail=0.8193 >= 0.8, parse_fail=0.1170",
+        "Structured content gate PASS",
+        "TPS decode 512 168.2 >= 155.0 OK"
+      ]
+    },
+    {
+      "schema": "lynn-qwen35-9b-release-gate-summary-v1",
+      "created": "2026-05-19T22:03:42+08:00",
+      "reports_dir": "/Users/lynn/Downloads/Lynn/worktrees/codex-main-overnight/reports/qwen35_9b",
+      "variant": "BF16",
+      "quant": "bf16",
+      "model_size_gb": 18.0,
+      "mmlu": 0.772,
+      "gpqa": 0.4494949494949495,
+      "gpqa_thinking32_naive": 0.723404255319149,
+      "gpqa_thinking32_ex_parse_fail": 0.8192771084337349,
+      "parse_fail_rate": 0.11702127659574468,
+      "tps_decode_512": null,
+      "structured_pass": true,
+      "decision": "NEEDS_MORE_DATA",
+      "decision_reasons": [
+        "MMLU 0.7720 >= 0.74 OK",
+        "GPQA 0.4495 >= 0.41 OK",
+        "Structured content gate PASS",
+        "TPS decode 512 data missing"
+      ]
+    }
+  ]
+}
