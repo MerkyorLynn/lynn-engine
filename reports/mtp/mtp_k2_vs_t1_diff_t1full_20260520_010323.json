@@ -1,0 +1,671 @@
+{
+  "schema_version": "lynn-mtp-k2-vs-two-t1-diff-probe-v1",
+  "model": "/home/merkyor/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-from-r6000",
+  "sidecar": "/home/merkyor/models/mtp_sidecars/qwen36-35b-a3b-mtp-official-lynn-fused/mtp.safetensors",
+  "prompt": "Explain the difference between Q4_K_M and NVFP4 quantization in two sentences.",
+  "prompt_len": 19,
+  "pending_id": 271,
+  "pending_text": "\n\n",
+  "draft_id": 271,
+  "draft_text": "\n\n",
+  "seq_argmax_pos0": 248068,
+  "seq_argmax_pos1": 248046,
+  "k2_argmax_pos0": 248068,
+  "k2_argmax_pos1": 248046,
+  "logits_pos0": {
+    "max_abs": 0.0,
+    "mean_abs": 0.0,
+    "rel_l2": 0.0,
+    "cosine": 0.9999998807907104
+  },
+  "logits_pos1": {
+    "max_abs": 0.0,
+    "mean_abs": 0.0,
+    "rel_l2": 0.0,
+    "cosine": 1.0
+  },
+  "first_bad_layer": null,
+  "layers": [
+    {
+      "layer": 0,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896
+      }
+    },
+    {
+      "layer": 1,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 2,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 3,
+      "layer_type": "full_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 4,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.000000238418579
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 5,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 6,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104
+      }
+    },
+    {
+      "layer": 7,
+      "layer_type": "full_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 8,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      }
+    },
+    {
+      "layer": 9,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 10,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896
+      }
+    },
+    {
+      "layer": 11,
+      "layer_type": "full_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 12,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896
+      }
+    },
+    {
+      "layer": 13,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      }
+    },
+    {
+      "layer": 14,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      }
+    },
+    {
+      "layer": 15,
+      "layer_type": "full_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 16,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 17,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 18,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 19,
+      "layer_type": "full_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 20,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 21,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896
+      }
+    },
+    {
+      "layer": 22,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 23,
+      "layer_type": "full_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      }
+    },
+    {
+      "layer": 24,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      }
+    },
+    {
+      "layer": 25,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 26,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      }
+    },
+    {
+      "layer": 27,
+      "layer_type": "full_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 28,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104
+      }
+    },
+    {
+      "layer": 29,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.000000238418579
+      }
+    },
+    {
+      "layer": 30,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896
+      }
+    },
+    {
+      "layer": 31,
+      "layer_type": "full_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896
+      }
+    },
+    {
+      "layer": 32,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999998807907104
+      }
+    },
+    {
+      "layer": 33,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 34,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 35,
+      "layer_type": "full_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      }
+    },
+    {
+      "layer": 36,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896
+      }
+    },
+    {
+      "layer": 37,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    },
+    {
+      "layer": 38,
+      "layer_type": "linear_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896
+      }
+    },
+    {
+      "layer": 39,
+      "layer_type": "full_attention",
+      "pos0": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      },
+      "pos1": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0
+      }
+    }
+  ],
+  "elapsed_seconds": 507.21102237701416
+}
