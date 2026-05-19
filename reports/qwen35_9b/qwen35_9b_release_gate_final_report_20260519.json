@@ -1,0 +1,125 @@
+{
+  "schema": "lynn-qwen35-9b-release-gate-final-report-v2",
+  "created": "2026-05-19T22:38:59+08:00",
+  "model_id": "Qwen/Qwen3.5-9B",
+  "source_summary": "qwen35_9b_release_gate_summary_latest.json",
+  "thinking32_status": {
+    "naive": 0.723404255319149,
+    "ex_parse_fail": 0.8192771084337349,
+    "parse_fail_rate": 0.11702127659574468,
+    "progress": "94/198",
+    "n": 94,
+    "total": 198,
+    "source_file": "p201_gpqa_live_summary_20260519_live_210912.json",
+    "status": "LIVE_PARTIAL"
+  },
+  "decisions": {
+    "mac_default": {
+      "variant": "Q4_K_M",
+      "quant": "q4km",
+      "artifact": "Qwen3.5-9B-Q4_K_M-imatrix.gguf",
+      "runtime": "llama.cpp (Mac / R6000)",
+      "decision": "PROMOTE_READY_FOR_MAC_CONDITIONAL",
+      "reasons": [
+        "MMLU 0.7600 >= 0.74 OK",
+        "GPQA reasoning-off below floor but thinking32 clears gate: ex_parse_fail=0.8193 >= 0.8, parse_fail=0.1170",
+        "Structured content gate PASS",
+        "TPS decode 512 168.2 >= 155.0 OK"
+      ]
+    },
+    "nvidia_default": {
+      "variant": "NVFP4",
+      "quant": "nvfp4",
+      "artifact": "Qwen3.5-9B-lynn-native-w4a16-nvfp4-v0",
+      "runtime": "Lynn Engine (CUDA, R6000)",
+      "decision": "QUALITY_OK_TPS_BLOCKED",
+      "classification": "compatibility / research",
+      "reasons": [
+        "MMLU 0.7520 >= 0.74 OK",
+        "GPQA 0.4293 >= 0.41 OK",
+        "Structured content gate PASS",
+        "TPS decode 512 62.5 < 155.0"
+      ]
+    },
+    "bf16_reference": {
+      "variant": "BF16",
+      "quant": "bf16",
+      "artifact": "Qwen3.5-9B-BF16 (safetensors)",
+      "runtime": "transformers-direct",
+      "decision": "QUALITY_REFERENCE",
+      "reasons": [
+        "MMLU 0.7720 >= 0.74 OK",
+        "GPQA 0.4495 >= 0.41 OK",
+        "Structured content gate PASS",
+        "TPS decode 512 data missing"
+      ]
+    }
+  },
+  "hard_metrics": {
+    "mmlu": {
+      "threshold": 0.74,
+      "bf16": 0.772,
+      "q4km": 0.76,
+      "nvfp4": 0.752
+    },
+    "gpqa_thinking_off": {
+      "threshold": 0.41,
+      "bf16": 0.4494949494949495,
+      "q4km": 0.37373737373737376,
+      "nvfp4": 0.4292929292929293
+    },
+    "gpqa_thinking32": {
+      "naive": 0.723404255319149,
+      "ex_parse_fail": 0.8192771084337349,
+      "parse_fail_rate": 0.11702127659574468,
+      "progress": "94/198",
+      "n": 94,
+      "total": 198,
+      "source_file": "p201_gpqa_live_summary_20260519_live_210912.json",
+      "status": "LIVE_PARTIAL"
+    },
+    "tps_decode_512": {
+      "threshold": 155.0,
+      "bf16": null,
+      "q4km": 168.2,
+      "nvfp4": 62.5
+    },
+    "structured_pass": {
+      "bf16": true,
+      "q4km": true,
+      "nvfp4": true
+    }
+  },
+  "risks": [
+    {
+      "id": "RISK-01",
+      "severity": "medium",
+      "variant": "Q4_K_M",
+      "description": "GPQA thinking-off 0.374 < 0.41 floor. Mac users who disable thinking get degraded GPQA-level performance."
+    },
+    {
+      "id": "RISK-02",
+      "severity": "medium",
+      "variant": "Q4_K_M",
+      "description": "GPQA thinking-on 32K is 94/198 — live partial. If remaining questions degrade ex-parse-fail below the gate, override fails."
+    },
+    {
+      "id": "RISK-03",
+      "severity": "high",
+      "variant": "NVFP4",
+      "description": "NVFP4 TPS 62.5 < 155 threshold. Fundamental bandwidth limitation of current FP4 repack path."
+    }
+  ],
+  "missing_data": [
+    {
+      "field": "tps_decode_512",
+      "variant": "BF16",
+      "description": "No TPS benchmark for BF16 (reference only)."
+    },
+    {
+      "field": "gpqa_thinking32_full",
+      "variant": "ALL",
+      "description": "GPQA thinking-on 32K is 94/198 — full results pending from R6000."
+    }
+  ]
+}
