@@ -414,6 +414,124 @@ def decode_full_attn(h_new, new_position_id, w, cfg, K_cache_full, V_cache_full,
     return _linear(attn_out, _decode_weight(w, "self_attn.o_proj.weight"))
 
 
+def decode_full_attn_k2(
+    h_new_k2,
+    new_position_ids,
+    w,
+    cfg,
+    K_cache_full,
+    V_cache_full,
+    cached_seq_len: int,
+):
+    """Decode K=2 new tokens at once using cached K/V.
+
+    Used by the M5 batched K=1 speculative path: ``[pending, draft]`` arrive
+    as a 2-position batch and we want the base model's logits for BOTH
+    positions in a SINGLE forward (instead of two sequential T=1 decodes).
+    The whole point is memory-bound layers (weight loads) cost the same
+    for T=1 and T=2 — only the per-position compute differs, and at decode
+    scale that's a small fraction of total cost.
+
+    h_new_k2: ``[B, 2, HIDDEN]`` (post input_layernorm).
+    new_position_ids: ``[B, 2]`` long, typically ``[cached_seq_len, cached_seq_len+1]``.
+
+    Side effect: writes new K/V into
+    ``K_cache_full[:, :, cached_seq_len:cached_seq_len+2, :]`` etc.
+    On REJECT (draft mismatches base's argmax at position 0), the caller
+    must rewind ``state.seq_len`` to ``cached_seq_len + 1`` so the stale
+    K/V at position ``cached_seq_len + 1`` gets overwritten on the next
+    write. KV is append-only — no clone/restore needed.
+
+    Returns: ``attn_out [B, 2, HIDDEN]``.
+    """
+    B = h_new_k2.shape[0]
+    assert h_new_k2.shape[1] == 2, f"decode_full_attn_k2 expects T=2, got {h_new_k2.shape}"
+    H_Q = cfg["num_attention_heads"]
+    H_KV = cfg["num_key_value_heads"]
+    head_dim = cfg["head_dim"]
+    rope_theta = cfg["rope_theta"]
+    rotary_dim = int(head_dim * cfg["partial_rotary_factor"])
+
+    # 1. Q/K/V projection
+    if os.environ.get("LYNN_FULL_ATTN_QKV_FUSED", "0") == "1" and "self_attn._qkv_proj.weight" in w:
+        q_out = int(w["self_attn.q_proj.weight"].shape[0])
+        k_out = int(w["self_attn.k_proj.weight"].shape[0])
+        v_out = int(w["self_attn.v_proj.weight"].shape[0])
+        qkv = _linear(h_new_k2, w["self_attn._qkv_proj.weight"])
+        q_full, k_new, v_new = qkv.split((q_out, k_out, v_out), dim=-1)
+    else:
+        q_full = _linear(h_new_k2, _decode_weight(w, "self_attn.q_proj.weight"))
+        k_new = _linear(h_new_k2, _decode_weight(w, "self_attn.k_proj.weight"))
+        v_new = _linear(h_new_k2, _decode_weight(w, "self_attn.v_proj.weight"))
+
+    q_full_view = q_full.view(B, 2, H_Q, head_dim * 2)
+    q, gate = q_full_view.chunk(2, dim=-1)
+    q = q.transpose(1, 2)                                  # [B, H_Q, 2, head_dim]
+    gate = gate.transpose(1, 2)
+    k_new = k_new.view(B, 2, H_KV, head_dim).transpose(1, 2)  # [B, H_KV, 2, head_dim]
+    v_new = v_new.view(B, 2, H_KV, head_dim).transpose(1, 2)
+
+    # 2+3. q/k norm + RoPE on both positions.
+    rope_builder = (
+        _build_rope_cos_sin_cached
+        if os.environ.get("LYNN_FULL_ATTN_ROPE_CACHE", "0") == "1"
+        else _build_rope_cos_sin
+    )
+    cos, sin = rope_builder(new_position_ids, rotary_dim, rope_theta, h_new_k2.device, h_new_k2.dtype)
+    q, k_new = _qk_norm_rope_pair_decode(
+        q, k_new, w["self_attn.q_norm.weight"], w["self_attn.k_norm.weight"], cos, sin, rotary_dim,
+    )
+
+    # 4. Write both new positions into cache.
+    K_cache_full[:, :, cached_seq_len:cached_seq_len + 2, :] = k_new
+    V_cache_full[:, :, cached_seq_len:cached_seq_len + 2, :] = v_new
+
+    # 5. Slice usable cache.
+    new_total = cached_seq_len + 2
+    K_used = K_cache_full[:, :, :new_total, :]
+    V_used = V_cache_full[:, :, :new_total, :]
+
+    # 6. Attention with prefix-causal mask:
+    #    Q[0] (at pos cached_seq_len)   sees K[0..cached_seq_len]   (NOT cached_seq_len+1)
+    #    Q[1] (at pos cached_seq_len+1) sees K[0..cached_seq_len+1]
+    # PyTorch SDPA causal mode requires q_len == k_len; here q_len=2, k_len>=2.
+    # Build a [2, new_total] additive bool mask, broadcast through SDPA attn_mask.
+    causal_mask = torch.zeros(2, new_total, dtype=torch.bool, device=h_new_k2.device)
+    causal_mask[0, : cached_seq_len + 1] = True
+    causal_mask[1, : cached_seq_len + 2] = True
+    attn_mask = torch.zeros(2, new_total, dtype=h_new_k2.dtype, device=h_new_k2.device)
+    attn_mask.masked_fill_(~causal_mask, float("-inf"))
+    attn_mask = attn_mask.view(1, 1, 2, new_total)
+
+    full_attn_backend = os.environ.get("LYNN_FULL_ATTN_DECODE_BACKEND", "sdpa")
+    if full_attn_backend == "manual_gqa":
+        group = H_Q // H_KV
+        q_grouped = q.view(B, H_KV, group, 2, head_dim)
+        scale = 1.0 / math.sqrt(head_dim)
+        scores = torch.einsum("bhgqd,bhkd->bhgqk", q_grouped.float(), K_used.float()) * scale
+        scores = scores + attn_mask.unsqueeze(2).float()  # broadcast over group
+        probs = torch.softmax(scores, dim=-1).to(V_used.dtype)
+        attn_out = torch.einsum("bhgqk,bhkd->bhgqd", probs, V_used)
+        attn_out = attn_out.reshape(B, H_Q, 2, head_dim)
+    elif full_attn_backend == "sdpa":
+        # PyTorch SDPA: attn_mask + enable_gqa together is supported since 2.5.
+        attn_out = F.scaled_dot_product_attention(
+            q, K_used, V_used,
+            attn_mask=attn_mask,
+            is_causal=False,
+            enable_gqa=(H_KV != H_Q),
+        )
+    else:
+        raise ValueError(f"Unknown LYNN_FULL_ATTN_DECODE_BACKEND: {full_attn_backend}")
+
+    # 7. attn_output_gate
+    attn_out = attn_out * torch.sigmoid(gate.float()).to(attn_out.dtype)
+
+    # 8. o_proj
+    attn_out = attn_out.transpose(1, 2).contiguous().view(B, 2, H_Q * head_dim)
+    return _linear(attn_out, _decode_weight(w, "self_attn.o_proj.weight"))
+
+
 # ============================================================================
 # linear_attention prefill / decode
 # ============================================================================
@@ -548,6 +666,40 @@ def prefill_linear_attn(h, w, chunk_size: int = 64):
     out = F.linear(core_attn_out, W("linear_attn.out_proj.weight"))
 
     return out, last_state, new_conv_state
+
+
+def decode_linear_attn_k2(
+    h_new_k2,
+    w,
+    recurrent_state,
+    conv_state,
+    *,
+    recurrent_backend: str = "torch",
+):
+    """Decode K=2 tokens through one linear-attention layer.
+
+    Gated Delta-Net is a stateful SSM — each token's output depends on the
+    recurrent state produced by the previous token. There is no way to run
+    two steps in parallel within a single layer; the cost is just 2× a T=1
+    decode for the linear-attn layer. Across the 30/40 hybrid SSM stack
+    that adds ~16% to a K=2 forward, but the win comes from full-attn +
+    MoE layers being memory-bound (K=2 ≈ free there).
+
+    Returns: ``out [B, 2, HIDDEN]``, plus updated recurrent/conv states.
+    """
+    assert h_new_k2.shape[1] == 2, f"decode_linear_attn_k2 expects T=2, got {h_new_k2.shape}"
+    out0, recurrent_state, conv_state = decode_linear_attn(
+        h_new_k2[:, 0:1, :].contiguous(),
+        w, recurrent_state, conv_state,
+        recurrent_backend=recurrent_backend,
+    )
+    out1, recurrent_state, conv_state = decode_linear_attn(
+        h_new_k2[:, 1:2, :].contiguous(),
+        w, recurrent_state, conv_state,
+        recurrent_backend=recurrent_backend,
+    )
+    out = torch.cat([out0, out1], dim=1)
+    return out, recurrent_state, conv_state
 
 
 def decode_linear_attn(h_new, w, recurrent_state, conv_state, *, recurrent_backend: str = "torch"):

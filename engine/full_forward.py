@@ -515,6 +515,76 @@ def _resolve_decode_moe_impl(impl: str):
     return _moe
 
 
+def _decode_layer_k2(
+    h_new_k2,
+    position_ids_k2,
+    layer_type,
+    w,
+    cfg,
+    state,
+    layer_idx,
+    *,
+    moe_fn=None,
+    recurrent_backend: str | None = None,
+    linear_state_update: str | None = None,
+):
+    """Forward one DecoderLayer over K=2 new tokens at once.
+
+    Mirrors :func:`_decode_layer` (T=1) but uses the K=2 specialized decode
+    primitives:
+
+    * ``decode_full_attn_k2`` does a single SDPA over [B, 2, ...] with a
+      prefix-causal mask (causal between the two new positions, full attention
+      to all cached prefix positions).
+    * ``decode_linear_attn_k2`` rolls out the GDN SSM two steps sequentially —
+      there is no parallelism within an SSM layer, but the cost adds only
+      ~16% to a full K=2 forward across the 30/40 layer split.
+    * The MoE forward (``moe_forward_decode_optimized`` and variants) already
+      accepts arbitrary T; we pass T=2 directly. The per-token expert routing
+      naturally activates 1-2× more unique experts than T=1.
+
+    Returns: ``h_new_k2 [B, 2, HIDDEN]`` after one decoder block.
+    """
+    from engine.incremental_decode import decode_full_attn_k2, decode_linear_attn_k2
+
+    residual = h_new_k2
+    h_norm = _rms_norm(h_new_k2, w["input_layernorm.weight"])
+    if layer_type == "linear_attention":
+        if recurrent_backend is None:
+            recurrent_backend = os.environ.get("LYNN_LINEAR_ATTN_RECURRENT_BACKEND", "torch")
+        attn_out, new_state, new_conv = decode_linear_attn_k2(
+            h_norm, w,
+            state.recurrent_state[layer_idx],
+            state.conv_state[layer_idx],
+            recurrent_backend=recurrent_backend,
+        )
+        if linear_state_update is None:
+            linear_state_update = os.environ.get("LYNN_LINEAR_STATE_UPDATE", "assign")
+        if linear_state_update == "inplace":
+            recurrent_target = state.recurrent_state[layer_idx]
+            if recurrent_target.data_ptr() != new_state.data_ptr():
+                recurrent_target.copy_(new_state)
+            conv_target = state.conv_state[layer_idx]
+            if conv_target.data_ptr() != new_conv.data_ptr():
+                conv_target.copy_(new_conv)
+        else:
+            state.update_linear_attn_state(layer_idx, new_state, new_conv)
+    else:
+        K, V = state.kv_cache[layer_idx]
+        attn_out = decode_full_attn_k2(
+            h_norm, position_ids_k2, w, cfg, K, V,
+            cached_seq_len=state.seq_len,
+        )
+    h = residual + attn_out
+
+    residual = h
+    h_norm = _rms_norm(h, w["post_attention_layernorm.weight"])
+    if moe_fn is None:
+        moe_fn = _resolve_decode_moe_impl(os.environ.get("LYNN_MOE_IMPL", "optimized"))
+    moe_out = moe_fn(h_norm, w, cfg)
+    return residual + moe_out
+
+
 def _decode_layer(
     h_new,
     position_id,

@@ -50,6 +50,7 @@ __all__ = [
     "restore_recurrent_conv",
     "decode_one_to_logits_and_hidden",
     "speculative_step_k1",
+    "speculative_step_k1_batched",
 ]
 
 
@@ -188,6 +189,96 @@ def speculative_step_k1(
     return SpeculativeStepResult(
         committed_tokens=[pending_id],
         next_pending_id=argmax_after_pending,
+        next_base_hidden=h_after_pending,
+        next_pos=state.seq_len - 1,
+        accepted=False,
+        draft_id=draft_id,
+    )
+
+
+def speculative_step_k1_batched(
+    runner: Any,
+    state: LynnInferenceState,
+    pending_id: int,
+    pending_base_hidden: torch.Tensor,
+    pending_pos: int,
+) -> SpeculativeStepResult:
+    """Batched K=1 MTP speculative step (M5 path).
+
+    Replaces the two sequential T=1 base forwards in
+    :func:`speculative_step_k1` with one batched K=2 forward over
+    ``[pending, draft]``. The motivation is memory-bound layers
+    (MoE weight loads, full-attn KV reads) cost the same for T=1 and T=2 —
+    the only per-position cost is linear-attn SSM rollout, which is
+    fundamentally sequential and adds ~16% to a K=2 forward on Lynn's
+    30/40 hybrid architecture. With OFFSET=2 head and ~65% accept the
+    projected speedup is 1.3-1.5× over baseline T=1 decode; without
+    OFFSET=2 (Lynn's current head) the wire is correctness-only.
+
+    Reject path requires a recurrent/conv snapshot + a single T=1
+    re-decode of pending. KV positions ``[seq_len, seq_len+1]`` get
+    overwritten by the next round's K=2 forward, so KV does not need
+    restoration.
+    """
+    # 1. MTP draft (same as sequential variant — head-internal cost).
+    draft_logits = runner._mtp_draft_logits(
+        base_hidden=pending_base_hidden,
+        current_token_id=pending_id,
+        current_pos=pending_pos,
+    )
+    draft_id = int(draft_logits[0].argmax().item())
+
+    # 2. Snapshot recurrent/conv state pre-batch — required for reject
+    # rollback because the K=2 SSM rollout commits state changes for BOTH
+    # input positions; only the first position's update should survive a
+    # rejected draft.
+    snap_pre_batch = snapshot_recurrent_conv(state)
+
+    # 3. Batched K=2 forward over [pending, draft].
+    tokens_k2 = torch.tensor(
+        [[int(pending_id), int(draft_id)]],
+        device=runner.device, dtype=torch.long,
+    )
+    pos_k2 = torch.tensor(
+        [[int(state.seq_len), int(state.seq_len) + 1]],
+        device=runner.device, dtype=torch.long,
+    )
+    h_k2 = F.embedding(tokens_k2, runner.outside["model.language_model.embed_tokens.weight"])
+    for layer_idx in range(runner.n_layers):
+        h_k2 = runner._decode_layer_k2_fast(h_k2, pos_k2, state, layer_idx)
+    state.seq_len += 2
+    h_norm_k2 = _rms_norm(h_k2, runner.outside["model.language_model.norm.weight"])
+    # lm_head accepts [B, T, D] — returns [B, T, V] via F.linear in baseline path,
+    # or [B*T, V] in native FP4 path. Normalize via reshape.
+    logits_k2 = runner._lm_head_logits(h_norm_k2)
+    if logits_k2.ndim == 2:
+        # Native FP4 lm_head squeezes [B, T, D] → [B*T, V]; un-batch back to [B, T, V].
+        logits_k2 = logits_k2.view(h_k2.shape[0], h_k2.shape[1], -1)
+
+    argmax_at_pos0 = int(logits_k2[0, 0].argmax().item())  # base's true prediction for position pending_pos+1
+    argmax_at_pos1 = int(logits_k2[0, 1].argmax().item())  # base's prediction for position pending_pos+2
+
+    # 4. Accept rule (P118 K=2 commit math, adapted to batched):
+    #    if draft equals base's pos-0 argmax → both tokens valid → commit 2
+    #    else → only pending was right at pos 0 → commit 1, rollback
+    if draft_id == argmax_at_pos0:
+        return SpeculativeStepResult(
+            committed_tokens=[pending_id, draft_id],
+            next_pending_id=argmax_at_pos1,
+            next_base_hidden=h_k2[:, 1:2, :].contiguous(),
+            next_pos=state.seq_len - 1,
+            accepted=True,
+            draft_id=draft_id,
+        )
+
+    # REJECT — restore SSM state to pre-batch, then re-run a single T=1
+    # decode of pending alone. KV[pending_pos+1] becomes stale but is
+    # naturally overwritten on the next K=2 forward.
+    restore_recurrent_conv(state, snap_pre_batch)
+    h_after_pending, _, _ = decode_one_to_logits_and_hidden(runner, state, pending_id)
+    return SpeculativeStepResult(
+        committed_tokens=[pending_id],
+        next_pending_id=argmax_at_pos0,
         next_base_hidden=h_after_pending,
         next_pos=state.seq_len - 1,
         accepted=False,
