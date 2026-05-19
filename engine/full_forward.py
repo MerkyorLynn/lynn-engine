@@ -579,9 +579,17 @@ def _decode_layer_k2(
 
     residual = h
     h_norm = _rms_norm(h, w["post_attention_layernorm.weight"])
-    if moe_fn is None:
-        moe_fn = _resolve_decode_moe_impl(os.environ.get("LYNN_MOE_IMPL", "optimized"))
-    moe_out = moe_fn(h_norm, w, cfg)
+    # Force the T-agnostic active-expert MoE for K=2 path. The packed_nvfp4
+    # backend (default for Spark Config D) is T=1-only — its fused Triton
+    # kernel hard-codes h.shape[1] == 1. The "optimized" variant uses BF16
+    # expert weights which are retained in memory as long as the runner did
+    # not call ``release_decode_bf16_shadows`` (default off). This is a known
+    # perf compromise: BF16 MoE is slower per call than packed NVFP4, but
+    # ships the batched verify path without a kernel rewrite. Future work:
+    # extend ``moe_forward_decode_packed_nvfp4`` to T>=2 so the K=2 path
+    # inherits the fast NVFP4 expert kernels.
+    moe_fn_k2 = _resolve_decode_moe_impl("optimized")
+    moe_out = moe_fn_k2(h_norm, w, cfg)
     return residual + moe_out
 
 
