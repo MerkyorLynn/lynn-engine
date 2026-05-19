@@ -1,0 +1,25 @@
+{
+  "probe": "p191_dense_fp4xfp8_poc",
+  "created": "2026-05-19T16:00:00",
+  "mma_compiled": true,
+  "scalar_reference_available": true,
+  "results": [
+    {
+      "layer_id": 0,
+      "scalar_reference": {
+        "max_abs_vs_bf16_ref": 0.006,
+        "rel_l2_vs_bf16_ref": 0.014,
+        "cosine_vs_bf16_ref": 0.9999,
+        "scalar_ms": 0.526
+      },
+      "mma_kernel": {
+        "available": true,
+        "real_compute": true,
+        "mma_vs_scalar_max_abs": 0.001,
+        "mma_vs_scalar_cosine": 0.99995,
+        "mma_ms": 0.049,
+        "error": null
+      }
+    }
+  ]
+}

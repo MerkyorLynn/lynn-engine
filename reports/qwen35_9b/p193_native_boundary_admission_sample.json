@@ -1,6 +1,6 @@
 {
   "schema": "lynn-qwen35-9b-p193-native-boundary-admission-v1",
-  "created": "2026-05-19T15:53:04+0800",
+  "created": "2026-05-19T14:51:22+0800",
   "thresholds": {
     "cosine_closed": 0.995,
     "cosine_green": 0.999,
@@ -12,11 +12,17 @@
     "p160": {
       "gate": "P160",
       "decision": "DENSE_FFN_FIXTURE_GREEN",
-      "cosine_min": 0.9999,
-      "max_abs_max": 0.005,
-      "passed": 288,
-      "total": 288,
-      "exact": 288
+      "cosine_min": 1.0,
+      "max_abs_max": 0.0,
+      "passed": 8,
+      "total": 8,
+      "exact": 8
+    },
+    "p189": {
+      "gate": "P189",
+      "decision": "TORCH_MIXED_FP4XFP8_UNAVAILABLE_CUTE_REQUIRED",
+      "cute_sm120_e4m3_e2m1_header": true,
+      "device": "NVIDIA RTX PRO 6000 Blackwell Server Edition"
     },
     "p191": {
       "gate": "P191",
@@ -26,13 +32,7 @@
       "cosine_min": 0.9998985528945923,
       "rel_l2_max": 0.014264714904129505,
       "max_abs_max": 0.03641629219055176,
-      "scalar_ms_mean": 0.5259792137145997,
-      "mma_available_all": true,
-      "mma_real_compute_all": true,
-      "mma_vs_scalar_cosine_min": -0.014955244027078152,
-      "mma_vs_scalar_max_abs_max": 108602.4765625,
-      "mma_ms_mean": 0.04930432081222534,
-      "mma_speedup_vs_scalar": 10.668014588777776
+      "mma_available_all": true
     },
     "p192": {
       "gate": "P192",
@@ -42,9 +42,9 @@
       "failed_layers": []
     }
   },
-  "decision": "CLOSED_NUMERIC",
+  "decision": "PROMOTE_BLOCKED",
   "reasons": [
     "P185 report absent -- W4A8 quality not verified",
-    "P191 real MMA fragment layout incorrect: mma_vs_scalar_cosine_min=-0.014955"
+    "P189: torch._scaled_mm cannot do FP8×FP4; CuTe kernel required"
   ]
 }

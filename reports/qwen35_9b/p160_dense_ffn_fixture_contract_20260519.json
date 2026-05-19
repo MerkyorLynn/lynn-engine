@@ -1,0 +1,10 @@
+{
+  "schema": "lynn-qwen35-9b-dense-ffn-fixture-contract-v1",
+  "created": "2026-05-19T12:00:00",
+  "decision": "DENSE_FFN_FIXTURE_GREEN",
+  "cosine_min": 0.9999,
+  "max_abs_max": 0.005,
+  "passed": 288,
+  "total": 288,
+  "exact": 288
+}

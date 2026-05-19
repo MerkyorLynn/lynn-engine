@@ -1,0 +1,13 @@
+{
+  "schema": "lynn-qwen35-9b-dense-fp4x-fp8-repack-contract-v1",
+  "created": "2026-05-19T14:57:04+0800",
+  "layers_checked": [0, 8, 16, 31],
+  "elapsed_seconds": 1.34,
+  "results": [
+    {"layer": 0, "ok": true, "failed": []},
+    {"layer": 8, "ok": true, "failed": []},
+    {"layer": 16, "ok": true, "failed": []},
+    {"layer": 31, "ok": true, "failed": []}
+  ],
+  "overall": "GREEN"
+}

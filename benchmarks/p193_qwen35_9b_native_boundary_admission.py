@@ -330,10 +330,18 @@ def _decide(
             reasons.append(f"P191 rel_l2_max={r2:.6f} > {thresholds['rel_l2_closed']}")
             return "CLOSED_NUMERIC", reasons
         if mma_real:
-            if mma_cos is None or mma_cos < thresholds["cosine_green"]:
+            # Real MMA ran — verify fragment layout correctness.
+            # mma_cos=None means all layers had NaN/missing mma_vs_scalar_cosine → fail.
+            if mma_cos is None:
                 reasons.append(
                     "P191 real MMA fragment layout incorrect: "
-                    f"mma_vs_scalar_cosine_min={mma_cos}"
+                    "mma_vs_scalar_cosine_min=None (all NaN or missing)"
+                )
+                return "CLOSED_NUMERIC", reasons
+            if mma_cos < thresholds["cosine_green"]:
+                reasons.append(
+                    "P191 real MMA fragment layout incorrect: "
+                    f"mma_vs_scalar_cosine_min={mma_cos:.6f}"
                 )
                 return "CLOSED_NUMERIC", reasons
         if cos is not None and cos < thresholds["cosine_green"]:
