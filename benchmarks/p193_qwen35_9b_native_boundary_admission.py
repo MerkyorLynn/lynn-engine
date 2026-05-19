@@ -369,8 +369,11 @@ def _decide(
     if p189 is not None:
         p189_decision = p189["decision"]
         if p189_decision == "TORCH_MIXED_FP4XFP8_UNAVAILABLE_CUTE_REQUIRED":
-            reasons.append("P189: torch._scaled_mm cannot do FP8×FP4; CuTe kernel required")
-            capability_blocked = True
+            if p191 is not None and p191.get("mma_real_compute_all", False):
+                reasons.append("P189: torch._scaled_mm lacks FP8×FP4, covered by P191 CuTe real MMA")
+            else:
+                reasons.append("P189: torch._scaled_mm cannot do FP8×FP4; CuTe kernel required")
+                capability_blocked = True
         elif p189_decision == "FP4_FP8_TOOLCHAIN_INCOMPLETE":
             reasons.append("P189: FP4×FP8 toolchain incomplete")
             capability_blocked = True
