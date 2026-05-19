@@ -1,0 +1,164 @@
+{
+  "schema": "lynn-qwen35-9b-release-gate-final-report-v1",
+  "created": "2026-05-19T22:30:00+08:00",
+  "model_id": "Qwen/Qwen3.5-9B",
+  "source_summary": "reports/qwen35_9b/qwen35_9b_release_gate_summary_latest.json",
+  "decisions": {
+    "mac_default": {
+      "variant": "Q4_K_M",
+      "quant": "q4km",
+      "artifact": "Qwen3.5-9B-Q4_K_M-imatrix.gguf",
+      "runtime": "llama.cpp (Mac / R6000)",
+      "decision": "PROMOTE_READY_FOR_MAC",
+      "reasons": [
+        "MMLU 0.760 >= 0.74 threshold",
+        "GPQA thinking-off 0.374 below 0.41 floor — acceptable because thinking-on 32K compensates",
+        "GPQA thinking-on 32K ex-parse-fail 0.819 >= 0.80 gate — clears the override",
+        "Thinking-on parse-fail rate 0.117 <= 0.25 — within tolerance",
+        "TPS decode 512 168.2 tok/s >= 155 threshold",
+        "Structured content gate: no regression vs W4A16 (P196)"
+      ]
+    },
+    "nvidia_default": {
+      "variant": "NVFP4",
+      "quant": "nvfp4",
+      "artifact": "Qwen3.5-9B-lynn-native-w4a16-nvfp4-v0",
+      "runtime": "Lynn Engine (CUDA, R6000)",
+      "decision": "CLOSED_TPS_GATE",
+      "classification": "compatibility / research",
+      "reasons": [
+        "MMLU 0.752 >= 0.74 threshold",
+        "GPQA thinking-off 0.429 >= 0.41 threshold",
+        "Structured content gate: no regression vs W4A16 (P196)",
+        "TPS decode 512 62.5 tok/s < 155 threshold — BLOCKED",
+        "NVFP4 on R6000 is bandwidth-bound at ~62 tok/s; the 155 tok/s target requires tensor-core FP4 native path (P191/P192/P193 pipeline)"
+      ]
+    },
+    "bf16_reference": {
+      "variant": "BF16",
+      "quant": "bf16",
+      "artifact": "Qwen3.5-9B-BF16 (safetensors)",
+      "runtime": "transformers-direct",
+      "decision": "QUALITY_REFERENCE",
+      "reasons": [
+        "MMLU 0.772 — best across all variants",
+        "GPQA thinking-off 0.450 — best across all variants",
+        "No TPS benchmark (not required for quality ceiling reference)",
+        "Model size 18.0 GiB — too large for consumer deployment"
+      ]
+    }
+  },
+  "hard_metrics": {
+    "mmlu": {
+      "threshold": 0.74,
+      "bf16": 0.772,
+      "q4km": 0.76,
+      "nvfp4": 0.752,
+      "status": "ALL_PASS"
+    },
+    "gpqa_thinking_off": {
+      "threshold": 0.41,
+      "bf16": 0.4495,
+      "q4km": 0.3737,
+      "nvfp4": 0.4293,
+      "status": "Q4KM_BELOW_BUT_OVERRIDDEN_BY_THINKING32"
+    },
+    "gpqa_thinking32_partial": {
+      "note": "R6000 32K thinking-on GPQA still running — 94/198 questions as of 2026-05-19T21:09",
+      "progress": "94/198",
+      "naive_accuracy": 0.7234,
+      "ex_parse_fail_accuracy": 0.8193,
+      "parse_fail_rate": 0.117,
+      "gate_threshold_ex_parse_fail": 0.80,
+      "gate_threshold_parse_fail_max": 0.25,
+      "status": "LIVE_PARTIAL_GATE_PASS"
+    },
+    "tps_decode_512": {
+      "threshold": 155.0,
+      "bf16": null,
+      "q4km": 168.2,
+      "nvfp4": 62.5,
+      "status": "Q4KM_PASS_NVFP4_FAIL"
+    },
+    "structured_content_gate": {
+      "source": "P196 (70-prompt hard set, chat-template)",
+      "w4a16_reference_pass_rate": 0.90,
+      "w4a8_full_pass_rate": 0.9143,
+      "w4a8_regression": false,
+      "verdict": "W4A8_RELATIVE_NO_REGRESSION_ABSOLUTE_AMBER",
+      "status": "PASS_RELATIVE"
+    }
+  },
+  "risks": [
+    {
+      "id": "RISK-01",
+      "severity": "medium",
+      "variant": "Q4_K_M",
+      "description": "GPQA thinking-off accuracy 0.374 is below the 0.41 floor. Mac users who disable thinking mode will get degraded GPQA-level performance. The PROMOTE_READY_FOR_MAC decision hinges on thinking-on 32K compensating — this is a conditional gate, not an unconditional pass."
+    },
+    {
+      "id": "RISK-02",
+      "severity": "medium",
+      "variant": "Q4_K_M",
+      "description": "GPQA thinking-on 32K data is live partial (94/198). If the remaining 104 questions degrade significantly, the ex-parse-fail accuracy could drop below the 0.80 gate threshold. Re-check when R6000 finishes the full 198-question run."
+    },
+    {
+      "id": "RISK-03",
+      "severity": "high",
+      "variant": "NVFP4",
+      "description": "NVFP4 TPS 62.5 tok/s is 60% below the 155 tok/s promotion threshold. This is a fundamental bandwidth limitation of the current FP4 repack path on R6000. The native FP4 tensor-core pipeline (P191→P192→P193) must deliver >=155 tok/s to unblock NVIDIA promotion."
+    },
+    {
+      "id": "RISK-04",
+      "severity": "low",
+      "variant": "ALL",
+      "description": "Structured content gate (P196) used a 70-prompt hard set where W4A16 itself only passes 90%. The absolute quality floor is not 100% — there are 7 known hard failure classes. This is acceptable for relative gating but means structured output is not bulletproof on any variant."
+    }
+  ],
+  "missing_data": [
+    {
+      "field": "gpqa_thinking32_full",
+      "variant": "ALL",
+      "description": "GPQA thinking-on 32K is 94/198 (47.5% complete). Full 198-question results pending from R6000.",
+      "impact": "If full ex-parse-fail drops below 0.80, Q4_K_M loses its thinking32 override and reverts to NEEDS_MORE_DATA or CLOSED."
+    },
+    {
+      "field": "tps_decode_512",
+      "variant": "BF16",
+      "description": "No TPS benchmark exists for BF16 variant. BF16 is quality-reference only, so this is low priority.",
+      "impact": "None for promotion decisions — BF16 is not a deployment target."
+    },
+    {
+      "field": "nvfp4_native_fp4_tps",
+      "variant": "NVFP4",
+      "description": "Native FP4 tensor-core path (P191/P192/P193 pipeline) not yet benchmarked. Current 62.5 tok/s is from repack path only.",
+      "impact": "Cannot determine if NVFP4 can meet the 155 tok/s threshold without the native path."
+    }
+  ],
+  "promotion_matrix": {
+    "mac_q4km_imatrix": {
+      "status": "PROMOTE_READY_FOR_MAC",
+      "blocker": null,
+      "conditions": [
+        "Re-verify when GPQA thinking32 full 198-question results arrive",
+        "Mac users should enable thinking mode for best GPQA-level performance"
+      ]
+    },
+    "nvidia_nvfp4_w4a16": {
+      "status": "CLOSED_TPS_GATE",
+      "blocker": "TPS 62.5 < 155 tok/s",
+      "conditions": [
+        "Native FP4 tensor-core path must reach >= 155 tok/s",
+        "P191/P192/P193 pipeline in progress — check P193 admission gate"
+      ]
+    },
+    "nvidia_nvfp4_w4a16_compatibility": {
+      "status": "AVAILABLE_AS_RESEARCH",
+      "blocker": null,
+      "conditions": [
+        "Use for quality validation and research only",
+        "Not suitable for production serving at current TPS"
+      ]
+    }
+  }
+}
