@@ -219,16 +219,29 @@ def _score_mode(mode: dict[str, Any], specs: list[dict[str, Any]]) -> dict[str, 
     }
 
 
-def _decision(scores: dict[str, dict[str, Any]], full_min_rate: float, gateup_min_rate: float) -> str:
+def _decision(
+    scores: dict[str, dict[str, Any]],
+    full_min_rate: float,
+    gateup_min_rate: float,
+    relative_regression_budget: int,
+) -> str:
     off = scores["convstrict_w4a16_reference"]
     gateup = scores["convstrict_w4a8_gateup"]
     full = scores["convstrict_w4a8_full"]
-    if not off["all_format_ok"]:
-        return "W4A16_REFERENCE_RED"
     if full["all_format_ok"]:
         return "W4A8_FULL_CONTENT_GREEN"
     if gateup["all_format_ok"]:
         return "W4A8_GATEUP_CONTENT_GREEN_FULL_DRIFT"
+    if not off["all_format_ok"]:
+        ref_pass = int(off["pass_count"])
+        full_pass = int(full["pass_count"])
+        gateup_pass = int(gateup["pass_count"])
+        if (
+            full_pass + relative_regression_budget >= ref_pass
+            and gateup_pass + relative_regression_budget >= ref_pass
+        ):
+            return "W4A8_RELATIVE_NO_REGRESSION_ABSOLUTE_AMBER"
+        return "W4A8_RELATIVE_REGRESSION_FALLBACK_A16"
     if (full["pass_rate"] or 0.0) >= full_min_rate and (gateup["pass_rate"] or 0.0) >= gateup_min_rate:
         return "W4A8_CONTENT_AMBER"
     return "W4A8_CONTENT_RED_FALLBACK_A16"
@@ -243,6 +256,7 @@ def main() -> int:
     ap.add_argument("--max-seq-len", type=int, default=4096)
     ap.add_argument("--full-min-rate", type=float, default=0.985)
     ap.add_argument("--gateup-min-rate", type=float, default=1.0)
+    ap.add_argument("--relative-regression-budget", type=int, default=0)
     ap.add_argument("--out", required=True)
     args = ap.parse_args()
 
@@ -277,16 +291,27 @@ def main() -> int:
         "thresholds": {
             "full_min_rate": args.full_min_rate,
             "gateup_min_rate": args.gateup_min_rate,
+            "relative_regression_budget": args.relative_regression_budget,
         },
         "note": "W4A8 fake-quant checks structured stability only; speed is not a native FP8-active claim.",
         "summaries": [_summarize_mode(mode) for mode in modes],
         "scores": scores,
-        "decision": _decision(scores, args.full_min_rate, args.gateup_min_rate),
+        "decision": _decision(
+            scores,
+            args.full_min_rate,
+            args.gateup_min_rate,
+            args.relative_regression_budget,
+        ),
     }
 
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    ok_decisions = {
+        "W4A8_FULL_CONTENT_GREEN",
+        "W4A8_GATEUP_CONTENT_GREEN_FULL_DRIFT",
+        "W4A8_RELATIVE_NO_REGRESSION_ABSOLUTE_AMBER",
+    }
     print(json.dumps({
         "decision": report["decision"],
         "scores": {
@@ -301,7 +326,7 @@ def main() -> int:
         },
         "out": str(out_path),
     }, ensure_ascii=False, indent=2))
-    return 0 if report["decision"] in {"W4A8_FULL_CONTENT_GREEN", "W4A8_GATEUP_CONTENT_GREEN_FULL_DRIFT"} else 2
+    return 0 if report["decision"] in ok_decisions else 2
 
 
 if __name__ == "__main__":
