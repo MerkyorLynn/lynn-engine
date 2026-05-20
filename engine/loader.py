@@ -223,6 +223,19 @@ def _load_qwen36_layer_lynn_variable_w4a8_fp8(
             short = short[: -len(".weight")]
         final[f"{short}.weight_fp8"] = weight_fp8
         final[f"{short}.weight_fp8_scale"] = weight_fp8_scale
+        # V2 dual-storage: also produce BF16 ``.weight`` for legacy code paths
+        # (linear_attn, self_attn projections, lm_head) that read the tensor
+        # by its plain ``.weight`` key. The FP8 forward branches still use
+        # ``.weight_fp8`` directly — this only adds a BF16 copy as a fallback.
+        # Cost: ~2x memory for quantized weights (manageable on 119GB Spark).
+        # Future V3: add FP8-aware branches everywhere and drop this dual copy.
+        scale_for_dq = weight_fp8_scale
+        if weight_fp8.dim() == 3:
+            scale_for_dq = scale_for_dq.unsqueeze(-1)         # [E, N, 1]
+        elif weight_fp8.dim() == 2:
+            scale_for_dq = scale_for_dq.view(-1, 1)           # [N, 1]
+        bf16_weight = (weight_fp8.to(torch.float32) * scale_for_dq).to(dequant_dtype)
+        final[f"{short}.weight"] = bf16_weight
 
     print(
         f"  Lynn variable W4A8 FP8 direct load: {bytes_loaded/1e9:.2f} GB "
