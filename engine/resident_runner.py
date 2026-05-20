@@ -738,6 +738,11 @@ class LynnIncrementalRunner:
             ext = load_lynn_native_extension(verbose=False)
             if not hasattr(ext, "dense_fp4xfp8_mma_scaled_probe"):
                 raise RuntimeError("dense_fp4xfp8_mma_scaled_probe missing from native extension")
+            if (
+                os.environ.get("LYNN_DENSE_FFN_TRUE_FP8_GATEUP", "separate").strip().lower() == "dual"
+                and not hasattr(ext, "dense_fp4xfp8_mma_scaled_dual_probe")
+            ):
+                raise RuntimeError("dense_fp4xfp8_mma_scaled_dual_probe missing from native extension")
         self.dense_ffn_true_fp8_attached = attached
         if self.verbose:
             print(f"[resident] dense FFN true FP8 sidecar attached={attached}", flush=True)

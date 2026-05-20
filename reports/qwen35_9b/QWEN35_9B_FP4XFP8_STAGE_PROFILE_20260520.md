@@ -70,11 +70,49 @@ path, but it is not enough by itself. If promoted into resident decode without
 further fusion, the likely end-to-end lift is closer to the 10-20% band than a
 2x breakthrough.
 
+## Resident Gate Follow-Up
+
+P190/P197 checked whether the dual gate/up path can be used directly in resident
+decode. It cannot yet.
+
+Artifacts:
+
+- `reports/qwen35_9b/p190_qwen35_9b_true_fp8_resident_gate_dual_gateup_20260520_143236.json`
+- `reports/qwen35_9b/p190_qwen35_9b_true_fp8_resident_gate_gateup_dual_20260520_143548.json`
+- `reports/qwen35_9b/p190_qwen35_9b_true_fp8_resident_gate_down_dual_20260520_143709.json`
+- `reports/qwen35_9b/p197_gateup_dual_token_drift_20260520_144116.json`
+
+| Candidate | Exact | Decode TPS | Speedup | Verdict |
+|---|---:|---:|---:|---|
+| full FP4xFP8, dual gate/up | 0/6 | 71.74 | 1.20x | RED |
+| gate/up-only FP4xFP8, dual gate/up | 0/6 | 70.01 | 1.17x | RED |
+| down-only FP4xFP8 | 0/6 | 58.05 | 0.97x | RED |
+
+P197 top-k drift for gate/up-only:
+
+| Metric | Value |
+|---|---:|
+| decision | CLOSED |
+| exact top-k steps | 5/40 |
+| first drift step | 1 |
+| drift ratio | 87.5% |
+| top-5 jaccard mean | 0.1486 |
+| shared cosine mean | 0.2737 |
+| combined score | 0.2112 |
+
+Important detail: step 0 top-k is identical, then step 1 collapses. The resident
+problem is not just exact-greedy sensitivity and not a local lm_head artifact.
+The FP8 gate/up hidden-state delta is being amplified by the next decode step.
+
 To chase llama.cpp-class TPS on R6000, the next ROI path is:
 
-1. Wire dual gate/up into the resident W4A8 FFN path behind an opt-in env.
-2. Add a resident P25 + structured/content gate, not exact-greedy only.
-3. Then fuse `SiLU * up + down` or make a larger native-owned FFN boundary so
+1. Keep dual gate/up as an opt-in research backend only.
+2. Run per-layer hidden/logit drift isolation for gate/up-only to find whether
+   this is an activation-scale convention issue or unavoidable W4A8 hidden drift.
+3. Only after top-k recovers should we run resident P25 + structured/content
+   gates. Exact-greedy alone is too strict, but P197 proves current top-k is too
+   far off for AMBER.
+4. Then fuse `SiLU * up + down` or make a larger native-owned FFN boundary so
    intermediate tensors do not round-trip through Torch.
 
 MTP is not the current R6000 9B speed lever: the official 9B MTP head works, but

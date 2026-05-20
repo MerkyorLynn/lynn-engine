@@ -1,0 +1,812 @@
+{
+  "schema": "lynn-qwen35-9b-fp4xfp8-token-drift-v1",
+  "created": "2026-05-20T14:43:04",
+  "model": "/root/autodl-tmp/models/Qwen3.5-9B-lynn-native-w4a16-nvfp4-v0",
+  "reference_profile": "convstrict_w4a16",
+  "candidate_profile": "convstrict_true_fp4xfp8_dense_ffn",
+  "candidate_mode": "true_fp4xfp8",
+  "sidecar_dir": "/root/autodl-tmp/reports/qwen35_9b/p192_dense_fp4x_fp8_sidecar",
+  "max_seq_len": 4096,
+  "n_prompts": 5,
+  "elapsed_s": 107.1,
+  "steps": [
+    {
+      "prompt_index": 0,
+      "prompt": "用一句话解释 CUDA graph 对推理速度的帮助。",
+      "steps": [
+        {
+          "step": 0,
+          "ref_ids": [
+            271,
+            198,
+            220,
+            96220,
+            62
+          ],
+          "cand_ids": [
+            271,
+            198,
+            220,
+            96220,
+            62
+          ],
+          "exact_match": true,
+          "jaccard": 1.0,
+          "shared_cosine": 1.0,
+          "combined": 1.0
+        },
+        {
+          "step": 1,
+          "ref_ids": [
+            77517,
+            248068,
+            332,
+            96580,
+            96540
+          ],
+          "cand_ids": [
+            198,
+            271,
+            248046,
+            471,
+            695
+          ],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        },
+        {
+          "step": 2,
+          "ref_ids": [
+            4618,
+            11817,
+            37707,
+            220,
+            9705
+          ],
+          "cand_ids": [
+            198,
+            248046,
+            271,
+            62,
+            471
+          ],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        },
+        {
+          "step": 3,
+          "ref_ids": [
+            220,
+            9616,
+            2972,
+            332,
+            318
+          ],
+          "cand_ids": [
+            248046,
+            198,
+            271,
+            695,
+            220
+          ],
+          "exact_match": false,
+          "jaccard": 0.1111111111111111,
+          "shared_cosine": 1.0,
+          "combined": 0.5555555555555556
+        },
+        {
+          "step": 4,
+          "ref_ids": [
+            145700,
+            96580,
+            96123,
+            130570,
+            110324
+          ],
+          "cand_ids": [],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        },
+        {
+          "step": 5,
+          "ref_ids": [
+            111892,
+            108695,
+            110301,
+            97792,
+            96610
+          ],
+          "cand_ids": [],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        },
+        {
+          "step": 6,
+          "ref_ids": [
+            98440,
+            99125,
+            110816,
+            96875,
+            95789
+          ],
+          "cand_ids": [],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        },
+        {
+          "step": 7,
+          "ref_ids": [
+            104882,
+            96875,
+            95789,
+            101706,
+            9616
+          ],
+          "cand_ids": [],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        }
+      ]
+    },
+    {
+      "prompt_index": 1,
+      "prompt": "Python 写一个函数判断字符串是否为回文。",
+      "steps": [
+        {
+          "step": 0,
+          "ref_ids": [
+            62,
+            471,
+            198,
+            271,
+            99486
+          ],
+          "cand_ids": [
+            62,
+            471,
+            198,
+            271,
+            99486
+          ],
+          "exact_match": true,
+          "jaccard": 1.0,
+          "shared_cosine": 1.0,
+          "combined": 1.0
+        },
+        {
+          "step": 1,
+          "ref_ids": [
+            102425,
+            868,
+            95872,
+            29292,
+            34
+          ],
+          "cand_ids": [
+            62,
+            198,
+            220,
+            12,
+            7415
+          ],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        },
+        {
+          "step": 2,
+          "ref_ids": [
+            198,
+            102425,
+            12654,
+            271,
+            248046
+          ],
+          "cand_ids": [
+            62,
+            220,
+            198,
+            12,
+            7415
+          ],
+          "exact_match": false,
+          "jaccard": 0.1111111111111111,
+          "shared_cosine": 1.0,
+          "combined": 0.5555555555555556
+        },
+        {
+          "step": 3,
+          "ref_ids": [
+            29292,
+            102425,
+            98287,
+            98928,
+            96280
+          ],
+          "cand_ids": [
+            220,
+            62,
+            198,
+            7415,
+            11
+          ],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        },
+        {
+          "step": 4,
+          "ref_ids": [
+            220,
+            96674,
+            198,
+            18,
+            256
+          ],
+          "cand_ids": [
+            220,
+            198,
+            62,
+            7415,
+            12
+          ],
+          "exact_match": false,
+          "jaccard": 0.25,
+          "shared_cosine": 0.9733573910231654,
+          "combined": 0.6116786955115827
+        },
+        {
+          "step": 5,
+          "ref_ids": [
+            96674,
+            3165,
+            8892,
+            4775,
+            95826
+          ],
+          "cand_ids": [
+            220,
+            198,
+            471,
+            62,
+            696
+          ],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        },
+        {
+          "step": 6,
+          "ref_ids": [
+            96125,
+            95744,
+            95840,
+            146794,
+            103709
+          ],
+          "cand_ids": [
+            198,
+            220,
+            62,
+            11,
+            696
+          ],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        },
+        {
+          "step": 7,
+          "ref_ids": [
+            103733,
+            110089,
+            709,
+            220,
+            96845
+          ],
+          "cand_ids": [
+            198,
+            109017,
+            471,
+            220,
+            57134
+          ],
+          "exact_match": false,
+          "jaccard": 0.1111111111111111,
+          "shared_cosine": 1.0,
+          "combined": 0.5555555555555556
+        }
+      ]
+    },
+    {
+      "prompt_index": 2,
+      "prompt": "Return a compact JSON object with keys city and country for Paris.",
+      "steps": [
+        {
+          "step": 0,
+          "ref_ids": [
+            271,
+            198,
+            248046,
+            3054,
+            3301
+          ],
+          "cand_ids": [
+            271,
+            198,
+            248046,
+            3054,
+            3301
+          ],
+          "exact_match": true,
+          "jaccard": 1.0,
+          "shared_cosine": 1.0,
+          "combined": 1.0
+        },
+        {
+          "step": 1,
+          "ref_ids": [
+            71093,
+            4754,
+            248068,
+            13724,
+            8160
+          ],
+          "cand_ids": [
+            248069,
+            248046,
+            198,
+            271,
+            313
+          ],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        },
+        {
+          "step": 2,
+          "ref_ids": [
+            2164,
+            3427,
+            13670,
+            5202,
+            198
+          ],
+          "cand_ids": [
+            248045,
+            248046,
+            248069,
+            271,
+            198
+          ],
+          "exact_match": false,
+          "jaccard": 0.1111111111111111,
+          "shared_cosine": 1.0,
+          "combined": 0.5555555555555556
+        },
+        {
+          "step": 3,
+          "ref_ids": [
+            198,
+            313,
+            5046,
+            695,
+            271
+          ],
+          "cand_ids": [
+            248046,
+            248045,
+            248069,
+            198,
+            271
+          ],
+          "exact_match": false,
+          "jaccard": 0.25,
+          "shared_cosine": 0.974429190824099,
+          "combined": 0.6122145954120495
+        },
+        {
+          "step": 4,
+          "ref_ids": [
+            90,
+            4754,
+            58,
+            71093,
+            13724
+          ],
+          "cand_ids": [],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        },
+        {
+          "step": 5,
+          "ref_ids": [
+            198,
+            328,
+            8656,
+            695,
+            256
+          ],
+          "cand_ids": [],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        },
+        {
+          "step": 6,
+          "ref_ids": [
+            220,
+            262,
+            328,
+            1,
+            197
+          ],
+          "cand_ids": [],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        },
+        {
+          "step": 7,
+          "ref_ids": [
+            328,
+            5036,
+            7018,
+            15430,
+            8728
+          ],
+          "cand_ids": [],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        }
+      ]
+    },
+    {
+      "prompt_index": 3,
+      "prompt": "What are the first 10 Fibonacci numbers? List them concisely.",
+      "steps": [
+        {
+          "step": 0,
+          "ref_ids": [
+            271,
+            198,
+            7054,
+            471,
+            318
+          ],
+          "cand_ids": [
+            271,
+            198,
+            7054,
+            471,
+            318
+          ],
+          "exact_match": true,
+          "jaccard": 1.0,
+          "shared_cosine": 1.0000000000000002,
+          "combined": 1.0
+        },
+        {
+          "step": 1,
+          "ref_ids": [
+            760,
+            16,
+            248068,
+            8160,
+            37
+          ],
+          "cand_ids": [
+            76938,
+            248069,
+            369,
+            271,
+            198
+          ],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        },
+        {
+          "step": 2,
+          "ref_ids": [
+            1118,
+            76938,
+            8240,
+            2972,
+            220
+          ],
+          "cand_ids": [
+            248046,
+            248069,
+            56014,
+            198,
+            271
+          ],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        },
+        {
+          "step": 3,
+          "ref_ids": [
+            220,
+            5600,
+            2972,
+            2342,
+            76938
+          ],
+          "cand_ids": [],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        },
+        {
+          "step": 4,
+          "ref_ids": [
+            16,
+            17,
+            24,
+            20,
+            18
+          ],
+          "cand_ids": [],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        },
+        {
+          "step": 5,
+          "ref_ids": [
+            15,
+            16,
+            17,
+            20,
+            220
+          ],
+          "cand_ids": [],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        },
+        {
+          "step": 6,
+          "ref_ids": [
+            76938,
+            4947,
+            2972,
+            3665,
+            41053
+          ],
+          "cand_ids": [],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        },
+        {
+          "step": 7,
+          "ref_ids": [
+            4947,
+            33565,
+            1324,
+            513,
+            8240
+          ],
+          "cand_ids": [],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        }
+      ]
+    },
+    {
+      "prompt_index": 4,
+      "prompt": "解释 MoE 路由器中 top-k 和 softmax 的执行顺序为什么重要。",
+      "steps": [
+        {
+          "step": 0,
+          "ref_ids": [
+            271,
+            198,
+            96604,
+            96218,
+            96220
+          ],
+          "cand_ids": [
+            271,
+            198,
+            96604,
+            96218,
+            96220
+          ],
+          "exact_match": true,
+          "jaccard": 1.0,
+          "shared_cosine": 1.0000000000000002,
+          "combined": 1.0
+        },
+        {
+          "step": 1,
+          "ref_ids": [
+            95772,
+            248068,
+            109455,
+            108812,
+            133301
+          ],
+          "cand_ids": [
+            198,
+            271,
+            248046,
+            471,
+            220
+          ],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        },
+        {
+          "step": 2,
+          "ref_ids": [
+            101742,
+            380,
+            5861,
+            105019,
+            130240
+          ],
+          "cand_ids": [
+            198,
+            220,
+            471,
+            271,
+            13
+          ],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        },
+        {
+          "step": 3,
+          "ref_ids": [
+            98138,
+            110321,
+            130240,
+            121378,
+            11312
+          ],
+          "cand_ids": [
+            198,
+            220,
+            471,
+            11,
+            271
+          ],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        },
+        {
+          "step": 4,
+          "ref_ids": [
+            103725,
+            9616,
+            101742,
+            103788,
+            96746
+          ],
+          "cand_ids": [
+            220,
+            471,
+            198,
+            11,
+            13
+          ],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        },
+        {
+          "step": 5,
+          "ref_ids": [
+            9616,
+            318,
+            3088,
+            171446,
+            95789
+          ],
+          "cand_ids": [
+            198,
+            471,
+            220,
+            13,
+            11
+          ],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        },
+        {
+          "step": 6,
+          "ref_ids": [
+            24797,
+            44,
+            56133,
+            1652,
+            83445
+          ],
+          "cand_ids": [
+            198,
+            471,
+            695,
+            220,
+            271
+          ],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        },
+        {
+          "step": 7,
+          "ref_ids": [
+            36,
+            44,
+            16849,
+            47,
+            39
+          ],
+          "cand_ids": [
+            198,
+            220,
+            695,
+            471,
+            271
+          ],
+          "exact_match": false,
+          "jaccard": 0.0,
+          "shared_cosine": 0.0,
+          "combined": 0.0
+        }
+      ]
+    }
+  ],
+  "first_drift_step": 1,
+  "exact_match_count": 5,
+  "top5_jaccard_mean": 0.1486,
+  "shared_cosine_mean": 0.2737,
+  "combined_score": 0.2112,
+  "decision": "CLOSED"
+}

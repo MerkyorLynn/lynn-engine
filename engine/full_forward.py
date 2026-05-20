@@ -94,6 +94,40 @@ def _dense_fp4xfp8_project(x: torch.Tensor, w: dict, proj: str) -> torch.Tensor:
     return out.reshape(*x.shape[:-1], int(n))
 
 
+def _dense_fp4xfp8_gate_up_dual(x: torch.Tensor, w: dict) -> tuple[torch.Tensor, torch.Tensor]:
+    """Run gate/up projections through one shared-activation native FP4xFP8 launch."""
+    ext = _dense_fp4xfp8_extension()
+    if not hasattr(ext, "dense_fp4xfp8_mma_scaled_dual_probe"):
+        raise RuntimeError("dense_fp4xfp8_mma_scaled_dual_probe missing from native extension")
+
+    gate_prefix = "mlp._fp4xfp8.gate_proj."
+    up_prefix = "mlp._fp4xfp8.up_proj."
+    gate_packed = w[gate_prefix + "weight_packed"]
+    gate_scale = w[gate_prefix + "weight_scale"].float()
+    gate_global = w[gate_prefix + "weight_global_scale"].float().view(-1)
+    up_packed = w[up_prefix + "weight_packed"]
+    up_scale = w[up_prefix + "weight_scale"].float()
+    up_global = w[up_prefix + "weight_global_scale"].float().view(-1)
+    n, k_half = gate_packed.shape
+    k = k_half * 2
+    act_fp8, act_scale = _quantize_to_fp8_e4m3_per16(x.reshape(-1)[:k])
+    out = ext.dense_fp4xfp8_mma_scaled_dual_probe(
+        act_fp8,
+        act_scale,
+        gate_packed.contiguous(),
+        gate_scale.contiguous(),
+        gate_global.contiguous(),
+        up_packed.contiguous(),
+        up_scale.contiguous(),
+        up_global.contiguous(),
+        1,
+        int(n),
+        int(k),
+    )
+    shape = (*x.shape[:-1], int(n))
+    return out[0].reshape(*shape), out[1].reshape(*shape)
+
+
 def _has_dense_fp4xfp8_sidecar(w: dict) -> bool:
     required = (
         "mlp._fp4xfp8.gate_proj.weight_packed",
@@ -313,6 +347,7 @@ def _dense_ffn_forward(h: torch.Tensor, w: dict) -> torch.Tensor:
       LYNN_DENSE_FFN_TRUE_FP8=1          Enable true FP8 path
       LYNN_DENSE_FFN_TRUE_FP8_KERNEL=    mma (default) | scalar
       LYNN_DENSE_FFN_TRUE_FP8_SCOPE=     full (default) | gateup | down
+      LYNN_DENSE_FFN_TRUE_FP8_GATEUP=    separate (default) | dual
     """
     true_fp8_mode = os.environ.get("LYNN_DENSE_FFN_TRUE_FP8", "0").strip().lower()
     is_single_decode_token = h.reshape(-1, h.shape[-1]).shape[0] == 1
@@ -323,17 +358,22 @@ def _dense_ffn_forward(h: torch.Tensor, w: dict) -> torch.Tensor:
     ):
         kernel = os.environ.get("LYNN_DENSE_FFN_TRUE_FP8_KERNEL", "mma").strip().lower()
         scope = os.environ.get("LYNN_DENSE_FFN_TRUE_FP8_SCOPE", "full").strip().lower()
+        gateup_mode = os.environ.get("LYNN_DENSE_FFN_TRUE_FP8_GATEUP", "separate").strip().lower()
 
         # Select projection function based on kernel type
         if kernel == "scalar":
             proj_fn = _dense_fp4xfp8_project_scalar
+            gateup_mode = "separate"
         else:
             proj_fn = _dense_fp4xfp8_project
 
         if scope == "gateup":
             # Only gate/up through FP8; down stays BF16
-            gate = proj_fn(h, w, "gate_proj")
-            up = proj_fn(h, w, "up_proj")
+            if gateup_mode == "dual":
+                gate, up = _dense_fp4xfp8_gate_up_dual(h, w)
+            else:
+                gate = proj_fn(h, w, "gate_proj")
+                up = proj_fn(h, w, "up_proj")
             inter = F.silu(gate.float()) * up.float()
             out = F.linear(inter.to(h.dtype), w["mlp.down_proj.weight"])
             return out
@@ -351,8 +391,11 @@ def _dense_ffn_forward(h: torch.Tensor, w: dict) -> torch.Tensor:
             return out.to(h.dtype)
         else:
             # full: all three projections through FP8
-            gate = proj_fn(h, w, "gate_proj")
-            up = proj_fn(h, w, "up_proj")
+            if gateup_mode == "dual":
+                gate, up = _dense_fp4xfp8_gate_up_dual(h, w)
+            else:
+                gate = proj_fn(h, w, "gate_proj")
+                up = proj_fn(h, w, "up_proj")
             inter = F.silu(gate.float()) * up.float()
             out = proj_fn(inter, w, "down_proj")
             return out.to(h.dtype)

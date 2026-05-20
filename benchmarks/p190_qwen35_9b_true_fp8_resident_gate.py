@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import time
 from pathlib import Path
 from typing import Any
@@ -29,6 +30,9 @@ TRUE_FP8_ENV = _merge(
     {
         "LYNN_DENSE_FFN_TRUE_FP8": "1",
         "LYNN_DENSE_FFN_TRUE_FP8_SIDECAR_DIR": "/root/autodl-tmp/reports/qwen35_9b/p192_dense_fp4x_fp8_sidecar",
+        "LYNN_DENSE_FFN_TRUE_FP8_SCOPE": os.environ.get("LYNN_DENSE_FFN_TRUE_FP8_SCOPE", "full"),
+        "LYNN_DENSE_FFN_TRUE_FP8_KERNEL": os.environ.get("LYNN_DENSE_FFN_TRUE_FP8_KERNEL", "mma"),
+        "LYNN_DENSE_FFN_TRUE_FP8_GATEUP": os.environ.get("LYNN_DENSE_FFN_TRUE_FP8_GATEUP", "separate"),
     },
 )
 
