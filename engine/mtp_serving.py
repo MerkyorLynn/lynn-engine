@@ -255,12 +255,17 @@ def speculative_step_k1_batched(
     #     missing dimension. Accept path is unchanged.
     lm_head_mode = os.environ.get("LYNN_MTP_K2_LM_HEAD_MODE", "").lower()
     accept_source = os.environ.get("LYNN_MTP_K2_ACCEPT_SOURCE", "").lower()
+    commit_source = os.environ.get("LYNN_MTP_K2_COMMIT_SOURCE", "").lower()
     reject_rollback = os.environ.get("LYNN_MTP_K2_REJECT_ROLLBACK", "").lower()
 
     # Full pre-batch snapshot needed by canonical_t1 shadow T=1 chain
     # and by full_state reject rollback. Both share the same snapshot.
     snap_pre_full: dict[str, Any] | None = None
-    if accept_source == "canonical_t1" or reject_rollback == "full_state":
+    if (
+        accept_source == "canonical_t1"
+        or commit_source == "canonical_t1"
+        or reject_rollback == "full_state"
+    ):
         snap_pre_full = runner._snapshot_state(state)
 
     # 1. MTP draft (same as sequential variant — head-internal cost).
@@ -308,17 +313,25 @@ def speculative_step_k1_batched(
     argmax_at_pos0 = int(logits_k2[0, 0].argmax().item())  # base's true prediction for position pending_pos+1
     argmax_at_pos1 = int(logits_k2[0, 1].argmax().item())  # base's prediction for position pending_pos+2
 
-    # M21: optionally derive accept signal from canonical sequential T=1
+    # M21/M23: optionally derive accept signal from canonical sequential T=1
     # shadow decode of pending. K=2 logits stay reported; only the accept
-    # comparison id is swapped.
+    # comparison id is swapped unless commit_source=canonical_t1 below.
+    t1_h_after_pending: torch.Tensor | None = None
+    t1_argmax_after_pending: int | None = None
+    t1_h_after_draft: torch.Tensor | None = None
+    t1_argmax_after_draft: int | None = None
     if accept_source == "canonical_t1":
         assert snap_pre_full is not None
         # Save post-K=2 state so we can return to it after the shadow chain.
         snap_post_k2 = runner._snapshot_state(state)
         runner._restore_state(state, snap_pre_full)
-        _, _, t1_argmax_after_pending = decode_one_to_logits_and_hidden(
+        t1_h_after_pending, _, t1_argmax_after_pending = decode_one_to_logits_and_hidden(
             runner, state, pending_id,
         )
+        if commit_source == "canonical_t1" and draft_id == t1_argmax_after_pending:
+            t1_h_after_draft, _, t1_argmax_after_draft = decode_one_to_logits_and_hidden(
+                runner, state, draft_id,
+            )
         runner._restore_state(state, snap_post_k2)
         accept_signal_id = t1_argmax_after_pending
     else:
@@ -328,6 +341,39 @@ def speculative_step_k1_batched(
     #    if draft equals base's pos-0 argmax → both tokens valid → commit 2
     #    else → only pending was right at pos 0 → commit 1, rollback
     if draft_id == accept_signal_id:
+        if commit_source == "canonical_t1":
+            assert snap_pre_full is not None
+            assert t1_h_after_draft is not None
+            assert t1_argmax_after_draft is not None
+            # M23 diagnostic: commit the exact state produced by the canonical
+            # T=1 chain instead of the K=2 verifier state. This is intentionally
+            # slower, but it tells us whether the remaining batched K=2 exact
+            # drift lives in accept-path state/hidden commit rather than draft
+            # accept-rate math.
+            runner._restore_state(state, snap_pre_full)
+            h_after_pending, _, argmax_after_pending = decode_one_to_logits_and_hidden(
+                runner, state, pending_id,
+            )
+            if draft_id == argmax_after_pending:
+                h_after_draft, _, argmax_after_draft = decode_one_to_logits_and_hidden(
+                    runner, state, draft_id,
+                )
+                return SpeculativeStepResult(
+                    committed_tokens=[pending_id, draft_id],
+                    next_pending_id=argmax_after_draft,
+                    next_base_hidden=h_after_draft,
+                    next_pos=state.seq_len - 1,
+                    accepted=True,
+                    draft_id=draft_id,
+                )
+            return SpeculativeStepResult(
+                committed_tokens=[pending_id],
+                next_pending_id=argmax_after_pending,
+                next_base_hidden=h_after_pending,
+                next_pos=state.seq_len - 1,
+                accepted=False,
+                draft_id=draft_id,
+            )
         return SpeculativeStepResult(
             committed_tokens=[pending_id, draft_id],
             next_pending_id=argmax_at_pos1,
