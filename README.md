@@ -19,9 +19,61 @@
 [![commits](https://img.shields.io/github/commit-activity/m/MerkyorLynn/lynn-engine)](https://github.com/MerkyorLynn/lynn-engine/commits/main)
 [![license](https://img.shields.io/badge/license-TBD-orange)](.)
 
-## 当前状态(2026-05-16)
+## 当前状态(2026-05-20)
 
-Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B A3B final MoE 基座的独立 NVFP4 runtime**:
+**5/20 战略 pivot**:Lynn engine 从产品默认推理底层 → **R&D 持续探索路径**。Lynn 客户端短期投奔 llama.cpp 生态作为默认本地推理底层。完整决策见 [RELEASE_NOTES_20260520.md](RELEASE_NOTES_20260520.md)。
+
+### 5/16-5/20 Spark sm_121 W4A8 FP8 Phase 2 实测信号
+
+5 个 CLI 并行 + 23 commit 推 Wave 2 W4A8 FP8 e2e。最终 retry #4 暴露架构信号:**Python overhead 在 decode dominant**,30 MoE × 8 active expert × per-expert `_scaled_mm` = 240+ kernel launches/token,graph disabled 后每个 launch 吃 full Python/CUDA dispatch overhead。修不掉的 7 号 bug,**需要 vectorized expert dispatch + CUTLASS grouped GEMM + C++ service loop,月级工程量**。
+
+### 35B 横向对比(Spark sm_121 GB10 单流,2026-05-18 实测)
+
+| 路径 | 模型大小 | 单流 TPS | MMLU 500 | GPQA Diamond 198 | 备注 |
+|---|---:|---:|---:|---:|---|
+| Lynn-native NVFP4 W4A16 / lynn-engine | 23 GB | 38.96 | 84.40% | 49.49% | 5/18 baseline |
+| **llama.cpp Q4_K_M-imatrix** | **20 GB** | **69.77** | 83.00% | **50.00%** | 同硬件 1.8× lynn-engine |
+| SGLang BF16 official | 67 GB | 30.14 | 86.40% | 45.45% | reference |
+| Lynn W4A8 FP8(工程探索期) | 35 GB | — | — | — | 架构未完成,见 RELEASE_NOTES |
+
+**关键发现**:35B 量化三档 GPQA 几乎平(BF16 / Q4_K_M-imatrix / Lynn NVFP4 都在 49.5±1pp)。我们以前期待的 "NVFP4 GPQA 优势"在足量样本上不成立。
+
+### 9B Q4_K_M-imatrix 默认 ship 候选(thinking-on excl_pf MMLU 90+ / GPQA 80+ / 5GB)
+
+| 维度 | Lynn 默认 ship 9B Q4_K_M-imatrix |
+|---|---|
+| 模型文件 | **5.3 GB**(Q4_K_M-imatrix GGUF) |
+| llama.cpp runtime | 79 MB(C++ binaries + .so) |
+| **总安装体积** | **5.4 GB 整** |
+| MMLU 100 thinking-on excl_pf | **90.00%**(81/90) |
+| GPQA Diamond 198 thinking-on excl_pf | **81.71%** |
+| Spark sm_121 单流 TPS | 36.80 |
+| Spark sm_121 c=8 concurrent total TPS | **177.54** |
+| Mac / Windows / Linux CUDA | 全平台原生支持 |
+
+**普通用户最直观的卖点 = "本地无限 token"**:9B 跑本地,无 quota / 无 API key / 无跨境延迟,智能体跑一晚不限消费。
+
+### Lynn engine 持续 R&D
+
+- **W4A8 FP8 路径继续 R&D**,门槛拉高:同模型同硬件下,**Lynn engine 速度必须接近或超过 llama.cpp,且质量上有不可替代优势** — 两条门槛全过才回主线
+- **消费 Blackwell 32GB FP4 MMA 卡普及时**,Lynn engine 路径回主线 reset(R6000-class 硬件)
+- **长 ctx 6.77× SGLang 在 16K 上下文** 数据点保留,作为 NVIDIA Pro 用户"高级模式"卖点
+- **MTP K=1 sequential 6/6 @ 26.4 TPS** correctness-clean baseline 保留
+- **Wave 2 全部 commit 留在 main 分支不 revert** — 5 CLI 并行 + 7 bug fix trail + 178s repack + autotune sweep 2160 config 全是真实工程财产
+
+---
+
+> 以下 5/15-5/16 R6000 27B Lynn-native NVFP4 工程记录保留作历史进度参考。当前公开数据 + 默认 ship 配置以本节(2026-05-20)和 [RELEASE_NOTES_20260520](RELEASE_NOTES_20260520.md) 为准。
+
+## 5/15-5/16 R6000 27B Lynn-native NVFP4 工程记录(历史)
+
+5/15 R6000 sm_120a 上 Lynn-native NVFP4 milestone:**107-108 TPS strict default**(P25 512 实测 107.43,P37 + 40/40 prompt 全过 strict),三口径:
+
+- **107.23 TPS** serving replay
+- **103.44 TPS** strict full path 含最终 lm_head(真过 100 的硬数)
+- **99.86 TPS** strict full path no FP4 lm_head
+
+详细 P3 → P108 系列时间线(118.73 TPS R6000 → A100 W4A8 Recovery → SM120a FP4 contract → W4A8 hardware route):
 
 | 项目 | 状态 |
 |---|---|
@@ -29,51 +81,18 @@ Lynn engine 已经从“Qwen 35B 架构复刻”推进到 **Lynn 27B A3B final M
 | **27B A3B Lynn-native NVFP4** | ✅ 20G artifact 已生成并传到 R6000,manifest integrity PASS |
 | **独立加载** | ✅ 不依赖 vLLM / SGLang / TRT-LLM / llama.cpp,直接读 safetensors + Lynn quant manifest |
 | **6-prompt coherent smoke** | ✅ 中文解释 / Python / RoPE-ALiBi / 英文算术 / tool JSON / longctx 全通过 |
-| **当前 R6000 strict full path** | ✅ **118.73 tok/s**(P23:packed NVFP4 MoE + native FP4 lm_head + active MoE retune) |
-| **serving replay ceiling** | ✅ **123.78 tok/s**(40-layer body graph,可稳定复现) |
-| **OpenAI server guard** | ✅ strict tool-call PASS,`<think>` loop fail-pattern guard PASS,补齐 reusable block graph 后 decode **~100 tok/s** |
-| **P10 runner graph-slot gate** | ✅ 6 prompts × 3 prefixes = 18/18 strict PASS,runner graph slot 88.8-103.1 tok/s |
-| **P11 packed-resident memory gate** | ✅ prefill 后释放 **56.47 GiB** BF16 shadow,allocated **81.06 → 24.59 GiB**,greedy ids exact match |
-| **P12 one-shot + graph-after-release gate** | ✅ OpenAI server 首请求释放 **56.47 GiB**;释放后 graph slot 79.5-83.8 tok/s,max_abs=0 |
-| **P13 graph-slot generate wiring** | ✅ `generate()` opt-in 接入 full-token graph slot;多 prompt 证明 future-window 不安全,下一步 state-refresh slot |
-| **P14 state-refresh probe** | ✅ full mutable state roundtrip **0.79ms**,远低于 graph capture 60-105ms |
-| **P15 runtime config audit** | ✅ 关闭全局 `LYNN_PACKED_DECODE`;恢复 **103.48 strict / 107.23 replay**;shared expert packed 路径证伪 |
-| **P85-P88 SM120a FP4 contract** | ✅ blockscaled FP4 MMA / E2M1 shift / CuTe tile layout / 真实 gate-up packed-code tile 全部 PASS |
-| **P89 per-16 scale contract** | ✅ 当前 Lynn-native artifact 可直接走 split16 per-16 scale native-FP4 路线;K32 单 scale 折叠不安全 |
-| **P90 real split16 gate/up kernel** | ✅ 真实 expert116、8 gate + 8 up rows、K=2048 全维度 PASS,max_abs `2.38e-7` |
-| **P91 row-tile sweep** | ✅ 8/16/32/64 行全部 PASS;64 行 median `0.0443ms`,rows/ms 比 8 行提升 **8.3×** |
-| **P92 full gate/up expert** | ✅ 完整 512 gate + 512 up rows PASS,median `0.0502ms`,max_abs `4.77e-7` |
-| **P93 top-k gate/up backend** | ✅ top-k=8 single-launch backend PASS,quantized-reference cosine `0.9999986`;当前略慢于 Triton,不 promote |
-| **P94 active MoE composition** | ✅ P93 gate/up + packed down 端到端 PASS,cosine `0.9999986`;性能几乎打平 Triton,暂不 promote |
-| **P95 down backend sweep** | ✅ native_down_tile1 对 Triton down **2.14×**,全 variant contract PASS |
-| **P96 native-down composition** | ✅ 数值 PASS,但 `0.0830ms` vs Triton `0.0810ms`,不 promote;down 局部胜利被两段调度吃掉 |
-| **P97 interval decomposition** | ✅ P93 gate/up + native_down_tile1 完整 active-MoE **1.113×** vs baseline,候选数值 PASS |
-| **P98 split16 runtime gate** | ❌ backend build PASS,但 graph-on capture FAIL;graph-off `new_ids_all_match=false`,median `0.80×`;不 promote |
-| **P99 activation quant strategy** | ✅ runtime activation quant 不再偷渡进生产;W4A4 归入 A100 MTP/retrain + re-quant 批次 |
-| **P100 native-down runtime gate** | ❌ graph-off retest 仍 `new_ids_all_match=false`;median 仅 `1.049×`;native-down-only 不进默认 |
-| **P101 graph-owned state gate** | ❌ P14-C/P35/P101 均 `pass=false`;replay TPS 好看但 sequence drift,不作为生产 graph 路线 |
-| **P102 mixed-MMA probe** | ❌ sm_120a 没有 BF16/FP16 × E2M1 MMA;E2M1×E2M1 控制组 PASS;155+ 路线必须走 W4A4/activation-aware artifact |
-| **P103 W4A8 hardware route** | ✅ FP8(E4M3/E5M2) activation × E2M1 weight raw/blockscaled atoms 全部 PASS;W4A8+MTP 升为近期主线 |
-| **P104/P105 W4A8 quality gates** | ✅/⚠️ active-MoE 局部门控 AMBER,生成门控 AMBER;不直接 promote 当前 artifact,转 A100 Recovery |
-| **A100 BF16 transfer/inventory** | ✅ 1026/1026 shards,missing 0;resident BF16 load peak **59.10 GiB** on A100-80G |
-| **P106/P108 A100 W4A8 Recovery milestone** | ✅ expert-wise foldable alpha overlay 把 40-layer real-prompt worst active-MoE drift **3.67% → 1.79%**;folded overlay artifact 回测 **1.7836%** vs 原 BF16;6-prompt/48tok generation gate mean prefix **38.67/48**,仍 RED 但明显可训 |
-| **W4A4 MoE fallback policy** | ✅ 坚持 MoE-first;fallback 顺序是 calibration → layer mask → expert rescue → mixed W4A4/W4A8 → QAT-lite → vendor branch → dense last resort |
-| **下一目标** | W4A8 Recovery 继续推进到 generation AMBER/GREEN;MTP 主线改为 Lynn-owned 2048-hidden `qwen3_next_mtp` 一层 predictor + shared lm_head(Qwen3.6 sidecar 5120 hidden,只作结构参考) |
+| **R6000 strict full path(P23)** | ✅ **118.73 tok/s**(packed NVFP4 MoE + native FP4 lm_head + active MoE retune) |
+| **serving replay ceiling** | ✅ **123.78 tok/s**(40-layer body graph) |
+| **R6000 strict default(P25-P37 后)** | ✅ **107-108 tok/s**(P25 512=107.43,P37+40/40 全过 — 真正 ship 数) |
+| **P10-P15 graph slot + state refresh** | ✅ runner graph-slot strict gate,packed-resident memory 56.47GiB shadow release,state-refresh 0.79ms |
+| **P85-P92 SM120a FP4 contract** | ✅ blockscaled FP4 MMA / E2M1 / CuTe tile / 真实 gate-up expert 全 PASS,**max_abs ~e-7** |
+| **P95-P97 active MoE composition** | ✅ active-MoE 1.113× baseline,native_down_tile1 vs Triton 2.14× |
+| **P103 W4A8 hardware route** | ✅ FP8(E4M3/E5M2) × E2M1 raw/blockscaled atoms 全 PASS;W4A8+MTP 升主线 |
+| **P104-P108 A100 W4A8 Recovery** | ✅ alpha overlay folded → 3.67% → 1.79% worst drift;generation AMBER 6-prompt mean prefix 38.67/48 |
+| **5/17 战略 pivot** | 27B 自蒸馏 variable-expert 路线 quality 下降 10%(尤其推理质量)→ pivot 回原版 Qwen3.6-35B-A3B |
+| **5/18-5/20 Spark FP8 Phase 2** | 5 CLI 并行 23 commit;Wave 2 retry #4 暴露 Python overhead 架构信号 → 5/20 pivot 决策 |
 
-当前主力 artifact:
-
-```text
-Lynn 27B A3B variable-pruned MoE Recovery step5000
-├── BF16 final      ~60G  (reference / eval / fallback)
-└── NVFP4 final     ~20G  (Lynn-native runtime artifact)
-```
-
-Naming rule: all new public docs, handoff notes, aliases, and release package
-names should use **Lynn 27B A3B**.  The `A3B` suffix is intentional: this is a
-MoE active-parameter model, and omitting it makes the artifact easy to confuse
-with dense Qwen3.6 27B-family checkpoints.
-
-> 注意:这里的 NVFP4 是 **Lynn-native variable-expert NVFP4**。它不是公开发布用的 compressed-tensors v8-RTN,也不是 GGUF Q4_K_M。通用框架通常不能直接加载这个 variable-pruned artifact,这正是 Lynn engine 要存在的原因。
+**注:5/15 27B 主力 artifact** 为 Lynn 27B A3B variable-pruned MoE Recovery step5000(BF16 ~60G / NVFP4 ~20G,Lynn-native variable-expert format,通用框架不能直接加载)。5/17 路线 pivot 回原版 Qwen3.6-35B-A3B 后,**Lynn 27B 自蒸馏整线弃** — Lynn engine 收敛到为原版模型族提供专项加速(Spark W4A8 FP8 / R6000 NVFP4 native FP4)。
 
 ## 性能进度
 
@@ -306,30 +325,45 @@ BASE 35B-A3B
 
 Recovery v1.1 targeted longctx/chem/sql 已试过,但未取代 step5000:它没有改善 longctx,并拉低总分。因此当前基座选择 **step5000 final**。
 
-## 路线 — R6000 first,Spark second
+## 路线 — Lynn 客户端 llama.cpp 默认 ship + Lynn engine R&D 长期
 
-详见 [`docs/STRATEGY.md`](docs/STRATEGY.md)。简版:
+详见 [`RELEASE_NOTES_20260520.md`](RELEASE_NOTES_20260520.md) 完整决策。**5/20 之后的两条线**:
 
-| 阶段 | 状态 | 目标 |
+### 短期(2-4 周):Lynn 客户端 llama.cpp 集成 ship 路径
+
+| 层 | 角色 | 实现 |
 |---|---|---|
-| **P6** | done | 50TPS 突破:resident graph smoke 63-66TPS |
-| **P7** | done | graph reuse / prewarm / RMSNormGated / serving env,66-68TPS |
-| **P8** | done | 78.8TPS CUDA graph ceiling + 81TPS compile spike |
-| **P9** | done | packed NVFP4 active expert path,逼近 100TPS |
-| **P10** | done/current | native FP4 lm_head + full-path 103TPS,runner graph-slot strict gate |
-| **P11** | done | packed-resident memory lifecycle,56GiB BF16 shadow release 已证明 |
-| **P12** | done/current | one-shot server release gate + release 后 graph slot gate 已过 |
-| **P13** | current | graph-slot generate 接线已过;下一步移除 capture hot path / 生产稳定 100+ |
-| **P14** | current | state-refresh slot route 0.79ms copy-cost 已验证;实现 reusable graph-owned-state slot |
+| **底层推理** | llama.cpp ecosystem | Mac Metal / Windows / Linux CUDA 全平台 + Q4_K_M GGUF |
+| **默认模型** | Qwen3.5-9B Q4_K_M-imatrix(5.3 GB)| 80% 用户 9B 已经够好 |
+| **Pro 模型** | Qwen3.6-35B-A3B Q4_K_M-imatrix(20 GB)| NVIDIA 24GB+ 用户 opt-in,llama.cpp 同栈 |
+| **Lynn 客户端** | 自动硬件 detect + install llama.cpp + 下载模型 + 启 server + 注册 provider + tool-call 门禁 + 本地优先 routing | Electron + brain backend(本仓姊妹仓 `MerkyorLynn/Lynn`)|
+| **Lynn 智能体** | tool routing / 6 层 memory / MCP / skills / 跨模型 fallback | Lynn 真护城河 |
 
-Spark sm_121 分支单独推进,当前质量 gate 已通过、scalar_bridge 约 24TPS;目标是在 Spark 上验证同一 native path 并冲 50+TPS。详见 [`docs/SPARK_OPTIMIZATION_BRANCH_PLAN_20260515.md`](docs/SPARK_OPTIMIZATION_BRANCH_PLAN_20260515.md)。
+**llama.cpp 负责"跑得起来、跑得快、装得小"。Lynn 负责"会用模型、会调工具、会记忆、会自动配置"**。
 
-**已锁定决策**:
-- 推理硬件:**Blackwell sm_12x**(DGX Spark / 5090 / RTX PRO 6000)
-- 推理主格式:**Lynn-native NVFP4**(BF16 仅 reference;GGUF/FP8 是兼容/对外测试资产)
-- 推理范围:**单 prompt + batch=1**(不做 PagedAttention)
-- 模型锁定:**Lynn-27B-A3B variable-pruned family**
-- 定位:**vertical companion** 给 Lynn LoRA + 剪枝训练流水线,**不替 vLLM 当通用引擎**
+### 长期 R&D:Lynn engine NVFP4 / W4A8 FP8 持续探索(本仓主仓)
+
+**回主线门槛**(两条必过):
+1. **速度**:同硬件同模型下,Lynn engine 接近或超过 llama.cpp
+2. **质量**:有不可替代优势(GPQA / long-ctx / 稳定性 stddev / 工具调用等)
+
+**R&D 主要方向**(都在 main 分支保留 commit trail,不 revert):
+
+- **W4A8 FP8 vectorized expert dispatch + CUTLASS grouped GEMM**:绕开 Python decode overhead(Wave 2 retry #4 暴露的架构信号)
+- **C++ service loop**:host gap > GPU compute gap 时再触发(memory `LYNN_ENGINE_CPP_RUST_REWRITE_ROI_20260517` 已分级 3 tier)
+- **R6000-class FP4 MMA 硬件**:消费 Blackwell 32GB 卡上市后,Lynn engine native FP4 路径(5/15 R6000 107-108 TPS strict default)有竞争力
+- **MTP K=1 sequential 6/6 @ 26.4 TPS** correctness-clean baseline 持续磨,等 W4A8 base 稳后叠加
+- **长 ctx 6.77× SGLang at 16K** 数据点保留,作 NVIDIA Pro "高级模式"卖点
+
+### 历史决策已变更(5/20 后失效)
+
+5/15-5/16 锁定的以下决策已在 5/20 后失效:
+
+- ~~推理主格式:Lynn-native NVFP4 only~~ → **生产默认 GGUF Q4_K_M-imatrix(llama.cpp ecosystem);NVFP4 / W4A8 FP8 留 R&D**
+- ~~模型锁定:Lynn-27B-A3B variable-pruned family~~ → **5/17 战略 pivot 回原版 Qwen3.6-35B-A3B + Qwen3.5-9B(质量下降 10% 弃 27B 自蒸馏)**
+- ~~vertical companion 给 Lynn LoRA + 剪枝训练流水线~~ → **Lynn engine 收敛到为原版模型族提供专项加速,LoRA 训练侧独立路线**
+- **推理范围:单 prompt + batch=1** 保留(不做 PagedAttention)— Lynn 客户端用户场景就是单用户,无需 batched serving
+- **推理硬件:Blackwell sm_12x** 保留(DGX Spark / 5090 / R6000 PRO),但优先级降到 R&D
 
 ## 教程 — 即使你不写自己的引擎也值得读
 
