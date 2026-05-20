@@ -59,6 +59,19 @@ and the engine falls back to BF16 for 75% of layers (MoE dominates).
 * Global scale: scalar per expert OR scalar overall — check
   manifest schema. Apply consistently.
 
+**⚠️ HARD output contract** — engine FP8 path keys on these exact
+shapes (`engine/full_forward.py:237-245`):
+
+| Logical key | weight_fp8 shape | weight_fp8_scale shape | notes |
+|---|---|---|---|
+| `mlp.experts.gate_up_proj` | `[E, 2*intermediate, K]` | `[E, 2*intermediate]` | gate scales = `[:, :intermediate]`, up scales = `[:, intermediate:]` |
+| `mlp.experts.down_proj`    | `[E, K, intermediate]`   | `[E, K]`               | per-row over output dim |
+
+DO NOT output flat `[E*N]` scale — the engine slices the 2D scale
+into gate/up halves and indexes by expert id. A flat scale silently
+mismatches with no validation today (loader patched in this V2
+commit to assert, but cleanest is for repack to emit 2D directly).
+
 **Concrete deliverable**:
 1. In `repack_full_dir` (or equivalent), detect 3D `original_shape`
    and dispatch to a new helper `repack_nvfp4_to_fp8_3d`:
@@ -67,7 +80,8 @@ and the engine falls back to BF16 for 75% of layers (MoE dominates).
    * Dequantize to BF16 using per-expert per-row scale.
    * Re-quantize to FP8 E4M3 with **per-expert per-row** scale
      (matches `select_block_config(M=1, K, N)` expectations).
-   * Output FP8 tensor `[E, N, K]` + scale `[E, N]` (F32).
+   * **Output FP8 weight `[E, N, K]` + scale 2D `[E, N]` (F32).**
+     Per the hard contract above — not flat.
 2. Move 3D entries from `deferred_tensors` to `quantized_tensors`
    in the output manifest.
 3. Verification: per-expert cosine vs BF16 dequant of original

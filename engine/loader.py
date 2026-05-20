@@ -194,9 +194,28 @@ def _load_qwen36_layer_lynn_variable_w4a8_fp8(
             + weight_fp8_scale.element_size() * weight_fp8_scale.numel()
         )
         # Restore original shape if 3D (MoE experts flattened in storage).
+        # Contract (see _DISPATCH_FP8_PHASE2_V2_20260520.md): for 3D weight
+        # [E, N, K] the scale must be 2D [E, N]. Defensive reshape if the
+        # repack tool emitted a flat [E*N] scale; raise on size mismatch.
         orig_shape = rec.get("original_shape")
         if orig_shape is not None and len(orig_shape) == 3:
             weight_fp8 = weight_fp8.reshape(orig_shape)
+            expected_scale_shape = (orig_shape[0], orig_shape[1])
+            if weight_fp8_scale.dim() == 1:
+                flat = weight_fp8_scale.numel()
+                if flat != expected_scale_shape[0] * expected_scale_shape[1]:
+                    raise ValueError(
+                        f"FP8 3D scale size mismatch for {logical_key}: "
+                        f"flat scale numel={flat} but weight "
+                        f"{tuple(orig_shape)} expects {expected_scale_shape}"
+                    )
+                weight_fp8_scale = weight_fp8_scale.reshape(expected_scale_shape)
+            elif tuple(weight_fp8_scale.shape) != expected_scale_shape:
+                raise ValueError(
+                    f"FP8 3D scale shape mismatch for {logical_key}: "
+                    f"got {tuple(weight_fp8_scale.shape)}, expected "
+                    f"{expected_scale_shape} for weight {tuple(orig_shape)}"
+                )
         # Store under logical_key short + ``.weight_fp8`` / ``.weight_fp8_scale``
         # suffix — the forward branch keys on this naming.
         short = shorten(logical_key)
