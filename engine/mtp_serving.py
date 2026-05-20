@@ -230,6 +230,25 @@ def speculative_step_k1_batched(
             pending_pos=pending_pos,
         )
 
+    # M21 diagnostic switches (default off):
+    #   LYNN_MTP_K2_LM_HEAD_MODE=bf16
+    #     Force BF16 F.linear for the K=2 verifier's lm_head call even when
+    #     native FP4 lm_head is enabled. Bisects the M11 per-row 1D vs 2D
+    #     quantize_fp4_m1_native suspicion.
+    #   LYNN_MTP_K2_ACCEPT_SOURCE=canonical_t1
+    #     Use a shadow sequential T=1 decode of the pending token to derive
+    #     the accept decision (argmax_after_pending), instead of K=2 pos-0
+    #     logits. K=2 forward still runs and K=2 logits are still computed +
+    #     returned; only the accept comparison switches. Bisects accept-
+    #     argmax drift from state/next_base_hidden drift.
+    lm_head_mode = os.environ.get("LYNN_MTP_K2_LM_HEAD_MODE", "").lower()
+    accept_source = os.environ.get("LYNN_MTP_K2_ACCEPT_SOURCE", "").lower()
+
+    # Full pre-batch snapshot needed only for canonical_t1 shadow T=1 chain.
+    snap_pre_full: dict[str, Any] | None = None
+    if accept_source == "canonical_t1":
+        snap_pre_full = runner._snapshot_state(state)
+
     # 1. MTP draft (same as sequential variant — head-internal cost).
     draft_logits = runner._mtp_draft_logits(
         base_hidden=pending_base_hidden,
@@ -259,8 +278,15 @@ def speculative_step_k1_batched(
     state.seq_len += 2
     h_norm_k2 = _rms_norm(h_k2, runner.outside["model.language_model.norm.weight"])
     # MTP K=2 needs logits for both positions. Normal decode/generate keeps the
-    # historical final-token-only lm_head contract.
-    logits_k2 = runner._lm_head_logits(h_norm_k2, all_positions=True)
+    # historical final-token-only lm_head contract. Per-row native FP4 lm_head
+    # is the M11 path that M21 suspects of ULP drift; force BF16 when the
+    # diagnostic switch asks.
+    if lm_head_mode == "bf16":
+        # Direct BF16 F.linear over [B, 2, D] -> [B, 2, V]; bypasses native
+        # FP4 quantization + per-row loop entirely.
+        logits_k2 = F.linear(h_norm_k2, runner.outside["lm_head.weight"])
+    else:
+        logits_k2 = runner._lm_head_logits(h_norm_k2, all_positions=True)
     if logits_k2.ndim == 2:
         # Native FP4 lm_head squeezes [B, T, D] → [B*T, V]; un-batch back to [B, T, V].
         logits_k2 = logits_k2.view(h_k2.shape[0], h_k2.shape[1], -1)
@@ -268,10 +294,26 @@ def speculative_step_k1_batched(
     argmax_at_pos0 = int(logits_k2[0, 0].argmax().item())  # base's true prediction for position pending_pos+1
     argmax_at_pos1 = int(logits_k2[0, 1].argmax().item())  # base's prediction for position pending_pos+2
 
+    # M21: optionally derive accept signal from canonical sequential T=1
+    # shadow decode of pending. K=2 logits stay reported; only the accept
+    # comparison id is swapped.
+    if accept_source == "canonical_t1":
+        assert snap_pre_full is not None
+        # Save post-K=2 state so we can return to it after the shadow chain.
+        snap_post_k2 = runner._snapshot_state(state)
+        runner._restore_state(state, snap_pre_full)
+        _, _, t1_argmax_after_pending = decode_one_to_logits_and_hidden(
+            runner, state, pending_id,
+        )
+        runner._restore_state(state, snap_post_k2)
+        accept_signal_id = t1_argmax_after_pending
+    else:
+        accept_signal_id = argmax_at_pos0
+
     # 4. Accept rule (P118 K=2 commit math, adapted to batched):
     #    if draft equals base's pos-0 argmax → both tokens valid → commit 2
     #    else → only pending was right at pos 0 → commit 1, rollback
-    if draft_id == argmax_at_pos0:
+    if draft_id == accept_signal_id:
         return SpeculativeStepResult(
             committed_tokens=[pending_id, draft_id],
             next_pending_id=argmax_at_pos1,
