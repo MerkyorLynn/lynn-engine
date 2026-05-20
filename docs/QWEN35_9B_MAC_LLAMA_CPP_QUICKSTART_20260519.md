@@ -2,25 +2,30 @@
 
 Date: 2026-05-19
 
-## 60-Second Setup (macOS Apple Silicon)
+## Recommended Setup (macOS Apple Silicon)
 
 ```bash
 # 1. Install llama.cpp (one-time)
 brew install llama.cpp
 
-# 2. Download model (~5.5 GB, one-time)
-mkdir -p ~/Models
-aria2c -x 16 -s 16 -c -d ~/Models \
-  'https://huggingface.co/Qwen/Qwen3.5-9B-GGUF/resolve/main/qwen3.5-9b-q4_k_m.gguf'
+# 2. Download, configure, and run a transient smoke test
+bash scripts/local_qwen35_9b_setup.sh --download --smoke
 
-# 3. Start the local endpoint
+# 3. Start the persistent local endpoint
+source ~/Models/Lynn/Qwen3.5-9B/lynn-qwen35-9b-q4km.env
 bash scripts/local_qwen35_9b_q4km_llamacpp_server.sh
-
-# 4. (In another terminal) Verify it works
-bash scripts/local_qwen35_9b_q4km_smoke.sh
 ```
 
 That's it. Your endpoint is live at `http://127.0.0.1:18099/v1`.
+
+The setup script writes a reusable env file:
+
+```bash
+~/Models/Lynn/Qwen3.5-9B/lynn-qwen35-9b-q4km.env
+```
+
+It contains `GGUF`, `LLAMA_SERVER`, `OPENAI_BASE_URL`, `OPENAI_API_KEY`, and
+the served model name.
 
 ## Connect Your Coding Agent
 
@@ -88,7 +93,13 @@ aider --openai-api-base http://127.0.0.1:18099/v1 \
 
 ## Verify Offline (No Model Needed)
 
-To check the script resolves paths and would start correctly:
+To check setup decisions without downloading or starting anything:
+
+```bash
+bash scripts/local_qwen35_9b_setup.sh --dry-run
+```
+
+To check the server launcher resolves paths and would start correctly:
 
 ```bash
 DRY_RUN=1 bash scripts/local_qwen35_9b_q4km_llamacpp_server.sh

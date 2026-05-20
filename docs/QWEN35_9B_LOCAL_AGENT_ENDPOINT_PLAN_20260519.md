@@ -50,6 +50,23 @@ This is not a retreat from Lynn Engine. It splits the product correctly:
 
 ## Local Launcher
 
+Recommended first-run setup:
+
+```bash
+brew install llama.cpp
+bash scripts/local_qwen35_9b_setup.sh --download --smoke
+source ~/Models/Lynn/Qwen3.5-9B/lynn-qwen35-9b-q4km.env
+bash scripts/local_qwen35_9b_q4km_llamacpp_server.sh
+```
+
+The setup script writes:
+
+```text
+~/Models/Lynn/Qwen3.5-9B/lynn-qwen35-9b-q4km.env
+```
+
+The app can consume this env contract or mirror the same fields in its settings.
+
 The local launcher lives at:
 
 ```bash

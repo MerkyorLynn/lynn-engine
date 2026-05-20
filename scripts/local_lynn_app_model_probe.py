@@ -119,6 +119,7 @@ def build_recommendation(model_root: Path) -> dict[str, Any]:
                     "sha256",
                     "llama_cpp_v1_models",
                     "chat_32_tokens",
+                    "tool_call_weather",
                 ],
             )
         )

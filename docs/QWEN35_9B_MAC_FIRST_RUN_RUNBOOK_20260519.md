@@ -56,6 +56,18 @@ fallback_provider = mimo
 Qwen3.5-9B Q4_K_M imatrix GGUF
 ```
 
+首发推荐直接走一键 setup：
+
+```bash
+brew install llama.cpp
+bash scripts/local_qwen35_9b_setup.sh --download --smoke
+source ~/Models/Lynn/Qwen3.5-9B/lynn-qwen35-9b-q4km.env
+bash scripts/local_qwen35_9b_q4km_llamacpp_server.sh
+```
+
+`local_qwen35_9b_setup.sh` 会负责模型发现/下载、`llama-server` 检测、
+env 文件生成和可选 smoke。下面的手动下载命令只作为高级排障路径保留。
+
 建议本地目录：
 
 ```text
