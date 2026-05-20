@@ -66,15 +66,111 @@ def _expert_ffn(x: torch.Tensor, w: dict, expert_id: int, *, w4a8_mode: str = "o
     return F.linear(inter, w[f"mlp.experts.{expert_id}.down_proj.weight"])
 
 
+def moe_forward_decode_fp8(h, w, cfg):
+    """Decode-time MoE forward using the V2 Spark FP8 path.
+
+    Auto-selected by ``moe_forward_decode_optimized`` when V2 FP8 keys
+    (``mlp.experts.gate_up_proj.weight_fp8`` etc.) are present in the
+    weight dict. Mirrors the prefill FP8 branch in
+    ``engine/full_forward.py::_moe_forward`` but iterates only the
+    active experts (decode optimization).
+
+    Uses ``fp8_moe_expert_gate_up_silu_fused`` (Triton MoE-expert
+    variant kernel from codebuddy, 1.82-2.10x BF16 at N=1408) for the
+    gate/up + SwiGLU and ``torch._scaled_mm`` for the down projection.
+    Shared expert routed through ``fp8_gate_up_silu_fused`` (dense
+    variant, autotune block dispatch via ``auto_block=True``).
+    """
+    from triton_kernels.spark_fp8_moe_expert_fused import fp8_moe_expert_gate_up_silu_fused
+    from triton_kernels.spark_fp8_gate_up_fused import fp8_gate_up_silu_fused
+
+    B, T, D = h.shape
+    K = cfg["num_experts_per_tok"]
+    h_flat = h.view(B * T, D)
+
+    router_logits = F.linear(h_flat, w["mlp.gate.weight"])
+    routing_weights, expert_indices = torch.topk(router_logits, K, dim=-1)
+    routing_weights = F.softmax(routing_weights, dim=-1, dtype=torch.float32).to(h.dtype)
+    active_experts = torch.unique(expert_indices).tolist()
+
+    w_gate_up_fp8 = w["mlp.experts.gate_up_proj.weight_fp8"]                      # [E, 2I, K]
+    w_gate_up_scale = w["mlp.experts.gate_up_proj.weight_fp8_scale"]              # [E, 2I]
+    intermediate = w_gate_up_fp8.shape[1] // 2
+    w_gate_fp8 = w_gate_up_fp8[:, :intermediate, :].contiguous()
+    w_up_fp8 = w_gate_up_fp8[:, intermediate:, :].contiguous()
+    w_gate_scale = w_gate_up_scale[:, :intermediate].contiguous().to(torch.float32)
+    w_up_scale = w_gate_up_scale[:, intermediate:].contiguous().to(torch.float32)
+    w_down_fp8 = w["mlp.experts.down_proj.weight_fp8"]                            # [E, K, I]
+    w_down_scale = w["mlp.experts.down_proj.weight_fp8_scale"]                    # [E, K]
+
+    moe_out = torch.zeros_like(h_flat)
+    for e in active_experts:
+        mask = (expert_indices == e)
+        token_idx, slot_idx = mask.nonzero(as_tuple=True)
+        x_e = h_flat[token_idx]
+        inter_bf16 = fp8_moe_expert_gate_up_silu_fused(
+            x_e, w_gate_fp8, w_up_fp8, w_gate_scale, w_up_scale, expert_id=e,
+        )
+        inter_max = inter_bf16.abs().amax(dim=-1, keepdim=True).clamp_min(1.0e-12)
+        inter_scale = (inter_max / 448.0).to(torch.float32)
+        inter_fp8 = (inter_bf16.to(torch.float32) / inter_scale).to(torch.float8_e4m3fn)
+        ffn_e = torch._scaled_mm(
+            inter_fp8,
+            w_down_fp8[e].t(),
+            scale_a=inter_scale,
+            scale_b=w_down_scale[e].view(1, -1).to(torch.float32),
+            out_dtype=torch.bfloat16,
+        )
+        weight_e = routing_weights[token_idx, slot_idx].unsqueeze(-1)
+        moe_out.index_add_(0, token_idx, ffn_e * weight_e)
+
+    if "mlp.shared_expert.gate_proj.weight_fp8" in w:
+        shared_inter = fp8_gate_up_silu_fused(
+            h_flat,
+            w["mlp.shared_expert.gate_proj.weight_fp8"],
+            w["mlp.shared_expert.up_proj.weight_fp8"],
+            w["mlp.shared_expert.gate_proj.weight_fp8_scale"].to(torch.float32),
+            w["mlp.shared_expert.up_proj.weight_fp8_scale"].to(torch.float32),
+            auto_block=True,
+        )
+        inter_max_s = shared_inter.abs().amax(dim=-1, keepdim=True).clamp_min(1.0e-12)
+        inter_scale_s = (inter_max_s / 448.0).to(torch.float32)
+        inter_fp8_s = (shared_inter.to(torch.float32) / inter_scale_s).to(torch.float8_e4m3fn)
+        shared_ffn = torch._scaled_mm(
+            inter_fp8_s,
+            w["mlp.shared_expert.down_proj.weight_fp8"].t(),
+            scale_a=inter_scale_s,
+            scale_b=w["mlp.shared_expert.down_proj.weight_fp8_scale"].view(1, -1).to(torch.float32),
+            out_dtype=torch.bfloat16,
+        )
+        if "mlp.shared_expert_gate.weight" in w:
+            shared_gate = torch.sigmoid(F.linear(h_flat, w["mlp.shared_expert_gate.weight"]))
+            shared_ffn = shared_ffn * shared_gate
+        moe_out = moe_out + shared_ffn
+
+    return moe_out.view(B, T, D)
+
+
 def moe_forward_decode_optimized(h, w, cfg):
     """MoE forward for the decode path (T=1).
 
     Skips the empty-mask Python loop overhead. Iterates only the up-to-K
     unique active experts.
 
+    Auto-dispatches to ``moe_forward_decode_fp8`` if V2 Spark FP8 weight
+    keys are present (Phase 2 FP8 path). Otherwise falls through to the
+    BF16 / NVFP4 / W4A8-fake-quant path below.
+
     h: [B=1, T=1, hidden]
     Returns: [B=1, T=1, hidden]
     """
+    # Phase 2 V2 FP8 decode dispatch.
+    fp8_disabled = os.environ.get("LYNN_DISABLE_W4A8_FP8_PATH", "0").lower() in {"1", "true", "yes"}
+    if (not fp8_disabled
+            and "mlp.experts.gate_up_proj.weight_fp8" in w
+            and "mlp.experts.down_proj.weight_fp8" in w):
+        return moe_forward_decode_fp8(h, w, cfg)
+
     B, T, D = h.shape
     K = cfg["num_experts_per_tok"]
 
