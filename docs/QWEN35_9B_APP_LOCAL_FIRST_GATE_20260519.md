@@ -15,7 +15,26 @@ This document does not duplicate `scripts/local_lynn_app_model_probe.py`; it rec
 
 ## Product entrypoint
 
-The app/installer can delegate the whole first-run flow to the release script:
+The app/installer should not ask ordinary users to paste shell commands. It
+should call the client bootstrap helper and present a normal authorization UI.
+
+Plan call:
+
+```bash
+python3 scripts/local_qwen35_9b_client_bootstrap.py plan
+```
+
+The returned JSON lists actions such as `install_runtime`, `download_model`,
+`register_provider`, and `smoke_and_start`. The client shows those actions,
+download size, destination path, and MIMO fallback guarantee to the user.
+
+After the user authorizes:
+
+```bash
+python3 scripts/local_qwen35_9b_client_bootstrap.py execute --yes-user-authorized --start
+```
+
+Internally, the bootstrap delegates to the release setup script:
 
 ```bash
 bash scripts/local_qwen35_9b_setup.sh --install-runtime --download --smoke --serve

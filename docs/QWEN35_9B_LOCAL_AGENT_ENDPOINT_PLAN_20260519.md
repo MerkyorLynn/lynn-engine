@@ -50,7 +50,15 @@ This is not a retreat from Lynn Engine. It splits the product correctly:
 
 ## Local Launcher
 
-Recommended first-run setup:
+The product path is app-owned. The user authorizes local setup in the Lynn
+client; the client calls:
+
+```bash
+python3 scripts/local_qwen35_9b_client_bootstrap.py plan
+python3 scripts/local_qwen35_9b_client_bootstrap.py execute --yes-user-authorized --start
+```
+
+Developer first-run setup:
 
 ```bash
 bash scripts/local_qwen35_9b_setup.sh --install-runtime --download --smoke

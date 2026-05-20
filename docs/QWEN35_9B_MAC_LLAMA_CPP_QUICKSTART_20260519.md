@@ -4,6 +4,16 @@ Date: 2026-05-19
 
 ## Recommended Setup (macOS Apple Silicon)
 
+For the Lynn desktop app, the user should click an in-app authorization button.
+The app calls:
+
+```bash
+python3 scripts/local_qwen35_9b_client_bootstrap.py plan
+python3 scripts/local_qwen35_9b_client_bootstrap.py execute --yes-user-authorized --start
+```
+
+The raw shell entrypoint below is for developers and packaging tests:
+
 ```bash
 # 1. Install llama.cpp if missing, download, register, and run a smoke test
 bash scripts/local_qwen35_9b_setup.sh --install-runtime --download --smoke
