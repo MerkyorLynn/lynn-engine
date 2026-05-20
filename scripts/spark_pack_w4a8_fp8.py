@@ -23,16 +23,26 @@ V1 scope (this file, ``full-dir`` subcommand):
     2D ``quantized_tensors`` entry, copy every ``kept_tensors`` entry,
     write a parallel output dir with new shards + new manifest (schema
     ``lynn-variable-w4a8-fp8-v1``).
-  * 3D MoE expert weights (``mlp.experts.gate_up_proj``,
-    ``mlp.experts.down_proj``) are intentionally deferred: the FP8 layout
-    for the flattened-experts storage is still being designed, so the
-    tool emits an explicit ``deferred_tensors`` map in the output
-    manifest instead of guessing.
 
-V2 scope (later, separate commit):
+V2 scope (current — 3D MoE expert weight repack):
+  * Adds ``repack_nvfp4_to_fp8_3d`` for MoE expert weights stored
+    flattened as ``[prod(original_shape[:-1]), K/2]`` + scale
+    ``[prod(original_shape[:-1]), K/16]``. Logical shape ``[E, N, K]``
+    is restored before re-quantization; output is FP8 ``[E, N, K]``
+    + per-expert per-row scale ``[E, N]`` (2D).
+  * Engine FP8 MoE path (``engine/full_forward.py::_moe_forward``)
+    consumes this layout directly: ``expert_id`` slices the 3D weight,
+    ``[:, :intermediate]`` / ``[:, intermediate:]`` split the
+    gate_up scale.
+  * Output manifest puts 3D entries into ``quantized_tensors`` (no
+    longer ``deferred_tensors``).
+
+V3 scope (later, separate commit):
   * Col-major storage layout for cuBLASLt FP8 GEMM sweet spot.
-  * Fused gate+up concatenated weight packing.
-  * MoE expert FP8 layout once Triton expert kernel design lands.
+  * Fused gate+up concatenated weight packing for shared-expert /
+    dense FFN.
+  * Native MoE kernel epilogue that emits FP8 intermediate directly
+    so down_proj skips the BF16→FP8 cast.
 """
 from __future__ import annotations
 
@@ -199,6 +209,91 @@ def repack_nvfp4_to_fp8(
     )
 
 
+def repack_nvfp4_to_fp8_3d(
+    weight_packed: torch.Tensor,        # [E*N, K/2] uint8 (flattened-rows storage)
+    weight_scale: torch.Tensor,         # [E*N, K/16] BF16/FP32
+    weight_global_scale: torch.Tensor | None,
+    original_shape: list[int],          # [E, N, K]
+    *,
+    scale_granularity: str = "per_row",
+) -> RepackResult:
+    """Offline NVFP4 → FP8 E4M3 repack for 3D MoE expert weight.
+
+    The Lynn-native packed artifact stores 3D ``[E, N, K]`` MoE expert
+    weights as flattened rows ``[E*N, K/2]`` + ``[E*N, K/16]`` scale.
+    This function restores the logical 3D shape, computes a per-expert
+    per-row FP8 scale, and emits ``[E, N, K]`` FP8 weight + ``[E, N]``
+    F32 scale (matching the engine FP8 MoE forward contract documented
+    in ``_DISPATCH_FP8_PHASE2_V2_20260520.md``).
+
+    Args:
+        weight_packed: uint8 [E*N, K/2] flattened NVFP4 packed.
+        weight_scale: BF16/FP32 [E*N, K/16] per-group scale.
+        weight_global_scale: optional scalar global scale.
+        original_shape: 3-element list [E, N, K] for the logical layout.
+        scale_granularity: must be ``"per_row"`` (only mode the
+            engine FP8 MoE path consumes today).
+
+    Returns:
+        :class:`RepackResult` with ``fp8_weight`` shape [E, N, K],
+        ``fp8_scale`` shape [E, N].
+    """
+    if scale_granularity != "per_row":
+        raise ValueError(
+            "3D MoE expert repack only supports per_row scale granularity "
+            "(engine FP8 contract: scale shape [E, N])"
+        )
+    if len(original_shape) != 3:
+        raise ValueError(
+            f"original_shape must be 3-element [E, N, K]; got {original_shape!r}"
+        )
+    E, N, K = int(original_shape[0]), int(original_shape[1]), int(original_shape[2])
+
+    # 1. Dequant in flat 2D form (matches loader's slow path exactly).
+    bf16_flat = dequantize_nvfp4(
+        weight_packed, weight_scale, weight_global_scale, output_dtype=torch.bfloat16,
+    )
+    if tuple(bf16_flat.shape) != (E * N, K):
+        raise ValueError(
+            f"dequant shape mismatch: got {tuple(bf16_flat.shape)}, "
+            f"expected ({E*N}, {K}) from original_shape={original_shape}"
+        )
+
+    # 2. Reshape to 3D [E, N, K].
+    bf16_3d = bf16_flat.reshape(E, N, K)
+    bf16_norm = float(bf16_3d.float().flatten().norm().item())
+
+    # 3. Per-expert per-row FP8 scale [E, N].
+    bf16_f = bf16_3d.float()
+    per_row_max = bf16_f.abs().amax(dim=-1, keepdim=True).clamp_min(1.0e-12)  # [E, N, 1]
+    fp8_scale_3d = per_row_max / FP8_E4M3_MAX                                 # [E, N, 1]
+    fp8_scale_out = fp8_scale_3d.squeeze(-1).contiguous()                     # [E, N] f32
+
+    # 4. Quantize BF16 → FP8 E4M3.
+    fp8_weight = (bf16_f / fp8_scale_3d).to(torch.float8_e4m3fn).contiguous()  # [E, N, K]
+
+    # 5. Verify round-trip vs BF16 (FP64 accumulate — large MoE tensors
+    # are easily 700M+ elements and overflow FP32 cosine norm).
+    fp8_roundtrip = fp8_weight.to(torch.float32) * fp8_scale_3d
+    diff = (fp8_roundtrip - bf16_f).flatten()
+    max_abs = float(diff.abs().max().item())
+    af = fp8_roundtrip.flatten().double()
+    bf = bf16_f.flatten().double()
+    dot = float((af * bf).sum().item())
+    na = float(af.norm().item())
+    nb = float(bf.norm().item())
+    cos = dot / (na * nb) if na > 0 and nb > 0 else float("nan")
+
+    return RepackResult(
+        fp8_weight=fp8_weight,
+        fp8_scale=fp8_scale_out,
+        scale_granularity="per_row",
+        bf16_intermediate_norm=bf16_norm,
+        diff_max_abs_vs_bf16=max_abs,
+        cosine_vs_bf16=cos,
+    )
+
+
 def synthetic_nvfp4(
     out_features: int,
     in_features: int,
@@ -232,7 +327,7 @@ def synthetic_nvfp4(
 def self_test() -> int:
     """Self-test: synthetic NVFP4 → FP8 repack, verify cos > 0.999."""
     torch.manual_seed(0)
-    print("[spark_pack_w4a8_fp8] running self-test on synthetic NVFP4...")
+    print("[spark_pack_w4a8_fp8] running 2D self-test on synthetic NVFP4...")
     shapes = [
         (256, 2048),     # MoE expert gate/up size
         (2048, 6144),    # shared expert fan-in
@@ -254,6 +349,36 @@ def self_test() -> int:
             )
             if not cos_ok:
                 overall_ok = False
+
+    # V2: 3D MoE expert test cases.
+    print("[spark_pack_w4a8_fp8] running 3D MoE self-test...")
+    moe_shapes = [
+        (8, 256, 2048),    # small MoE: 8 experts × 256 intermediate × 2048 hidden
+        (128, 2816, 2048), # Qwen3.6-35B-A3B gate_up: 128 experts × 2*1408 × 2048
+        (128, 2048, 1408), # Qwen3.6-35B-A3B down: 128 experts × 2048 × 1408
+    ]
+    for E, N, K in moe_shapes:
+        # Build synthetic flat packed [E*N, K/2] + scale [E*N, K/16]
+        flat_packed, flat_scale = synthetic_nvfp4(E * N, K)
+        # Random scalar global_scale
+        global_scale = torch.tensor(0.5, dtype=torch.float32)
+        result = repack_nvfp4_to_fp8_3d(
+            flat_packed, flat_scale, global_scale, [E, N, K],
+            scale_granularity="per_row",
+        )
+        cos_ok = result.cosine_vs_bf16 > 0.999
+        weight_shape_ok = tuple(result.fp8_weight.shape) == (E, N, K)
+        scale_shape_ok = tuple(result.fp8_scale.shape) == (E, N)
+        all_ok = cos_ok and weight_shape_ok and scale_shape_ok
+        print(
+            f"  shape=({E},{N},{K}): "
+            f"cos={result.cosine_vs_bf16:.6f} max_abs={result.diff_max_abs_vs_bf16:.4e} "
+            f"weight_shape={tuple(result.fp8_weight.shape)} "
+            f"scale_shape={tuple(result.fp8_scale.shape)} "
+            f"{'OK' if all_ok else 'FAIL'}"
+        )
+        if not all_ok:
+            overall_ok = False
 
     print(f"[spark_pack_w4a8_fp8] self-test {'PASSED' if overall_ok else 'FAILED'}")
     return 0 if overall_ok else 1
@@ -397,19 +522,27 @@ def _safetensors_metadata_total_size(tensors: dict[str, torch.Tensor]) -> int:
 
 
 def _is_repackable(record: dict[str, Any]) -> tuple[bool, str | None]:
-    """Decide whether a manifest entry is a 2D weight we can FP8-repack.
+    """Decide whether a manifest entry is a weight we can FP8-repack.
 
     Returns (True, None) if repackable; (False, reason) otherwise.
+
+    V2 (2026-05-20): 3D MoE expert weights ``[E, N, K]`` flattened as
+    ``[E*N, K/2]`` are now repackable via :func:`repack_nvfp4_to_fp8_3d`.
     """
     shape = list(record.get("original_shape") or [])
     if len(shape) == 2:
+        return True, None
+    if len(shape) == 3:
+        # MoE expert: ``mlp.experts.gate_up_proj`` [E, 2*I, K] or
+        # ``mlp.experts.down_proj`` [E, K, I]. Engine FP8 forward
+        # consumes the 3D layout directly via expert_id slicing.
         return True, None
     if len(shape) == 0:
         return False, "no original_shape recorded"
     if len(shape) == 1:
         return False, "1D weight — unexpected for matrix MMA path"
-    if len(shape) >= 3:
-        return False, f"non-2D original_shape {shape} (MoE expert / vision tile — FP8 layout TBD)"
+    if len(shape) >= 4:
+        return False, f"4D+ original_shape {shape} (vision tile / unknown layout)"
     return False, f"unexpected original_shape rank {len(shape)}"
 
 
@@ -534,9 +667,16 @@ def repack_full_dir(
             scale = scale_handle.get_tensor(scale_key)
             global_scale = global_handle.get_tensor(global_scale_key)
 
-            result = repack_nvfp4_to_fp8(
-                packed, scale, global_scale, scale_granularity=scale_granularity,
-            )
+            if len(original_shape) == 3:
+                # V2 path: MoE expert 3D weight (flattened storage).
+                result = repack_nvfp4_to_fp8_3d(
+                    packed, scale, global_scale, original_shape,
+                    scale_granularity=scale_granularity,
+                )
+            else:
+                result = repack_nvfp4_to_fp8(
+                    packed, scale, global_scale, scale_granularity=scale_granularity,
+                )
             cos = result.cosine_vs_bf16
             cos_min = min(cos_min, cos)
             cos_max = max(cos_max, cos)
