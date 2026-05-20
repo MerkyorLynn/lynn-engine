@@ -257,14 +257,32 @@ def speculative_step_k1_batched(
     accept_source = os.environ.get("LYNN_MTP_K2_ACCEPT_SOURCE", "").lower()
     commit_source = os.environ.get("LYNN_MTP_K2_COMMIT_SOURCE", "").lower()
     reject_rollback = os.environ.get("LYNN_MTP_K2_REJECT_ROLLBACK", "").lower()
+    # M24 diagnostic switch (default off):
+    #   LYNN_MTP_K2_COMMIT_REPAIR={hidden, next_pending, hidden_next_pending, state, full_canonical}
+    #     On ACCEPT path, run a shadow canonical sequential T=1 chain
+    #     (pending then draft) from the pre-K=2 state and use selected
+    #     fields from it to repair the K=2 commit result:
+    #       hidden               — replace next_base_hidden only, keep K=2 state
+    #       next_pending         — replace next_pending_id only, keep K=2 state
+    #       hidden_next_pending  — replace both, keep K=2 state (cheap-repair test)
+    #       state                — replace state via canonical T=1 chain end-state
+    #       full_canonical       — alias for commit_source=canonical_t1 (M23)
+    #     Reject path is unchanged. Bisects which K=2 commit component
+    #     needs canonical replacement. M24 shrinks the M23 full-canonical
+    #     slow path into the minimal repair component that restores 6/6
+    #     exact at the cheapest cost.
+    commit_repair = os.environ.get("LYNN_MTP_K2_COMMIT_REPAIR", "").lower()
 
-    # Full pre-batch snapshot needed by canonical_t1 shadow T=1 chain
-    # and by full_state reject rollback. Both share the same snapshot.
+    # Full pre-batch snapshot needed by canonical_t1 shadow T=1 chain,
+    # full_state reject rollback, and any commit_repair mode (which all
+    # need to re-run a canonical T=1 chain from pre-K=2 state). All share
+    # the same snapshot.
     snap_pre_full: dict[str, Any] | None = None
     if (
         accept_source == "canonical_t1"
         or commit_source == "canonical_t1"
         or reject_rollback == "full_state"
+        or commit_repair in {"hidden", "next_pending", "hidden_next_pending", "state", "full_canonical"}
     ):
         snap_pre_full = runner._snapshot_state(state)
 
@@ -341,6 +359,85 @@ def speculative_step_k1_batched(
     #    if draft equals base's pos-0 argmax → both tokens valid → commit 2
     #    else → only pending was right at pos 0 → commit 1, rollback
     if draft_id == accept_signal_id:
+        # M24: diagnostic commit_repair (opt-in). Each mode runs a shadow
+        # canonical T=1 chain to compute the would-be-canonical fields,
+        # then selectively replaces the K=2 commit outputs. K=2 forward
+        # already ran (state.seq_len += 2; KV[pre, pre+1] written; layer
+        # recurrent/conv mutated) — for hidden/next_pending/hidden_next_pending
+        # we preserve that state; for state/full_canonical we discard it
+        # and use the canonical T=1 chain's state as the post-step state.
+        if commit_repair == "full_canonical":
+            assert snap_pre_full is not None
+            runner._restore_state(state, snap_pre_full)
+            h_ap, _, am_ap = decode_one_to_logits_and_hidden(runner, state, pending_id)
+            if draft_id == am_ap:
+                h_ad, _, am_ad = decode_one_to_logits_and_hidden(runner, state, draft_id)
+                return SpeculativeStepResult(
+                    committed_tokens=[pending_id, draft_id],
+                    next_pending_id=am_ad,
+                    next_base_hidden=h_ad,
+                    next_pos=state.seq_len - 1,
+                    accepted=True,
+                    draft_id=draft_id,
+                )
+            # Canonical T=1 disagrees — fall back to T=1 single-commit.
+            return SpeculativeStepResult(
+                committed_tokens=[pending_id],
+                next_pending_id=am_ap,
+                next_base_hidden=h_ap,
+                next_pos=state.seq_len - 1,
+                accepted=False,
+                draft_id=draft_id,
+            )
+
+        if commit_repair == "state":
+            # K=2's accept signal already passed; replace K=2 state with the
+            # canonical T=1 chain end-state. K=2 logits are NOT re-checked
+            # (per M24 design — that's what canonical_t1 accept_source is for).
+            assert snap_pre_full is not None
+            runner._restore_state(state, snap_pre_full)
+            decode_one_to_logits_and_hidden(runner, state, pending_id)
+            h_ad, _, am_ad = decode_one_to_logits_and_hidden(runner, state, draft_id)
+            return SpeculativeStepResult(
+                committed_tokens=[pending_id, draft_id],
+                next_pending_id=am_ad,
+                next_base_hidden=h_ad,
+                next_pos=state.seq_len - 1,
+                accepted=True,
+                draft_id=draft_id,
+            )
+
+        if commit_repair in {"hidden", "next_pending", "hidden_next_pending"}:
+            # Cheap repair: keep K=2 state (KV writes + recurrent/conv) and
+            # only replace selected output fields. Tests whether K=2 state
+            # is correct and only the next_pending_id / next_base_hidden
+            # extraction is off.
+            assert snap_pre_full is not None
+            snap_post_k2 = runner._snapshot_state(state)
+            runner._restore_state(state, snap_pre_full)
+            decode_one_to_logits_and_hidden(runner, state, pending_id)
+            h_ad_t1, _, am_ad_t1 = decode_one_to_logits_and_hidden(runner, state, draft_id)
+            runner._restore_state(state, snap_post_k2)
+
+            next_pending_repaired = (
+                am_ad_t1
+                if commit_repair in {"next_pending", "hidden_next_pending"}
+                else argmax_at_pos1
+            )
+            next_base_repaired = (
+                h_ad_t1
+                if commit_repair in {"hidden", "hidden_next_pending"}
+                else h_k2[:, 1:2, :].contiguous()
+            )
+            return SpeculativeStepResult(
+                committed_tokens=[pending_id, draft_id],
+                next_pending_id=next_pending_repaired,
+                next_base_hidden=next_base_repaired,
+                next_pos=state.seq_len - 1,
+                accepted=True,
+                draft_id=draft_id,
+            )
+
         if commit_source == "canonical_t1":
             assert snap_pre_full is not None
             assert t1_h_after_draft is not None
