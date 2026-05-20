@@ -75,14 +75,18 @@ def moe_forward_decode_fp8(h, w, cfg):
     ``engine/full_forward.py::_moe_forward`` but iterates only the
     active experts (decode optimization).
 
-    Uses ``fp8_moe_expert_gate_up_silu_fused`` (Triton MoE-expert
-    variant kernel from codebuddy, 1.82-2.10x BF16 at N=1408) for the
-    gate/up + SwiGLU and ``torch._scaled_mm`` for the down projection.
-    Shared expert routed through ``fp8_gate_up_silu_fused`` (dense
-    variant, autotune block dispatch via ``auto_block=True``).
+    Uses ``fp8_moe_expert_gate_up_silu_fused_fp8out`` (Triton MoE-expert
+    variant kernel, fp8out emits FP8 intermediate + per-row scale in the
+    epilogue — see triton_kernels/spark_fp8_moe_expert_fused.py) for the
+    gate/up + SwiGLU + FP8 cast, then ``torch._scaled_mm`` for the down
+    projection.  Shared expert routed through
+    ``fp8_gate_up_silu_fused_fp8out`` (dense fp8out variant, autotune
+    block dispatch via ``auto_block=True``).  The fp8out path replaces
+    the four-op Python rescale (``abs/amax/divide/cast``) — see P190
+    finding #2 (~10% FFN time savings on Spark sm_121).
     """
-    from triton_kernels.spark_fp8_moe_expert_fused import fp8_moe_expert_gate_up_silu_fused
-    from triton_kernels.spark_fp8_gate_up_fused import fp8_gate_up_silu_fused
+    from triton_kernels.spark_fp8_moe_expert_fused import fp8_moe_expert_gate_up_silu_fused_fp8out
+    from triton_kernels.spark_fp8_gate_up_fused import fp8_gate_up_silu_fused_fp8out
 
     B, T, D = h.shape
     K = cfg["num_experts_per_tok"]
@@ -108,12 +112,11 @@ def moe_forward_decode_fp8(h, w, cfg):
         mask = (expert_indices == e)
         token_idx, slot_idx = mask.nonzero(as_tuple=True)
         x_e = h_flat[token_idx]
-        inter_bf16 = fp8_moe_expert_gate_up_silu_fused(
+        # fp8out variant emits FP8 intermediate + per-row scale directly,
+        # replacing the four-op Python rescale (P190 finding #2).
+        _, inter_fp8, inter_scale = fp8_moe_expert_gate_up_silu_fused_fp8out(
             x_e, w_gate_fp8, w_up_fp8, w_gate_scale, w_up_scale, expert_id=e,
         )
-        inter_max = inter_bf16.abs().amax(dim=-1, keepdim=True).clamp_min(1.0e-12)
-        inter_scale = (inter_max / 448.0).to(torch.float32)
-        inter_fp8 = (inter_bf16.to(torch.float32) / inter_scale).to(torch.float8_e4m3fn)
         ffn_e = torch._scaled_mm(
             inter_fp8,
             w_down_fp8[e].t(),
@@ -125,7 +128,7 @@ def moe_forward_decode_fp8(h, w, cfg):
         moe_out.index_add_(0, token_idx, ffn_e * weight_e)
 
     if "mlp.shared_expert.gate_proj.weight_fp8" in w:
-        shared_inter = fp8_gate_up_silu_fused(
+        _, inter_fp8_s, inter_scale_s = fp8_gate_up_silu_fused_fp8out(
             h_flat,
             w["mlp.shared_expert.gate_proj.weight_fp8"],
             w["mlp.shared_expert.up_proj.weight_fp8"],
@@ -133,9 +136,6 @@ def moe_forward_decode_fp8(h, w, cfg):
             w["mlp.shared_expert.up_proj.weight_fp8_scale"].to(torch.float32),
             auto_block=True,
         )
-        inter_max_s = shared_inter.abs().amax(dim=-1, keepdim=True).clamp_min(1.0e-12)
-        inter_scale_s = (inter_max_s / 448.0).to(torch.float32)
-        inter_fp8_s = (shared_inter.to(torch.float32) / inter_scale_s).to(torch.float8_e4m3fn)
         shared_ffn = torch._scaled_mm(
             inter_fp8_s,
             w["mlp.shared_expert.down_proj.weight_fp8"].t(),

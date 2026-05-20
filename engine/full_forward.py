@@ -230,7 +230,7 @@ def _moe_forward(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
     )
     if fp8_moe:
         from triton_kernels.spark_fp8_moe_expert_fused import (
-            fp8_moe_expert_gate_up_silu_fused,
+            fp8_moe_expert_gate_up_silu_fused_fp8out,
         )
         # Stacked weight layout: gate_up_proj [E, 2*intermediate, hidden] →
         # split halves into gate [E, intermediate, hidden] + up [E, ...].
@@ -249,8 +249,10 @@ def _moe_forward(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
                 continue
             token_idx, slot_idx = mask.nonzero(as_tuple=True)
             x_e = h_flat[token_idx]  # [M_e, K]
-            # Fused FP8 gate+up+SwiGLU for this expert.
-            inter_bf16 = fp8_moe_expert_gate_up_silu_fused(
+            # Fused FP8 gate+up+SwiGLU+FP8-cast for this expert.  The fp8out
+            # variant emits the FP8 intermediate + per-row scale directly,
+            # avoiding the four-op Python rescale (P190 finding #2).
+            _, inter_fp8, inter_scale = fp8_moe_expert_gate_up_silu_fused_fp8out(
                 x_e,
                 w_gate_fp8,
                 w_up_fp8,
@@ -258,10 +260,6 @@ def _moe_forward(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
                 w_up_scale,
                 expert_id=e,
             )
-            # FP8 down via per-token cast + _scaled_mm.
-            inter_max = inter_bf16.abs().amax(dim=-1, keepdim=True).clamp_min(1.0e-12)
-            inter_scale = (inter_max / 448.0).to(torch.float32)
-            inter_fp8 = (inter_bf16.to(torch.float32) / inter_scale).to(torch.float8_e4m3fn)
             ffn_e = torch._scaled_mm(
                 inter_fp8,
                 w_down_fp8[e].t(),  # column-major view: stride(0)==1 satisfies torch._scaled_mm B-arg requirement (no copy)
@@ -274,8 +272,8 @@ def _moe_forward(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
 
         # Shared expert FP8 path
         if "mlp.shared_expert.gate_proj.weight_fp8" in w:
-            from triton_kernels.spark_fp8_gate_up_fused import fp8_gate_up_silu_fused
-            shared_inter = fp8_gate_up_silu_fused(
+            from triton_kernels.spark_fp8_gate_up_fused import fp8_gate_up_silu_fused_fp8out
+            _, inter_fp8_s, inter_scale_s = fp8_gate_up_silu_fused_fp8out(
                 h_flat,
                 w["mlp.shared_expert.gate_proj.weight_fp8"],
                 w["mlp.shared_expert.up_proj.weight_fp8"],
@@ -283,10 +281,6 @@ def _moe_forward(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
                 w["mlp.shared_expert.up_proj.weight_fp8_scale"].to(torch.float32),
                 auto_block=True,
             )
-            # FP8 shared down
-            inter_max_s = shared_inter.abs().amax(dim=-1, keepdim=True).clamp_min(1.0e-12)
-            inter_scale_s = (inter_max_s / 448.0).to(torch.float32)
-            inter_fp8_s = (shared_inter.to(torch.float32) / inter_scale_s).to(torch.float8_e4m3fn)
             shared_ffn = torch._scaled_mm(
                 inter_fp8_s,
                 w["mlp.shared_expert.down_proj.weight_fp8"].t(),  # column-major view: stride(0)==1 satisfies torch._scaled_mm B-arg requirement (no copy)
@@ -420,23 +414,24 @@ def _dense_ffn_forward(h: torch.Tensor, w: dict) -> torch.Tensor:
     # Phase 2 Spark FP8 path: keyed on weight dict contents (loader-driven).
     fp8_disabled = os.environ.get("LYNN_DISABLE_W4A8_FP8_PATH", "0").lower() in {"1", "true", "yes"}
     if not fp8_disabled and "mlp.gate_proj.weight_fp8" in w and "mlp.up_proj.weight_fp8" in w:
-        from triton_kernels.spark_fp8_gate_up_fused import fp8_gate_up_silu_fused
+        from triton_kernels.spark_fp8_gate_up_fused import (
+            fp8_gate_up_silu_fused,
+            fp8_gate_up_silu_fused_fp8out,
+        )
         B, M, D = h.shape
         h_2d = h.reshape(B * M, D)
-        inter = fp8_gate_up_silu_fused(
-            h_2d,
-            w["mlp.gate_proj.weight_fp8"],
-            w["mlp.up_proj.weight_fp8"],
-            w["mlp.gate_proj.weight_fp8_scale"],
-            w["mlp.up_proj.weight_fp8_scale"],
-            auto_block=True,
-        )
-        # down_proj: BF16 reduction tail for now (V2 will add fused FP8 down).
+        # When the down projection is FP8 we use the fp8out variant which
+        # emits the FP8 intermediate + per-row scale directly, replacing
+        # the four-op Python rescale (P190 finding #2).
         if "mlp.down_proj.weight_fp8" in w:
-            # FP8 down via per-token activation cast + torch._scaled_mm.
-            inter_max = inter.abs().amax(dim=-1, keepdim=True).clamp_min(1.0e-12)
-            inter_scale = (inter_max / 448.0).to(torch.float32)
-            inter_fp8 = (inter.to(torch.float32) / inter_scale).to(torch.float8_e4m3fn)
+            inter_bf16, inter_fp8, inter_scale = fp8_gate_up_silu_fused_fp8out(
+                h_2d,
+                w["mlp.gate_proj.weight_fp8"],
+                w["mlp.up_proj.weight_fp8"],
+                w["mlp.gate_proj.weight_fp8_scale"],
+                w["mlp.up_proj.weight_fp8_scale"],
+                auto_block=True,
+            )
             w_down = w["mlp.down_proj.weight_fp8"]
             w_down_scale = w["mlp.down_proj.weight_fp8_scale"]
             out = torch._scaled_mm(
@@ -447,7 +442,16 @@ def _dense_ffn_forward(h: torch.Tensor, w: dict) -> torch.Tensor:
                 out_dtype=torch.bfloat16,
             )
             return out.reshape(B, M, -1)
-        # BF16 down fallback if down_proj fp8 key absent.
+        # BF16 down fallback if down_proj fp8 key absent: use the cheaper
+        # BF16-only variant since no FP8 cast is needed downstream.
+        inter = fp8_gate_up_silu_fused(
+            h_2d,
+            w["mlp.gate_proj.weight_fp8"],
+            w["mlp.up_proj.weight_fp8"],
+            w["mlp.gate_proj.weight_fp8_scale"],
+            w["mlp.up_proj.weight_fp8_scale"],
+            auto_block=True,
+        )
         return torch.nn.functional.linear(
             inter, w.get("mlp.down_proj.weight"),
         ).reshape(B, M, -1) if "mlp.down_proj.weight" in w else inter.reshape(B, M, -1)

@@ -40,6 +40,7 @@ from scripts.spark_pack_w4a8_fp8 import (  # type: ignore  # noqa: E402
 )
 from triton_kernels.spark_fp8_gate_up_fused import (  # noqa: E402
     fp8_gate_up_silu_fused,
+    fp8_gate_up_silu_fused_fp8out,
     fp8_gate_up_silu_reference,
 )
 
@@ -125,6 +126,19 @@ def run_shape(m: int, k: int, n: int, *, bench_iters: int = 200, device: str = "
         flush=True,
     )
 
+    # 4. fp8out variant: native FP8 intermediate + per-row scale emitted by the
+    #    kernel epilogue replaces the four-op Python rescale block in the
+    #    callers.  Cosine vs the Python rescale path must be >= 0.999.
+    fp8out_diff, fp8out_ok = _verify_fp8out(
+        x_bf16, w_gate_fp8, w_up_fp8, w_gate_scale, w_up_scale,
+    )
+    print(
+        f"[verify]   fp8out: bf16_inter cos={fp8out_diff['inter_bf16_cosine']:.6f} "
+        f"fp8_inter cos={fp8out_diff['inter_fp8_cosine']:.6f} "
+        f"scaled_mm_out cos={fp8out_diff['scaled_mm_cosine']:.6f}",
+        flush=True,
+    )
+
     return {
         "shape": {"M": m, "K": k, "N": n},
         "correctness": diff,
@@ -132,7 +146,101 @@ def run_shape(m: int, k: int, n: int, *, bench_iters: int = 200, device: str = "
         "bench_fused_fp8_us": bench_fp8["per_iter_us"],
         "bench_bf16_ref_us": bench_bf16["per_iter_us"],
         "speedup_vs_bf16": speedup,
+        "fp8out_correctness": fp8out_diff,
+        "fp8out_ok": fp8out_ok,
     }
+
+
+def _python_rescale_to_fp8(inter_bf16: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    """Reference: the exact four-op Python rescale block we are replacing.
+
+    Mirrors the block in ``engine/full_forward.py`` and
+    ``engine/moe_optimized.py``. Returns ``(inter_fp8, inter_scale)``.
+    """
+    inter_max = inter_bf16.abs().amax(dim=-1, keepdim=True).clamp_min(1.0e-12)
+    inter_scale = (inter_max / 448.0).to(torch.float32)
+    inter_fp8 = (inter_bf16.to(torch.float32) / inter_scale).to(torch.float8_e4m3fn)
+    return inter_fp8, inter_scale
+
+
+def _verify_fp8out(
+    x_bf16: torch.Tensor,
+    w_gate_fp8: torch.Tensor,
+    w_up_fp8: torch.Tensor,
+    w_gate_scale: torch.Tensor,
+    w_up_scale: torch.Tensor,
+) -> tuple[dict[str, float], bool]:
+    """Compare the new fp8out kernel against the old BF16-out + Python rescale path.
+
+    Runs the same set of weights through both the BF16-out kernel followed by
+    the Python rescale block (the path we are replacing) and the new
+    ``fp8_gate_up_silu_fused_fp8out`` kernel.  Then runs a synthetic down
+    projection through ``torch._scaled_mm`` with both intermediates to confirm
+    that the downstream ``_scaled_mm`` result has cosine >= 0.999 — which is
+    what the engine actually consumes.
+    """
+    # Old path: BF16-out kernel + Python rescale.
+    inter_bf16_ref = fp8_gate_up_silu_fused(
+        x_bf16, w_gate_fp8, w_up_fp8, w_gate_scale, w_up_scale,
+    )
+    inter_fp8_ref, inter_scale_ref = _python_rescale_to_fp8(inter_bf16_ref)
+
+    # New path: fp8out kernel emits both BF16 and FP8 + per-row scale.
+    inter_bf16_new, inter_fp8_new, inter_scale_new = fp8_gate_up_silu_fused_fp8out(
+        x_bf16, w_gate_fp8, w_up_fp8, w_gate_scale, w_up_scale,
+    )
+
+    # Direct comparison on the FP8 intermediate (cast to F32 for cosine math).
+    bf16_diff = _diff_stats(inter_bf16_new, inter_bf16_ref)
+    fp8_diff = _diff_stats(
+        inter_fp8_new.to(torch.float32), inter_fp8_ref.to(torch.float32),
+    )
+    scale_diff = _diff_stats(inter_scale_new, inter_scale_ref)
+
+    # End-to-end check: run both through a synthetic _scaled_mm down projection
+    # and compare. This is the actual quantity the engine consumes.
+    M, N = inter_bf16_new.shape
+    K_out = N // 2 if N >= 64 else N
+    torch.manual_seed(7)
+    w_down = torch.randn((K_out, N), dtype=torch.float32, device=x_bf16.device) * 0.1
+    w_down_scale = (w_down.abs().amax(dim=-1).clamp_min(1.0e-12) / 448.0).to(torch.float32)
+    w_down_fp8 = (w_down / w_down_scale[:, None]).to(torch.float8_e4m3fn)
+
+    out_ref = torch._scaled_mm(
+        inter_fp8_ref,
+        w_down_fp8.t(),
+        scale_a=inter_scale_ref,
+        scale_b=w_down_scale.view(1, -1),
+        out_dtype=torch.bfloat16,
+    )
+    out_new = torch._scaled_mm(
+        inter_fp8_new,
+        w_down_fp8.t(),
+        scale_a=inter_scale_new,
+        scale_b=w_down_scale.view(1, -1),
+        out_dtype=torch.bfloat16,
+    )
+    scaled_mm_diff = _diff_stats(out_new, out_ref)
+
+    diff = {
+        "inter_bf16_cosine": bf16_diff["cosine"],
+        "inter_bf16_rel_l2": bf16_diff["rel_l2"],
+        "inter_fp8_cosine": fp8_diff["cosine"],
+        "inter_fp8_rel_l2": fp8_diff["rel_l2"],
+        "inter_scale_cosine": scale_diff["cosine"],
+        "inter_scale_rel_l2": scale_diff["rel_l2"],
+        "scaled_mm_cosine": scaled_mm_diff["cosine"],
+        "scaled_mm_rel_l2": scaled_mm_diff["rel_l2"],
+    }
+    # Acceptance: the FP8 intermediate may differ at the LSB but the
+    # downstream _scaled_mm output must hold cosine >= 0.999 (engine-level
+    # equivalence). BF16 intermediate must be bit-identical (same kernel
+    # computation order) — cosine 1.0 expected.
+    ok = (
+        diff["inter_bf16_cosine"] >= 0.9999
+        and diff["scaled_mm_cosine"] >= 0.999
+    )
+    return diff, ok
 
 
 def main() -> int:
@@ -163,6 +271,8 @@ def main() -> int:
             results.append(r)
             if not r["correctness_ok"]:
                 overall_ok = False
+            if not r.get("fp8out_ok", True):
+                overall_ok = False
         except Exception as exc:  # noqa: BLE001
             print(f"[verify]   shape {spec!r} FAILED: {exc!r}", flush=True)
             results.append({"shape_spec": spec, "error": repr(exc)})
@@ -179,10 +289,14 @@ def main() -> int:
             print(f"[verify]   {r.get('shape_spec')}: ERROR {r['error']}", flush=True)
         else:
             s = r["shape"]
+            fp8out_cos = r.get("fp8out_correctness", {}).get(
+                "scaled_mm_cosine", float("nan"),
+            )
             print(
                 f"[verify]   M={s['M']} K={s['K']} N={s['N']}: "
                 f"cos={r['correctness']['cosine']:.4f} "
-                f"speedup={r['speedup_vs_bf16']:.2f}×",
+                f"speedup={r['speedup_vs_bf16']:.2f}× "
+                f"fp8out_scaled_mm_cos={fp8out_cos:.4f}",
                 flush=True,
             )
 
