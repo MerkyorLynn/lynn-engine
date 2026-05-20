@@ -46,6 +46,8 @@ def _run_mode(
     speculative: bool,
     batched: bool,
     max_new: int,
+    profile: str,
+    allow_linear_graph: bool,
 ) -> dict[str, Any]:
     env = {
         "LYNN_MTP_SIDECAR": sidecar,
@@ -54,16 +56,49 @@ def _run_mode(
         "LYNN_MTP_SPECULATIVE": "1" if speculative else "0",
         "LYNN_MTP_SPECULATIVE_BATCHED": "1" if batched else "0",
         "LYNN_MOE_IMPL": "packed_nvfp4",
-        "LYNN_PACKED_DECODE": "1",
         "LYNN_PACKED_DECODE_BACKEND": "native_fast_2d",
         "LYNN_NATIVE_FP4_LM_HEAD": "1",
         "LYNN_LINEAR_BLOCK_GRAPH": "0",
         "LYNN_LINEAR_BLOCK_GRAPH_REUSE": "0",
+        "LYNN_MTP_ALLOW_LINEAR_BLOCK_GRAPH": "1" if allow_linear_graph else "0",
     }
+    if profile == "packed_decode":
+        env.update(
+            {
+                "LYNN_PACKED_DECODE": "1",
+                "LYNN_PACKED_DECODE_LINEAR_ATTN": "0",
+                "LYNN_PACKED_DECODE_FULL_ATTN": "0",
+                "LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4": "0",
+            }
+        )
+    elif profile == "release":
+        env.update(
+            {
+                "LYNN_PACKED_DECODE": "0",
+                "LYNN_PACKED_DECODE_PREPARE_NATIVE": "0",
+                "LYNN_PACKED_DECODE_LINEAR_ATTN": "0",
+                "LYNN_PACKED_DECODE_FULL_ATTN": "0",
+                "LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4": "1",
+            }
+        )
+    elif profile == "release_graph":
+        env.update(
+            {
+                "LYNN_PACKED_DECODE": "0",
+                "LYNN_PACKED_DECODE_PREPARE_NATIVE": "0",
+                "LYNN_PACKED_DECODE_LINEAR_ATTN": "0",
+                "LYNN_PACKED_DECODE_FULL_ATTN": "0",
+                "LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4": "1",
+                "LYNN_LINEAR_BLOCK_GRAPH": "1",
+                "LYNN_LINEAR_BLOCK_GRAPH_REUSE": "1",
+            }
+        )
+    else:
+        raise ValueError(f"unknown profile: {profile}")
     old_env = {key: os.environ.get(key) for key in env}
     os.environ.update(env)
     try:
-        runner = LynnIncrementalRunner(model)
+        runner = LynnIncrementalRunner(model, verbose=False)
         rows: list[dict[str, Any]] = []
         started = time.perf_counter()
         for prompt in PROMPTS:
@@ -71,8 +106,8 @@ def _run_mode(
             rows.append(
                 {
                     "prompt": prompt,
-                    "decode_tps": out.get("decode_tps"),
-                    "tokens_generated": out.get("tokens_generated"),
+                    "decode_tps": (out.get("timings") or {}).get("decode_tps"),
+                    "tokens_generated": len(out.get("new_ids") or []),
                     "mtp_speculative": out.get("mtp_speculative"),
                     "mtp_shadow": out.get("mtp_shadow"),
                     "text_head": str(out.get("text", ""))[:160],
@@ -133,6 +168,13 @@ def main() -> None:
         help="Comma-separated subset: baseline,spec_k1,spec_k1_batched",
     )
     parser.add_argument(
+        "--profile",
+        choices=("packed_decode", "release", "release_graph"),
+        default="packed_decode",
+        help="Runtime profile to use for the smoke.",
+    )
+    parser.add_argument("--allow-linear-graph", action="store_true")
+    parser.add_argument(
         "--out-dir",
         default="/root/autodl-tmp/reports/qwen35_9b",
     )
@@ -148,6 +190,7 @@ def main() -> None:
         "model": args.model,
         "sidecar": args.sidecar,
         "max_new": args.max_new,
+        "profile": args.profile,
         "modes": [
             _run_mode(
                 model=args.model,
@@ -156,6 +199,8 @@ def main() -> None:
                 speculative=speculative,
                 batched=batched,
                 max_new=args.max_new,
+                profile=args.profile,
+                allow_linear_graph=args.allow_linear_graph,
             )
             for name, speculative, batched in mode_specs
             if name in requested

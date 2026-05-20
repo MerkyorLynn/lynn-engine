@@ -1686,10 +1686,12 @@ class LynnIncrementalRunner:
                 "set — speculative serving runs eager decode and would invalidate "
                 "graph-slot KV assumptions. Unset one."
             )
-        if mtp_speculative_active and linear_block_graphs is not None:
+        allow_mtp_linear_graph = os.environ.get("LYNN_MTP_ALLOW_LINEAR_BLOCK_GRAPH", "0") == "1"
+        if mtp_speculative_active and linear_block_graphs is not None and not allow_mtp_linear_graph:
             raise RuntimeError(
                 "LYNN_MTP_SPECULATIVE is not compatible with LYNN_LINEAR_BLOCK_GRAPH. "
-                "Captured graphs assume single-token decode flow without rollback."
+                "Captured graphs assume single-token decode flow without rollback. "
+                "Set LYNN_MTP_ALLOW_LINEAR_BLOCK_GRAPH=1 only for diagnostic gates."
             )
         # LYNN_MTP_SPECULATIVE_BATCHED=1 swaps the sequential K=1 path for the
         # M5 batched variant (single K=2 forward instead of two T=1 forwards).
