@@ -168,16 +168,18 @@ def repack_nvfp4_to_fp8(
     # 3. Quantize BF16 → FP8 E4M3 with derived scale.
     fp8_weight = (bf16_f / fp8_scale_2d).to(torch.float8_e4m3fn).contiguous()
 
-    # 4. Verify round-trip dequant.
+    # 4. Verify round-trip dequant. Use FP64 for cosine accumulation —
+    # large tensors (e.g. lm_head 311M elements) overflow FP32 accumulator
+    # precision and produce nonsense cos > 1.0.
     fp8_roundtrip = fp8_weight.to(torch.float32) * fp8_scale_2d
     diff = (fp8_roundtrip - bf16_f).flatten()
     max_abs = float(diff.abs().max().item())
-    cos = float(
-        F.cosine_similarity(
-            fp8_roundtrip.flatten().unsqueeze(0),
-            bf16_f.flatten().unsqueeze(0),
-        ).item()
-    )
+    af = fp8_roundtrip.flatten().double()
+    bf = bf16_f.flatten().double()
+    dot = float((af * bf).sum().item())
+    na = float(af.norm().item())
+    nb = float(bf.norm().item())
+    cos = dot / (na * nb) if na > 0 and nb > 0 else float("nan")
 
     return RepackResult(
         fp8_weight=fp8_weight,
