@@ -241,12 +241,26 @@ def speculative_step_k1_batched(
     #     logits. K=2 forward still runs and K=2 logits are still computed +
     #     returned; only the accept comparison switches. Bisects accept-
     #     argmax drift from state/next_base_hidden drift.
+    #
+    # M22 diagnostic switch (default off):
+    #   LYNN_MTP_K2_REJECT_ROLLBACK=full_state
+    #     On REJECT path, replace the lean ``restore_recurrent_conv``
+    #     (recurrent + conv + seq_len only, no KV) with the runner's full
+    #     ``_restore_state`` (KV + recurrent + conv + seq_len). M21 found
+    #     that even after lean rollback + canonical T=1 re-decode, the
+    #     produced argmax differs from an apples-to-apples eager baseline
+    #     T=1 decode of the same token from the same prefix; the K=2
+    #     forward must be leaving residual state that lean restore does
+    #     not undo. Full snapshot/restore tests whether KV+seq_len is the
+    #     missing dimension. Accept path is unchanged.
     lm_head_mode = os.environ.get("LYNN_MTP_K2_LM_HEAD_MODE", "").lower()
     accept_source = os.environ.get("LYNN_MTP_K2_ACCEPT_SOURCE", "").lower()
+    reject_rollback = os.environ.get("LYNN_MTP_K2_REJECT_ROLLBACK", "").lower()
 
-    # Full pre-batch snapshot needed only for canonical_t1 shadow T=1 chain.
+    # Full pre-batch snapshot needed by canonical_t1 shadow T=1 chain
+    # and by full_state reject rollback. Both share the same snapshot.
     snap_pre_full: dict[str, Any] | None = None
-    if accept_source == "canonical_t1":
+    if accept_source == "canonical_t1" or reject_rollback == "full_state":
         snap_pre_full = runner._snapshot_state(state)
 
     # 1. MTP draft (same as sequential variant — head-internal cost).
@@ -323,10 +337,17 @@ def speculative_step_k1_batched(
             draft_id=draft_id,
         )
 
-    # REJECT — restore SSM state to pre-batch, then re-run a single T=1
-    # decode of pending alone. KV[pending_pos+1] becomes stale but is
-    # naturally overwritten on the next K=2 forward.
-    restore_recurrent_conv(state, snap_pre_batch)
+    # REJECT — restore state to pre-batch, then re-run a single T=1
+    # decode of pending alone. KV[pending_pos+1] becomes stale on the
+    # lean rollback path but is naturally overwritten on the next K=2
+    # forward. M22 opt-in full_state rollback restores KV too — used to
+    # bisect whether KV residue from the K=2 forward is the source of
+    # the post-M21 exact-match drift.
+    if reject_rollback == "full_state":
+        assert snap_pre_full is not None
+        runner._restore_state(state, snap_pre_full)
+    else:
+        restore_recurrent_conv(state, snap_pre_batch)
     h_after_pending, _, argmax_after_pending = decode_one_to_logits_and_hidden(runner, state, pending_id)
     return SpeculativeStepResult(
         committed_tokens=[pending_id],
