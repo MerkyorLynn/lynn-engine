@@ -1,13 +1,21 @@
 # Qwen3.5-9B Mac First-Run Wrapper · 2026-05-19
 
-This is the one-command first-run wrapper for the Mac Q4_K_M GGUF + `llama.cpp` path. It delegates to `scripts/local_qwen35_9b_llamacpp_smoke.sh` and never downloads large model files automatically.
+This is the lightweight first-run wrapper for the Mac Q4_K_M-imatrix GGUF + `llama.cpp` path. For the product setup path that downloads, registers the Lynn provider, and smokes the endpoint, use `scripts/local_qwen35_9b_setup.sh`.
+
+Recommended product setup:
+
+```bash
+bash scripts/local_qwen35_9b_setup.sh --download --smoke
+source ~/Models/Lynn/Qwen3.5-9B/lynn-qwen35-9b-q4km.env
+bash scripts/local_qwen35_9b_q4km_llamacpp_server.sh
+```
 
 ## Quick start
 
 If you already have the GGUF:
 
 ```bash
-MODEL=/absolute/path/to/Qwen3.5-9B-Q4_K_M.gguf \
+MODEL=/absolute/path/to/Qwen3.5-9B-Q4_K_M-imatrix.gguf \
 bash scripts/local_qwen35_9b_first_run.sh
 ```
 
@@ -28,7 +36,7 @@ Discovery paths:
 
 ```bash
 bash scripts/local_qwen35_9b_first_run.sh \
-  --model /absolute/path/to/Qwen3.5-9B-Q4_K_M.gguf \
+  --model /absolute/path/to/Qwen3.5-9B-Q4_K_M-imatrix.gguf \
   --llama-server /absolute/path/to/llama-server \
   --port 18197 \
   --reasoning auto
@@ -46,24 +54,27 @@ Supported pass-through flags:
 
 ## Missing model behavior
 
-If no Q4_K_M GGUF is found, the wrapper exits with code `4` and prints download placeholders for all three planned distribution paths:
+If no Q4_K_M GGUF is found, the wrapper exits with code `4` and points the user to the product setup path:
 
 ```bash
-# Hugging Face placeholder:
-huggingface-cli download TODO_HF_QWEN35_9B_Q4KM_REPO Qwen3.5-9B-Q4_K_M.gguf \
-  --local-dir "$HOME/models" --local-dir-use-symlinks False
-
-# ModelScope placeholder:
-modelscope download --model TODO_MODELSCOPE_QWEN35_9B_Q4KM_REPO Qwen3.5-9B-Q4_K_M.gguf \
-  --local_dir "$HOME/models"
-
-# Lynn CDN placeholder:
-curl -L --fail --continue-at - --create-dirs \
-  --output "$HOME/models/Qwen3.5-9B-Q4_K_M.gguf" \
-  https://dl.merkyorlynn.com/models/qwen35-9b/q4_k_m/Qwen3.5-9B-Q4_K_M.gguf
+bash scripts/local_qwen35_9b_setup.sh --download --smoke
 ```
 
-The user must run the selected download command manually after replacing TODO placeholders with final release IDs. The wrapper does not download the GGUF.
+Manual fallback commands:
+
+```bash
+huggingface-cli download Merkyor/Qwen3.5-9B-GGUF-imatrix Qwen3.5-9B-Q4_K_M-imatrix.gguf \
+  --local-dir "$HOME/models" --local-dir-use-symlinks False
+
+modelscope download --model Merkyor/Qwen3.5-9B-GGUF-imatrix Qwen3.5-9B-Q4_K_M-imatrix.gguf \
+  --local_dir "$HOME/models"
+
+curl -L --fail --continue-at - --create-dirs \
+  --output "$HOME/models/Qwen3.5-9B-Q4_K_M-imatrix.gguf" \
+  https://dl.merkyorlynn.com/models/qwen35-9b/q4_k_m/Qwen3.5-9B-Q4_K_M-imatrix.gguf
+```
+
+The user can run the selected download command manually, or let the setup script do it.
 
 ## Missing smoke script behavior
 
@@ -77,7 +88,7 @@ If it is missing or not executable, first-run fails loudly before looking for th
 
 ## Smoke output
 
-The delegated smoke script starts `llama-server`, runs `/health`, one chat completion, and a 256-token decode TPS smoke. It writes:
+The delegated smoke script starts `llama-server`, runs `/health`, one chat completion, one OpenAI `tools` call, and a 256-token decode TPS smoke. It writes:
 
 ```text
 reports/qwen35_9b/mac_smoke_<stamp>.json

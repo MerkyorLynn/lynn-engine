@@ -19,7 +19,7 @@ The user-facing agent config should not care which track is underneath:
 ```text
 base_url=http://127.0.0.1:18099/v1
 api_key=local
-model=qwen35-9b-q4km
+model=qwen35-9b-q4km-imatrix
 ```
 
 For NVIDIA native:
@@ -53,19 +53,25 @@ This is not a retreat from Lynn Engine. It splits the product correctly:
 Recommended first-run setup:
 
 ```bash
-brew install llama.cpp
-bash scripts/local_qwen35_9b_setup.sh --download --smoke
+bash scripts/local_qwen35_9b_setup.sh --install-runtime --download --smoke
 source ~/Models/Lynn/Qwen3.5-9B/lynn-qwen35-9b-q4km.env
 bash scripts/local_qwen35_9b_q4km_llamacpp_server.sh
+```
+
+Fully automated first launch:
+
+```bash
+bash scripts/local_qwen35_9b_setup.sh --install-runtime --download --smoke --serve
 ```
 
 The setup script writes:
 
 ```text
 ~/Models/Lynn/Qwen3.5-9B/lynn-qwen35-9b-q4km.env
+~/.lynn-engine/providers/qwen35-9b-q4km-imatrix-gguf.json
 ```
 
-The app can consume this env contract or mirror the same fields in its settings.
+The app can consume the provider JSON directly, or mirror the same fields in its settings. It must keep MIMO as fallback until smoke passes.
 
 The local launcher lives at:
 
@@ -76,13 +82,13 @@ scripts/local_qwen35_9b_q4km_llamacpp_server.sh
 It discovers:
 
 1. `llama-server` from PATH/Homebrew/common build paths;
-2. `Qwen3.5-9B Q4_K_M` GGUF from `$GGUF`, `$MODEL_ROOT`, `~/Models`,
+2. `Qwen3.5-9B Q4_K_M-imatrix` GGUF from `$GGUF`, `$MODEL_ROOT`, `~/Models`,
    `~/Downloads`, and HuggingFace cache.
 
 Example:
 
 ```bash
-GGUF=/Users/lynn/Models/Qwen3.5-9B-Q4_K_M.gguf \
+GGUF=/Users/lynn/Models/Qwen3.5-9B-Q4_K_M-imatrix.gguf \
   bash scripts/local_qwen35_9b_q4km_llamacpp_server.sh
 ```
 
@@ -95,7 +101,7 @@ http://127.0.0.1:18099/v1
 Smoke:
 
 ```bash
-bash scripts/local_qwen35_9b_q4km_smoke.sh
+bash scripts/local_qwen35_9b_release_qa_smoke.sh
 ```
 
 ## Agent CLI Config
@@ -106,7 +112,7 @@ All agent integrations should be expressed as this minimal contract:
 provider=openai-compatible
 base_url=http://127.0.0.1:18099/v1
 api_key=local
-model=qwen35-9b-q4km
+model=qwen35-9b-q4km-imatrix
 ```
 
 Concrete agent configuration snippets:
@@ -119,13 +125,13 @@ export OPENAI_BASE_URL=http://127.0.0.1:18099/v1
 export OPENAI_API_KEY=local
 
 # Then run:
-claude --model qwen35-9b-q4km
+claude --model qwen35-9b-q4km-imatrix
 ```
 
 Or in `~/.claude/settings.json`:
 ```json
 {
-  "model": "qwen35-9b-q4km",
+  "model": "qwen35-9b-q4km-imatrix",
   "provider": "openai-compatible",
   "providers": {
     "openai-compatible": {
@@ -144,7 +150,7 @@ Settings > Cline > API Provider: **OpenAI Compatible**
 |-------|-------|
 | Base URL | `http://127.0.0.1:18099/v1` |
 | API Key | `local` |
-| Model ID | `qwen35-9b-q4km` |
+| Model ID | `qwen35-9b-q4km-imatrix` |
 
 ### OpenCode
 
@@ -156,7 +162,7 @@ providers:
     apiKey: local
     baseURL: http://127.0.0.1:18099/v1
     models:
-      qwen35-9b-q4km:
+      qwen35-9b-q4km-imatrix:
         maxTokens: 32768
         contextWindow: 32768
         supportsStreaming: true
@@ -169,7 +175,7 @@ providers:
 models:
   - title: Qwen3.5-9B Local
     provider: openai
-    model: qwen35-9b-q4km
+    model: qwen35-9b-q4km-imatrix
     apiBase: http://127.0.0.1:18099/v1
     apiKey: local
 ```
@@ -179,7 +185,7 @@ models:
 ```bash
 aider --openai-api-base http://127.0.0.1:18099/v1 \
       --openai-api-key local \
-      --model openai/qwen35-9b-q4km
+      --model openai/qwen35-9b-q4km-imatrix
 ```
 
 ### Generic OpenAI SDK (Python)
@@ -192,7 +198,7 @@ client = OpenAI(
     api_key="local",
 )
 resp = client.chat.completions.create(
-    model="qwen35-9b-q4km",
+    model="qwen35-9b-q4km-imatrix",
     messages=[{"role": "user", "content": "Hello!"}],
 )
 print(resp.choices[0].message.content)
@@ -203,7 +209,7 @@ print(resp.choices[0].message.content)
 ```bash
 curl http://127.0.0.1:18099/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -d '{"model":"qwen35-9b-q4km","messages":[{"role":"user","content":"Hi"}],"max_tokens":64}'
+  -d '{"model":"qwen35-9b-q4km-imatrix","messages":[{"role":"user","content":"Hi"}],"max_tokens":64}'
 ```
 
 ## Release Gates

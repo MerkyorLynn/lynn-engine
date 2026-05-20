@@ -13,6 +13,25 @@ This document does not duplicate `scripts/local_lynn_app_model_probe.py`; it rec
 - Optional 35B is opt-in for large-memory Macs and must not block 9B first-run.
 - App first launch must remain usable even if no local model is installed.
 
+## Product entrypoint
+
+The app/installer can delegate the whole first-run flow to the release script:
+
+```bash
+bash scripts/local_qwen35_9b_setup.sh --install-runtime --download --smoke --serve
+```
+
+That command:
+
+1. installs `llama.cpp` on macOS/Homebrew if missing;
+2. downloads or discovers the recommended Q4_K_M-imatrix GGUF;
+3. writes `~/Models/Lynn/Qwen3.5-9B/lynn-qwen35-9b-q4km.env`;
+4. writes `~/.lynn-engine/providers/qwen35-9b-q4km-imatrix-gguf.json`;
+5. runs chat + tool-call + decode smoke;
+6. starts the persistent OpenAI-compatible local endpoint.
+
+The client should still treat MIMO as fallback until the smoke report passes.
+
 ## State machine
 
 ```text
@@ -155,7 +174,7 @@ The app consumes the exact JSON emitted by `scripts/local_lynn_app_model_probe.p
 | Field | Type | Meaning |
 |---|---|---|
 | `artifact_id` | string | Stable artifact ID, e.g. `qwen35-9b-q4km-imatrix-gguf`. |
-| `model` | string | Runtime model name, e.g. `qwen35-9b-q4km`. |
+| `model` | string | Runtime model name, e.g. `qwen35-9b-q4km-imatrix`. |
 | `runtime` | string | Runtime label, e.g. `llama.cpp-metal`. |
 | `priority` | string | `recommended` for 9B, `optional` for 35B. |
 | `reason` | string | Human-readable why this offer is shown. |
@@ -192,7 +211,7 @@ The app should treat these as product rules, not merely diagnostics.
 ```json
 {
   "artifact_id": "qwen35-9b-q4km-imatrix-gguf",
-  "model": "qwen35-9b-q4km",
+  "model": "qwen35-9b-q4km-imatrix",
   "runtime": "llama.cpp-metal",
   "priority": "recommended",
   "reason": "Apple Silicon with enough unified memory and disk for the stable 9B local-agent path.",
@@ -253,7 +272,7 @@ Local-first activation must be explicit:
   "fallback_provider": "mimo",
   "local_provider": {
     "priority": "first",
-    "model": "qwen35-9b-q4km",
+    "model": "qwen35-9b-q4km-imatrix",
     "base_url": "http://127.0.0.1:8080/v1",
     "runtime": "llama.cpp-metal",
     "artifact_id": "qwen35-9b-q4km-imatrix-gguf"

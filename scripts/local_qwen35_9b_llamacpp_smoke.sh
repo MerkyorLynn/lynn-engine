@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 HOST="${HOST:-127.0.0.1}"
 PORT="${PORT:-18197}"
-SERVED_NAME="${SERVED_NAME:-qwen35-9b-q4km}"
+SERVED_NAME="${SERVED_NAME:-qwen35-9b-q4km-imatrix}"
 CTX_SIZE="${CTX_SIZE:-32768}"
 THREADS="${THREADS:-}"
 PARALLEL="${PARALLEL:-1}"
@@ -37,7 +37,7 @@ Options:
   --llama-server PATH   llama-server binary; same as LLAMA_SERVER env.
   --host HOST           Bind host (default: 127.0.0.1).
   --port PORT           Server port (default: 18197); same as PORT env.
-  --served-name NAME    Served model name (default: qwen35-9b-q4km).
+  --served-name NAME    Served model name (default: qwen35-9b-q4km-imatrix).
   --ctx-size N          llama.cpp context size (default: 32768).
   --threads N           llama.cpp thread count (default: auto-detect).
   --parallel N          llama.cpp parallel slots (default: 1).
@@ -109,6 +109,16 @@ find_model() {
       printf '%s\n' "$candidate"
       return 0
     done < <(find "$root" -maxdepth 5 -type f \( \
+      -iname '*Qwen3.5*9B*Q4*K*M*imatrix*.gguf' -o \
+      -iname '*qwen3.5*9b*q4*k*m*imatrix*.gguf' -o \
+      -iname '*Qwen3.5*9B*Q4_K_M*imatrix*.gguf' -o \
+      -iname '*qwen3.5*9b*q4_k_m*imatrix*.gguf' \
+    \) 2>/dev/null | sort)
+    while IFS= read -r candidate; do
+      [[ -s "$candidate" ]] || continue
+      printf '%s\n' "$candidate"
+      return 0
+    done < <(find "$root" -maxdepth 5 -type f \( \
       -iname '*Qwen3.5*9B*Q4*K*M*.gguf' -o \
       -iname '*qwen3.5*9b*q4*k*m*.gguf' -o \
       -iname '*Qwen3.5*9B*Q4_K_M*.gguf' -o \
@@ -165,7 +175,7 @@ PY
 MODEL_PATH="$(find_model || true)"
 if [[ -z "$MODEL_PATH" ]]; then
   if [[ "$DRY_RUN" == "1" ]]; then
-    MODEL_PATH="${MODEL:-/absolute/path/to/Qwen3.5-9B-Q4_K_M.gguf}"
+    MODEL_PATH="${MODEL:-/absolute/path/to/Qwen3.5-9B-Q4_K_M-imatrix.gguf}"
   else
   cat >&2 <<EOF
 [mac-smoke] ERROR: Qwen3.5-9B Q4_K_M GGUF not found.
@@ -178,7 +188,7 @@ Searched in order:
   5. /Users/lynn/Downloads/Lynn/models
 
 Fix:
-  export MODEL=/absolute/path/to/Qwen3.5-9B-Q4_K_M.gguf
+  export MODEL=/absolute/path/to/Qwen3.5-9B-Q4_K_M-imatrix.gguf
   bash scripts/local_qwen35_9b_llamacpp_smoke.sh
 EOF
   exit 4
@@ -296,7 +306,7 @@ if [[ "$ready" != "1" ]]; then
   exit 8
 fi
 
-echo "[mac-smoke] /health OK; running chat and 256-token decode TPS smoke"
+echo "[mac-smoke] /health OK; running chat, tool-call, and 256-token decode TPS smoke"
 python3 - "$HOST" "$PORT" "$SERVED_NAME" "$MODEL_PATH" "$LLAMA_SERVER_BIN" "$REPORT" "$LOG" "$TIMEOUT" <<'PY'
 from __future__ import annotations
 
@@ -354,6 +364,57 @@ def post_chat(content: str, max_tokens: int):
         "response_id": data.get("id"),
     }
 
+
+def post_tool_call_weather():
+    payload = {
+        "model": model,
+        "messages": [{"role": "user", "content": "Call get_weather for Beijing. Do not answer directly."}],
+        "tools": [
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_weather",
+                    "description": "Get weather for one city.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {"location": {"type": "string"}},
+                        "required": ["location"],
+                    },
+                },
+            }
+        ],
+        "tool_choice": "auto",
+        "temperature": 0,
+        "max_tokens": 128,
+        "stream": False,
+    }
+    req = urllib.request.Request(
+        base_url + "/chat/completions",
+        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    t0 = time.time()
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        raw = resp.read().decode("utf-8", "replace")
+    elapsed = time.time() - t0
+    data = json.loads(raw)
+    choice = (data.get("choices") or [{}])[0]
+    message = choice.get("message") or {}
+    tool_calls = message.get("tool_calls") or []
+    ok = any(
+        (call.get("function") or {}).get("name") == "get_weather"
+        and "beijing" in json.dumps(call.get("function") or {}, ensure_ascii=False).lower()
+        for call in tool_calls
+    )
+    return {
+        "ok": ok,
+        "elapsed_seconds": elapsed,
+        "finish_reason": choice.get("finish_reason"),
+        "tool_calls": tool_calls,
+        "message_preview": json.dumps(message, ensure_ascii=False)[:500],
+    }
+
 started = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 errors: list[str] = []
 checks: dict[str, object] = {}
@@ -388,6 +449,15 @@ except Exception as exc:
     checks["decode_tps_256"] = {"ok": False, "error": str(exc)}
     errors.append(f"256-token decode smoke error: {exc}")
 
+try:
+    tool_call = post_tool_call_weather()
+    checks["tool_call_weather"] = tool_call
+    if not tool_call["ok"]:
+        errors.append("tool-call smoke did not return get_weather(Beijing)")
+except Exception as exc:
+    checks["tool_call_weather"] = {"ok": False, "error": str(exc)}
+    errors.append(f"tool-call smoke error: {exc}")
+
 report = {
     "schema": "lynn-qwen35-9b-mac-llamacpp-smoke-v1",
     "started_utc": started,
@@ -408,6 +478,7 @@ print(json.dumps({
     "ok": report["ok"],
     "report": report_path,
     "chat_ok": (checks.get("chat") or {}).get("ok") if isinstance(checks.get("chat"), dict) else None,
+    "tool_call_ok": (checks.get("tool_call_weather") or {}).get("ok") if isinstance(checks.get("tool_call_weather"), dict) else None,
     "decode_tps_256": (checks.get("decode_tps_256") or {}).get("decode_tps") if isinstance(checks.get("decode_tps_256"), dict) else None,
     "errors": errors,
 }, ensure_ascii=False, indent=2))

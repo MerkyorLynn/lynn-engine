@@ -106,7 +106,7 @@ def build_recommendation(model_root: Path) -> dict[str, Any]:
         offers.append(
             _offer(
                 artifact_id="qwen35-9b-q4km-imatrix-gguf",
-                model="qwen35-9b-q4km",
+                model="qwen35-9b-q4km-imatrix",
                 runtime="llama.cpp-metal",
                 priority="recommended",
                 reason="Apple Silicon with enough unified memory and disk for the stable 9B local-agent path.",

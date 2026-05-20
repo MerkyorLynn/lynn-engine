@@ -15,13 +15,43 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 MODEL_ROOT="${MODEL_ROOT:-$HOME/Models/Lynn/Qwen3.5-9B}"
-Q4KM_FILE="${Q4KM_FILE:-qwen3.5-9b-q4_k_m.gguf}"
+Q4KM_VARIANT="${Q4KM_VARIANT:-imatrix}"
+Q4KM_FILE_EXPLICIT=0
+if [[ -n "${Q4KM_FILE:-}" ]]; then
+  Q4KM_FILE_EXPLICIT=1
+fi
+ARTIFACT_ID_EXPLICIT=0
+if [[ -n "${ARTIFACT_ID:-}" ]]; then
+  ARTIFACT_ID_EXPLICIT=1
+fi
+SERVED_NAME_EXPLICIT=0
+if [[ -n "${SERVED_NAME:-}" ]]; then
+  SERVED_NAME_EXPLICIT=1
+fi
+LYNN_PROVIDER_CONFIG_EXPLICIT=0
+if [[ -n "${LYNN_PROVIDER_CONFIG:-}" ]]; then
+  LYNN_PROVIDER_CONFIG_EXPLICIT=1
+fi
+case "$Q4KM_VARIANT" in
+  imatrix)
+    Q4KM_FILE="${Q4KM_FILE:-Qwen3.5-9B-Q4_K_M-imatrix.gguf}"
+    ARTIFACT_ID="${ARTIFACT_ID:-qwen35-9b-q4km-imatrix-gguf}"
+    ;;
+  default)
+    Q4KM_FILE="${Q4KM_FILE:-Qwen3.5-9B-Q4_K_M-default.gguf}"
+    ARTIFACT_ID="${ARTIFACT_ID:-qwen35-9b-q4km-default-gguf}"
+    ;;
+  *)
+    echo "[qwen35-setup] Q4KM_VARIANT must be imatrix or default" >&2
+    exit 2
+    ;;
+esac
 Q4KM_DIR="$MODEL_ROOT/q4_k_m"
 Q4KM_PATH="${GGUF:-$Q4KM_DIR/$Q4KM_FILE}"
 SOURCE="${SOURCE:-auto}"
 PORT="${PORT:-18099}"
 HOST="${HOST:-127.0.0.1}"
-SERVED_NAME="${SERVED_NAME:-qwen35-9b-q4km}"
+SERVED_NAME="${SERVED_NAME:-qwen35-9b-q4km-$Q4KM_VARIANT}"
 CTX_SIZE="${CTX_SIZE:-32768}"
 PARALLEL="${PARALLEL:-4}"
 N_GPU_LAYERS="${N_GPU_LAYERS:-999}"
@@ -30,10 +60,14 @@ SMOKE=0
 SERVE=0
 DRY_RUN=0
 FORCE=0
+REGISTER_PROVIDER=1
+INSTALL_RUNTIME=0
 
 DL_BASE_URL="${DL_BASE_URL:-https://dl.merkyorlynn.com/models/qwen35-9b}"
 HF_REPO_Q4KM="${HF_REPO_Q4KM:-Qwen/Qwen3.5-9B-GGUF}"
 MS_REPO_Q4KM="${MS_REPO_Q4KM:-Qwen/Qwen3.5-9B-GGUF}"
+LYNN_PROVIDER_DIR="${LYNN_PROVIDER_DIR:-$HOME/.lynn-engine/providers}"
+LYNN_PROVIDER_CONFIG="${LYNN_PROVIDER_CONFIG:-$LYNN_PROVIDER_DIR/$ARTIFACT_ID.json}"
 
 ENV_FILE_EXPLICIT=0
 if [[ -n "${ENV_FILE:-}" ]]; then
@@ -57,6 +91,8 @@ Start the endpoint after setup:
 Options:
   --download            Download Q4_K_M GGUF if missing.
   --source auto|dl|hf|ms Download source. auto tries dl, then hf, then ms.
+  --variant imatrix|default
+                        Q4_K_M artifact variant (default: imatrix).
   --smoke               Run transient llama.cpp smoke after setup.
   --serve               Exec the persistent llama.cpp endpoint after setup.
   --model-root PATH     Model root (default: ~/Models/Lynn/Qwen3.5-9B).
@@ -69,6 +105,8 @@ Options:
   --gpu-layers N        GPU layers (default: 999).
   --env-file PATH       Env file to write.
   --force               Redownload even if target file exists.
+  --install-runtime     Install llama.cpp if missing (macOS Homebrew).
+  --no-register         Do not write ~/.lynn-engine/providers/*.json.
   --dry-run             Print resolved actions without downloading or running.
   -h, --help            Show this help.
 
@@ -77,6 +115,8 @@ Environment overrides:
   HF_REPO_Q4KM          Hugging Face repo id (default: Qwen/Qwen3.5-9B-GGUF).
   MS_REPO_Q4KM          ModelScope repo id (default: Qwen/Qwen3.5-9B-GGUF).
   Q4KM_FILE             GGUF file name.
+  Q4KM_VARIANT          imatrix or default.
+  LYNN_PROVIDER_DIR     Provider config directory.
   LLAMA_SERVER          llama-server binary path.
   MODEL_ROOT, GGUF      Same as flags.
 USAGE
@@ -86,6 +126,40 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --download) DOWNLOAD=1; shift ;;
     --source) SOURCE="${2:-}"; shift 2 ;;
+    --variant)
+      Q4KM_VARIANT="${2:-}"
+      case "$Q4KM_VARIANT" in
+        imatrix)
+          if [[ "$Q4KM_FILE_EXPLICIT" != "1" ]]; then
+            Q4KM_FILE="Qwen3.5-9B-Q4_K_M-imatrix.gguf"
+          fi
+          if [[ "$ARTIFACT_ID_EXPLICIT" != "1" ]]; then
+            ARTIFACT_ID="qwen35-9b-q4km-imatrix-gguf"
+          fi
+          if [[ "$SERVED_NAME_EXPLICIT" != "1" ]]; then
+            SERVED_NAME="qwen35-9b-q4km-imatrix"
+          fi
+          ;;
+        default)
+          if [[ "$Q4KM_FILE_EXPLICIT" != "1" ]]; then
+            Q4KM_FILE="Qwen3.5-9B-Q4_K_M-default.gguf"
+          fi
+          if [[ "$ARTIFACT_ID_EXPLICIT" != "1" ]]; then
+            ARTIFACT_ID="qwen35-9b-q4km-default-gguf"
+          fi
+          if [[ "$SERVED_NAME_EXPLICIT" != "1" ]]; then
+            SERVED_NAME="qwen35-9b-q4km-default"
+          fi
+          ;;
+        *) echo "[qwen35-setup] --variant must be imatrix or default" >&2; exit 2 ;;
+      esac
+      Q4KM_DIR="$MODEL_ROOT/q4_k_m"
+      Q4KM_PATH="${GGUF:-$Q4KM_DIR/$Q4KM_FILE}"
+      if [[ "$LYNN_PROVIDER_CONFIG_EXPLICIT" != "1" ]]; then
+        LYNN_PROVIDER_CONFIG="$LYNN_PROVIDER_DIR/$ARTIFACT_ID.json"
+      fi
+      shift 2
+      ;;
     --smoke) SMOKE=1; shift ;;
     --serve) SERVE=1; shift ;;
     --model-root)
@@ -94,6 +168,9 @@ while [[ $# -gt 0 ]]; do
       Q4KM_PATH="${GGUF:-$Q4KM_DIR/$Q4KM_FILE}"
       if [[ "$ENV_FILE_EXPLICIT" != "1" ]]; then
         ENV_FILE="$MODEL_ROOT/lynn-qwen35-9b-q4km.env"
+      fi
+      if [[ "$LYNN_PROVIDER_CONFIG_EXPLICIT" != "1" ]]; then
+        LYNN_PROVIDER_CONFIG="$LYNN_PROVIDER_DIR/$ARTIFACT_ID.json"
       fi
       shift 2
       ;;
@@ -106,6 +183,8 @@ while [[ $# -gt 0 ]]; do
     --parallel) PARALLEL="${2:-}"; shift 2 ;;
     --gpu-layers) N_GPU_LAYERS="${2:-}"; shift 2 ;;
     --force) FORCE=1; shift ;;
+    --install-runtime|--install-llama) INSTALL_RUNTIME=1; shift ;;
+    --no-register) REGISTER_PROVIDER=0; shift ;;
     --dry-run) DRY_RUN=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "[qwen35-setup] unknown argument: $1" >&2; usage >&2; exit 2 ;;
@@ -148,6 +227,29 @@ find_existing_gguf() {
   local root candidate
   for root in "$Q4KM_DIR" "$MODEL_ROOT" "$HOME/Models" "$HOME/models" "$HOME/Downloads" "$ROOT/models"; do
     [[ -d "$root" ]] || continue
+    if [[ "$Q4KM_VARIANT" == "imatrix" ]]; then
+      while IFS= read -r candidate; do
+        [[ -s "$candidate" ]] || continue
+        printf '%s\n' "$candidate"
+        return 0
+      done < <(find "$root" -maxdepth 5 -type f \( \
+        -iname '*Qwen3.5*9B*Q4*K*M*imatrix*.gguf' -o \
+        -iname '*qwen3.5*9b*q4*k*m*imatrix*.gguf' -o \
+        -iname '*Qwen3.5*9B*Q4_K_M*imatrix*.gguf' -o \
+        -iname '*qwen3.5*9b*q4_k_m*imatrix*.gguf' \
+      \) 2>/dev/null | sort)
+    else
+      while IFS= read -r candidate; do
+        [[ -s "$candidate" ]] || continue
+        printf '%s\n' "$candidate"
+        return 0
+      done < <(find "$root" -maxdepth 5 -type f \( \
+        -iname '*Qwen3.5*9B*Q4*K*M*default*.gguf' -o \
+        -iname '*qwen3.5*9b*q4*k*m*default*.gguf' -o \
+        -iname '*Qwen3.5*9B*Q4_K_M*default*.gguf' -o \
+        -iname '*qwen3.5*9b*q4_k_m*default*.gguf' \
+      \) 2>/dev/null | sort)
+    fi
     while IFS= read -r candidate; do
       [[ -s "$candidate" ]] || continue
       printf '%s\n' "$candidate"
@@ -177,6 +279,29 @@ Install llama.cpp:
 
 Then rerun setup, or set LLAMA_SERVER=/path/to/llama-server.
 EOF
+}
+
+install_llama_cpp_runtime() {
+  case "$(uname -s)" in
+    Darwin)
+      if ! command -v brew >/dev/null 2>&1; then
+        echo "[qwen35-setup] Homebrew is not installed; cannot auto-install llama.cpp" >&2
+        return 1
+      fi
+      echo "[qwen35-setup] installing llama.cpp via Homebrew..."
+      brew install llama.cpp
+      ;;
+    *)
+      cat >&2 <<'EOF'
+[qwen35-setup] --install-runtime is currently automatic only on macOS/Homebrew.
+Build llama.cpp manually on Linux:
+  git clone https://github.com/ggml-org/llama.cpp ~/llama.cpp
+  cmake -S ~/llama.cpp -B ~/llama.cpp/build -DGGML_CUDA=ON
+  cmake --build ~/llama.cpp/build -j
+EOF
+      return 1
+      ;;
+  esac
 }
 
 have_command() {
@@ -235,6 +360,8 @@ write_env_file() {
   cat > "$ENV_FILE" <<EOF
 # Lynn Qwen3.5-9B Q4_K_M local backend
 # Generated by scripts/local_qwen35_9b_setup.sh
+export ARTIFACT_ID="$ARTIFACT_ID"
+export Q4KM_VARIANT="$Q4KM_VARIANT"
 export GGUF="$gguf"
 export LLAMA_SERVER="$llama_server"
 export HOST="$HOST"
@@ -246,15 +373,21 @@ export N_GPU_LAYERS="$N_GPU_LAYERS"
 export OPENAI_BASE_URL="http://$HOST:$PORT/v1"
 export OPENAI_API_KEY="local"
 export OPENAI_MODEL="$SERVED_NAME"
+export LYNN_PROVIDER_CONFIG="$LYNN_PROVIDER_CONFIG"
 EOF
 }
 
 resolved_gguf="$(find_existing_gguf || true)"
 resolved_llama="$(find_llama_server || true)"
+if [[ -z "$resolved_llama" && "$INSTALL_RUNTIME" == "1" && "$DRY_RUN" != "1" ]]; then
+  install_llama_cpp_runtime
+  resolved_llama="$(find_llama_server || true)"
+fi
 
 cat <<EOF
 [qwen35-setup] model_root=$MODEL_ROOT
-[qwen35-setup] source=$SOURCE download=$DOWNLOAD smoke=$SMOKE serve=$SERVE
+[qwen35-setup] variant=$Q4KM_VARIANT artifact_id=$ARTIFACT_ID
+[qwen35-setup] source=$SOURCE download=$DOWNLOAD smoke=$SMOKE serve=$SERVE install_runtime=$INSTALL_RUNTIME
 [qwen35-setup] target_gguf=$Q4KM_PATH
 [qwen35-setup] found_gguf=${resolved_gguf:-<missing>}
 [qwen35-setup] llama_server=${resolved_llama:-<missing>}
@@ -305,9 +438,26 @@ fi
 
 write_env_file "$resolved_llama" "$resolved_gguf"
 
+if [[ "$REGISTER_PROVIDER" == "1" ]]; then
+  python3 "$ROOT/scripts/local_qwen35_9b_register_provider.py" \
+    --artifact-id "$ARTIFACT_ID" \
+    --variant "$Q4KM_VARIANT" \
+    --gguf "$resolved_gguf" \
+    --llama-server "$resolved_llama" \
+    --host "$HOST" \
+    --port "$PORT" \
+    --served-name "$SERVED_NAME" \
+    --ctx-size "$CTX_SIZE" \
+    --parallel "$PARALLEL" \
+    --gpu-layers "$N_GPU_LAYERS" \
+    --env-file "$ENV_FILE" \
+    --output "$LYNN_PROVIDER_CONFIG"
+fi
+
 cat <<EOF
 [qwen35-setup] ready
 [qwen35-setup] env_file=$ENV_FILE
+[qwen35-setup] provider_config=$LYNN_PROVIDER_CONFIG
 [qwen35-setup] model=$resolved_gguf
 [qwen35-setup] endpoint=http://$HOST:$PORT/v1
 
@@ -319,6 +469,7 @@ Agent config:
   base_url = http://$HOST:$PORT/v1
   api_key  = local
   model    = $SERVED_NAME
+  provider = $LYNN_PROVIDER_CONFIG
 EOF
 
 if [[ "$SMOKE" == "1" ]]; then

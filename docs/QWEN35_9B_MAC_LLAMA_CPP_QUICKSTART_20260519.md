@@ -5,18 +5,21 @@ Date: 2026-05-19
 ## Recommended Setup (macOS Apple Silicon)
 
 ```bash
-# 1. Install llama.cpp (one-time)
-brew install llama.cpp
+# 1. Install llama.cpp if missing, download, register, and run a smoke test
+bash scripts/local_qwen35_9b_setup.sh --install-runtime --download --smoke
 
-# 2. Download, configure, and run a transient smoke test
-bash scripts/local_qwen35_9b_setup.sh --download --smoke
-
-# 3. Start the persistent local endpoint
+# 2. Start the persistent local endpoint
 source ~/Models/Lynn/Qwen3.5-9B/lynn-qwen35-9b-q4km.env
 bash scripts/local_qwen35_9b_q4km_llamacpp_server.sh
 ```
 
 That's it. Your endpoint is live at `http://127.0.0.1:18099/v1`.
+
+For a fully automated first launch that keeps the server running after smoke:
+
+```bash
+bash scripts/local_qwen35_9b_setup.sh --install-runtime --download --smoke --serve
+```
 
 The setup script writes a reusable env file:
 
@@ -25,7 +28,11 @@ The setup script writes a reusable env file:
 ```
 
 It contains `GGUF`, `LLAMA_SERVER`, `OPENAI_BASE_URL`, `OPENAI_API_KEY`, and
-the served model name.
+the served model name. The setup script also writes a Lynn provider config:
+
+```bash
+~/.lynn-engine/providers/qwen35-9b-q4km-imatrix-gguf.json
+```
 
 ## Connect Your Coding Agent
 
@@ -34,7 +41,7 @@ All agents use the same three values:
 ```
 base_url = http://127.0.0.1:18099/v1
 api_key  = local
-model    = qwen35-9b-q4km
+model    = qwen35-9b-q4km-imatrix
 ```
 
 ### Claude Code
@@ -42,7 +49,7 @@ model    = qwen35-9b-q4km
 ```bash
 export OPENAI_BASE_URL=http://127.0.0.1:18099/v1
 export OPENAI_API_KEY=local
-claude --model qwen35-9b-q4km
+claude --model qwen35-9b-q4km-imatrix
 ```
 
 ### Cline (VS Code)
@@ -51,7 +58,7 @@ claude --model qwen35-9b-q4km
 2. API Provider: **OpenAI Compatible**
 3. Base URL: `http://127.0.0.1:18099/v1`
 4. API Key: `local`
-5. Model ID: `qwen35-9b-q4km`
+5. Model ID: `qwen35-9b-q4km-imatrix`
 
 ### Continue (VS Code / JetBrains)
 
@@ -61,7 +68,7 @@ Add to `~/.continue/config.yaml`:
 models:
   - title: Qwen3.5-9B Local
     provider: openai
-    model: qwen35-9b-q4km
+    model: qwen35-9b-q4km-imatrix
     apiBase: http://127.0.0.1:18099/v1
     apiKey: local
 ```
@@ -77,7 +84,7 @@ providers:
     apiKey: local
     baseURL: http://127.0.0.1:18099/v1
     models:
-      qwen35-9b-q4km:
+      qwen35-9b-q4km-imatrix:
         maxTokens: 32768
         contextWindow: 32768
         supportsStreaming: true
@@ -88,7 +95,7 @@ providers:
 ```bash
 aider --openai-api-base http://127.0.0.1:18099/v1 \
       --openai-api-key local \
-      --model openai/qwen35-9b-q4km
+      --model openai/qwen35-9b-q4km-imatrix
 ```
 
 ## Verify Offline (No Model Needed)
@@ -110,7 +117,7 @@ This validates llama-server discovery + GGUF discovery without actually starting
 To check smoke test script in offline mode:
 
 ```bash
-bash scripts/local_qwen35_9b_q4km_smoke.sh --dry-run
+bash scripts/local_qwen35_9b_llamacpp_smoke.sh --dry-run
 ```
 
 ## Customization

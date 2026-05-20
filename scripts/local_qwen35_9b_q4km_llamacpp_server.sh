@@ -22,7 +22,7 @@ set -euo pipefail
 
 HOST="${HOST:-127.0.0.1}"
 PORT="${PORT:-18099}"
-SERVED_NAME="${SERVED_NAME:-qwen35-9b-q4km}"
+SERVED_NAME="${SERVED_NAME:-qwen35-9b-q4km-imatrix}"
 CTX_SIZE="${CTX_SIZE:-32768}"
 THREADS="${THREADS:-}"
 PARALLEL="${PARALLEL:-4}"
@@ -48,7 +48,7 @@ Start a local llama.cpp OpenAI-compatible endpoint for Qwen3.5-9B Q4_K_M.
 Options:
   --port PORT           Server port (default: 18099)
   --host ADDR           Bind address (default: 127.0.0.1)
-  --model-name NAME     Served model name (default: qwen35-9b-q4km)
+  --model-name NAME     Served model name (default: qwen35-9b-q4km-imatrix)
   --ctx SIZE            Context window (default: 32768)
   --threads N           CPU threads (default: auto-detect)
   --parallel N          Max concurrent slots (default: 4)
@@ -73,7 +73,7 @@ Examples:
   bash scripts/local_qwen35_9b_q4km_llamacpp_server.sh
 
   # Explicit model path:
-  GGUF=~/Models/Qwen3.5-9B-Q4_K_M.gguf bash scripts/local_qwen35_9b_q4km_llamacpp_server.sh
+  GGUF=~/Models/Qwen3.5-9B-Q4_K_M-imatrix.gguf bash scripts/local_qwen35_9b_q4km_llamacpp_server.sh
 
   # Different port + dry run check:
   bash scripts/local_qwen35_9b_q4km_llamacpp_server.sh --port 8080 --dry-run
@@ -161,6 +161,9 @@ find_llama_server() {
 
 server_bin="$(find_llama_server || true)"
 if [[ -z "$server_bin" ]]; then
+  if [[ "$DRY_RUN" == "1" ]]; then
+    server_bin="${LLAMA_SERVER:-/absolute/path/to/llama-server}"
+  else
   cat >&2 <<'EOF'
 [qwen35-q4km-local] ERROR: llama-server not found.
 
@@ -181,6 +184,7 @@ Install one of:
 Then rerun this script, or set LLAMA_SERVER=/path/to/llama-server.
 EOF
   exit 3
+  fi
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -212,6 +216,17 @@ find_gguf() {
         return 0
       fi
     done < <(find "$root" -maxdepth 5 -type f \( \
+      -iname '*Qwen3.5*9B*Q4*K*M*imatrix*.gguf' -o \
+      -iname '*qwen3.5*9b*q4*k*m*imatrix*.gguf' -o \
+      -iname '*Qwen3.5*9B*Q4_K_M*imatrix*.gguf' -o \
+      -iname '*qwen3.5*9b*q4_k_m*imatrix*.gguf' \
+    \) 2>/dev/null | sort)
+    while IFS= read -r candidate; do
+      if [[ -s "$candidate" ]]; then
+        printf '%s\n' "$candidate"
+        return 0
+      fi
+    done < <(find "$root" -maxdepth 5 -type f \( \
       -iname '*Qwen3.5*9B*Q4*K*M*.gguf' -o \
       -iname '*qwen3.5*9b*q4*k*m*.gguf' -o \
       -iname '*Qwen3.5*9B*Q4_K_M*imatrix*.gguf' -o \
@@ -223,6 +238,9 @@ find_gguf() {
 
 gguf_path="$(find_gguf || true)"
 if [[ -z "$gguf_path" ]]; then
+  if [[ "$DRY_RUN" == "1" ]]; then
+    gguf_path="${GGUF:-/absolute/path/to/Qwen3.5-9B-Q4_K_M-imatrix.gguf}"
+  else
   cat >&2 <<EOF
 [qwen35-q4km-local] ERROR: Qwen3.5-9B Q4_K_M GGUF not found.
 
@@ -238,14 +256,15 @@ Download options:
 
   # HuggingFace (non-China):
   aria2c -x 16 -s 16 -c -d ~/Models \\
-    'https://huggingface.co/Qwen/Qwen3.5-9B-GGUF/resolve/main/qwen3.5-9b-q4_k_m.gguf'
+    'https://dl.merkyorlynn.com/models/qwen35-9b/q4_k_m/Qwen3.5-9B-Q4_K_M-imatrix.gguf'
 
   # ModelScope (China):
-  modelscope download Qwen/Qwen3.5-9B-GGUF qwen3.5-9b-q4_k_m.gguf --local_dir ~/Models
+  modelscope download Merkyor/Qwen3.5-9B-GGUF-imatrix Qwen3.5-9B-Q4_K_M-imatrix.gguf --local_dir ~/Models
 
 Then rerun, or set GGUF=/path/to/model.gguf
 EOF
   exit 4
+  fi
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────

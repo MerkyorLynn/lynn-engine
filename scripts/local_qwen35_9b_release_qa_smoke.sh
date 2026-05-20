@@ -29,7 +29,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 BASE_URL="${BASE_URL:-http://127.0.0.1:18099/v1}"
-MODEL="${MODEL:-qwen35-9b-q4km}"
+MODEL="${MODEL:-qwen35-9b-q4km-imatrix}"
 TIMEOUT="${TIMEOUT:-120}"
 SKIP_LONG="${SKIP_LONG:-1}"
 STAMP="${STAMP:-$(date +%Y%m%d_%H%M%S)}"

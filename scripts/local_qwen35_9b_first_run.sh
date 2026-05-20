@@ -14,9 +14,9 @@ usage() {
 Usage:
   bash scripts/local_qwen35_9b_first_run.sh [options]
 
-Small first-run wrapper for the Mac Qwen3.5-9B Q4_K_M llama.cpp path.
-It never downloads large files. If no GGUF is found, it prints download
-placeholders and exits with code 4.
+Small first-run wrapper for the Mac Qwen3.5-9B Q4_K_M-imatrix llama.cpp path.
+For a true one-command install, prefer:
+  bash scripts/local_qwen35_9b_setup.sh --download --smoke --serve
 
 Options:
   --model PATH          Q4_K_M GGUF path; same as MODEL env.
@@ -27,8 +27,8 @@ Options:
   -h, --help            Show help.
 
 Examples:
-  MODEL=~/models/Qwen3.5-9B-Q4_K_M.gguf bash scripts/local_qwen35_9b_first_run.sh
-  bash scripts/local_qwen35_9b_first_run.sh --model ~/models/Qwen3.5-9B-Q4_K_M.gguf --port 18198
+  MODEL=~/models/Qwen3.5-9B-Q4_K_M-imatrix.gguf bash scripts/local_qwen35_9b_first_run.sh
+  bash scripts/local_qwen35_9b_first_run.sh --model ~/models/Qwen3.5-9B-Q4_K_M-imatrix.gguf --port 18198
   bash scripts/local_qwen35_9b_first_run.sh --dry-run
 USAGE
 }
@@ -100,10 +100,11 @@ fi
 
 print_download_placeholders() {
   cat <<EOF
-[first-run] ERROR: Qwen3.5-9B Q4_K_M GGUF is not available.
+[first-run] ERROR: Qwen3.5-9B Q4_K_M-imatrix GGUF is not available.
 
-This wrapper does not download large files automatically. Download one of the
-Q4_K_M GGUF artifacts manually, then rerun with MODEL=/path/to/file.gguf.
+Use the product setup command to download, configure, register, and smoke:
+
+  bash scripts/local_qwen35_9b_setup.sh --download --smoke
 
 Search paths checked:
   - MODEL / --model: ${MODEL_PATH:-<unset>}
@@ -111,23 +112,21 @@ Search paths checked:
   - $HOME/models
   - /Users/lynn/Downloads/Lynn/models
 
-Download placeholders:
+Manual fallbacks:
 
-  # Hugging Face placeholder:
-  huggingface-cli download TODO_HF_QWEN35_9B_Q4KM_REPO Qwen3.5-9B-Q4_K_M.gguf \
+  # Hugging Face / ModelScope mirror, when published:
+  huggingface-cli download Merkyor/Qwen3.5-9B-GGUF-imatrix Qwen3.5-9B-Q4_K_M-imatrix.gguf \
     --local-dir "$HOME/models" --local-dir-use-symlinks False
 
-  # ModelScope placeholder:
-  modelscope download --model TODO_MODELSCOPE_QWEN35_9B_Q4KM_REPO Qwen3.5-9B-Q4_K_M.gguf \
+  modelscope download --model Merkyor/Qwen3.5-9B-GGUF-imatrix Qwen3.5-9B-Q4_K_M-imatrix.gguf \
     --local_dir "$HOME/models"
 
-  # Lynn CDN placeholder:
   curl -L --fail --continue-at - --create-dirs \
-    --output "$HOME/models/Qwen3.5-9B-Q4_K_M.gguf" \
-    https://dl.merkyorlynn.com/models/qwen35-9b/q4_k_m/Qwen3.5-9B-Q4_K_M.gguf
+    --output "$HOME/models/Qwen3.5-9B-Q4_K_M-imatrix.gguf" \
+    https://dl.merkyorlynn.com/models/qwen35-9b/q4_k_m/Qwen3.5-9B-Q4_K_M-imatrix.gguf
 
 After download:
-  MODEL="$HOME/models/Qwen3.5-9B-Q4_K_M.gguf" bash scripts/local_qwen35_9b_first_run.sh
+  MODEL="$HOME/models/Qwen3.5-9B-Q4_K_M-imatrix.gguf" bash scripts/local_qwen35_9b_first_run.sh
 EOF
 }
 
@@ -153,6 +152,10 @@ find_existing_model() {
       printf '%s\n' "$candidate"
       return 0
     done < <(find "$root" -maxdepth 5 -type f \( \
+      -iname '*Qwen3.5*9B*Q4*K*M*imatrix*.gguf' -o \
+      -iname '*qwen3.5*9b*q4*k*m*imatrix*.gguf' -o \
+      -iname '*Qwen3.5*9B*Q4_K_M*imatrix*.gguf' -o \
+      -iname '*qwen3.5*9b*q4_k_m*imatrix*.gguf' -o \
       -iname '*Qwen3.5*9B*Q4*K*M*.gguf' -o \
       -iname '*qwen3.5*9b*q4*k*m*.gguf' -o \
       -iname '*Qwen3.5*9B*Q4_K_M*.gguf' -o \
@@ -170,7 +173,7 @@ if [[ "$DRY_RUN" != "1" ]]; then
     exit 4
   fi
 else
-  resolved_model="${MODEL_PATH:-/absolute/path/to/Qwen3.5-9B-Q4_K_M.gguf}"
+  resolved_model="${MODEL_PATH:-/absolute/path/to/Qwen3.5-9B-Q4_K_M-imatrix.gguf}"
 fi
 
 SMOKE_CMD=(
