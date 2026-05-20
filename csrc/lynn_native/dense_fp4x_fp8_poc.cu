@@ -300,6 +300,90 @@ __global__ void dense_fp4xfp8_mma_scaled_kernel(
     }
 }
 
+__global__ void dense_fp4xfp8_mma_scaled_dual_kernel(
+    const uint8_t* __restrict__ act_fp8,            // [K] E4M3 bytes
+    const float* __restrict__ act_scale,            // [K/16]
+    const uint8_t* __restrict__ gate_weight_fp4,    // [N, K/2]
+    const float* __restrict__ gate_weight_scale,    // [N, K/16]
+    const float* __restrict__ gate_weight_global,   // scalar
+    const uint8_t* __restrict__ up_weight_fp4,      // [N, K/2]
+    const float* __restrict__ up_weight_scale,      // [N, K/16]
+    const float* __restrict__ up_weight_global,     // scalar
+    float* __restrict__ output,                     // [2, N]
+    int N, int K
+) {
+    const int lane = threadIdx.x & 31;
+    const int global_n_tile = blockIdx.x;
+    const int global_n_offset = global_n_tile * 8;
+    const int total_n = N * 2;
+    if (global_n_offset >= total_n) return;
+
+    const bool is_up = global_n_offset >= N;
+    const int n_offset = is_up ? (global_n_offset - N) : global_n_offset;
+    const uint8_t* weight_fp4 = is_up ? up_weight_fp4 : gate_weight_fp4;
+    const float* weight_scale = is_up ? up_weight_scale : gate_weight_scale;
+    const float* weight_global = is_up ? up_weight_global : gate_weight_global;
+
+    const int scale_stride_n = K / 16;
+    const float inv_global = 1.0f / weight_global[0];
+    float d[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+    for (int k0 = 0; k0 < K; k0 += 32) {
+        float p0[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+        float p1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+        uint32_t a0[4];
+        uint32_t b0[2];
+        uint32_t a1[4];
+        uint32_t b1[2];
+        fill_a_fp8_fragment_group(act_fp8, k0, 0, lane, a0);
+        fill_b_fp4_fragment_group(weight_fp4, n_offset, k0, K / 2, 0, lane, b0);
+        fill_a_fp8_fragment_group(act_fp8, k0, 1, lane, a1);
+        fill_b_fp4_fragment_group(weight_fp4, n_offset, k0, K / 2, 1, lane, b1);
+
+        cute::SM120_16x8x32_TN<
+            cute::float_e4m3_t,
+            cute::float_e2m1_t,
+            float>::fma(
+                p0[0], p0[1], p0[2], p0[3],
+                a0[0], a0[1], a0[2], a0[3],
+                b0[0], b0[1],
+                p0[0], p0[1], p0[2], p0[3]);
+        cute::SM120_16x8x32_TN<
+            cute::float_e4m3_t,
+            cute::float_e2m1_t,
+            float>::fma(
+                p1[0], p1[1], p1[2], p1[3],
+                a1[0], a1[1], a1[2], a1[3],
+                b1[0], b1[1],
+                p1[0], p1[1], p1[2], p1[3]);
+
+        const int g0 = k0 >> 4;
+        const int g1 = g0 + 1;
+#pragma unroll
+        for (int v = 0; v < 4; ++v) {
+            int m = 0;
+            int n = 0;
+            c_coord_from_lane_value(lane, v, &m, &n);
+            if (m == 0 && n_offset + n < N) {
+                const int row = n_offset + n;
+                const float s0 = act_scale[g0] * weight_scale[row * scale_stride_n + g0] * inv_global;
+                const float s1 = act_scale[g1] * weight_scale[row * scale_stride_n + g1] * inv_global;
+                d[v] += p0[v] * s0 + p1[v] * s1;
+            }
+        }
+    }
+
+#pragma unroll
+    for (int v = 0; v < 4; ++v) {
+        int m = 0;
+        int n = 0;
+        c_coord_from_lane_value(lane, v, &m, &n);
+        if (m == 0 && n_offset + n < N) {
+            output[global_n_offset + n] = d[v];
+        }
+    }
+}
+
 __global__ void dense_fp4xfp8_mma_real_kernel(
     const uint8_t* __restrict__ act_fp8,     // [K] E4M3 bytes
     const uint8_t* __restrict__ weight_fp4,  // [N, K/2] E2M1 packed
@@ -452,6 +536,62 @@ torch::Tensor lynn_dense_fp4xfp8_mma_scaled_probe(
         N, K);
     cudaError_t err = cudaGetLastError();
     TORCH_CHECK(err == cudaSuccess, "dense_fp4xfp8_mma_scaled_kernel failed: ", cudaGetErrorString(err));
+    return output;
+#else
+    TORCH_CHECK(false, "FP4 MMA not available: requires SM120a + CuTe headers");
+    return torch::Tensor();
+#endif
+}
+
+torch::Tensor lynn_dense_fp4xfp8_mma_scaled_dual_probe(
+    torch::Tensor act_fp8,
+    torch::Tensor act_scale,
+    torch::Tensor gate_weight_packed,
+    torch::Tensor gate_weight_scale,
+    torch::Tensor gate_weight_global,
+    torch::Tensor up_weight_packed,
+    torch::Tensor up_weight_scale,
+    torch::Tensor up_weight_global,
+    int64_t M, int64_t N, int64_t K
+) {
+#if HAS_FP4_MMA
+    TORCH_CHECK(act_fp8.is_cuda() && act_fp8.scalar_type() == torch::kUInt8);
+    TORCH_CHECK(act_scale.is_cuda() && act_scale.scalar_type() == torch::kFloat32);
+    TORCH_CHECK(gate_weight_packed.is_cuda() && gate_weight_packed.scalar_type() == torch::kUInt8);
+    TORCH_CHECK(up_weight_packed.is_cuda() && up_weight_packed.scalar_type() == torch::kUInt8);
+    TORCH_CHECK(gate_weight_scale.is_cuda() && gate_weight_scale.scalar_type() == torch::kFloat32);
+    TORCH_CHECK(up_weight_scale.is_cuda() && up_weight_scale.scalar_type() == torch::kFloat32);
+    TORCH_CHECK(gate_weight_global.is_cuda() && gate_weight_global.scalar_type() == torch::kFloat32);
+    TORCH_CHECK(up_weight_global.is_cuda() && up_weight_global.scalar_type() == torch::kFloat32);
+    TORCH_CHECK(K % 32 == 0, "K must be multiple of 32 for MMA tile");
+    TORCH_CHECK(act_scale.numel() == K / 16, "act_scale must be [K/16]");
+    TORCH_CHECK(gate_weight_packed.size(0) == N && up_weight_packed.size(0) == N,
+                "gate/up packed weights must both have N rows");
+    TORCH_CHECK(gate_weight_packed.size(1) == K / 2 && up_weight_packed.size(1) == K / 2,
+                "gate/up packed weights must both have K/2 columns");
+    TORCH_CHECK(gate_weight_scale.size(0) == N && gate_weight_scale.size(1) == K / 16,
+                "gate_weight_scale must be [N, K/16]");
+    TORCH_CHECK(up_weight_scale.size(0) == N && up_weight_scale.size(1) == K / 16,
+                "up_weight_scale must be [N, K/16]");
+    TORCH_CHECK(N % 8 == 0, "N must be multiple of 8 for the dual probe");
+
+    auto output = torch::zeros({2, N}, torch::TensorOptions().device(act_fp8.device()).dtype(torch::kFloat32));
+    dim3 grid(((N * 2) + 7) / 8);
+    dim3 block(32);
+    dense_fp4xfp8_mma_scaled_dual_kernel<<<grid, block>>>(
+        act_fp8.data_ptr<uint8_t>(),
+        act_scale.data_ptr<float>(),
+        gate_weight_packed.data_ptr<uint8_t>(),
+        gate_weight_scale.data_ptr<float>(),
+        gate_weight_global.data_ptr<float>(),
+        up_weight_packed.data_ptr<uint8_t>(),
+        up_weight_scale.data_ptr<float>(),
+        up_weight_global.data_ptr<float>(),
+        output.data_ptr<float>(),
+        static_cast<int>(N),
+        static_cast<int>(K));
+    cudaError_t err = cudaGetLastError();
+    TORCH_CHECK(err == cudaSuccess, "dense_fp4xfp8_mma_scaled_dual_kernel failed: ", cudaGetErrorString(err));
     return output;
 #else
     TORCH_CHECK(false, "FP4 MMA not available: requires SM120a + CuTe headers");

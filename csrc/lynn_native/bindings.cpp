@@ -255,6 +255,13 @@ torch::Tensor lynn_dense_fp4xfp8_mma_scaled_probe(
     torch::Tensor weight_packed, torch::Tensor weight_scale,
     torch::Tensor weight_global,
     int64_t M, int64_t N, int64_t K);
+torch::Tensor lynn_dense_fp4xfp8_mma_scaled_dual_probe(
+    torch::Tensor act_fp8, torch::Tensor act_scale,
+    torch::Tensor gate_weight_packed, torch::Tensor gate_weight_scale,
+    torch::Tensor gate_weight_global,
+    torch::Tensor up_weight_packed, torch::Tensor up_weight_scale,
+    torch::Tensor up_weight_global,
+    int64_t M, int64_t N, int64_t K);
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
   m.def("add_one", &lynn_native_add_one, "Lynn native CUDA extension smoke kernel");
@@ -406,4 +413,8 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
       "dense_fp4xfp8_mma_scaled_probe",
       &lynn_dense_fp4xfp8_mma_scaled_probe,
       "P194 SM120a FP4xFP8 MMA with split16 Lynn per-group scales");
+  m.def(
+      "dense_fp4xfp8_mma_scaled_dual_probe",
+      &lynn_dense_fp4xfp8_mma_scaled_dual_probe,
+      "P200 SM120a FP4xFP8 dual gate/up MMA with one shared activation");
 }
