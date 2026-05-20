@@ -1,0 +1,13 @@
+{
+  "model": "Qwen3.5-9B",
+  "variant": "Lynn-native NVFP4 W4A16",
+  "mode": "thinking-on 32K",
+  "benchmark": "MMLU 100 sample",
+  "n": 100,
+  "ok": 91,
+  "accuracy": 0.91,
+  "errors": 0,
+  "parse_fail": 1,
+  "parse_clean_n": 99,
+  "parse_clean_accuracy": 0.9191919191919192
+}
