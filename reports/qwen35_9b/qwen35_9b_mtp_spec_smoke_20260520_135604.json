@@ -1,0 +1,1451 @@
+{
+  "model": "/root/autodl-tmp/models/Qwen3.5-9B-lynn-native-w4a16-nvfp4-v0",
+  "sidecar": "/root/autodl-tmp/models/mtp_sidecars/qwen35-9b-official-inline-lynn/mtp.safetensors",
+  "max_new": 64,
+  "modes": [
+    {
+      "mode": "spec_k1_batched",
+      "wall_seconds": 12.240325029939413,
+      "mean_decode_tps": 0.0,
+      "mean_spec_effective_token_tps": 23.10381892359742,
+      "events": 144,
+      "accepted_events": 116,
+      "accept_rate": 0.8055555555555556,
+      "tokens_committed": 252,
+      "rows": [
+        {
+          "prompt": "Explain why local inference matters in one paragraph.",
+          "decode_tps": null,
+          "tokens_generated": null,
+          "mtp_speculative": {
+            "active": true,
+            "events": 39,
+            "accepted_events": 26,
+            "tokens_committed": 63,
+            "accept_rate": 0.6666666666666666,
+            "tokens_per_event": 1.6153846153846154,
+            "step_seconds": [
+              0.14839744567871094,
+              0.10679316520690918,
+              0.10766005516052246,
+              0.0690000057220459,
+              0.06892848014831543,
+              0.0689394474029541,
+              0.06922793388366699,
+              0.06913948059082031,
+              0.06873941421508789,
+              0.06852483749389648,
+              0.06857872009277344,
+              0.10717201232910156,
+              0.10606551170349121,
+              0.10564684867858887,
+              0.10558962821960449,
+              0.10553741455078125,
+              0.0685722827911377,
+              0.1052851676940918,
+              0.0712132453918457,
+              0.06932497024536133,
+              0.06879591941833496,
+              0.06897687911987305,
+              0.06873965263366699,
+              0.06862497329711914,
+              0.06899213790893555,
+              0.06902670860290527,
+              0.06872296333312988,
+              0.07053232192993164,
+              0.10632610321044922,
+              0.06871199607849121,
+              0.10582423210144043,
+              0.06894493103027344,
+              0.07636237144470215,
+              0.10631990432739258,
+              0.10567283630371094,
+              0.07003045082092285,
+              0.06909775733947754,
+              0.06906294822692871,
+              0.0687410831451416
+            ],
+            "event_tps": 12.089865879664568,
+            "effective_token_tps": 19.529783344073532,
+            "drafts": [
+              {
+                "event": 0,
+                "draft_id": 16,
+                "draft_text": "1",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.14839744567871094
+              },
+              {
+                "event": 1,
+                "draft_id": 7090,
+                "draft_text": "Local",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.10679316520690918
+              },
+              {
+                "event": 2,
+                "draft_id": 369,
+                "draft_text": " is",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.10766005516052246
+              },
+              {
+                "event": 3,
+                "draft_id": 1521,
+                "draft_text": " because",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.0690000057220459
+              },
+              {
+                "event": 4,
+                "draft_id": 19468,
+                "draft_text": " enables",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06892848014831543
+              },
+              {
+                "event": 5,
+                "draft_id": 7019,
+                "draft_text": "-time",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.0689394474029541
+              },
+              {
+                "event": 6,
+                "draft_id": 321,
+                "draft_text": " and",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06922793388366699
+              },
+              {
+                "event": 7,
+                "draft_id": 303,
+                "draft_text": " in",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06913948059082031
+              },
+              {
+                "event": 8,
+                "draft_id": 421,
+                "draft_text": " that",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06873941421508789
+              },
+              {
+                "event": 9,
+                "draft_id": 16681,
+                "draft_text": " rely",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06852483749389648
+              },
+              {
+                "event": 10,
+                "draft_id": 279,
+                "draft_text": " the",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06857872009277344
+              },
+              {
+                "event": 11,
+                "draft_id": 11,
+                "draft_text": ",",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.10717201232910156
+              },
+              {
+                "event": 12,
+                "draft_id": 2279,
+                "draft_text": " power",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.10606551170349121
+              },
+              {
+                "event": 13,
+                "draft_id": 466,
+                "draft_text": " or",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.10564684867858887
+              },
+              {
+                "event": 14,
+                "draft_id": 55941,
+                "draft_text": " centralized",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.10558962821960449
+              },
+              {
+                "event": 15,
+                "draft_id": 314,
+                "draft_text": " of",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.10553741455078125
+              },
+              {
+                "event": 16,
+                "draft_id": 21391,
+                "draft_text": "oler",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.0685722827911377
+              },
+              {
+                "event": 17,
+                "draft_id": 21066,
+                "draft_text": " environments",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.1052851676940918
+              },
+              {
+                "event": 18,
+                "draft_id": 2483,
+                "draft_text": " required",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.0712132453918457
+              },
+              {
+                "event": 19,
+                "draft_id": 3521,
+                "draft_text": " global",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06932497024536133
+              },
+              {
+                "event": 20,
+                "draft_id": 13,
+                "draft_text": ".",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06879591941833496
+              },
+              {
+                "event": 21,
+                "draft_id": 8427,
+                "draft_text": " processing",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06897687911987305
+              },
+              {
+                "event": 22,
+                "draft_id": 2785,
+                "draft_text": " within",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06873965263366699
+              },
+              {
+                "event": 23,
+                "draft_id": 13522,
+                "draft_text": " immediate",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06862497329711914
+              },
+              {
+                "event": 24,
+                "draft_id": 314,
+                "draft_text": " of",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06899213790893555
+              },
+              {
+                "event": 25,
+                "draft_id": 1156,
+                "draft_text": " user",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06902670860290527
+              },
+              {
+                "event": 26,
+                "draft_id": 3545,
+                "draft_text": " device",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06872296333312988
+              },
+              {
+                "event": 27,
+                "draft_id": 2136,
+                "draft_text": " local",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.07053232192993164
+              },
+              {
+                "event": 28,
+                "draft_id": 5954,
+                "draft_text": " allows",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.10632610321044922
+              },
+              {
+                "event": 29,
+                "draft_id": 4603,
+                "draft_text": "izes",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06871199607849121
+              },
+              {
+                "event": 30,
+                "draft_id": 29997,
+                "draft_text": " overhead",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.10582423210144043
+              },
+              {
+                "event": 31,
+                "draft_id": 11,
+                "draft_text": ",",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06894493103027344
+              },
+              {
+                "event": 32,
+                "draft_id": 17191,
+                "draft_text": " reducing",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.07636237144470215
+              },
+              {
+                "event": 33,
+                "draft_id": 11,
+                "draft_text": ",",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.10631990432739258
+              },
+              {
+                "event": 34,
+                "draft_id": 4649,
+                "draft_text": " energy",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.10567283630371094
+              },
+              {
+                "event": 35,
+                "draft_id": 32288,
+                "draft_text": " bandwidth",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.07003045082092285
+              },
+              {
+                "event": 36,
+                "draft_id": 864,
+                "draft_text": " which",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06909775733947754
+              },
+              {
+                "event": 37,
+                "draft_id": 8751,
+                "draft_text": " critical",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06906294822692871
+              },
+              {
+                "event": 38,
+                "draft_id": 8098,
+                "draft_text": " applications",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.0687410831451416
+              }
+            ]
+          },
+          "mtp_shadow": {
+            "loaded": true,
+            "enabled": false,
+            "disabled_reason": null,
+            "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen35-9b-official-inline-lynn/mtp.safetensors",
+            "load_seconds": 0.07256650924682617,
+            "events": 0,
+            "accepted": 0,
+            "accept_rate": null,
+            "max_one_token_speculative_multiplier": null,
+            "draft_step_seconds": [],
+            "draft_tps": null,
+            "trace": []
+          },
+          "text_head": "Explain why local inference matters in one paragraph.\n\nLocal inference matters because it enables real-time responsiveness and efficiency in systems that cannot"
+        },
+        {
+          "prompt": "Write a concise Python function to compute Fibonacci numbers.",
+          "decode_tps": null,
+          "tokens_generated": null,
+          "mtp_speculative": {
+            "active": true,
+            "events": 35,
+            "accepted_events": 30,
+            "tokens_committed": 63,
+            "accept_rate": 0.8571428571428571,
+            "tokens_per_event": 1.8,
+            "step_seconds": [
+              0.06981730461120605,
+              0.06894445419311523,
+              0.10592007637023926,
+              0.06867432594299316,
+              0.06880712509155273,
+              0.06920981407165527,
+              0.10741972923278809,
+              0.06886076927185059,
+              0.068939208984375,
+              0.06857967376708984,
+              0.06888914108276367,
+              0.10598015785217285,
+              0.06864714622497559,
+              0.0690305233001709,
+              0.06897640228271484,
+              0.0688779354095459,
+              0.06858158111572266,
+              0.06950688362121582,
+              0.06898331642150879,
+              0.0687713623046875,
+              0.06858134269714355,
+              0.10569453239440918,
+              0.06875443458557129,
+              0.06886577606201172,
+              0.06867790222167969,
+              0.06908559799194336,
+              0.06869006156921387,
+              0.06875967979431152,
+              0.06856870651245117,
+              0.10663890838623047,
+              0.06889748573303223,
+              0.06874227523803711,
+              0.06888127326965332,
+              0.06867861747741699,
+              0.06879448890686035
+            ],
+            "event_tps": 13.47331199089252,
+            "effective_token_tps": 24.251961583606537,
+            "drafts": [
+              {
+                "event": 0,
+                "draft_id": 8160,
+                "draft_text": "Here",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06981730461120605
+              },
+              {
+                "event": 1,
+                "draft_id": 264,
+                "draft_text": " a",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06894445419311523
+              },
+              {
+                "event": 2,
+                "draft_id": 321,
+                "draft_text": " and",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.10592007637023926
+              },
+              {
+                "event": 3,
+                "draft_id": 709,
+                "draft_text": " function",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06867432594299316
+              },
+              {
+                "event": 4,
+                "draft_id": 12204,
+                "draft_text": " compute",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06880712509155273
+              },
+              {
+                "event": 5,
+                "draft_id": 4947,
+                "draft_text": " numbers",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06920981407165527
+              },
+              {
+                "event": 6,
+                "draft_id": 279,
+                "draft_text": " the",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.10741972923278809
+              },
+              {
+                "event": 7,
+                "draft_id": 83876,
+                "draft_text": " iterative",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06886076927185059
+              },
+              {
+                "event": 8,
+                "draft_id": 25,
+                "draft_text": ":",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.068939208984375
+              },
+              {
+                "event": 9,
+                "draft_id": 71093,
+                "draft_text": "```",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06857967376708984
+              },
+              {
+                "event": 10,
+                "draft_id": 198,
+                "draft_text": "\n",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06888914108276367
+              },
+              {
+                "event": 11,
+                "draft_id": 77,
+                "draft_text": "n",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.10598015785217285
+              },
+              {
+                "event": 12,
+                "draft_id": 1393,
+                "draft_text": "(n",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06864714622497559
+              },
+              {
+                "event": 13,
+                "draft_id": 198,
+                "draft_text": "\n",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.0690305233001709
+              },
+              {
+                "event": 14,
+                "draft_id": 413,
+                "draft_text": " if",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06897640228271484
+              },
+              {
+                "event": 15,
+                "draft_id": 2564,
+                "draft_text": " <=",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.0688779354095459
+              },
+              {
+                "event": 16,
+                "draft_id": 15,
+                "draft_text": "0",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06858158111572266
+              },
+              {
+                "event": 17,
+                "draft_id": 198,
+                "draft_text": "\n",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06950688362121582
+              },
+              {
+                "event": 18,
+                "draft_id": 460,
+                "draft_text": " return",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06898331642150879
+              },
+              {
+                "event": 19,
+                "draft_id": 15,
+                "draft_text": "0",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.0687713623046875
+              },
+              {
+                "event": 20,
+                "draft_id": 262,
+                "draft_text": "   ",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06858134269714355
+              },
+              {
+                "event": 21,
+                "draft_id": 264,
+                "draft_text": " a",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.10569453239440918
+              },
+              {
+                "event": 22,
+                "draft_id": 606,
+                "draft_text": " ==",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06875443458557129
+              },
+              {
+                "event": 23,
+                "draft_id": 16,
+                "draft_text": "1",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06886577606201172
+              },
+              {
+                "event": 24,
+                "draft_id": 198,
+                "draft_text": "\n",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06867790222167969
+              },
+              {
+                "event": 25,
+                "draft_id": 460,
+                "draft_text": " return",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06908559799194336
+              },
+              {
+                "event": 26,
+                "draft_id": 16,
+                "draft_text": "1",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06869006156921387
+              },
+              {
+                "event": 27,
+                "draft_id": 262,
+                "draft_text": "   ",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06875967979431152
+              },
+              {
+                "event": 28,
+                "draft_id": 25,
+                "draft_text": ":",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06856870651245117
+              },
+              {
+                "event": 29,
+                "draft_id": 262,
+                "draft_text": "   ",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.10663890838623047
+              },
+              {
+                "event": 30,
+                "draft_id": 264,
+                "draft_text": " a",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06889748573303223
+              },
+              {
+                "event": 31,
+                "draft_id": 292,
+                "draft_text": " b",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06874227523803711
+              },
+              {
+                "event": 32,
+                "draft_id": 220,
+                "draft_text": " ",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06888127326965332
+              },
+              {
+                "event": 33,
+                "draft_id": 11,
+                "draft_text": ",",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06867861747741699
+              },
+              {
+                "event": 34,
+                "draft_id": 16,
+                "draft_text": "1",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06879448890686035
+              }
+            ]
+          },
+          "mtp_shadow": {
+            "loaded": true,
+            "enabled": false,
+            "disabled_reason": null,
+            "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen35-9b-official-inline-lynn/mtp.safetensors",
+            "load_seconds": 0.07256650924682617,
+            "events": 0,
+            "accepted": 0,
+            "accept_rate": null,
+            "max_one_token_speculative_multiplier": null,
+            "draft_step_seconds": [],
+            "draft_tps": null,
+            "trace": []
+          },
+          "text_head": "Write a concise Python function to compute Fibonacci numbers.\n\nHere is a concise Python function to compute Fibonacci numbers using an iterative approach:\n\n```p"
+        },
+        {
+          "prompt": "A train travels 120 km in 90 minutes. What is its average speed in km/h?",
+          "decode_tps": null,
+          "tokens_generated": null,
+          "mtp_speculative": {
+            "active": true,
+            "events": 35,
+            "accepted_events": 30,
+            "tokens_committed": 63,
+            "accept_rate": 0.8571428571428571,
+            "tokens_per_event": 1.8,
+            "step_seconds": [
+              0.0698847770690918,
+              0.06900525093078613,
+              0.0691230297088623,
+              0.10605907440185547,
+              0.10637187957763672,
+              0.10554742813110352,
+              0.06870079040527344,
+              0.06888508796691895,
+              0.06895041465759277,
+              0.06892776489257812,
+              0.0686948299407959,
+              0.06878066062927246,
+              0.10592293739318848,
+              0.06882381439208984,
+              0.1064295768737793,
+              0.06868958473205566,
+              0.06820821762084961,
+              0.06861662864685059,
+              0.06822657585144043,
+              0.06814765930175781,
+              0.06856608390808105,
+              0.06831836700439453,
+              0.06806492805480957,
+              0.06832313537597656,
+              0.06845378875732422,
+              0.06834816932678223,
+              0.06968450546264648,
+              0.06902074813842773,
+              0.06885075569152832,
+              0.06874227523803711,
+              0.06857991218566895,
+              0.06873559951782227,
+              0.06873512268066406,
+              0.06859493255615234,
+              0.06867551803588867
+            ],
+            "event_tps": 13.50470247697058,
+            "effective_token_tps": 24.308464458547046,
+            "drafts": [
+              {
+                "event": 0,
+                "draft_id": 1206,
+                "draft_text": "To",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.0698847770690918
+              },
+              {
+                "event": 1,
+                "draft_id": 279,
+                "draft_text": " the",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06900525093078613
+              },
+              {
+                "event": 2,
+                "draft_id": 4478,
+                "draft_text": " speed",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.0691230297088623
+              },
+              {
+                "event": 3,
+                "draft_id": 39229,
+                "draft_text": " kilometers",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.10605907440185547
+              },
+              {
+                "event": 4,
+                "draft_id": 791,
+                "draft_text": " per",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.10637187957763672
+              },
+              {
+                "event": 5,
+                "draft_id": 405,
+                "draft_text": "our",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.10554742813110352
+              },
+              {
+                "event": 6,
+                "draft_id": 567,
+                "draft_text": " we",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06870079040527344
+              },
+              {
+                "event": 7,
+                "draft_id": 310,
+                "draft_text": " to",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06888508796691895
+              },
+              {
+                "event": 8,
+                "draft_id": 279,
+                "draft_text": " the",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06895041465759277
+              },
+              {
+                "event": 9,
+                "draft_id": 494,
+                "draft_text": " from",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06892776489257812
+              },
+              {
+                "event": 10,
+                "draft_id": 310,
+                "draft_text": " to",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.0686948299407959
+              },
+              {
+                "event": 11,
+                "draft_id": 13,
+                "draft_text": ".",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06878066062927246
+              },
+              {
+                "event": 12,
+                "draft_id": 279,
+                "draft_text": " the",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.10592293739318848
+              },
+              {
+                "event": 13,
+                "draft_id": 24,
+                "draft_text": "9",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06882381439208984
+              },
+              {
+                "event": 14,
+                "draft_id": 15,
+                "draft_text": "0",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.1064295768737793
+              },
+              {
+                "event": 15,
+                "draft_id": 369,
+                "draft_text": " is",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06868958473205566
+              },
+              {
+                "event": 16,
+                "draft_id": 16,
+                "draft_text": "1",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06820821762084961
+              },
+              {
+                "event": 17,
+                "draft_id": 20,
+                "draft_text": "5",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06861662864685059
+              },
+              {
+                "event": 18,
+                "draft_id": 11,
+                "draft_text": ",",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06822657585144043
+              },
+              {
+                "event": 19,
+                "draft_id": 5289,
+                "draft_text": " average",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06814765930175781
+              },
+              {
+                "event": 20,
+                "draft_id": 369,
+                "draft_text": " is",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06856608390808105
+              },
+              {
+                "event": 21,
+                "draft_id": 1088,
+                "draft_text": " \\",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06831836700439453
+              },
+              {
+                "event": 22,
+                "draft_id": 90,
+                "draft_text": "{",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06806492805480957
+              },
+              {
+                "event": 23,
+                "draft_id": 17,
+                "draft_text": "2",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06832313537597656
+              },
+              {
+                "event": 24,
+                "draft_id": 1088,
+                "draft_text": " \\",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06845378875732422
+              },
+              {
+                "event": 25,
+                "draft_id": 90,
+                "draft_text": "{",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06834816932678223
+              },
+              {
+                "event": 26,
+                "draft_id": 3307,
+                "draft_text": "}}",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06968450546264648
+              },
+              {
+                "event": 27,
+                "draft_id": 16,
+                "draft_text": "1",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06902074813842773
+              },
+              {
+                "event": 28,
+                "draft_id": 20,
+                "draft_text": "5",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06885075569152832
+              },
+              {
+                "event": 29,
+                "draft_id": 1272,
+                "draft_text": "text",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06874227523803711
+              },
+              {
+                "event": 30,
+                "draft_id": 3979,
+                "draft_text": " hours",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06857991218566895
+              },
+              {
+                "event": 31,
+                "draft_id": 283,
+                "draft_text": " =",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06873559951782227
+              },
+              {
+                "event": 32,
+                "draft_id": 23,
+                "draft_text": "8",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06873512268066406
+              },
+              {
+                "event": 33,
+                "draft_id": 1088,
+                "draft_text": " \\",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06859493255615234
+              },
+              {
+                "event": 34,
+                "draft_id": 90,
+                "draft_text": "{",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06867551803588867
+              }
+            ]
+          },
+          "mtp_shadow": {
+            "loaded": true,
+            "enabled": false,
+            "disabled_reason": null,
+            "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen35-9b-official-inline-lynn/mtp.safetensors",
+            "load_seconds": 0.07256650924682617,
+            "events": 0,
+            "accepted": 0,
+            "accept_rate": null,
+            "max_one_token_speculative_multiplier": null,
+            "draft_step_seconds": [],
+            "draft_tps": null,
+            "trace": []
+          },
+          "text_head": "A train travels 120 km in 90 minutes. What is its average speed in km/h?\n\nTo find the average speed in km/h, we need to convert the time from minutes to hours. "
+        },
+        {
+          "prompt": "Summarize the difference between BF16 and 4-bit quantization.",
+          "decode_tps": null,
+          "tokens_generated": null,
+          "mtp_speculative": {
+            "active": true,
+            "events": 35,
+            "accepted_events": 30,
+            "tokens_committed": 63,
+            "accept_rate": 0.8571428571428571,
+            "tokens_per_event": 1.8,
+            "step_seconds": [
+              0.10639595985412598,
+              0.06883811950683594,
+              0.06872844696044922,
+              0.06894373893737793,
+              0.06890201568603516,
+              0.0685267448425293,
+              0.06875419616699219,
+              0.06878781318664551,
+              0.06872129440307617,
+              0.06965923309326172,
+              0.06860733032226562,
+              0.068603515625,
+              0.06884145736694336,
+              0.06910014152526855,
+              0.1075429916381836,
+              0.06888413429260254,
+              0.06878018379211426,
+              0.06884622573852539,
+              0.06856751441955566,
+              0.06827306747436523,
+              0.0681312084197998,
+              0.0681307315826416,
+              0.10457849502563477,
+              0.06827664375305176,
+              0.06830978393554688,
+              0.06837630271911621,
+              0.10506558418273926,
+              0.06826066970825195,
+              0.06917023658752441,
+              0.06872391700744629,
+              0.06849455833435059,
+              0.06890177726745605,
+              0.10570883750915527,
+              0.06887245178222656,
+              0.06861567497253418
+            ],
+            "event_tps": 13.513925726756977,
+            "effective_token_tps": 24.325066308162558,
+            "drafts": [
+              {
+                "event": 0,
+                "draft_id": 332,
+                "draft_text": "**",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.10639595985412598
+              },
+              {
+                "event": 1,
+                "draft_id": 369,
+                "draft_text": " is",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06883811950683594
+              },
+              {
+                "event": 2,
+                "draft_id": 11782,
+                "draft_text": " summary",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06872844696044922
+              },
+              {
+                "event": 3,
+                "draft_id": 279,
+                "draft_text": " the",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06894373893737793
+              },
+              {
+                "event": 4,
+                "draft_id": 1881,
+                "draft_text": " between",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06890201568603516
+              },
+              {
+                "event": 5,
+                "draft_id": 16,
+                "draft_text": "1",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.0685267448425293
+              },
+              {
+                "event": 6,
+                "draft_id": 318,
+                "draft_text": " (",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06875419616699219
+              },
+              {
+                "event": 7,
+                "draft_id": 3524,
+                "draft_text": "float",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06878781318664551
+              },
+              {
+                "event": 8,
+                "draft_id": 21,
+                "draft_text": "6",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06872129440307617
+              },
+              {
+                "event": 9,
+                "draft_id": 321,
+                "draft_text": " and",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06965923309326172
+              },
+              {
+                "event": 10,
+                "draft_id": 19,
+                "draft_text": "4",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06860733032226562
+              },
+              {
+                "event": 11,
+                "draft_id": 9966,
+                "draft_text": " quant",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.068603515625
+              },
+              {
+                "event": 12,
+                "draft_id": 11,
+                "draft_text": ",",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06884145736694336
+              },
+              {
+                "event": 13,
+                "draft_id": 383,
+                "draft_text": " on",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06910014152526855
+              },
+              {
+                "event": 14,
+                "draft_id": 6355,
+                "draft_text": " trade",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.1075429916381836
+              },
+              {
+                "event": 15,
+                "draft_id": 11,
+                "draft_text": ",",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06888413429260254
+              },
+              {
+                "event": 16,
+                "draft_id": 11,
+                "draft_text": ",",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06878018379211426
+              },
+              {
+                "event": 17,
+                "draft_id": 958,
+                "draft_text": " use",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06884622573852539
+              },
+              {
+                "event": 18,
+                "draft_id": 13,
+                "draft_text": ".",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06856751441955566
+              },
+              {
+                "event": 19,
+                "draft_id": 13962,
+                "draft_text": "###",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06827306747436523
+              },
+              {
+                "event": 20,
+                "draft_id": 16,
+                "draft_text": "1",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.0681312084197998
+              },
+              {
+                "event": 21,
+                "draft_id": 9237,
+                "draft_text": " Core",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.0681307315826416
+              },
+              {
+                "event": 22,
+                "draft_id": 198,
+                "draft_text": "\n",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.10457849502563477
+              },
+              {
+                "event": 23,
+                "draft_id": 2791,
+                "draft_text": " Data",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06827664375305176
+              },
+              {
+                "event": 24,
+                "draft_id": 271,
+                "draft_text": "\n\n",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06830978393554688
+              },
+              {
+                "event": 25,
+                "draft_id": 19278,
+                "draft_text": "BF",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06837630271911621
+              },
+              {
+                "event": 26,
+                "draft_id": 16,
+                "draft_text": "1",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.10506558418273926
+              },
+              {
+                "event": 27,
+                "draft_id": 318,
+                "draft_text": " (",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06826066970825195
+              },
+              {
+                "event": 28,
+                "draft_id": 3524,
+                "draft_text": "float",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06917023658752441
+              },
+              {
+                "event": 29,
+                "draft_id": 21,
+                "draft_text": "6",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06872391700744629
+              },
+              {
+                "event": 30,
+                "draft_id": 198,
+                "draft_text": "\n",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06849455833435059
+              },
+              {
+                "event": 31,
+                "draft_id": 256,
+                "draft_text": "  ",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06890177726745605
+              },
+              {
+                "event": 32,
+                "draft_id": 1008,
+                "draft_text": "Data",
+                "accepted": false,
+                "committed_count": 1,
+                "step_seconds": 0.10570883750915527
+              },
+              {
+                "event": 33,
+                "draft_id": 64700,
+                "draft_text": ":**",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06887245178222656
+              },
+              {
+                "event": 34,
+                "draft_id": 16,
+                "draft_text": "1",
+                "accepted": true,
+                "committed_count": 2,
+                "step_seconds": 0.06861567497253418
+              }
+            ]
+          },
+          "mtp_shadow": {
+            "loaded": true,
+            "enabled": false,
+            "disabled_reason": null,
+            "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen35-9b-official-inline-lynn/mtp.safetensors",
+            "load_seconds": 0.07256650924682617,
+            "events": 0,
+            "accepted": 0,
+            "accept_rate": null,
+            "max_one_token_speculative_multiplier": null,
+            "draft_step_seconds": [],
+            "draft_tps": null,
+            "trace": []
+          },
+          "text_head": "Summarize the difference between BF16 and 4-bit quantization.\n\nHere is a summary of the differences between BF16 (Bfloat16) and 4-bit quantization, focusing on "
+        }
+      ]
+    }
+  ]
+}

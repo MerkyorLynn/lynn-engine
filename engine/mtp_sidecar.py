@@ -47,14 +47,20 @@ def load_mtp_sidecar(
 
 
 def mtp_layer_weights(sidecar: dict[str, torch.Tensor]) -> dict[str, torch.Tensor]:
-    """Strip the `mtp.layers.0.` prefix into a regular layer-weight mapping."""
+    """Strip the `mtp.layers.0.` prefix into a regular layer-weight mapping.
+
+    Qwen3.6-35B-A3B ships a MoE MTP layer, while Qwen3.5-9B ships a dense
+    MTP layer inline in the main shards.  Keep the common attention contract
+    shared, then validate the FFN shape according to whichever family is
+    present.
+    """
     prefix = "mtp.layers.0."
     out: dict[str, torch.Tensor] = {}
     for key, tensor in sidecar.items():
         if key.startswith(prefix):
             out[key.removeprefix(prefix)] = tensor
 
-    required = {
+    common_required = {
         "input_layernorm.weight",
         "post_attention_layernorm.weight",
         "self_attn.q_norm.weight",
@@ -63,6 +69,8 @@ def mtp_layer_weights(sidecar: dict[str, torch.Tensor]) -> dict[str, torch.Tenso
         "self_attn.k_proj.weight",
         "self_attn.v_proj.weight",
         "self_attn.o_proj.weight",
+    }
+    moe_required = {
         "mlp.gate.weight",
         "mlp.experts.gate_up_proj",
         "mlp.experts.down_proj",
@@ -71,7 +79,15 @@ def mtp_layer_weights(sidecar: dict[str, torch.Tensor]) -> dict[str, torch.Tenso
         "mlp.shared_expert.down_proj.weight",
         "mlp.shared_expert_gate.weight",
     }
-    missing = sorted(required - set(out))
+    dense_required = {
+        "mlp.gate_proj.weight",
+        "mlp.up_proj.weight",
+        "mlp.down_proj.weight",
+    }
+    present = set(out)
+    missing = sorted(common_required - present)
+    if not moe_required.issubset(present) and not dense_required.issubset(present):
+        missing.extend(sorted((moe_required | dense_required) - present))
     if missing:
         raise KeyError(f"MTP sidecar is missing layer tensors after prefix strip: {missing}")
     return out
@@ -81,9 +97,16 @@ def mtp_layer_config(base_cfg: dict[str, Any], mtp_w: dict[str, torch.Tensor]) -
     """Build the one-layer MTP config from the resident model config."""
     text_cfg = base_cfg.get("text_config") or base_cfg
     cfg = dict(text_cfg)
-    cfg["num_experts"] = int(mtp_w["mlp.experts.gate_up_proj"].shape[0])
-    cfg["num_experts_per_tok"] = int(text_cfg.get("num_experts_per_tok", 8))
-    cfg["expert_intermediate"] = int(mtp_w["mlp.experts.down_proj"].shape[-1])
+    if "mlp.experts.gate_up_proj" in mtp_w and "mlp.experts.down_proj" in mtp_w:
+        cfg["num_experts"] = int(mtp_w["mlp.experts.gate_up_proj"].shape[0])
+        cfg["num_experts_per_tok"] = int(text_cfg.get("num_experts_per_tok", 8))
+        cfg["expert_intermediate"] = int(mtp_w["mlp.experts.down_proj"].shape[-1])
+        cfg["is_moe"] = True
+    else:
+        cfg["num_experts"] = 0
+        cfg["num_experts_per_tok"] = 0
+        cfg["intermediate_size"] = int(mtp_w["mlp.down_proj.weight"].shape[-1])
+        cfg["is_moe"] = False
     cfg["layer_idx"] = 0
     return cfg
 
@@ -127,6 +150,8 @@ def mtp_layer_forward(
     256-expert empty-mask scan in the MTP layer. `decode_bmm` is left as an
     explicit research mode because it was faster but not top-1 exact.
     """
+    if not mtp_cfg.get("is_moe", int(mtp_cfg.get("num_experts", 0) or 0) > 0):
+        return _layer_forward(h, pos, "full_attention", mtp_w, mtp_cfg)
     moe_mode = os.environ.get("LYNN_MTP_LAYER_MOE", "decode_slot_sorted").strip().lower()
     if moe_mode in {"", "baseline", "full_forward", "full"}:
         return _layer_forward(h, pos, "full_attention", mtp_w, mtp_cfg)

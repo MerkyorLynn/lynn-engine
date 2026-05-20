@@ -655,18 +655,21 @@ def _decode_layer_k2(
     # outputs. This trades a tiny per-position Python launch for backend
     # consistency, which is critical for the K=1 batched MTP verify path
     # (M9 — confirmed on Spark 2026-05-19).
-    base_moe_fn = moe_fn if moe_fn is not None else _resolve_decode_moe_impl(
-        os.environ.get("LYNN_MOE_IMPL", "optimized")
-    )
-    if h_norm.shape[1] == 1:
-        moe_out = base_moe_fn(h_norm, w, cfg)
+    if not cfg.get("is_moe", int(cfg.get("num_experts", 0) or 0) > 0):
+        moe_out = _dense_ffn_forward(h_norm, w)
     else:
-        # Per-position T=1 MoE for backend consistency.
-        moe_per_token = [
-            base_moe_fn(h_norm[:, t : t + 1, :].contiguous(), w, cfg)
-            for t in range(h_norm.shape[1])
-        ]
-        moe_out = torch.cat(moe_per_token, dim=1)
+        base_moe_fn = moe_fn if moe_fn is not None else _resolve_decode_moe_impl(
+            os.environ.get("LYNN_MOE_IMPL", "optimized")
+        )
+        if h_norm.shape[1] == 1:
+            moe_out = base_moe_fn(h_norm, w, cfg)
+        else:
+            # Per-position T=1 MoE for backend consistency.
+            moe_per_token = [
+                base_moe_fn(h_norm[:, t : t + 1, :].contiguous(), w, cfg)
+                for t in range(h_norm.shape[1])
+            ]
+            moe_out = torch.cat(moe_per_token, dim=1)
     return residual + moe_out
 
 

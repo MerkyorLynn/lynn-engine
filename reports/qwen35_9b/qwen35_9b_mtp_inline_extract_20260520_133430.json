@@ -1,0 +1,144 @@
+{
+  "schema_version": "lynn-qwen35-9b-inline-mtp-extract-v1",
+  "model_dir": "/root/autodl-tmp/models/Qwen3.5-9B-BF16",
+  "sidecar_dir": "/root/autodl-tmp/models/mtp_sidecars/qwen35-9b-official-inline-lynn",
+  "sidecar_file": "/root/autodl-tmp/models/mtp_sidecars/qwen35-9b-official-inline-lynn/mtp.safetensors",
+  "sidecar_bytes": 486582952,
+  "sidecar_sha256_16": "2ac294fb7fd33031",
+  "tensor_count": 15,
+  "missing_expected": [],
+  "unexpected_mtp_keys": [],
+  "source_files": {
+    "mtp.layers.0.mlp.down_proj.weight": "model.safetensors-00002-of-00004.safetensors",
+    "mtp.layers.0.mlp.gate_proj.weight": "model.safetensors-00002-of-00004.safetensors",
+    "mtp.layers.0.mlp.up_proj.weight": "model.safetensors-00002-of-00004.safetensors",
+    "mtp.fc.weight": "model.safetensors-00003-of-00004.safetensors",
+    "mtp.layers.0.self_attn.q_proj.weight": "model.safetensors-00003-of-00004.safetensors",
+    "mtp.layers.0.input_layernorm.weight": "model.safetensors-00004-of-00004.safetensors",
+    "mtp.layers.0.post_attention_layernorm.weight": "model.safetensors-00004-of-00004.safetensors",
+    "mtp.layers.0.self_attn.k_norm.weight": "model.safetensors-00004-of-00004.safetensors",
+    "mtp.layers.0.self_attn.k_proj.weight": "model.safetensors-00004-of-00004.safetensors",
+    "mtp.layers.0.self_attn.o_proj.weight": "model.safetensors-00004-of-00004.safetensors",
+    "mtp.layers.0.self_attn.q_norm.weight": "model.safetensors-00004-of-00004.safetensors",
+    "mtp.layers.0.self_attn.v_proj.weight": "model.safetensors-00004-of-00004.safetensors",
+    "mtp.norm.weight": "model.safetensors-00004-of-00004.safetensors",
+    "mtp.pre_fc_norm_embedding.weight": "model.safetensors-00004-of-00004.safetensors",
+    "mtp.pre_fc_norm_hidden.weight": "model.safetensors-00004-of-00004.safetensors"
+  },
+  "tensors": {
+    "mtp.layers.0.mlp.down_proj.weight": {
+      "shape": [
+        4096,
+        12288
+      ],
+      "dtype": "bfloat16",
+      "numel": 50331648
+    },
+    "mtp.layers.0.mlp.gate_proj.weight": {
+      "shape": [
+        12288,
+        4096
+      ],
+      "dtype": "bfloat16",
+      "numel": 50331648
+    },
+    "mtp.layers.0.mlp.up_proj.weight": {
+      "shape": [
+        12288,
+        4096
+      ],
+      "dtype": "bfloat16",
+      "numel": 50331648
+    },
+    "mtp.fc.weight": {
+      "shape": [
+        4096,
+        8192
+      ],
+      "dtype": "bfloat16",
+      "numel": 33554432
+    },
+    "mtp.layers.0.self_attn.q_proj.weight": {
+      "shape": [
+        8192,
+        4096
+      ],
+      "dtype": "bfloat16",
+      "numel": 33554432
+    },
+    "mtp.layers.0.input_layernorm.weight": {
+      "shape": [
+        4096
+      ],
+      "dtype": "bfloat16",
+      "numel": 4096
+    },
+    "mtp.layers.0.post_attention_layernorm.weight": {
+      "shape": [
+        4096
+      ],
+      "dtype": "bfloat16",
+      "numel": 4096
+    },
+    "mtp.layers.0.self_attn.k_norm.weight": {
+      "shape": [
+        256
+      ],
+      "dtype": "bfloat16",
+      "numel": 256
+    },
+    "mtp.layers.0.self_attn.k_proj.weight": {
+      "shape": [
+        1024,
+        4096
+      ],
+      "dtype": "bfloat16",
+      "numel": 4194304
+    },
+    "mtp.layers.0.self_attn.o_proj.weight": {
+      "shape": [
+        4096,
+        4096
+      ],
+      "dtype": "bfloat16",
+      "numel": 16777216
+    },
+    "mtp.layers.0.self_attn.q_norm.weight": {
+      "shape": [
+        256
+      ],
+      "dtype": "bfloat16",
+      "numel": 256
+    },
+    "mtp.layers.0.self_attn.v_proj.weight": {
+      "shape": [
+        1024,
+        4096
+      ],
+      "dtype": "bfloat16",
+      "numel": 4194304
+    },
+    "mtp.norm.weight": {
+      "shape": [
+        4096
+      ],
+      "dtype": "bfloat16",
+      "numel": 4096
+    },
+    "mtp.pre_fc_norm_embedding.weight": {
+      "shape": [
+        4096
+      ],
+      "dtype": "bfloat16",
+      "numel": 4096
+    },
+    "mtp.pre_fc_norm_hidden.weight": {
+      "shape": [
+        4096
+      ],
+      "dtype": "bfloat16",
+      "numel": 4096
+    }
+  },
+  "decision": "GREEN: extracted Qwen3.5-9B inline MTP tensors into a Lynn sidecar."
+}
