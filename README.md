@@ -1,9 +1,20 @@
 # Lynn Engine
 
+> **🆕 2026-05-20 重大状态变更 — Lynn engine 从产品默认推理底层降级为 R&D 持续探索路径。**
+> Lynn 客户端短期投奔 llama.cpp 生态作为默认本地推理底层(Mac Metal / Win MSVC / Linux CUDA 全平台 + Q4_K_M GGUF)。
+> 默认 ship 模型 = **Qwen3.5-9B Q4_K_M-imatrix(5.3GB)** thinking-on excl_pf MMLU 90+ / GPQA 80+。
+> **完整决策见 → [RELEASE_NOTES_20260520.md](./RELEASE_NOTES_20260520.md)**
+>
+> Lynn engine 工程财产全留(5 CLI 并行 + 7 bug fix trail + 178s repack + autotune sweep 2160 config 都是真东西)。回主线门槛:**同硬件同模型速度接近或超过 llama.cpp,且质量有不可替代优势**。
+>
+> ⚠️ 以下 5/16 状态文档保留作历史进度记录,**最新状态以 RELEASE_NOTES_20260520 为准**。
+
+---
+
 > **为 NVIDIA Blackwell 写的 Lynn 27B-A3B NVFP4 单模型推理引擎。**
 > 从零写,锁定 Lynn 自家的 variable-pruned MoE + NVFP4 格式,目标很窄也很硬:在 R6000 / Spark 这类 Blackwell 机器上,把 Lynn 27B A3B MoE 基座跑成可生产、可优化、可长期接管的推理内核。
 
-[Read in English](README_EN.md) · [📝 知乎工程复盘(2026-05-11)](https://zhuanlan.zhihu.com/p/2036443846322680848) · [战略文档](docs/STRATEGY.md) · [架构设计](docs/DESIGN.md)
+[Read in English](README_EN.md) · [📝 知乎工程复盘(2026-05-11)](https://zhuanlan.zhihu.com/p/2036443846322680848) · [战略文档](docs/STRATEGY.md) · [架构设计](docs/DESIGN.md) · **[🆕 5/20 Release Notes](RELEASE_NOTES_20260520.md)**
 
 [![commits](https://img.shields.io/github/commit-activity/m/MerkyorLynn/lynn-engine)](https://github.com/MerkyorLynn/lynn-engine/commits/main)
 [![license](https://img.shields.io/badge/license-TBD-orange)](.)
