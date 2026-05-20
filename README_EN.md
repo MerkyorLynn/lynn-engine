@@ -1,12 +1,79 @@
 # Lynn Engine
 
+> **🆕 2026-05-20 major status change — Lynn engine pivots from "product default inference backend" to "R&D exploration track".**
+> The Lynn client adopts the **llama.cpp** ecosystem as the short-term default local inference backend (Mac Metal / Windows / Linux CUDA + Q4_K_M GGUF).
+> Default ship model = **Qwen3.5-9B Q4_K_M-imatrix (5.3 GB)**, thinking-on excl_pf MMLU 90+ / GPQA 80+.
+> **Full decision → [RELEASE_NOTES_20260520.md](./RELEASE_NOTES_20260520.md)** (Chinese only for now; English summary in this README's "Current status (2026-05-20)" section below).
+>
+> All Lynn engine engineering artefacts kept on `main` (5 parallel CLIs + 7 bug fix trail + 178s repack + 2160-config autotune sweep — all real). Bar to return to mainline: **at same hardware × same model, Lynn engine speed ≥ llama.cpp AND quality has a moat llama.cpp can't provide** — both gates must pass.
+>
+> ⚠️ The 5/16 status content below is preserved as historical progress notes. **The current status authority is the "Current status (2026-05-20)" section introduced below.**
+
+---
+
 > **Custom inference engine for Lynn 27B-A3B NVFP4 on NVIDIA Blackwell.**
 > This is a narrow, vertical engine for Lynn's own variable-pruned MoE + NVFP4 artifact. The goal is not to become another general serving framework; the goal is to make one model family fast, understandable, and production-ownable on R6000 / Spark-class Blackwell hardware.
 
-[阅读中文版](README.md) · [Strategy](docs/STRATEGY.md) · [Architecture](docs/DESIGN.md)
+[阅读中文版](README.md) · [Strategy](docs/STRATEGY.md) · [Architecture](docs/DESIGN.md) · **[🆕 5/20 Release Notes](RELEASE_NOTES_20260520.md)**
 
 [![commits](https://img.shields.io/github/commit-activity/m/MerkyorLynn/lynn-engine)](https://github.com/MerkyorLynn/lynn-engine/commits/main)
 [![license](https://img.shields.io/badge/license-TBD-orange)](.)
+
+## Current status (2026-05-20)
+
+**5/20 strategic pivot**: Lynn engine moves from "product default inference backend" → **R&D exploration track**. The Lynn client adopts llama.cpp ecosystem as the short-term default local inference backend. Full decision in [RELEASE_NOTES_20260520.md](RELEASE_NOTES_20260520.md) (Chinese).
+
+### 5/16-5/20 Spark sm_121 W4A8 FP8 Phase 2 — what we learned
+
+5 parallel CLIs + 23 commits driving Wave 2 W4A8 FP8 e2e. The final retry #4 exposed an **architectural signal**: Python overhead dominates decode time. With 30 MoE layers × 8 active experts × per-expert `_scaled_mm` = 240+ kernel launches/token, and CUDA graph capture disabled (because the active-expert dispatch contains host syncs), every launch pays the full Python/CUDA dispatch overhead. This is bug #7 — **not fixable by patching kernels**. It requires vectorised expert dispatch + CUTLASS grouped GEMM + a C++ service loop, which is months of engineering.
+
+### 35B horizontal comparison (Spark sm_121 GB10 single-stream, 2026-05-18)
+
+| Path | Model size | Single-stream TPS | MMLU 500 | GPQA Diamond 198 | Note |
+|---|---:|---:|---:|---:|---|
+| Lynn-native NVFP4 W4A16 / lynn-engine | 23 GB | 38.96 | 84.40% | 49.49% | 5/18 baseline |
+| **llama.cpp Q4_K_M-imatrix** | **20 GB** | **69.77** | 83.00% | **50.00%** | 1.8× lynn-engine on same hardware |
+| SGLang BF16 official | 67 GB | 30.14 | 86.40% | 45.45% | reference |
+| Lynn W4A8 FP8 (engineering exploration) | 35 GB | — | — | — | architecture incomplete, see RELEASE_NOTES |
+
+**Key finding**: 35B quantised variants have essentially equal GPQA (BF16 / Q4_K_M-imatrix / Lynn NVFP4 all within ±1 pp around 49.5%). The "NVFP4 GPQA advantage" we previously expected does not hold on full samples.
+
+### 9B Q4_K_M-imatrix default ship candidate (thinking-on excl_pf MMLU 90+ / GPQA 80+ / 5GB)
+
+| Dimension | Lynn default ship 9B Q4_K_M-imatrix |
+|---|---|
+| Model file | **5.3 GB** (Q4_K_M-imatrix GGUF) |
+| llama.cpp runtime | 79 MB (C++ binaries + .so) |
+| **Total install footprint** | **5.4 GB** |
+| MMLU 100 thinking-on excl_pf | **90.00%** (81/90) |
+| GPQA Diamond 198 thinking-on excl_pf | **81.71%** |
+| Spark sm_121 single-stream TPS | 36.80 |
+| Spark sm_121 c=8 concurrent total TPS | **177.54** |
+| Mac / Windows / Linux CUDA | All platforms native |
+
+**The killer selling point for ordinary users = "unlimited local tokens"**: 9B running locally, no quota, no API key, no cross-border latency, agent running overnight with no metering.
+
+### Lynn engine continues as R&D
+
+- **W4A8 FP8 path continues as R&D**, but the bar is now raised: at the same hardware × same model, **Lynn engine speed must approach or exceed llama.cpp, AND quality must have a moat we cannot get from llama.cpp** — both gates must pass before this returns to mainline.
+- **When consumer Blackwell 32GB cards with FP4 MMA become widely available**, the Lynn engine path becomes competitive again (R6000-class hardware).
+- **Long-context 6.77× SGLang at 16K** preserved as an "advanced mode" selling point for NVIDIA Pro users.
+- **MTP K=1 sequential 6/6 @ 26.4 TPS** correctness-clean baseline preserved for future overlay on top of W4A8 base.
+- **All Wave 2 commits remain on main, not reverted** — 5 parallel CLIs + 7 bug fix trail + 178s repack + 2160-config autotune sweep are real engineering artefacts.
+
+---
+
+> The 5/15-5/16 R6000 27B Lynn-native NVFP4 engineering record below is preserved as historical progress reference. **Current public data and default ship configuration are governed by this section (2026-05-20) and [RELEASE_NOTES_20260520](RELEASE_NOTES_20260520.md)**.
+
+## 5/15-5/16 R6000 27B Lynn-native NVFP4 engineering record (historical)
+
+5/15 R6000 sm_120a milestone on Lynn-native NVFP4: **107-108 TPS strict default** (P25 512 token = 107.43, P37 + 40/40 prompts all pass strict), three reporting layers:
+
+- **107.23 TPS** serving replay
+- **103.44 TPS** strict full path including final lm_head (the real "past 100 TPS" hard number)
+- **99.86 TPS** strict full path no FP4 lm_head
+
+Full P3 → P108 timeline (118.73 TPS R6000 ceiling → A100 W4A8 Recovery → SM120a FP4 contract → W4A8 hardware route) preserved in the section below.
 
 ## Current status (2026-05-16)
 
@@ -583,24 +650,45 @@ Known quality status:
 
 Recovery v1.1 targeted longctx/chem/sql was tested but did not replace step5000: it did not improve longctx and reduced aggregate scores. The selected base is therefore **step5000 final**.
 
-## Roadmap: R6000 first, Spark second
+## Roadmap (2026-05-20): Lynn client default ships on llama.cpp; Lynn engine continues as R&D
 
-| Stage | Status | Goal |
+Full decision in [`RELEASE_NOTES_20260520.md`](RELEASE_NOTES_20260520.md). The two parallel tracks after 5/20:
+
+### Short term (2-4 weeks): Lynn client + llama.cpp integration ship path
+
+| Layer | Role | Implementation |
 |---|---|---|
-| **P6** | done | 50 TPS cleared: resident graph smoke 63-66 TPS |
-| **P7** | done | graph reuse / prewarm / RMSNormGated / serving env,66-68 TPS |
-| **P8** | done | 78.8 TPS CUDA graph ceiling + 81 TPS compile spike |
-| **P9** | done | packed NVFP4 active expert path, near-100 TPS |
-| **P10** | done/current | native FP4 lm_head + 103 TPS full path, strict runner graph-slot gate |
-| **P11** | done | packed-resident memory lifecycle, 56 GiB BF16 shadow release proven |
-| **P12** | done/current | one-shot server release gate + graph slot after release passed |
-| **P13** | current | graph-slot generate wiring passed; next remove capture from hot path / production-stable 100+ |
-| **P14** | current | state-refresh slot route copy cost proven at 0.79 ms; next reusable graph-owned-state slot |
+| **Inference backend** | llama.cpp ecosystem | Mac Metal / Windows / Linux CUDA + Q4_K_M GGUF |
+| **Default model** | Qwen3.5-9B Q4_K_M-imatrix (5.3 GB) | Good enough for 80% of users |
+| **Pro model** | Qwen3.6-35B-A3B Q4_K_M-imatrix (20 GB) | NVIDIA 24 GB+ users, opt-in, same llama.cpp stack |
+| **Lynn client** | Auto hardware detect + install llama.cpp + download model + start server + register provider + tool-call gate + local-first routing | Electron + brain backend (sister repo `MerkyorLynn/Lynn`) |
+| **Lynn agent** | tool routing / 6-layer memory / MCP / skills / cross-model fallback | Lynn's real moat |
 
-The Spark sm_121 track is split into a separate branch. The current Spark
-quality gate passes on the scalar_bridge backend at roughly 24 TPS; the next
-Spark target is validating the same native path and reaching 50+ TPS. See
-[`docs/SPARK_OPTIMIZATION_BRANCH_PLAN_20260515.md`](docs/SPARK_OPTIMIZATION_BRANCH_PLAN_20260515.md).
+**llama.cpp does "run, run fast, install small". Lynn does "use models well, call tools, remember, configure automatically".**
+
+### Long term R&D: Lynn engine NVFP4 / W4A8 FP8 exploration (this repo)
+
+**Bar to return to mainline (both must pass)**:
+1. **Speed**: at the same hardware × same model, Lynn engine approaches or exceeds llama.cpp.
+2. **Quality**: irreplaceable moat (GPQA / long-ctx / stability / structured output).
+
+**R&D directions** (all commits preserved on `main`, never reverted):
+
+- **W4A8 FP8 vectorised expert dispatch + CUTLASS grouped GEMM** to bypass the Python decode overhead (the architectural signal Wave 2 retry #4 exposed)
+- **C++ service loop** when host gap clearly exceeds GPU compute gap (memory `LYNN_ENGINE_CPP_RUST_REWRITE_ROI_20260517` enumerates a 3-tier rewrite ROI plan)
+- **Consumer Blackwell 32GB cards with FP4 MMA** widely available → Lynn engine native FP4 path (5/15 R6000 107-108 TPS strict default) becomes competitive again
+- **MTP K=1 sequential 6/6 @ 26.4 TPS** correctness-clean baseline preserved; overlay on top of W4A8 base when that stabilises
+- **Long-context 6.77× SGLang at 16K** retained as "advanced mode" selling point for NVIDIA Pro
+
+### Historical decisions invalidated post 5/20
+
+The following 5/15-5/16 lock-ins are no longer in force after 5/20:
+
+- ~~Primary inference format: Lynn-native NVFP4 only~~ → **Production default = GGUF Q4_K_M-imatrix (llama.cpp ecosystem). NVFP4 / W4A8 FP8 stay in R&D.**
+- ~~Model lock: Lynn-27B-A3B variable-pruned family~~ → **5/17 strategic pivot back to upstream Qwen3.6-35B-A3B + Qwen3.5-9B (Lynn 27B self-distillation dropped — quality down ~10%).**
+- ~~Vertical companion to Lynn LoRA + pruning pipeline~~ → **Lynn engine converges to providing specialised acceleration for upstream model families. LoRA training side has its own track.**
+- **Inference scope: single prompt + batch=1** retained (no PagedAttention) — Lynn client user scenario is single-user, no batched serving.
+- **Inference hardware: Blackwell sm_12x** retained (DGX Spark / 5090 / R6000 PRO), but priority dropped to R&D.
 
 ## Tutorials — read these even if you're not writing your own engine
 
