@@ -552,14 +552,52 @@ def _decode_layer_k2(
     if layer_type == "linear_attention":
         if recurrent_backend is None:
             recurrent_backend = os.environ.get("LYNN_LINEAR_ATTN_RECURRENT_BACKEND", "torch")
-        attn_out, new_state, new_conv = decode_linear_attn_k2(
-            h_norm, w,
-            state.recurrent_state[layer_idx],
-            state.conv_state[layer_idx],
-            recurrent_backend=recurrent_backend,
-        )
         if linear_state_update is None:
             linear_state_update = os.environ.get("LYNN_LINEAR_STATE_UPDATE", "assign")
+
+        if os.environ.get("LYNN_MTP_K2_LINEAR_ATTN_MODE", "k2") == "t1_loop":
+            # Strict verifier fallback: two T=1 decode_linear_attn calls with
+            # state.update_linear_attn_state interleaved between them — exactly
+            # mirrors the sequential T=1 verifier (two decode_one_to_logits_and_hidden
+            # invocations, each calling _decode_layer that issues
+            # update_linear_attn_state). The default K=2 path
+            # (decode_linear_attn_k2) does call T=1 twice internally but
+            # threads (recurrent_state, conv_state) via local variables only;
+            # state.recurrent_state[layer_idx] is updated once at the end of
+            # the layer rather than between the two positions. M16 / M17 left
+            # batched verify divergence at linear-attention layers (zero
+            # advance: layer 5; event-5 K2-first: layer 32 pos1, conv-state
+            # drift peaks layer 38). M18 (2026-05-20) bisects whether the
+            # remaining drift originates here by toggling this knob
+            # independently from LYNN_FULL_ATTN_K2_BACKEND.
+            from engine.incremental_decode import decode_linear_attn
+            out0, intermediate_state, intermediate_conv = decode_linear_attn(
+                h_norm[:, 0:1, :].contiguous(), w,
+                state.recurrent_state[layer_idx], state.conv_state[layer_idx],
+                recurrent_backend=recurrent_backend,
+            )
+            if linear_state_update == "inplace":
+                rec_target = state.recurrent_state[layer_idx]
+                if rec_target.data_ptr() != intermediate_state.data_ptr():
+                    rec_target.copy_(intermediate_state)
+                conv_target = state.conv_state[layer_idx]
+                if conv_target.data_ptr() != intermediate_conv.data_ptr():
+                    conv_target.copy_(intermediate_conv)
+            else:
+                state.update_linear_attn_state(layer_idx, intermediate_state, intermediate_conv)
+            out1, new_state, new_conv = decode_linear_attn(
+                h_norm[:, 1:2, :].contiguous(), w,
+                state.recurrent_state[layer_idx], state.conv_state[layer_idx],
+                recurrent_backend=recurrent_backend,
+            )
+            attn_out = torch.cat([out0, out1], dim=1)
+        else:
+            attn_out, new_state, new_conv = decode_linear_attn_k2(
+                h_norm, w,
+                state.recurrent_state[layer_idx],
+                state.conv_state[layer_idx],
+                recurrent_backend=recurrent_backend,
+            )
         if linear_state_update == "inplace":
             recurrent_target = state.recurrent_state[layer_idx]
             if recurrent_target.data_ptr() != new_state.data_ptr():
