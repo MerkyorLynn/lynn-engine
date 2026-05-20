@@ -11,20 +11,28 @@ The strategy is: do the FP4→FP8 cast **once offline** so the inference
 kernel only handles FP8 × FP8 matmul + activation cast. This script is
 the offline repack tool (Phase 2 task #1).
 
-V0 scope (this file):
+V0 scope:
   * Function-level NVFP4 → FP8 conversion with per-row scale.
   * Verify dequant cos > 0.999 vs original NVFP4.
   * Self-test on synthetic NVFP4 data (no external model files needed).
   * CLI to repack a single safetensors weight key for an end-to-end smoke.
 
-V1 scope (next iteration, separate commit):
-  * Full Lynn-native model dir repack (40 layers × N experts + projections).
-  * Output dir manifest update (``lynn_quant_manifest.json`` schema).
-  * Per-tensor scale granularity option.
+V1 scope (this file, ``full-dir`` subcommand):
+  * Full Lynn-native model dir repack: read ``lynn_quant_manifest.json``
+    + ``model.safetensors.index.json`` from the input dir, repack every
+    2D ``quantized_tensors`` entry, copy every ``kept_tensors`` entry,
+    write a parallel output dir with new shards + new manifest (schema
+    ``lynn-variable-w4a8-fp8-v1``).
+  * 3D MoE expert weights (``mlp.experts.gate_up_proj``,
+    ``mlp.experts.down_proj``) are intentionally deferred: the FP8 layout
+    for the flattened-experts storage is still being designed, so the
+    tool emits an explicit ``deferred_tensors`` map in the output
+    manifest instead of guessing.
 
-V2 scope (later):
+V2 scope (later, separate commit):
   * Col-major storage layout for cuBLASLt FP8 GEMM sweet spot.
   * Fused gate+up concatenated weight packing.
+  * MoE expert FP8 layout once Triton expert kernel design lands.
 """
 from __future__ import annotations
 
@@ -311,6 +319,411 @@ def repack_safetensors_weight(
 
 
 def main() -> int:
+    pass  # placeholder, replaced below
+
+# ---------------------------------------------------------------------
+# V1: full Lynn-native model dir repack
+# ---------------------------------------------------------------------
+
+
+# Output schema constant. Bumping this means the V1-compatible loader
+# must be updated in lockstep.
+LYNN_W4A8_FP8_MANIFEST_SCHEMA = "lynn-variable-w4a8-fp8-v1"
+
+# File names inside a Lynn-native model dir.
+MANIFEST_FILE = "lynn_quant_manifest.json"
+INDEX_FILE = "model.safetensors.index.json"
+
+# Non-tensor sidecar files we copy verbatim from input -> output so the
+# output dir is independently usable by HF-compatible loaders.
+SIDECAR_FILES_DEFAULT = (
+    "config.json",
+    "configuration.json",
+    "generation_config.json",
+    "tokenizer.json",
+    "tokenizer_config.json",
+    "tokenizer.model",
+    "vocab.json",
+    "merges.txt",
+    "added_tokens.json",
+    "special_tokens_map.json",
+    "chat_template.jinja",
+    "preprocessor_config.json",
+    "LICENSE",
+    "README.md",
+)
+
+
+def _build_shard_index(weight_map: dict[str, str]) -> dict[str, list[str]]:
+    """Group keys in ``model.safetensors.index.json`` by shard filename."""
+    by_shard: dict[str, list[str]] = {}
+    for key, shard in weight_map.items():
+        by_shard.setdefault(shard, []).append(key)
+    return by_shard
+
+
+def _open_shard_for_key(
+    input_dir: Path,
+    weight_map: dict[str, str],
+    key: str,
+    *,
+    cache: dict[str, Any] | None = None,
+):
+    """Return a ``safe_open`` handle for the shard that contains ``key``.
+
+    The caller is responsible for closing the handle. ``cache`` is an
+    optional shard-name -> handle dict for batch reuse.
+    """
+    from safetensors import safe_open
+
+    shard = weight_map.get(key)
+    if shard is None:
+        raise KeyError(f"key {key!r} not in weight_map")
+    if cache is not None and shard in cache:
+        return cache[shard], shard
+    handle = safe_open(input_dir / shard, framework="pt", device="cpu")
+    if cache is not None:
+        cache[shard] = handle
+    return handle, shard
+
+
+def _safetensors_metadata_total_size(tensors: dict[str, torch.Tensor]) -> int:
+    """Sum of element_size * numel for every tensor — used for the index
+    metadata.total_size field that HF tooling expects."""
+    total = 0
+    for t in tensors.values():
+        total += t.element_size() * t.numel()
+    return total
+
+
+def _is_repackable(record: dict[str, Any]) -> tuple[bool, str | None]:
+    """Decide whether a manifest entry is a 2D weight we can FP8-repack.
+
+    Returns (True, None) if repackable; (False, reason) otherwise.
+    """
+    shape = list(record.get("original_shape") or [])
+    if len(shape) == 2:
+        return True, None
+    if len(shape) == 0:
+        return False, "no original_shape recorded"
+    if len(shape) == 1:
+        return False, "1D weight — unexpected for matrix MMA path"
+    if len(shape) >= 3:
+        return False, f"non-2D original_shape {shape} (MoE expert / vision tile — FP8 layout TBD)"
+    return False, f"unexpected original_shape rank {len(shape)}"
+
+
+def repack_full_dir(
+    input_dir: Path,
+    output_dir: Path,
+    *,
+    scale_granularity: str = "per_row",
+    verify_cos_threshold: float = 0.999,
+    copy_sidecars: bool = True,
+    sidecar_files: tuple[str, ...] = SIDECAR_FILES_DEFAULT,
+    progress: bool = True,
+    limit_quantized: int | None = None,
+) -> dict[str, Any]:
+    """Repack a full Lynn-native model dir to a parallel FP8 V1 dir.
+
+    The output dir is shard-parallel with the input: every input shard
+    ``model-XXXXX-of-NNNNN.safetensors`` produces a same-named output
+    shard with the FP8 weight + scale tensors that replace its
+    NVFP4 ``.weight.packed`` / ``.weight.scale`` / ``.weight.global_scale``
+    triples, plus all kept tensors that originally lived in that shard.
+    Cross-shard triples (where packed and scale live in different
+    shards) are loaded transparently via the index.
+
+    Args:
+      input_dir: a Lynn-native ``lynn-variable-nvfp4-pack-v1`` dir.
+      output_dir: destination dir; created if missing. Must NOT be the
+                  same as ``input_dir``.
+      scale_granularity: per-row or per-tensor FP8 scale.
+      verify_cos_threshold: per-tensor cos threshold; tensors below
+                            this go into the failure list.
+      copy_sidecars: copy ``config.json`` etc. from input -> output.
+      sidecar_files: which non-tensor files to copy.
+      progress: print one line per tensor (every Nth, capped).
+      limit_quantized: stop after the first N quantized tensors
+                       (debug / smoke; ``None`` = process all).
+
+    Returns the summary dict (also written to ``<output_dir>/repack_summary.json``).
+    """
+    import shutil
+    import time
+
+    from safetensors import safe_open
+    from safetensors.torch import save_file
+
+    input_dir = Path(input_dir).resolve()
+    output_dir = Path(output_dir).resolve()
+    if input_dir == output_dir:
+        raise ValueError("input and output dirs must differ")
+    if not (input_dir / MANIFEST_FILE).is_file():
+        raise FileNotFoundError(f"missing {MANIFEST_FILE} in {input_dir}")
+    if not (input_dir / INDEX_FILE).is_file():
+        raise FileNotFoundError(f"missing {INDEX_FILE} in {input_dir}")
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    src_manifest = json.loads((input_dir / MANIFEST_FILE).read_text(encoding="utf-8"))
+    src_index_full = json.loads((input_dir / INDEX_FILE).read_text(encoding="utf-8"))
+    src_weight_map: dict[str, str] = src_index_full.get("weight_map") or {}
+
+    quantized_tensors = src_manifest.get("quantized_tensors") or {}
+    kept_tensors = src_manifest.get("kept_tensors") or {}
+
+    # Pre-classify every quantized entry into repackable / deferred so we
+    # can decide which output shard each FP8 tensor lives in (output
+    # sharding mirrors the original ``packed_key`` shard).
+    repackable: list[tuple[str, dict[str, Any]]] = []
+    deferred: list[dict[str, Any]] = []
+    for logical_key, record in quantized_tensors.items():
+        ok, reason = _is_repackable(record)
+        if ok:
+            repackable.append((logical_key, record))
+        else:
+            deferred.append({
+                "logical_key": logical_key,
+                "reason": reason,
+                "original_shape": record.get("original_shape"),
+                "packed_key": record.get("packed_key"),
+            })
+    if limit_quantized is not None:
+        repackable = repackable[:int(limit_quantized)]
+
+    # Group output writes by shard. The output-shard for an FP8 weight is
+    # the shard that originally held its ``.weight.packed`` key. Kept
+    # tensors stay in their original shard.
+    out_by_shard: dict[str, dict[str, torch.Tensor]] = {}
+
+    # Per-tensor stats for the summary.
+    per_tensor: list[dict[str, Any]] = []
+    cos_min = float("inf")
+    cos_max = -float("inf")
+    cos_sum = 0.0
+    cos_count = 0
+    cos_failures: list[dict[str, Any]] = []
+    total_fp8_bytes = 0
+    total_scale_bytes = 0
+    kept_count = 0
+
+    new_manifest_quantized: dict[str, dict[str, Any]] = {}
+
+    # Open shard cache so we don't re-open the same file once per key.
+    handle_cache: dict[str, Any] = {}
+
+    t_repack_start = time.time()
+    try:
+        for idx, (logical_key, record) in enumerate(repackable):
+            packed_key = record["packed_key"]
+            scale_key = record["scale_key"]
+            global_scale_key = record["global_scale_key"]
+            original_shape = list(record["original_shape"])
+
+            packed_handle, packed_shard = _open_shard_for_key(
+                input_dir, src_weight_map, packed_key, cache=handle_cache,
+            )
+            scale_handle, _ = _open_shard_for_key(
+                input_dir, src_weight_map, scale_key, cache=handle_cache,
+            )
+            global_handle, _ = _open_shard_for_key(
+                input_dir, src_weight_map, global_scale_key, cache=handle_cache,
+            )
+            packed = packed_handle.get_tensor(packed_key)
+            scale = scale_handle.get_tensor(scale_key)
+            global_scale = global_handle.get_tensor(global_scale_key)
+
+            result = repack_nvfp4_to_fp8(
+                packed, scale, global_scale, scale_granularity=scale_granularity,
+            )
+            cos = result.cosine_vs_bf16
+            cos_min = min(cos_min, cos)
+            cos_max = max(cos_max, cos)
+            cos_sum += cos
+            cos_count += 1
+            if cos < verify_cos_threshold:
+                cos_failures.append({
+                    "logical_key": logical_key,
+                    "cos": cos,
+                    "max_abs": result.diff_max_abs_vs_bf16,
+                    "shape": list(result.fp8_weight.shape),
+                })
+
+            fp8_key = f"{logical_key}_fp8"
+            scale_out_key = f"{logical_key}_fp8_scale"
+            # Output shard mirrors the original packed-shard placement so
+            # large dirs stay cleanly sharded by layer.
+            shard_bucket = out_by_shard.setdefault(packed_shard, {})
+            shard_bucket[fp8_key] = result.fp8_weight
+            shard_bucket[scale_out_key] = result.fp8_scale
+
+            total_fp8_bytes += result.fp8_weight.element_size() * result.fp8_weight.numel()
+            total_scale_bytes += result.fp8_scale.element_size() * result.fp8_scale.numel()
+
+            new_manifest_quantized[logical_key] = {
+                "weight_fp8_key": fp8_key,
+                "weight_fp8_scale_key": scale_out_key,
+                "original_shape": original_shape,
+                "original_dtype": record.get("original_dtype"),
+                "fp8_dtype": "float8_e4m3fn",
+                "fp8_scale_dtype": "float32",
+                "fp8_scale_shape": list(result.fp8_scale.shape),
+                "fp8_scale_granularity": result.scale_granularity,
+                "verify_cos_vs_bf16": cos,
+                "verify_max_abs_vs_bf16": result.diff_max_abs_vs_bf16,
+                "source_packed_key": packed_key,
+                "source_scale_key": scale_key,
+                "source_global_scale_key": global_scale_key,
+            }
+            per_tensor.append({
+                "logical_key": logical_key,
+                "fp8_key": fp8_key,
+                "fp8_scale_key": scale_out_key,
+                "shape": list(result.fp8_weight.shape),
+                "scale_shape": list(result.fp8_scale.shape),
+                "cos_vs_bf16": cos,
+                "max_abs_vs_bf16": result.diff_max_abs_vs_bf16,
+                "shard": packed_shard,
+            })
+            if progress and (idx % 25 == 0 or idx == len(repackable) - 1):
+                print(
+                    f"  [{idx+1}/{len(repackable)}] {logical_key} "
+                    f"cos={cos:.6f} max_abs={result.diff_max_abs_vs_bf16:.3e} "
+                    f"shard={packed_shard}",
+                    flush=True,
+                )
+
+        # Kept tensors: copy verbatim into the same shard they came from.
+        for kept_key, _kept_rec in kept_tensors.items():
+            handle, shard = _open_shard_for_key(
+                input_dir, src_weight_map, kept_key, cache=handle_cache,
+            )
+            tensor = handle.get_tensor(kept_key)
+            out_by_shard.setdefault(shard, {})[kept_key] = tensor
+            kept_count += 1
+    finally:
+        for handle in handle_cache.values():
+            try:
+                handle.__exit__(None, None, None)
+            except Exception:
+                pass
+
+    # Write each output shard.
+    out_weight_map: dict[str, str] = {}
+    out_total_size = 0
+    for shard_name, shard_tensors in out_by_shard.items():
+        out_path = output_dir / shard_name
+        save_file(shard_tensors, str(out_path))
+        out_total_size += _safetensors_metadata_total_size(shard_tensors)
+        for k in shard_tensors:
+            out_weight_map[k] = shard_name
+        if progress:
+            print(
+                f"  wrote {shard_name}: {len(shard_tensors)} keys, "
+                f"{sum(t.element_size()*t.numel() for t in shard_tensors.values())/1e9:.2f} GB",
+                flush=True,
+            )
+
+    # New manifest.
+    new_manifest = {
+        "schema_version": LYNN_W4A8_FP8_MANIFEST_SCHEMA,
+        "produced_by": "scripts/spark_pack_w4a8_fp8.py full-dir",
+        "source_model_dir": str(input_dir),
+        "source_manifest_schema": src_manifest.get("schema_version"),
+        "quantization": {
+            "format": "fp8_e4m3_per_row" if scale_granularity == "per_row" else "fp8_e4m3_per_tensor",
+            "weight_dtype": "float8_e4m3fn",
+            "scale_dtype": "float32",
+            "scale_granularity": scale_granularity,
+            "weight_activation_contract": "W4A8_weight_fp8_act_fp8",
+            "fp8_max": FP8_E4M3_MAX,
+            "verify_cos_threshold": verify_cos_threshold,
+            "source_quantization": src_manifest.get("quantization"),
+        },
+        "runtime_contract": {
+            "inference_path_required": "fp8_scaled_mm",
+            "fallback_path_allowed": True,
+        },
+        "kept_tensors": kept_tensors,
+        "quantized_tensors": new_manifest_quantized,
+        "deferred_tensors": deferred,
+        "quantized_count": len(new_manifest_quantized),
+        "deferred_count": len(deferred),
+        "kept_count": kept_count,
+        "output_shards": sorted(out_by_shard.keys()),
+    }
+    (output_dir / MANIFEST_FILE).write_text(
+        json.dumps(new_manifest, indent=2) + "\n", encoding="utf-8",
+    )
+
+    # New index. Total size matches the safetensors writer's metadata key.
+    new_index = {
+        "metadata": {
+            "total_size": out_total_size,
+            "schema_version": LYNN_W4A8_FP8_MANIFEST_SCHEMA,
+        },
+        "weight_map": out_weight_map,
+    }
+    (output_dir / INDEX_FILE).write_text(
+        json.dumps(new_index, indent=2) + "\n", encoding="utf-8",
+    )
+
+    # Sidecar copy.
+    copied_sidecars: list[str] = []
+    if copy_sidecars:
+        for fname in sidecar_files:
+            src_file = input_dir / fname
+            if src_file.is_file():
+                shutil.copy2(src_file, output_dir / fname)
+                copied_sidecars.append(fname)
+
+    elapsed = time.time() - t_repack_start
+    cos_mean = (cos_sum / cos_count) if cos_count else float("nan")
+
+    summary = {
+        "schema_version": LYNN_W4A8_FP8_MANIFEST_SCHEMA,
+        "input_dir": str(input_dir),
+        "output_dir": str(output_dir),
+        "scale_granularity": scale_granularity,
+        "verify_cos_threshold": verify_cos_threshold,
+        "elapsed_seconds": elapsed,
+        "totals": {
+            "quantized_in_input": len(quantized_tensors),
+            "repacked": len(per_tensor),
+            "deferred": len(deferred),
+            "kept": kept_count,
+            "fp8_bytes": total_fp8_bytes,
+            "fp8_scale_bytes": total_scale_bytes,
+            "fp8_total_gib": (total_fp8_bytes + total_scale_bytes) / (1024 ** 3),
+            "input_total_size_index": src_index_full.get("metadata", {}).get("total_size"),
+            "output_total_size_index": out_total_size,
+        },
+        "cos_vs_bf16": {
+            "min": (cos_min if cos_count else None),
+            "max": (cos_max if cos_count else None),
+            "mean": cos_mean,
+            "count": cos_count,
+            "failures_below_threshold": cos_failures,
+            "failures_count": len(cos_failures),
+        },
+        "deferred_tensors": deferred,
+        "copied_sidecars": copied_sidecars,
+        "output_shards": sorted(out_by_shard.keys()),
+        "per_tensor": per_tensor,
+    }
+    (output_dir / "repack_summary.json").write_text(
+        json.dumps(summary, indent=2) + "\n", encoding="utf-8",
+    )
+    return summary
+
+
+# ---------------------------------------------------------------------
+# CLI plumbing (V0 commands kept; V1 ``full-dir`` added)
+# ---------------------------------------------------------------------
+
+
+def main() -> int:
     ap = argparse.ArgumentParser(description="Offline NVFP4 → FP8 E4M3 repack")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
@@ -331,6 +744,32 @@ def main() -> int:
         help="optional JSON manifest write path",
     )
 
+    sp_full = sub.add_parser(
+        "full-dir",
+        help="Repack a full Lynn-native model dir (manifest-driven)",
+    )
+    sp_full.add_argument("--input", required=True, type=Path)
+    sp_full.add_argument("--output", required=True, type=Path)
+    sp_full.add_argument(
+        "--scale-granularity", default="per_row", choices=["per_row", "per_tensor"],
+    )
+    sp_full.add_argument(
+        "--verify-cos-threshold", default=0.999, type=float,
+        help="per-tensor cosine vs BF16 threshold; below this is a failure",
+    )
+    sp_full.add_argument(
+        "--no-copy-sidecars", action="store_true",
+        help="don't copy config.json / tokenizer files / chat template",
+    )
+    sp_full.add_argument(
+        "--limit-quantized", default=None, type=int,
+        help="stop after the first N quantized tensors (debug/smoke)",
+    )
+    sp_full.add_argument(
+        "--no-progress", action="store_true",
+        help="suppress per-tensor progress prints",
+    )
+
     args = ap.parse_args()
 
     if args.cmd == "self-test":
@@ -344,6 +783,31 @@ def main() -> int:
         if args.manifest_out is not None:
             args.manifest_out.write_text(json.dumps(m, indent=2) + "\n", encoding="utf-8")
         return 0
+    if args.cmd == "full-dir":
+        summary = repack_full_dir(
+            args.input,
+            args.output,
+            scale_granularity=args.scale_granularity,
+            verify_cos_threshold=args.verify_cos_threshold,
+            copy_sidecars=not args.no_copy_sidecars,
+            limit_quantized=args.limit_quantized,
+            progress=not args.no_progress,
+        )
+        # Print a compact head-of-summary; the full summary is in the file.
+        compact = {
+            "schema_version": summary["schema_version"],
+            "output_dir": summary["output_dir"],
+            "totals": summary["totals"],
+            "cos_vs_bf16": {
+                k: v for k, v in summary["cos_vs_bf16"].items()
+                if k != "failures_below_threshold"
+            },
+            "cos_failures_count": summary["cos_vs_bf16"]["failures_count"],
+            "deferred_count": len(summary["deferred_tensors"]),
+            "elapsed_seconds": summary["elapsed_seconds"],
+        }
+        print(json.dumps(compact, indent=2))
+        return 0 if summary["cos_vs_bf16"]["failures_count"] == 0 else 1
     print(f"unknown cmd {args.cmd!r}", file=sys.stderr)
     return 2
 
