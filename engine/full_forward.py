@@ -310,10 +310,59 @@ def _dense_ffn_forward(h: torch.Tensor, w: dict) -> torch.Tensor:
     """Dense Qwen FFN: down_proj(silu(gate_proj(x)) * up_proj(x)).
 
     Env knobs for isolation:
-      LYNN_DENSE_FFN_TRUE_FP8=1          Enable true FP8 path
+      LYNN_DENSE_FFN_TRUE_FP8=1          Enable R6000 sm_120a true FP4xFP8 path
+                                         (requires mlp._fp4xfp8.* sidecar)
       LYNN_DENSE_FFN_TRUE_FP8_KERNEL=    mma (default) | scalar
       LYNN_DENSE_FFN_TRUE_FP8_SCOPE=     full (default) | gateup | down
+
+    Phase 2 Spark sm_121 FP8 path (auto-selected when the model dir is
+    the lynn-variable-w4a8-fp8-v1 artifact — loader populates the weight
+    dict with ``.weight_fp8`` + ``.weight_fp8_scale`` keys instead of the
+    plain ``.weight``):
+
+      - When ``mlp.gate_proj.weight_fp8`` and ``mlp.up_proj.weight_fp8``
+        are present, the gate+up matmul + SwiGLU goes through the fused
+        Triton FP8 kernel (``triton_kernels/spark_fp8_gate_up_fused.py``).
+        ``mlp.down_proj.weight_fp8`` similarly drives the down matmul
+        through ``torch._scaled_mm`` (no fused SwiGLU there).
+      - Opt-out via ``LYNN_DISABLE_W4A8_FP8_PATH=1`` for diagnostic
+        comparison against a BF16 fallback (requires the loader to keep
+        BF16 sidecars, which it currently does NOT for FP8 artifacts).
     """
+    # Phase 2 Spark FP8 path: keyed on weight dict contents (loader-driven).
+    fp8_disabled = os.environ.get("LYNN_DISABLE_W4A8_FP8_PATH", "0").lower() in {"1", "true", "yes"}
+    if not fp8_disabled and "mlp.gate_proj.weight_fp8" in w and "mlp.up_proj.weight_fp8" in w:
+        from triton_kernels.spark_fp8_gate_up_fused import fp8_gate_up_silu_fused
+        B, M, D = h.shape
+        h_2d = h.reshape(B * M, D)
+        inter = fp8_gate_up_silu_fused(
+            h_2d,
+            w["mlp.gate_proj.weight_fp8"],
+            w["mlp.up_proj.weight_fp8"],
+            w["mlp.gate_proj.weight_fp8_scale"],
+            w["mlp.up_proj.weight_fp8_scale"],
+        )
+        # down_proj: BF16 reduction tail for now (V2 will add fused FP8 down).
+        if "mlp.down_proj.weight_fp8" in w:
+            # FP8 down via per-token activation cast + torch._scaled_mm.
+            inter_max = inter.abs().amax(dim=-1, keepdim=True).clamp_min(1.0e-12)
+            inter_scale = (inter_max / 448.0).to(torch.float32)
+            inter_fp8 = (inter.to(torch.float32) / inter_scale).to(torch.float8_e4m3fn)
+            w_down = w["mlp.down_proj.weight_fp8"]
+            w_down_scale = w["mlp.down_proj.weight_fp8_scale"]
+            out = torch._scaled_mm(
+                inter_fp8,
+                w_down.t().contiguous(),
+                scale_a=inter_scale,
+                scale_b=w_down_scale.view(1, -1),
+                out_dtype=torch.bfloat16,
+            )
+            return out.reshape(B, M, -1)
+        # BF16 down fallback if down_proj fp8 key absent.
+        return torch.nn.functional.linear(
+            inter, w.get("mlp.down_proj.weight"),
+        ).reshape(B, M, -1) if "mlp.down_proj.weight" in w else inter.reshape(B, M, -1)
+
     true_fp8_mode = os.environ.get("LYNN_DENSE_FFN_TRUE_FP8", "0").strip().lower()
     is_single_decode_token = h.reshape(-1, h.shape[-1]).shape[0] == 1
     if (

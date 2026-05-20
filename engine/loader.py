@@ -116,6 +116,122 @@ def _is_lynn_variable_nvfp4(model_dir: Path) -> bool:
     return manifest.get("schema_version") == "lynn-variable-nvfp4-pack-v1"
 
 
+def _is_lynn_variable_w4a8_fp8(model_dir: Path) -> bool:
+    """Detect the Lynn-native W4A8 FP8 model dir produced by the Phase 2
+    repack V1 tool (``scripts/spark_pack_w4a8_fp8.py full-dir``).
+
+    Such a dir has ``lynn_quant_manifest.json`` with schema_version
+    ``lynn-variable-w4a8-fp8-v1`` and weights stored under
+    ``<base>.weight_fp8`` + ``<base>.weight_fp8_scale`` keys instead of
+    the NVFP4 ``.weight.packed`` + ``.weight.scale`` + ``.weight.global_scale``.
+    """
+    manifest_path = model_dir / "lynn_quant_manifest.json"
+    if not manifest_path.exists():
+        return False
+    try:
+        manifest = json.loads(manifest_path.read_text())
+    except Exception:
+        return False
+    return manifest.get("schema_version") == "lynn-variable-w4a8-fp8-v1"
+
+
+def _load_qwen36_layer_lynn_variable_w4a8_fp8(
+    model_dir: Path,
+    layer_idx: int,
+    device: str,
+    dequant_dtype: torch.dtype,
+):
+    """Load one Lynn-native W4A8 FP8 layer directly (no dequant).
+
+    The Phase 2 repack V1 artifact stores weights as ``float8_e4m3fn``
+    [out, in] plus per-row ``float32`` scales. The forward path
+    (``engine/full_forward.py::_dense_ffn_forward`` FP8 branch) consumes
+    these directly via the Triton FP8 fused gate/up kernel
+    (``triton_kernels/spark_fp8_gate_up_fused.py``).
+
+    Returns the standard ``(weights_dict, config_dict)`` shape — weight
+    tensors are FP8 (gate_proj/up_proj/down_proj/etc) and float32
+    (scales). The dense FFN branch keys on the presence of
+    ``mlp.gate_proj.weight_fp8`` to choose the FP8 path; legacy
+    BF16-only paths see no such key and skip.
+    """
+    import time
+    from safetensors import safe_open
+
+    manifest = json.loads((model_dir / "lynn_quant_manifest.json").read_text())
+    with open(model_dir / "model.safetensors.index.json") as f:
+        weight_map = json.load(f)["weight_map"]
+
+    prefix = f"model.language_model.layers.{layer_idx}."
+    final: dict[str, torch.Tensor] = {}
+    bytes_loaded = 0
+    t0 = time.time()
+
+    def shorten(k: str) -> str:
+        return k[len(prefix):]
+
+    def load_tensor(key: str) -> torch.Tensor:
+        file_name = weight_map[key]
+        with safe_open(model_dir / file_name, framework="pt", device=device) as st:
+            return st.get_tensor(key)
+
+    for key, rec in manifest.get("kept_tensors", {}).items():
+        if not key.startswith(prefix):
+            continue
+        tensor = load_tensor(key)
+        bytes_loaded += tensor.element_size() * tensor.numel()
+        if key.endswith(".weight") and tensor.dtype != dequant_dtype and tensor.dtype not in (torch.float8_e4m3fn, torch.float8_e5m2):
+            tensor = tensor.to(dequant_dtype)
+        final[shorten(key)] = tensor
+
+    for logical_key, rec in manifest.get("quantized_tensors", {}).items():
+        if not logical_key.startswith(prefix):
+            continue
+        weight_fp8 = load_tensor(rec["weight_fp8_key"])
+        weight_fp8_scale = load_tensor(rec["weight_fp8_scale_key"]).to(torch.float32)
+        bytes_loaded += (
+            weight_fp8.element_size() * weight_fp8.numel()
+            + weight_fp8_scale.element_size() * weight_fp8_scale.numel()
+        )
+        # Restore original shape if 3D (MoE experts flattened in storage).
+        orig_shape = rec.get("original_shape")
+        if orig_shape is not None and len(orig_shape) == 3:
+            weight_fp8 = weight_fp8.reshape(orig_shape)
+        # Store under logical_key short + ``.weight_fp8`` / ``.weight_fp8_scale``
+        # suffix — the forward branch keys on this naming.
+        short = shorten(logical_key)
+        if short.endswith(".weight"):
+            short = short[: -len(".weight")]
+        final[f"{short}.weight_fp8"] = weight_fp8
+        final[f"{short}.weight_fp8_scale"] = weight_fp8_scale
+
+    print(
+        f"  Lynn variable W4A8 FP8 direct load: {bytes_loaded/1e9:.2f} GB "
+        f"in {time.time()-t0:.1f}s",
+        flush=True,
+    )
+
+    config = {}
+    # Mirror the NVFP4 config-extraction pass. FP8 weights have shape
+    # [out, in]; squared MoE expert weights mirror ``mlp.experts.gate_up_proj``
+    # but with ``.weight_fp8`` suffix.
+    if "self_attn.q_proj.weight_fp8" in final:
+        config["q_proj_out"] = final["self_attn.q_proj.weight_fp8"].shape[0]
+        config["hidden_size"] = final["self_attn.q_proj.weight_fp8"].shape[1]
+    if "self_attn.k_proj.weight_fp8" in final:
+        config["k_proj_out"] = final["self_attn.k_proj.weight_fp8"].shape[0]
+    if "self_attn.v_proj.weight_fp8" in final:
+        config["v_proj_out"] = final["self_attn.v_proj.weight_fp8"].shape[0]
+    if "mlp.gate.weight" in final:
+        config["num_experts"] = final["mlp.gate.weight"].shape[0]
+    if "mlp.shared_expert.gate_proj.weight_fp8" in final:
+        config["shared_intermediate"] = final["mlp.shared_expert.gate_proj.weight_fp8"].shape[0]
+    if "mlp.experts.gate_up_proj.weight_fp8" in final:
+        config["expert_intermediate"] = final["mlp.experts.gate_up_proj.weight_fp8"].shape[1] // 2
+    config["fp8_path_active"] = True
+    return final, config
+
+
 def _dequantize_lynn_variable_nvfp4(
     packed: torch.Tensor,
     scale: torch.Tensor,
@@ -399,6 +515,18 @@ def load_qwen36_layer(
         full_config = json.load(f)
     quant_cfg = full_config.get("quantization_config", {})
     weight_block_size = quant_cfg.get("weight_block_size", [128, 128])
+
+    # Phase 2 FP8 path takes priority over NVFP4 dispatch — if the model
+    # dir is the Lynn-native W4A8 FP8 artifact, load weights directly as
+    # FP8 + scale (no dequant) and the forward branches into the FP8
+    # fused kernel.
+    if _is_lynn_variable_w4a8_fp8(model_dir):
+        return _load_qwen36_layer_lynn_variable_w4a8_fp8(
+            model_dir=model_dir,
+            layer_idx=layer_idx,
+            device=device,
+            dequant_dtype=dequant_dtype,
+        )
 
     if _is_lynn_variable_nvfp4(model_dir):
         return _load_qwen36_layer_lynn_variable_nvfp4(
