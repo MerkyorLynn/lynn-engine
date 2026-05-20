@@ -281,6 +281,7 @@ def _moe_forward(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
                 w["mlp.shared_expert.up_proj.weight_fp8"],
                 w["mlp.shared_expert.gate_proj.weight_fp8_scale"].to(torch.float32),
                 w["mlp.shared_expert.up_proj.weight_fp8_scale"].to(torch.float32),
+                auto_block=True,
             )
             # FP8 shared down
             inter_max_s = shared_inter.abs().amax(dim=-1, keepdim=True).clamp_min(1.0e-12)
@@ -428,6 +429,7 @@ def _dense_ffn_forward(h: torch.Tensor, w: dict) -> torch.Tensor:
             w["mlp.up_proj.weight_fp8"],
             w["mlp.gate_proj.weight_fp8_scale"],
             w["mlp.up_proj.weight_fp8_scale"],
+            auto_block=True,
         )
         # down_proj: BF16 reduction tail for now (V2 will add fused FP8 down).
         if "mlp.down_proj.weight_fp8" in w:

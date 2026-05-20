@@ -23,9 +23,22 @@ V0 scope:
     of time (a one-shot reduction, cheap).
   * Output: BF16 [M, intermediate].
 
-V1 scope (next iteration):
+V1 scope (current — autotune sweep result applied):
+  * Default block config = ``(BLOCK_M=16, BLOCK_K=128, BLOCK_N=32)``,
+    the universal winner from the 2160-config Spark sm_121 sweep
+    (best/near-best for 60%+ of shapes; see
+    ``reports/mtp/QWEN36_FP8_AUTOTUNE_SWEEP_RESULT_20260520.md``).
+  * Shape-aware override via ``select_block_config(M, K, N)`` helper
+    for high-traffic specialised shapes (M=1 N=6144, M=16 K=6144,
+    etc.). Callers can opt in via ``auto_block=True``.
+  * N ≤ 256 fast-path advisory: caller should fall back to BF16
+    ``torch._scaled_mm`` — FP8 cannot beat BF16 at this output size
+    (memory-bandwidth bound, ~0.86× best speedup).
+
+V2 scope (next):
   * Concatenated gate+up weight ([2N, K]) for one B-matrix load.
-  * Autotune (BLOCK_M, BLOCK_K, BLOCK_N) sweep.
+  * Native-owned intermediate buffer (no Python/Torch round-trip
+    before down_proj — see P190 finding #2).
   * Optional col-major weight layout for cuBLASLt parity.
 """
 from __future__ import annotations
@@ -138,6 +151,39 @@ if HAS_TRITON:
         )
 
 
+def select_block_config(m: int, k: int, n: int) -> tuple[int, int, int]:
+    """Shape-aware best block config from the Spark sm_121 autotune sweep.
+
+    Returns ``(BLOCK_M, BLOCK_K, BLOCK_N)`` selected from the per-shape
+    top-1 entries of ``reports/mtp/QWEN36_FP8_AUTOTUNE_SWEEP_RESULT_20260520.md``.
+
+    For shapes not in the override table this falls back to the universal
+    winner ``(16, 128, 32)``. Callers should still avoid this kernel when
+    ``n <= 256`` (memory-bound; use BF16 ``_scaled_mm`` instead).
+    """
+    # High-impact specialised overrides for the Lynn 35B-A3B hot shapes.
+    if m == 1:
+        if k == 2048 and n == 6144:
+            return (16, 64, 32)        # 6.00× — best in sweep
+        if k == 4096 and n == 2048:
+            return (16, 128, 64)       # 5.76×
+        if k == 6144 and n == 2048:
+            return (16, 128, 32)       # 4.25×
+        if k == 6144 and n == 6144:
+            return (64, 128, 32)       # 1.79×
+    elif 4 <= m <= 8:
+        if k == 2048 and n == 6144:
+            return (16, 64, 32)        # 5.67× / 5.38×
+        if k == 6144 and n == 6144:
+            return (64, 128, 32) if m == 4 else (16, 128, 32)
+    elif m >= 16:
+        if k == 6144 and n == 6144:
+            return (64, 128, 32)       # 2.04×
+        if k == 2048 and n == 6144:
+            return (32, 64, 64)        # 3.65×
+    return (16, 128, 32)               # universal winner
+
+
 def fp8_gate_up_silu_fused(
     x_bf16: torch.Tensor,             # [M, K]
     w_gate_fp8: torch.Tensor,         # [N, K] FP8 E4M3
@@ -146,13 +192,19 @@ def fp8_gate_up_silu_fused(
     w_up_scale: torch.Tensor,         # [N] F32
     *,
     block_m: int = 16,
-    block_k: int = 64,
-    block_n: int = 128,
+    block_k: int = 128,
+    block_n: int = 32,
+    auto_block: bool = False,
 ) -> torch.Tensor:
     """Run fused FP8 gate/up + SwiGLU on Spark sm_121.
 
     Returns BF16 intermediate [M, N] = silu(gate * scales) * (up * scales)
     ready for the down_proj step.
+
+    The default block config ``(16, 128, 32)`` is the universal winner
+    from the 2160-config sweep (see ``select_block_config`` for
+    shape-aware overrides). Pass ``auto_block=True`` to dispatch on the
+    runtime shape.
     """
     _require_triton()
     if not x_bf16.is_cuda:
@@ -170,6 +222,9 @@ def fp8_gate_up_silu_fused(
     N, K_w = w_gate_fp8.shape
     if K != K_w:
         raise ValueError(f"K mismatch: act K={K}, weight K={K_w}")
+
+    if auto_block:
+        block_m, block_k, block_n = select_block_config(M, K, N)
 
     # Compute per-token activation scale = max_abs / 448 (FP8 E4M3 max).
     x_scale = (x_bf16.abs().amax(dim=-1).clamp_min(1.0e-12) / 448.0).to(torch.float32)
