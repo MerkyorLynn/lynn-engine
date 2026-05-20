@@ -363,8 +363,14 @@ def _build_configs(w4a16_model: str, fp8_model: str) -> list[dict[str, Any]]:
             "model_dir": fp8_model,
             "env": {
                 "LYNN_W4A8_FP8_PATH": "1",
-                "LYNN_LINEAR_BLOCK_GRAPH": "1",
-                "LYNN_LINEAR_BLOCK_GRAPH_REUSE": "1",
+                # FP8 active-expert iteration uses torch.unique(...).tolist()
+                # which is a host sync incompatible with CUDA graph capture.
+                # Until the FP8 path becomes graph-capture-friendly (V3 scope),
+                # both FP8 configs run in eager mode. Keeping the label
+                # "_graph" for output schema parity with future graph-enabled
+                # versions.
+                "LYNN_LINEAR_BLOCK_GRAPH": "0",
+                "LYNN_LINEAR_BLOCK_GRAPH_REUSE": "0",
                 "LYNN_MTP_SPECULATIVE": "0",
                 "LYNN_MTP_SHADOW_VERIFY": "0",
                 # FP8 dir has no NVFP4-format tensors — disable every NVFP4
