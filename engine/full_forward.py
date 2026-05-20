@@ -264,7 +264,7 @@ def _moe_forward(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
             inter_fp8 = (inter_bf16.to(torch.float32) / inter_scale).to(torch.float8_e4m3fn)
             ffn_e = torch._scaled_mm(
                 inter_fp8,
-                w_down_fp8[e].t().contiguous(),
+                w_down_fp8[e].t(),  # column-major view: stride(0)==1 satisfies torch._scaled_mm B-arg requirement (no copy)
                 scale_a=inter_scale,
                 scale_b=w_down_scale[e].view(1, -1).to(torch.float32),
                 out_dtype=torch.bfloat16,
@@ -289,7 +289,7 @@ def _moe_forward(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
             inter_fp8_s = (shared_inter.to(torch.float32) / inter_scale_s).to(torch.float8_e4m3fn)
             shared_ffn = torch._scaled_mm(
                 inter_fp8_s,
-                w["mlp.shared_expert.down_proj.weight_fp8"].t().contiguous(),
+                w["mlp.shared_expert.down_proj.weight_fp8"].t(),  # column-major view: stride(0)==1 satisfies torch._scaled_mm B-arg requirement (no copy)
                 scale_a=inter_scale_s,
                 scale_b=w["mlp.shared_expert.down_proj.weight_fp8_scale"].view(1, -1).to(torch.float32),
                 out_dtype=torch.bfloat16,
@@ -441,7 +441,7 @@ def _dense_ffn_forward(h: torch.Tensor, w: dict) -> torch.Tensor:
             w_down_scale = w["mlp.down_proj.weight_fp8_scale"]
             out = torch._scaled_mm(
                 inter_fp8,
-                w_down.t().contiguous(),
+                w_down.t(),  # column-major view: stride(0)==1 satisfies torch._scaled_mm B-arg requirement (no copy)
                 scale_a=inter_scale,
                 scale_b=w_down_scale.view(1, -1),
                 out_dtype=torch.bfloat16,
