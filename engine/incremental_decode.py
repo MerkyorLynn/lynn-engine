@@ -467,6 +467,8 @@ def decode_full_attn_k2(
         "rowwise_qkv_rowwise_t1",
         "rowwise_qkv_rowwise_attn_batched_o",
         "rowwise_qkv_batched_attn_rowwise_o",
+        "rowwise_qkv_rowwise_attn_batched_gate_rowwise_o",
+        "rowwise_qkv_rowwise_attn_rowwise_gate_batched_o",
     }
     if probe_mode in rowwise_qkv_probe_modes:
         q_pieces = []
@@ -554,6 +556,8 @@ def decode_full_attn_k2(
         "rowwise_t1",
         "rowwise_qkv_rowwise_t1",
         "rowwise_qkv_rowwise_attn_batched_o",
+        "rowwise_qkv_rowwise_attn_batched_gate_rowwise_o",
+        "rowwise_qkv_rowwise_attn_rowwise_gate_batched_o",
     }
     if probe_mode in rowwise_attn_probe_modes:
         attn_pieces = []
@@ -571,13 +575,30 @@ def decode_full_attn_k2(
                 enable_gqa=(H_KV != H_Q),
             )
             attn_pieces.append(attn_i)
-            if probe_mode != "rowwise_qkv_rowwise_attn_batched_o":
+            if probe_mode in {"rowwise_t1", "rowwise_qkv_rowwise_t1"}:
                 attn_i = attn_i * torch.sigmoid(gate_i.float()).to(attn_i.dtype)
                 attn_i = attn_i.transpose(1, 2).contiguous().view(B, 1, H_Q * head_dim)
                 out_pieces.append(_linear(attn_i, _decode_weight(w, "self_attn.o_proj.weight")))
         if probe_mode == "rowwise_qkv_rowwise_attn_batched_o":
             attn_out = torch.cat(attn_pieces, dim=2)
             attn_out = attn_out * torch.sigmoid(gate.float()).to(attn_out.dtype)
+            attn_out = attn_out.transpose(1, 2).contiguous().view(B, 2, H_Q * head_dim)
+            return _linear(attn_out, _decode_weight(w, "self_attn.o_proj.weight"))
+        if probe_mode == "rowwise_qkv_rowwise_attn_batched_gate_rowwise_o":
+            attn_out = torch.cat(attn_pieces, dim=2)
+            attn_out = attn_out * torch.sigmoid(gate.float()).to(attn_out.dtype)
+            pieces = []
+            for idx in range(2):
+                attn_i = attn_out[:, :, idx:idx + 1, :].contiguous()
+                attn_i = attn_i.transpose(1, 2).contiguous().view(B, 1, H_Q * head_dim)
+                pieces.append(_linear(attn_i, _decode_weight(w, "self_attn.o_proj.weight")))
+            return torch.cat(pieces, dim=1)
+        if probe_mode == "rowwise_qkv_rowwise_attn_rowwise_gate_batched_o":
+            gated_pieces = []
+            for idx, attn_i in enumerate(attn_pieces):
+                gate_i = gate[:, :, idx:idx + 1, :].contiguous()
+                gated_pieces.append(attn_i * torch.sigmoid(gate_i.float()).to(attn_i.dtype))
+            attn_out = torch.cat(gated_pieces, dim=2)
             attn_out = attn_out.transpose(1, 2).contiguous().view(B, 2, H_Q * head_dim)
             return _linear(attn_out, _decode_weight(w, "self_attn.o_proj.weight"))
         return torch.cat(out_pieces, dim=1)

@@ -334,6 +334,26 @@ batched attention and batched output projection/gating. A production fast K2
 path must make both components T=1-equivalent, or choose a controlled
 approximate mode as a deliberate product/model change.
 
+Follow-up split of gate vs `o_proj`:
+
+```text
+reports/mtp/qwen35_m18_layer_sweep_gate_o_split_20260527_004529.json
+```
+
+| Probe | Meaning | Result |
+|---|---|---|
+| `rowwise_qkv_rowwise_attn_batched_gate_rowwise_o` | only gate is batched; `o_proj` row-wise | exact |
+| `rowwise_qkv_rowwise_attn_rowwise_gate_batched_o` | gate row-wise; only `o_proj` batched | drift at L5 |
+
+This isolates the output side further: batched sigmoid/gating is safe, while
+the `[2, hidden] @ o_proj.weight` batched matmul is not T=1-equivalent enough
+for deterministic MTP parity. The remaining independent blocker is batched
+attention itself. The next fast-K2 kernel work should therefore target:
+
+1. A dual-row attention kernel that preserves T=1-equivalent accumulation.
+2. A dual-row `o_proj` kernel/dispatch that shares weight loads but accumulates
+   each row exactly like the T=1 path.
+
 The non-strict fast-K2 control does not justify accepting approximate drift:
 
 ```text
