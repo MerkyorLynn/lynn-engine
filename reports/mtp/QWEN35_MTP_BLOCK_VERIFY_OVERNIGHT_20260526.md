@@ -6,6 +6,17 @@ Morning update: 2026-05-26 09:35 Asia/Shanghai
 
 Post-reboot smoke update: 2026-05-26 10:15 Asia/Shanghai
 
+Active repo status update: 2026-05-27 Asia/Shanghai
+
+This line is active, not abandoned. The 5/20 product pivot still leaves Lynn
+engine as an R&D path, and this branch is now the concrete R&D path: port the
+portable Nemotron-style runtime skeleton into Qwen35/Qwen9B APEX-MTP. A concise
+public-facing status note is tracked at:
+
+```text
+reports/mtp/LYNN_ENGINE_ACTIVE_RESEARCH_STATUS_20260527.md
+```
+
 ## Target
 
 Make the Nemotron-style verify/accept/crop runtime useful for Lynn's own Qwen
@@ -413,6 +424,67 @@ Spark sanity confirmed the helper returns bit-equal output for one K2 call vs
 two T1 calls (`max_abs=0`). This is still experimental: it changes the
 accumulation contract from PyTorch/cuBLAS, so it must be enabled for both the
 baseline T1 path and K2 verifier when measuring token exactness.
+
+The matching dual-row prefix-attention direction now has a lightweight kernel
+probe too:
+
+```text
+triton_kernels/rowwise_attention.py
+scripts/spark_k2_rowwise_attention_kernel_probe.py
+reports/mtp/qwen35_k2_rowwise_attention_kernel_20260527_023349.json
+reports/mtp/qwen35_k2_rowwise_attention_kernel_stride_20260527_023632.json
+```
+
+On Spark BF16 `[Hq=32, Hkv=4, N=2048, D=128]`, the K2 single-launch kernel
+matched two T1 kernel launches in **8/8** seeds with `max_abs=0`. Warmed timing
+was about **0.077 ms** for K2 vs **0.123 ms** for two T1 calls after removing
+unnecessary K/V contiguous copies from the wrapper. This is the
+first positive signal that the attention half can be made T=1-equivalent
+without paying the full row-wise launch cost. It is still a micro-kernel result;
+the next gate is wiring it into the real `decode_full_attn`/`decode_full_attn_k2`
+path and running a Qwen35 maintenance smoke.
+
+The kernel has now been wired behind opt-in experimental knobs:
+
+```text
+LYNN_FULL_ATTN_ATTENTION_BACKEND=rowwise_triton
+LYNN_FULL_ATTN_K2_BACKEND=rowwise_kernel_bridge
+```
+
+Real Qwen35 maintenance smoke:
+
+```text
+reports/mtp/qwen35_mtp_k2_rowwise_attention_kernel_warm_20260527_024429.json
+```
+
+Run knobs:
+
+```text
+LYNN_FULL_ATTN_ATTENTION_BACKEND=rowwise_triton
+LYNN_FULL_ATTN_O_PROJ_BACKEND=rowwise_triton
+LYNN_FULL_ATTN_K2_BACKEND=rowwise_kernel_bridge
+LYNN_MTP_KN_FULL_ACCEPT_FAST_COMMIT=1
+LYNN_MTP_KN_PREFIX_BLOCK_REPAIR=1
+WARMUP_RUNS=2
+```
+
+Result:
+
+| Config | Exact vs baseline | TPS | Accept | Draft accept |
+|---|---:|---:|---:|---:|
+| baseline | 100% | 27.82 | n/a | n/a |
+| spec_k1 | 100% | 22.41 | 68.33% | 68.33% |
+| spec_k1_batched | 100% | 10.87 | 68.33% | 68.33% |
+| spec_k2_batched | 100% | 22.99 | 61.11% | 61.11% |
+
+Interpretation: the rowwise attention kernel improves the previous exact K2
+bridge from 21.28 TPS to 22.99 TPS (**+8.1%**) while preserving 6/6 token
+exactness, but it still lands at **0.83x** of the warmed T1 baseline under the
+same experimental backend. This proves the extracted verify/accept/crop flow
+and the K2 attention kernel are directionally useful for APEX-MTP, but it is
+not a production speedup yet. Remaining cost is now likely split across
+row-wise QKV/RoPE projection, rowwise `o_proj`, MTP sidecar overhead, and the
+Python runner/service loop.
 
 Operational note: the production APEX service is configured with
 `Restart=always`, so a plain `systemctl stop lynn-apex-mtp-llamacpp.service`

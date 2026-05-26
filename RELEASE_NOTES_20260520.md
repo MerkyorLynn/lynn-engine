@@ -2,6 +2,11 @@
 
 > **状态变更:Lynn Engine 从产品默认推理底层 → R&D 持续探索路径。Lynn 客户端 5/20 决定短期投奔 llama.cpp 生态作为默认本地推理。**
 
+> **2026-05-27 续线说明**:5/20 不是放弃 engine,而是把它从产品默认路径降级为高门槛 R&D。5/27 起本仓 active branch 聚焦
+> **Qwen3.6-35B-A3B APEX-MTP + Nemotron-style verify/accept/crop/K=N runtime**:
+> K=2 block verification 已在 Spark W4A16 + official MTP sidecar 上 token-exact 跑通,当前正在攻 T=1-equivalent dual-row attention / `o_proj` kernels。
+> 详见 [reports/mtp/LYNN_ENGINE_ACTIVE_RESEARCH_STATUS_20260527.md](reports/mtp/LYNN_ENGINE_ACTIVE_RESEARCH_STATUS_20260527.md)。
+
 ---
 
 ## TL;DR

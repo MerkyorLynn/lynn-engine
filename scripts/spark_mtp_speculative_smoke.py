@@ -193,6 +193,8 @@ def main() -> int:
                     help="Optional JSON file with custom prompt list")
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--dtype", default="bfloat16", choices=["bfloat16", "float16"])
+    ap.add_argument("--warmup-runs", type=int, default=0,
+                    help="Run this many non-recorded baseline generations after model load")
     args = ap.parse_args()
 
     prompts = DEFAULT_PROMPTS
@@ -252,6 +254,12 @@ def main() -> int:
                 f"[smoke] MTP sidecar did not load from {args.sidecar}. "
                 "Check the path + safetensors integrity."
             )
+
+        for warm_idx in range(max(args.warmup_runs, 0)):
+            prompt = prompts[warm_idx % len(prompts)]
+            runner.generate(prompt, max_new=min(args.max_new, 8))
+        if args.warmup_runs and torch.cuda.is_available():
+            torch.cuda.synchronize()
 
         configs = [
             {
@@ -400,6 +408,7 @@ def main() -> int:
             "model": args.model,
             "sidecar": args.sidecar,
             "max_new": args.max_new,
+            "warmup_runs": args.warmup_runs,
             "n_prompts": len(prompts),
             "configs": cases,
             "summary": summary,

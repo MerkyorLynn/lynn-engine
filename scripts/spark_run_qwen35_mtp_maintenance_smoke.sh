@@ -15,6 +15,7 @@ LYNN_DIR="${LYNN_DIR:-/home/merkyor/lynn-engine}"
 IMAGE="${IMAGE:-lynn-eval-base:cu13}"
 MAX_NEW="${MAX_NEW:-8}"
 SPEC_K_LIST="${SPEC_K_LIST:-2}"
+WARMUP_RUNS="${WARMUP_RUNS:-0}"
 TIMEOUT_SECONDS="${TIMEOUT_SECONDS:-1200}"
 OUT="${OUT:-$LYNN_DIR/reports/mtp/qwen35_mtp_maintenance_$(date +%Y%m%d_%H%M%S).json}"
 LOG="${LOG:-$LYNN_DIR/logs/qwen35_mtp_maintenance_$(date +%Y%m%d_%H%M%S).log}"
@@ -58,6 +59,7 @@ timeout "$TIMEOUT_SECONDS" docker run --rm --gpus all --ipc=host \
     --sidecar "$SIDECAR_IN_CONTAINER" \
     --out "${OUT#$LYNN_DIR/}" \
     --max-new "$MAX_NEW" \
+    --warmup-runs "$WARMUP_RUNS" \
     --spec-k-list "$SPEC_K_LIST" \
   2>&1 | tee -a "$LOG"
 

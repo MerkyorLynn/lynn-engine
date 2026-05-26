@@ -58,6 +58,11 @@ try:
 except Exception:  # pragma: no cover - optional acceleration path.
     rowwise_linear_triton = None
 
+try:
+    from triton_kernels.rowwise_attention import rowwise_prefix_attention as rowwise_prefix_attention_triton
+except Exception:  # pragma: no cover - optional acceleration path.
+    rowwise_prefix_attention_triton = None
+
 
 _ROPE_TABLE_CACHE: dict[tuple[str, str, int, float, int], tuple[torch.Tensor, torch.Tensor]] = {}
 
@@ -93,6 +98,34 @@ def _full_attn_o_proj(attn_out: torch.Tensor, weight) -> torch.Tensor:
         out = rowwise_linear_triton(attn_out.reshape(attn_out.shape[1], attn_out.shape[2]), weight)
         return out.to(attn_out.dtype).reshape(1, attn_out.shape[1], weight.shape[0])
     return _linear(attn_out, weight)
+
+
+def _full_attn_attention(q: torch.Tensor, k: torch.Tensor, v: torch.Tensor, *, attn_mask=None, enable_gqa: bool) -> torch.Tensor:
+    """Full-attention dispatch for decode verifier experiments.
+
+    ``LYNN_FULL_ATTN_ATTENTION_BACKEND=rowwise_triton`` uses the experimental
+    prefix-attention kernel for T=1/T=2. The K2 kernel has the prefix-causal
+    policy baked in: row 0 sees ``N-1`` keys and row 1 sees ``N`` keys.
+    """
+    backend = os.environ.get("LYNN_FULL_ATTN_ATTENTION_BACKEND", "")
+    if backend == "rowwise_triton":
+        if rowwise_prefix_attention_triton is None:
+            raise RuntimeError("LYNN_FULL_ATTN_ATTENTION_BACKEND=rowwise_triton requested but kernel is unavailable")
+        if q.ndim != 4 or q.shape[0] != 1 or q.shape[2] not in (1, 2):
+            raise ValueError(f"rowwise_triton attention expects q=[1,H,1|2,D], got {tuple(q.shape)}")
+        if attn_mask is not None and q.shape[2] != 2:
+            raise ValueError("rowwise_triton attention only supports the implicit K2 prefix mask")
+        return rowwise_prefix_attention_triton(q, k, v)
+    if backend not in {"", "sdpa"}:
+        raise ValueError(f"Unknown LYNN_FULL_ATTN_ATTENTION_BACKEND: {backend}")
+    return F.scaled_dot_product_attention(
+        q,
+        k,
+        v,
+        attn_mask=attn_mask,
+        is_causal=False,
+        enable_gqa=enable_gqa,
+    )
 
 
 def _decode_weight(w: dict, key: str):
@@ -428,7 +461,7 @@ def decode_full_attn(h_new, new_position_id, w, cfg, K_cache_full, V_cache_full,
         # SDPA with enable_gqa=True (PyTorch 2.5+) — internal broadcast,
         # no memory expansion. Math equivalent to explicit repeat_interleave+SDPA.
         # Replaces 2× repeat_interleave (8x mem copy on H_Q/H_KV=8) with view-only.
-        attn_out = F.scaled_dot_product_attention(q, K_used, V_used, is_causal=False, enable_gqa=(H_KV != H_Q))
+        attn_out = _full_attn_attention(q, K_used, V_used, enable_gqa=(H_KV != H_Q))
     else:
         raise ValueError(f"Unknown LYNN_FULL_ATTN_DECODE_BACKEND: {full_attn_backend}")
 
@@ -489,6 +522,8 @@ def decode_full_attn_k2(
         probe_mode = "rowwise_qkv_rowwise_t1"
     if k2_backend == "rowwise_gate_bridge" and not probe_mode:
         probe_mode = "rowwise_qkv_rowwise_attn_batched_gate_rowwise_o"
+    if k2_backend == "rowwise_kernel_bridge" and not probe_mode:
+        probe_mode = "rowwise_qkv_rowwise_attn_kernel_batched_gate_rowwise_o"
     rowwise_qkv_probe_modes = {
         "rowwise_qkv",
         "rowwise_qkv_rowwise_t1",
@@ -496,6 +531,7 @@ def decode_full_attn_k2(
         "rowwise_qkv_batched_attn_rowwise_o",
         "rowwise_qkv_rowwise_attn_batched_gate_rowwise_o",
         "rowwise_qkv_rowwise_attn_rowwise_gate_batched_o",
+        "rowwise_qkv_rowwise_attn_kernel_batched_gate_rowwise_o",
     }
     if probe_mode in rowwise_qkv_probe_modes:
         q_pieces = []
@@ -630,6 +666,18 @@ def decode_full_attn_k2(
             return _full_attn_o_proj(attn_out, _decode_weight(w, "self_attn.o_proj.weight"))
         return torch.cat(out_pieces, dim=1)
 
+    if probe_mode == "rowwise_qkv_rowwise_attn_kernel_batched_gate_rowwise_o":
+        if rowwise_prefix_attention_triton is None:
+            raise RuntimeError("rowwise_kernel_bridge requested but rowwise attention kernel is unavailable")
+        attn_out = rowwise_prefix_attention_triton(q, K_used, V_used)
+        attn_out = attn_out * torch.sigmoid(gate.float()).to(attn_out.dtype)
+        pieces = []
+        for idx in range(2):
+            attn_i = attn_out[:, :, idx:idx + 1, :].contiguous()
+            attn_i = attn_i.transpose(1, 2).contiguous().view(B, 1, H_Q * head_dim)
+            pieces.append(_full_attn_o_proj(attn_i, _decode_weight(w, "self_attn.o_proj.weight")))
+        return torch.cat(pieces, dim=1)
+
     # 6. Attention with prefix-causal mask:
     #    Q[0] (at pos cached_seq_len)   sees K[0..cached_seq_len]   (NOT cached_seq_len+1)
     #    Q[1] (at pos cached_seq_len+1) sees K[0..cached_seq_len+1]
@@ -654,10 +702,9 @@ def decode_full_attn_k2(
         attn_out = attn_out.reshape(B, H_Q, 2, head_dim)
     elif full_attn_backend == "sdpa":
         # PyTorch SDPA: attn_mask + enable_gqa together is supported since 2.5.
-        attn_out = F.scaled_dot_product_attention(
+        attn_out = _full_attn_attention(
             q, K_used, V_used,
             attn_mask=attn_mask,
-            is_causal=False,
             enable_gqa=(H_KV != H_Q),
         )
     else:

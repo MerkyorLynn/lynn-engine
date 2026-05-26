@@ -1,5 +1,14 @@
 # Lynn Engine
 
+> **🆕 2026-05-27 Active R&D update — Lynn engine 没有放弃,正在把 Nemotron-style self-spec 的可移植部分落到 Qwen35 APEX-MTP。**
+> 5/20 的产品默认推理 pivot 仍然成立:客户端默认走 llama.cpp/GGUF。新的 5/27 进展是 engine 研发线继续推进:
+> **Qwen3.6-35B-A3B W4A16 + official APEX/MTP sidecar 已跑通 K=2 verify/accept/crop/full-accept/prefix-repair token-exact smoke**。
+> 当前 blocker 不是算法控制流,而是 K2 verifier 的 T=1-equivalent attention / `o_proj` kernel 成本。详见
+> [5/27 active status](reports/mtp/LYNN_ENGINE_ACTIVE_RESEARCH_STATUS_20260527.md) 和
+> [Qwen35 MTP block verifier log](reports/mtp/QWEN35_MTP_BLOCK_VERIFY_OVERNIGHT_20260526.md)。
+>
+> 简单说:产品 fallback 先用 llama.cpp,但 Lynn engine 主线正在继续吃 APEX-MTP / K=N / self-spec 这条硬路线。
+
 > **🆕 2026-05-20 重大状态变更 — Lynn engine 从产品默认推理底层降级为 R&D 持续探索路径。**
 > Lynn 客户端短期投奔 llama.cpp 生态作为默认本地推理底层(Mac Metal / Win MSVC / Linux CUDA 全平台 + Q4_K_M GGUF)。
 > 默认 ship 模型 = **Qwen3.5-9B Q4_K_M-imatrix(5.3GB)** thinking-on excl_pf MMLU 90+ / GPQA 80+。
