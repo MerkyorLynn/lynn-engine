@@ -270,6 +270,39 @@ The bridge confirms correctness but does not improve speed over the strict
 T=1 fallback. The next performance task is therefore a real batched full-attn
 K2 kernel/implementation that matches T=1 numerics, not more row-wise fallback.
 
+Additional SDPA isolation on 2026-05-27 tested `manual_gqa` for both T=1 and
+K2 full-attention decode:
+
+```text
+reports/mtp/qwen35_m18_layer_sweep_manual_gqa_20260527_000731.json
+reports/mtp/qwen35_mtp_k2_manual_gqa_fast_20260527_001547.json
+```
+
+Layer sweep result:
+
+| Combo | Result |
+|---|---|
+| `k2_both` + `manual_gqa` | drift, first bad L5 `linear_attention` |
+| `t1_full_attn_only` + `manual_gqa` | exact |
+| `t1_linear_attn_only` + `manual_gqa` | drift, first bad L5 `linear_attention` |
+| `t1_both` + `manual_gqa` | exact |
+
+End-to-end smoke result with `LYNN_FULL_ATTN_DECODE_BACKEND=manual_gqa`,
+`LYNN_FULL_ATTN_K2_BACKEND=k2`, full-accept fast commit, and prefix repair:
+
+| Config | Exact vs baseline | TPS | Accept | Draft accept |
+|---|---:|---:|---:|---:|
+| baseline | 100% | 33.66 | n/a | n/a |
+| spec_k1 | 100% | 29.39 | 77.16% | 77.16% |
+| spec_k1_batched | 66.67% | 31.54 | 80.05% | 80.05% |
+| spec_k2_batched | 83.33% | 25.90 | 62.40% | 69.30% |
+
+Conclusion: replacing SDPA with the existing Python `manual_gqa` path is not
+enough. It improves some accept/TPS numbers but breaks token-exactness in the
+batched verifier. The remaining K2 parity work must separate batched
+projection/RoPE, attention, gating, and `o_proj` numerics rather than treating
+SDPA as the only source of drift.
+
 The non-strict fast-K2 control does not justify accepting approximate drift:
 
 ```text
