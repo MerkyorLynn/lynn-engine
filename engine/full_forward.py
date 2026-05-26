@@ -773,7 +773,7 @@ def _decode_layer_k2(
                 cached_seq_len=state.seq_len + 1,
             )
             attn_out = torch.cat([attn0, attn1], dim=1)
-        elif full_attn_k2_backend in {"k2", "rowwise_bridge"}:
+        elif full_attn_k2_backend in {"k2", "rowwise_bridge", "rowwise_gate_bridge"}:
             attn_out = decode_full_attn_k2(
                 h_norm, position_ids_k2, w, cfg, K, V,
                 cached_seq_len=state.seq_len,

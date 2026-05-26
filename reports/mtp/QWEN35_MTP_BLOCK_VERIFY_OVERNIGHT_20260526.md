@@ -354,6 +354,17 @@ attention itself. The next fast-K2 kernel work should therefore target:
 2. A dual-row `o_proj` kernel/dispatch that shares weight loads but accumulates
    each row exactly like the T=1 path.
 
+The safe component split is now named:
+
+```text
+LYNN_FULL_ATTN_K2_BACKEND=rowwise_gate_bridge
+```
+
+It maps to QKV/RoPE row-wise, attention row-wise, gate batched, and `o_proj`
+row-wise. This is expected to be only marginally faster than `rowwise_bridge`,
+but it captures the strongest proven exact bridge: the gate multiply can be
+batched; `o_proj` and attention cannot yet.
+
 The non-strict fast-K2 control does not justify accepting approximate drift:
 
 ```text

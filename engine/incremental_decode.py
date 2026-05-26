@@ -462,6 +462,8 @@ def decode_full_attn_k2(
     probe_mode = os.environ.get("LYNN_FULL_ATTN_K2_PROBE", "")
     if k2_backend == "rowwise_bridge" and not probe_mode:
         probe_mode = "rowwise_qkv_rowwise_t1"
+    if k2_backend == "rowwise_gate_bridge" and not probe_mode:
+        probe_mode = "rowwise_qkv_rowwise_attn_batched_gate_rowwise_o"
     rowwise_qkv_probe_modes = {
         "rowwise_qkv",
         "rowwise_qkv_rowwise_t1",
