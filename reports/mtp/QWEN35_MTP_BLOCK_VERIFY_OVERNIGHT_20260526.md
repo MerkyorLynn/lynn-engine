@@ -422,6 +422,43 @@ The live APEX-MTP fallback was healthy after this diagnosis; one observed
 production request reported 512-token eval at about 66.7 tok/s with draft
 acceptance around 0.469.
 
+Maintenance-window smoke with the new rowwise `o_proj` contract:
+
+```text
+reports/mtp/qwen35_mtp_k2_rowwise_gate_real2_20260527_021806.json
+```
+
+Run knobs:
+
+```text
+LYNN_FULL_ATTN_O_PROJ_BACKEND=rowwise_triton
+LYNN_FULL_ATTN_K2_BACKEND=rowwise_gate_bridge
+LYNN_MTP_KN_FULL_ACCEPT_FAST_COMMIT=1
+LYNN_MTP_KN_PREFIX_BLOCK_REPAIR=1
+```
+
+Result:
+
+| Config | Exact vs baseline | TPS | Accept | Draft accept |
+|---|---:|---:|---:|---:|
+| baseline | 100% | 31.74 | n/a | n/a |
+| spec_k1 | 100% | 24.24 | 66.67% | 66.67% |
+| spec_k1_batched | 100% | 22.99 | 66.67% | 66.67% |
+| spec_k2_batched | 100% | 21.28 | 53.33% | 53.70% |
+
+Interpretation for "does the extracted algorithm improve APEX MTP?":
+
+- Correctness: **yes**. The verify/accept/crop/full-accept/prefix-repair
+  control flow is token-exact on the real Qwen35 W4A16 + official MTP sidecar.
+- Throughput today: **no**. Even with rowwise `o_proj`, K2 is only 0.67x of
+  the Python baseline on this short smoke. The high-accept prompt reaches
+  34.30 tok/s, still below its 37.18 tok/s baseline row.
+- Production relevance: the active llama.cpp APEX-MTP fallback is already much
+  faster than this Python runner (observed about 66.7 tok/s). The extracted
+  algorithm is therefore not a drop-in production speedup yet; it needs
+  T=1-equivalent dual-row attention and `o_proj` kernels, or integration into
+  the production llama.cpp APEX path.
+
 The non-strict fast-K2 control does not justify accepting approximate drift:
 
 ```text
