@@ -1,0 +1,174 @@
+{
+  "schema_version": "lynn-k2-rowwise-attention-kernel-probe-v1",
+  "rows": [
+    {
+      "seed": 0,
+      "h_q": 32,
+      "h_kv": 4,
+      "n": 2048,
+      "head_dim": 128,
+      "dtype": "bfloat16",
+      "device": "cuda",
+      "kernel_k2_ms": 0.11348724365234375,
+      "kernel_t1x2_ms": 0.1583719253540039,
+      "kernel_k2_vs_kernel_t1x2": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "equal": true
+      }
+    },
+    {
+      "seed": 1,
+      "h_q": 32,
+      "h_kv": 4,
+      "n": 2048,
+      "head_dim": 128,
+      "dtype": "bfloat16",
+      "device": "cuda",
+      "kernel_k2_ms": 0.11342048645019531,
+      "kernel_t1x2_ms": 0.15833377838134766,
+      "kernel_k2_vs_kernel_t1x2": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "equal": true
+      }
+    },
+    {
+      "seed": 2,
+      "h_q": 32,
+      "h_kv": 4,
+      "n": 2048,
+      "head_dim": 128,
+      "dtype": "bfloat16",
+      "device": "cuda",
+      "kernel_k2_ms": 0.11343002319335938,
+      "kernel_t1x2_ms": 0.1602315902709961,
+      "kernel_k2_vs_kernel_t1x2": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "equal": true
+      }
+    },
+    {
+      "seed": 3,
+      "h_q": 32,
+      "h_kv": 4,
+      "n": 2048,
+      "head_dim": 128,
+      "dtype": "bfloat16",
+      "device": "cuda",
+      "kernel_k2_ms": 0.11725902557373047,
+      "kernel_t1x2_ms": 0.16223430633544922,
+      "kernel_k2_vs_kernel_t1x2": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "equal": true
+      }
+    },
+    {
+      "seed": 4,
+      "h_q": 32,
+      "h_kv": 4,
+      "n": 2048,
+      "head_dim": 128,
+      "dtype": "bfloat16",
+      "device": "cuda",
+      "kernel_k2_ms": 0.1149749755859375,
+      "kernel_t1x2_ms": 0.1622295379638672,
+      "kernel_k2_vs_kernel_t1x2": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0000001192092896,
+        "equal": true
+      }
+    },
+    {
+      "seed": 5,
+      "h_q": 32,
+      "h_kv": 4,
+      "n": 2048,
+      "head_dim": 128,
+      "dtype": "bfloat16",
+      "device": "cuda",
+      "kernel_k2_ms": 0.11498451232910156,
+      "kernel_t1x2_ms": 0.1683807373046875,
+      "kernel_k2_vs_kernel_t1x2": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552,
+        "equal": true
+      }
+    },
+    {
+      "seed": 6,
+      "h_q": 32,
+      "h_kv": 4,
+      "n": 2048,
+      "head_dim": 128,
+      "dtype": "bfloat16",
+      "device": "cuda",
+      "kernel_k2_ms": 0.1149749755859375,
+      "kernel_t1x2_ms": 0.16556739807128906,
+      "kernel_k2_vs_kernel_t1x2": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 0.9999999403953552,
+        "equal": true
+      }
+    },
+    {
+      "seed": 7,
+      "h_q": 32,
+      "h_kv": 4,
+      "n": 2048,
+      "head_dim": 128,
+      "dtype": "bfloat16",
+      "device": "cuda",
+      "kernel_k2_ms": 0.11497974395751953,
+      "kernel_t1x2_ms": 0.16214370727539062,
+      "kernel_k2_vs_kernel_t1x2": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "equal": true
+      }
+    }
+  ],
+  "summary": {
+    "n": 8,
+    "kernel_k2_matches_kernel_t1x2_count": 8,
+    "kernel_k2_matches_kernel_t1x2_rate": 1.0,
+    "worst_kernel_k2_vs_kernel_t1x2": {
+      "seed": 0,
+      "h_q": 32,
+      "h_kv": 4,
+      "n": 2048,
+      "head_dim": 128,
+      "dtype": "bfloat16",
+      "device": "cuda",
+      "kernel_k2_ms": 0.11348724365234375,
+      "kernel_t1x2_ms": 0.1583719253540039,
+      "kernel_k2_vs_kernel_t1x2": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0,
+        "rel_l2": 0.0,
+        "cosine": 1.0,
+        "equal": true
+      }
+    },
+    "mean_kernel_k2_ms": 0.11468887329101562,
+    "mean_kernel_t1x2_ms": 0.1621866226196289
+  }
+}

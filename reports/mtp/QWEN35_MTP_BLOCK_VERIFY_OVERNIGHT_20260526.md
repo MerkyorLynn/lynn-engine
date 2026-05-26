@@ -486,6 +486,37 @@ not a production speedup yet. Remaining cost is now likely split across
 row-wise QKV/RoPE projection, rowwise `o_proj`, MTP sidecar overhead, and the
 Python runner/service loop.
 
+Follow-up dynamic-N kernel update:
+
+```text
+reports/mtp/qwen35_k2_rowwise_attention_kernel_dynamicn_20260527_025345.json
+reports/mtp/qwen35_mtp_k2_rowwise_attention_dynamicn_warm_20260527_025502.json
+```
+
+The first kernel used `N` as a Triton constexpr, which can compile separate
+variants for different sequence lengths and pollute prompt-level baseline
+timings. The current kernel passes `N` at runtime and loops with `while n0 < N`.
+Micro speed is slower (**0.115 ms** K2 vs **0.162 ms** for two T1 calls at
+`N=2048`), but different prompt lengths no longer create the same misleading
+baseline/JIT artifact.
+
+Current-code real smoke:
+
+| Config | Exact vs baseline | TPS | Accept | Draft accept |
+|---|---:|---:|---:|---:|
+| baseline | 100% | 37.03 | n/a | n/a |
+| spec_k1 | 100% | 25.74 | 68.33% | 68.33% |
+| spec_k1_batched | 100% | 20.16 | 68.33% | 68.33% |
+| spec_k2_batched | 100% | 23.00 | 61.11% | 61.11% |
+
+This is the cleanest current answer to "does the extracted algorithm improve
+APEX-MTP?": correctness and accept/reject/crop semantics are proven on Qwen35,
+and the K2 attention micro-kernel is directionally useful, but the complete
+Python runner K2 path is still **0.62x** of the warmed baseline. The next
+optimization target is not the control flow anymore; it is verifier cost:
+row-wise QKV/RoPE, rowwise `o_proj`, MTP sidecar launch/forward, and Python
+loop overhead.
+
 Operational note: the production APEX service is configured with
 `Restart=always`, so a plain `systemctl stop lynn-apex-mtp-llamacpp.service`
 will be undone during long 35B Python smoke loads. Any future maintenance smoke

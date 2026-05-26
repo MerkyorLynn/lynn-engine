@@ -84,8 +84,10 @@ reports/mtp/qwen35_mtp_k2_prefix_repair_20260526_235627.json
 reports/mtp/qwen35_k2_rowwise_linear_kernel_20260527_020517.json
 reports/mtp/qwen35_k2_rowwise_attention_kernel_20260527_023349.json
 reports/mtp/qwen35_k2_rowwise_attention_kernel_stride_20260527_023632.json
+reports/mtp/qwen35_k2_rowwise_attention_kernel_dynamicn_20260527_025345.json
 reports/mtp/qwen35_mtp_k2_rowwise_gate_real2_20260527_021806.json
 reports/mtp/qwen35_mtp_k2_rowwise_attention_kernel_warm_20260527_024429.json
+reports/mtp/qwen35_mtp_k2_rowwise_attention_dynamicn_warm_20260527_025502.json
 ```
 
 ## Spark Evidence So Far
@@ -98,8 +100,10 @@ reports/mtp/qwen35_mtp_k2_rowwise_attention_kernel_warm_20260527_024429.json
 | Manual GQA fast path | 5/6 | 25.90 TPS | Approximate fast path breaks parity and is still below baseline. |
 | Row-wise `o_proj` kernel probe | 8/8 | 0.18 ms vs 0.75 ms | One dual-row Triton launch can replace two T1 launches under the same backend. |
 | Row-wise prefix-attention kernel probe | 8/8 | 0.077 ms vs 0.123 ms | K2 prefix attention can be exact and about 1.6x faster than two T1 launches in the micro fixture. |
+| Dynamic-N prefix-attention probe | 8/8 | 0.115 ms vs 0.162 ms | Runtime `N` removes per-seq-len specialization risk, at the cost of a slower micro-kernel. |
 | Real 35B rowwise-gate smoke | 6/6 | K2 21.28 TPS | Correct end-to-end, but verifier attention remains too expensive. |
 | Real 35B rowwise-attention smoke | 6/6 | K2 22.99 TPS, 0.83x warmed baseline | Attention kernel improves the exact K2 bridge by about 8%, but still does not beat the warmed T1 baseline. |
+| Real 35B dynamic-N smoke | 6/6 | K2 23.00 TPS, 0.62x warmed baseline | Current code path is exact and avoids baseline length-JIT artifacts, but K2 remains below baseline. |
 
 Current Python runner baseline on this short smoke is about 31-34 TPS, while the
 active llama.cpp APEX-MTP fallback has been observed around 66.7 tok/s with
@@ -110,6 +114,12 @@ The 2026-05-27 warmed rowwise-attention smoke makes this sharper. Under the
 same experimental rowwise attention/`o_proj` contract, K2 stayed 6/6 exact and
 rose from 21.28 TPS to 22.99 TPS, but the warmed baseline was 27.82 TPS. The
 kernel direction is useful; it has not yet crossed the production speed bar.
+
+The current committed kernel uses runtime `N` rather than specializing on
+sequence length. This removes a misleading per-prompt JIT artifact and gives a
+cleaner comparison: warmed baseline 37.03 TPS, K2 23.00 TPS, both 6/6 exact.
+So the active branch is now correctness-clean and less benchmark-fragile, but
+the K2 verifier still costs too much.
 
 ## Why It Still Matters
 

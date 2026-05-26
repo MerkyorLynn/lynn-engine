@@ -36,7 +36,7 @@ if HAS_TRITON:
         H_Q: tl.constexpr,
         H_KV: tl.constexpr,
         M: tl.constexpr,
-        N: tl.constexpr,
+        N,
         D: tl.constexpr,
         stride_qb: tl.constexpr,
         stride_qh: tl.constexpr,
@@ -80,7 +80,8 @@ if HAS_TRITON:
             l1 = tl.full((), 0.0, dtype=tl.float32)
             acc1 = tl.zeros((D,), dtype=tl.float32)
 
-        for n0 in range(0, N, BLOCK_N):
+        n0 = 0
+        while n0 < N:
             n_idx = n0 + offs_n
             k = tl.load(
                 k_base + n_idx[:, None] * stride_kn + offs_d[None, :] * stride_kd,
@@ -114,6 +115,7 @@ if HAS_TRITON:
                 l1 = l1 * alpha1 + tl.sum(p1, axis=0)
                 acc1 = acc1 * alpha1 + tl.sum(p1[:, None] * v, axis=0)
                 m1 = m1_new
+            n0 += BLOCK_N
 
         out0 = acc0 / l0
         tl.store(o_base + offs_d * stride_od, out0.to(O.dtype.element_ty))
