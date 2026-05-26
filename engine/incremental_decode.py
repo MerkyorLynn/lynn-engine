@@ -453,35 +453,87 @@ def decode_full_attn_k2(
     rope_theta = cfg["rope_theta"]
     rotary_dim = int(head_dim * cfg["partial_rotary_factor"])
 
-    # 1. Q/K/V projection
-    if os.environ.get("LYNN_FULL_ATTN_QKV_FUSED", "0") == "1" and "self_attn._qkv_proj.weight" in w:
-        q_out = int(w["self_attn.q_proj.weight"].shape[0])
-        k_out = int(w["self_attn.k_proj.weight"].shape[0])
-        v_out = int(w["self_attn.v_proj.weight"].shape[0])
-        qkv = _linear(h_new_k2, w["self_attn._qkv_proj.weight"])
-        q_full, k_new, v_new = qkv.split((q_out, k_out, v_out), dim=-1)
-    else:
-        q_full = _linear(h_new_k2, _decode_weight(w, "self_attn.q_proj.weight"))
-        k_new = _linear(h_new_k2, _decode_weight(w, "self_attn.k_proj.weight"))
-        v_new = _linear(h_new_k2, _decode_weight(w, "self_attn.v_proj.weight"))
-
-    q_full_view = q_full.view(B, 2, H_Q, head_dim * 2)
-    q, gate = q_full_view.chunk(2, dim=-1)
-    q = q.transpose(1, 2)                                  # [B, H_Q, 2, head_dim]
-    gate = gate.transpose(1, 2)
-    k_new = k_new.view(B, 2, H_KV, head_dim).transpose(1, 2)  # [B, H_KV, 2, head_dim]
-    v_new = v_new.view(B, 2, H_KV, head_dim).transpose(1, 2)
-
-    # 2+3. q/k norm + RoPE on both positions.
     rope_builder = (
         _build_rope_cos_sin_cached
         if os.environ.get("LYNN_FULL_ATTN_ROPE_CACHE", "0") == "1"
         else _build_rope_cos_sin
     )
-    cos, sin = rope_builder(new_position_ids, rotary_dim, rope_theta, h_new_k2.device, h_new_k2.dtype)
-    q, k_new = _qk_norm_rope_pair_decode(
-        q, k_new, w["self_attn.q_norm.weight"], w["self_attn.k_norm.weight"], cos, sin, rotary_dim,
-    )
+    k2_backend = os.environ.get("LYNN_FULL_ATTN_K2_BACKEND", "t1_loop")
+    probe_mode = os.environ.get("LYNN_FULL_ATTN_K2_PROBE", "")
+    if k2_backend == "rowwise_bridge" and not probe_mode:
+        probe_mode = "rowwise_qkv_rowwise_t1"
+    if probe_mode in {"rowwise_qkv", "rowwise_qkv_rowwise_t1"}:
+        q_pieces = []
+        gate_pieces = []
+        k_pieces = []
+        v_pieces = []
+        for idx in range(2):
+            h_i = h_new_k2[:, idx:idx + 1, :].contiguous()
+            if os.environ.get("LYNN_FULL_ATTN_QKV_FUSED", "0") == "1" and "self_attn._qkv_proj.weight" in w:
+                q_out = int(w["self_attn.q_proj.weight"].shape[0])
+                k_out = int(w["self_attn.k_proj.weight"].shape[0])
+                v_out = int(w["self_attn.v_proj.weight"].shape[0])
+                qkv_i = _linear(h_i, w["self_attn._qkv_proj.weight"])
+                q_full_i, k_i, v_i = qkv_i.split((q_out, k_out, v_out), dim=-1)
+            else:
+                q_full_i = _linear(h_i, _decode_weight(w, "self_attn.q_proj.weight"))
+                k_i = _linear(h_i, _decode_weight(w, "self_attn.k_proj.weight"))
+                v_i = _linear(h_i, _decode_weight(w, "self_attn.v_proj.weight"))
+            q_full_view_i = q_full_i.view(B, 1, H_Q, head_dim * 2)
+            q_i, gate_i = q_full_view_i.chunk(2, dim=-1)
+            q_i = q_i.transpose(1, 2)
+            gate_i = gate_i.transpose(1, 2)
+            k_i = k_i.view(B, 1, H_KV, head_dim).transpose(1, 2)
+            v_i = v_i.view(B, 1, H_KV, head_dim).transpose(1, 2)
+            cos_i, sin_i = rope_builder(
+                new_position_ids[:, idx:idx + 1].contiguous(),
+                rotary_dim,
+                rope_theta,
+                h_new_k2.device,
+                h_new_k2.dtype,
+            )
+            q_i, k_i = _qk_norm_rope_pair_decode(
+                q_i,
+                k_i,
+                w["self_attn.q_norm.weight"],
+                w["self_attn.k_norm.weight"],
+                cos_i,
+                sin_i,
+                rotary_dim,
+            )
+            q_pieces.append(q_i)
+            gate_pieces.append(gate_i)
+            k_pieces.append(k_i)
+            v_pieces.append(v_i)
+        q = torch.cat(q_pieces, dim=2)
+        gate = torch.cat(gate_pieces, dim=2)
+        k_new = torch.cat(k_pieces, dim=2)
+        v_new = torch.cat(v_pieces, dim=2)
+    else:
+        # 1. Q/K/V projection
+        if os.environ.get("LYNN_FULL_ATTN_QKV_FUSED", "0") == "1" and "self_attn._qkv_proj.weight" in w:
+            q_out = int(w["self_attn.q_proj.weight"].shape[0])
+            k_out = int(w["self_attn.k_proj.weight"].shape[0])
+            v_out = int(w["self_attn.v_proj.weight"].shape[0])
+            qkv = _linear(h_new_k2, w["self_attn._qkv_proj.weight"])
+            q_full, k_new, v_new = qkv.split((q_out, k_out, v_out), dim=-1)
+        else:
+            q_full = _linear(h_new_k2, _decode_weight(w, "self_attn.q_proj.weight"))
+            k_new = _linear(h_new_k2, _decode_weight(w, "self_attn.k_proj.weight"))
+            v_new = _linear(h_new_k2, _decode_weight(w, "self_attn.v_proj.weight"))
+
+        q_full_view = q_full.view(B, 2, H_Q, head_dim * 2)
+        q, gate = q_full_view.chunk(2, dim=-1)
+        q = q.transpose(1, 2)                                  # [B, H_Q, 2, head_dim]
+        gate = gate.transpose(1, 2)
+        k_new = k_new.view(B, 2, H_KV, head_dim).transpose(1, 2)  # [B, H_KV, 2, head_dim]
+        v_new = v_new.view(B, 2, H_KV, head_dim).transpose(1, 2)
+
+        # 2+3. q/k norm + RoPE on both positions.
+        cos, sin = rope_builder(new_position_ids, rotary_dim, rope_theta, h_new_k2.device, h_new_k2.dtype)
+        q, k_new = _qk_norm_rope_pair_decode(
+            q, k_new, w["self_attn.q_norm.weight"], w["self_attn.k_norm.weight"], cos, sin, rotary_dim,
+        )
 
     # 4. Write both new positions into cache.
     K_cache_full[:, :, cached_seq_len:cached_seq_len + 2, :] = k_new
@@ -491,6 +543,25 @@ def decode_full_attn_k2(
     new_total = cached_seq_len + 2
     K_used = K_cache_full[:, :, :new_total, :]
     V_used = V_cache_full[:, :, :new_total, :]
+
+    if probe_mode in {"rowwise_t1", "rowwise_qkv_rowwise_t1"}:
+        pieces = []
+        for idx in range(2):
+            q_i = q[:, :, idx:idx + 1, :].contiguous()
+            gate_i = gate[:, :, idx:idx + 1, :].contiguous()
+            k_i = K_cache_full[:, :, :cached_seq_len + idx + 1, :]
+            v_i = V_cache_full[:, :, :cached_seq_len + idx + 1, :]
+            attn_i = F.scaled_dot_product_attention(
+                q_i,
+                k_i,
+                v_i,
+                is_causal=False,
+                enable_gqa=(H_KV != H_Q),
+            )
+            attn_i = attn_i * torch.sigmoid(gate_i.float()).to(attn_i.dtype)
+            attn_i = attn_i.transpose(1, 2).contiguous().view(B, 1, H_Q * head_dim)
+            pieces.append(_linear(attn_i, _decode_weight(w, "self_attn.o_proj.weight")))
+        return torch.cat(pieces, dim=1)
 
     # 6. Attention with prefix-causal mask:
     #    Q[0] (at pos cached_seq_len)   sees K[0..cached_seq_len]   (NOT cached_seq_len+1)

@@ -228,6 +228,63 @@ Code default was changed accordingly:
 - Fast paths remain available only by explicit env opt-in:
   `LYNN_FULL_ATTN_K2_BACKEND=k2` and `LYNN_FULL_ATTN_BLOCK_BACKEND=block`.
 
+## Late-Night K2 Fast-Path Diagnosis
+
+Follow-up sweep after the strict smoke isolated the fast K2 drift more tightly.
+The full-attention K2 fast path first diverges at layer 3 even at zero advance:
+
+| Artifact | Extra env | Safe combos | Finding |
+|---|---|---|---|
+| `qwen35_m18_layer_sweep_20260526_223235.json` | default `triton_pair` QK/RoPE | `t1_full_attn_only`, `t1_both` | Fast `decode_full_attn_k2` drifts at L3 full-attention. |
+| `qwen35_m18_layer_sweep_qk_torch_20260526_223856.json` | `LYNN_QK_NORM_ROPE_BACKEND=torch` | `t1_full_attn_only`, `t1_both` | Drift remains, so it is not just Triton-pair vs torch QK/RoPE. |
+| `qwen35_m18_layer_sweep_rowwise_t1_20260526_224505.json` | `LYNN_FULL_ATTN_K2_PROBE=rowwise_t1` | `t1_full_attn_only`, `t1_both` | Row-wise attention/gate/o-proj alone reduces one position but does not restore exactness. |
+| `qwen35_m18_layer_sweep_rowwise_qkv_20260526_225400.json` | `LYNN_FULL_ATTN_K2_PROBE=rowwise_qkv` | `t1_full_attn_only`, `t1_both` | Row-wise QKV/RoPE alone also does not restore exactness. |
+| `qwen35_m18_layer_sweep_rowwise_qkv_t1_20260526_230101.json` | `LYNN_FULL_ATTN_K2_PROBE=rowwise_qkv_rowwise_t1` | all four combos | Exact parity returns: logits and recurrent state diffs are zero in the M18 probe. |
+
+Conclusion: the K2 verifier mismatch is a composition effect across batched
+QKV/RoPE plus batched attention/gate/o-proj, not KV crop, reject replay,
+training, or linear-attention state handling. A correctness bridge now exists:
+
+```text
+LYNN_FULL_ATTN_K2_BACKEND=rowwise_bridge
+```
+
+This mode keeps the K2 verifier shell but computes full-attention QKV/RoPE and
+attention/o-proj row-wise inside `decode_full_attn_k2`. It is a diagnostic
+parity bridge, not a throughput solution.
+
+End-to-end bridge smoke:
+
+```text
+reports/mtp/qwen35_mtp_safe_k2_bridge_20260526_230739.json
+```
+
+| Config | Exact vs baseline | TPS | Accept | Draft accept |
+|---|---:|---:|---:|---:|
+| baseline | 100% | 34.29 | n/a | n/a |
+| spec_k1 | 100% | 29.20 | 74.04% | 74.04% |
+| spec_k1_batched | 100% | 28.92 | 77.16% | 77.16% |
+| spec_k2_batched + rowwise bridge | 100% | 16.27 | 2.38% | 63.34% |
+
+The bridge confirms correctness but does not improve speed over the strict
+T=1 fallback. The next performance task is therefore a real batched full-attn
+K2 kernel/implementation that matches T=1 numerics, not more row-wise fallback.
+
+The non-strict fast-K2 control does not justify accepting approximate drift:
+
+```text
+reports/mtp/qwen35_mtp_kn_smoke_retry_20260526_095832.json
+```
+
+| Config | Exact vs baseline | TPS | Notes |
+|---|---:|---:|---|
+| spec_k1_batched fast-K2 | 33.33% | 29.47 | Similar speed to strict, but token exactness breaks. |
+| spec_k2_batched fast-K2 | 83.33% | 16.59 | Only +1.8% over strict K2, still far below baseline. |
+| spec_k4_batched fast block | 50.00% | 14.27 | Approximate and still slow. |
+
+So the shortcut "ship approximate fast-K2 as a slightly different model" is not
+attractive: it loses deterministic parity without buying meaningful TPS.
+
 ## Next Smoke Command
 
 Run once Spark is free enough, ideally after Nemotron SGLang exits:

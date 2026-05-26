@@ -747,7 +747,8 @@ def _decode_layer_k2(
             state.update_linear_attn_state(layer_idx, new_state, new_conv)
     else:
         K, V = state.kv_cache[layer_idx]
-        if os.environ.get("LYNN_FULL_ATTN_K2_BACKEND", "t1_loop") == "t1_loop":
+        full_attn_k2_backend = os.environ.get("LYNN_FULL_ATTN_K2_BACKEND", "t1_loop")
+        if full_attn_k2_backend == "t1_loop":
             # Strict verifier fallback: reuse the exact T=1 full-attention
             # primitive twice so Q/K/V/O projection, RoPE, SDPA, and cache
             # writes match the sequential speculative verifier. Keep this as
@@ -772,11 +773,13 @@ def _decode_layer_k2(
                 cached_seq_len=state.seq_len + 1,
             )
             attn_out = torch.cat([attn0, attn1], dim=1)
-        else:
+        elif full_attn_k2_backend in {"k2", "rowwise_bridge"}:
             attn_out = decode_full_attn_k2(
                 h_norm, position_ids_k2, w, cfg, K, V,
                 cached_seq_len=state.seq_len,
             )
+        else:
+            raise ValueError(f"Unknown LYNN_FULL_ATTN_K2_BACKEND: {full_attn_k2_backend}")
     h = residual + attn_out
 
     residual = h

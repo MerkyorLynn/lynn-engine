@@ -1183,12 +1183,12 @@ class LynnIncrementalRunner:
         from engine.full_forward import _decode_layer_k2
         if not self.decode_fast_dispatch:
             return _decode_layer_k2(
-                h_k2, pos_tensor_k2, LAYER_TYPES[layer_idx],
+                h_k2, pos_tensor_k2, self.layer_types[layer_idx],
                 self.layer_weights[layer_idx], self.layer_cfgs[layer_idx],
                 state, layer_idx,
             )
         return _decode_layer_k2(
-            h_k2, pos_tensor_k2, LAYER_TYPES[layer_idx],
+            h_k2, pos_tensor_k2, self.layer_types[layer_idx],
             self.layer_weights[layer_idx], self.layer_cfgs[layer_idx],
             state, layer_idx,
             moe_fn=self.decode_moe_fn,
