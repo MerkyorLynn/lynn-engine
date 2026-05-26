@@ -65,20 +65,38 @@ def _should_quantize(key: str, tensor: torch.Tensor, keep_re: re.Pattern[str] | 
     return True
 
 
-def _quantize_per16_e2m1(tensor: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+def _quantize_per16_e2m1(
+    tensor: torch.Tensor,
+    *,
+    row_chunk_size: int,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     original_shape = list(tensor.shape)
     k = int(original_shape[-1])
     rows = int(tensor.numel() // k)
-    x = tensor.detach().to(torch.float32).reshape(rows, k)
-    xg = x.reshape(rows, k // 16, 16)
-    scale = (xg.abs().amax(dim=-1) / float(E2M1[-1])).clamp_min(1.0e-8)
-    normalized = xg.abs() / scale.unsqueeze(-1)
-    table = E2M1.to(normalized.device)
-    mag = torch.argmin((normalized.unsqueeze(-1) - table.view(1, 1, 1, 8)).abs(), dim=-1)
-    sign = (xg < 0).to(torch.uint8) << 3
-    codes = (mag.to(torch.uint8) | sign).reshape(rows, k)
-    packed = (codes[:, 0::2] | (codes[:, 1::2] << 4)).contiguous()
-    return packed.cpu(), scale.to(torch.float16).cpu().contiguous(), torch.ones((), dtype=torch.float32)
+    x = tensor.detach().reshape(rows, k)
+    row_chunk_size = max(1, int(row_chunk_size))
+    packed_chunks: list[torch.Tensor] = []
+    scale_chunks: list[torch.Tensor] = []
+    table = E2M1
+
+    # Keep the peak below Spark's memory ceiling. The old full-tensor path
+    # materialized [rows, groups, 16, 8] distance scores for large MoE weights
+    # and could be OOM-killed before the first shard finished.
+    for start in range(0, rows, row_chunk_size):
+        stop = min(rows, start + row_chunk_size)
+        x_chunk = x[start:stop].to(torch.float32)
+        xg = x_chunk.reshape(stop - start, k // 16, 16)
+        scale = (xg.abs().amax(dim=-1) / float(E2M1[-1])).clamp_min(1.0e-8)
+        normalized = xg.abs() / scale.unsqueeze(-1)
+        mag = torch.argmin((normalized.unsqueeze(-1) - table.view(1, 1, 1, 8)).abs(), dim=-1)
+        sign = (xg < 0).to(torch.uint8) << 3
+        codes = (mag.to(torch.uint8) | sign).reshape(stop - start, k)
+        packed_chunks.append((codes[:, 0::2] | (codes[:, 1::2] << 4)).cpu().contiguous())
+        scale_chunks.append(scale.to(torch.float16).cpu().contiguous())
+
+    packed = torch.cat(packed_chunks, dim=0)
+    scale = torch.cat(scale_chunks, dim=0)
+    return packed, scale, torch.ones((), dtype=torch.float32)
 
 
 def _patch_config(out: Path) -> None:
@@ -102,6 +120,12 @@ def main() -> int:
     parser.add_argument("--out-model", required=True)
     parser.add_argument("--keep-regex", default=r"(embed_tokens|lm_head|rotary|norm|mlp\.gate\.weight)")
     parser.add_argument("--max-shard-bytes", type=int, default=3_500_000_000)
+    parser.add_argument(
+        "--row-chunk-size",
+        type=int,
+        default=1024,
+        help="Rows per quantization chunk; lower uses less memory and more time.",
+    )
     parser.add_argument("--overwrite", action="store_true")
     args = parser.parse_args()
 
@@ -170,7 +194,10 @@ def main() -> int:
             for key in keys:
                 tensor = st.get_tensor(key)
                 if _should_quantize(key, tensor, keep_re):
-                    packed, scale, global_scale = _quantize_per16_e2m1(tensor)
+                    packed, scale, global_scale = _quantize_per16_e2m1(
+                        tensor,
+                        row_chunk_size=args.row_chunk_size,
+                    )
                     packed_key = key + ".packed"
                     scale_key = key + ".scale"
                     global_key = key + ".global_scale"

@@ -50,8 +50,10 @@ __all__ = [
     "snapshot_recurrent_conv",
     "restore_recurrent_conv",
     "decode_one_to_logits_and_hidden",
+    "decode_block_to_logits_and_hidden",
     "speculative_step_k1",
     "speculative_step_k1_batched",
+    "speculative_step_kn_batched",
 ]
 
 
@@ -79,6 +81,8 @@ class SpeculativeStepResult:
     next_pos: int
     accepted: bool
     draft_id: int
+    draft_ids: list[int] | None = None
+    accepted_count: int | None = None
 
 
 def snapshot_recurrent_conv(state: LynnInferenceState) -> dict[str, Any]:
@@ -126,6 +130,34 @@ def decode_one_to_logits_and_hidden(
     logits = runner._lm_head_logits(h_norm)
     argmax = int(logits[0].argmax().item())
     return h, logits, argmax
+
+
+def decode_block_to_logits_and_hidden(
+    runner: Any,
+    state: LynnInferenceState,
+    token_ids: list[int],
+) -> tuple[torch.Tensor, torch.Tensor, list[int]]:
+    """Run one base-model block verifier over ``token_ids``.
+
+    ``token_ids`` is typically ``[pending, draft_1, ..., draft_k]``. The
+    returned logits are all-position logits, where row ``i`` predicts the token
+    after ``token_ids[i]``.
+    """
+    if not token_ids:
+        raise ValueError("decode_block_to_logits_and_hidden requires at least one token")
+    token_tensor = torch.tensor([[int(x) for x in token_ids]], device=runner.device, dtype=torch.long)
+    start = int(state.seq_len)
+    pos_tensor = torch.arange(start, start + len(token_ids), device=runner.device, dtype=torch.long).unsqueeze(0)
+    h = F.embedding(token_tensor, runner.outside["model.language_model.embed_tokens.weight"])
+    for layer_idx in range(runner.n_layers):
+        h = runner._decode_layer_block_fast(h, pos_tensor, state, layer_idx)
+    state.seq_len += len(token_ids)
+    h_norm = _rms_norm(h, runner.outside["model.language_model.norm.weight"])
+    logits = runner._lm_head_logits(h_norm, all_positions=True)
+    if logits.ndim == 2:
+        logits = logits.view(h.shape[0], h.shape[1], -1)
+    argmax_ids = [int(logits[0, idx].argmax().item()) for idx in range(len(token_ids))]
+    return h, logits, argmax_ids
 
 
 def speculative_step_k1(
@@ -504,4 +536,79 @@ def speculative_step_k1_batched(
         next_pos=state.seq_len - 1,
         accepted=False,
         draft_id=draft_id,
+    )
+
+
+def speculative_step_kn_batched(
+    runner: Any,
+    state: LynnInferenceState,
+    pending_id: int,
+    pending_base_hidden: torch.Tensor,
+    pending_pos: int,
+    *,
+    draft_count: int,
+) -> SpeculativeStepResult:
+    """Experimental K=N MTP speculative step.
+
+    The current public Lynn sidecar is a one-token MTP head. For ``draft_count``
+    greater than one, this chains that head recursively, feeding each MTP hidden
+    into the next draft. That is a research path, not a promoted quality path;
+    the useful production contract here is the block verifier/rollback skeleton.
+    """
+    if draft_count <= 1:
+        return speculative_step_k1_batched(
+            runner=runner,
+            state=state,
+            pending_id=pending_id,
+            pending_base_hidden=pending_base_hidden,
+            pending_pos=pending_pos,
+        )
+
+    draft_ids: list[int] = []
+    draft_hidden = pending_base_hidden
+    current_token = int(pending_id)
+    current_pos = int(pending_pos)
+    for _idx in range(int(draft_count)):
+        mtp_hidden, draft_logits = runner._mtp_draft_hidden_logits(
+            base_hidden=draft_hidden,
+            current_token_id=current_token,
+            current_pos=current_pos,
+        )
+        current_token = int(draft_logits[0].argmax().item())
+        draft_ids.append(current_token)
+        draft_hidden = mtp_hidden.contiguous()
+        current_pos += 1
+
+    tokens = [int(pending_id), *draft_ids]
+    snap_pre_batch = snapshot_recurrent_conv(state)
+    h_block, _logits_block, argmax_ids = decode_block_to_logits_and_hidden(runner, state, tokens)
+
+    accepted_count = 0
+    for idx, draft_id in enumerate(draft_ids):
+        if int(draft_id) != int(argmax_ids[idx]):
+            break
+        accepted_count += 1
+
+    commit_count = 1 + accepted_count
+    committed = tokens[:commit_count]
+
+    # Conservative repair path: restore pre-block recurrent/conv state and
+    # replay the committed prefix through canonical T=1 decode. Earlier K=2
+    # work showed accepted-state drift can survive even when token ids match;
+    # K>N promotion should optimize this only after exactness is proven.
+    restore_recurrent_conv(state, snap_pre_batch)
+    h_last: torch.Tensor | None = None
+    next_pending = int(argmax_ids[0])
+    for token in committed:
+        h_last, _logits, next_pending = decode_one_to_logits_and_hidden(runner, state, int(token))
+    assert h_last is not None
+    return SpeculativeStepResult(
+        committed_tokens=committed,
+        next_pending_id=next_pending,
+        next_base_hidden=h_last,
+        next_pos=state.seq_len - 1,
+        accepted=False,
+        draft_id=draft_ids[0],
+        draft_ids=draft_ids,
+        accepted_count=accepted_count,
     )

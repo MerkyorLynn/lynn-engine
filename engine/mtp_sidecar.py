@@ -133,7 +133,7 @@ def mtp_layer_forward(
     return _mtp_decode_layer_forward(h, pos, mtp_w, mtp_cfg, moe_mode=moe_mode)
 
 
-def mtp_logits(
+def mtp_hidden_and_logits(
     *,
     sidecar: dict[str, torch.Tensor],
     mtp_w: dict[str, torch.Tensor],
@@ -144,8 +144,8 @@ def mtp_logits(
     current_token_id: int,
     current_pos: int,
     device: str,
-) -> torch.Tensor:
-    """Return MTP draft logits for the token after `current_token_id`.
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Return MTP hidden + draft logits for the token after `current_token_id`.
 
     The concat order is ``[embed_part, hidden_part]`` to match the official
     Qwen3.6 NextN training contract (vLLM ``qwen3_next_mtp.py`` ships the
@@ -162,4 +162,31 @@ def mtp_logits(
     pos = torch.tensor([[int(current_pos)]], device=device, dtype=torch.long)
     mtp_out = mtp_layer_forward(mtp_hidden, pos, mtp_w, mtp_cfg)
     mtp_normed = _rms_norm(mtp_out, sidecar["mtp.norm.weight"])
-    return lm_head_fn(mtp_normed)
+    return mtp_out, lm_head_fn(mtp_normed)
+
+
+def mtp_logits(
+    *,
+    sidecar: dict[str, torch.Tensor],
+    mtp_w: dict[str, torch.Tensor],
+    mtp_cfg: dict[str, Any],
+    embed_weight: torch.Tensor,
+    lm_head_fn: Any,
+    base_hidden: torch.Tensor,
+    current_token_id: int,
+    current_pos: int,
+    device: str,
+) -> torch.Tensor:
+    """Return MTP draft logits for the token after `current_token_id`."""
+    _hidden, logits = mtp_hidden_and_logits(
+        sidecar=sidecar,
+        mtp_w=mtp_w,
+        mtp_cfg=mtp_cfg,
+        embed_weight=embed_weight,
+        lm_head_fn=lm_head_fn,
+        base_hidden=base_hidden,
+        current_token_id=current_token_id,
+        current_pos=current_pos,
+        device=device,
+    )
+    return logits

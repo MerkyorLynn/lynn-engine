@@ -747,12 +747,12 @@ def _decode_layer_k2(
             state.update_linear_attn_state(layer_idx, new_state, new_conv)
     else:
         K, V = state.kv_cache[layer_idx]
-        if os.environ.get("LYNN_FULL_ATTN_K2_BACKEND", "k2") == "t1_loop":
+        if os.environ.get("LYNN_FULL_ATTN_K2_BACKEND", "t1_loop") == "t1_loop":
             # Strict verifier fallback: reuse the exact T=1 full-attention
             # primitive twice so Q/K/V/O projection, RoPE, SDPA, and cache
-            # writes match the sequential speculative verifier. This is an
-            # opt-in correctness bridge for MTP K=2 while the true batched
-            # full-attention path is being made bit-stable.
+            # writes match the sequential speculative verifier. Keep this as
+            # the default until the true batched full-attention path is
+            # bit-stable; opt into the fast path with LYNN_FULL_ATTN_K2_BACKEND=k2.
             attn0 = decode_full_attn(
                 h_norm[:, 0:1, :].contiguous(),
                 position_ids_k2[:, 0:1].contiguous(),
@@ -805,6 +805,129 @@ def _decode_layer_k2(
             for t in range(h_norm.shape[1])
         ]
         moe_out = torch.cat(moe_per_token, dim=1)
+    return residual + moe_out
+
+
+def _decode_layer_block(
+    h_new_block,
+    position_ids_block,
+    layer_type,
+    w,
+    cfg,
+    state,
+    layer_idx,
+    *,
+    moe_fn=None,
+    recurrent_backend: str | None = None,
+    linear_state_update: str | None = None,
+):
+    """Forward one DecoderLayer over an arbitrary verify block.
+
+    This is an opt-in K=N counterpart to ``_decode_layer_k2`` for
+    MTP/APEX-style speculative verification. ``K=1`` and ``K=2`` keep using the
+    existing hot paths; larger blocks use prefix-causal full attention and a
+    sequential recurrent rollout for linear-attention layers.
+    """
+    block_len = int(h_new_block.shape[1])
+    if block_len == 1:
+        return _decode_layer(
+            h_new_block,
+            position_ids_block[:, 0:1].contiguous(),
+            layer_type,
+            w,
+            cfg,
+            state,
+            layer_idx,
+            moe_fn=moe_fn,
+            recurrent_backend=recurrent_backend,
+            linear_state_update=linear_state_update,
+        )
+    if block_len == 2:
+        return _decode_layer_k2(
+            h_new_block,
+            position_ids_block,
+            layer_type,
+            w,
+            cfg,
+            state,
+            layer_idx,
+            moe_fn=moe_fn,
+            recurrent_backend=recurrent_backend,
+            linear_state_update=linear_state_update,
+        )
+
+    from engine.incremental_decode import decode_full_attn, decode_full_attn_block, decode_linear_attn_block
+
+    residual = h_new_block
+    h_norm = _rms_norm(h_new_block, w["input_layernorm.weight"])
+    if layer_type == "linear_attention":
+        if recurrent_backend is None:
+            recurrent_backend = os.environ.get("LYNN_LINEAR_ATTN_RECURRENT_BACKEND", "torch")
+        if linear_state_update is None:
+            linear_state_update = os.environ.get("LYNN_LINEAR_STATE_UPDATE", "assign")
+        attn_out, new_state, new_conv = decode_linear_attn_block(
+            h_norm,
+            w,
+            state.recurrent_state[layer_idx],
+            state.conv_state[layer_idx],
+            recurrent_backend=recurrent_backend,
+        )
+        if linear_state_update == "inplace":
+            recurrent_target = state.recurrent_state[layer_idx]
+            if recurrent_target.data_ptr() != new_state.data_ptr():
+                recurrent_target.copy_(new_state)
+            conv_target = state.conv_state[layer_idx]
+            if conv_target.data_ptr() != new_conv.data_ptr():
+                conv_target.copy_(new_conv)
+        else:
+            state.update_linear_attn_state(layer_idx, new_state, new_conv)
+    else:
+        K, V = state.kv_cache[layer_idx]
+        if os.environ.get("LYNN_FULL_ATTN_BLOCK_BACKEND", "t1_loop") == "t1_loop":
+            # Same correctness-first policy as K=2: block verify reuses the
+            # canonical T=1 full-attention primitive by default. The true block
+            # SDPA verifier remains opt-in with LYNN_FULL_ATTN_BLOCK_BACKEND=block.
+            pieces = []
+            for idx in range(block_len):
+                pieces.append(
+                    decode_full_attn(
+                        h_norm[:, idx:idx + 1, :].contiguous(),
+                        position_ids_block[:, idx:idx + 1].contiguous(),
+                        w,
+                        cfg,
+                        K,
+                        V,
+                        cached_seq_len=state.seq_len + idx,
+                    )
+                )
+            attn_out = torch.cat(pieces, dim=1)
+        else:
+            attn_out = decode_full_attn_block(
+                h_norm,
+                position_ids_block,
+                w,
+                cfg,
+                K,
+                V,
+                cached_seq_len=state.seq_len,
+            )
+    h = residual + attn_out
+
+    residual = h
+    h_norm = _rms_norm(h, w["post_attention_layernorm.weight"])
+    base_moe_fn = moe_fn if moe_fn is not None else _resolve_decode_moe_impl(
+        os.environ.get("LYNN_MOE_IMPL", "optimized")
+    )
+    if h_norm.shape[1] == 1:
+        moe_out = base_moe_fn(h_norm, w, cfg)
+    else:
+        moe_out = torch.cat(
+            [
+                base_moe_fn(h_norm[:, t:t + 1, :].contiguous(), w, cfg)
+                for t in range(h_norm.shape[1])
+            ],
+            dim=1,
+        )
     return residual + moe_out
 
 

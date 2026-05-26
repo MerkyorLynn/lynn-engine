@@ -125,11 +125,11 @@ def _linear_conv_update_decode(
 
 def _qk_norm_rope_decode(x: torch.Tensor, weight: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor, rotary_dim: int) -> torch.Tensor:
     backend = os.environ.get("LYNN_QK_NORM_ROPE_BACKEND", "torch")
-    if backend == "triton":
+    if backend == "triton" and x.shape[0] == 1 and x.shape[2] == 1:
         if qk_norm_rope_triton is None:
             raise RuntimeError("LYNN_QK_NORM_ROPE_BACKEND=triton requested but kernel is unavailable")
         return qk_norm_rope_triton(x, weight, cos, sin, rotary_dim)
-    if backend != "torch":
+    if backend not in {"torch", "triton", "triton_pair"}:
         raise ValueError(f"unknown LYNN_QK_NORM_ROPE_BACKEND={backend!r}")
     return _apply_partial_rope(_rms_norm(x, weight), cos, sin, rotary_dim)
 
@@ -147,7 +147,8 @@ def _qk_norm_rope_pair_decode(
     if backend == "triton_pair":
         if qk_norm_rope_pair_triton is None:
             raise RuntimeError("LYNN_QK_NORM_ROPE_BACKEND=triton_pair requested but kernel is unavailable")
-        return qk_norm_rope_pair_triton(q, k, q_weight, k_weight, cos, sin, rotary_dim)
+        if q.shape[0] == 1 and k.shape[0] == 1 and q.shape[2] == 1 and k.shape[2] == 1:
+            return qk_norm_rope_pair_triton(q, k, q_weight, k_weight, cos, sin, rotary_dim)
     return (
         _qk_norm_rope_decode(q, q_weight, cos, sin, rotary_dim),
         _qk_norm_rope_decode(k, k_weight, cos, sin, rotary_dim),
@@ -532,6 +533,118 @@ def decode_full_attn_k2(
     return _linear(attn_out, _decode_weight(w, "self_attn.o_proj.weight"))
 
 
+def decode_full_attn_block(
+    h_new_block,
+    new_position_ids,
+    w,
+    cfg,
+    K_cache_full,
+    V_cache_full,
+    cached_seq_len: int,
+):
+    """Decode an arbitrary block of new tokens against the prefix KV cache.
+
+    This is the K=N generalization of ``decode_full_attn_k2``. It is intended
+    for experimental MTP block verification, where the base model verifies
+    ``[pending, draft_1, ..., draft_k]`` in one forward. Rejected suffix KV is
+    invalidated by rewinding ``state.seq_len``; stale cache slots beyond
+    ``seq_len`` are ignored and overwritten by later writes.
+    """
+    B, block_len, _ = h_new_block.shape
+    if block_len == 1:
+        return decode_full_attn(
+            h_new_block,
+            new_position_ids[:, 0:1].contiguous(),
+            w,
+            cfg,
+            K_cache_full,
+            V_cache_full,
+            cached_seq_len=cached_seq_len,
+        )
+    if block_len == 2:
+        return decode_full_attn_k2(
+            h_new_block,
+            new_position_ids,
+            w,
+            cfg,
+            K_cache_full,
+            V_cache_full,
+            cached_seq_len=cached_seq_len,
+        )
+
+    H_Q = cfg["num_attention_heads"]
+    H_KV = cfg["num_key_value_heads"]
+    head_dim = cfg["head_dim"]
+    rope_theta = cfg["rope_theta"]
+    rotary_dim = int(head_dim * cfg["partial_rotary_factor"])
+
+    if os.environ.get("LYNN_FULL_ATTN_QKV_FUSED", "0") == "1" and "self_attn._qkv_proj.weight" in w:
+        q_out = int(w["self_attn.q_proj.weight"].shape[0])
+        k_out = int(w["self_attn.k_proj.weight"].shape[0])
+        v_out = int(w["self_attn.v_proj.weight"].shape[0])
+        qkv = _linear(h_new_block, w["self_attn._qkv_proj.weight"])
+        q_full, k_new, v_new = qkv.split((q_out, k_out, v_out), dim=-1)
+    else:
+        q_full = _linear(h_new_block, _decode_weight(w, "self_attn.q_proj.weight"))
+        k_new = _linear(h_new_block, _decode_weight(w, "self_attn.k_proj.weight"))
+        v_new = _linear(h_new_block, _decode_weight(w, "self_attn.v_proj.weight"))
+
+    q_full_view = q_full.view(B, block_len, H_Q, head_dim * 2)
+    q, gate = q_full_view.chunk(2, dim=-1)
+    q = q.transpose(1, 2)
+    gate = gate.transpose(1, 2)
+    k_new = k_new.view(B, block_len, H_KV, head_dim).transpose(1, 2)
+    v_new = v_new.view(B, block_len, H_KV, head_dim).transpose(1, 2)
+
+    rope_builder = (
+        _build_rope_cos_sin_cached
+        if os.environ.get("LYNN_FULL_ATTN_ROPE_CACHE", "0") == "1"
+        else _build_rope_cos_sin
+    )
+    cos, sin = rope_builder(new_position_ids, rotary_dim, rope_theta, h_new_block.device, h_new_block.dtype)
+    q, k_new = _qk_norm_rope_pair_decode(
+        q, k_new, w["self_attn.q_norm.weight"], w["self_attn.k_norm.weight"], cos, sin, rotary_dim,
+    )
+
+    K_cache_full[:, :, cached_seq_len:cached_seq_len + block_len, :] = k_new
+    V_cache_full[:, :, cached_seq_len:cached_seq_len + block_len, :] = v_new
+
+    new_total = cached_seq_len + block_len
+    K_used = K_cache_full[:, :, :new_total, :]
+    V_used = V_cache_full[:, :, :new_total, :]
+
+    row = torch.arange(block_len, device=h_new_block.device).view(block_len, 1)
+    col = torch.arange(new_total, device=h_new_block.device).view(1, new_total)
+    causal_mask = col <= (cached_seq_len + row)
+    attn_mask = torch.zeros(block_len, new_total, dtype=h_new_block.dtype, device=h_new_block.device)
+    attn_mask.masked_fill_(~causal_mask, float("-inf"))
+    attn_mask = attn_mask.view(1, 1, block_len, new_total)
+
+    full_attn_backend = os.environ.get("LYNN_FULL_ATTN_DECODE_BACKEND", "sdpa")
+    if full_attn_backend == "manual_gqa":
+        group = H_Q // H_KV
+        q_grouped = q.view(B, H_KV, group, block_len, head_dim)
+        scale = 1.0 / math.sqrt(head_dim)
+        scores = torch.einsum("bhgqd,bhkd->bhgqk", q_grouped.float(), K_used.float()) * scale
+        scores = scores + attn_mask.unsqueeze(2).float()
+        probs = torch.softmax(scores, dim=-1).to(V_used.dtype)
+        attn_out = torch.einsum("bhgqk,bhkd->bhgqd", probs, V_used)
+        attn_out = attn_out.reshape(B, H_Q, block_len, head_dim)
+    elif full_attn_backend == "sdpa":
+        attn_out = F.scaled_dot_product_attention(
+            q, K_used, V_used,
+            attn_mask=attn_mask,
+            is_causal=False,
+            enable_gqa=(H_KV != H_Q),
+        )
+    else:
+        raise ValueError(f"Unknown LYNN_FULL_ATTN_DECODE_BACKEND: {full_attn_backend}")
+
+    attn_out = attn_out * torch.sigmoid(gate.float()).to(attn_out.dtype)
+    attn_out = attn_out.transpose(1, 2).contiguous().view(B, block_len, H_Q * head_dim)
+    return _linear(attn_out, _decode_weight(w, "self_attn.o_proj.weight"))
+
+
 # ============================================================================
 # linear_attention prefill / decode
 # ============================================================================
@@ -700,6 +813,34 @@ def decode_linear_attn_k2(
     )
     out = torch.cat([out0, out1], dim=1)
     return out, recurrent_state, conv_state
+
+
+def decode_linear_attn_block(
+    h_new_block,
+    w,
+    recurrent_state,
+    conv_state,
+    *,
+    recurrent_backend: str = "torch",
+):
+    """Decode an arbitrary block through one linear-attention layer.
+
+    Gated Delta-Net state is inherently sequential, so this intentionally loops
+    over positions while preserving the same state-update contract as T=1.
+    The block-level speed win comes from full-attention and MoE layers, not
+    from parallelizing the recurrent update.
+    """
+    outs = []
+    for idx in range(int(h_new_block.shape[1])):
+        out, recurrent_state, conv_state = decode_linear_attn(
+            h_new_block[:, idx:idx + 1, :].contiguous(),
+            w,
+            recurrent_state,
+            conv_state,
+            recurrent_backend=recurrent_backend,
+        )
+        outs.append(out)
+    return torch.cat(outs, dim=1), recurrent_state, conv_state
 
 
 def decode_linear_attn(h_new, w, recurrent_state, conv_state, *, recurrent_backend: str = "torch"):
@@ -914,6 +1055,10 @@ def _chunk_gated_delta_with_state(query, key, value, g, beta, chunk_size=64,
 __all__ = [
     "prefill_full_attn",
     "decode_full_attn",
+    "decode_full_attn_k2",
+    "decode_full_attn_block",
     "prefill_linear_attn",
     "decode_linear_attn",
+    "decode_linear_attn_k2",
+    "decode_linear_attn_block",
 ]

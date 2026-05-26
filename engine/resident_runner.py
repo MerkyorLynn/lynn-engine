@@ -31,7 +31,8 @@ from engine.full_forward import (
 from engine.inference_state import LAYER_TYPES, LynnInferenceState, infer_layer_types, infer_linear_attention_dims
 from engine.loader import load_qwen36_layer
 from engine.mtp_sidecar import load_mtp_sidecar, mtp_layer_config, mtp_layer_weights, mtp_logits
-from engine.mtp_serving import speculative_step_k1, speculative_step_k1_batched
+from engine.mtp_sidecar import mtp_hidden_and_logits
+from engine.mtp_serving import speculative_step_k1, speculative_step_k1_batched, speculative_step_kn_batched
 from engine.nvfp4_runtime import (
     _compact_scale_to_swizzled_fp8,
     load_grouped_nvfp4_weight,
@@ -967,6 +968,31 @@ class LynnIncrementalRunner:
             device=self.device,
         )
 
+    def _mtp_draft_hidden_logits(
+        self,
+        *,
+        base_hidden: torch.Tensor,
+        current_token_id: int,
+        current_pos: int,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Run the loaded one-layer MTP sidecar and return hidden + logits."""
+        if not self.mtp_sidecar_loaded:
+            raise RuntimeError("MTP sidecar is not loaded; set LYNN_MTP_SIDECAR")
+        assert self.mtp_sidecar is not None
+        assert self.mtp_layer_w is not None
+        assert self.mtp_layer_cfg is not None
+        return mtp_hidden_and_logits(
+            sidecar=self.mtp_sidecar,
+            mtp_w=self.mtp_layer_w,
+            mtp_cfg=self.mtp_layer_cfg,
+            embed_weight=self.outside["model.language_model.embed_tokens.weight"],
+            lm_head_fn=self._lm_head_logits,
+            base_hidden=base_hidden.contiguous(),
+            current_token_id=current_token_id,
+            current_pos=current_pos,
+            device=self.device,
+        )
+
     @staticmethod
     def _snapshot_state(state: LynnInferenceState) -> dict[str, Any]:
         """Clone all mutable decode state.
@@ -1165,6 +1191,32 @@ class LynnIncrementalRunner:
             h_k2, pos_tensor_k2, LAYER_TYPES[layer_idx],
             self.layer_weights[layer_idx], self.layer_cfgs[layer_idx],
             state, layer_idx,
+            moe_fn=self.decode_moe_fn,
+            recurrent_backend=self.decode_recurrent_backend,
+            linear_state_update=self.decode_linear_state_update,
+        )
+
+    def _decode_layer_block_fast(
+        self,
+        h_block: torch.Tensor,
+        pos_tensor_block: torch.Tensor,
+        state: LynnInferenceState,
+        layer_idx: int,
+    ) -> torch.Tensor:
+        """K=N batched analogue of ``_decode_layer_fast`` for block verify."""
+        from engine.full_forward import _decode_layer_block
+        if int(h_block.shape[1]) == 1:
+            return self._decode_layer_fast(h_block, pos_tensor_block[:, 0:1].contiguous(), state, layer_idx)
+        if int(h_block.shape[1]) == 2:
+            return self._decode_layer_k2_fast(h_block, pos_tensor_block, state, layer_idx)
+        return _decode_layer_block(
+            h_block,
+            pos_tensor_block,
+            self.layer_types[layer_idx],
+            self.layer_weights[layer_idx],
+            self.layer_cfgs[layer_idx],
+            state,
+            layer_idx,
             moe_fn=self.decode_moe_fn,
             recurrent_backend=self.decode_recurrent_backend,
             linear_state_update=self.decode_linear_state_update,
@@ -1695,12 +1747,13 @@ class LynnIncrementalRunner:
         # M5 batched variant (single K=2 forward instead of two T=1 forwards).
         # Useful once OFFSET=2 head is trained — until then both produce
         # 0.30% accept and serve as correctness validation.
-        spec_step_fn = (
-            speculative_step_k1_batched
-            if os.environ.get("LYNN_MTP_SPECULATIVE_BATCHED", "0") == "1"
-            else speculative_step_k1
-        )
-        mtp_speculative_stats["batched"] = spec_step_fn is speculative_step_k1_batched
+        spec_k = max(1, int(os.environ.get("LYNN_MTP_SPECULATIVE_K", "1")))
+        spec_batched = os.environ.get("LYNN_MTP_SPECULATIVE_BATCHED", "0") == "1"
+        spec_step_fn = speculative_step_k1_batched if spec_batched else speculative_step_k1
+        mtp_speculative_stats["batched"] = spec_batched
+        mtp_speculative_stats["draft_k"] = spec_k
+        mtp_speculative_stats["draft_tokens_proposed"] = 0
+        mtp_speculative_stats["accepted_draft_tokens"] = 0
 
         if mtp_speculative_active and stopped_reason != "stop_token":
             pending_id = int(next_id)
@@ -1709,23 +1762,54 @@ class LynnIncrementalRunner:
             first_step = True
             while len(new_ids) < max_new and stopped_reason != "stop_token":
                 spec_t0 = time.time()
-                spec_result = spec_step_fn(
-                    self,
-                    state,
-                    pending_id,
-                    pending_base_hidden,
-                    pending_pos,
-                )
+                remaining_slots = max(0, max_new - len(new_ids))
+                if not first_step and remaining_slots <= 1 and spec_k > 1:
+                    new_ids.append(int(pending_id))
+                    mtp_speculative_stats["tokens_committed"] += 1
+                    if int(pending_id) in self.stop_token_ids:
+                        stopped_reason = "stop_token"
+                    else:
+                        stopped_reason = "max_new"
+                    break
+                if spec_batched and spec_k > 1:
+                    draft_count = min(spec_k, remaining_slots if first_step else max(1, remaining_slots - 1))
+                    spec_result = speculative_step_kn_batched(
+                        self,
+                        state,
+                        pending_id,
+                        pending_base_hidden,
+                        pending_pos,
+                        draft_count=draft_count,
+                    )
+                else:
+                    spec_result = spec_step_fn(
+                        self,
+                        state,
+                        pending_id,
+                        pending_base_hidden,
+                        pending_pos,
+                    )
                 if self.device.startswith("cuda"):
                     torch.cuda.synchronize()
                 elapsed = time.time() - spec_t0
                 mtp_speculative_stats["step_seconds"].append(elapsed)
                 mtp_speculative_stats["events"] += 1
                 mtp_speculative_stats["accepted_events"] += int(spec_result.accepted)
+                draft_ids = spec_result.draft_ids or [int(spec_result.draft_id)]
+                accepted_count = (
+                    int(spec_result.accepted_count)
+                    if spec_result.accepted_count is not None
+                    else int(spec_result.accepted)
+                )
+                mtp_speculative_stats["draft_tokens_proposed"] += len(draft_ids)
+                mtp_speculative_stats["accepted_draft_tokens"] += accepted_count
                 mtp_speculative_stats["drafts"].append({
                     "event": mtp_speculative_stats["events"] - 1,
                     "draft_id": int(spec_result.draft_id),
                     "draft_text": tok.decode([int(spec_result.draft_id)]),
+                    "draft_ids": [int(x) for x in draft_ids],
+                    "draft_texts": [tok.decode([int(x)]) for x in draft_ids],
+                    "accepted_count": accepted_count,
                     "accepted": bool(spec_result.accepted),
                     "committed_count": len(spec_result.committed_tokens),
                     "step_seconds": elapsed,
@@ -1857,6 +1941,13 @@ class LynnIncrementalRunner:
             "tokens_per_event": (
                 mtp_speculative_stats["tokens_committed"] / spec_event_count
                 if spec_event_count
+                else None
+            ),
+            "draft_tokens_proposed": mtp_speculative_stats["draft_tokens_proposed"],
+            "accepted_draft_tokens": mtp_speculative_stats["accepted_draft_tokens"],
+            "draft_accept_rate": (
+                mtp_speculative_stats["accepted_draft_tokens"] / mtp_speculative_stats["draft_tokens_proposed"]
+                if mtp_speculative_stats["draft_tokens_proposed"]
                 else None
             ),
             "step_seconds": spec_step_seconds,

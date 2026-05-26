@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Spark MTP speculative-serving smoke.
 
-Runs three configurations on the same prompt set and saves a single JSON
+Runs several configurations on the same prompt set and saves a single JSON
 report comparing token-exact correctness, accept rate, and effective TPS:
 
 * ``baseline``  — MTP sidecar loaded but both shadow + speculative OFF
@@ -12,6 +12,11 @@ report comparing token-exact correctness, accept rate, and effective TPS:
 * ``spec_k1``   — K=1 MTP speculative serving ON (P118 sequential verify,
                   eager decode). Token stream MUST match ``baseline`` exactly
                   on each prompt — that is the wire-correctness gate.
+* ``spec_kN_batched`` — experimental K=N block verifier. K=2 uses the existing
+                  two-token path; K>2 uses generic prefix-causal block verify
+                  and recursive one-token MTP drafts. This is a runtime ABI
+                  smoke, not yet a claim that the current sidecar is trained
+                  for multi-token self-drafting.
 
 Effective TPS in ``spec_k1`` is ``tokens_committed / sum(step_seconds)``.
 Net win vs ``baseline`` depends on accept rate and the extra cost of running
@@ -61,8 +66,21 @@ DEFAULT_PROMPTS = [
 
 BASE_ENV = {
     "LYNN_MOE_IMPL": "packed_nvfp4",
+    "LYNN_MOE_FAST_FIXED": "1",
+    "LYNN_NATIVE_ACTIVE_MOE_BACKEND": "triton",
+    "LYNN_NATIVE_GATEUP_BACKEND": "triton_fast_decode",
+    "LYNN_NATIVE_DOWN_BACKEND": "triton",
+    "LYNN_ROUTER_TOPK_SORTED": "0",
+    "LYNN_LINEAR_ATTN_RECURRENT_BACKEND": "triton_fused_prepare",
     "LYNN_LINEAR_ATTN_RECURRENT_INPLACE": "1",
+    "LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4": "1",
+    "LYNN_LINEAR_STATE_UPDATE": "inplace",
+    "LYNN_PACKED_DECODE": "0",
+    "LYNN_PACKED_SHARED_EXPERT": "0",
     "LYNN_NATIVE_FP4_LM_HEAD": "1",
+    "LYNN_QK_NORM_ROPE_BACKEND": "triton_pair",
+    "LYNN_RMSNORM_GATED_BACKEND": "triton",
+    "LYNN_FULL_ATTN_ROPE_CACHE": "1",
     "LYNN_PACKED_DECODE_BACKEND": "native_fast_2d",
     "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True",
 }
@@ -129,6 +147,10 @@ def _run_config(
                 "spec_active": bool(spec.get("active")),
                 "spec_events": spec.get("events"),
                 "spec_accept_rate": spec.get("accept_rate"),
+                "spec_draft_k": spec.get("draft_k"),
+                "spec_draft_tokens_proposed": spec.get("draft_tokens_proposed"),
+                "spec_accepted_draft_tokens": spec.get("accepted_draft_tokens"),
+                "spec_draft_accept_rate": spec.get("draft_accept_rate"),
                 "spec_tokens_per_event": spec.get("tokens_per_event"),
                 "spec_effective_token_tps": spec.get("effective_token_tps"),
                 "shadow_events": shadow.get("events"),
@@ -150,6 +172,23 @@ def main() -> int:
     ap.add_argument("--sidecar", required=True, help="Path to MTP sidecar mtp.safetensors")
     ap.add_argument("--out", required=True, help="Path to write JSON report")
     ap.add_argument("--max-new", type=int, default=128)
+    ap.add_argument(
+        "--spec-k-list",
+        default="4",
+        help=(
+            "Comma-separated experimental batched speculative K values to run "
+            "in addition to K1/K1-batched. Default: 4. Use empty string to skip."
+        ),
+    )
+    ap.add_argument(
+        "--allow-non-native-model",
+        action="store_true",
+        help=(
+            "Allow BF16/vendor model dirs for runtime smoke when the Lynn-native "
+            "W4A16 artifact is unavailable. Throughput is not comparable to the "
+            "release path."
+        ),
+    )
     ap.add_argument("--prompts-json", default=None,
                     help="Optional JSON file with custom prompt list")
     ap.add_argument("--device", default="cuda")
@@ -166,6 +205,15 @@ def main() -> int:
 
     dtype_map = {"bfloat16": torch.bfloat16, "float16": torch.float16}
     dtype = dtype_map[args.dtype]
+    spec_k_values: list[int] = []
+    if args.spec_k_list.strip():
+        spec_k_values = [
+            int(raw.strip())
+            for raw in args.spec_k_list.split(",")
+            if raw.strip()
+        ]
+        if any(k <= 1 for k in spec_k_values):
+            raise SystemExit("[smoke] --spec-k-list values must be > 1")
 
     # Apply base env BEFORE constructing the runner so it picks up packed_nvfp4
     # MoE impl + native FP4 lm_head + linear-attn inplace recurrent path.
@@ -181,14 +229,15 @@ def main() -> int:
         # would KeyError later in ``mtp_layer_weights`` and waste the load.
         from engine.nvfp4_layout import detect_nvfp4_layout
         layout = detect_nvfp4_layout(args.model)
-        if layout.layout_kind != "lynn_native_per16_variable":
+        if layout.layout_kind != "lynn_native_per16_variable" and not args.allow_non_native_model:
             raise SystemExit(
                 f"[smoke] {args.model} is layout={layout.layout_kind!r} "
                 f"(backend={layout.recommended_backend_family!r}). "
                 "Lynn engine MTP serving requires the Lynn-native W4A16 NVFP4 "
                 "artifact (nvfp4_e2m1_rowwise_per_16 with "
                 "lynn_quant_manifest.json schema lynn-variable-nvfp4-pack-v1). "
-                "Point --model at the Lynn-native dir, not v8-RTN/ModelOpt."
+                "Point --model at the Lynn-native dir, not v8-RTN/ModelOpt. "
+                "For a control-flow-only BF16 smoke, pass --allow-non-native-model."
             )
 
         runner = LynnIncrementalRunner(
@@ -236,6 +285,18 @@ def main() -> int:
                 },
             },
         ]
+        for spec_k in spec_k_values:
+            configs.append({
+                "label": f"spec_k{spec_k}_batched",
+                "env": {
+                    "LYNN_MTP_SHADOW_VERIFY": "0",
+                    "LYNN_MTP_SPECULATIVE": "1",
+                    "LYNN_MTP_SPECULATIVE_BATCHED": "1",
+                    "LYNN_MTP_SPECULATIVE_K": str(spec_k),
+                    "LYNN_LINEAR_BLOCK_GRAPH": "0",
+                    "LYNN_LINEAR_BLOCK_GRAPH_REUSE": "0",
+                },
+            })
 
         cases: list[dict[str, Any]] = []
         baseline_ids: list[list[int]] | None = None
@@ -274,6 +335,17 @@ def main() -> int:
             )
             spec_accept = [r["spec_accept_rate"] for r in rows if r["spec_accept_rate"] is not None]
             mean_spec_accept = (sum(spec_accept) / len(spec_accept)) if spec_accept else None
+            draft_accept = [
+                r["spec_draft_accept_rate"] for r in rows
+                if r["spec_draft_accept_rate"] is not None
+            ]
+            mean_draft_accept = (sum(draft_accept) / len(draft_accept)) if draft_accept else None
+            draft_proposed = sum(
+                int(r["spec_draft_tokens_proposed"] or 0) for r in rows
+            )
+            draft_accepted = sum(
+                int(r["spec_accepted_draft_tokens"] or 0) for r in rows
+            )
             shadow_accept = [r["shadow_accept_rate"] for r in rows if r["shadow_accept_rate"] is not None]
             mean_shadow_accept = (sum(shadow_accept) / len(shadow_accept)) if shadow_accept else None
             summary[label] = {
@@ -284,17 +356,28 @@ def main() -> int:
                 "mean_decode_tps_baseline_loop": mean_tps,
                 "mean_spec_effective_tps": mean_spec_tps,
                 "mean_spec_accept_rate": mean_spec_accept,
+                "mean_draft_accept_rate": mean_draft_accept,
+                "draft_tokens_proposed": draft_proposed,
+                "accepted_draft_tokens": draft_accepted,
                 "mean_shadow_accept_rate": mean_shadow_accept,
             }
 
         baseline_tps = summary["baseline"]["mean_decode_tps_baseline_loop"]
         spec_tps = summary["spec_k1"]["mean_spec_effective_tps"]
         spec_batched_tps = summary.get("spec_k1_batched", {}).get("mean_spec_effective_tps")
+        spec_k_gate_labels = [f"spec_k{k}_batched" for k in spec_k_values]
         gate_correctness_seq = summary["spec_k1"]["exact_match_count"] == summary["spec_k1"]["n_prompts"]
         gate_correctness_batched = (
             summary.get("spec_k1_batched", {}).get("exact_match_count")
             == summary.get("spec_k1_batched", {}).get("n_prompts")
         )
+        gate_correctness_kn = {
+            label: (
+                summary.get(label, {}).get("exact_match_count")
+                == summary.get(label, {}).get("n_prompts")
+            )
+            for label in spec_k_gate_labels
+        }
         gate_tps_ratio = (
             spec_tps / baseline_tps if (baseline_tps and spec_tps) else None
         )
@@ -302,6 +385,15 @@ def main() -> int:
             spec_batched_tps / baseline_tps
             if (baseline_tps and spec_batched_tps) else None
         )
+        gate_tps_ratio_kn = {
+            label: (
+                summary[label]["mean_spec_effective_tps"] / baseline_tps
+                if (baseline_tps and summary.get(label, {}).get("mean_spec_effective_tps"))
+                else None
+            )
+            for label in spec_k_gate_labels
+            if label in summary
+        }
 
         report = {
             "schema_version": "lynn-mtp-speculative-smoke-v2",
@@ -314,8 +406,10 @@ def main() -> int:
             "gates": {
                 "correctness_spec_k1_matches_baseline": gate_correctness_seq,
                 "correctness_spec_k1_batched_matches_baseline": gate_correctness_batched,
+                "correctness_spec_kn_batched_matches_baseline": gate_correctness_kn,
                 "tps_ratio_spec_over_baseline": gate_tps_ratio,
                 "tps_ratio_spec_batched_over_baseline": gate_tps_ratio_batched,
+                "tps_ratio_spec_kn_batched_over_baseline": gate_tps_ratio_kn,
                 "note": (
                     "spec_k1 (sequential): 2 base forwards/round + MTP. After the "
                     "2026-05-19 embed-first concat fix, official Qwen3.6 MTP can reach "
@@ -323,7 +417,9 @@ def main() -> int:
                     "batched K=2 verifier to preserve the same numerical backend as T=1. "
                     "spec_k1_batched (M5/M9): one K=2 forward + MTP with reject penalty "
                     "= +1 T=1 forward; the current gate measures whether batched verify "
-                    "accept and TPS have caught up."
+                    "accept and TPS have caught up. spec_kN_batched is experimental: "
+                    "it validates the shared K=N verify/crop ABI, while draft quality "
+                    "depends on whether the sidecar was trained for chained drafts."
                 ),
             },
         }
@@ -337,10 +433,19 @@ def main() -> int:
         print(f"[smoke] spec_k1 accept_rate mean = {summary['spec_k1']['mean_spec_accept_rate']}")
         print(f"[smoke] spec_k1_batched effective_tps mean = {spec_batched_tps}")
         print(f"[smoke] spec_k1_batched accept_rate mean = {summary.get('spec_k1_batched',{}).get('mean_spec_accept_rate')}")
+        for label in spec_k_gate_labels:
+            row = summary.get(label, {})
+            print(f"[smoke] {label} effective_tps mean = {row.get('mean_spec_effective_tps')}")
+            print(f"[smoke] {label} draft_accept_rate mean = {row.get('mean_draft_accept_rate')}")
+            print(f"[smoke] {label} accepted/proposed drafts = {row.get('accepted_draft_tokens')}/{row.get('draft_tokens_proposed')}")
         print(f"[smoke] correctness gate seq (spec==baseline)     = {gate_correctness_seq}")
         print(f"[smoke] correctness gate batched (spec==baseline) = {gate_correctness_batched}")
+        for label, ok in gate_correctness_kn.items():
+            print(f"[smoke] correctness gate {label} (spec==baseline) = {ok}")
         print(f"[smoke] tps ratio (spec/baseline)         = {gate_tps_ratio}")
         print(f"[smoke] tps ratio (spec_batched/baseline) = {gate_tps_ratio_batched}")
+        for label, ratio in gate_tps_ratio_kn.items():
+            print(f"[smoke] tps ratio ({label}/baseline) = {ratio}")
         # Treat both correctness gates strictly only if same path (eager baseline);
         # graph baseline vs eager spec has numerical divergence — don't fail on that.
         return 0
