@@ -285,6 +285,43 @@ reports/mtp/qwen35_mtp_kn_smoke_retry_20260526_095832.json
 So the shortcut "ship approximate fast-K2 as a slightly different model" is not
 attractive: it loses deterministic parity without buying meaningful TPS.
 
+## K>N Full-Accept Fast Commit
+
+The first real K>N speed recovery is to avoid replay when the verifier accepts
+the entire proposed block. This is gated by:
+
+```text
+LYNN_MTP_KN_FULL_ACCEPT_FAST_COMMIT=1
+```
+
+Behavior:
+
+- If `accepted_count == draft_count`, keep the verifier's final state and use
+  the last verifier row's hidden/logits for `next_base_hidden` and
+  `next_pending_id`.
+- If the block is partially accepted or rejected, keep the existing conservative
+  restore-and-replay path.
+
+Spark smoke:
+
+```text
+reports/mtp/qwen35_mtp_kn_full_accept_fast_20260526_233834.json
+```
+
+| Config | Exact vs baseline | TPS | Accept | Draft accept |
+|---|---:|---:|---:|---:|
+| baseline | 100% | 33.42 | n/a | n/a |
+| spec_k1 | 100% | 29.29 | 74.04% | 74.04% |
+| spec_k1_batched | 100% | 28.99 | 77.16% | 77.16% |
+| spec_k2_batched + full-accept fast commit | 100% | 24.36 | 56.57% | 63.80% |
+
+Compared with the strict K2 replay smoke, K2 effective TPS improves from
+16.29 to 24.36 tok/s (**+49.5%**) while preserving 6/6 token exactness.
+The mean is still below baseline, but high-accept prompts already cross it:
+prompt 003 reaches 35.42 tok/s. This confirms the runtime now has the right
+shape: better draft training directly converts into throughput instead of
+being swallowed by replay.
+
 ## Next Smoke Command
 
 Run once Spark is free enough, ideally after Nemotron SGLang exits:

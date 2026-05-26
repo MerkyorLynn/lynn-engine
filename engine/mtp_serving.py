@@ -592,6 +592,25 @@ def speculative_step_kn_batched(
     commit_count = 1 + accepted_count
     committed = tokens[:commit_count]
 
+    if (
+        accepted_count == int(draft_count)
+        and os.environ.get("LYNN_MTP_KN_FULL_ACCEPT_FAST_COMMIT", "0") == "1"
+    ):
+        # Full-block accept is the one K>N case where no suffix crop/replay is
+        # needed: every token decoded by the verifier is committed, so the
+        # verifier's final recurrent/conv/KV state is already the post-commit
+        # state. Partial accepts still use the conservative replay below.
+        return SpeculativeStepResult(
+            committed_tokens=committed,
+            next_pending_id=int(argmax_ids[commit_count - 1]),
+            next_base_hidden=h_block[:, commit_count - 1:commit_count, :].contiguous(),
+            next_pos=state.seq_len - 1,
+            accepted=True,
+            draft_id=draft_ids[0],
+            draft_ids=draft_ids,
+            accepted_count=accepted_count,
+        )
+
     # Conservative repair path: restore pre-block recurrent/conv state and
     # replay the committed prefix through canonical T=1 decode. Earlier K=2
     # work showed accepted-state drift can survive even when token ids match;
