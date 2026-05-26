@@ -303,6 +303,33 @@ batched verifier. The remaining K2 parity work must separate batched
 projection/RoPE, attention, gating, and `o_proj` numerics rather than treating
 SDPA as the only source of drift.
 
+Two component probes were added to split the exact row-wise bridge:
+
+```text
+LYNN_FULL_ATTN_K2_PROBE=rowwise_qkv_rowwise_attn_batched_o
+LYNN_FULL_ATTN_K2_PROBE=rowwise_qkv_batched_attn_rowwise_o
+```
+
+Artifacts:
+
+```text
+reports/mtp/qwen35_m18_layer_sweep_rowwise_qkv_rowwise_attn_batched_o_20260527_002523.json
+reports/mtp/qwen35_m18_layer_sweep_rowwise_qkv_batched_attn_rowwise_o_20260527_003147.json
+```
+
+Component result:
+
+| Probe | Meaning | Result |
+|---|---|---|
+| `rowwise_qkv_rowwise_attn_batched_o` | QKV/RoPE + attention row-wise; gate/`o_proj` batched | drift at L5 |
+| `rowwise_qkv_batched_attn_rowwise_o` | QKV/RoPE + gate/`o_proj` row-wise; attention batched | drift at L5 |
+| `rowwise_qkv_rowwise_t1` | QKV/RoPE + attention + gate/`o_proj` all row-wise | exact |
+
+So the fast K2 problem has at least two independent numerical contributors:
+batched attention and batched output projection/gating. A production fast K2
+path must make both components T=1-equivalent, or choose a controlled
+approximate mode as a deliberate product/model change.
+
 The non-strict fast-K2 control does not justify accepting approximate drift:
 
 ```text

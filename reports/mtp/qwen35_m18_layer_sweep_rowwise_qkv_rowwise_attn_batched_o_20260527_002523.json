@@ -1,0 +1,239 @@
+{
+  "schema_version": "lynn-mtp-m18-k2-layer-sweep-probe-v1",
+  "model": "/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-from-bf16-20260526",
+  "sidecar": "/models/mtp_sidecars/qwen36-35b-a3b-mtp-official-lynn-fused/mtp.safetensors",
+  "prompt": "Explain the difference between Q4_K_M and NVFP4 quantization in two sentences.",
+  "advance_token_count": 0,
+  "advance_tokens": [],
+  "pending_id": 25,
+  "draft_id": 271,
+  "drift_threshold": {
+    "max_abs": 0.001,
+    "cos_min": 0.99999
+  },
+  "combinations": [
+    {
+      "name": "k2_both",
+      "full_attn_mode": "k2",
+      "linear_attn_mode": "k2",
+      "description": "Current default. Full-attn decode_full_attn_k2 (SDPA over [B,2,...]); linear-attn decode_linear_attn_k2 (per-position internal).",
+      "result": {
+        "n_advance": 0,
+        "advance_ids": [],
+        "pending_id": 25,
+        "draft_id": 271,
+        "first_bad_layer": {
+          "layer": 5,
+          "layer_type": "linear_attention",
+          "pos0_bad": true,
+          "pos1_bad": false,
+          "pos0": {
+            "max_abs": 0.00390625,
+            "mean_abs": 0.00010115280747413635,
+            "rel_l2": 0.005218546371906996,
+            "cosine": 0.9999866485595703
+          },
+          "pos1": {
+            "max_abs": 0.00048828125,
+            "mean_abs": 6.591342389583588e-05,
+            "rel_l2": 0.003478769212961197,
+            "cosine": 0.999994158744812
+          }
+        },
+        "worst_state": {
+          "kind": "conv",
+          "layer": 38,
+          "max_abs": 0.375,
+          "mean_abs": 0.01645941287279129,
+          "rel_l2": 0.010933665558695793,
+          "cosine": 0.9999401569366455
+        },
+        "logits_pos0": {
+          "max_abs": 1.030517578125,
+          "mean_abs": 0.15830200910568237,
+          "rel_l2": 0.08684641122817993,
+          "cosine": 0.9962271451950073
+        },
+        "logits_pos1": {
+          "max_abs": 0.73828125,
+          "mean_abs": 0.10724937915802002,
+          "rel_l2": 0.05484391376376152,
+          "cosine": 0.9984960556030273
+        },
+        "k2_argmax_pos0": 271,
+        "k2_argmax_pos1": 248068,
+        "seq_argmax_pos0": 271,
+        "seq_argmax_pos1": 248068,
+        "state_worst": {
+          "kind": "conv",
+          "layer": 38,
+          "max_abs": 0.375,
+          "mean_abs": 0.01645941287279129,
+          "rel_l2": 0.010933665558695793,
+          "cosine": 0.9999401569366455
+        },
+        "drift_detected": true
+      }
+    },
+    {
+      "name": "t1_full_attn_only",
+      "full_attn_mode": "t1_loop",
+      "linear_attn_mode": "k2",
+      "description": "M13 setup. Full-attn falls back to 2x decode_full_attn (per-position); linear-attn keeps K=2 internal per-position.",
+      "result": {
+        "n_advance": 0,
+        "advance_ids": [],
+        "pending_id": 25,
+        "draft_id": 271,
+        "first_bad_layer": null,
+        "worst_state": {
+          "kind": "recurrent",
+          "layer": 0,
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "logits_pos0": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0000001192092896
+        },
+        "logits_pos1": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "k2_argmax_pos0": 271,
+        "k2_argmax_pos1": 248068,
+        "seq_argmax_pos0": 271,
+        "seq_argmax_pos1": 248068,
+        "state_worst": {
+          "kind": "recurrent",
+          "layer": 0,
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "drift_detected": false
+      }
+    },
+    {
+      "name": "t1_linear_attn_only",
+      "full_attn_mode": "k2",
+      "linear_attn_mode": "t1_loop",
+      "description": "NEW M18 mode. Full-attn keeps K=2 SDPA; linear-attn falls back to 2x decode_linear_attn with state.update_linear_attn_state interleaved (mirrors sequential exactly).",
+      "result": {
+        "n_advance": 0,
+        "advance_ids": [],
+        "pending_id": 25,
+        "draft_id": 271,
+        "first_bad_layer": {
+          "layer": 5,
+          "layer_type": "linear_attention",
+          "pos0_bad": true,
+          "pos1_bad": false,
+          "pos0": {
+            "max_abs": 0.00390625,
+            "mean_abs": 0.00010115280747413635,
+            "rel_l2": 0.005218546371906996,
+            "cosine": 0.9999866485595703
+          },
+          "pos1": {
+            "max_abs": 0.00048828125,
+            "mean_abs": 6.591342389583588e-05,
+            "rel_l2": 0.003478769212961197,
+            "cosine": 0.999994158744812
+          }
+        },
+        "worst_state": {
+          "kind": "conv",
+          "layer": 38,
+          "max_abs": 0.375,
+          "mean_abs": 0.01645941287279129,
+          "rel_l2": 0.010933665558695793,
+          "cosine": 0.9999401569366455
+        },
+        "logits_pos0": {
+          "max_abs": 1.030517578125,
+          "mean_abs": 0.15830200910568237,
+          "rel_l2": 0.08684641122817993,
+          "cosine": 0.9962271451950073
+        },
+        "logits_pos1": {
+          "max_abs": 0.73828125,
+          "mean_abs": 0.10724937915802002,
+          "rel_l2": 0.05484391376376152,
+          "cosine": 0.9984960556030273
+        },
+        "k2_argmax_pos0": 271,
+        "k2_argmax_pos1": 248068,
+        "seq_argmax_pos0": 271,
+        "seq_argmax_pos1": 248068,
+        "state_worst": {
+          "kind": "conv",
+          "layer": 38,
+          "max_abs": 0.375,
+          "mean_abs": 0.01645941287279129,
+          "rel_l2": 0.010933665558695793,
+          "cosine": 0.9999401569366455
+        },
+        "drift_detected": true
+      }
+    },
+    {
+      "name": "t1_both",
+      "full_attn_mode": "t1_loop",
+      "linear_attn_mode": "t1_loop",
+      "description": "Per-layer t1_canonical equivalent. Both full-attn and linear-attn use T=1 split with state advance between positions.",
+      "result": {
+        "n_advance": 0,
+        "advance_ids": [],
+        "pending_id": 25,
+        "draft_id": 271,
+        "first_bad_layer": null,
+        "worst_state": {
+          "kind": "recurrent",
+          "layer": 0,
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "logits_pos0": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0000001192092896
+        },
+        "logits_pos1": {
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "k2_argmax_pos0": 271,
+        "k2_argmax_pos1": 248068,
+        "seq_argmax_pos0": 271,
+        "seq_argmax_pos1": 248068,
+        "state_worst": {
+          "kind": "recurrent",
+          "layer": 0,
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "rel_l2": 0.0,
+          "cosine": 1.0
+        },
+        "drift_detected": false
+      }
+    }
+  ],
+  "safe_combinations": [
+    "t1_full_attn_only",
+    "t1_both"
+  ],
+  "elapsed_seconds": 342.9896762371063
+}
