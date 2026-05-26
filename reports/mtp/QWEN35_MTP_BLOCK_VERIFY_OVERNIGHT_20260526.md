@@ -386,6 +386,22 @@ row-wise SDPA calls at `[Hq=32, Hkv=4, N=2048, D=128]`. It differed in
 was also slower than row-wise SDPA (about 1.08 ms vs 0.08 ms), so the current
 PyTorch batched attention route is neither exact nor a useful speed path.
 
+One low-level `o_proj` direction was prototyped:
+
+```text
+triton_kernels/rowwise_linear.py
+scripts/spark_k2_rowwise_linear_kernel_probe.py
+reports/mtp/qwen35_k2_rowwise_linear_kernel_20260527_020517.json
+```
+
+The prototype uses independent per-token accumulators inside one Triton launch.
+On Spark BF16 `[2, 4096] @ [4096, 4096].T`, K2 single-launch output matched two
+T1 kernel launches in **8/8** seeds, with mean timings around 0.18 ms vs
+0.75 ms. It does not match PyTorch T1 bit-for-bit, so it is not a drop-in for
+the current production baseline. But it proves the useful contract: if both
+baseline T1 and K2 verifier route `o_proj` through the same rowwise-linear
+kernel, the output-projection half of K2 can be exact while saving launches.
+
 The non-strict fast-K2 control does not justify accepting approximate drift:
 
 ```text
