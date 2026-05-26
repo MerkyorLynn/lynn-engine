@@ -365,6 +365,19 @@ row-wise. This is expected to be only marginally faster than `rowwise_bridge`,
 but it captures the strongest proven exact bridge: the gate multiply can be
 batched; `o_proj` and attention cannot yet.
 
+A tiny no-model reproduction now exists:
+
+```text
+scripts/spark_k2_linear_row_parity_probe.py
+reports/mtp/qwen35_k2_linear_row_parity_warm_20260527_005716.json
+```
+
+On Spark BF16, random `[1, 2, 4096] @ [4096, 4096].T` differed from two
+separate `[1, 1, 4096]` calls in **32/32** seeds. Warm timings were roughly
+0.08 ms batched vs 0.27 ms row-wise, which explains the temptation to batch
+`o_proj`; the deterministic verifier cannot use that shortcut until a
+T=1-equivalent dual-row kernel exists.
+
 The non-strict fast-K2 control does not justify accepting approximate drift:
 
 ```text
