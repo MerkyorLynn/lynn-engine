@@ -592,14 +592,22 @@ def speculative_step_kn_batched(
     commit_count = 1 + accepted_count
     committed = tokens[:commit_count]
 
+    fast_commit_max_k = int(os.environ.get("LYNN_MTP_KN_FULL_ACCEPT_FAST_COMMIT_MAX_K", "2"))
     if (
         accepted_count == int(draft_count)
+        and int(draft_count) <= fast_commit_max_k
         and os.environ.get("LYNN_MTP_KN_FULL_ACCEPT_FAST_COMMIT", "0") == "1"
     ):
         # Full-block accept is the one K>N case where no suffix crop/replay is
         # needed: every token decoded by the verifier is committed, so the
         # verifier's final recurrent/conv/KV state is already the post-commit
         # state. Partial accepts still use the conservative replay below.
+        #
+        # Default this optimization to K=2 only. The Qwen35 K=4 smoke on
+        # 2026-05-26 showed 5/6 exact when keeping the K=4 verifier state,
+        # while K=2 passed 6/6. Higher K can be re-tested explicitly with
+        # LYNN_MTP_KN_FULL_ACCEPT_FAST_COMMIT_MAX_K after block-state parity is
+        # proven.
         return SpeculativeStepResult(
             committed_tokens=committed,
             next_pending_id=int(argmax_ids[commit_count - 1]),

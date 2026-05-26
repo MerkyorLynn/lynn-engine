@@ -322,6 +322,27 @@ prompt 003 reaches 35.42 tok/s. This confirms the runtime now has the right
 shape: better draft training directly converts into throughput instead of
 being swallowed by replay.
 
+K4 was tested with the same optimization:
+
+```text
+reports/mtp/qwen35_mtp_k4_full_accept_fast_20260526_234710.json
+```
+
+Result: **do not promote K4 direct commit yet.**
+
+| Config | Exact vs baseline | TPS | Accept | Draft accept |
+|---|---:|---:|---:|---:|
+| spec_k4_batched + full-accept fast commit | 83.33% | 15.51 | 19.12% | 44.38% |
+
+One prompt diverged, and mean TPS remains far below baseline. The runtime now
+defaults the fast-commit cap to K=2 via:
+
+```text
+LYNN_MTP_KN_FULL_ACCEPT_FAST_COMMIT_MAX_K=2
+```
+
+K>2 needs separate block-state parity work before direct state commit is safe.
+
 ## Next Smoke Command
 
 Run once Spark is free enough, ideally after Nemotron SGLang exits:
