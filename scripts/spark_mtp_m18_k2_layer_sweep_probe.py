@@ -94,6 +94,17 @@ def _apply_mode_env(full_attn_mode: str, linear_attn_mode: str) -> dict[str, str
     })
 
 
+def _apply_probe_mode(probe_mode: str) -> dict[str, str | None]:
+    """Set or clear the full-attention K=2 component probe env."""
+    key = "LYNN_FULL_ATTN_K2_PROBE"
+    prev = {key: os.environ.get(key)}
+    if probe_mode:
+        os.environ[key] = probe_mode
+    else:
+        os.environ.pop(key, None)
+    return prev
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--model", required=True)
@@ -113,9 +124,24 @@ def main() -> int:
     ap.add_argument("--dtype", default="bfloat16", choices=["bfloat16", "float16"])
     ap.add_argument("--drift-max-abs", type=float, default=1e-3)
     ap.add_argument("--drift-cos-min", type=float, default=0.99999)
+    ap.add_argument(
+        "--probe-mode-list",
+        default=None,
+        help=(
+            "Optional comma-separated LYNN_FULL_ATTN_K2_PROBE values to sweep "
+            "after one model load. Use 'default' or empty for the normal path."
+        ),
+    )
     args = ap.parse_args()
 
     advance_tokens = bisect_probe.EVENT5_ADVANCE[:args.advance]
+    if args.probe_mode_list:
+        probe_modes = [
+            "" if raw.strip() in {"", "default"} else raw.strip()
+            for raw in args.probe_mode_list.split(",")
+        ]
+    else:
+        probe_modes = [os.environ.get("LYNN_FULL_ATTN_K2_PROBE", "")]
 
     dtype = {"bfloat16": torch.bfloat16, "float16": torch.float16}[args.dtype]
     env = dict(BASE_ENV)
@@ -146,51 +172,70 @@ def main() -> int:
         base_state.seq_len = T
 
         combo_results: list[dict[str, Any]] = []
-        for combo in COMBINATIONS:
-            # Each combo gets a fresh state derived from a clean re-prefill — the
-            # M16 bisect helper mutates state through advance + K=2 + sequential
-            # paths, so isolation across combos requires independent state per
-            # combo. (Cheaper than reloading the model.)
-            state_combo = LynnInferenceState.from_config(
-                runner.cfg, batch=1, max_seq_len=runner.max_seq_len,
-                device=runner.device, dtype=runner.dtype,
-            )
-            h_combo = F.embedding(ids, runner.outside["model.language_model.embed_tokens.weight"])
-            for i in range(runner.n_layers):
-                h_combo = _prefill_layer(
-                    h_combo, pos, runner.layer_types[i], runner.layer_weights[i],
-                    runner.layer_cfgs[i], state_combo, i,
-                )
-            state_combo.seq_len = T
-
-            prev_mode = _apply_mode_env(combo["full_attn"], combo["linear_attn"])
+        safe_by_probe: dict[str, list[str]] = {}
+        for probe_mode in probe_modes:
+            probe_key = probe_mode or "default"
+            prev_probe = _apply_probe_mode(probe_mode)
             try:
-                result = _run_one_advance_bisect(
-                    runner, state_combo, h_combo, ids,
-                    advance_ids=list(advance_tokens),
-                    pending_id=args.pending_id,
-                    draft_id=args.draft_id,
-                    drift_max_abs=args.drift_max_abs,
-                    drift_cos_min=args.drift_cos_min,
-                )
+                probe_results: list[dict[str, Any]] = []
+                for combo in COMBINATIONS:
+                    # Each combo gets a fresh state derived from a clean re-prefill —
+                    # the M16 bisect helper mutates state through advance + K=2 +
+                    # sequential paths, so isolation across combos requires
+                    # independent state per combo. (Cheaper than reloading the model.)
+                    state_combo = LynnInferenceState.from_config(
+                        runner.cfg, batch=1, max_seq_len=runner.max_seq_len,
+                        device=runner.device, dtype=runner.dtype,
+                    )
+                    h_combo = F.embedding(ids, runner.outside["model.language_model.embed_tokens.weight"])
+                    for i in range(runner.n_layers):
+                        h_combo = _prefill_layer(
+                            h_combo, pos, runner.layer_types[i], runner.layer_weights[i],
+                            runner.layer_cfgs[i], state_combo, i,
+                        )
+                    state_combo.seq_len = T
+
+                    prev_mode = _apply_mode_env(combo["full_attn"], combo["linear_attn"])
+                    try:
+                        result = _run_one_advance_bisect(
+                            runner, state_combo, h_combo, ids,
+                            advance_ids=list(advance_tokens),
+                            pending_id=args.pending_id,
+                            draft_id=args.draft_id,
+                            drift_max_abs=args.drift_max_abs,
+                            drift_cos_min=args.drift_cos_min,
+                        )
+                    finally:
+                        _restore_env(prev_mode)
+
+                    status = "DRIFT" if result["drift_detected"] else "EXACT"
+                    fb = result["first_bad_layer"]
+                    fb_info = f" first_bad=L{fb['layer']}({fb['layer_type']})" if fb else ""
+                    print(
+                        f"[m18-sweep] probe={probe_key:38s} {combo['name']:24s} "
+                        f"full={combo['full_attn']:8s} linear={combo['linear_attn']:8s} "
+                        f"→ {status}{fb_info}",
+                        flush=True,
+                    )
+
+                    row = {
+                        "probe_mode": probe_mode,
+                        "name": combo["name"],
+                        "full_attn_mode": combo["full_attn"],
+                        "linear_attn_mode": combo["linear_attn"],
+                        "description": combo["description"],
+                        "result": result,
+                    }
+                    probe_results.append(row)
+                    combo_results.append(row)
+                safe_by_probe[probe_key] = [
+                    c["name"] for c in probe_results if not c["result"]["drift_detected"]
+                ]
             finally:
-                _restore_env(prev_mode)
-
-            status = "DRIFT" if result["drift_detected"] else "EXACT"
-            fb = result["first_bad_layer"]
-            fb_info = f" first_bad=L{fb['layer']}({fb['layer_type']})" if fb else ""
-            print(f"[m18-sweep] {combo['name']:24s} full={combo['full_attn']:8s} linear={combo['linear_attn']:8s} → {status}{fb_info}", flush=True)
-
-            combo_results.append({
-                "name": combo["name"],
-                "full_attn_mode": combo["full_attn"],
-                "linear_attn_mode": combo["linear_attn"],
-                "description": combo["description"],
-                "result": result,
-            })
+                _restore_env(prev_probe)
 
         # Summarize "safe" combos (no drift detected).
-        safe = [c["name"] for c in combo_results if not c["result"]["drift_detected"]]
+        safe = safe_by_probe.get(probe_modes[0] or "default", [])
 
         report = {
             "schema_version": "lynn-mtp-m18-k2-layer-sweep-probe-v1",
@@ -202,7 +247,9 @@ def main() -> int:
             "pending_id": args.pending_id,
             "draft_id": args.draft_id,
             "drift_threshold": {"max_abs": args.drift_max_abs, "cos_min": args.drift_cos_min},
+            "probe_modes": probe_modes,
             "combinations": combo_results,
+            "safe_by_probe": safe_by_probe,
             "safe_combinations": safe,
             "elapsed_seconds": time.time() - t0,
         }
@@ -211,7 +258,7 @@ def main() -> int:
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         print(f"[m18-sweep] wrote {out}")
-        print(f"[m18-sweep] safe combinations: {safe if safe else '(none — all drift)'}")
+        print(f"[m18-sweep] safe combinations: {safe_by_probe}")
         return 0
     finally:
         _restore_env(prev_env)

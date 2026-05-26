@@ -310,6 +310,10 @@ LYNN_FULL_ATTN_K2_PROBE=rowwise_qkv_rowwise_attn_batched_o
 LYNN_FULL_ATTN_K2_PROBE=rowwise_qkv_batched_attn_rowwise_o
 ```
 
+`scripts/spark_mtp_m18_k2_layer_sweep_probe.py` now also supports
+`--probe-mode-list`, so future component sweeps can reuse one model load instead
+of relaunching the 35B container for each probe.
+
 Artifacts:
 
 ```text
