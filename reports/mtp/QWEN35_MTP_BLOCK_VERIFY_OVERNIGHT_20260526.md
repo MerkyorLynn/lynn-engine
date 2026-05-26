@@ -370,6 +370,8 @@ A tiny no-model reproduction now exists:
 ```text
 scripts/spark_k2_linear_row_parity_probe.py
 reports/mtp/qwen35_k2_linear_row_parity_warm_20260527_005716.json
+scripts/spark_k2_attention_row_parity_probe.py
+reports/mtp/qwen35_k2_attention_row_parity_20260527_005902.json
 ```
 
 On Spark BF16, random `[1, 2, 4096] @ [4096, 4096].T` differed from two
@@ -377,6 +379,12 @@ separate `[1, 1, 4096]` calls in **32/32** seeds. Warm timings were roughly
 0.08 ms batched vs 0.27 ms row-wise, which explains the temptation to batch
 `o_proj`; the deterministic verifier cannot use that shortcut until a
 T=1-equivalent dual-row kernel exists.
+
+The attention fixture compares K2 prefix-causal batched SDPA against two
+row-wise SDPA calls at `[Hq=32, Hkv=4, N=2048, D=128]`. It differed in
+**16/16** seeds. On this shape, batched SDPA with `attn_mask + enable_gqa`
+was also slower than row-wise SDPA (about 1.08 ms vs 0.08 ms), so the current
+PyTorch batched attention route is neither exact nor a useful speed path.
 
 The non-strict fast-K2 control does not justify accepting approximate drift:
 
