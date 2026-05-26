@@ -53,6 +53,11 @@ except Exception:  # pragma: no cover - optional acceleration path.
     qk_norm_rope_pair_triton = None
     qk_norm_rope_triton = None
 
+try:
+    from triton_kernels.rowwise_linear import rowwise_linear as rowwise_linear_triton
+except Exception:  # pragma: no cover - optional acceleration path.
+    rowwise_linear_triton = None
+
 
 _ROPE_TABLE_CACHE: dict[tuple[str, str, int, float, int], tuple[torch.Tensor, torch.Tensor]] = {}
 
@@ -68,6 +73,26 @@ def _linear(x: torch.Tensor, weight) -> torch.Tensor:
             return out.to(x.dtype).reshape(*x.shape[:-1], weight.out_features)
         return weight(x)
     return F.linear(x, weight)
+
+
+def _full_attn_o_proj(attn_out: torch.Tensor, weight) -> torch.Tensor:
+    """Full-attention o_proj dispatch.
+
+    ``LYNN_FULL_ATTN_O_PROJ_BACKEND=rowwise_triton`` is an experimental K2
+    verifier path: T=1 and T=2 both use the same independent-row Triton
+    accumulation contract. It is not the default because it does not match
+    PyTorch/cuBLAS T=1 bit-for-bit.
+    """
+    if os.environ.get("LYNN_FULL_ATTN_O_PROJ_BACKEND", "") == "rowwise_triton":
+        if rowwise_linear_triton is None:
+            raise RuntimeError("LYNN_FULL_ATTN_O_PROJ_BACKEND=rowwise_triton requested but kernel is unavailable")
+        if not torch.is_tensor(weight):
+            raise TypeError("rowwise_triton o_proj backend requires a dense tensor weight")
+        if attn_out.ndim != 3 or attn_out.shape[0] != 1 or attn_out.shape[1] not in (1, 2):
+            return _linear(attn_out, weight)
+        out = rowwise_linear_triton(attn_out.reshape(attn_out.shape[1], attn_out.shape[2]), weight)
+        return out.to(attn_out.dtype).reshape(1, attn_out.shape[1], weight.shape[0])
+    return _linear(attn_out, weight)
 
 
 def _decode_weight(w: dict, key: str):
@@ -412,7 +437,7 @@ def decode_full_attn(h_new, new_position_id, w, cfg, K_cache_full, V_cache_full,
 
     # 9. o_proj
     attn_out = attn_out.transpose(1, 2).contiguous().view(B, 1, H_Q * head_dim)
-    return _linear(attn_out, _decode_weight(w, "self_attn.o_proj.weight"))
+    return _full_attn_o_proj(attn_out, _decode_weight(w, "self_attn.o_proj.weight"))
 
 
 def decode_full_attn_k2(
@@ -580,12 +605,12 @@ def decode_full_attn_k2(
             if probe_mode in {"rowwise_t1", "rowwise_qkv_rowwise_t1"}:
                 attn_i = attn_i * torch.sigmoid(gate_i.float()).to(attn_i.dtype)
                 attn_i = attn_i.transpose(1, 2).contiguous().view(B, 1, H_Q * head_dim)
-                out_pieces.append(_linear(attn_i, _decode_weight(w, "self_attn.o_proj.weight")))
+                out_pieces.append(_full_attn_o_proj(attn_i, _decode_weight(w, "self_attn.o_proj.weight")))
         if probe_mode == "rowwise_qkv_rowwise_attn_batched_o":
             attn_out = torch.cat(attn_pieces, dim=2)
             attn_out = attn_out * torch.sigmoid(gate.float()).to(attn_out.dtype)
             attn_out = attn_out.transpose(1, 2).contiguous().view(B, 2, H_Q * head_dim)
-            return _linear(attn_out, _decode_weight(w, "self_attn.o_proj.weight"))
+            return _full_attn_o_proj(attn_out, _decode_weight(w, "self_attn.o_proj.weight"))
         if probe_mode == "rowwise_qkv_rowwise_attn_batched_gate_rowwise_o":
             attn_out = torch.cat(attn_pieces, dim=2)
             attn_out = attn_out * torch.sigmoid(gate.float()).to(attn_out.dtype)
@@ -593,7 +618,7 @@ def decode_full_attn_k2(
             for idx in range(2):
                 attn_i = attn_out[:, :, idx:idx + 1, :].contiguous()
                 attn_i = attn_i.transpose(1, 2).contiguous().view(B, 1, H_Q * head_dim)
-                pieces.append(_linear(attn_i, _decode_weight(w, "self_attn.o_proj.weight")))
+                pieces.append(_full_attn_o_proj(attn_i, _decode_weight(w, "self_attn.o_proj.weight")))
             return torch.cat(pieces, dim=1)
         if probe_mode == "rowwise_qkv_rowwise_attn_rowwise_gate_batched_o":
             gated_pieces = []
@@ -602,7 +627,7 @@ def decode_full_attn_k2(
                 gated_pieces.append(attn_i * torch.sigmoid(gate_i.float()).to(attn_i.dtype))
             attn_out = torch.cat(gated_pieces, dim=2)
             attn_out = attn_out.transpose(1, 2).contiguous().view(B, 2, H_Q * head_dim)
-            return _linear(attn_out, _decode_weight(w, "self_attn.o_proj.weight"))
+            return _full_attn_o_proj(attn_out, _decode_weight(w, "self_attn.o_proj.weight"))
         return torch.cat(out_pieces, dim=1)
 
     # 6. Attention with prefix-causal mask:
@@ -645,7 +670,7 @@ def decode_full_attn_k2(
             gate_i = gate[:, :, idx:idx + 1, :].contiguous()
             attn_i = attn_i * torch.sigmoid(gate_i.float()).to(attn_i.dtype)
             attn_i = attn_i.transpose(1, 2).contiguous().view(B, 1, H_Q * head_dim)
-            pieces.append(_linear(attn_i, _decode_weight(w, "self_attn.o_proj.weight")))
+            pieces.append(_full_attn_o_proj(attn_i, _decode_weight(w, "self_attn.o_proj.weight")))
         return torch.cat(pieces, dim=1)
 
     # 7. attn_output_gate
@@ -653,7 +678,7 @@ def decode_full_attn_k2(
 
     # 8. o_proj
     attn_out = attn_out.transpose(1, 2).contiguous().view(B, 2, H_Q * head_dim)
-    return _linear(attn_out, _decode_weight(w, "self_attn.o_proj.weight"))
+    return _full_attn_o_proj(attn_out, _decode_weight(w, "self_attn.o_proj.weight"))
 
 
 def decode_full_attn_block(
@@ -765,7 +790,7 @@ def decode_full_attn_block(
 
     attn_out = attn_out * torch.sigmoid(gate.float()).to(attn_out.dtype)
     attn_out = attn_out.transpose(1, 2).contiguous().view(B, block_len, H_Q * head_dim)
-    return _linear(attn_out, _decode_weight(w, "self_attn.o_proj.weight"))
+    return _full_attn_o_proj(attn_out, _decode_weight(w, "self_attn.o_proj.weight"))
 
 
 # ============================================================================

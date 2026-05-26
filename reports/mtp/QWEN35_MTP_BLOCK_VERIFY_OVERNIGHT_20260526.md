@@ -402,6 +402,26 @@ the current production baseline. But it proves the useful contract: if both
 baseline T1 and K2 verifier route `o_proj` through the same rowwise-linear
 kernel, the output-projection half of K2 can be exact while saving launches.
 
+The rowwise-linear kernel is now wired behind an opt-in full-attention `o_proj`
+backend:
+
+```text
+LYNN_FULL_ATTN_O_PROJ_BACKEND=rowwise_triton
+```
+
+Spark sanity confirmed the helper returns bit-equal output for one K2 call vs
+two T1 calls (`max_abs=0`). This is still experimental: it changes the
+accumulation contract from PyTorch/cuBLAS, so it must be enabled for both the
+baseline T1 path and K2 verifier when measuring token exactness.
+
+Operational note: the production APEX service is configured with
+`Restart=always`, so a plain `systemctl stop lynn-apex-mtp-llamacpp.service`
+will be undone during long 35B Python smoke loads. Any future maintenance smoke
+must use a temporary runtime mask/stop wrapper and always unmask/start on exit.
+The live APEX-MTP fallback was healthy after this diagnosis; one observed
+production request reported 512-token eval at about 66.7 tok/s with draft
+acceptance around 0.469.
+
 The non-strict fast-K2 control does not justify accepting approximate drift:
 
 ```text
