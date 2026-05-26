@@ -343,6 +343,40 @@ LYNN_MTP_KN_FULL_ACCEPT_FAST_COMMIT_MAX_K=2
 
 K>2 needs separate block-state parity work before direct state commit is safe.
 
+## K2 Partial-Accept Prefix Repair
+
+The next replay reduction is partial-accept repair for K=2. When exactly one
+draft token is accepted, the committed prefix is `[pending, accepted_draft]`.
+The new opt-in path restores the pre-block recurrent/conv snapshot, then
+repairs that committed prefix with a smaller exact block verifier instead of
+falling back to canonical token-by-token T=1 replay.
+
+Knobs:
+
+```text
+LYNN_MTP_KN_PREFIX_BLOCK_REPAIR=1
+LYNN_MTP_KN_PREFIX_BLOCK_REPAIR_MAX_LEN=2
+```
+
+Spark smoke:
+
+```text
+reports/mtp/qwen35_mtp_k2_prefix_repair_20260526_235627.json
+```
+
+| Config | Exact vs baseline | TPS | Accept | Draft accept |
+|---|---:|---:|---:|---:|
+| baseline | 100% | 33.43 | n/a | n/a |
+| spec_k1 | 100% | 29.24 | 74.04% | 74.04% |
+| spec_k1_batched | 100% | 28.94 | 77.16% | 77.16% |
+| spec_k2_batched + full-accept fast commit + prefix repair | 100% | 24.79 | 58.16% | 65.10% |
+
+This keeps the K2 gate at 6/6 exact and nudges K2 effective TPS from 24.36 to
+24.79 tok/s over the full-accept-only smoke. The improvement is small, so keep
+this path opt-in for now. The more important result is that K2 direct-state
+commit and K2 prefix-state repair both preserve token parity when capped to
+two-token blocks.
+
 ## Next Smoke Command
 
 Run once Spark is free enough, ideally after Nemotron SGLang exits:

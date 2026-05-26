@@ -619,6 +619,33 @@ def speculative_step_kn_batched(
             accepted_count=accepted_count,
         )
 
+    prefix_repair_max_len = int(os.environ.get("LYNN_MTP_KN_PREFIX_BLOCK_REPAIR_MAX_LEN", "2"))
+    if (
+        os.environ.get("LYNN_MTP_KN_PREFIX_BLOCK_REPAIR", "0") == "1"
+        and 1 < commit_count <= prefix_repair_max_len
+    ):
+        # Partial accept still needs to discard the rejected suffix state, but
+        # the committed prefix can be repaired with a smaller exact block
+        # verifier instead of replaying token-by-token. Today this is most
+        # useful for K=2 proposals with exactly one accepted draft, where the
+        # repair block is [pending, accepted_draft].
+        restore_recurrent_conv(state, snap_pre_batch)
+        h_repair, _logits_repair, argmax_repair = decode_block_to_logits_and_hidden(
+            runner,
+            state,
+            committed,
+        )
+        return SpeculativeStepResult(
+            committed_tokens=committed,
+            next_pending_id=int(argmax_repair[commit_count - 1]),
+            next_base_hidden=h_repair[:, commit_count - 1:commit_count, :].contiguous(),
+            next_pos=state.seq_len - 1,
+            accepted=False,
+            draft_id=draft_ids[0],
+            draft_ids=draft_ids,
+            accepted_count=accepted_count,
+        )
+
     # Conservative repair path: restore pre-block recurrent/conv state and
     # replay the committed prefix through canonical T=1 decode. Earlier K=2
     # work showed accepted-state drift can survive even when token ids match;
