@@ -114,6 +114,30 @@ def _prefix_match_len(a: list[int], b: list[int]) -> int:
     return n
 
 
+def _merge_profile(rows: list[dict[str, Any]]) -> dict[str, Any] | None:
+    merged: dict[str, dict[str, float | int]] = {}
+    for row in rows:
+        profile = row.get("mtp_profile") or {}
+        for name, item in profile.items():
+            dst = merged.setdefault(name, {"count": 0, "total_seconds": 0.0, "max_ms": 0.0})
+            dst["count"] = int(dst["count"]) + int(item.get("count") or 0)
+            dst["total_seconds"] = float(dst["total_seconds"]) + float(item.get("total_seconds") or 0.0)
+            dst["max_ms"] = max(float(dst["max_ms"]), float(item.get("max_ms") or 0.0))
+    if not merged:
+        return None
+    out: dict[str, Any] = {}
+    for name, item in sorted(merged.items()):
+        count = int(item["count"])
+        total = float(item["total_seconds"])
+        out[name] = {
+            "count": count,
+            "total_seconds": total,
+            "mean_ms": (total / count * 1000.0) if count else None,
+            "max_ms": float(item["max_ms"]),
+        }
+    return out
+
+
 def _run_config(
     runner: LynnIncrementalRunner,
     *,
@@ -134,6 +158,7 @@ def _run_config(
             base_ids = None if baseline_ids is None else baseline_ids[idx]
             spec = out.get("mtp_speculative", {}) or {}
             shadow = out.get("mtp_shadow", {}) or {}
+            timings = out.get("timings", {}) or {}
             rows.append({
                 "prompt_id": f"prompt_{idx:03d}",
                 "prompt": prompt,
@@ -143,7 +168,7 @@ def _run_config(
                 "exact_match": None if base_ids is None else new_ids == base_ids,
                 "prefix_match_len": None if base_ids is None else _prefix_match_len(new_ids, base_ids),
                 "wall_seconds": wall,
-                "decode_tps": out["timings"].get("decode_tps"),
+                "decode_tps": timings.get("decode_tps"),
                 "spec_active": bool(spec.get("active")),
                 "spec_events": spec.get("events"),
                 "spec_accept_rate": spec.get("accept_rate"),
@@ -156,6 +181,7 @@ def _run_config(
                 "shadow_events": shadow.get("events"),
                 "shadow_accept_rate": shadow.get("accept_rate"),
                 "stopped_reason": out["stopped_reason"],
+                "mtp_profile": timings.get("mtp_profile"),
             })
         return {
             "label": label,
@@ -368,6 +394,7 @@ def main() -> int:
                 "draft_tokens_proposed": draft_proposed,
                 "accepted_draft_tokens": draft_accepted,
                 "mean_shadow_accept_rate": mean_shadow_accept,
+                "mtp_profile": _merge_profile(rows),
             }
 
         baseline_tps = summary["baseline"]["mean_decode_tps_baseline_loop"]

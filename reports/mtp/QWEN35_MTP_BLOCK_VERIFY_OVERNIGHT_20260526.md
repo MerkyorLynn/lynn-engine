@@ -517,6 +517,66 @@ optimization target is not the control flow anymore; it is verifier cost:
 row-wise QKV/RoPE, rowwise `o_proj`, MTP sidecar launch/forward, and Python
 loop overhead.
 
+## ROI Profiling Pass
+
+Instead of guessing the next kernel, an opt-in profiler was added:
+
+```text
+LYNN_MTP_PROFILE=1
+LYNN_MTP_PROFILE_SYNC=1
+```
+
+It resets per `runner.generate()` and writes an `mtp_profile` section into the
+smoke JSON. The smoke wrapper now also supports a small `PROMPTS_JSON` file for
+low-risk profile runs.
+
+Profile artifact:
+
+```text
+reports/mtp/qwen35_mtp_k2_profile_20260527_093355.json
+reports/mtp/qwen35_mtp_profile_prompts.json
+```
+
+Two-prompt profile result:
+
+| Config | Exact vs baseline | TPS | Accept | Draft accept |
+|---|---:|---:|---:|---:|
+| baseline | 100% | 34.63 | n/a | n/a |
+| spec_k1 | 100% | 23.88 | 75.00% | 75.00% |
+| spec_k1_batched | 100% | 17.86 | 75.00% | 75.00% |
+| spec_k2_batched | 100% | 23.79 | 66.67% | 66.67% |
+
+The profiler changes the ROI target:
+
+| Section | Signal |
+|---|---|
+| `spec_k2_batched` / `block_verify.layers_total` | About 70.8 ms/event. This is a 3-token block (`pending + 2 drafts`) and still mostly falls back to T1 verifier work. |
+| `spec_k1_batched` / `k1_batched.k2_forward` | About 101.6 ms/event in the profile run, including one compile outlier. |
+| `k2_layer.moe` | Large steady cost. K2 currently calls the packed NVFP4 decode MoE once per token because the packed path is T=1-only. |
+| `full_attn.attention.rowwise_triton` | Small after the new kernel; attention is no longer the main local bottleneck. |
+| `kn.draft_chain` | About 5.3 ms/event for two chained drafts; not the first optimization target. |
+
+Highest-ROI shortcut test:
+
+```text
+LYNN_MTP_K2_MOE_MODE=batched_optimized
+reports/mtp/qwen35_mtp_k2_moe_batched_optimized_20260527_094126.json
+```
+
+Result: **do not promote.**
+
+| Config | Exact vs baseline | TPS | Notes |
+|---|---:|---:|---|
+| spec_k1_batched + BF16 optimized batched MoE | 0% | 12.30 | Exactness failed and speed got worse. |
+| spec_k2_batched | 100% | 24.50 | Unchanged generic block path, not proof that batched MoE is safe. |
+
+Conclusion: BF16 optimized batched MoE is not a safe shortcut. If Lynn Python
+runner is to beat its baseline, the next real engine task is a **packed NVFP4
+T=2 MoE verifier kernel** that matches the T1 packed accumulation contract.
+Otherwise the higher-ROI production move is to port the already-correct
+verify/accept/crop flow into the llama.cpp/APEX service loop and avoid Python
+dispatch entirely.
+
 Operational note: the production APEX service is configured with
 `Restart=always`, so a plain `systemctl stop lynn-apex-mtp-llamacpp.service`
 will be undone during long 35B Python smoke loads. Any future maintenance smoke

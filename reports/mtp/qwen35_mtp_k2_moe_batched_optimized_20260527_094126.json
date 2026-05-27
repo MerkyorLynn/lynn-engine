@@ -1,0 +1,530 @@
+{
+  "schema_version": "lynn-mtp-speculative-smoke-v2",
+  "model": "/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-from-bf16-20260526",
+  "sidecar": "/models/mtp_sidecars/qwen36-35b-a3b-mtp-official-lynn-fused/mtp.safetensors",
+  "max_new": 6,
+  "warmup_runs": 1,
+  "n_prompts": 2,
+  "configs": [
+    {
+      "label": "baseline",
+      "env_overrides": {
+        "LYNN_MTP_SHADOW_VERIFY": "0",
+        "LYNN_MTP_SPECULATIVE": "0"
+      },
+      "rows": [
+        {
+          "prompt_id": "prompt_000",
+          "prompt": "用一句话解释 speculative decoding 的核心思想。",
+          "new_ids": [
+            271,
+            248068,
+            198,
+            8160,
+            579,
+            264
+          ],
+          "new_ids_head": [
+            271,
+            248068,
+            198,
+            8160,
+            579,
+            264
+          ],
+          "completion_head": "\n\n<think>\nHere's a",
+          "exact_match": true,
+          "prefix_match_len": 6,
+          "wall_seconds": 0.5117349624633789,
+          "decode_tps": 36.25004321341898,
+          "spec_active": false,
+          "spec_events": 0,
+          "spec_accept_rate": null,
+          "spec_draft_k": null,
+          "spec_draft_tokens_proposed": 0,
+          "spec_accepted_draft_tokens": 0,
+          "spec_draft_accept_rate": null,
+          "spec_tokens_per_event": null,
+          "spec_effective_token_tps": null,
+          "shadow_events": 0,
+          "shadow_accept_rate": null,
+          "stopped_reason": "max_new",
+          "mtp_profile": null
+        },
+        {
+          "prompt_id": "prompt_001",
+          "prompt": "If a train travels 60 mph for 2.5 hours, how far does it go?",
+          "new_ids": [
+            271,
+            1206,
+            1423,
+            279,
+            5821,
+            11
+          ],
+          "new_ids_head": [
+            271,
+            1206,
+            1423,
+            279,
+            5821,
+            11
+          ],
+          "completion_head": "\n\nTo find the distance,",
+          "exact_match": true,
+          "prefix_match_len": 6,
+          "wall_seconds": 0.58298659324646,
+          "decode_tps": 35.907984966654396,
+          "spec_active": false,
+          "spec_events": 0,
+          "spec_accept_rate": null,
+          "spec_draft_k": null,
+          "spec_draft_tokens_proposed": 0,
+          "spec_accepted_draft_tokens": 0,
+          "spec_draft_accept_rate": null,
+          "spec_tokens_per_event": null,
+          "spec_effective_token_tps": null,
+          "shadow_events": 0,
+          "shadow_accept_rate": null,
+          "stopped_reason": "max_new",
+          "mtp_profile": null
+        }
+      ]
+    },
+    {
+      "label": "shadow",
+      "env_overrides": {
+        "LYNN_MTP_SHADOW_VERIFY": "1",
+        "LYNN_MTP_SPECULATIVE": "0"
+      },
+      "rows": [
+        {
+          "prompt_id": "prompt_000",
+          "prompt": "用一句话解释 speculative decoding 的核心思想。",
+          "new_ids": [
+            271,
+            248068,
+            198,
+            8160,
+            579,
+            264
+          ],
+          "new_ids_head": [
+            271,
+            248068,
+            198,
+            8160,
+            579,
+            264
+          ],
+          "completion_head": "\n\n<think>\nHere's a",
+          "exact_match": true,
+          "prefix_match_len": 6,
+          "wall_seconds": 0.5395786762237549,
+          "decode_tps": 32.22169129339895,
+          "spec_active": false,
+          "spec_events": 0,
+          "spec_accept_rate": null,
+          "spec_draft_k": null,
+          "spec_draft_tokens_proposed": 0,
+          "spec_accepted_draft_tokens": 0,
+          "spec_draft_accept_rate": null,
+          "spec_tokens_per_event": null,
+          "spec_effective_token_tps": null,
+          "shadow_events": 6,
+          "shadow_accept_rate": 0.5,
+          "stopped_reason": "max_new",
+          "mtp_profile": null
+        },
+        {
+          "prompt_id": "prompt_001",
+          "prompt": "If a train travels 60 mph for 2.5 hours, how far does it go?",
+          "new_ids": [
+            271,
+            1206,
+            1423,
+            279,
+            5821,
+            11
+          ],
+          "new_ids_head": [
+            271,
+            1206,
+            1423,
+            279,
+            5821,
+            11
+          ],
+          "completion_head": "\n\nTo find the distance,",
+          "exact_match": true,
+          "prefix_match_len": 6,
+          "wall_seconds": 0.577833890914917,
+          "decode_tps": 32.57554975993389,
+          "spec_active": false,
+          "spec_events": 0,
+          "spec_accept_rate": null,
+          "spec_draft_k": null,
+          "spec_draft_tokens_proposed": 0,
+          "spec_accepted_draft_tokens": 0,
+          "spec_draft_accept_rate": null,
+          "spec_tokens_per_event": null,
+          "spec_effective_token_tps": null,
+          "shadow_events": 6,
+          "shadow_accept_rate": 1.0,
+          "stopped_reason": "max_new",
+          "mtp_profile": null
+        }
+      ]
+    },
+    {
+      "label": "spec_k1",
+      "env_overrides": {
+        "LYNN_MTP_SHADOW_VERIFY": "0",
+        "LYNN_MTP_SPECULATIVE": "1",
+        "LYNN_MTP_SPECULATIVE_BATCHED": "0",
+        "LYNN_LINEAR_BLOCK_GRAPH": "0",
+        "LYNN_LINEAR_BLOCK_GRAPH_REUSE": "0"
+      },
+      "rows": [
+        {
+          "prompt_id": "prompt_000",
+          "prompt": "用一句话解释 speculative decoding 的核心思想。",
+          "new_ids": [
+            271,
+            248068,
+            198,
+            8160,
+            579,
+            264
+          ],
+          "new_ids_head": [
+            271,
+            248068,
+            198,
+            8160,
+            579,
+            264
+          ],
+          "completion_head": "\n\n<think>\nHere's a",
+          "exact_match": true,
+          "prefix_match_len": 6,
+          "wall_seconds": 0.6101806163787842,
+          "decode_tps": null,
+          "spec_active": true,
+          "spec_events": 4,
+          "spec_accept_rate": 0.5,
+          "spec_draft_k": null,
+          "spec_draft_tokens_proposed": 4,
+          "spec_accepted_draft_tokens": 2,
+          "spec_draft_accept_rate": 0.5,
+          "spec_tokens_per_event": 1.25,
+          "spec_effective_token_tps": 21.065154612251458,
+          "shadow_events": 0,
+          "shadow_accept_rate": null,
+          "stopped_reason": "max_new",
+          "mtp_profile": null
+        },
+        {
+          "prompt_id": "prompt_001",
+          "prompt": "If a train travels 60 mph for 2.5 hours, how far does it go?",
+          "new_ids": [
+            271,
+            1206,
+            1423,
+            279,
+            5821,
+            11
+          ],
+          "new_ids_head": [
+            271,
+            1206,
+            1423,
+            279,
+            5821,
+            11
+          ],
+          "completion_head": "\n\nTo find the distance,",
+          "exact_match": true,
+          "prefix_match_len": 6,
+          "wall_seconds": 0.5978233814239502,
+          "decode_tps": null,
+          "spec_active": true,
+          "spec_events": 3,
+          "spec_accept_rate": 1.0,
+          "spec_draft_k": null,
+          "spec_draft_tokens_proposed": 3,
+          "spec_accepted_draft_tokens": 3,
+          "spec_draft_accept_rate": 1.0,
+          "spec_tokens_per_event": 1.6666666666666667,
+          "spec_effective_token_tps": 28.17964870036334,
+          "shadow_events": 0,
+          "shadow_accept_rate": null,
+          "stopped_reason": "max_new",
+          "mtp_profile": null
+        }
+      ]
+    },
+    {
+      "label": "spec_k1_batched",
+      "env_overrides": {
+        "LYNN_MTP_SHADOW_VERIFY": "0",
+        "LYNN_MTP_SPECULATIVE": "1",
+        "LYNN_MTP_SPECULATIVE_BATCHED": "1",
+        "LYNN_LINEAR_BLOCK_GRAPH": "0",
+        "LYNN_LINEAR_BLOCK_GRAPH_REUSE": "0"
+      },
+      "rows": [
+        {
+          "prompt_id": "prompt_000",
+          "prompt": "用一句话解释 speculative decoding 的核心思想。",
+          "new_ids": [
+            271,
+            248068,
+            271,
+            248069,
+            271,
+            8068
+          ],
+          "new_ids_head": [
+            271,
+            248068,
+            271,
+            248069,
+            271,
+            8068
+          ],
+          "completion_head": "\n\n<think>\n\n</think>\n\nSpec",
+          "exact_match": false,
+          "prefix_match_len": 2,
+          "wall_seconds": 1.345914602279663,
+          "decode_tps": null,
+          "spec_active": true,
+          "spec_events": 4,
+          "spec_accept_rate": 0.75,
+          "spec_draft_k": null,
+          "spec_draft_tokens_proposed": 4,
+          "spec_accepted_draft_tokens": 3,
+          "spec_draft_accept_rate": 0.75,
+          "spec_tokens_per_event": 1.25,
+          "spec_effective_token_tps": 5.1503918385590755,
+          "shadow_events": 0,
+          "shadow_accept_rate": null,
+          "stopped_reason": "max_new",
+          "mtp_profile": null
+        },
+        {
+          "prompt_id": "prompt_001",
+          "prompt": "If a train travels 60 mph for 2.5 hours, how far does it go?",
+          "new_ids": [
+            271,
+            1206,
+            1423,
+            279,
+            5821,
+            11
+          ],
+          "new_ids_head": [
+            271,
+            1206,
+            1423,
+            279,
+            5821,
+            11
+          ],
+          "completion_head": "\n\nTo find the distance,",
+          "exact_match": true,
+          "prefix_match_len": 6,
+          "wall_seconds": 0.6773984432220459,
+          "decode_tps": null,
+          "spec_active": true,
+          "spec_events": 3,
+          "spec_accept_rate": 1.0,
+          "spec_draft_k": null,
+          "spec_draft_tokens_proposed": 3,
+          "spec_accepted_draft_tokens": 3,
+          "spec_draft_accept_rate": 1.0,
+          "spec_tokens_per_event": 1.6666666666666667,
+          "spec_effective_token_tps": 19.449607650922932,
+          "shadow_events": 0,
+          "shadow_accept_rate": null,
+          "stopped_reason": "max_new",
+          "mtp_profile": null
+        }
+      ]
+    },
+    {
+      "label": "spec_k2_batched",
+      "env_overrides": {
+        "LYNN_MTP_SHADOW_VERIFY": "0",
+        "LYNN_MTP_SPECULATIVE": "1",
+        "LYNN_MTP_SPECULATIVE_BATCHED": "1",
+        "LYNN_MTP_SPECULATIVE_K": "2",
+        "LYNN_LINEAR_BLOCK_GRAPH": "0",
+        "LYNN_LINEAR_BLOCK_GRAPH_REUSE": "0"
+      },
+      "rows": [
+        {
+          "prompt_id": "prompt_000",
+          "prompt": "用一句话解释 speculative decoding 的核心思想。",
+          "new_ids": [
+            271,
+            248068,
+            198,
+            8160,
+            579,
+            264
+          ],
+          "new_ids_head": [
+            271,
+            248068,
+            198,
+            8160,
+            579,
+            264
+          ],
+          "completion_head": "\n\n<think>\nHere's a",
+          "exact_match": true,
+          "prefix_match_len": 6,
+          "wall_seconds": 0.6682751178741455,
+          "decode_tps": null,
+          "spec_active": true,
+          "spec_events": 3,
+          "spec_accept_rate": 0.3333333333333333,
+          "spec_draft_k": null,
+          "spec_draft_tokens_proposed": 6,
+          "spec_accepted_draft_tokens": 2,
+          "spec_draft_accept_rate": 0.3333333333333333,
+          "spec_tokens_per_event": 1.6666666666666667,
+          "spec_effective_token_tps": 17.05262267728726,
+          "shadow_events": 0,
+          "shadow_accept_rate": null,
+          "stopped_reason": "max_new",
+          "mtp_profile": null
+        },
+        {
+          "prompt_id": "prompt_001",
+          "prompt": "If a train travels 60 mph for 2.5 hours, how far does it go?",
+          "new_ids": [
+            271,
+            1206,
+            1423,
+            279,
+            5821,
+            11
+          ],
+          "new_ids_head": [
+            271,
+            1206,
+            1423,
+            279,
+            5821,
+            11
+          ],
+          "completion_head": "\n\nTo find the distance,",
+          "exact_match": true,
+          "prefix_match_len": 6,
+          "wall_seconds": 0.5778491497039795,
+          "decode_tps": null,
+          "spec_active": true,
+          "spec_events": 2,
+          "spec_accept_rate": 1.0,
+          "spec_draft_k": null,
+          "spec_draft_tokens_proposed": 4,
+          "spec_accepted_draft_tokens": 4,
+          "spec_draft_accept_rate": 1.0,
+          "spec_tokens_per_event": 2.5,
+          "spec_effective_token_tps": 31.957186264739317,
+          "shadow_events": 0,
+          "shadow_accept_rate": null,
+          "stopped_reason": "max_new",
+          "mtp_profile": null
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "baseline": {
+      "exact_match_count": 2,
+      "n_prompts": 2,
+      "exact_match_rate": 1.0,
+      "mean_prefix_match_len": 6.0,
+      "mean_decode_tps_baseline_loop": 36.07901409003669,
+      "mean_spec_effective_tps": null,
+      "mean_spec_accept_rate": null,
+      "mean_draft_accept_rate": null,
+      "draft_tokens_proposed": 0,
+      "accepted_draft_tokens": 0,
+      "mean_shadow_accept_rate": null,
+      "mtp_profile": null
+    },
+    "shadow": {
+      "exact_match_count": 2,
+      "n_prompts": 2,
+      "exact_match_rate": 1.0,
+      "mean_prefix_match_len": 6.0,
+      "mean_decode_tps_baseline_loop": 32.39862052666642,
+      "mean_spec_effective_tps": null,
+      "mean_spec_accept_rate": null,
+      "mean_draft_accept_rate": null,
+      "draft_tokens_proposed": 0,
+      "accepted_draft_tokens": 0,
+      "mean_shadow_accept_rate": 0.75,
+      "mtp_profile": null
+    },
+    "spec_k1": {
+      "exact_match_count": 2,
+      "n_prompts": 2,
+      "exact_match_rate": 1.0,
+      "mean_prefix_match_len": 6.0,
+      "mean_decode_tps_baseline_loop": null,
+      "mean_spec_effective_tps": 24.6224016563074,
+      "mean_spec_accept_rate": 0.75,
+      "mean_draft_accept_rate": 0.75,
+      "draft_tokens_proposed": 7,
+      "accepted_draft_tokens": 5,
+      "mean_shadow_accept_rate": null,
+      "mtp_profile": null
+    },
+    "spec_k1_batched": {
+      "exact_match_count": 1,
+      "n_prompts": 2,
+      "exact_match_rate": 0.5,
+      "mean_prefix_match_len": 4.0,
+      "mean_decode_tps_baseline_loop": null,
+      "mean_spec_effective_tps": 12.299999744741005,
+      "mean_spec_accept_rate": 0.875,
+      "mean_draft_accept_rate": 0.875,
+      "draft_tokens_proposed": 7,
+      "accepted_draft_tokens": 6,
+      "mean_shadow_accept_rate": null,
+      "mtp_profile": null
+    },
+    "spec_k2_batched": {
+      "exact_match_count": 2,
+      "n_prompts": 2,
+      "exact_match_rate": 1.0,
+      "mean_prefix_match_len": 6.0,
+      "mean_decode_tps_baseline_loop": null,
+      "mean_spec_effective_tps": 24.50490447101329,
+      "mean_spec_accept_rate": 0.6666666666666666,
+      "mean_draft_accept_rate": 0.6666666666666666,
+      "draft_tokens_proposed": 10,
+      "accepted_draft_tokens": 6,
+      "mean_shadow_accept_rate": null,
+      "mtp_profile": null
+    }
+  },
+  "gates": {
+    "correctness_spec_k1_matches_baseline": true,
+    "correctness_spec_k1_batched_matches_baseline": false,
+    "correctness_spec_kn_batched_matches_baseline": {
+      "spec_k2_batched": true
+    },
+    "tps_ratio_spec_over_baseline": 0.6824577189072065,
+    "tps_ratio_spec_batched_over_baseline": 0.340918399655984,
+    "tps_ratio_spec_kn_batched_over_baseline": {
+      "spec_k2_batched": 0.6792010560449429
+    },
+    "note": "spec_k1 (sequential): 2 base forwards/round + MTP. After the 2026-05-19 embed-first concat fix, official Qwen3.6 MTP can reach high accept in the sequential path, but net speedup requires the batched K=2 verifier to preserve the same numerical backend as T=1. spec_k1_batched (M5/M9): one K=2 forward + MTP with reject penalty = +1 T=1 forward; the current gate measures whether batched verify accept and TPS have caught up. spec_kN_batched is experimental: it validates the shared K=N verify/crop ABI, while draft quality depends on whether the sidecar was trained for chained drafts."
+  }
+}

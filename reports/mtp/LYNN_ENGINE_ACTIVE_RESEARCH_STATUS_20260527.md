@@ -88,6 +88,8 @@ reports/mtp/qwen35_k2_rowwise_attention_kernel_dynamicn_20260527_025345.json
 reports/mtp/qwen35_mtp_k2_rowwise_gate_real2_20260527_021806.json
 reports/mtp/qwen35_mtp_k2_rowwise_attention_kernel_warm_20260527_024429.json
 reports/mtp/qwen35_mtp_k2_rowwise_attention_dynamicn_warm_20260527_025502.json
+reports/mtp/qwen35_mtp_k2_profile_20260527_093355.json
+reports/mtp/qwen35_mtp_k2_moe_batched_optimized_20260527_094126.json
 ```
 
 ## Spark Evidence So Far
@@ -104,6 +106,8 @@ reports/mtp/qwen35_mtp_k2_rowwise_attention_dynamicn_warm_20260527_025502.json
 | Real 35B rowwise-gate smoke | 6/6 | K2 21.28 TPS | Correct end-to-end, but verifier attention remains too expensive. |
 | Real 35B rowwise-attention smoke | 6/6 | K2 22.99 TPS, 0.83x warmed baseline | Attention kernel improves the exact K2 bridge by about 8%, but still does not beat the warmed T1 baseline. |
 | Real 35B dynamic-N smoke | 6/6 | K2 23.00 TPS, 0.62x warmed baseline | Current code path is exact and avoids baseline length-JIT artifacts, but K2 remains below baseline. |
+| MTP profiler smoke | 2/2 | K2 23.79 TPS, profile-sync run | Highest cost is block/layer verification; K1-batched shows K2 MoE compatibility is a major local bottleneck. |
+| Batched optimized MoE shortcut | fails | K1-batched exact gate false | BF16 optimized batched MoE is not a safe shortcut; a real packed NVFP4 T=2 exact MoE kernel is required. |
 
 Current Python runner baseline on this short smoke is about 31-34 TPS, while the
 active llama.cpp APEX-MTP fallback has been observed around 66.7 tok/s with
@@ -120,6 +124,35 @@ sequence length. This removes a misleading per-prompt JIT artifact and gives a
 cleaner comparison: warmed baseline 37.03 TPS, K2 23.00 TPS, both 6/6 exact.
 So the active branch is now correctness-clean and less benchmark-fragile, but
 the K2 verifier still costs too much.
+
+The next ROI pass added an opt-in profiler:
+
+```text
+LYNN_MTP_PROFILE=1
+LYNN_MTP_PROFILE_SYNC=1
+```
+
+The 2-prompt profile smoke showed:
+
+- `spec_k2_batched` is dominated by generic block verification:
+  `block_verify.layers_total` averaged about 70.8 ms per event. This path is a
+  3-token verifier (`pending + 2 drafts`) and still falls back to mostly T1
+  full-attention work.
+- `spec_k1_batched` is the path that actually exercises `_decode_layer_k2`.
+  There, the biggest steady cost is not the rowwise attention micro-kernel; it
+  is the per-token MoE compatibility bridge. The packed NVFP4 decode MoE is
+  T=1-only, so K2 currently calls MoE once per token.
+- A diagnostic shortcut,
+  `LYNN_MTP_K2_MOE_MODE=batched_optimized`, failed the exactness gate and was
+  slower. So BF16 optimized batched MoE cannot be promoted.
+
+This changes the next implementation target. The highest-ROI engine work is no
+longer QKV/RoPE or attention. It is either:
+
+1. A packed NVFP4 T=2 MoE verifier kernel that preserves the T1 accumulation
+   contract, or
+2. Moving the already-correct verify/accept/crop flow into the production
+   llama.cpp/APEX service loop where Python dispatch is gone.
 
 ## Why It Still Matters
 
@@ -170,14 +203,13 @@ then the right next spend is draft-side training, not another verifier rewrite.
 
 ## Next 72 Hours
 
-1. Profile the remaining exact verifier cost after the rowwise-attention smoke:
-   QKV/RoPE row-wise projection, rowwise `o_proj`, MTP sidecar forward, and
-   Python service loop.
-2. Try the next cheap exact bridge: fuse or batch the safe parts around rowwise
-   `o_proj` without changing the T1 accumulation contract.
-3. If K2 still loses to baseline, profile exact verifier cost by component and
-   decide whether to move the path into the production llama.cpp APEX service
-   loop or keep optimizing Lynn Python runner first.
+1. Do not pursue BF16 optimized batched MoE; it failed exactness.
+2. Decide between two remaining high-ROI paths:
+   packed NVFP4 T=2 MoE exact kernel inside Lynn Python, or port the correct
+   K2 runtime into llama.cpp/APEX.
+3. If staying in Python, start with a tiny MoE parity fixture before touching
+   full 35B: one layer, two tokens, packed T1x2 reference vs candidate T2
+   packed kernel.
 4. Keep production restored after every smoke:
 
 ```bash

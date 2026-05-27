@@ -46,6 +46,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from engine.mtp_profile import section as profile_section
+
 
 _DENSE_FP4XFP8_EXT = None
 
@@ -730,12 +732,13 @@ def _decode_layer_k2(
             )
             attn_out = torch.cat([out0, out1], dim=1)
         else:
-            attn_out, new_state, new_conv = decode_linear_attn_k2(
-                h_norm, w,
-                state.recurrent_state[layer_idx],
-                state.conv_state[layer_idx],
-                recurrent_backend=recurrent_backend,
-            )
+            with profile_section("k2_layer.linear_attention"):
+                attn_out, new_state, new_conv = decode_linear_attn_k2(
+                    h_norm, w,
+                    state.recurrent_state[layer_idx],
+                    state.conv_state[layer_idx],
+                    recurrent_backend=recurrent_backend,
+                )
         if linear_state_update == "inplace":
             recurrent_target = state.recurrent_state[layer_idx]
             if recurrent_target.data_ptr() != new_state.data_ptr():
@@ -774,10 +777,11 @@ def _decode_layer_k2(
             )
             attn_out = torch.cat([attn0, attn1], dim=1)
         elif full_attn_k2_backend in {"k2", "rowwise_bridge", "rowwise_gate_bridge", "rowwise_kernel_bridge"}:
-            attn_out = decode_full_attn_k2(
-                h_norm, position_ids_k2, w, cfg, K, V,
-                cached_seq_len=state.seq_len,
-            )
+            with profile_section("k2_layer.full_attention"):
+                attn_out = decode_full_attn_k2(
+                    h_norm, position_ids_k2, w, cfg, K, V,
+                    cached_seq_len=state.seq_len,
+                )
         else:
             raise ValueError(f"Unknown LYNN_FULL_ATTN_K2_BACKEND: {full_attn_k2_backend}")
     h = residual + attn_out
@@ -799,15 +803,23 @@ def _decode_layer_k2(
     base_moe_fn = moe_fn if moe_fn is not None else _resolve_decode_moe_impl(
         os.environ.get("LYNN_MOE_IMPL", "optimized")
     )
-    if h_norm.shape[1] == 1:
-        moe_out = base_moe_fn(h_norm, w, cfg)
-    else:
-        # Per-position T=1 MoE for backend consistency.
-        moe_per_token = [
-            base_moe_fn(h_norm[:, t : t + 1, :].contiguous(), w, cfg)
-            for t in range(h_norm.shape[1])
-        ]
-        moe_out = torch.cat(moe_per_token, dim=1)
+    with profile_section("k2_layer.moe"):
+        if h_norm.shape[1] == 1:
+            moe_out = base_moe_fn(h_norm, w, cfg)
+        elif os.environ.get("LYNN_MTP_K2_MOE_MODE", "") == "batched_optimized":
+            # Diagnostic only. The production packed_nvfp4 decode MoE is T=1
+            # exact; this one-call BF16 optimized path tests whether batching
+            # MoE is even numerically acceptable before writing a real packed
+            # T=2 kernel.
+            with profile_section("k2_layer.moe_batched_optimized"):
+                moe_out = _resolve_decode_moe_impl("optimized")(h_norm, w, cfg)
+        else:
+            # Per-position T=1 MoE for backend consistency.
+            moe_per_token = [
+                base_moe_fn(h_norm[:, t : t + 1, :].contiguous(), w, cfg)
+                for t in range(h_norm.shape[1])
+            ]
+            moe_out = torch.cat(moe_per_token, dim=1)
     return residual + moe_out
 
 

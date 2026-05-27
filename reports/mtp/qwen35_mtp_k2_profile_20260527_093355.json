@@ -1,0 +1,1781 @@
+{
+  "schema_version": "lynn-mtp-speculative-smoke-v2",
+  "model": "/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-from-bf16-20260526",
+  "sidecar": "/models/mtp_sidecars/qwen36-35b-a3b-mtp-official-lynn-fused/mtp.safetensors",
+  "max_new": 6,
+  "warmup_runs": 1,
+  "n_prompts": 2,
+  "configs": [
+    {
+      "label": "baseline",
+      "env_overrides": {
+        "LYNN_MTP_SHADOW_VERIFY": "0",
+        "LYNN_MTP_SPECULATIVE": "0"
+      },
+      "rows": [
+        {
+          "prompt_id": "prompt_000",
+          "prompt": "用一句话解释 speculative decoding 的核心思想。",
+          "new_ids": [
+            271,
+            248068,
+            198,
+            8160,
+            579,
+            264
+          ],
+          "new_ids_head": [
+            271,
+            248068,
+            198,
+            8160,
+            579,
+            264
+          ],
+          "completion_head": "\n\n<think>\nHere's a",
+          "exact_match": true,
+          "prefix_match_len": 6,
+          "wall_seconds": 0.5162789821624756,
+          "decode_tps": 34.64585973160904,
+          "spec_active": false,
+          "spec_events": 0,
+          "spec_accept_rate": null,
+          "spec_draft_k": null,
+          "spec_draft_tokens_proposed": 0,
+          "spec_accepted_draft_tokens": 0,
+          "spec_draft_accept_rate": null,
+          "spec_tokens_per_event": null,
+          "spec_effective_token_tps": null,
+          "shadow_events": 0,
+          "shadow_accept_rate": null,
+          "stopped_reason": "max_new",
+          "mtp_profile": {
+            "full_attn.attention.rowwise_triton": {
+              "count": 50,
+              "total_seconds": 0.0011525999725563452,
+              "mean_ms": 0.023051999451126903,
+              "max_ms": 0.037196004996076226
+            },
+            "full_attn.o_proj.rowwise_triton": {
+              "count": 50,
+              "total_seconds": 0.005645379074849188,
+              "mean_ms": 0.11290758149698377,
+              "max_ms": 0.3177250036969781
+            },
+            "full_attn_t1.cache_write": {
+              "count": 50,
+              "total_seconds": 0.0008169720094883814,
+              "mean_ms": 0.01633944018976763,
+              "max_ms": 0.018391001503914595
+            },
+            "full_attn_t1.gate": {
+              "count": 50,
+              "total_seconds": 0.0011150350037496537,
+              "mean_ms": 0.022300700074993074,
+              "max_ms": 0.025496992748230696
+            },
+            "full_attn_t1.o_proj_total": {
+              "count": 50,
+              "total_seconds": 0.006352464944939129,
+              "mean_ms": 0.12704929889878258,
+              "max_ms": 0.33158500446006656
+            },
+            "full_attn_t1.qkv": {
+              "count": 50,
+              "total_seconds": 0.011185549039510079,
+              "mean_ms": 0.22371098079020157,
+              "max_ms": 0.23153499932959676
+            },
+            "full_attn_t1.rope": {
+              "count": 50,
+              "total_seconds": 0.002364386004046537,
+              "mean_ms": 0.04728772008093074,
+              "max_ms": 0.06149199907667935
+            }
+          }
+        },
+        {
+          "prompt_id": "prompt_001",
+          "prompt": "If a train travels 60 mph for 2.5 hours, how far does it go?",
+          "new_ids": [
+            271,
+            1206,
+            1423,
+            279,
+            5821,
+            11
+          ],
+          "new_ids_head": [
+            271,
+            1206,
+            1423,
+            279,
+            5821,
+            11
+          ],
+          "completion_head": "\n\nTo find the distance,",
+          "exact_match": true,
+          "prefix_match_len": 6,
+          "wall_seconds": 0.5841183662414551,
+          "decode_tps": 34.61109488231926,
+          "spec_active": false,
+          "spec_events": 0,
+          "spec_accept_rate": null,
+          "spec_draft_k": null,
+          "spec_draft_tokens_proposed": 0,
+          "spec_accepted_draft_tokens": 0,
+          "spec_draft_accept_rate": null,
+          "spec_tokens_per_event": null,
+          "spec_effective_token_tps": null,
+          "shadow_events": 0,
+          "shadow_accept_rate": null,
+          "stopped_reason": "max_new",
+          "mtp_profile": {
+            "full_attn.attention.rowwise_triton": {
+              "count": 50,
+              "total_seconds": 0.0012093430268578231,
+              "mean_ms": 0.024186860537156463,
+              "max_ms": 0.03890899824909866
+            },
+            "full_attn.o_proj.rowwise_triton": {
+              "count": 50,
+              "total_seconds": 0.005483012006152421,
+              "mean_ms": 0.10966024012304842,
+              "max_ms": 0.2216279972344637
+            },
+            "full_attn_t1.cache_write": {
+              "count": 50,
+              "total_seconds": 0.0008322999783558771,
+              "mean_ms": 0.016645999567117542,
+              "max_ms": 0.018310995073989034
+            },
+            "full_attn_t1.gate": {
+              "count": 50,
+              "total_seconds": 0.0011449070880189538,
+              "mean_ms": 0.022898141760379076,
+              "max_ms": 0.036940997233614326
+            },
+            "full_attn_t1.o_proj_total": {
+              "count": 50,
+              "total_seconds": 0.006193762936163694,
+              "mean_ms": 0.12387525872327389,
+              "max_ms": 0.23625799803994596
+            },
+            "full_attn_t1.qkv": {
+              "count": 50,
+              "total_seconds": 0.011267662994214334,
+              "mean_ms": 0.22535325988428667,
+              "max_ms": 0.24983000184874982
+            },
+            "full_attn_t1.rope": {
+              "count": 50,
+              "total_seconds": 0.00248193004517816,
+              "mean_ms": 0.0496386009035632,
+              "max_ms": 0.078858996857889
+            }
+          }
+        }
+      ]
+    },
+    {
+      "label": "shadow",
+      "env_overrides": {
+        "LYNN_MTP_SHADOW_VERIFY": "1",
+        "LYNN_MTP_SPECULATIVE": "0"
+      },
+      "rows": [
+        {
+          "prompt_id": "prompt_000",
+          "prompt": "用一句话解释 speculative decoding 的核心思想。",
+          "new_ids": [
+            271,
+            248068,
+            198,
+            8160,
+            579,
+            264
+          ],
+          "new_ids_head": [
+            271,
+            248068,
+            198,
+            8160,
+            579,
+            264
+          ],
+          "completion_head": "\n\n<think>\nHere's a",
+          "exact_match": true,
+          "prefix_match_len": 6,
+          "wall_seconds": 0.541262149810791,
+          "decode_tps": 31.4616531697906,
+          "spec_active": false,
+          "spec_events": 0,
+          "spec_accept_rate": null,
+          "spec_draft_k": null,
+          "spec_draft_tokens_proposed": 0,
+          "spec_accepted_draft_tokens": 0,
+          "spec_draft_accept_rate": null,
+          "spec_tokens_per_event": null,
+          "spec_effective_token_tps": null,
+          "shadow_events": 6,
+          "shadow_accept_rate": 0.5,
+          "stopped_reason": "max_new",
+          "mtp_profile": {
+            "full_attn.attention.rowwise_triton": {
+              "count": 50,
+              "total_seconds": 0.0011584509775275365,
+              "mean_ms": 0.02316901955055073,
+              "max_ms": 0.0375809904653579
+            },
+            "full_attn.o_proj.rowwise_triton": {
+              "count": 50,
+              "total_seconds": 0.005362507014069706,
+              "mean_ms": 0.10725014028139412,
+              "max_ms": 0.1358230074401945
+            },
+            "full_attn_t1.cache_write": {
+              "count": 50,
+              "total_seconds": 0.0008294599683722481,
+              "mean_ms": 0.016589199367444962,
+              "max_ms": 0.01891898864414543
+            },
+            "full_attn_t1.gate": {
+              "count": 50,
+              "total_seconds": 0.0011073090136051178,
+              "mean_ms": 0.022146180272102356,
+              "max_ms": 0.024280001525767148
+            },
+            "full_attn_t1.o_proj_total": {
+              "count": 50,
+              "total_seconds": 0.006069343988201581,
+              "mean_ms": 0.12138687976403162,
+              "max_ms": 0.14963500143494457
+            },
+            "full_attn_t1.qkv": {
+              "count": 50,
+              "total_seconds": 0.011191496989340521,
+              "mean_ms": 0.22382993978681043,
+              "max_ms": 0.23284800408873707
+            },
+            "full_attn_t1.rope": {
+              "count": 50,
+              "total_seconds": 0.002415038994513452,
+              "mean_ms": 0.04830077989026904,
+              "max_ms": 0.0685199920553714
+            }
+          }
+        },
+        {
+          "prompt_id": "prompt_001",
+          "prompt": "If a train travels 60 mph for 2.5 hours, how far does it go?",
+          "new_ids": [
+            271,
+            1206,
+            1423,
+            279,
+            5821,
+            11
+          ],
+          "new_ids_head": [
+            271,
+            1206,
+            1423,
+            279,
+            5821,
+            11
+          ],
+          "completion_head": "\n\nTo find the distance,",
+          "exact_match": true,
+          "prefix_match_len": 6,
+          "wall_seconds": 0.5768594741821289,
+          "decode_tps": 31.688128012571585,
+          "spec_active": false,
+          "spec_events": 0,
+          "spec_accept_rate": null,
+          "spec_draft_k": null,
+          "spec_draft_tokens_proposed": 0,
+          "spec_accepted_draft_tokens": 0,
+          "spec_draft_accept_rate": null,
+          "spec_tokens_per_event": null,
+          "spec_effective_token_tps": null,
+          "shadow_events": 6,
+          "shadow_accept_rate": 1.0,
+          "stopped_reason": "max_new",
+          "mtp_profile": {
+            "full_attn.attention.rowwise_triton": {
+              "count": 50,
+              "total_seconds": 0.001176570018287748,
+              "mean_ms": 0.023531400365754962,
+              "max_ms": 0.03146700328215957
+            },
+            "full_attn.o_proj.rowwise_triton": {
+              "count": 50,
+              "total_seconds": 0.005473387034726329,
+              "mean_ms": 0.10946774069452658,
+              "max_ms": 0.26110000908374786
+            },
+            "full_attn_t1.cache_write": {
+              "count": 50,
+              "total_seconds": 0.0008351859578397125,
+              "mean_ms": 0.01670371915679425,
+              "max_ms": 0.02818599750753492
+            },
+            "full_attn_t1.gate": {
+              "count": 50,
+              "total_seconds": 0.001114268961828202,
+              "mean_ms": 0.02228537923656404,
+              "max_ms": 0.025752990040928125
+            },
+            "full_attn_t1.o_proj_total": {
+              "count": 50,
+              "total_seconds": 0.006187565944856033,
+              "mean_ms": 0.12375131889712067,
+              "max_ms": 0.2756970061454922
+            },
+            "full_attn_t1.qkv": {
+              "count": 50,
+              "total_seconds": 0.011298476019874215,
+              "mean_ms": 0.2259695203974843,
+              "max_ms": 0.3246729902457446
+            },
+            "full_attn_t1.rope": {
+              "count": 50,
+              "total_seconds": 0.002393145055975765,
+              "mean_ms": 0.0478629011195153,
+              "max_ms": 0.05547500040847808
+            }
+          }
+        }
+      ]
+    },
+    {
+      "label": "spec_k1",
+      "env_overrides": {
+        "LYNN_MTP_SHADOW_VERIFY": "0",
+        "LYNN_MTP_SPECULATIVE": "1",
+        "LYNN_MTP_SPECULATIVE_BATCHED": "0",
+        "LYNN_LINEAR_BLOCK_GRAPH": "0",
+        "LYNN_LINEAR_BLOCK_GRAPH_REUSE": "0"
+      },
+      "rows": [
+        {
+          "prompt_id": "prompt_000",
+          "prompt": "用一句话解释 speculative decoding 的核心思想。",
+          "new_ids": [
+            271,
+            248068,
+            198,
+            8160,
+            579,
+            264
+          ],
+          "new_ids_head": [
+            271,
+            248068,
+            198,
+            8160,
+            579,
+            264
+          ],
+          "completion_head": "\n\n<think>\nHere's a",
+          "exact_match": true,
+          "prefix_match_len": 6,
+          "wall_seconds": 0.6135916709899902,
+          "decode_tps": null,
+          "spec_active": true,
+          "spec_events": 4,
+          "spec_accept_rate": 0.5,
+          "spec_draft_k": null,
+          "spec_draft_tokens_proposed": 4,
+          "spec_accepted_draft_tokens": 2,
+          "spec_draft_accept_rate": 0.5,
+          "spec_tokens_per_event": 1.25,
+          "spec_effective_token_tps": 20.496192792938952,
+          "shadow_events": 0,
+          "shadow_accept_rate": null,
+          "stopped_reason": "max_new",
+          "mtp_profile": {
+            "full_attn.attention.rowwise_triton": {
+              "count": 80,
+              "total_seconds": 0.001829462024034001,
+              "mean_ms": 0.02286827530042501,
+              "max_ms": 0.032234995160251856
+            },
+            "full_attn.o_proj.rowwise_triton": {
+              "count": 80,
+              "total_seconds": 0.00844828097615391,
+              "mean_ms": 0.10560351220192388,
+              "max_ms": 0.11698500020429492
+            },
+            "full_attn_t1.cache_write": {
+              "count": 80,
+              "total_seconds": 0.001313816974288784,
+              "mean_ms": 0.0164227121786098,
+              "max_ms": 0.020966996089555323
+            },
+            "full_attn_t1.gate": {
+              "count": 80,
+              "total_seconds": 0.001772876043105498,
+              "mean_ms": 0.022160950538818724,
+              "max_ms": 0.028297989047132432
+            },
+            "full_attn_t1.o_proj_total": {
+              "count": 80,
+              "total_seconds": 0.00957396898593288,
+              "mean_ms": 0.11967461232416099,
+              "max_ms": 0.13774499529972672
+            },
+            "full_attn_t1.qkv": {
+              "count": 80,
+              "total_seconds": 0.01794434097246267,
+              "mean_ms": 0.22430426215578336,
+              "max_ms": 0.27251099527347833
+            },
+            "full_attn_t1.rope": {
+              "count": 80,
+              "total_seconds": 0.003782799918553792,
+              "mean_ms": 0.0472849989819224,
+              "max_ms": 0.0553639983991161
+            },
+            "k1.mtp_draft": {
+              "count": 4,
+              "total_seconds": 0.010368954011937603,
+              "mean_ms": 2.592238502984401,
+              "max_ms": 2.6278790028300136
+            },
+            "t1_decode.final_norm_lm_head": {
+              "count": 8,
+              "total_seconds": 0.01050525699974969,
+              "mean_ms": 1.3131571249687113,
+              "max_ms": 1.4332849968923256
+            },
+            "t1_decode.layers_total": {
+              "count": 8,
+              "total_seconds": 0.21798181399935856,
+              "mean_ms": 27.24772674991982,
+              "max_ms": 27.75645900692325
+            },
+            "t1_decode.setup_embedding": {
+              "count": 8,
+              "total_seconds": 0.00028665999707300216,
+              "mean_ms": 0.03583249963412527,
+              "max_ms": 0.039902006392367184
+            },
+            "t1_decode.total": {
+              "count": 8,
+              "total_seconds": 0.22893876300076954,
+              "mean_ms": 28.617345375096193,
+              "max_ms": 29.116166013409384
+            }
+          }
+        },
+        {
+          "prompt_id": "prompt_001",
+          "prompt": "If a train travels 60 mph for 2.5 hours, how far does it go?",
+          "new_ids": [
+            271,
+            1206,
+            1423,
+            279,
+            5821,
+            11
+          ],
+          "new_ids_head": [
+            271,
+            1206,
+            1423,
+            279,
+            5821,
+            11
+          ],
+          "completion_head": "\n\nTo find the distance,",
+          "exact_match": true,
+          "prefix_match_len": 6,
+          "wall_seconds": 0.6002984046936035,
+          "decode_tps": null,
+          "spec_active": true,
+          "spec_events": 3,
+          "spec_accept_rate": 1.0,
+          "spec_draft_k": null,
+          "spec_draft_tokens_proposed": 3,
+          "spec_accepted_draft_tokens": 3,
+          "spec_draft_accept_rate": 1.0,
+          "spec_tokens_per_event": 1.6666666666666667,
+          "spec_effective_token_tps": 27.26849787081884,
+          "shadow_events": 0,
+          "shadow_accept_rate": null,
+          "stopped_reason": "max_new",
+          "mtp_profile": {
+            "full_attn.attention.rowwise_triton": {
+              "count": 60,
+              "total_seconds": 0.001396574021782726,
+              "mean_ms": 0.023276233696378767,
+              "max_ms": 0.028170004952698946
+            },
+            "full_attn.o_proj.rowwise_triton": {
+              "count": 60,
+              "total_seconds": 0.006418578079319559,
+              "mean_ms": 0.10697630132199265,
+              "max_ms": 0.16297001275233924
+            },
+            "full_attn_t1.cache_write": {
+              "count": 60,
+              "total_seconds": 0.0009880460565909743,
+              "mean_ms": 0.016467434276516237,
+              "max_ms": 0.019365994376130402
+            },
+            "full_attn_t1.gate": {
+              "count": 60,
+              "total_seconds": 0.001341132985544391,
+              "mean_ms": 0.02235221642573985,
+              "max_ms": 0.025802000891417265
+            },
+            "full_attn_t1.o_proj_total": {
+              "count": 60,
+              "total_seconds": 0.007256844997755252,
+              "mean_ms": 0.1209474166292542,
+              "max_ms": 0.1768629881553352
+            },
+            "full_attn_t1.qkv": {
+              "count": 60,
+              "total_seconds": 0.01347532996442169,
+              "mean_ms": 0.22458883274036148,
+              "max_ms": 0.25012000696733594
+            },
+            "full_attn_t1.rope": {
+              "count": 60,
+              "total_seconds": 0.002855425962479785,
+              "mean_ms": 0.04759043270799642,
+              "max_ms": 0.0553639983991161
+            },
+            "k1.mtp_draft": {
+              "count": 3,
+              "total_seconds": 0.007714040999417193,
+              "mean_ms": 2.5713469998057312,
+              "max_ms": 2.581569002359174
+            },
+            "t1_decode.final_norm_lm_head": {
+              "count": 6,
+              "total_seconds": 0.008151925008860417,
+              "mean_ms": 1.3586541681434028,
+              "max_ms": 1.5290370065486059
+            },
+            "t1_decode.layers_total": {
+              "count": 6,
+              "total_seconds": 0.16456714799278416,
+              "mean_ms": 27.42785799879736,
+              "max_ms": 28.24468500330113
+            },
+            "t1_decode.setup_embedding": {
+              "count": 6,
+              "total_seconds": 0.00021446100436151028,
+              "mean_ms": 0.03574350072691838,
+              "max_ms": 0.039054008084349334
+            },
+            "t1_decode.total": {
+              "count": 6,
+              "total_seconds": 0.17305754401604645,
+              "mean_ms": 28.84292400267441,
+              "max_ms": 29.732139999396168
+            }
+          }
+        }
+      ]
+    },
+    {
+      "label": "spec_k1_batched",
+      "env_overrides": {
+        "LYNN_MTP_SHADOW_VERIFY": "0",
+        "LYNN_MTP_SPECULATIVE": "1",
+        "LYNN_MTP_SPECULATIVE_BATCHED": "1",
+        "LYNN_LINEAR_BLOCK_GRAPH": "0",
+        "LYNN_LINEAR_BLOCK_GRAPH_REUSE": "0"
+      },
+      "rows": [
+        {
+          "prompt_id": "prompt_000",
+          "prompt": "用一句话解释 speculative decoding 的核心思想。",
+          "new_ids": [
+            271,
+            248068,
+            198,
+            8160,
+            579,
+            264
+          ],
+          "new_ids_head": [
+            271,
+            248068,
+            198,
+            8160,
+            579,
+            264
+          ],
+          "completion_head": "\n\n<think>\nHere's a",
+          "exact_match": true,
+          "prefix_match_len": 6,
+          "wall_seconds": 1.0029289722442627,
+          "decode_tps": null,
+          "spec_active": true,
+          "spec_events": 4,
+          "spec_accept_rate": 0.5,
+          "spec_draft_k": null,
+          "spec_draft_tokens_proposed": 4,
+          "spec_accepted_draft_tokens": 2,
+          "spec_draft_accept_rate": 0.5,
+          "spec_tokens_per_event": 1.25,
+          "spec_effective_token_tps": 7.9023629630997325,
+          "shadow_events": 0,
+          "shadow_accept_rate": null,
+          "stopped_reason": "max_new",
+          "mtp_profile": {
+            "full_attn.attention.rowwise_triton": {
+              "count": 20,
+              "total_seconds": 0.000459412025520578,
+              "mean_ms": 0.0229706012760289,
+              "max_ms": 0.028234993806108832
+            },
+            "full_attn.o_proj.rowwise_triton": {
+              "count": 100,
+              "total_seconds": 0.007987148856045678,
+              "mean_ms": 0.07987148856045678,
+              "max_ms": 0.1418269966961816
+            },
+            "full_attn_k2.cache_write": {
+              "count": 40,
+              "total_seconds": 0.0007051040447549894,
+              "mean_ms": 0.017627601118874736,
+              "max_ms": 0.06063000182621181
+            },
+            "full_attn_k2.gate_batched": {
+              "count": 40,
+              "total_seconds": 0.001049880956998095,
+              "mean_ms": 0.026247023924952373,
+              "max_ms": 0.14610099606215954
+            },
+            "full_attn_k2.rowwise_cat": {
+              "count": 40,
+              "total_seconds": 0.047258973005227745,
+              "mean_ms": 1.1814743251306936,
+              "max_ms": 46.36532400036231
+            },
+            "full_attn_k2.rowwise_o_cat": {
+              "count": 40,
+              "total_seconds": 0.000375652001821436,
+              "mean_ms": 0.0093913000455359,
+              "max_ms": 0.03021799784619361
+            },
+            "full_attn_k2.rowwise_o_prep": {
+              "count": 80,
+              "total_seconds": 0.0010817970323842019,
+              "mean_ms": 0.013522462904802524,
+              "max_ms": 0.07332199311349541
+            },
+            "full_attn_k2.rowwise_qkv": {
+              "count": 80,
+              "total_seconds": 0.01806534602656029,
+              "mean_ms": 0.22581682533200365,
+              "max_ms": 0.33554401306901127
+            },
+            "full_attn_k2.rowwise_rope": {
+              "count": 80,
+              "total_seconds": 0.0038499879592563957,
+              "mean_ms": 0.048124849490704946,
+              "max_ms": 0.08499099931214005
+            },
+            "full_attn_t1.cache_write": {
+              "count": 20,
+              "total_seconds": 0.0003248699940741062,
+              "mean_ms": 0.01624349970370531,
+              "max_ms": 0.017269994714297354
+            },
+            "full_attn_t1.gate": {
+              "count": 20,
+              "total_seconds": 0.00044691096991300583,
+              "mean_ms": 0.02234554849565029,
+              "max_ms": 0.025385001208633184
+            },
+            "full_attn_t1.o_proj_total": {
+              "count": 20,
+              "total_seconds": 0.0024641609779791906,
+              "mean_ms": 0.12320804889895953,
+              "max_ms": 0.15610399714205414
+            },
+            "full_attn_t1.qkv": {
+              "count": 20,
+              "total_seconds": 0.004452409993973561,
+              "mean_ms": 0.22262049969867803,
+              "max_ms": 0.2334589953534305
+            },
+            "full_attn_t1.rope": {
+              "count": 20,
+              "total_seconds": 0.000949296954786405,
+              "mean_ms": 0.04746484773932025,
+              "max_ms": 0.05180999869480729
+            },
+            "k1_batched.k2_forward": {
+              "count": 4,
+              "total_seconds": 0.5492661070020404,
+              "mean_ms": 137.3165267505101,
+              "max_ms": 390.01870100037195
+            },
+            "k1_batched.lm_head": {
+              "count": 4,
+              "total_seconds": 0.009920862998114899,
+              "mean_ms": 2.4802157495287247,
+              "max_ms": 2.4951649975264445
+            },
+            "k1_batched.mtp_draft": {
+              "count": 4,
+              "total_seconds": 0.010399151025922038,
+              "mean_ms": 2.5997877564805094,
+              "max_ms": 2.672220012755133
+            },
+            "k1_batched.reject_redecode_pending": {
+              "count": 2,
+              "total_seconds": 0.05819499198696576,
+              "mean_ms": 29.09749599348288,
+              "max_ms": 29.565510994871147
+            },
+            "k1_batched.snapshot_pre_batch": {
+              "count": 4,
+              "total_seconds": 0.0028275860095163807,
+              "mean_ms": 0.7068965023790952,
+              "max_ms": 0.73051500658039
+            },
+            "k2_layer.full_attention": {
+              "count": 40,
+              "total_seconds": 0.37038012997072656,
+              "mean_ms": 9.259503249268164,
+              "max_ms": 335.1585819909815
+            },
+            "k2_layer.linear_attention": {
+              "count": 120,
+              "total_seconds": 0.06342890705855098,
+              "mean_ms": 0.5285742254879249,
+              "max_ms": 0.7748060015728697
+            },
+            "k2_layer.moe": {
+              "count": 160,
+              "total_seconds": 0.09601063090667594,
+              "mean_ms": 0.6000664431667246,
+              "max_ms": 0.9305569983553141
+            },
+            "t1_decode.final_norm_lm_head": {
+              "count": 2,
+              "total_seconds": 0.0025942719948943704,
+              "mean_ms": 1.2971359974471852,
+              "max_ms": 1.298128001508303
+            },
+            "t1_decode.layers_total": {
+              "count": 2,
+              "total_seconds": 0.05536940500314813,
+              "mean_ms": 27.684702501574066,
+              "max_ms": 28.126613004133105
+            },
+            "t1_decode.setup_embedding": {
+              "count": 2,
+              "total_seconds": 0.00011807501141447574,
+              "mean_ms": 0.05903750570723787,
+              "max_ms": 0.08100499690044671
+            },
+            "t1_decode.total": {
+              "count": 2,
+              "total_seconds": 0.058122262998949736,
+              "mean_ms": 29.061131499474868,
+              "max_ms": 29.5264739979757
+            }
+          }
+        },
+        {
+          "prompt_id": "prompt_001",
+          "prompt": "If a train travels 60 mph for 2.5 hours, how far does it go?",
+          "new_ids": [
+            271,
+            1206,
+            1423,
+            279,
+            5821,
+            11
+          ],
+          "new_ids_head": [
+            271,
+            1206,
+            1423,
+            279,
+            5821,
+            11
+          ],
+          "completion_head": "\n\nTo find the distance,",
+          "exact_match": true,
+          "prefix_match_len": 6,
+          "wall_seconds": 0.6291730403900146,
+          "decode_tps": null,
+          "spec_active": true,
+          "spec_events": 3,
+          "spec_accept_rate": 1.0,
+          "spec_draft_k": null,
+          "spec_draft_tokens_proposed": 3,
+          "spec_accepted_draft_tokens": 3,
+          "spec_draft_accept_rate": 1.0,
+          "spec_tokens_per_event": 1.6666666666666667,
+          "spec_effective_token_tps": 27.818852306794366,
+          "shadow_events": 0,
+          "shadow_accept_rate": null,
+          "stopped_reason": "max_new",
+          "mtp_profile": {
+            "full_attn.o_proj.rowwise_triton": {
+              "count": 60,
+              "total_seconds": 0.004322030014009215,
+              "mean_ms": 0.07203383356682025,
+              "max_ms": 0.14213200483936816
+            },
+            "full_attn_k2.cache_write": {
+              "count": 30,
+              "total_seconds": 0.0005230530368862674,
+              "mean_ms": 0.017435101229542248,
+              "max_ms": 0.04768199869431555
+            },
+            "full_attn_k2.gate_batched": {
+              "count": 30,
+              "total_seconds": 0.0006842009752290323,
+              "mean_ms": 0.022806699174301077,
+              "max_ms": 0.027385991415940225
+            },
+            "full_attn_k2.rowwise_cat": {
+              "count": 30,
+              "total_seconds": 0.0006736509967595339,
+              "mean_ms": 0.022455033225317795,
+              "max_ms": 0.02477700763847679
+            },
+            "full_attn_k2.rowwise_o_cat": {
+              "count": 30,
+              "total_seconds": 0.0002609119692351669,
+              "mean_ms": 0.00869706564117223,
+              "max_ms": 0.010115996701642871
+            },
+            "full_attn_k2.rowwise_o_prep": {
+              "count": 60,
+              "total_seconds": 0.0007744249742245302,
+              "mean_ms": 0.012907082903742168,
+              "max_ms": 0.02903499989770353
+            },
+            "full_attn_k2.rowwise_qkv": {
+              "count": 60,
+              "total_seconds": 0.0134870079200482,
+              "mean_ms": 0.22478346533413668,
+              "max_ms": 0.2938499965239316
+            },
+            "full_attn_k2.rowwise_rope": {
+              "count": 60,
+              "total_seconds": 0.0028269269969314337,
+              "mean_ms": 0.04711544994885723,
+              "max_ms": 0.06386300083249807
+            },
+            "k1_batched.k2_forward": {
+              "count": 3,
+              "total_seconds": 0.1618332450016169,
+              "mean_ms": 53.94441500053896,
+              "max_ms": 54.50925399782136
+            },
+            "k1_batched.lm_head": {
+              "count": 3,
+              "total_seconds": 0.007493734985473566,
+              "mean_ms": 2.497911661824522,
+              "max_ms": 2.536214000429027
+            },
+            "k1_batched.mtp_draft": {
+              "count": 3,
+              "total_seconds": 0.007797363985446282,
+              "mean_ms": 2.5991213284820938,
+              "max_ms": 2.657905002706684
+            },
+            "k1_batched.snapshot_pre_batch": {
+              "count": 3,
+              "total_seconds": 0.0021384540013968945,
+              "mean_ms": 0.7128180004656315,
+              "max_ms": 0.7376749999821186
+            },
+            "k2_layer.full_attention": {
+              "count": 30,
+              "total_seconds": 0.027000680012861267,
+              "mean_ms": 0.9000226670953756,
+              "max_ms": 1.031477004289627
+            },
+            "k2_layer.linear_attention": {
+              "count": 90,
+              "total_seconds": 0.047046836029039696,
+              "mean_ms": 0.5227426225448856,
+              "max_ms": 0.6736360082868487
+            },
+            "k2_layer.moe": {
+              "count": 120,
+              "total_seconds": 0.07334602104674559,
+              "mean_ms": 0.6112168420562132,
+              "max_ms": 1.0019939945777878
+            }
+          }
+        }
+      ]
+    },
+    {
+      "label": "spec_k2_batched",
+      "env_overrides": {
+        "LYNN_MTP_SHADOW_VERIFY": "0",
+        "LYNN_MTP_SPECULATIVE": "1",
+        "LYNN_MTP_SPECULATIVE_BATCHED": "1",
+        "LYNN_MTP_SPECULATIVE_K": "2",
+        "LYNN_LINEAR_BLOCK_GRAPH": "0",
+        "LYNN_LINEAR_BLOCK_GRAPH_REUSE": "0"
+      },
+      "rows": [
+        {
+          "prompt_id": "prompt_000",
+          "prompt": "用一句话解释 speculative decoding 的核心思想。",
+          "new_ids": [
+            271,
+            248068,
+            198,
+            8160,
+            579,
+            264
+          ],
+          "new_ids_head": [
+            271,
+            248068,
+            198,
+            8160,
+            579,
+            264
+          ],
+          "completion_head": "\n\n<think>\nHere's a",
+          "exact_match": true,
+          "prefix_match_len": 6,
+          "wall_seconds": 0.6725480556488037,
+          "decode_tps": null,
+          "spec_active": true,
+          "spec_events": 3,
+          "spec_accept_rate": 0.3333333333333333,
+          "spec_draft_k": null,
+          "spec_draft_tokens_proposed": 6,
+          "spec_accepted_draft_tokens": 2,
+          "spec_draft_accept_rate": 0.3333333333333333,
+          "spec_tokens_per_event": 1.6666666666666667,
+          "spec_effective_token_tps": 16.68581776461256,
+          "shadow_events": 0,
+          "shadow_accept_rate": null,
+          "stopped_reason": "max_new",
+          "mtp_profile": {
+            "block_verify.final_norm_lm_head": {
+              "count": 3,
+              "total_seconds": 0.011189279000973329,
+              "mean_ms": 3.7297596669911095,
+              "max_ms": 3.7421700108097866
+            },
+            "block_verify.layers_total": {
+              "count": 3,
+              "total_seconds": 0.2120376600068994,
+              "mean_ms": 70.6792200022998,
+              "max_ms": 71.38895899697673
+            },
+            "block_verify.setup_embedding": {
+              "count": 3,
+              "total_seconds": 0.00015871398500166833,
+              "mean_ms": 0.052904661667222776,
+              "max_ms": 0.07045699749141932
+            },
+            "block_verify.total": {
+              "count": 3,
+              "total_seconds": 0.22345037900959142,
+              "mean_ms": 74.4834596698638,
+              "max_ms": 75.20430700969882
+            },
+            "full_attn.attention.rowwise_triton": {
+              "count": 110,
+              "total_seconds": 0.002439579024212435,
+              "mean_ms": 0.022177991129203954,
+              "max_ms": 0.041758990846574306
+            },
+            "full_attn.o_proj.rowwise_triton": {
+              "count": 110,
+              "total_seconds": 0.007842339968192391,
+              "mean_ms": 0.07129399971083991,
+              "max_ms": 0.1363529881928116
+            },
+            "full_attn_t1.cache_write": {
+              "count": 110,
+              "total_seconds": 0.0017406030092388391,
+              "mean_ms": 0.01582366372035308,
+              "max_ms": 0.03170699346810579
+            },
+            "full_attn_t1.gate": {
+              "count": 110,
+              "total_seconds": 0.0024626959930174053,
+              "mean_ms": 0.022388145391067323,
+              "max_ms": 0.03354799991939217
+            },
+            "full_attn_t1.o_proj_total": {
+              "count": 110,
+              "total_seconds": 0.009354004025226459,
+              "mean_ms": 0.08503640022933145,
+              "max_ms": 0.15075900591909885
+            },
+            "full_attn_t1.qkv": {
+              "count": 110,
+              "total_seconds": 0.02498241391731426,
+              "mean_ms": 0.227112853793766,
+              "max_ms": 0.3884610050590709
+            },
+            "full_attn_t1.rope": {
+              "count": 110,
+              "total_seconds": 0.004938193073030561,
+              "mean_ms": 0.04489266430027783,
+              "max_ms": 0.07495500904042274
+            },
+            "kn.accept_compare": {
+              "count": 3,
+              "total_seconds": 1.488499401602894e-05,
+              "mean_ms": 0.004961664672009647,
+              "max_ms": 0.0053779949666932225
+            },
+            "kn.block_verify_call": {
+              "count": 3,
+              "total_seconds": 0.22366170398890972,
+              "mean_ms": 74.55390132963657,
+              "max_ms": 75.2758689923212
+            },
+            "kn.conservative_replay": {
+              "count": 2,
+              "total_seconds": 0.05738589400425553,
+              "mean_ms": 28.692947002127767,
+              "max_ms": 28.770375007297844
+            },
+            "kn.draft_chain": {
+              "count": 3,
+              "total_seconds": 0.016140701991389506,
+              "mean_ms": 5.380233997129835,
+              "max_ms": 5.8008819905808195
+            },
+            "kn.draft_one": {
+              "count": 6,
+              "total_seconds": 0.015914219999103807,
+              "mean_ms": 2.6523699998506345,
+              "max_ms": 3.1748920009704307
+            },
+            "kn.full_accept_commit": {
+              "count": 1,
+              "total_seconds": 7.875001756474376e-06,
+              "mean_ms": 0.007875001756474376,
+              "max_ms": 0.007875001756474376
+            },
+            "kn.snapshot_pre_batch": {
+              "count": 3,
+              "total_seconds": 0.0021110830130055547,
+              "mean_ms": 0.7036943376685182,
+              "max_ms": 0.7282470032805577
+            },
+            "t1_decode.final_norm_lm_head": {
+              "count": 2,
+              "total_seconds": 0.0025985719985328615,
+              "mean_ms": 1.2992859992664307,
+              "max_ms": 1.3063450023764744
+            },
+            "t1_decode.layers_total": {
+              "count": 2,
+              "total_seconds": 0.05318126900237985,
+              "mean_ms": 26.590634501189925,
+              "max_ms": 26.676433000830002
+            },
+            "t1_decode.setup_embedding": {
+              "count": 2,
+              "total_seconds": 7.434698636643589e-05,
+              "mean_ms": 0.03717349318321794,
+              "max_ms": 0.03839799319393933
+            },
+            "t1_decode.total": {
+              "count": 2,
+              "total_seconds": 0.05589517999032978,
+              "mean_ms": 27.94758999516489,
+              "max_ms": 28.025449995766394
+            }
+          }
+        },
+        {
+          "prompt_id": "prompt_001",
+          "prompt": "If a train travels 60 mph for 2.5 hours, how far does it go?",
+          "new_ids": [
+            271,
+            1206,
+            1423,
+            279,
+            5821,
+            11
+          ],
+          "new_ids_head": [
+            271,
+            1206,
+            1423,
+            279,
+            5821,
+            11
+          ],
+          "completion_head": "\n\nTo find the distance,",
+          "exact_match": true,
+          "prefix_match_len": 6,
+          "wall_seconds": 0.579643726348877,
+          "decode_tps": null,
+          "spec_active": true,
+          "spec_events": 2,
+          "spec_accept_rate": 1.0,
+          "spec_draft_k": null,
+          "spec_draft_tokens_proposed": 4,
+          "spec_accepted_draft_tokens": 4,
+          "spec_draft_accept_rate": 1.0,
+          "spec_tokens_per_event": 2.5,
+          "spec_effective_token_tps": 30.885254206835207,
+          "shadow_events": 0,
+          "shadow_accept_rate": null,
+          "stopped_reason": "max_new",
+          "mtp_profile": {
+            "block_verify.final_norm_lm_head": {
+              "count": 2,
+              "total_seconds": 0.007478795989300124,
+              "mean_ms": 3.739397994650062,
+              "max_ms": 3.748168994206935
+            },
+            "block_verify.layers_total": {
+              "count": 2,
+              "total_seconds": 0.14218862300913315,
+              "mean_ms": 71.09431150456658,
+              "max_ms": 71.37763900391292
+            },
+            "block_verify.setup_embedding": {
+              "count": 2,
+              "total_seconds": 7.436300802510232e-05,
+              "mean_ms": 0.03718150401255116,
+              "max_ms": 0.03761300467886031
+            },
+            "block_verify.total": {
+              "count": 2,
+              "total_seconds": 0.14978349198645446,
+              "mean_ms": 74.89174599322723,
+              "max_ms": 75.1845329941716
+            },
+            "full_attn.attention.rowwise_triton": {
+              "count": 60,
+              "total_seconds": 0.001322418960626237,
+              "mean_ms": 0.022040316010437287,
+              "max_ms": 0.031836010748520494
+            },
+            "full_attn.o_proj.rowwise_triton": {
+              "count": 60,
+              "total_seconds": 0.003735801001312211,
+              "mean_ms": 0.06226335002187018,
+              "max_ms": 0.10688700422178954
+            },
+            "full_attn_t1.cache_write": {
+              "count": 60,
+              "total_seconds": 0.0009375099471071735,
+              "mean_ms": 0.015625165785119556,
+              "max_ms": 0.02522500290069729
+            },
+            "full_attn_t1.gate": {
+              "count": 60,
+              "total_seconds": 0.0013845459616277367,
+              "mean_ms": 0.023075766027128946,
+              "max_ms": 0.05091399361845106
+            },
+            "full_attn_t1.o_proj_total": {
+              "count": 60,
+              "total_seconds": 0.004542890048469417,
+              "mean_ms": 0.07571483414115694,
+              "max_ms": 0.12063600297551602
+            },
+            "full_attn_t1.qkv": {
+              "count": 60,
+              "total_seconds": 0.013462421004078351,
+              "mean_ms": 0.22437368340130587,
+              "max_ms": 0.24618599854875356
+            },
+            "full_attn_t1.rope": {
+              "count": 60,
+              "total_seconds": 0.0026217739359708503,
+              "mean_ms": 0.04369623226618084,
+              "max_ms": 0.05374800821300596
+            },
+            "kn.accept_compare": {
+              "count": 2,
+              "total_seconds": 8.643997716717422e-06,
+              "mean_ms": 0.004321998858358711,
+              "max_ms": 0.004386005457490683
+            },
+            "kn.block_verify_call": {
+              "count": 2,
+              "total_seconds": 0.1499233189970255,
+              "mean_ms": 74.96165949851274,
+              "max_ms": 75.25607899879105
+            },
+            "kn.draft_chain": {
+              "count": 2,
+              "total_seconds": 0.010378992010373622,
+              "mean_ms": 5.189496005186811,
+              "max_ms": 5.193017001147382
+            },
+            "kn.draft_one": {
+              "count": 4,
+              "total_seconds": 0.0102479679917451,
+              "mean_ms": 2.561991997936275,
+              "max_ms": 2.5804299948504195
+            },
+            "kn.full_accept_commit": {
+              "count": 2,
+              "total_seconds": 1.5541998436674476e-05,
+              "mean_ms": 0.007770999218337238,
+              "max_ms": 0.008130999049171805
+            },
+            "kn.snapshot_pre_batch": {
+              "count": 2,
+              "total_seconds": 0.0014362520014401525,
+              "mean_ms": 0.7181260007200763,
+              "max_ms": 0.7264570012921467
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "baseline": {
+      "exact_match_count": 2,
+      "n_prompts": 2,
+      "exact_match_rate": 1.0,
+      "mean_prefix_match_len": 6.0,
+      "mean_decode_tps_baseline_loop": 34.62847730696415,
+      "mean_spec_effective_tps": null,
+      "mean_spec_accept_rate": null,
+      "mean_draft_accept_rate": null,
+      "draft_tokens_proposed": 0,
+      "accepted_draft_tokens": 0,
+      "mean_shadow_accept_rate": null,
+      "mtp_profile": {
+        "full_attn.attention.rowwise_triton": {
+          "count": 100,
+          "total_seconds": 0.0023619429994141683,
+          "mean_ms": 0.023619429994141683,
+          "max_ms": 0.03890899824909866
+        },
+        "full_attn.o_proj.rowwise_triton": {
+          "count": 100,
+          "total_seconds": 0.01112839108100161,
+          "mean_ms": 0.1112839108100161,
+          "max_ms": 0.3177250036969781
+        },
+        "full_attn_t1.cache_write": {
+          "count": 100,
+          "total_seconds": 0.0016492719878442585,
+          "mean_ms": 0.016492719878442585,
+          "max_ms": 0.018391001503914595
+        },
+        "full_attn_t1.gate": {
+          "count": 100,
+          "total_seconds": 0.0022599420917686075,
+          "mean_ms": 0.022599420917686075,
+          "max_ms": 0.036940997233614326
+        },
+        "full_attn_t1.o_proj_total": {
+          "count": 100,
+          "total_seconds": 0.012546227881102823,
+          "mean_ms": 0.12546227881102823,
+          "max_ms": 0.33158500446006656
+        },
+        "full_attn_t1.qkv": {
+          "count": 100,
+          "total_seconds": 0.022453212033724412,
+          "mean_ms": 0.22453212033724412,
+          "max_ms": 0.24983000184874982
+        },
+        "full_attn_t1.rope": {
+          "count": 100,
+          "total_seconds": 0.004846316049224697,
+          "mean_ms": 0.04846316049224697,
+          "max_ms": 0.078858996857889
+        }
+      }
+    },
+    "shadow": {
+      "exact_match_count": 2,
+      "n_prompts": 2,
+      "exact_match_rate": 1.0,
+      "mean_prefix_match_len": 6.0,
+      "mean_decode_tps_baseline_loop": 31.574890591181095,
+      "mean_spec_effective_tps": null,
+      "mean_spec_accept_rate": null,
+      "mean_draft_accept_rate": null,
+      "draft_tokens_proposed": 0,
+      "accepted_draft_tokens": 0,
+      "mean_shadow_accept_rate": 0.75,
+      "mtp_profile": {
+        "full_attn.attention.rowwise_triton": {
+          "count": 100,
+          "total_seconds": 0.0023350209958152846,
+          "mean_ms": 0.023350209958152846,
+          "max_ms": 0.0375809904653579
+        },
+        "full_attn.o_proj.rowwise_triton": {
+          "count": 100,
+          "total_seconds": 0.010835894048796035,
+          "mean_ms": 0.10835894048796035,
+          "max_ms": 0.26110000908374786
+        },
+        "full_attn_t1.cache_write": {
+          "count": 100,
+          "total_seconds": 0.0016646459262119606,
+          "mean_ms": 0.016646459262119606,
+          "max_ms": 0.02818599750753492
+        },
+        "full_attn_t1.gate": {
+          "count": 100,
+          "total_seconds": 0.00222157797543332,
+          "mean_ms": 0.022215779754333198,
+          "max_ms": 0.025752990040928125
+        },
+        "full_attn_t1.o_proj_total": {
+          "count": 100,
+          "total_seconds": 0.012256909933057614,
+          "mean_ms": 0.12256909933057612,
+          "max_ms": 0.2756970061454922
+        },
+        "full_attn_t1.qkv": {
+          "count": 100,
+          "total_seconds": 0.022489973009214737,
+          "mean_ms": 0.22489973009214737,
+          "max_ms": 0.3246729902457446
+        },
+        "full_attn_t1.rope": {
+          "count": 100,
+          "total_seconds": 0.004808184050489217,
+          "mean_ms": 0.04808184050489217,
+          "max_ms": 0.0685199920553714
+        }
+      }
+    },
+    "spec_k1": {
+      "exact_match_count": 2,
+      "n_prompts": 2,
+      "exact_match_rate": 1.0,
+      "mean_prefix_match_len": 6.0,
+      "mean_decode_tps_baseline_loop": null,
+      "mean_spec_effective_tps": 23.882345331878895,
+      "mean_spec_accept_rate": 0.75,
+      "mean_draft_accept_rate": 0.75,
+      "draft_tokens_proposed": 7,
+      "accepted_draft_tokens": 5,
+      "mean_shadow_accept_rate": null,
+      "mtp_profile": {
+        "full_attn.attention.rowwise_triton": {
+          "count": 140,
+          "total_seconds": 0.003226036045816727,
+          "mean_ms": 0.02304311461297662,
+          "max_ms": 0.032234995160251856
+        },
+        "full_attn.o_proj.rowwise_triton": {
+          "count": 140,
+          "total_seconds": 0.01486685905547347,
+          "mean_ms": 0.10619185039623906,
+          "max_ms": 0.16297001275233924
+        },
+        "full_attn_t1.cache_write": {
+          "count": 140,
+          "total_seconds": 0.0023018630308797583,
+          "mean_ms": 0.016441878791998276,
+          "max_ms": 0.020966996089555323
+        },
+        "full_attn_t1.gate": {
+          "count": 140,
+          "total_seconds": 0.003114009028649889,
+          "mean_ms": 0.022242921633213494,
+          "max_ms": 0.028297989047132432
+        },
+        "full_attn_t1.o_proj_total": {
+          "count": 140,
+          "total_seconds": 0.01683081398368813,
+          "mean_ms": 0.12022009988348666,
+          "max_ms": 0.1768629881553352
+        },
+        "full_attn_t1.qkv": {
+          "count": 140,
+          "total_seconds": 0.03141967093688436,
+          "mean_ms": 0.22442622097774542,
+          "max_ms": 0.27251099527347833
+        },
+        "full_attn_t1.rope": {
+          "count": 140,
+          "total_seconds": 0.006638225881033577,
+          "mean_ms": 0.04741589915023984,
+          "max_ms": 0.0553639983991161
+        },
+        "k1.mtp_draft": {
+          "count": 7,
+          "total_seconds": 0.018082995011354797,
+          "mean_ms": 2.5832850016221136,
+          "max_ms": 2.6278790028300136
+        },
+        "t1_decode.final_norm_lm_head": {
+          "count": 14,
+          "total_seconds": 0.018657182008610107,
+          "mean_ms": 1.3326558577578649,
+          "max_ms": 1.5290370065486059
+        },
+        "t1_decode.layers_total": {
+          "count": 14,
+          "total_seconds": 0.3825489619921427,
+          "mean_ms": 27.324925856581622,
+          "max_ms": 28.24468500330113
+        },
+        "t1_decode.setup_embedding": {
+          "count": 14,
+          "total_seconds": 0.0005011210014345124,
+          "mean_ms": 0.03579435724532232,
+          "max_ms": 0.039902006392367184
+        },
+        "t1_decode.total": {
+          "count": 14,
+          "total_seconds": 0.401996307016816,
+          "mean_ms": 28.71402192977257,
+          "max_ms": 29.732139999396168
+        }
+      }
+    },
+    "spec_k1_batched": {
+      "exact_match_count": 2,
+      "n_prompts": 2,
+      "exact_match_rate": 1.0,
+      "mean_prefix_match_len": 6.0,
+      "mean_decode_tps_baseline_loop": null,
+      "mean_spec_effective_tps": 17.860607634947048,
+      "mean_spec_accept_rate": 0.75,
+      "mean_draft_accept_rate": 0.75,
+      "draft_tokens_proposed": 7,
+      "accepted_draft_tokens": 5,
+      "mean_shadow_accept_rate": null,
+      "mtp_profile": {
+        "full_attn.attention.rowwise_triton": {
+          "count": 20,
+          "total_seconds": 0.000459412025520578,
+          "mean_ms": 0.0229706012760289,
+          "max_ms": 0.028234993806108832
+        },
+        "full_attn.o_proj.rowwise_triton": {
+          "count": 160,
+          "total_seconds": 0.012309178870054893,
+          "mean_ms": 0.07693236793784308,
+          "max_ms": 0.14213200483936816
+        },
+        "full_attn_k2.cache_write": {
+          "count": 70,
+          "total_seconds": 0.0012281570816412568,
+          "mean_ms": 0.01754510116630367,
+          "max_ms": 0.06063000182621181
+        },
+        "full_attn_k2.gate_batched": {
+          "count": 70,
+          "total_seconds": 0.0017340819322271273,
+          "mean_ms": 0.024772599031816105,
+          "max_ms": 0.14610099606215954
+        },
+        "full_attn_k2.rowwise_cat": {
+          "count": 70,
+          "total_seconds": 0.04793262400198728,
+          "mean_ms": 0.6847517714569611,
+          "max_ms": 46.36532400036231
+        },
+        "full_attn_k2.rowwise_o_cat": {
+          "count": 70,
+          "total_seconds": 0.0006365639710566029,
+          "mean_ms": 0.009093771015094327,
+          "max_ms": 0.03021799784619361
+        },
+        "full_attn_k2.rowwise_o_prep": {
+          "count": 140,
+          "total_seconds": 0.001856222006608732,
+          "mean_ms": 0.0132587286186338,
+          "max_ms": 0.07332199311349541
+        },
+        "full_attn_k2.rowwise_qkv": {
+          "count": 140,
+          "total_seconds": 0.03155235394660849,
+          "mean_ms": 0.22537395676148922,
+          "max_ms": 0.33554401306901127
+        },
+        "full_attn_k2.rowwise_rope": {
+          "count": 140,
+          "total_seconds": 0.006676914956187829,
+          "mean_ms": 0.047692249687055925,
+          "max_ms": 0.08499099931214005
+        },
+        "full_attn_t1.cache_write": {
+          "count": 20,
+          "total_seconds": 0.0003248699940741062,
+          "mean_ms": 0.01624349970370531,
+          "max_ms": 0.017269994714297354
+        },
+        "full_attn_t1.gate": {
+          "count": 20,
+          "total_seconds": 0.00044691096991300583,
+          "mean_ms": 0.02234554849565029,
+          "max_ms": 0.025385001208633184
+        },
+        "full_attn_t1.o_proj_total": {
+          "count": 20,
+          "total_seconds": 0.0024641609779791906,
+          "mean_ms": 0.12320804889895953,
+          "max_ms": 0.15610399714205414
+        },
+        "full_attn_t1.qkv": {
+          "count": 20,
+          "total_seconds": 0.004452409993973561,
+          "mean_ms": 0.22262049969867803,
+          "max_ms": 0.2334589953534305
+        },
+        "full_attn_t1.rope": {
+          "count": 20,
+          "total_seconds": 0.000949296954786405,
+          "mean_ms": 0.04746484773932025,
+          "max_ms": 0.05180999869480729
+        },
+        "k1_batched.k2_forward": {
+          "count": 7,
+          "total_seconds": 0.7110993520036573,
+          "mean_ms": 101.58562171480818,
+          "max_ms": 390.01870100037195
+        },
+        "k1_batched.lm_head": {
+          "count": 7,
+          "total_seconds": 0.017414597983588465,
+          "mean_ms": 2.4877997119412094,
+          "max_ms": 2.536214000429027
+        },
+        "k1_batched.mtp_draft": {
+          "count": 7,
+          "total_seconds": 0.01819651501136832,
+          "mean_ms": 2.5995021444811885,
+          "max_ms": 2.672220012755133
+        },
+        "k1_batched.reject_redecode_pending": {
+          "count": 2,
+          "total_seconds": 0.05819499198696576,
+          "mean_ms": 29.09749599348288,
+          "max_ms": 29.565510994871147
+        },
+        "k1_batched.snapshot_pre_batch": {
+          "count": 7,
+          "total_seconds": 0.004966040010913275,
+          "mean_ms": 0.709434287273325,
+          "max_ms": 0.7376749999821186
+        },
+        "k2_layer.full_attention": {
+          "count": 70,
+          "total_seconds": 0.3973808099835878,
+          "mean_ms": 5.676868714051254,
+          "max_ms": 335.1585819909815
+        },
+        "k2_layer.linear_attention": {
+          "count": 210,
+          "total_seconds": 0.11047574308759067,
+          "mean_ms": 0.5260749670837651,
+          "max_ms": 0.7748060015728697
+        },
+        "k2_layer.moe": {
+          "count": 280,
+          "total_seconds": 0.16935665195342153,
+          "mean_ms": 0.604845185547934,
+          "max_ms": 1.0019939945777878
+        },
+        "t1_decode.final_norm_lm_head": {
+          "count": 2,
+          "total_seconds": 0.0025942719948943704,
+          "mean_ms": 1.2971359974471852,
+          "max_ms": 1.298128001508303
+        },
+        "t1_decode.layers_total": {
+          "count": 2,
+          "total_seconds": 0.05536940500314813,
+          "mean_ms": 27.684702501574066,
+          "max_ms": 28.126613004133105
+        },
+        "t1_decode.setup_embedding": {
+          "count": 2,
+          "total_seconds": 0.00011807501141447574,
+          "mean_ms": 0.05903750570723787,
+          "max_ms": 0.08100499690044671
+        },
+        "t1_decode.total": {
+          "count": 2,
+          "total_seconds": 0.058122262998949736,
+          "mean_ms": 29.061131499474868,
+          "max_ms": 29.5264739979757
+        }
+      }
+    },
+    "spec_k2_batched": {
+      "exact_match_count": 2,
+      "n_prompts": 2,
+      "exact_match_rate": 1.0,
+      "mean_prefix_match_len": 6.0,
+      "mean_decode_tps_baseline_loop": null,
+      "mean_spec_effective_tps": 23.785535985723882,
+      "mean_spec_accept_rate": 0.6666666666666666,
+      "mean_draft_accept_rate": 0.6666666666666666,
+      "draft_tokens_proposed": 10,
+      "accepted_draft_tokens": 6,
+      "mean_shadow_accept_rate": null,
+      "mtp_profile": {
+        "block_verify.final_norm_lm_head": {
+          "count": 5,
+          "total_seconds": 0.018668074990273453,
+          "mean_ms": 3.7336149980546907,
+          "max_ms": 3.748168994206935
+        },
+        "block_verify.layers_total": {
+          "count": 5,
+          "total_seconds": 0.35422628301603254,
+          "mean_ms": 70.84525660320651,
+          "max_ms": 71.38895899697673
+        },
+        "block_verify.setup_embedding": {
+          "count": 5,
+          "total_seconds": 0.00023307699302677065,
+          "mean_ms": 0.04661539860535413,
+          "max_ms": 0.07045699749141932
+        },
+        "block_verify.total": {
+          "count": 5,
+          "total_seconds": 0.3732338709960459,
+          "mean_ms": 74.64677419920918,
+          "max_ms": 75.20430700969882
+        },
+        "full_attn.attention.rowwise_triton": {
+          "count": 170,
+          "total_seconds": 0.003761997984838672,
+          "mean_ms": 0.022129399910815716,
+          "max_ms": 0.041758990846574306
+        },
+        "full_attn.o_proj.rowwise_triton": {
+          "count": 170,
+          "total_seconds": 0.011578140969504602,
+          "mean_ms": 0.06810671158532118,
+          "max_ms": 0.1363529881928116
+        },
+        "full_attn_t1.cache_write": {
+          "count": 170,
+          "total_seconds": 0.0026781129563460127,
+          "mean_ms": 0.01575360562556478,
+          "max_ms": 0.03170699346810579
+        },
+        "full_attn_t1.gate": {
+          "count": 170,
+          "total_seconds": 0.003847241954645142,
+          "mean_ms": 0.022630835027324363,
+          "max_ms": 0.05091399361845106
+        },
+        "full_attn_t1.o_proj_total": {
+          "count": 170,
+          "total_seconds": 0.013896894073695876,
+          "mean_ms": 0.08174643572762279,
+          "max_ms": 0.15075900591909885
+        },
+        "full_attn_t1.qkv": {
+          "count": 170,
+          "total_seconds": 0.03844483492139261,
+          "mean_ms": 0.2261460877728977,
+          "max_ms": 0.3884610050590709
+        },
+        "full_attn_t1.rope": {
+          "count": 170,
+          "total_seconds": 0.0075599670090014115,
+          "mean_ms": 0.04447039417059654,
+          "max_ms": 0.07495500904042274
+        },
+        "kn.accept_compare": {
+          "count": 5,
+          "total_seconds": 2.3528991732746363e-05,
+          "mean_ms": 0.0047057983465492725,
+          "max_ms": 0.0053779949666932225
+        },
+        "kn.block_verify_call": {
+          "count": 5,
+          "total_seconds": 0.3735850229859352,
+          "mean_ms": 74.71700459718704,
+          "max_ms": 75.2758689923212
+        },
+        "kn.conservative_replay": {
+          "count": 2,
+          "total_seconds": 0.05738589400425553,
+          "mean_ms": 28.692947002127767,
+          "max_ms": 28.770375007297844
+        },
+        "kn.draft_chain": {
+          "count": 5,
+          "total_seconds": 0.026519694001763128,
+          "mean_ms": 5.3039388003526255,
+          "max_ms": 5.8008819905808195
+        },
+        "kn.draft_one": {
+          "count": 10,
+          "total_seconds": 0.026162187990848906,
+          "mean_ms": 2.6162187990848906,
+          "max_ms": 3.1748920009704307
+        },
+        "kn.full_accept_commit": {
+          "count": 3,
+          "total_seconds": 2.341700019314885e-05,
+          "mean_ms": 0.007805666731049618,
+          "max_ms": 0.008130999049171805
+        },
+        "kn.snapshot_pre_batch": {
+          "count": 5,
+          "total_seconds": 0.003547335014445707,
+          "mean_ms": 0.7094670028891414,
+          "max_ms": 0.7282470032805577
+        },
+        "t1_decode.final_norm_lm_head": {
+          "count": 2,
+          "total_seconds": 0.0025985719985328615,
+          "mean_ms": 1.2992859992664307,
+          "max_ms": 1.3063450023764744
+        },
+        "t1_decode.layers_total": {
+          "count": 2,
+          "total_seconds": 0.05318126900237985,
+          "mean_ms": 26.590634501189925,
+          "max_ms": 26.676433000830002
+        },
+        "t1_decode.setup_embedding": {
+          "count": 2,
+          "total_seconds": 7.434698636643589e-05,
+          "mean_ms": 0.03717349318321794,
+          "max_ms": 0.03839799319393933
+        },
+        "t1_decode.total": {
+          "count": 2,
+          "total_seconds": 0.05589517999032978,
+          "mean_ms": 27.94758999516489,
+          "max_ms": 28.025449995766394
+        }
+      }
+    }
+  },
+  "gates": {
+    "correctness_spec_k1_matches_baseline": true,
+    "correctness_spec_k1_batched_matches_baseline": true,
+    "correctness_spec_kn_batched_matches_baseline": {
+      "spec_k2_batched": true
+    },
+    "tps_ratio_spec_over_baseline": 0.6896735631825169,
+    "tps_ratio_spec_batched_over_baseline": 0.5157780250232109,
+    "tps_ratio_spec_kn_batched_over_baseline": {
+      "spec_k2_batched": 0.6868779061486588
+    },
+    "note": "spec_k1 (sequential): 2 base forwards/round + MTP. After the 2026-05-19 embed-first concat fix, official Qwen3.6 MTP can reach high accept in the sequential path, but net speedup requires the batched K=2 verifier to preserve the same numerical backend as T=1. spec_k1_batched (M5/M9): one K=2 forward + MTP with reject penalty = +1 T=1 forward; the current gate measures whether batched verify accept and TPS have caught up. spec_kN_batched is experimental: it validates the shared K=N verify/crop ABI, while draft quality depends on whether the sidecar was trained for chained drafts."
+  }
+}

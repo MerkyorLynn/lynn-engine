@@ -14,13 +14,23 @@ SIDECAR="${SIDECAR:-/home/merkyor/models/mtp_sidecars/qwen36-35b-a3b-mtp-officia
 LYNN_DIR="${LYNN_DIR:-/home/merkyor/lynn-engine}"
 IMAGE="${IMAGE:-lynn-eval-base:cu13}"
 MAX_NEW="${MAX_NEW:-8}"
-SPEC_K_LIST="${SPEC_K_LIST:-2}"
+if [[ -z "${SPEC_K_LIST+x}" ]]; then
+  SPEC_K_LIST="2"
+fi
 WARMUP_RUNS="${WARMUP_RUNS:-0}"
 TIMEOUT_SECONDS="${TIMEOUT_SECONDS:-1200}"
 OUT="${OUT:-$LYNN_DIR/reports/mtp/qwen35_mtp_maintenance_$(date +%Y%m%d_%H%M%S).json}"
 LOG="${LOG:-$LYNN_DIR/logs/qwen35_mtp_maintenance_$(date +%Y%m%d_%H%M%S).log}"
 MODEL_IN_CONTAINER="/models/${MODEL#/home/merkyor/models/}"
 SIDECAR_IN_CONTAINER="/models/${SIDECAR#/home/merkyor/models/}"
+PROMPTS_ARGS=()
+if [[ -n "${PROMPTS_JSON:-}" ]]; then
+  if [[ "$PROMPTS_JSON" == "$LYNN_DIR/"* ]]; then
+    PROMPTS_ARGS=(--prompts-json "/workspace/${PROMPTS_JSON#$LYNN_DIR/}")
+  else
+    PROMPTS_ARGS=(--prompts-json "$PROMPTS_JSON")
+  fi
+fi
 
 mkdir -p "$(dirname "$OUT")" "$(dirname "$LOG")"
 
@@ -60,6 +70,7 @@ timeout "$TIMEOUT_SECONDS" docker run --rm --gpus all --ipc=host \
     --out "${OUT#$LYNN_DIR/}" \
     --max-new "$MAX_NEW" \
     --warmup-runs "$WARMUP_RUNS" \
+    "${PROMPTS_ARGS[@]}" \
     --spec-k-list "$SPEC_K_LIST" \
   2>&1 | tee -a "$LOG"
 

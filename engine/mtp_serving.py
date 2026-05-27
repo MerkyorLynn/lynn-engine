@@ -43,6 +43,7 @@ import torch.nn.functional as F
 
 from engine.full_forward import _rms_norm
 from engine.inference_state import LynnInferenceState
+from engine.mtp_profile import section as profile_section
 
 
 __all__ = [
@@ -120,14 +121,18 @@ def decode_one_to_logits_and_hidden(
     is what the MTP sidecar will consume on the next draft; ``logits`` is the
     base prediction for the position after ``token_id``.
     """
-    token_tensor = torch.tensor([[int(token_id)]], device=runner.device, dtype=torch.long)
-    pos_tensor = torch.tensor([[int(state.seq_len)]], device=runner.device, dtype=torch.long)
-    h = F.embedding(token_tensor, runner.outside["model.language_model.embed_tokens.weight"])
-    for layer_idx in range(runner.n_layers):
-        h = runner._decode_layer_fast(h, pos_tensor, state, layer_idx)
-    state.seq_len += 1
-    h_norm = _rms_norm(h, runner.outside["model.language_model.norm.weight"])
-    logits = runner._lm_head_logits(h_norm)
+    with profile_section("t1_decode.total"):
+        with profile_section("t1_decode.setup_embedding"):
+            token_tensor = torch.tensor([[int(token_id)]], device=runner.device, dtype=torch.long)
+            pos_tensor = torch.tensor([[int(state.seq_len)]], device=runner.device, dtype=torch.long)
+            h = F.embedding(token_tensor, runner.outside["model.language_model.embed_tokens.weight"])
+        with profile_section("t1_decode.layers_total"):
+            for layer_idx in range(runner.n_layers):
+                h = runner._decode_layer_fast(h, pos_tensor, state, layer_idx)
+        state.seq_len += 1
+        with profile_section("t1_decode.final_norm_lm_head"):
+            h_norm = _rms_norm(h, runner.outside["model.language_model.norm.weight"])
+            logits = runner._lm_head_logits(h_norm)
     argmax = int(logits[0].argmax().item())
     return h, logits, argmax
 
@@ -145,15 +150,19 @@ def decode_block_to_logits_and_hidden(
     """
     if not token_ids:
         raise ValueError("decode_block_to_logits_and_hidden requires at least one token")
-    token_tensor = torch.tensor([[int(x) for x in token_ids]], device=runner.device, dtype=torch.long)
-    start = int(state.seq_len)
-    pos_tensor = torch.arange(start, start + len(token_ids), device=runner.device, dtype=torch.long).unsqueeze(0)
-    h = F.embedding(token_tensor, runner.outside["model.language_model.embed_tokens.weight"])
-    for layer_idx in range(runner.n_layers):
-        h = runner._decode_layer_block_fast(h, pos_tensor, state, layer_idx)
-    state.seq_len += len(token_ids)
-    h_norm = _rms_norm(h, runner.outside["model.language_model.norm.weight"])
-    logits = runner._lm_head_logits(h_norm, all_positions=True)
+    with profile_section("block_verify.total"):
+        with profile_section("block_verify.setup_embedding"):
+            token_tensor = torch.tensor([[int(x) for x in token_ids]], device=runner.device, dtype=torch.long)
+            start = int(state.seq_len)
+            pos_tensor = torch.arange(start, start + len(token_ids), device=runner.device, dtype=torch.long).unsqueeze(0)
+            h = F.embedding(token_tensor, runner.outside["model.language_model.embed_tokens.weight"])
+        with profile_section("block_verify.layers_total"):
+            for layer_idx in range(runner.n_layers):
+                h = runner._decode_layer_block_fast(h, pos_tensor, state, layer_idx)
+        state.seq_len += len(token_ids)
+        with profile_section("block_verify.final_norm_lm_head"):
+            h_norm = _rms_norm(h, runner.outside["model.language_model.norm.weight"])
+            logits = runner._lm_head_logits(h_norm, all_positions=True)
     if logits.ndim == 2:
         logits = logits.view(h.shape[0], h.shape[1], -1)
     argmax_ids = [int(logits[0, idx].argmax().item()) for idx in range(len(token_ids))]
@@ -186,11 +195,12 @@ def speculative_step_k1(
         :class:`SpeculativeStepResult`. ``committed_tokens`` is 1 or 2.
     """
     # 1. Draft via MTP sidecar (1 attn + 1 MoE layer + lm_head).
-    draft_logits = runner._mtp_draft_logits(
-        base_hidden=pending_base_hidden,
-        current_token_id=pending_id,
-        current_pos=pending_pos,
-    )
+    with profile_section("k1.mtp_draft"):
+        draft_logits = runner._mtp_draft_logits(
+            base_hidden=pending_base_hidden,
+            current_token_id=pending_id,
+            current_pos=pending_pos,
+        )
     draft_id = int(draft_logits[0].argmax().item())
 
     # 2. Base decodes pending (state advances to seq_len + 1).
@@ -319,18 +329,20 @@ def speculative_step_k1_batched(
         snap_pre_full = runner._snapshot_state(state)
 
     # 1. MTP draft (same as sequential variant — head-internal cost).
-    draft_logits = runner._mtp_draft_logits(
-        base_hidden=pending_base_hidden,
-        current_token_id=pending_id,
-        current_pos=pending_pos,
-    )
+    with profile_section("k1_batched.mtp_draft"):
+        draft_logits = runner._mtp_draft_logits(
+            base_hidden=pending_base_hidden,
+            current_token_id=pending_id,
+            current_pos=pending_pos,
+        )
     draft_id = int(draft_logits[0].argmax().item())
 
     # 2. Snapshot recurrent/conv state pre-batch — required for reject
     # rollback because the K=2 SSM rollout commits state changes for BOTH
     # input positions; only the first position's update should survive a
     # rejected draft.
-    snap_pre_batch = snapshot_recurrent_conv(state)
+    with profile_section("k1_batched.snapshot_pre_batch"):
+        snap_pre_batch = snapshot_recurrent_conv(state)
 
     # 3. Batched K=2 forward over [pending, draft].
     tokens_k2 = torch.tensor(
@@ -341,11 +353,12 @@ def speculative_step_k1_batched(
         [[int(state.seq_len), int(state.seq_len) + 1]],
         device=runner.device, dtype=torch.long,
     )
-    h_k2 = F.embedding(tokens_k2, runner.outside["model.language_model.embed_tokens.weight"])
-    for layer_idx in range(runner.n_layers):
-        h_k2 = runner._decode_layer_k2_fast(h_k2, pos_k2, state, layer_idx)
-    state.seq_len += 2
-    h_norm_k2 = _rms_norm(h_k2, runner.outside["model.language_model.norm.weight"])
+    with profile_section("k1_batched.k2_forward"):
+        h_k2 = F.embedding(tokens_k2, runner.outside["model.language_model.embed_tokens.weight"])
+        for layer_idx in range(runner.n_layers):
+            h_k2 = runner._decode_layer_k2_fast(h_k2, pos_k2, state, layer_idx)
+        state.seq_len += 2
+        h_norm_k2 = _rms_norm(h_k2, runner.outside["model.language_model.norm.weight"])
     # MTP K=2 needs logits for both positions. Normal decode/generate keeps the
     # historical final-token-only lm_head contract. Per-row native FP4 lm_head
     # is the M11 path that M21 suspects of ULP drift; force BF16 when the
@@ -353,9 +366,11 @@ def speculative_step_k1_batched(
     if lm_head_mode == "bf16":
         # Direct BF16 F.linear over [B, 2, D] -> [B, 2, V]; bypasses native
         # FP4 quantization + per-row loop entirely.
-        logits_k2 = F.linear(h_norm_k2, runner.outside["lm_head.weight"])
+        with profile_section("k1_batched.lm_head"):
+            logits_k2 = F.linear(h_norm_k2, runner.outside["lm_head.weight"])
     else:
-        logits_k2 = runner._lm_head_logits(h_norm_k2, all_positions=True)
+        with profile_section("k1_batched.lm_head"):
+            logits_k2 = runner._lm_head_logits(h_norm_k2, all_positions=True)
     if logits_k2.ndim == 2:
         # Native FP4 lm_head squeezes [B, T, D] → [B*T, V]; un-batch back to [B, T, V].
         logits_k2 = logits_k2.view(h_k2.shape[0], h_k2.shape[1], -1)
@@ -523,7 +538,8 @@ def speculative_step_k1_batched(
         runner._restore_state(state, snap_pre_full)
     else:
         restore_recurrent_conv(state, snap_pre_batch)
-    h_after_pending, _, argmax_after_pending = decode_one_to_logits_and_hidden(runner, state, pending_id)
+    with profile_section("k1_batched.reject_redecode_pending"):
+        h_after_pending, _, argmax_after_pending = decode_one_to_logits_and_hidden(runner, state, pending_id)
     return SpeculativeStepResult(
         committed_tokens=[pending_id],
         # Use the canonical T=1 re-decode result for the next pending token.
@@ -568,26 +584,31 @@ def speculative_step_kn_batched(
     draft_hidden = pending_base_hidden
     current_token = int(pending_id)
     current_pos = int(pending_pos)
-    for _idx in range(int(draft_count)):
-        mtp_hidden, draft_logits = runner._mtp_draft_hidden_logits(
-            base_hidden=draft_hidden,
-            current_token_id=current_token,
-            current_pos=current_pos,
-        )
-        current_token = int(draft_logits[0].argmax().item())
-        draft_ids.append(current_token)
-        draft_hidden = mtp_hidden.contiguous()
-        current_pos += 1
+    with profile_section("kn.draft_chain"):
+        for _idx in range(int(draft_count)):
+            with profile_section("kn.draft_one"):
+                mtp_hidden, draft_logits = runner._mtp_draft_hidden_logits(
+                    base_hidden=draft_hidden,
+                    current_token_id=current_token,
+                    current_pos=current_pos,
+                )
+            current_token = int(draft_logits[0].argmax().item())
+            draft_ids.append(current_token)
+            draft_hidden = mtp_hidden.contiguous()
+            current_pos += 1
 
     tokens = [int(pending_id), *draft_ids]
-    snap_pre_batch = snapshot_recurrent_conv(state)
-    h_block, _logits_block, argmax_ids = decode_block_to_logits_and_hidden(runner, state, tokens)
+    with profile_section("kn.snapshot_pre_batch"):
+        snap_pre_batch = snapshot_recurrent_conv(state)
+    with profile_section("kn.block_verify_call"):
+        h_block, _logits_block, argmax_ids = decode_block_to_logits_and_hidden(runner, state, tokens)
 
-    accepted_count = 0
-    for idx, draft_id in enumerate(draft_ids):
-        if int(draft_id) != int(argmax_ids[idx]):
-            break
-        accepted_count += 1
+    with profile_section("kn.accept_compare"):
+        accepted_count = 0
+        for idx, draft_id in enumerate(draft_ids):
+            if int(draft_id) != int(argmax_ids[idx]):
+                break
+            accepted_count += 1
 
     commit_count = 1 + accepted_count
     committed = tokens[:commit_count]
@@ -608,16 +629,17 @@ def speculative_step_kn_batched(
         # while K=2 passed 6/6. Higher K can be re-tested explicitly with
         # LYNN_MTP_KN_FULL_ACCEPT_FAST_COMMIT_MAX_K after block-state parity is
         # proven.
-        return SpeculativeStepResult(
-            committed_tokens=committed,
-            next_pending_id=int(argmax_ids[commit_count - 1]),
-            next_base_hidden=h_block[:, commit_count - 1:commit_count, :].contiguous(),
-            next_pos=state.seq_len - 1,
-            accepted=True,
-            draft_id=draft_ids[0],
-            draft_ids=draft_ids,
-            accepted_count=accepted_count,
-        )
+        with profile_section("kn.full_accept_commit"):
+            return SpeculativeStepResult(
+                committed_tokens=committed,
+                next_pending_id=int(argmax_ids[commit_count - 1]),
+                next_base_hidden=h_block[:, commit_count - 1:commit_count, :].contiguous(),
+                next_pos=state.seq_len - 1,
+                accepted=True,
+                draft_id=draft_ids[0],
+                draft_ids=draft_ids,
+                accepted_count=accepted_count,
+            )
 
     prefix_repair_max_len = int(os.environ.get("LYNN_MTP_KN_PREFIX_BLOCK_REPAIR_MAX_LEN", "2"))
     if (
@@ -629,12 +651,13 @@ def speculative_step_kn_batched(
         # verifier instead of replaying token-by-token. Today this is most
         # useful for K=2 proposals with exactly one accepted draft, where the
         # repair block is [pending, accepted_draft].
-        restore_recurrent_conv(state, snap_pre_batch)
-        h_repair, _logits_repair, argmax_repair = decode_block_to_logits_and_hidden(
-            runner,
-            state,
-            committed,
-        )
+        with profile_section("kn.prefix_block_repair"):
+            restore_recurrent_conv(state, snap_pre_batch)
+            h_repair, _logits_repair, argmax_repair = decode_block_to_logits_and_hidden(
+                runner,
+                state,
+                committed,
+            )
         return SpeculativeStepResult(
             committed_tokens=committed,
             next_pending_id=int(argmax_repair[commit_count - 1]),
@@ -650,11 +673,12 @@ def speculative_step_kn_batched(
     # replay the committed prefix through canonical T=1 decode. Earlier K=2
     # work showed accepted-state drift can survive even when token ids match;
     # K>N promotion should optimize this only after exactness is proven.
-    restore_recurrent_conv(state, snap_pre_batch)
-    h_last: torch.Tensor | None = None
-    next_pending = int(argmax_ids[0])
-    for token in committed:
-        h_last, _logits, next_pending = decode_one_to_logits_and_hidden(runner, state, int(token))
+    with profile_section("kn.conservative_replay"):
+        restore_recurrent_conv(state, snap_pre_batch)
+        h_last: torch.Tensor | None = None
+        next_pending = int(argmax_ids[0])
+        for token in committed:
+            h_last, _logits, next_pending = decode_one_to_logits_and_hidden(runner, state, int(token))
     assert h_last is not None
     return SpeculativeStepResult(
         committed_tokens=committed,

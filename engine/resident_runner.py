@@ -30,6 +30,9 @@ from engine.full_forward import (
 )
 from engine.inference_state import LAYER_TYPES, LynnInferenceState, infer_layer_types, infer_linear_attention_dims
 from engine.loader import load_qwen36_layer
+from engine.mtp_profile import enabled as mtp_profile_enabled
+from engine.mtp_profile import reset as mtp_profile_reset
+from engine.mtp_profile import snapshot as mtp_profile_snapshot
 from engine.mtp_sidecar import load_mtp_sidecar, mtp_layer_config, mtp_layer_weights, mtp_logits
 from engine.mtp_sidecar import mtp_hidden_and_logits
 from engine.mtp_serving import speculative_step_k1, speculative_step_k1_batched, speculative_step_kn_batched
@@ -1504,6 +1507,8 @@ class LynnIncrementalRunner:
         forced_prefix_ids: list[int] | None = None,
         release_decode_shadows_after_prefill: bool = False,
     ) -> dict[str, Any]:
+        if mtp_profile_enabled():
+            mtp_profile_reset()
         tok = self.tokenizer
         ids = _encode_prompt(tok, prompt, self.device, use_chat_template=use_chat_template)
         if forced_prefix_text is not None and forced_prefix_ids is not None:
@@ -1990,6 +1995,7 @@ class LynnIncrementalRunner:
             ),
             "trace": mtp_shadow_trace,
         }
+        profile_snapshot = mtp_profile_snapshot() if mtp_profile_enabled() else None
         result = {
             "text": full_text,
             "completion_text": completion_text,
@@ -2024,6 +2030,7 @@ class LynnIncrementalRunner:
                     for key, value in mtp_speculative_summary.items()
                     if key != "drafts"
                 },
+                "mtp_profile": profile_snapshot,
             },
             "mtp_shadow": mtp_shadow_summary,
             "mtp_speculative": mtp_speculative_summary,
