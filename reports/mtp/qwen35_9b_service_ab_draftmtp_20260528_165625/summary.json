@@ -1,0 +1,54 @@
+{
+  "run_dir": "/home/merkyor/lynn-apex-mtp-runs/qwen35_9b_service_ab_draftmtp_20260528_165625",
+  "note": "server started with --spec-type draft-mtp; AR uses speculative.n_max=0",
+  "rows": {
+    "ar_baseline": {
+      "single_wall_tps": 32.447453065446815,
+      "single_server_tps_median": 34.11641610329878,
+      "single_accept": 0.0,
+      "single_draft_n": 0,
+      "single_draft_acc": 0,
+      "concurrent_wall_tps": 32.13264223236166,
+      "concurrent_server_tps_median": 8.249861140267356,
+      "concurrent_accept": 0.0,
+      "concurrent_draft_n": 0,
+      "concurrent_draft_acc": 0
+    },
+    "mtp_nmax1": {
+      "single_wall_tps": 35.7568234108178,
+      "single_server_tps_median": 36.91790708359926,
+      "single_accept": 0.9183673469387755,
+      "single_draft_n": 98,
+      "single_draft_acc": 90,
+      "concurrent_wall_tps": 46.67250291976384,
+      "concurrent_server_tps_median": 12.447041917680874,
+      "concurrent_accept": 0.8663366336633663,
+      "concurrent_draft_n": 202,
+      "concurrent_draft_acc": 175
+    },
+    "mtp_nmax2": {
+      "single_wall_tps": 46.57523180171106,
+      "single_server_tps_median": 48.51222512501077,
+      "single_accept": 0.7945205479452054,
+      "single_draft_n": 146,
+      "single_draft_acc": 116,
+      "concurrent_wall_tps": 62.722621674711256,
+      "concurrent_server_tps_median": 16.908814279839604,
+      "concurrent_accept": 0.7684563758389261,
+      "concurrent_draft_n": 298,
+      "concurrent_draft_acc": 229
+    },
+    "mtp_nmax4": {
+      "single_wall_tps": 60.94763872282293,
+      "single_server_tps_median": 64.20397634545307,
+      "single_accept": 0.6415094339622641,
+      "single_draft_n": 212,
+      "single_draft_acc": 136,
+      "concurrent_wall_tps": 76.52070763547079,
+      "concurrent_server_tps_median": 21.552881613263796,
+      "concurrent_accept": 0.6054421768707483,
+      "concurrent_draft_n": 441,
+      "concurrent_draft_acc": 267
+    }
+  }
+}

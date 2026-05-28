@@ -123,3 +123,10 @@ high-concurrency traffic to AR.
 Build a Q4_K_M imatrix GGUF only if the MTP block stays embedded. The expected
 benefit is higher single-stream TPS due to lower memory bandwidth, but it needs
 fresh quality and accept-rate validation before replacing `I-Balanced`.
+
+2026-05-28 inventory update: Spark already has an MTP-enabled BF16 source at
+`/home/merkyor/models/Qwen3.6-35B-A3B-BF16-official-n5`. Its
+`model.safetensors.index.json` contains `mtp.*` keys, so the Q4_K_M-MTP route is
+to reconvert and requantize from that source. A base-only Q4_K_M GGUF cannot be
+made APEX-MTP-capable by metadata edits alone. See
+`reports/mtp/QWEN36_35B_Q4KM_MTP_BUILD_PLAN_20260528.md`.
