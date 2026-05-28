@@ -12,6 +12,61 @@
 
 更重要的是,这不是用质量换速度的“少算专家”捷径。APEX-MTP 走的是 speculative decoding:先由 MTP draft 预测后续 token,再由主模型 verify。只要 verifier 路径正确,它追求的是更快得到同一模型 AR 路径会接受的 token,而不是把模型能力裁掉。
 
+## 模型地址和 MTP 入口
+
+这篇文章里说的 77 tok/s 版本,不是普通 Q4_K_M,而是 **APEX-MTP I-Balanced GGUF**。它的 MTP head 已经内嵌在同一个 GGUF 里,用 llama.cpp 时不需要再手动挂一个 draft sidecar。
+
+推荐下载入口:
+
+```text
+Hugging Face(Lynn 镜像):
+https://huggingface.co/nerkyor/Qwen3.6-35B-A3B-APEX-MTP-GGUF
+
+ModelScope(国内镜像):
+Merkyor/Qwen3.6-35B-A3B-APEX-MTP-GGUF
+
+上游社区 APEX-MTP 源:
+https://huggingface.co/mudler/Qwen3.6-35B-A3B-APEX-MTP-GGUF
+```
+
+文件名和校验:
+
+```text
+Qwen3.6-35B-A3B-APEX-MTP-I-Balanced.gguf
+size: 24.27 GiB / 26.06 GB
+sha256: 9bf7d96bb3a9d363e645dd998aee9e9bff8e016a82aec7ff081e0e6cdb53419e
+```
+
+我们 Spark 当前生产本地路径:
+
+```text
+/home/merkyor/models/Qwen3.6-35B-A3B-APEX-MTP-GGUF/
+  Qwen3.6-35B-A3B-APEX-MTP-I-Balanced.gguf
+```
+
+确认它真的带 MTP,看 GGUF metadata / tensor:
+
+```text
+qwen35moe.nextn_predict_layers = 1
+blk.40.nextn.eh_proj.weight
+blk.40.nextn.enorm.weight
+blk.40.nextn.hnorm.weight
+blk.40.nextn.shared_head_norm.weight
+```
+
+注意区分两条路线:
+
+```text
+llama.cpp 发布/部署路线:
+  MTP head 已嵌入 GGUF,直接 --spec-type draft-mtp
+
+Lynn engine 研究路线:
+  仍可使用独立 MTP sidecar,例如
+  /home/merkyor/models/mtp_sidecars/qwen36-35b-a3b-mtp-official-lynn-fused/mtp.safetensors
+```
+
+也就是说,用户下载上面的 APEX-MTP GGUF 以后,重点不是再找一个单独的 MTP 文件,而是确认自己拿到的是 **MTP 版 GGUF**。普通 APEX no-MTP 或普通 Q4_K_M base GGUF,即使能跑 Qwen 3.6 35B-A3B,也不能启用 `draft-mtp`。
+
 ## 先看质量:Q4_K_M 没有想象中脆
 
 在同一台 Spark GB10 上,我们对 Qwen 3.6 35B-A3B 做过一组 thinking-off 质量锚点:

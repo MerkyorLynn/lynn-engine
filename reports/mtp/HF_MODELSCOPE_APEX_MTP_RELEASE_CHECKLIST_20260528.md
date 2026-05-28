@@ -17,6 +17,42 @@ starts with:
 
 and does not require users to manually pair a separate sidecar.
 
+Current public/model addresses:
+
+```text
+Hugging Face(Lynn mirror):
+https://huggingface.co/nerkyor/Qwen3.6-35B-A3B-APEX-MTP-GGUF
+
+ModelScope:
+Merkyor/Qwen3.6-35B-A3B-APEX-MTP-GGUF
+
+Upstream community APEX-MTP source:
+https://huggingface.co/mudler/Qwen3.6-35B-A3B-APEX-MTP-GGUF
+```
+
+Current file:
+
+```text
+Qwen3.6-35B-A3B-APEX-MTP-I-Balanced.gguf
+size: 24.27 GiB / 26.06 GB
+sha256: 9bf7d96bb3a9d363e645dd998aee9e9bff8e016a82aec7ff081e0e6cdb53419e
+```
+
+Spark local deployment path:
+
+```text
+/home/merkyor/models/Qwen3.6-35B-A3B-APEX-MTP-GGUF/Qwen3.6-35B-A3B-APEX-MTP-I-Balanced.gguf
+```
+
+For Lynn-engine research, the independent fused sidecar path remains:
+
+```text
+/home/merkyor/models/mtp_sidecars/qwen36-35b-a3b-mtp-official-lynn-fused/mtp.safetensors
+```
+
+That sidecar is not required by the llama.cpp release path because the GGUF
+already embeds the MTP head.
+
 ## What Not To Upload
 
 Do not upload private training data. For model hubs, the useful "data" is
