@@ -76,6 +76,27 @@ The run order is intentionally serialized to avoid 32K KV-cache pressure:
 The previous full GPQA 32K run took about **10.55 hours**, so this refresh is
 expected to run long.
 
+## Queued Thinking-Off Refresh
+
+The APEX-MTP I-Balanced thinking-off MMLU/GPQA refresh is queued behind the
+32K run using the same lock to avoid contaminating long-context results:
+
+```text
+Queue PID: 258834
+Runner: /home/merkyor/eval/scripts/spark_apex_thinkoff_eval_20260528.sh
+Local runner: scripts/spark_apex_thinkoff_eval_20260528.sh
+Lock: /tmp/apex_quality32k_eval.lock
+Output root: /home/merkyor/eval/reports/apex_thinkoff_<timestamp>
+Latest pointer: /home/merkyor/eval/reports/apex_thinkoff_latest_run_dir.txt
+```
+
+Planned tasks:
+
+```text
+MMLU 500 5-shot, thinking-off, max_tokens=8
+GPQA Diamond 198, thinking-off, max_tokens=8
+```
+
 ## Serving Policy
 
 The result so far supports a split policy:
