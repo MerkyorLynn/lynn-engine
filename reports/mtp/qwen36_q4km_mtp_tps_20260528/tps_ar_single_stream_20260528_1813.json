@@ -1,0 +1,190 @@
+{
+  "schema": "qwen36-apex-mtp-q4km-ar-single-stream-tps-v1",
+  "prompt": "请从 1 开始逐行输出编号，每行写一句关于本地大模型推理优化的中文短句，持续输出直到达到长度限制，不要总结，不要解释。/no_think",
+  "max_tokens": 512,
+  "results": [
+    {
+      "run_id": 0,
+      "warmup": true,
+      "finish_reason": "length",
+      "wall_sec": 6.746,
+      "wall_tps": 75.90046194486209,
+      "server_tps": 77.56414645807567,
+      "usage": {
+        "completion_tokens": 512,
+        "prompt_tokens": 53,
+        "total_tokens": 565,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 53,
+        "prompt_ms": 119.207,
+        "prompt_per_token_ms": 2.249188679245283,
+        "prompt_per_second": 444.60476314310404,
+        "predicted_n": 512,
+        "predicted_ms": 6600.988,
+        "predicted_per_token_ms": 12.8925546875,
+        "predicted_per_second": 77.56414645807567
+      }
+    },
+    {
+      "run_id": 1,
+      "warmup": false,
+      "finish_reason": "length",
+      "wall_sec": 6.711,
+      "wall_tps": 76.28704680841874,
+      "server_tps": 77.7026601475349,
+      "usage": {
+        "completion_tokens": 512,
+        "prompt_tokens": 53,
+        "total_tokens": 565,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 53,
+        "prompt_ms": 91.413,
+        "prompt_per_token_ms": 1.7247735849056602,
+        "prompt_per_second": 579.7862448448251,
+        "predicted_n": 512,
+        "predicted_ms": 6589.221,
+        "predicted_per_token_ms": 12.869572265625,
+        "predicted_per_second": 77.7026601475349
+      }
+    },
+    {
+      "run_id": 2,
+      "warmup": false,
+      "finish_reason": "length",
+      "wall_sec": 6.692,
+      "wall_tps": 76.51231066621799,
+      "server_tps": 77.68136892778621,
+      "usage": {
+        "completion_tokens": 512,
+        "prompt_tokens": 53,
+        "total_tokens": 565,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 53,
+        "prompt_ms": 91.36,
+        "prompt_per_token_ms": 1.7237735849056603,
+        "prompt_per_second": 580.122591943958,
+        "predicted_n": 512,
+        "predicted_ms": 6591.027,
+        "predicted_per_token_ms": 12.873099609375,
+        "predicted_per_second": 77.68136892778621
+      }
+    },
+    {
+      "run_id": 3,
+      "warmup": false,
+      "finish_reason": "length",
+      "wall_sec": 6.711,
+      "wall_tps": 76.28849669415182,
+      "server_tps": 77.4385154068615,
+      "usage": {
+        "completion_tokens": 512,
+        "prompt_tokens": 53,
+        "total_tokens": 565,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 53,
+        "prompt_ms": 90.458,
+        "prompt_per_token_ms": 1.7067547169811321,
+        "prompt_per_second": 585.9072718830838,
+        "predicted_n": 512,
+        "predicted_ms": 6611.697,
+        "predicted_per_token_ms": 12.913470703125,
+        "predicted_per_second": 77.4385154068615
+      }
+    },
+    {
+      "run_id": 4,
+      "warmup": false,
+      "finish_reason": "length",
+      "wall_sec": 6.687,
+      "wall_tps": 76.56466469074253,
+      "server_tps": 77.75720283042293,
+      "usage": {
+        "completion_tokens": 512,
+        "prompt_tokens": 53,
+        "total_tokens": 565,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 53,
+        "prompt_ms": 93.318,
+        "prompt_per_token_ms": 1.7607169811320755,
+        "prompt_per_second": 567.9504490023361,
+        "predicted_n": 512,
+        "predicted_ms": 6584.599,
+        "predicted_per_token_ms": 12.860544921875,
+        "predicted_per_second": 77.75720283042293
+      }
+    },
+    {
+      "run_id": 5,
+      "warmup": false,
+      "finish_reason": "length",
+      "wall_sec": 6.657,
+      "wall_tps": 76.91298641342792,
+      "server_tps": 78.0883007863736,
+      "usage": {
+        "completion_tokens": 512,
+        "prompt_tokens": 53,
+        "total_tokens": 565,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 53,
+        "prompt_ms": 91.104,
+        "prompt_per_token_ms": 1.7189433962264151,
+        "prompt_per_second": 581.752722163681,
+        "predicted_n": 512,
+        "predicted_ms": 6556.68,
+        "predicted_per_token_ms": 12.806015625,
+        "predicted_per_second": 78.0883007863736
+      }
+    }
+  ],
+  "summary": {
+    "n": 5,
+    "server_tps_mean": 77.73360961979583,
+    "server_tps_median": 77.7026601475349,
+    "wall_tps_mean": 76.5131010545918,
+    "wall_tps_median": 76.51231066621799,
+    "completion_tokens": [
+      512,
+      512,
+      512,
+      512,
+      512
+    ],
+    "finish_reasons": [
+      "length",
+      "length",
+      "length",
+      "length",
+      "length"
+    ]
+  }
+}

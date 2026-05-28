@@ -92,7 +92,7 @@ def _format_question(ex: dict[str, Any], include_answer: bool) -> str:
     return "\n".join(lines)
 
 
-def _prompt(subject: str, shots: list[dict[str, Any]], ex: dict[str, Any]) -> str:
+def _prompt(subject: str, shots: list[dict[str, Any]], ex: dict[str, Any], *, append_no_think: bool) -> str:
     pretty = subject.replace("_", " ")
     parts = [
         f"The following are multiple choice questions about {pretty}.",
@@ -103,6 +103,8 @@ def _prompt(subject: str, shots: list[dict[str, Any]], ex: dict[str, Any]) -> st
         parts.append(_format_question(shot, include_answer=True))
         parts.append("")
     parts.append(_format_question(ex, include_answer=False))
+    if append_no_think:
+        parts.append("/no_think")
     return "\n".join(parts)
 
 
@@ -123,7 +125,14 @@ def _extract_answer(text: str) -> str | None:
     return None
 
 
-def _chat(base_url: str, model: str, prompt: str, timeout: float) -> tuple[str, dict[str, Any]]:
+def _chat(
+    base_url: str,
+    model: str,
+    prompt: str,
+    timeout: float,
+    *,
+    disable_thinking: bool,
+) -> tuple[str, dict[str, Any]]:
     url = base_url.rstrip("/") + "/chat/completions"
     payload = {
         "model": model,
@@ -132,6 +141,8 @@ def _chat(base_url: str, model: str, prompt: str, timeout: float) -> tuple[str, 
         "max_tokens": 8,
         "stream": False,
     }
+    if disable_thinking:
+        payload["chat_template_kwargs"] = {"enable_thinking": False}
     r = requests.post(url, json=payload, timeout=timeout)
     r.raise_for_status()
     data = r.json()
@@ -150,6 +161,8 @@ def main() -> int:
     ap.add_argument("--sample", type=int, default=500)
     ap.add_argument("--seed", type=int, default=20260519)
     ap.add_argument("--timeout", type=float, default=120.0)
+    ap.add_argument("--disable-thinking", action="store_true")
+    ap.add_argument("--append-no-think", action="store_true")
     args = ap.parse_args()
 
     data_dir = Path(args.data_dir)
@@ -166,9 +179,15 @@ def main() -> int:
 
     def run_one(ex: dict[str, Any]) -> dict[str, Any]:
         shots = dev_by_subject.get(ex["subject"], [])[: args.shots]
-        prompt = _prompt(ex["subject"], shots, ex)
+        prompt = _prompt(ex["subject"], shots, ex, append_no_think=args.append_no_think)
         try:
-            text, usage = _chat(args.base_url, args.model, prompt, args.timeout)
+            text, usage = _chat(
+                args.base_url,
+                args.model,
+                prompt,
+                args.timeout,
+                disable_thinking=args.disable_thinking,
+            )
             pred = _extract_answer(text)
             err = None
         except Exception as e:  # noqa: BLE001 - record evaluator failures per sample

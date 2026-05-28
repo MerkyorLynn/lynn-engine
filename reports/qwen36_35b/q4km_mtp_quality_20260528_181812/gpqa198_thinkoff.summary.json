@@ -1,0 +1,11 @@
+{
+  "model": "qwen36-35b-a3b-apex-mtp-q4km",
+  "endpoint": "http://127.0.0.1:18099/v1",
+  "n": 198,
+  "correct": 82,
+  "accuracy": 0.41414141414141414,
+  "elapsed_sec": 66.357,
+  "qps": 2.9839,
+  "parse_fail": 14,
+  "errors": 0
+}

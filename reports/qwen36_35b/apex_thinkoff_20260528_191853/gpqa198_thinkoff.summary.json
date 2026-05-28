@@ -1,0 +1,11 @@
+{
+  "model": "Qwen3.6-35B-A3B-APEX-I-Balanced.gguf",
+  "endpoint": "http://127.0.0.1:18098/v1",
+  "n": 198,
+  "correct": 84,
+  "accuracy": 0.42424242424242425,
+  "elapsed_sec": 67.657,
+  "qps": 2.9265,
+  "parse_fail": 19,
+  "errors": 0
+}

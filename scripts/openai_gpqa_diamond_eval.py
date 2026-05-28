@@ -52,7 +52,7 @@ def _load_gpqa(path: Path) -> list[dict[str, Any]]:
     return rows
 
 
-def _prompt(ex: dict[str, Any]) -> str:
+def _prompt(ex: dict[str, Any], *, append_no_think: bool) -> str:
     lines = [
         "Answer the following graduate-level multiple choice question.",
         "Return only one letter: A, B, C, or D.",
@@ -62,6 +62,8 @@ def _prompt(ex: dict[str, Any]) -> str:
     for letter, text in zip(CHOICES, ex["choices"]):
         lines.append(f"{letter}. {text}")
     lines.append("Answer:")
+    if append_no_think:
+        lines.append("/no_think")
     return "\n".join(lines)
 
 
@@ -81,7 +83,14 @@ def _extract_answer(text: str) -> str | None:
     return None
 
 
-def _chat(base_url: str, model: str, prompt: str, timeout: float) -> tuple[str, dict[str, Any]]:
+def _chat(
+    base_url: str,
+    model: str,
+    prompt: str,
+    timeout: float,
+    *,
+    disable_thinking: bool,
+) -> tuple[str, dict[str, Any]]:
     url = base_url.rstrip("/") + "/chat/completions"
     payload = {
         "model": model,
@@ -90,6 +99,8 @@ def _chat(base_url: str, model: str, prompt: str, timeout: float) -> tuple[str, 
         "max_tokens": 8,
         "stream": False,
     }
+    if disable_thinking:
+        payload["chat_template_kwargs"] = {"enable_thinking": False}
     r = requests.post(url, json=payload, timeout=timeout)
     r.raise_for_status()
     data = r.json()
@@ -107,6 +118,8 @@ def main() -> int:
     ap.add_argument("--sample", type=int, default=0, help="Optional deterministic subset size; 0 means all rows.")
     ap.add_argument("--seed", type=int, default=20260519)
     ap.add_argument("--timeout", type=float, default=120.0)
+    ap.add_argument("--disable-thinking", action="store_true")
+    ap.add_argument("--append-no-think", action="store_true")
     args = ap.parse_args()
 
     rows = _load_gpqa(Path(args.csv))
@@ -119,7 +132,13 @@ def main() -> int:
 
     def run_one(ex: dict[str, Any]) -> dict[str, Any]:
         try:
-            text, usage = _chat(args.base_url, args.model, _prompt(ex), args.timeout)
+            text, usage = _chat(
+                args.base_url,
+                args.model,
+                _prompt(ex, append_no_think=args.append_no_think),
+                args.timeout,
+                disable_thinking=args.disable_thinking,
+            )
             pred = _extract_answer(text)
             err = None
         except Exception as e:  # noqa: BLE001

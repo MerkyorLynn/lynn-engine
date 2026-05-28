@@ -217,17 +217,22 @@ blk.40.nextn.* tensors present
 
 对普通用户来说,第一种更好。下载一个文件,启动命令加 `--spec-type draft-mtp --spec-draft-n-max 4`,体验最直接。
 
-## 下一步:Q4_K_M + MTP 才是更完整的答案
+## 5 月 28 日补充:Q4_K_M + MTP 不是直接替换答案
 
 今天的 77 tok/s 版本是 I-Balanced,不是 Q4_K_M。它已经是 imatrix 量化,但不是最低比特的 Q4_K_M-imatrix。理论上,如果我们重新做一个“带 MTP tensor 的 Q4_K_M-imatrix GGUF”,Spark 这种偏 memory bandwidth bound 的平台还有机会更快。
 
-但这一步不能只看速度。新的 Q4_K_M+MTP 包必须重新跑三件事:
+后续实测把这个判断修正得更清楚:我们确实从带 `mtp.*` 的 BF16/HF 源重新 convert + imatrix + Q4_K_M 量化出了带 MTP tensor 的 GGUF,但它不应该直接替换现有公开默认。
 
-1. MMLU 500。
-2. GPQA Diamond 198。
-3. MTP accept-rate 和单流/并发 TPS。
+关键数据:
 
-如果质量维持在当前 Q4_K_M-imatrix 的区间,accept-rate 不明显掉,那它就会成为更漂亮的公开包:Q4_K_M 的体积和生态,加上 APEX-MTP 的单流速度。
+- Q4_K_M-MTP artifact,AR-only 单流:77.73 tok/s server TPS,76.51 tok/s wall TPS。
+- 同一个 Q4_K_M-MTP artifact,开启 draft-MTP n=4:64.08 tok/s server TPS,63.12 tok/s wall TPS,accept rate 约 36.34%。
+- Q4_K_M-MTP think-off:MMLU 81.40%,GPQA 41.41%。
+- APEX-MTP I-Balanced think-off:MMLU 82.20%,GPQA 42.42%。
+
+所以,Q4_K_M+MTP 这条路线的技术结论是:artifact 可以做,MTP tensor 也能保住,但当前 `draft-mtp` runtime 对这组 think-off/短输出场景不是最优。accept rate 只有 36% 左右时,draft 上下文和 verify 调度成本会吃掉 speculative decoding 的收益;质量上,APEX-MTP 系列在 think-off GPQA 上也没有守住旧 Q4_K_M/W4A16 锚点。
+
+这不是放弃 MTP,而是把使用边界写清楚:thinking-on 长推理仍然可以继续用 APEX-MTP I-Balanced;think-off 质量默认仍然应该看普通 Q4_K_M-imatrix 或 W4A16 NVFP4;Q4_K_M-MTP 暂时保留为研究 artifact,不作为默认发布主包。
 
 ## 结论
 
@@ -236,9 +241,9 @@ Qwen 3.6 35B-A3B 现在已经不是“能不能在本地跑”的问题,而是�
 我的当前判断:
 
 - 稳定公开默认:Q4_K_M-imatrix GGUF。
-- Spark 单流最快:APEX-MTP I-Balanced GGUF,n_max=4,约 77 tok/s。
+- Spark 单流最快研究信号:Q4_K_M-MTP artifact 关掉 draft-MTP 后约 77.7 tok/s;生产 fallback 仍保持 APEX-MTP I-Balanced。
 - 并发服务:需要动态 admission,单流开 MTP,高并发回 AR。
-- 下一代最佳包:带 MTP tensor 的 Q4_K_M-imatrix GGUF。
+- 下一代最佳包:先解决 MTP accept rate 和 think-off GPQA,再考虑把 Q4_K_M-MTP 作为公开主包。
 
 这就是我理解的“质量与速度并存”的最优解:不是盲目追更低比特,也不是盲目追更复杂 kernel,而是在质量锚点守住以后,把 speculative decoding 这种可验证的加速路径接到真正能服务用户的 runtime 里。
 

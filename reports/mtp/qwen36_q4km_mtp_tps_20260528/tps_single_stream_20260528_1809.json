@@ -1,0 +1,477 @@
+{
+  "schema": "qwen36-apex-mtp-q4km-single-stream-tps-v1",
+  "prompt": "请从 1 开始逐行输出编号，每行写一句关于本地大模型推理优化的中文短句，持续输出直到达到长度限制，不要总结，不要解释。/no_think",
+  "max_tokens": 512,
+  "results": [
+    {
+      "endpoint": "q4km_mtp_18099",
+      "run_id": 0,
+      "warmup": true,
+      "finish_reason": "length",
+      "wall_sec": 8.388,
+      "wall_tps": 61.03915173379939,
+      "server_tps": 63.21369277725532,
+      "usage": {
+        "completion_tokens": 512,
+        "prompt_tokens": 53,
+        "total_tokens": 565,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 53,
+        "prompt_ms": 251.818,
+        "prompt_per_token_ms": 4.751283018867925,
+        "prompt_per_second": 210.46946604293575,
+        "predicted_n": 512,
+        "predicted_ms": 8099.511,
+        "predicted_per_token_ms": 15.819357421875,
+        "predicted_per_second": 63.21369277725532,
+        "draft_n": 831,
+        "draft_n_accepted": 302
+      },
+      "content_chars": 864,
+      "reasoning_chars": 0,
+      "content_head": "1. 使用量化技术减少模型权重占用，显著提升推理速度。\n2. 引入KV Cache机制，避免重复计算历史Token的注意力。\n3. 采用PagedAttention算法，高效管理内存中的注意力键值对。\n4. 利用张量并行技术，将大模型拆分到多个GPU上协同计算。\n5. 应用流水线并行策略，重叠不同层级的计算与通信开销。"
+    },
+    {
+      "endpoint": "q4km_mtp_18099",
+      "run_id": 1,
+      "warmup": false,
+      "finish_reason": "length",
+      "wall_sec": 8.088,
+      "wall_tps": 63.301461126755726,
+      "server_tps": 64.45318646734854,
+      "usage": {
+        "completion_tokens": 512,
+        "prompt_tokens": 53,
+        "total_tokens": 565,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 53,
+        "prompt_ms": 106.335,
+        "prompt_per_token_ms": 2.006320754716981,
+        "prompt_per_second": 498.42478958010065,
+        "predicted_n": 512,
+        "predicted_ms": 7943.75,
+        "predicted_per_token_ms": 15.51513671875,
+        "predicted_per_second": 64.45318646734854,
+        "draft_n": 831,
+        "draft_n_accepted": 302
+      },
+      "content_chars": 864,
+      "reasoning_chars": 0,
+      "content_head": "1. 使用量化技术减少模型权重占用，显著提升推理速度。\n2. 引入KV Cache机制，避免重复计算历史Token的注意力。\n3. 采用PagedAttention算法，高效管理内存中的注意力键值对。\n4. 利用张量并行技术，将大模型拆分到多个GPU上协同计算。\n5. 应用流水线并行策略，重叠不同层级的计算与通信开销。"
+    },
+    {
+      "endpoint": "q4km_mtp_18099",
+      "run_id": 2,
+      "warmup": false,
+      "finish_reason": "length",
+      "wall_sec": 8.164,
+      "wall_tps": 62.71055899960901,
+      "server_tps": 63.63800317369682,
+      "usage": {
+        "completion_tokens": 512,
+        "prompt_tokens": 53,
+        "total_tokens": 565,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 53,
+        "prompt_ms": 103.1,
+        "prompt_per_token_ms": 1.9452830188679244,
+        "prompt_per_second": 514.0640155189137,
+        "predicted_n": 512,
+        "predicted_ms": 8045.507,
+        "predicted_per_token_ms": 15.713880859375,
+        "predicted_per_second": 63.63800317369682,
+        "draft_n": 831,
+        "draft_n_accepted": 302
+      },
+      "content_chars": 864,
+      "reasoning_chars": 0,
+      "content_head": "1. 使用量化技术减少模型权重占用，显著提升推理速度。\n2. 引入KV Cache机制，避免重复计算历史Token的注意力。\n3. 采用PagedAttention算法，高效管理内存中的注意力键值对。\n4. 利用张量并行技术，将大模型拆分到多个GPU上协同计算。\n5. 应用流水线并行策略，重叠不同层级的计算与通信开销。"
+    },
+    {
+      "endpoint": "q4km_mtp_18099",
+      "run_id": 3,
+      "warmup": false,
+      "finish_reason": "length",
+      "wall_sec": 8.12,
+      "wall_tps": 63.05159994322817,
+      "server_tps": 63.95606218527871,
+      "usage": {
+        "completion_tokens": 512,
+        "prompt_tokens": 53,
+        "total_tokens": 565,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 53,
+        "prompt_ms": 105.121,
+        "prompt_per_token_ms": 1.9834150943396225,
+        "prompt_per_second": 504.1808963004538,
+        "predicted_n": 512,
+        "predicted_ms": 8005.496,
+        "predicted_per_token_ms": 15.635734375,
+        "predicted_per_second": 63.95606218527871,
+        "draft_n": 831,
+        "draft_n_accepted": 302
+      },
+      "content_chars": 864,
+      "reasoning_chars": 0,
+      "content_head": "1. 使用量化技术减少模型权重占用，显著提升推理速度。\n2. 引入KV Cache机制，避免重复计算历史Token的注意力。\n3. 采用PagedAttention算法，高效管理内存中的注意力键值对。\n4. 利用张量并行技术，将大模型拆分到多个GPU上协同计算。\n5. 应用流水线并行策略，重叠不同层级的计算与通信开销。"
+    },
+    {
+      "endpoint": "q4km_mtp_18099",
+      "run_id": 4,
+      "warmup": false,
+      "finish_reason": "length",
+      "wall_sec": 8.095,
+      "wall_tps": 63.24610981923138,
+      "server_tps": 64.14591592224413,
+      "usage": {
+        "completion_tokens": 512,
+        "prompt_tokens": 53,
+        "total_tokens": 565,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 53,
+        "prompt_ms": 103.448,
+        "prompt_per_token_ms": 1.9518490566037734,
+        "prompt_per_second": 512.3346995591988,
+        "predicted_n": 512,
+        "predicted_ms": 7981.802,
+        "predicted_per_token_ms": 15.58945703125,
+        "predicted_per_second": 64.14591592224413,
+        "draft_n": 831,
+        "draft_n_accepted": 302
+      },
+      "content_chars": 864,
+      "reasoning_chars": 0,
+      "content_head": "1. 使用量化技术减少模型权重占用，显著提升推理速度。\n2. 引入KV Cache机制，避免重复计算历史Token的注意力。\n3. 采用PagedAttention算法，高效管理内存中的注意力键值对。\n4. 利用张量并行技术，将大模型拆分到多个GPU上协同计算。\n5. 应用流水线并行策略，重叠不同层级的计算与通信开销。"
+    },
+    {
+      "endpoint": "q4km_mtp_18099",
+      "run_id": 5,
+      "warmup": false,
+      "finish_reason": "length",
+      "wall_sec": 8.091,
+      "wall_tps": 63.27890249414478,
+      "server_tps": 64.1853995265324,
+      "usage": {
+        "completion_tokens": 512,
+        "prompt_tokens": 53,
+        "total_tokens": 565,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 53,
+        "prompt_ms": 104.446,
+        "prompt_per_token_ms": 1.9706792452830189,
+        "prompt_per_second": 507.43925090477376,
+        "predicted_n": 512,
+        "predicted_ms": 7976.892,
+        "predicted_per_token_ms": 15.5798671875,
+        "predicted_per_second": 64.1853995265324,
+        "draft_n": 831,
+        "draft_n_accepted": 302
+      },
+      "content_chars": 864,
+      "reasoning_chars": 0,
+      "content_head": "1. 使用量化技术减少模型权重占用，显著提升推理速度。\n2. 引入KV Cache机制，避免重复计算历史Token的注意力。\n3. 采用PagedAttention算法，高效管理内存中的注意力键值对。\n4. 利用张量并行技术，将大模型拆分到多个GPU上协同计算。\n5. 应用流水线并行策略，重叠不同层级的计算与通信开销。"
+    },
+    {
+      "endpoint": "ibalanced_mtp_18098",
+      "run_id": 0,
+      "warmup": true,
+      "finish_reason": "length",
+      "wall_sec": 10.502,
+      "wall_tps": 48.75315712866032,
+      "server_tps": 51.612128003319306,
+      "usage": {
+        "completion_tokens": 512,
+        "prompt_tokens": 53,
+        "total_tokens": 565,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 53,
+        "prompt_ms": 494.045,
+        "prompt_per_token_ms": 9.321603773584906,
+        "prompt_per_second": 107.27767713467397,
+        "predicted_n": 512,
+        "predicted_ms": 9920.149,
+        "predicted_per_token_ms": 19.375291015625,
+        "predicted_per_second": 51.612128003319306,
+        "draft_n": 833,
+        "draft_n_accepted": 302
+      },
+      "content_chars": 783,
+      "reasoning_chars": 0,
+      "content_head": "1. 使用量化技术降低模型权重精度以节省显存。\n2. 采用PagedAttention机制优化KV缓存管理。\n3. 启用连续批处理提高GPU利用率。\n4. 使用FlashAttention加速注意力计算。\n5. 通过模型并行策略分散大模型负载。\n6. 利用张量并行提升推理吞吐量。\n7. 实施流水线并行减少计算等待时间。"
+    },
+    {
+      "endpoint": "ibalanced_mtp_18098",
+      "run_id": 1,
+      "warmup": false,
+      "finish_reason": "length",
+      "wall_sec": 9.785,
+      "wall_tps": 52.324905170590355,
+      "server_tps": 53.19693307212808,
+      "usage": {
+        "completion_tokens": 512,
+        "prompt_tokens": 53,
+        "total_tokens": 565,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 53,
+        "prompt_ms": 123.255,
+        "prompt_per_token_ms": 2.325566037735849,
+        "prompt_per_second": 430.00283964139385,
+        "predicted_n": 512,
+        "predicted_ms": 9624.615,
+        "predicted_per_token_ms": 18.798076171875,
+        "predicted_per_second": 53.19693307212808,
+        "draft_n": 825,
+        "draft_n_accepted": 304
+      },
+      "content_chars": 783,
+      "reasoning_chars": 0,
+      "content_head": "1. 使用量化技术降低模型权重精度以节省显存。\n2. 采用PagedAttention机制优化KV缓存管理。\n3. 启用连续批处理提高GPU利用率。\n4. 使用FlashAttention加速注意力计算。\n5. 通过模型并行策略分散大模型负载。\n6. 利用张量并行提升推理吞吐量。\n7. 实施流水线并行减少计算等待时间。"
+    },
+    {
+      "endpoint": "ibalanced_mtp_18098",
+      "run_id": 2,
+      "warmup": false,
+      "finish_reason": "length",
+      "wall_sec": 9.669,
+      "wall_tps": 52.955183052358024,
+      "server_tps": 53.71012102191058,
+      "usage": {
+        "completion_tokens": 512,
+        "prompt_tokens": 53,
+        "total_tokens": 565,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 53,
+        "prompt_ms": 123.554,
+        "prompt_per_token_ms": 2.3312075471698113,
+        "prompt_per_second": 428.96223513605383,
+        "predicted_n": 512,
+        "predicted_ms": 9532.654,
+        "predicted_per_token_ms": 18.61846484375,
+        "predicted_per_second": 53.71012102191058,
+        "draft_n": 825,
+        "draft_n_accepted": 304
+      },
+      "content_chars": 783,
+      "reasoning_chars": 0,
+      "content_head": "1. 使用量化技术降低模型权重精度以节省显存。\n2. 采用PagedAttention机制优化KV缓存管理。\n3. 启用连续批处理提高GPU利用率。\n4. 使用FlashAttention加速注意力计算。\n5. 通过模型并行策略分散大模型负载。\n6. 利用张量并行提升推理吞吐量。\n7. 实施流水线并行减少计算等待时间。"
+    },
+    {
+      "endpoint": "ibalanced_mtp_18098",
+      "run_id": 3,
+      "warmup": false,
+      "finish_reason": "length",
+      "wall_sec": 9.934,
+      "wall_tps": 51.53799791724905,
+      "server_tps": 52.24335198244133,
+      "usage": {
+        "completion_tokens": 512,
+        "prompt_tokens": 53,
+        "total_tokens": 565,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 53,
+        "prompt_ms": 122.249,
+        "prompt_per_token_ms": 2.3065849056603773,
+        "prompt_per_second": 433.5413786615842,
+        "predicted_n": 512,
+        "predicted_ms": 9800.29,
+        "predicted_per_token_ms": 19.14119140625,
+        "predicted_per_second": 52.24335198244133,
+        "draft_n": 825,
+        "draft_n_accepted": 304
+      },
+      "content_chars": 783,
+      "reasoning_chars": 0,
+      "content_head": "1. 使用量化技术降低模型权重精度以节省显存。\n2. 采用PagedAttention机制优化KV缓存管理。\n3. 启用连续批处理提高GPU利用率。\n4. 使用FlashAttention加速注意力计算。\n5. 通过模型并行策略分散大模型负载。\n6. 利用张量并行提升推理吞吐量。\n7. 实施流水线并行减少计算等待时间。"
+    },
+    {
+      "endpoint": "ibalanced_mtp_18098",
+      "run_id": 4,
+      "warmup": false,
+      "finish_reason": "length",
+      "wall_sec": 9.673,
+      "wall_tps": 52.92828745333957,
+      "server_tps": 53.719548911072216,
+      "usage": {
+        "completion_tokens": 512,
+        "prompt_tokens": 53,
+        "total_tokens": 565,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 53,
+        "prompt_ms": 122.618,
+        "prompt_per_token_ms": 2.313547169811321,
+        "prompt_per_second": 432.23670260483783,
+        "predicted_n": 512,
+        "predicted_ms": 9530.981,
+        "predicted_per_token_ms": 18.615197265625,
+        "predicted_per_second": 53.719548911072216,
+        "draft_n": 825,
+        "draft_n_accepted": 304
+      },
+      "content_chars": 783,
+      "reasoning_chars": 0,
+      "content_head": "1. 使用量化技术降低模型权重精度以节省显存。\n2. 采用PagedAttention机制优化KV缓存管理。\n3. 启用连续批处理提高GPU利用率。\n4. 使用FlashAttention加速注意力计算。\n5. 通过模型并行策略分散大模型负载。\n6. 利用张量并行提升推理吞吐量。\n7. 实施流水线并行减少计算等待时间。"
+    },
+    {
+      "endpoint": "ibalanced_mtp_18098",
+      "run_id": 5,
+      "warmup": false,
+      "finish_reason": "length",
+      "wall_sec": 9.691,
+      "wall_tps": 52.83484923144207,
+      "server_tps": 53.56632452571832,
+      "usage": {
+        "completion_tokens": 512,
+        "prompt_tokens": 53,
+        "total_tokens": 565,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 53,
+        "prompt_ms": 121.964,
+        "prompt_per_token_ms": 2.3012075471698115,
+        "prompt_per_second": 434.55445869272904,
+        "predicted_n": 512,
+        "predicted_ms": 9558.244,
+        "predicted_per_token_ms": 18.6684453125,
+        "predicted_per_second": 53.56632452571832,
+        "draft_n": 825,
+        "draft_n_accepted": 304
+      },
+      "content_chars": 783,
+      "reasoning_chars": 0,
+      "content_head": "1. 使用量化技术降低模型权重精度以节省显存。\n2. 采用PagedAttention机制优化KV缓存管理。\n3. 启用连续批处理提高GPU利用率。\n4. 使用FlashAttention加速注意力计算。\n5. 通过模型并行策略分散大模型负载。\n6. 利用张量并行提升推理吞吐量。\n7. 实施流水线并行减少计算等待时间。"
+    }
+  ],
+  "endpoints": {
+    "q4km_mtp_18099": {
+      "n": 5,
+      "server_tps_mean": 64.07571345502012,
+      "server_tps_median": 64.14591592224413,
+      "wall_tps_mean": 63.117726476593816,
+      "wall_tps_median": 63.24610981923138,
+      "completion_tokens": [
+        512,
+        512,
+        512,
+        512,
+        512
+      ],
+      "finish_reasons": [
+        "length",
+        "length",
+        "length",
+        "length",
+        "length"
+      ],
+      "draft_accept_mean": 0.36341756919374246,
+      "draft_n": [
+        831,
+        831,
+        831,
+        831,
+        831
+      ],
+      "draft_n_accepted": [
+        302,
+        302,
+        302,
+        302,
+        302
+      ]
+    },
+    "ibalanced_mtp_18098": {
+      "n": 5,
+      "server_tps_mean": 53.28725590265411,
+      "server_tps_median": 53.56632452571832,
+      "wall_tps_mean": 52.516244564995816,
+      "wall_tps_median": 52.83484923144207,
+      "completion_tokens": [
+        512,
+        512,
+        512,
+        512,
+        512
+      ],
+      "finish_reasons": [
+        "length",
+        "length",
+        "length",
+        "length",
+        "length"
+      ],
+      "draft_accept_mean": 0.36848484848484847,
+      "draft_n": [
+        825,
+        825,
+        825,
+        825,
+        825
+      ],
+      "draft_n_accepted": [
+        304,
+        304,
+        304,
+        304,
+        304
+      ]
+    }
+  }
+}

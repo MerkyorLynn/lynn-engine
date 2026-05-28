@@ -159,3 +159,123 @@ publish Q4_K_M-MTP only if:
   MMLU/GPQA/tool-call deltas stay inside the existing Q4_K_M quality band.
 ```
 
+## 2026-05-28 Build Result
+
+The self-quantized Q4_K_M imatrix rebuild is complete on Spark:
+
+```text
+/home/merkyor/models/Qwen3.6-35B-A3B-APEX-MTP-Q4KM-imatrix/
+  Qwen3.6-35B-A3B-APEX-MTP-F16.gguf                  67G
+  Qwen3.6-35B-A3B-APEX-MTP.imatrix                   184M
+  Qwen3.6-35B-A3B-APEX-MTP-Q4_K_M-imatrix.gguf        21G
+```
+
+Checksums:
+
+```text
+6354476fe8f8820e59613394e13eb3bf2fb9276d2f05c6da17a4a798a50bc0f0  Qwen3.6-35B-A3B-APEX-MTP-Q4_K_M-imatrix.gguf
+996e9875df061c426e3787babd30101bf09d1c301700bd11422e3d07ad8afdab  Qwen3.6-35B-A3B-APEX-MTP.imatrix
+```
+
+Calibration and quantization:
+
+- `llama-imatrix --chunks 200 -ngl 99 -c 512`
+- imatrix final PPL: `4.0908 +/- 0.03924`
+- `llama-quantize --imatrix ... Q4_K_M`
+- quantized size: `20696.09 MiB`
+- quantized BPW: `4.89`
+
+Metadata gate passed:
+
+```text
+general.file_type=15
+qwen35moe.nextn_predict_layers=1
+qwen35moe.block_count=41
+qwen35moe.expert_count=256
+quantize.imatrix.entries_count=510
+quantize.imatrix.chunks_count=200
+nextn_tensor_count=4
+nextn_tensor=blk.40.nextn.eh_proj.weight
+nextn_tensor=blk.40.nextn.enorm.weight
+nextn_tensor=blk.40.nextn.hnorm.weight
+nextn_tensor=blk.40.nextn.shared_head_norm.weight
+```
+
+Runtime smoke passed on temporary port `18099`:
+
+```text
+common_speculative_impl_draft_mtp: adding speculative implementation 'draft-mtp'
+common_speculative_impl_draft_mtp: - n_max=4
+```
+
+Short think-off smoke:
+
+```text
+finish=stop
+completion_tokens=38
+predicted_per_second=55.11
+draft_n=68
+draft_n_accepted=23
+content=Q4_K_M 是一种用于量化压缩模型权重的技术，而 MTP（多令牌预测）是一种通过并行预测多个未来词元来加速推理过程的生成策略。
+```
+
+## 2026-05-28 TPS Result
+
+Single-stream 512-token `/no_think` benchmark, Spark local HTTP, `temperature=0`,
+5 measured runs after warmup:
+
+| Serving Mode | GGUF | Server TPS Mean | Wall TPS Mean | Draft Accept |
+|---|---|---:|---:|---:|
+| Q4_K_M imatrix, AR only | self-quantized Q4_K_M-MTP artifact served without `--spec-type` | **77.73** | **76.51** | n/a |
+| Q4_K_M imatrix, draft-MTP n=4 | self-quantized Q4_K_M-MTP artifact served with `--spec-type draft-mtp` | 64.08 | 63.12 | 36.34% |
+| I-Balanced, draft-MTP n=4 | current production fallback on `18098` | 53.29 | 52.52 | 36.85% |
+
+Important conclusion: the rebuilt Q4_K_M artifact is valid and fast, but current
+llama.cpp `draft-mtp` is not the fastest serving mode for this artifact on this
+prompt family. Q4_K_M AR reaches the historical `~77 TPS` single-stream class by
+itself, while MTP loses speed because the observed accept rate is only about
+36% and the draft context overhead is larger than the accepted-token savings.
+
+Treat the artifact and runtime policy separately:
+
+- **Artifact:** publishable only after quality gates pass; it correctly contains
+  embedded MTP tensors.
+- **Runtime default:** prefer AR for single-stream speed unless a later prompt
+  suite shows materially higher MTP accept rate. Keep `draft-mtp` as an opt-in
+  experiment, not the default, for this Q4_K_M package.
+
+## 2026-05-28 Think-Off Quality Result
+
+After the TPS result, the Q4_K_M-MTP quality run was stopped during the
+thinking-on section and the production `18098` APEX-MTP I-Balanced fallback was
+restored. The completed think-off results are enough to mark this route as not
+ready to replace the existing public quality anchors:
+
+| Model / Runtime | MMLU 500 5-shot | GPQA Diamond 198 | Notes |
+|---|---:|---:|---|
+| BF16 official, historical anchor | 86.40% | 45.45% | prior Spark quality table |
+| Q4_K_M-imatrix base, historical anchor | 83.00% | 50.00% | prior Spark quality table |
+| Lynn-native W4A16 NVFP4, historical anchor | 84.40% | 49.49% | prior Spark quality table |
+| Q4_K_M-MTP self build on `18099`, think-off | 81.40% | 41.41% | `407/500`, `82/198`; run stopped after MMLU thinking-on partial |
+| APEX-MTP I-Balanced production on `18098`, think-off | 82.20% | 42.42% | `411/500`, `84/198`; production fallback stayed active |
+
+Interpretation:
+
+- The GPQA drop is too large to treat as normal quantization noise.
+- The drop is not isolated to the new Q4_K_M-MTP self build: the existing
+  APEX-MTP I-Balanced package also lands in the same low-40% GPQA band under
+  explicit think-off.
+- APEX-MTP I-Balanced still has strong separate 32K thinking-on results, so the
+  publish/use decision should split by mode: use APEX-MTP for thinking-on
+  workflows, but do not position it as the best think-off quality package.
+- For think-off quality, the older Q4_K_M base and W4A16 NVFP4 anchors remain
+  the stronger references until an AR-only run of this exact Q4_K_M-MTP artifact
+  proves otherwise.
+
+Result artifacts copied into the repo:
+
+```text
+reports/qwen36_35b/q4km_mtp_quality_20260528_181812/
+reports/qwen36_35b/apex_thinkoff_20260528_191853/
+reports/mtp/qwen36_q4km_mtp_tps_20260528/
+```

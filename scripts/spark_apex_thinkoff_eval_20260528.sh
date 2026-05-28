@@ -40,7 +40,9 @@ python3 "${LYNN_SCRIPTS}/openai_mmlu_500_5shot_eval.py" \
   --seed 20260519 \
   --shots 5 \
   --concurrency 4 \
-  --timeout 120
+  --timeout 120 \
+  --disable-thinking \
+  --append-no-think
 
 echo
 echo "========== gpqa198_thinkoff =========="
@@ -50,7 +52,9 @@ python3 "${LYNN_SCRIPTS}/openai_gpqa_diamond_eval.py" \
   --model "$MODEL" \
   --out "${OUT_ROOT}/gpqa198_thinkoff.jsonl" \
   --concurrency 2 \
-  --timeout 120
+  --timeout 120 \
+  --disable-thinking \
+  --append-no-think
 
 echo
 echo "========== summaries =========="
