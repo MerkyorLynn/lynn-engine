@@ -1,0 +1,37 @@
+{
+  "output": "/home/merkyor/lynn-apex-mtp-runs/service_ab_20260528_115837/ar_baseline.json",
+  "single": {
+    "name": "single",
+    "requests": 2,
+    "ok": 2,
+    "failed": 0,
+    "wall_s": 3.165827961987816,
+    "aggregate_completion_tokens": 192,
+    "aggregate_wall_tps": 60.64764172448703,
+    "server_tps_mean": 66.05396575427288,
+    "server_tps_median": 66.05396575427288,
+    "latency_s_mean": 1.5829050020111026,
+    "latency_s_median": 1.5829050020111026,
+    "draft_n": 0,
+    "draft_n_accepted": 0,
+    "draft_acceptance": 0.0,
+    "errors": []
+  },
+  "concurrent": {
+    "name": "concurrent",
+    "requests": 4,
+    "ok": 4,
+    "failed": 0,
+    "wall_s": 3.0768388860160485,
+    "aggregate_completion_tokens": 384,
+    "aggregate_wall_tps": 124.80341487662709,
+    "server_tps_mean": 33.55638746156643,
+    "server_tps_median": 33.557587385642194,
+    "latency_s_mean": 3.074679867255327,
+    "latency_s_median": 3.075017345501692,
+    "draft_n": 0,
+    "draft_n_accepted": 0,
+    "draft_acceptance": 0.0,
+    "errors": []
+  }
+}

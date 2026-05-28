@@ -1,0 +1,446 @@
+{
+  "run_id": "20260527_041943",
+  "created_at": "2026-05-27T04:19:55.021990+00:00",
+  "base_url": "http://127.0.0.1:18098",
+  "model": "qwen36-35b-a3b-apex-mtp",
+  "max_tokens": 128,
+  "temperature": 0.0,
+  "health": "{\"status\":\"ok\"}",
+  "slots_before": [
+    {
+      "id": 0,
+      "n_ctx": 65536,
+      "speculative": true,
+      "is_processing": false
+    },
+    {
+      "id": 1,
+      "n_ctx": 65536,
+      "speculative": true,
+      "is_processing": false
+    },
+    {
+      "id": 2,
+      "n_ctx": 65536,
+      "speculative": true,
+      "is_processing": false,
+      "id_task": 141,
+      "n_prompt_tokens": 2326,
+      "n_prompt_tokens_processed": 2321,
+      "n_prompt_tokens_cache": 0,
+      "params": {
+        "seed": 4294967295,
+        "temperature": 0.6000000238418579,
+        "dynatemp_range": 0.0,
+        "dynatemp_exponent": 1.0,
+        "top_k": 20,
+        "top_p": 0.949999988079071,
+        "min_p": 0.05000000074505806,
+        "top_n_sigma": -1.0,
+        "xtc_probability": 0.0,
+        "xtc_threshold": 0.10000000149011612,
+        "typical_p": 1.0,
+        "repeat_last_n": 64,
+        "repeat_penalty": 1.0,
+        "presence_penalty": 0.0,
+        "frequency_penalty": 0.0,
+        "dry_multiplier": 0.0,
+        "dry_base": 1.75,
+        "dry_allowed_length": 2,
+        "dry_penalty_last_n": 65536,
+        "mirostat": 0,
+        "mirostat_tau": 5.0,
+        "mirostat_eta": 0.10000000149011612,
+        "max_tokens": 512,
+        "n_predict": 512,
+        "n_keep": 0,
+        "n_discard": 0,
+        "ignore_eos": false,
+        "stream": true,
+        "n_probs": 0,
+        "min_keep": 0,
+        "chat_format": "peg-native",
+        "reasoning_format": "deepseek",
+        "reasoning_in_content": false,
+        "generation_prompt": "<|im_start|>assistant\n<think>\n\n</think>\n\n",
+        "samplers": [
+          "penalties",
+          "dry",
+          "top_n_sigma",
+          "top_k",
+          "typ_p",
+          "top_p",
+          "min_p",
+          "xtc",
+          "temperature"
+        ],
+        "speculative.types": "none,draft-mtp",
+        "timings_per_token": false,
+        "post_sampling_probs": false,
+        "backend_sampling": false,
+        "lora": []
+      },
+      "next_token": [
+        {
+          "has_next_token": false,
+          "has_new_line": false,
+          "n_remain": 510,
+          "n_decoded": 2
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "n_ctx": 65536,
+      "speculative": true,
+      "is_processing": false,
+      "id_task": 148,
+      "n_prompt_tokens": 48,
+      "n_prompt_tokens_processed": 17,
+      "n_prompt_tokens_cache": 0,
+      "params": {
+        "seed": 4294967295,
+        "temperature": 0.0,
+        "dynatemp_range": 0.0,
+        "dynatemp_exponent": 1.0,
+        "top_k": 20,
+        "top_p": 0.949999988079071,
+        "min_p": 0.05000000074505806,
+        "top_n_sigma": -1.0,
+        "xtc_probability": 0.0,
+        "xtc_threshold": 0.10000000149011612,
+        "typical_p": 1.0,
+        "repeat_last_n": 64,
+        "repeat_penalty": 1.0,
+        "presence_penalty": 0.0,
+        "frequency_penalty": 0.0,
+        "dry_multiplier": 0.0,
+        "dry_base": 1.75,
+        "dry_allowed_length": 2,
+        "dry_penalty_last_n": 65536,
+        "mirostat": 0,
+        "mirostat_tau": 5.0,
+        "mirostat_eta": 0.10000000149011612,
+        "max_tokens": 32,
+        "n_predict": 32,
+        "n_keep": 0,
+        "n_discard": 0,
+        "ignore_eos": false,
+        "stream": false,
+        "n_probs": 0,
+        "min_keep": 0,
+        "chat_format": "peg-native",
+        "reasoning_format": "deepseek",
+        "reasoning_in_content": false,
+        "generation_prompt": "<|im_start|>assistant\n<think>\n",
+        "samplers": [
+          "penalties",
+          "dry",
+          "top_n_sigma",
+          "top_k",
+          "typ_p",
+          "top_p",
+          "min_p",
+          "xtc",
+          "temperature"
+        ],
+        "speculative.types": "none,draft-mtp",
+        "timings_per_token": true,
+        "post_sampling_probs": false,
+        "backend_sampling": false,
+        "lora": []
+      },
+      "next_token": [
+        {
+          "has_next_token": false,
+          "has_new_line": false,
+          "n_remain": 0,
+          "n_decoded": 32
+        }
+      ]
+    }
+  ],
+  "single": {
+    "name": "single",
+    "requests": 3,
+    "ok": 3,
+    "failed": 0,
+    "wall_s": 5.27734490900184,
+    "aggregate_completion_tokens": 384,
+    "aggregate_wall_tps": 72.76386262815443,
+    "server_tps_mean": 79.00498089992072,
+    "server_tps_median": 80.29861045763934,
+    "latency_s_mean": 1.7591067529962554,
+    "latency_s_median": 1.717839645993081,
+    "draft_n": 441,
+    "draft_n_accepted": 269,
+    "draft_acceptance": 0.6099773242630385,
+    "errors": []
+  },
+  "concurrent": {
+    "name": "concurrent",
+    "requests": 4,
+    "ok": 4,
+    "failed": 0,
+    "wall_s": 6.299326619002386,
+    "aggregate_completion_tokens": 512,
+    "aggregate_wall_tps": 81.27852879631833,
+    "server_tps_mean": 22.957184020213905,
+    "server_tps_median": 22.77152090032832,
+    "latency_s_mean": 6.050826499747927,
+    "latency_s_median": 6.088424199500878,
+    "draft_n": 589,
+    "draft_n_accepted": 359,
+    "draft_acceptance": 0.6095076400679117,
+    "errors": []
+  },
+  "single_results": [
+    {
+      "ok": true,
+      "label": "single-0",
+      "latency_s": 1.6206879429955734,
+      "status": 200,
+      "error": null,
+      "completion_tokens": 128,
+      "prompt_tokens": 25,
+      "server_tps": 85.84174537728788,
+      "draft_n": 136,
+      "draft_n_accepted": 93,
+      "finish_reason": "length",
+      "content_preview": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Question:** Why does speculative decoding help LLM serving?\n   - **Constraint:** Answer directly in one paragraph.\n\n2.  **Identify Key Concepts:**\n   - Speculative decoding (als",
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 25,
+        "prompt_ms": 101.079,
+        "prompt_per_token_ms": 4.043159999999999,
+        "prompt_per_second": 247.33129532345987,
+        "predicted_n": 128,
+        "predicted_ms": 1491.116,
+        "predicted_per_token_ms": 11.64934375,
+        "predicted_per_second": 85.84174537728788,
+        "draft_n": 136,
+        "draft_n_accepted": 93
+      },
+      "usage": {
+        "completion_tokens": 128,
+        "prompt_tokens": 25,
+        "total_tokens": 153,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "ok": true,
+      "label": "single-1",
+      "latency_s": 1.717839645993081,
+      "status": 200,
+      "error": null,
+      "completion_tokens": 128,
+      "prompt_tokens": 23,
+      "server_tps": 80.29861045763934,
+      "draft_n": 141,
+      "draft_n_accepted": 91,
+      "finish_reason": "length",
+      "content_preview": "Here's a thinking process:\n\n1.  **Understand User Request:**\n   - **Goal:** Write a compact Python function that returns the first `n` Fibonacci numbers.\n   - **Key Requirements:** Compact, Python, returns first `n` Fibonacci numbers.\n\n2.  ",
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 23,
+        "prompt_ms": 93.957,
+        "prompt_per_token_ms": 4.085086956521739,
+        "prompt_per_second": 244.79283076300865,
+        "predicted_n": 128,
+        "predicted_ms": 1594.05,
+        "predicted_per_token_ms": 12.453515625,
+        "predicted_per_second": 80.29861045763934,
+        "draft_n": 141,
+        "draft_n_accepted": 91
+      },
+      "usage": {
+        "completion_tokens": 128,
+        "prompt_tokens": 23,
+        "total_tokens": 151,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "ok": true,
+      "label": "single-2",
+      "latency_s": 1.9387926700001117,
+      "status": 200,
+      "error": null,
+      "completion_tokens": 128,
+      "prompt_tokens": 25,
+      "server_tps": 70.87458686483497,
+      "draft_n": 164,
+      "draft_n_accepted": 85,
+      "finish_reason": "length",
+      "content_preview": "Here's a thinking process:\n\n1.  **Understand User Query:** The user wants a summary of the tradeoff between latency and throughput for batched decoding in the context of LLM inference/generation.\n\n2.  **Define Key Terms:**\n   - **Batched De",
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 25,
+        "prompt_ms": 96.159,
+        "prompt_per_token_ms": 3.8463600000000002,
+        "prompt_per_second": 259.98606474692957,
+        "predicted_n": 128,
+        "predicted_ms": 1806.007,
+        "predicted_per_token_ms": 14.1094296875,
+        "predicted_per_second": 70.87458686483497,
+        "draft_n": 164,
+        "draft_n_accepted": 85
+      },
+      "usage": {
+        "completion_tokens": 128,
+        "prompt_tokens": 25,
+        "total_tokens": 153,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    }
+  ],
+  "concurrent_results": [
+    {
+      "ok": true,
+      "label": "concurrent-r0-i0",
+      "latency_s": 5.729561810992891,
+      "status": 200,
+      "error": null,
+      "completion_tokens": 128,
+      "prompt_tokens": 25,
+      "server_tps": 24.325379314381586,
+      "draft_n": 136,
+      "draft_n_accepted": 93,
+      "finish_reason": "length",
+      "content_preview": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Question:** Why does speculative decoding help LLM serving?\n   - **Constraint:** Answer directly in one paragraph.\n\n2.  **Identify Key Concepts:**\n   - Speculative decoding (als",
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 25,
+        "prompt_ms": 376.037,
+        "prompt_per_token_ms": 15.04148,
+        "prompt_per_second": 66.48281950978229,
+        "predicted_n": 128,
+        "predicted_ms": 5261.994,
+        "predicted_per_token_ms": 41.109328125,
+        "predicted_per_second": 24.325379314381586,
+        "draft_n": 136,
+        "draft_n_accepted": 93
+      },
+      "usage": {
+        "completion_tokens": 128,
+        "prompt_tokens": 25,
+        "total_tokens": 153,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "ok": true,
+      "label": "concurrent-r0-i1",
+      "latency_s": 5.993874505002168,
+      "status": 200,
+      "error": null,
+      "completion_tokens": 128,
+      "prompt_tokens": 23,
+      "server_tps": 23.159741421487027,
+      "draft_n": 141,
+      "draft_n_accepted": 91,
+      "finish_reason": "length",
+      "content_preview": "Here's a thinking process:\n\n1.  **Understand User Request:**\n   - **Goal:** Write a compact Python function that returns the first `n` Fibonacci numbers.\n   - **Key Requirements:** Compact, Python, returns first `n` Fibonacci numbers.\n\n2.  ",
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 23,
+        "prompt_ms": 375.022,
+        "prompt_per_token_ms": 16.305304347826088,
+        "prompt_per_second": 61.32973532219443,
+        "predicted_n": 128,
+        "predicted_ms": 5526.832,
+        "predicted_per_token_ms": 43.178375,
+        "predicted_per_second": 23.159741421487027,
+        "draft_n": 141,
+        "draft_n_accepted": 91
+      },
+      "usage": {
+        "completion_tokens": 128,
+        "prompt_tokens": 23,
+        "total_tokens": 151,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "ok": true,
+      "label": "concurrent-r0-i2",
+      "latency_s": 6.2968957889970625,
+      "status": 200,
+      "error": null,
+      "completion_tokens": 128,
+      "prompt_tokens": 25,
+      "server_tps": 21.960314965817396,
+      "draft_n": 160,
+      "draft_n_accepted": 86,
+      "finish_reason": "length",
+      "content_preview": "Here's a thinking process:\n\n1.  **Understand User Query:** The user wants a summary of the tradeoff between latency and throughput for batched decoding in the context of LLM inference/generation.\n\n2.  **Define Key Terms:**\n   - **Batched De",
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 25,
+        "prompt_ms": 372.985,
+        "prompt_per_token_ms": 14.919400000000001,
+        "prompt_per_second": 67.02682413501884,
+        "predicted_n": 128,
+        "predicted_ms": 5828.696,
+        "predicted_per_token_ms": 45.5366875,
+        "predicted_per_second": 21.960314965817396,
+        "draft_n": 160,
+        "draft_n_accepted": 86
+      },
+      "usage": {
+        "completion_tokens": 128,
+        "prompt_tokens": 25,
+        "total_tokens": 153,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "ok": true,
+      "label": "concurrent-r0-i3",
+      "latency_s": 6.182973893999588,
+      "status": 200,
+      "error": null,
+      "completion_tokens": 128,
+      "prompt_tokens": 23,
+      "server_tps": 22.38330037916961,
+      "draft_n": 152,
+      "draft_n_accepted": 89,
+      "finish_reason": "length",
+      "content_preview": "Here's a thinking process:\n\n1.  **Analyze User Request:**\n   - **Topic:** CUDA kernel debugging\n   - **Problem:** Kernel returning wrong values\n   - **Requirement:** Three concise debugging steps\n   - **Format:** Concise, step-by-step\n\n2.  ",
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 23,
+        "prompt_ms": 373.87,
+        "prompt_per_token_ms": 16.25521739130435,
+        "prompt_per_second": 61.51870971193196,
+        "predicted_n": 128,
+        "predicted_ms": 5718.549,
+        "predicted_per_token_ms": 44.6761640625,
+        "predicted_per_second": 22.38330037916961,
+        "draft_n": 152,
+        "draft_n_accepted": 89
+      },
+      "usage": {
+        "completion_tokens": 128,
+        "prompt_tokens": 23,
+        "total_tokens": 151,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    }
+  ]
+}

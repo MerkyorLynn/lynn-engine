@@ -1,0 +1,12 @@
+{
+  "model": "Qwen3.6-35B-A3B-APEX-I-Balanced.gguf",
+  "endpoint": "http://127.0.0.1:18098/v1",
+  "n": 15,
+  "passed": 12,
+  "pass_rate": 0.8,
+  "fail_by_reason": {
+    "no_tool_calls": 3
+  },
+  "elapsed_sec": 163.0720522403717,
+  "ship_gate": "PASS"
+}

@@ -2,6 +2,14 @@
 
 Date: 2026-05-27 Asia/Shanghai
 
+Update 2026-05-28: Spark production fallback #2 is now the llama.cpp
+APEX-MTP I-Balanced route with `--spec-type draft-mtp --spec-draft-n-max 4`.
+It reaches **77.01 wall TPS** in the short A/B run and **76.19 median wall TPS**
+in a live sanity check. Existing 32K thinking-on quality anchors are
+**MMLU500 90.00%**, **GPQA198 78.79% naive / 83.87% excl parse fail**, and
+**tool-call 12/15**. A fresh serialized 32K quality refresh is running on Spark
+under `/home/merkyor/eval/reports/apex_quality32k_20260528_121431`.
+
 This note updates the 2026-05-20 product pivot. The pivot is still true:
 Lynn client should use llama.cpp/GGUF as the default local inference backend
 until Lynn engine clears the same-model same-hardware speed bar.
@@ -26,7 +34,7 @@ Qwen3.6-35B-A3B / Qwen3.5-9B
 | Throughput today | Not yet a win in Lynn Python runner. K2 verifier cost still dominates. |
 | Main blocker | Batched full-attention verifier numerics: PyTorch batched attention and batched `o_proj` are not T=1-equivalent. |
 | Active next work | Build T=1-equivalent dual-row attention and `o_proj` kernels, then re-run real 35B maintenance smoke. |
-| Production guardrail | Brain V2 MIMO stays first; llama.cpp APEX-MTP service stays restored as second fallback after experiments. |
+| Production guardrail | Brain V2 MIMO stays first; llama.cpp APEX-MTP `n_max=4` I-Balanced service stays restored as second fallback after experiments. |
 
 ## What Nemotron Contributed
 
@@ -108,6 +116,8 @@ reports/mtp/qwen35_mtp_k2_moe_batched_optimized_20260527_094126.json
 | Real 35B dynamic-N smoke | 6/6 | K2 23.00 TPS, 0.62x warmed baseline | Current code path is exact and avoids baseline length-JIT artifacts, but K2 remains below baseline. |
 | MTP profiler smoke | 2/2 | K2 23.79 TPS, profile-sync run | Highest cost is block/layer verification; K1-batched shows K2 MoE compatibility is a major local bottleneck. |
 | Batched optimized MoE shortcut | fails | K1-batched exact gate false | BF16 optimized batched MoE is not a safe shortcut; a real packed NVFP4 T=2 exact MoE kernel is required. |
+| llama.cpp APEX-MTP service loop | live | single 72.76 wall TPS, 60.99% accept; 4-way 81.28 aggregate TPS, 60.95% accept | Production fallback already gets useful APEX-MTP accept rate; service-loop work should focus on draft overhead and request-level A/B. |
+| llama.cpp request-level `n_max` A/B | live | single MTP n=4 77.01 TPS vs AR 60.65 TPS; 4-way MTP n=4 85.62 TPS vs AR 124.80 TPS | MTP helps single-stream by ~27%, but hurts current 4-slot concurrency; next production policy is dynamic MTP admission. |
 
 Current Python runner baseline on this short smoke is about 31-34 TPS, while the
 active llama.cpp APEX-MTP fallback has been observed around 66.7 tok/s with
@@ -153,6 +163,43 @@ longer QKV/RoPE or attention. It is either:
    contract, or
 2. Moving the already-correct verify/accept/crop flow into the production
    llama.cpp/APEX service loop where Python dispatch is gone.
+
+The first Path A service-loop benchmark is now committed as:
+
+```text
+benchmarks/llamacpp_apex_mtp_service_bench.py
+reports/mtp/LLAMA_CPP_APEX_MTP_SERVICE_LOOP_PLAN_20260527.md
+reports/mtp/llamacpp_apex_mtp_service_bench_20260527_1219.json
+```
+
+It runs against the already-loaded Spark service over HTTP and does not start a
+second 35B model. The 2026-05-27 run showed:
+
+| Mode | Requests | Completion tokens | Wall TPS | Server TPS | Draft accept |
+|---|---:|---:|---:|---:|---:|
+| single | 3 | 384 | 72.76 | 80.30 median | 60.99% |
+| 4-way concurrent | 4 | 512 | 81.28 aggregate | 22.77 median/request | 60.95% |
+
+This confirms APEX-MTP is already active and useful in the production fallback
+loop. It also shows the next bottleneck: concurrency scaling is weak, and
+`draft-mtp` still drafts autoregressively inside `common/speculative.cpp`.
+Request-level `speculative.n_max` knobs are present in server parsing but
+disabled under `#if 0`, so the next small llama.cpp patch should re-enable only
+`n_max` for safe same-service A/B.
+
+That A/B is now complete:
+
+```text
+reports/mtp/LLAMA_CPP_APEX_MTP_SERVICE_AB_20260528.md
+reports/mtp/service_ab_20260528_115837/summary.json
+reports/mtp/llama_cpp_apex_mtp_request_nmax_20260528.patch
+```
+
+Result: `n_max=4` remains the best single-stream setting and beats AR by about
+27% on the short Spark run. But under 4-way concurrency, AR wins by about 46%.
+So the immediate production change is not lowering draft depth; it is dynamic
+MTP admission: use `n_max=4` for single/low-queue requests and clamp to `n_max=0`
+when multiple slots are active.
 
 ## Why It Still Matters
 

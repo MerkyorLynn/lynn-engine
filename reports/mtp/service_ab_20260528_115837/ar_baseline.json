@@ -1,0 +1,274 @@
+{
+  "run_id": "20260528_035847",
+  "created_at": "2026-05-28T03:58:53.985578+00:00",
+  "base_url": "http://127.0.0.1:18099",
+  "model": "qwen36-35b-a3b-apex-mtp",
+  "max_tokens": 96,
+  "temperature": 0.0,
+  "speculative_n_max": null,
+  "speculative_n_min": null,
+  "speculative_p_min": null,
+  "health": "{\"status\":\"ok\"}",
+  "slots_before": [
+    {
+      "id": 0,
+      "n_ctx": 65536,
+      "speculative": false,
+      "is_processing": false
+    },
+    {
+      "id": 1,
+      "n_ctx": 65536,
+      "speculative": false,
+      "is_processing": false
+    },
+    {
+      "id": 2,
+      "n_ctx": 65536,
+      "speculative": false,
+      "is_processing": false
+    },
+    {
+      "id": 3,
+      "n_ctx": 65536,
+      "speculative": false,
+      "is_processing": false
+    }
+  ],
+  "single": {
+    "name": "single",
+    "requests": 2,
+    "ok": 2,
+    "failed": 0,
+    "wall_s": 3.165827961987816,
+    "aggregate_completion_tokens": 192,
+    "aggregate_wall_tps": 60.64764172448703,
+    "server_tps_mean": 66.05396575427288,
+    "server_tps_median": 66.05396575427288,
+    "latency_s_mean": 1.5829050020111026,
+    "latency_s_median": 1.5829050020111026,
+    "draft_n": 0,
+    "draft_n_accepted": 0,
+    "draft_acceptance": 0.0,
+    "errors": []
+  },
+  "concurrent": {
+    "name": "concurrent",
+    "requests": 4,
+    "ok": 4,
+    "failed": 0,
+    "wall_s": 3.0768388860160485,
+    "aggregate_completion_tokens": 384,
+    "aggregate_wall_tps": 124.80341487662709,
+    "server_tps_mean": 33.55638746156643,
+    "server_tps_median": 33.557587385642194,
+    "latency_s_mean": 3.074679867255327,
+    "latency_s_median": 3.075017345501692,
+    "draft_n": 0,
+    "draft_n_accepted": 0,
+    "draft_acceptance": 0.0,
+    "errors": []
+  },
+  "single_results": [
+    {
+      "ok": true,
+      "label": "single-0",
+      "latency_s": 1.598493382014567,
+      "status": 200,
+      "error": null,
+      "completion_tokens": 96,
+      "prompt_tokens": 25,
+      "server_tps": 65.88596375036632,
+      "draft_n": 0,
+      "draft_n_accepted": 0,
+      "finish_reason": "length",
+      "content_preview": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Question:** Why does speculative decoding help LLM serving?\n   - **Constraint:** Answer directly in one paragraph.\n\n2.  **Identify Key Concepts:**\n   - Speculative decoding (als",
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 25,
+        "prompt_ms": 125.482,
+        "prompt_per_token_ms": 5.01928,
+        "prompt_per_second": 199.23176232447682,
+        "predicted_n": 96,
+        "predicted_ms": 1457.063,
+        "predicted_per_token_ms": 15.177739583333334,
+        "predicted_per_second": 65.88596375036632
+      },
+      "usage": {
+        "completion_tokens": 96,
+        "prompt_tokens": 25,
+        "total_tokens": 121,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "ok": true,
+      "label": "single-1",
+      "latency_s": 1.5673166220076382,
+      "status": 200,
+      "error": null,
+      "completion_tokens": 96,
+      "prompt_tokens": 23,
+      "server_tps": 66.22196775817945,
+      "draft_n": 0,
+      "draft_n_accepted": 0,
+      "finish_reason": "length",
+      "content_preview": "Here's a thinking process:\n\n1.  **Understand User Request:**\n   - **Goal:** Write a compact Python function that returns the first `n` Fibonacci numbers.\n   - **Key Requirements:** Compact, Python, returns first `n` Fibonacci numbers.\n\n2.  ",
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 23,
+        "prompt_ms": 79.974,
+        "prompt_per_token_ms": 3.477130434782609,
+        "prompt_per_second": 287.59346787706,
+        "predicted_n": 96,
+        "predicted_ms": 1449.67,
+        "predicted_per_token_ms": 15.100729166666667,
+        "predicted_per_second": 66.22196775817945
+      },
+      "usage": {
+        "completion_tokens": 96,
+        "prompt_tokens": 23,
+        "total_tokens": 119,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    }
+  ],
+  "concurrent_results": [
+    {
+      "ok": true,
+      "label": "concurrent-r0-i0",
+      "latency_s": 3.075036391004687,
+      "status": 200,
+      "error": null,
+      "completion_tokens": 96,
+      "prompt_tokens": 25,
+      "server_tps": 33.56879277179969,
+      "draft_n": 0,
+      "draft_n_accepted": 0,
+      "finish_reason": "length",
+      "content_preview": "Here's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Question:** Why does speculative decoding help LLM serving?\n   - **Constraint:** Answer directly in one paragraph.\n\n2.  **Identify Key Concepts:**\n   - Speculative decoding (als",
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 25,
+        "prompt_ms": 185.175,
+        "prompt_per_token_ms": 7.407,
+        "prompt_per_second": 135.00742540839747,
+        "predicted_n": 96,
+        "predicted_ms": 2859.799,
+        "predicted_per_token_ms": 29.789572916666668,
+        "predicted_per_second": 33.56879277179969
+      },
+      "usage": {
+        "completion_tokens": 96,
+        "prompt_tokens": 25,
+        "total_tokens": 121,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "ok": true,
+      "label": "concurrent-r0-i1",
+      "latency_s": 3.075234226009343,
+      "status": 200,
+      "error": null,
+      "completion_tokens": 96,
+      "prompt_tokens": 23,
+      "server_tps": 33.55234392830144,
+      "draft_n": 0,
+      "draft_n_accepted": 0,
+      "finish_reason": "length",
+      "content_preview": "Here's a thinking process:\n\n1.  **Understand User Request:**\n   - **Goal:** Write a compact Python function that returns the first `n` Fibonacci numbers.\n   - **Key Requirements:** Compact, Python, returns first `n` Fibonacci numbers.\n\n2.  ",
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 23,
+        "prompt_ms": 183.0,
+        "prompt_per_token_ms": 7.956521739130435,
+        "prompt_per_second": 125.68306010928961,
+        "predicted_n": 96,
+        "predicted_ms": 2861.201,
+        "predicted_per_token_ms": 29.804177083333332,
+        "predicted_per_second": 33.55234392830144
+      },
+      "usage": {
+        "completion_tokens": 96,
+        "prompt_tokens": 23,
+        "total_tokens": 119,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "ok": true,
+      "label": "concurrent-r0-i2",
+      "latency_s": 3.074998299998697,
+      "status": 200,
+      "error": null,
+      "completion_tokens": 96,
+      "prompt_tokens": 25,
+      "server_tps": 33.54158230318166,
+      "draft_n": 0,
+      "draft_n_accepted": 0,
+      "finish_reason": "length",
+      "content_preview": "Here's a thinking process:\n\n1.  **Understand User Query:** The user wants a summary of the tradeoff between latency and throughput for batched decoding in the context of LLM inference/generation.\n\n2.  **Define Key Terms:**\n   - **Batched De",
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 25,
+        "prompt_ms": 181.883,
+        "prompt_per_token_ms": 7.275320000000001,
+        "prompt_per_second": 137.45099871895667,
+        "predicted_n": 96,
+        "predicted_ms": 2862.119,
+        "predicted_per_token_ms": 29.813739583333334,
+        "predicted_per_second": 33.54158230318166
+      },
+      "usage": {
+        "completion_tokens": 96,
+        "prompt_tokens": 25,
+        "total_tokens": 121,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "ok": true,
+      "label": "concurrent-r0-i3",
+      "latency_s": 3.0734505520085804,
+      "status": 200,
+      "error": null,
+      "completion_tokens": 96,
+      "prompt_tokens": 23,
+      "server_tps": 33.56283084298294,
+      "draft_n": 0,
+      "draft_n_accepted": 0,
+      "finish_reason": "length",
+      "content_preview": "Here's a thinking process:\n\n1.  **Analyze User Request:**\n   - **Topic:** CUDA kernel debugging\n   - **Problem:** Kernel returning wrong values\n   - **Requirement:** Three concise debugging steps\n   - **Format:** Concise, step-by-step\n\n2.  ",
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 23,
+        "prompt_ms": 184.068,
+        "prompt_per_token_ms": 8.002956521739131,
+        "prompt_per_second": 124.95382141382531,
+        "predicted_n": 96,
+        "predicted_ms": 2860.307,
+        "predicted_per_token_ms": 29.794864583333332,
+        "predicted_per_second": 33.56283084298294
+      },
+      "usage": {
+        "completion_tokens": 96,
+        "prompt_tokens": 23,
+        "total_tokens": 119,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    }
+  ]
+}

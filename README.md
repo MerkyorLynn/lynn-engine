@@ -1,5 +1,15 @@
 # Lynn Engine
 
+> **🆕 2026-05-28 Qwen3.6-35B-A3B update — Spark 已切到最快 APEX-MTP I-Balanced 单流路线。**
+> 当前 `lynn-apex-mtp-llamacpp.service` 使用
+> `Qwen3.6-35B-A3B-APEX-MTP-I-Balanced.gguf` + `--spec-type draft-mtp --spec-draft-n-max 4`。
+> 短 A/B:单流 **77.01 tok/s** vs AR **60.65 tok/s**(+27%);生产 sanity 中位 **76.19 tok/s**。
+> 既有 32K thinking-on 质量锚点:**MMLU500 90.00% / GPQA198 78.79% naive,83.87% excl parse fail / tool-call 12/15**。
+> 详见
+> [APEX-MTP service A/B](reports/mtp/LLAMA_CPP_APEX_MTP_SERVICE_AB_20260528.md),
+> [32K quality refresh status](reports/qwen36_35b/APEX_MTP_QUALITY32K_REFRESH_STATUS_20260528.md),以及
+> [知乎/公众号草稿](reports/articles/QWEN36_35B_A3B_QUALITY_SPEED_OPTIMAL_PATH_20260528.md)。
+
 > **🆕 2026-05-27 Active R&D update — Lynn engine 没有放弃,正在把 Nemotron-style self-spec 的可移植部分落到 Qwen35 APEX-MTP。**
 > 5/20 的产品默认推理 pivot 仍然成立:客户端默认走 llama.cpp/GGUF。新的 5/27 进展是 engine 研发线继续推进:
 > **Qwen3.6-35B-A3B W4A16 + official APEX/MTP sidecar 已跑通 K=2 verify/accept/crop/full-accept/prefix-repair token-exact smoke**。
@@ -42,6 +52,7 @@
 |---|---:|---:|---:|---:|---|
 | Lynn-native NVFP4 W4A16 / lynn-engine | 23 GB | 38.96 | 84.40% | 49.49% | 5/18 baseline |
 | **llama.cpp Q4_K_M-imatrix** | **20 GB** | **69.77** | 83.00% | **50.00%** | 同硬件 1.8× lynn-engine |
+| **llama.cpp APEX-MTP I-Balanced** | **25 GB** | **77.01** | **90.00% thinking32** | **78.79% / 83.87% excl_pf thinking32** | 当前 Spark 单流最快;高并发仍需 AR admission |
 | SGLang BF16 official | 67 GB | 30.14 | 86.40% | 45.45% | reference |
 | Lynn W4A8 FP8(工程探索期) | 35 GB | — | — | — | 架构未完成,见 RELEASE_NOTES |
 
