@@ -413,6 +413,32 @@ def _build_configs(w4a16_model: str, fp8_model: str) -> list[dict[str, Any]]:
                 "LYNN_ROUTER_TOPK_SORTED": None,
             },
         },
+        {
+            "label": "w4a8_fp8_dense_graph",
+            "model_dir": fp8_model,
+            "env": {
+                "LYNN_W4A8_FP8_PATH": "1",
+                # M2: dense 9B has NO MoE, so the torch.unique(...).tolist()
+                # host-sync that blocks graph capture (MoE-only) does not apply.
+                # Enable the real CUDA graph the smoke conservatively disabled.
+                "LYNN_LINEAR_BLOCK_GRAPH": "1",
+                "LYNN_LINEAR_BLOCK_GRAPH_REUSE": "1",
+                "LYNN_FULL_TOKEN_GRAPH_SLOT": "1",
+                "LYNN_MTP_SPECULATIVE": "0",
+                "LYNN_MTP_SHADOW_VERIFY": "0",
+                "LYNN_MOE_IMPL": None,
+                "LYNN_MOE_FAST_FIXED": None,
+                "LYNN_NATIVE_DOWN_BACKEND": None,
+                "LYNN_NATIVE_FP4_LM_HEAD": "0",
+                "LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4": "0",
+                "LYNN_LINEAR_ATTN_RECURRENT_INPLACE": None,
+                "LYNN_PACKED_DECODE_BACKEND": None,
+                "LYNN_PACKED_DECODE": None,
+                "LYNN_PACKED_SHARED_EXPERT": "0",
+                "LYNN_LINEAR_BLOCK_GRAPH_PREWARM": None,
+                "LYNN_ROUTER_TOPK_SORTED": "1",
+            },
+        },
     ]
 
 

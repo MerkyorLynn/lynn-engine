@@ -788,6 +788,12 @@ def _decode_layer_k2(
 
     residual = h
     h_norm = _rms_norm(h, w["post_attention_layernorm.weight"])
+    if not cfg.get("is_moe", int(cfg.get("num_experts", 0) or 0) > 0):
+        # Dense FFN (e.g. Qwen3.5-9B): _dense_ffn_forward is M-general (it carries
+        # the Spark FP8 fused gate/up + down path), so the whole K=2 block runs in
+        # one call — no per-position MoE loop, no mlp.gate.weight router.
+        with profile_section("k2_layer.dense_ffn"):
+            return residual + _dense_ffn_forward(h_norm, w)
     # MoE for K=2: the packed_nvfp4 backend (Spark Config D default) is
     # T=1-only — its fused Triton kernel hard-codes h.shape[1] == 1. The
     # cheap fallback ``moe_fn=optimized`` (BF16 active-expert loop) works
@@ -930,6 +936,9 @@ def _decode_layer_block(
 
     residual = h
     h_norm = _rms_norm(h, w["post_attention_layernorm.weight"])
+    if not cfg.get("is_moe", int(cfg.get("num_experts", 0) or 0) > 0):
+        # Dense FFN (e.g. Qwen3.5-9B): one M-general call for the whole block.
+        return residual + _dense_ffn_forward(h_norm, w)
     base_moe_fn = moe_fn if moe_fn is not None else _resolve_decode_moe_impl(
         os.environ.get("LYNN_MOE_IMPL", "optimized")
     )

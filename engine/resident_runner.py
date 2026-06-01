@@ -33,7 +33,14 @@ from engine.loader import load_qwen36_layer
 from engine.mtp_profile import enabled as mtp_profile_enabled
 from engine.mtp_profile import reset as mtp_profile_reset
 from engine.mtp_profile import snapshot as mtp_profile_snapshot
-from engine.mtp_sidecar import load_mtp_sidecar, mtp_layer_config, mtp_layer_weights, mtp_logits
+from engine.mtp_sidecar import (
+    has_embedded_mtp,
+    load_mtp_embedded,
+    load_mtp_sidecar,
+    mtp_layer_config,
+    mtp_layer_weights,
+    mtp_logits,
+)
 from engine.mtp_sidecar import mtp_hidden_and_logits
 from engine.mtp_serving import speculative_step_k1, speculative_step_k1_batched, speculative_step_kn_batched
 from engine.nvfp4_runtime import (
@@ -351,13 +358,31 @@ class LynnIncrementalRunner:
         self.mtp_sidecar: dict[str, torch.Tensor] | None = None
         self.mtp_layer_w: dict[str, torch.Tensor] | None = None
         self.mtp_layer_cfg: dict[str, Any] | None = None
-        if self.mtp_sidecar_path:
+        mtp_wanted = (
+            os.environ.get("LYNN_MTP_SPECULATIVE", "0") == "1"
+            or self.mtp_shadow_verify_enabled
+            or os.environ.get("LYNN_MTP_EMBEDDED", "0") == "1"
+        )
+        mtp_embedded = (
+            not self.mtp_sidecar_path
+            and mtp_wanted
+            and has_embedded_mtp(self.model_dir)
+        )
+        if self.mtp_sidecar_path or mtp_embedded:
             t_mtp = time.time()
-            self.mtp_sidecar, inventory = load_mtp_sidecar(
-                self.mtp_sidecar_path,
-                device=self.device,
-                dtype=self.dtype,
-            )
+            if mtp_embedded:
+                self.mtp_sidecar, inventory = load_mtp_embedded(
+                    self.model_dir,
+                    device=self.device,
+                    dtype=self.dtype,
+                )
+                self.mtp_sidecar_path = f"{self.model_dir}:embedded"
+            else:
+                self.mtp_sidecar, inventory = load_mtp_sidecar(
+                    self.mtp_sidecar_path,
+                    device=self.device,
+                    dtype=self.dtype,
+                )
             for tensor in self.mtp_sidecar.values():
                 tensor.requires_grad_(False)
             self.mtp_layer_w = mtp_layer_weights(self.mtp_sidecar)

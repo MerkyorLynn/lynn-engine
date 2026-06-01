@@ -444,17 +444,47 @@ def decode_full_attn(h_new, new_position_id, w, cfg, K_cache_full, V_cache_full,
         )
 
     # 4. Append to cache at position cached_seq_len
+    #    M3 fixed-shape (graph-replayable) path: write K/V via index_copy_ (the
+    #    write position is read from pos_tensor, not baked as a Python-int slice)
+    #    and attend over the FULL fixed-length cache with a position mask. No
+    #    tensor shape then depends on cached_seq_len, so the whole decode can be
+    #    captured once and replayed. Bit-exact with the variable-slice path:
+    #    masked (future/stale) key positions get zero attention weight.
+    fixed_shape = os.environ.get("LYNN_FULL_ATTN_FIXED_SHAPE", "0") == "1"
+    attn_valid_mask = None
     with profile_section("full_attn_t1.cache_write"):
-        K_cache_full[:, :, cached_seq_len:cached_seq_len + 1, :] = k_new
-        V_cache_full[:, :, cached_seq_len:cached_seq_len + 1, :] = v_new
+        if fixed_shape:
+            pos_idx = pos_tensor.reshape(-1)[:1]
+            K_cache_full.index_copy_(2, pos_idx, k_new)
+            V_cache_full.index_copy_(2, pos_idx, v_new)
+        else:
+            K_cache_full[:, :, cached_seq_len:cached_seq_len + 1, :] = k_new
+            V_cache_full[:, :, cached_seq_len:cached_seq_len + 1, :] = v_new
 
-    # 5. Slice cache up to and including new token
-    new_total = cached_seq_len + 1
-    K_used = K_cache_full[:, :, :new_total, :]
-    V_used = V_cache_full[:, :, :new_total, :]
+    # 5. Select cache window: fixed full + position mask, or variable slice.
+    if fixed_shape:
+        K_used = K_cache_full
+        V_used = V_cache_full
+        max_T = K_cache_full.shape[2]
+        positions = torch.arange(max_T, device=h_new.device).view(1, 1, 1, max_T)
+        attn_valid_mask = positions <= pos_tensor.reshape(1, 1, 1, 1)
+    else:
+        new_total = cached_seq_len + 1
+        K_used = K_cache_full[:, :, :new_total, :]
+        V_used = V_cache_full[:, :, :new_total, :]
 
     full_attn_backend = os.environ.get("LYNN_FULL_ATTN_DECODE_BACKEND", "sdpa")
-    if full_attn_backend == "manual_gqa":
+    if fixed_shape:
+        # Direct masked SDPA (bool mask: True = attend). Bypasses
+        # _full_attn_attention's q.shape[2]==2 K2 special-casing.
+        with profile_section("full_attn_t1.attention.sdpa_fixed"):
+            attn_out = F.scaled_dot_product_attention(
+                q, K_used, V_used,
+                attn_mask=attn_valid_mask,
+                is_causal=False,
+                enable_gqa=(H_KV != H_Q),
+            )
+    elif full_attn_backend == "manual_gqa":
         # Decode uses a single query token. Avoid SDPA launch/dispatch overhead
         # by doing grouped-query attention explicitly without materializing
         # repeated KV heads. This is opt-in until parity + latency are proven.

@@ -7,6 +7,7 @@ acceptance without importing research scripts from production code.
 """
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 from typing import Any
@@ -46,6 +47,131 @@ def load_mtp_sidecar(
     return tensors, {"path": str(sidecar_path), "metadata": metadata, "tensors": inventory}
 
 
+def has_embedded_mtp(model_dir: str | Path) -> bool:
+    """True if the model dir ships MTP tensors (``mtp.*``) inline.
+
+    Qwen3.5-9B's W4A8/FP8 (and W4A16 NVFP4) artifacts carry the MTP head inside
+    the model shards rather than as a standalone sidecar file, so the resident
+    runner can load it without a separate ``LYNN_MTP_SIDECAR`` path.
+    """
+    model_path = Path(model_dir)
+    index_path = model_path / "model.safetensors.index.json"
+    if index_path.exists():
+        try:
+            weight_map = json.loads(index_path.read_text())["weight_map"]
+        except Exception:
+            return False
+        return any(k.startswith("mtp.") for k in weight_map)
+    single = model_path / "model.safetensors"
+    if single.exists():
+        try:
+            with safe_open(single, framework="pt", device="cpu") as f:
+                return any(k.startswith("mtp.") for k in f.keys())
+        except Exception:
+            return False
+    return False
+
+
+# Quantized-variant suffixes to skip when loading the embedded MTP head in plain
+# BF16. The MTP head is a single tiny layer; running it in BF16 keeps the draft
+# cheap and avoids needing an FP8/NVFP4 MTP-layer kernel. Only the *base* model
+# verify must be fast.
+_MTP_QUANT_MARKERS = ("_fp8", ".packed", ".scale", ".global_scale")
+
+
+def load_mtp_embedded(
+    model_dir: str | Path,
+    *,
+    device: str,
+    dtype: torch.dtype,
+) -> tuple[dict[str, torch.Tensor], dict[str, Any]]:
+    """Load the ``mtp.*`` head embedded in a model dir, dequantizing to BF16.
+
+    The MTP head's projection weights are stored quantized in the FP8 artifact
+    (``.weight_fp8`` + ``.weight_fp8_scale``, tracked in the manifest's
+    ``quantized_tensors``); only the norms are plain ``.weight``. Since
+    ``_full_attn_forward`` reads attention projections via ``F.linear`` on the
+    plain ``.weight`` key (there is no FP8 attention path), we dequantize FP8 ->
+    BF16 here, mirroring engine/loader.py's V2 dual-storage fallback. The MTP
+    head is a single tiny layer, so a BF16 copy is essentially free and keeps the
+    draft cheap without needing FP8/NVFP4 MTP-layer kernels.
+
+    Returns the same ``(tensors, inventory)`` contract as ``load_mtp_sidecar``.
+    """
+    model_path = Path(model_dir)
+
+    manifest_path = model_path / "lynn_quant_manifest.json"
+    manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
+    quantized = {
+        k: v
+        for k, v in (manifest.get("quantized_tensors", {}) or {}).items()
+        if k.startswith("mtp.")
+    }
+
+    index_path = model_path / "model.safetensors.index.json"
+    if index_path.exists():
+        weight_map = json.loads(index_path.read_text())["weight_map"]
+    else:
+        single = model_path / "model.safetensors"
+        if not single.exists():
+            raise FileNotFoundError(
+                f"No model.safetensors.index.json or model.safetensors under {model_path}"
+            )
+        with safe_open(single, framework="pt", device="cpu") as f:
+            weight_map = {k: single.name for k in f.keys()}
+
+    handles: dict[str, Any] = {}
+
+    def _load(key: str) -> torch.Tensor:
+        file_name = weight_map[key]
+        if file_name not in handles:
+            handles[file_name] = safe_open(model_path / file_name, framework="pt", device="cpu")
+        return handles[file_name].get_tensor(key)
+
+    tensors: dict[str, torch.Tensor] = {}
+    inventory: dict[str, Any] = {}
+    try:
+        # 1. Plain (non-quantized) mtp.* tensors: norms / layernorms.
+        for key in weight_map:
+            if not key.startswith("mtp.") or any(m in key for m in _MTP_QUANT_MARKERS):
+                continue
+            tensor = _load(key).to(device=device, dtype=dtype)
+            tensors[key] = tensor
+            inventory[key] = {
+                "shape": list(tensor.shape),
+                "dtype": str(tensor.dtype).replace("torch.", ""),
+                "numel": int(tensor.numel()),
+            }
+
+        # 2. Dequantize FP8 mtp.* proj/fc weights -> BF16 ``.weight``
+        #    (engine/loader.py:232-238 contract: bf16 = fp8.float() * scale).
+        for logical_key, rec in quantized.items():
+            weight_fp8 = _load(rec["weight_fp8_key"])
+            scale = _load(rec["weight_fp8_scale_key"]).to(torch.float32)
+            if weight_fp8.dim() == 3:
+                scale = scale.unsqueeze(-1)
+            elif weight_fp8.dim() == 2:
+                scale = scale.view(-1, 1)
+            bf16 = (weight_fp8.to(torch.float32) * scale).to(dtype).to(device)
+            tensors[logical_key] = bf16
+            inventory[logical_key] = {
+                "shape": list(bf16.shape),
+                "dtype": str(bf16.dtype).replace("torch.", ""),
+                "numel": int(bf16.numel()),
+                "dequant_from": "fp8",
+            }
+    finally:
+        for handle in handles.values():
+            try:
+                handle.__exit__(None, None, None)
+            except Exception:
+                pass
+
+    if not tensors:
+        raise KeyError(f"No embedded mtp.* tensors found under {model_path}")
+    return tensors, {"path": f"{model_path}:embedded", "metadata": {}, "tensors": inventory}
+
+
 def mtp_layer_weights(sidecar: dict[str, torch.Tensor]) -> dict[str, torch.Tensor]:
     """Strip the `mtp.layers.0.` prefix into a regular layer-weight mapping."""
     prefix = "mtp.layers.0."
@@ -54,23 +180,42 @@ def mtp_layer_weights(sidecar: dict[str, torch.Tensor]) -> dict[str, torch.Tenso
         if key.startswith(prefix):
             out[key.removeprefix(prefix)] = tensor
 
-    required = {
-        "input_layernorm.weight",
-        "post_attention_layernorm.weight",
-        "self_attn.q_norm.weight",
-        "self_attn.k_norm.weight",
-        "self_attn.q_proj.weight",
-        "self_attn.k_proj.weight",
-        "self_attn.v_proj.weight",
-        "self_attn.o_proj.weight",
-        "mlp.gate.weight",
-        "mlp.experts.gate_up_proj",
-        "mlp.experts.down_proj",
-        "mlp.shared_expert.gate_proj.weight",
-        "mlp.shared_expert.up_proj.weight",
-        "mlp.shared_expert.down_proj.weight",
-        "mlp.shared_expert_gate.weight",
-    }
+    is_dense = "mlp.experts.gate_up_proj" not in out and (
+        "mlp.gate_proj.weight" in out or "mlp.gate_proj.weight_fp8" in out
+    )
+    if is_dense:
+        # Dense MTP layer (e.g. Qwen3.5-9B): standard gate/up/down FFN, no experts.
+        required = {
+            "input_layernorm.weight",
+            "post_attention_layernorm.weight",
+            "self_attn.q_norm.weight",
+            "self_attn.k_norm.weight",
+            "self_attn.q_proj.weight",
+            "self_attn.k_proj.weight",
+            "self_attn.v_proj.weight",
+            "self_attn.o_proj.weight",
+            "mlp.gate_proj.weight",
+            "mlp.up_proj.weight",
+            "mlp.down_proj.weight",
+        }
+    else:
+        required = {
+            "input_layernorm.weight",
+            "post_attention_layernorm.weight",
+            "self_attn.q_norm.weight",
+            "self_attn.k_norm.weight",
+            "self_attn.q_proj.weight",
+            "self_attn.k_proj.weight",
+            "self_attn.v_proj.weight",
+            "self_attn.o_proj.weight",
+            "mlp.gate.weight",
+            "mlp.experts.gate_up_proj",
+            "mlp.experts.down_proj",
+            "mlp.shared_expert.gate_proj.weight",
+            "mlp.shared_expert.up_proj.weight",
+            "mlp.shared_expert.down_proj.weight",
+            "mlp.shared_expert_gate.weight",
+        }
     missing = sorted(required - set(out))
     if missing:
         raise KeyError(f"MTP sidecar is missing layer tensors after prefix strip: {missing}")
@@ -81,9 +226,15 @@ def mtp_layer_config(base_cfg: dict[str, Any], mtp_w: dict[str, torch.Tensor]) -
     """Build the one-layer MTP config from the resident model config."""
     text_cfg = base_cfg.get("text_config") or base_cfg
     cfg = dict(text_cfg)
-    cfg["num_experts"] = int(mtp_w["mlp.experts.gate_up_proj"].shape[0])
-    cfg["num_experts_per_tok"] = int(text_cfg.get("num_experts_per_tok", 8))
-    cfg["expert_intermediate"] = int(mtp_w["mlp.experts.down_proj"].shape[-1])
+    if "mlp.experts.gate_up_proj" in mtp_w:
+        cfg["num_experts"] = int(mtp_w["mlp.experts.gate_up_proj"].shape[0])
+        cfg["num_experts_per_tok"] = int(text_cfg.get("num_experts_per_tok", 8))
+        cfg["expert_intermediate"] = int(mtp_w["mlp.experts.down_proj"].shape[-1])
+        cfg["is_moe"] = True
+    else:
+        # Dense MTP layer (Qwen3.5-9B): no experts.
+        cfg["num_experts"] = 0
+        cfg["is_moe"] = False
     cfg["layer_idx"] = 0
     return cfg
 
@@ -127,6 +278,12 @@ def mtp_layer_forward(
     256-expert empty-mask scan in the MTP layer. `decode_bmm` is left as an
     explicit research mode because it was faster but not top-1 exact.
     """
+    is_dense = not mtp_cfg.get("is_moe", int(mtp_cfg.get("num_experts", 0) or 0) > 0)
+    if is_dense:
+        # Dense MTP layer (Qwen3.5-9B): _layer_forward -> _ffn_forward dispatches
+        # to _dense_ffn_forward (which carries the Spark FP8 fused path). The
+        # decode-MoE fast modes below are MoE-only.
+        return _layer_forward(h, pos, "full_attention", mtp_w, mtp_cfg)
     moe_mode = os.environ.get("LYNN_MTP_LAYER_MOE", "decode_slot_sorted").strip().lower()
     if moe_mode in {"", "baseline", "full_forward", "full"}:
         return _layer_forward(h, pos, "full_attention", mtp_w, mtp_cfg)
