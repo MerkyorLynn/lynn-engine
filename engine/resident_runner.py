@@ -1111,6 +1111,63 @@ class LynnIncrementalRunner:
         self._restore_state(state, snap)
         return FullTokenGraphSlot(seq_len=seq_len, token_buf=token_buf, logits_buf=logits_buf, graph=graph)
 
+    def _capture_reusable_decode_graph(self, state: "LynnInferenceState", token_id: int) -> dict:
+        """Capture ONE dense full-token decode graph that replays at ANY position.
+
+        Unlike ``_capture_full_token_graph_slot`` (position-bound — must
+        re-capture per token, the 6.3 TPS pathology), this drives the new token
+        and position from CUDA buffers and runs the fixed-shape full-attn path
+        (``LYNN_FULL_ATTN_FIXED_SHAPE`` — index_copy_ KV write + full-cache masked
+        SDPA), so a single capture replays across the whole generation. Dense
+        (no MoE) + in-place linear state required. This is the M3 dispatch-kill
+        lever: ~1 graph launch/token instead of ~480 eager op launches.
+        """
+        if not self.device.startswith("cuda"):
+            raise RuntimeError("reusable decode graph requires CUDA")
+        if self.decode_linear_state_update != "inplace":
+            raise RuntimeError(
+                "reusable decode graph requires LYNN_LINEAR_STATE_UPDATE=inplace "
+                "(graph replay advances recurrent state in place)"
+            )
+        seq_len = int(state.seq_len)
+        token_buf = torch.empty((1, 1), device=self.device, dtype=torch.long)
+        token_buf.fill_(int(token_id))
+        pos_buf = torch.empty((1, 1), device=self.device, dtype=torch.long)
+        pos_buf.fill_(seq_len)
+        vocab = int(self.outside["lm_head.weight"].shape[0])
+        logits_dtype = torch.float16 if self.native_fp4_lm_head_enabled else self.dtype
+        logits_buf = torch.empty((1, vocab), device=self.device, dtype=logits_dtype)
+        snap = self._snapshot_state(state)
+
+        prev_fixed = os.environ.get("LYNN_FULL_ATTN_FIXED_SHAPE")
+        os.environ["LYNN_FULL_ATTN_FIXED_SHAPE"] = "1"
+
+        def graph_body() -> None:
+            h = F.embedding(token_buf, self.outside["model.language_model.embed_tokens.weight"])
+            for i in range(self.n_layers):
+                h = self._decode_layer_fast(h, pos_buf, state, i)
+            h_final = _rms_norm(h, self.outside["model.language_model.norm.weight"])
+            logits_buf.copy_(self._lm_head_logits(h_final).to(logits_dtype))
+
+        try:
+            graph_body()  # eager warmup populates allocator + verifies the path
+            if self.device.startswith("cuda"):
+                torch.cuda.synchronize()
+            self._restore_state(state, snap)
+            graph = torch.cuda.CUDAGraph()
+            with torch.cuda.graph(graph):
+                graph_body()
+            if self.device.startswith("cuda"):
+                torch.cuda.synchronize()
+            self._restore_state(state, snap)
+        finally:
+            if prev_fixed is None:
+                os.environ.pop("LYNN_FULL_ATTN_FIXED_SHAPE", None)
+            else:
+                os.environ["LYNN_FULL_ATTN_FIXED_SHAPE"] = prev_fixed
+
+        return {"token_buf": token_buf, "pos_buf": pos_buf, "logits_buf": logits_buf, "graph": graph}
+
     def _capture_full_attn_layer_graph_slot(
         self,
         state: LynnInferenceState,
@@ -1871,7 +1928,50 @@ class LynnIncrementalRunner:
                         flush=True,
                     )
 
+        # ---- M3 reusable decode graph (opt-in via LYNN_REUSABLE_DECODE_GRAPH=1) ----
+        # Capture the dense full-token decode ONCE (fixed-shape full-attn, so no
+        # tensor shape depends on seq_len), then replay per token from token/pos
+        # buffers. Replaces ~480 eager op launches/token with ~1 graph replay —
+        # the M3 dispatch-kill lever. Dense-only; incompatible with MoE-dispatch
+        # / MTP / position-bound full-token-slot paths.
+        reusable_graph_active = (
+            os.environ.get("LYNN_REUSABLE_DECODE_GRAPH", "0") == "1"
+            and self.device.startswith("cuda")
+            and not mtp_speculative_active
+            and not full_token_graph_slot_enabled
+            and linear_block_graphs is None
+        )
+        reusable_graph_capture_seconds = None
+        if reusable_graph_active and stopped_reason != "stop_token":
+            cap_t0 = time.time()
+            rg = self._capture_reusable_decode_graph(state, next_id)
+            if self.device.startswith("cuda"):
+                torch.cuda.synchronize()
+            reusable_graph_capture_seconds = time.time() - cap_t0
+            if self.verbose:
+                print(
+                    f"  [resident] captured reusable decode graph in "
+                    f"{reusable_graph_capture_seconds:.3f}s",
+                    flush=True,
+                )
+            while len(new_ids) < max_new and stopped_reason != "stop_token":
+                step_t0 = time.time()
+                rg["token_buf"].fill_(int(next_id))
+                rg["pos_buf"].fill_(int(state.seq_len))
+                rg["graph"].replay()
+                state.seq_len += 1
+                next_id = int(rg["logits_buf"][0].argmax().item())
+                if self.device.startswith("cuda"):
+                    torch.cuda.synchronize()
+                decode_seconds.append(time.time() - step_t0)
+                new_ids.append(next_id)
+                if next_id in self.stop_token_ids:
+                    stopped_reason = "stop_token"
+                    break
+
         for step in range(1, max_new):
+            if reusable_graph_active:
+                break
             if mtp_speculative_active:
                 break
             if stopped_reason == "stop_token":

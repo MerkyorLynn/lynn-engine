@@ -54,8 +54,22 @@ lm_head) replays from one captured graph → kills the ~34 ms dispatch → targe
 Step 1 (fixed-shape attn, bit-exact) → Step 2 (capture-once/replay-many in
 `generate()`) → Step 3 (measure). A native C++ decode loop is a later optimization.
 
-## Next
-1. M3 graph capture + replay (the dispatch-killer).
-2. Fix K≥2 batched MTP accept=0.
-3. Full 500/198 W4A8-vs-W4A16 quality regression (canonical).
-4. Migrate the proven runtime to 35B-A3B MoE.
+## M3 graph result (2026-06-01 overnight)
+Reusable decode graph (capture-once/replay-many, fixed-shape full-attn) **works
+— token-exact (128/128 all 3 prompts)**, a real new engine capability
+(`_capture_reusable_decode_graph` + `LYNN_REUSABLE_DECODE_GRAPH=1`). BUT on 9B
+**dense** it is **14.7 TPS vs 15.3 baseline (slightly slower)**: the graph saved
+only ~6.6 ms/token (dispatch is ~10%, not dominant), while fixed-shape
+full-window SDPA *added* ~9.6 ms/token.
+
+**Conclusion: 9B decode is memory-bound (8-bit FP8 weight reads), not
+dispatch-bound — CUDA graph is NOT the 9B lever.** The graph win belongs to the
+**35B MoE** (≫ launches/token). The **9B lever is MTP (M>1)**, which amortizes
+the 8-bit weight reads. (A flash-attn kernel with a dynamic seqlen buffer would
+drop the full-window penalty so the graph nets positive — a follow-up.)
+
+## Next (revised by M3)
+1. **Fix K≥2 batched MTP accept=0** — the real 9B throughput lever now.
+2. Full 500/198 W4A8-vs-W4A16 quality regression (canonical FP8 validation).
+3. Flash-attn dynamic-seqlen kernel so the reusable graph nets positive.
+4. Migrate reusable-graph + grouped-GEMM to 35B-A3B MoE (where graph pays off).
