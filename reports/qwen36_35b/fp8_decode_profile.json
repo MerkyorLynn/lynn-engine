@@ -1,0 +1,48 @@
+{
+  "tokens": 64,
+  "decode_tps": 3.399347838526433,
+  "sections": {
+    "full_attn.attention.sdpa": {
+      "count": 630,
+      "total_seconds": 0.023958857054822147,
+      "mean_ms": 0.03802993183305103,
+      "max_ms": 9.554081014357507
+    },
+    "full_attn.o_proj.default": {
+      "count": 630,
+      "total_seconds": 0.0715274871326983,
+      "mean_ms": 0.11353569386142587,
+      "max_ms": 0.17532298807054758
+    },
+    "full_attn_t1.cache_write": {
+      "count": 630,
+      "total_seconds": 0.009837134624831378,
+      "mean_ms": 0.015614499404494253,
+      "max_ms": 0.03207591362297535
+    },
+    "full_attn_t1.gate": {
+      "count": 630,
+      "total_seconds": 0.01406308903824538,
+      "mean_ms": 0.022322363552770445,
+      "max_ms": 0.10750698857009411
+    },
+    "full_attn_t1.o_proj_total": {
+      "count": 630,
+      "total_seconds": 0.08022262249141932,
+      "mean_ms": 0.12733749601812588,
+      "max_ms": 0.1955130137503147
+    },
+    "full_attn_t1.qkv": {
+      "count": 630,
+      "total_seconds": 0.14279335737228394,
+      "mean_ms": 0.2266561228131491,
+      "max_ms": 0.3476219717413187
+    },
+    "full_attn_t1.rope": {
+      "count": 630,
+      "total_seconds": 0.153518897597678,
+      "mean_ms": 0.24368078983758415,
+      "max_ms": 0.3157700411975384
+    }
+  }
+}
