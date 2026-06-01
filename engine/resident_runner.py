@@ -1140,7 +1140,9 @@ class LynnIncrementalRunner:
         snap = self._snapshot_state(state)
 
         prev_fixed = os.environ.get("LYNN_FULL_ATTN_FIXED_SHAPE")
+        prev_moe_gs = os.environ.get("LYNN_FP8_MOE_GRAPH_SAFE")
         os.environ["LYNN_FULL_ATTN_FIXED_SHAPE"] = "1"
+        os.environ["LYNN_FP8_MOE_GRAPH_SAFE"] = "1"  # P1 graph-safe MoE dispatch (MoE models)
 
         def graph_body() -> None:
             h = F.embedding(token_buf, self.outside["model.language_model.embed_tokens.weight"])
@@ -1161,10 +1163,14 @@ class LynnIncrementalRunner:
                 torch.cuda.synchronize()
             self._restore_state(state, snap)
         finally:
-            if prev_fixed is None:
-                os.environ.pop("LYNN_FULL_ATTN_FIXED_SHAPE", None)
-            else:
-                os.environ["LYNN_FULL_ATTN_FIXED_SHAPE"] = prev_fixed
+            for _k, _v in (
+                ("LYNN_FULL_ATTN_FIXED_SHAPE", prev_fixed),
+                ("LYNN_FP8_MOE_GRAPH_SAFE", prev_moe_gs),
+            ):
+                if _v is None:
+                    os.environ.pop(_k, None)
+                else:
+                    os.environ[_k] = _v
 
         return {"token_buf": token_buf, "pos_buf": pos_buf, "logits_buf": logits_buf, "graph": graph}
 

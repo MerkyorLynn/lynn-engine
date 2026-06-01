@@ -91,7 +91,8 @@ def moe_forward_decode_fp8(h, w, cfg):
     router_logits = F.linear(h_flat, w["mlp.gate.weight"])
     routing_weights, expert_indices = torch.topk(router_logits, K, dim=-1)
     routing_weights = F.softmax(routing_weights, dim=-1, dtype=torch.float32).to(h.dtype)
-    active_experts = torch.unique(expert_indices).tolist()
+    graph_safe = os.environ.get("LYNN_FP8_MOE_GRAPH_SAFE", "0") == "1" and h_flat.shape[0] == 1
+    active_experts = None if graph_safe else torch.unique(expert_indices).tolist()
 
     w_gate_up_fp8 = w["mlp.experts.gate_up_proj.weight_fp8"]                      # [E, 2I, K]
     w_gate_up_scale = w["mlp.experts.gate_up_proj.weight_fp8_scale"]              # [E, 2I]
@@ -104,25 +105,56 @@ def moe_forward_decode_fp8(h, w, cfg):
     w_down_scale = w["mlp.experts.down_proj.weight_fp8_scale"]                    # [E, K]
 
     moe_out = torch.zeros_like(h_flat)
-    for e in active_experts:
-        mask = (expert_indices == e)
-        token_idx, slot_idx = mask.nonzero(as_tuple=True)
-        x_e = h_flat[token_idx]
-        inter_bf16 = fp8_moe_expert_gate_up_silu_fused(
-            x_e, w_gate_fp8, w_up_fp8, w_gate_scale, w_up_scale, expert_id=e,
-        )
-        inter_max = inter_bf16.abs().amax(dim=-1, keepdim=True).clamp_min(1.0e-12)
-        inter_scale = (inter_max / 448.0).to(torch.float32)
-        inter_fp8 = (inter_bf16.to(torch.float32) / inter_scale).to(torch.float8_e4m3fn)
-        ffn_e = torch._scaled_mm(
-            inter_fp8,
-            w_down_fp8[e].t(),
-            scale_a=inter_scale,
-            scale_b=w_down_scale[e].view(1, -1).to(torch.float32),
-            out_dtype=torch.bfloat16,
-        )
-        weight_e = routing_weights[token_idx, slot_idx].unsqueeze(-1)
-        moe_out.index_add_(0, token_idx, ffn_e * weight_e)
+    if graph_safe:
+        # P1: graph-capturable T=1 decode dispatch. The single token has exactly
+        # K selected expert slots; iterate the FIXED K count and gather each
+        # expert's weights by GPU index_select (no torch.unique/.tolist()/
+        # nonzero host-sync, no dynamic gather/scatter), so the whole MoE decode
+        # can be captured into the reusable CUDA graph. Slot k applies expert
+        # eidx[k] to the token, weighted by routing_weights[0, k].
+        eidx = expert_indices[0]                       # [K] GPU long
+        for k in range(K):                             # FIXED K -> graph unrolls
+            e = eidx[k : k + 1]                         # [1] GPU index, no host sync
+            wg_e = w_gate_fp8.index_select(0, e)[0]
+            wu_e = w_up_fp8.index_select(0, e)[0]
+            wgs_e = w_gate_scale.index_select(0, e)[0]
+            wus_e = w_up_scale.index_select(0, e)[0]
+            inter = fp8_gate_up_silu_fused(
+                h_flat, wg_e, wu_e, wgs_e, wus_e, auto_block=True,
+            )
+            inter_max = inter.abs().amax(dim=-1, keepdim=True).clamp_min(1.0e-12)
+            inter_scale = (inter_max / 448.0).to(torch.float32)
+            inter_fp8 = (inter.to(torch.float32) / inter_scale).to(torch.float8_e4m3fn)
+            wd_e = w_down_fp8.index_select(0, e)[0]    # [D, I]
+            wds_e = w_down_scale.index_select(0, e)[0] # [D]
+            ffn = torch._scaled_mm(
+                inter_fp8,
+                wd_e.t(),
+                scale_a=inter_scale,
+                scale_b=wds_e.view(1, -1).to(torch.float32),
+                out_dtype=torch.bfloat16,
+            )
+            moe_out = moe_out + ffn * routing_weights[:, k : k + 1]
+    else:
+        for e in active_experts:
+            mask = (expert_indices == e)
+            token_idx, slot_idx = mask.nonzero(as_tuple=True)
+            x_e = h_flat[token_idx]
+            inter_bf16 = fp8_moe_expert_gate_up_silu_fused(
+                x_e, w_gate_fp8, w_up_fp8, w_gate_scale, w_up_scale, expert_id=e,
+            )
+            inter_max = inter_bf16.abs().amax(dim=-1, keepdim=True).clamp_min(1.0e-12)
+            inter_scale = (inter_max / 448.0).to(torch.float32)
+            inter_fp8 = (inter_bf16.to(torch.float32) / inter_scale).to(torch.float8_e4m3fn)
+            ffn_e = torch._scaled_mm(
+                inter_fp8,
+                w_down_fp8[e].t(),
+                scale_a=inter_scale,
+                scale_b=w_down_scale[e].view(1, -1).to(torch.float32),
+                out_dtype=torch.bfloat16,
+            )
+            weight_e = routing_weights[token_idx, slot_idx].unsqueeze(-1)
+            moe_out.index_add_(0, token_idx, ffn_e * weight_e)
 
     if "mlp.shared_expert.gate_proj.weight_fp8" in w:
         shared_inter = fp8_gate_up_silu_fused(
