@@ -1,0 +1,20 @@
+[
+  {
+    "id": "bugfix-quicksort",
+    "pre_pass": false,
+    "agent_finished_ok": false,
+    "tool_calls": 9,
+    "secs": 8.5,
+    "pass": true,
+    "err": ""
+  },
+  {
+    "id": "multifile-mathlib",
+    "pre_pass": false,
+    "agent_finished_ok": true,
+    "tool_calls": 5,
+    "secs": 24.1,
+    "pass": true,
+    "err": ""
+  }
+]

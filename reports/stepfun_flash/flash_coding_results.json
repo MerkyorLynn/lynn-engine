@@ -1,0 +1,47 @@
+[
+  {
+    "id": "py-edit-distance",
+    "lang": "python",
+    "pass": true,
+    "secs": 1.9,
+    "reason_chars": 161,
+    "code": "def edit_distance(a: str, b: str) -> int:\n    m, n = len(a), len(b)\n    dp = list(range(n + 1))\n    for i in range(1, m + 1):\n        prev = dp[0]\n        dp[0] = i\n        for j in range(1, n + 1):\n            cur = dp[j]\n            if a[i - 1] == b[j - 1]:\n                dp[j] = prev\n            else:\n                dp[j] = 1 + min(prev, dp[j - 1], dp[j])\n            prev = cur\n    return dp[n]",
+    "err": ""
+  },
+  {
+    "id": "py-coin-change",
+    "lang": "python",
+    "pass": true,
+    "secs": 2.0,
+    "reason_chars": 369,
+    "code": "def min_coins(coins: list[int], amount: int) -> int:\n    if amount == 0:\n        return 0\n    dp = [float('inf')] * (amount + 1)\n    dp[0] = 0\n    for i in range(1, amount + 1):\n        for coin in coins:\n            if i >= coin and dp[i - coin] + 1 < dp[i]:\n                dp[i] = dp[i - coin] + 1\n    return dp[amount] if dp[amount] != float('inf') else -1",
+    "err": ""
+  },
+  {
+    "id": "py-balanced",
+    "lang": "python",
+    "pass": true,
+    "secs": 1.4,
+    "reason_chars": 335,
+    "code": "def is_balanced(s: str) -> bool:\n    pairs = {')': '(', ']': '[', '}': '{'}\n    stack = []\n    for ch in s:\n        if ch in pairs.values():\n            stack.append(ch)\n        elif ch in pairs:\n            if not stack or stack.pop() != pairs[ch]:\n                return False\n    return not stack",
+    "err": ""
+  },
+  {
+    "id": "py-dijkstra",
+    "lang": "python",
+    "pass": true,
+    "secs": 2.7,
+    "reason_chars": 964,
+    "code": "import heapq\n\ndef shortest(n: int, edges: list, src: int, dst: int) -> int:\n    if src == dst:\n        return 0\n    adj = [[] for _ in range(n)]\n    for u, v, w in edges:\n        adj[u].append((v, w))\n        adj[v].append((u, w))\n    dist = [float('inf')] * n\n    dist[src] = 0\n    pq = [(0, src)]\n    while pq:\n        d, u = heapq.heappop(pq)\n        if u == dst:\n            return d\n        if d > dist[u]:\n            continue\n        for v, w in adj[u]:\n            nd = d + w\n            if n",
+    "err": ""
+  },
+  {
+    "id": "js-two-sum",
+    "lang": "js",
+    "pass": true,
+    "secs": 1.2,
+    "reason_chars": 66,
+    "code": "function twoSum(nums, target) {\n  const map = new Map();\n  for (let i = 0; i < nums.length; i++) {\n    const complement = target - nums[i];\n    if (map.has(complement)) return [map.get(complement), i];\n    map.set(nums[i], i);\n  }\n}",
+    "err": ""
+  }
+]

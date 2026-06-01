@@ -1,0 +1,34 @@
+[
+  {
+    "id": "py-regex-match",
+    "pass": true,
+    "secs": 2.4,
+    "reason_chars": 375,
+    "code": "def is_match(s: str, p: str) -> bool:\n    m, n = len(s), len(p)\n    dp = [[False] * (n + 1) for _ in range(m + 1)]\n    dp[m][n] = True\n\n    for i in range(m, -1, -1):\n        for j in range(n - 1, -1, -1):\n            first_match = i < m and (p[j] == s[i] or p[j] == '.')\n            if j + 1 < n and p[j + 1] == '*':\n                dp[i][j] = dp[i][j + 2] or (first_match and dp[i + 1][j])\n            else:\n                dp[i][j] = first_match a",
+    "err": ""
+  },
+  {
+    "id": "py-lru",
+    "pass": true,
+    "secs": 2.4,
+    "reason_chars": 88,
+    "code": "class LRUCache:\n    def __init__(self, capacity: int):\n        self.capacity = capacity\n        self.cache = {}          # key -> Node\n        self.head = Node(-1, -1) # dummy head (most recent)\n        self.tail = Node(-1, -1) # dummy tail (least recent)\n        self.head.next = self.tail\n        self.tail.prev = self.head\n\n    def get(self, key: int) -> int:\n        if key not in self.cache:\n            return -1\n        node = self.cache[key]\n",
+    "err": ""
+  },
+  {
+    "id": "py-longest-palindrome",
+    "pass": true,
+    "secs": 2.1,
+    "reason_chars": 200,
+    "code": "def longest_palindrome(s: str) -> str:\n    if not s:\n        return \"\"\n\n    start, end = 0, 0\n\n    def expand(left: int, right: int) -> tuple[int, int]:\n        while left >= 0 and right < len(s) and s[left] == s[right]:\n            left -= 1\n            right += 1\n        return left + 1, right - 1\n\n    for i in range(len(s)):\n        # 奇数长度回文 (以 s[i] 为中心)\n        l1, r1 = expand(i, i)\n        if r1 - l1 > end - start:\n            start, end = l",
+    "err": ""
+  },
+  {
+    "id": "js-curry",
+    "pass": true,
+    "secs": 1.6,
+    "reason_chars": 587,
+    "code": "function curry(fn) {\n  return function curried(...args) {\n    if (args.length >= fn.length) {\n      return fn(...args);\n    }\n    return function (...more) {\n      return curried(...args, ...more);\n    };\n  };\n}",
+    "err": ""
+  }
+]
