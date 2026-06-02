@@ -801,7 +801,7 @@ def _moe_forward_decode_packed_nvfp4_fixed_triton(h: torch.Tensor, w: dict, cfg:
             w["mlp.experts._down_packed"],
             w["mlp.experts._down_effective_scale"] if _use_moe_effective_scale(w) else w["mlp.experts._down_scale"],
             w["mlp.experts._down_global_scale"],
-            block_hidden=8,
+            block_hidden=_env_int("LYNN_MOE_DOWN_BLOCK_HIDDEN", 8),
             block_inter=512,
             num_warps=8,
         ).reshape_as(h_flat)
@@ -892,8 +892,8 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
             _env_int("LYNN_MOE_DOWN_BLOCK_INTER", 512),
             _env_int("LYNN_MOE_GATE_NUM_WARPS", 4),
             _env_int("LYNN_MOE_DOWN_NUM_WARPS", 8),
-        ) != (8, 256, 8, 512, 4, 8):
-            raise RuntimeError("LYNN_MOE_FAST_FIXED only supports the current R6000 best MoE kernel config")
+        ) not in {(8, 256, 8, 512, 4, 8), (8, 256, 4, 512, 4, 8)}:
+            raise RuntimeError("LYNN_MOE_FAST_FIXED only supports the R6000-best or Spark-best MoE kernel config")
         return _moe_forward_decode_packed_nvfp4_fixed_triton(h, w, cfg)
 
     router_logits = _router_linear(h_flat, w)
