@@ -82,6 +82,24 @@ graph **+10%**, and **Spark-specific kernel re-tuning** — the gate_up/down
 `LYNN_MOE_FAST_FIXED` guard), which may not be Spark-optimal. That config sweep
 is the one cheap, unexplored decode knob; everything else needs SM120 hardware.
 
+## Config sweep RESULT — a real Spark-specific decode win (measured)
+`scripts/spark_moe_decode_config_sweep.py` swept the real gate_up + down kernels
+at real shapes on Spark (no model load):
+
+| kernel | R6000-locked | Spark-best | gain |
+|---|---|---|---|
+| gate_up | 95.0 µs (bi=8 bh=256 nw=4) | 92.6 µs (bh=128) | 1.03× |
+| **down** | 55.7 µs (bh=8 bi=512 nw=8) | **41.3 µs (bh=4)** | **1.35×** |
+
+The down kernel's `block_hidden=8` (R6000-best) is **suboptimal on Spark;
+`block_hidden=4` is 1.35×**. gate_up is already near-optimal. Combined routed
+GEMV 150.7 → 134 µs = **1.12×**. This is a real, zero-code (config) decode win —
+wire by adding a Spark-best profile to the `LYNN_MOE_FAST_FIXED` guard
+(`engine/moe_packed_nvfp4.py:888-896`), then validate e2e via the smoke. Realistic
+overall decode gain ~+5–10% (down is a fraction of the full decode). **Stacked
+estimate:** 36 × ~1.08 (config) × 1.13 (MTP) × 1.10 (graph) ≈ **48 TPS on Spark**
+— a real improvement, but **60+ still needs SM120** (FlashRT-proven 150 on a 5090).
+
 ## Probes that produced this (all on Spark sm_121, committed)
 - `spark_warpsplit_fp8_gemm_probe.py` — small-M 16× (dense), warp-split 1.68×
   (small-N **underfilled**), cos=1.0. The technique works *where it applies*.
