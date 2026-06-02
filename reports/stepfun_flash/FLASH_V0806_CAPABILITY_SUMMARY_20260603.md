@@ -38,10 +38,22 @@ or the Spark GPU for kernels). 满血 Flash, not the Q3_K_M local quant.
   newlines, `""` escapes).
 
 ## What goes WRONG (the boundary)
-1. **GPU / CUDA kernels (W3).** Wrote a plausible Triton GEMV with a real broadcasting
-   bug (`x_tile[:,None].T`); only surfaced on the GPU; **could not fix it from the error
-   without a GPU to iterate on** (2 tries, zero edits). It leans on the run-fix loop,
-   and that loop needs a GPU it doesn't have on a Mac.
+1. **GPU kernels — a clear difficulty gradient (all verified by nvcc+run on Spark):**
+   - **Simple CUDA C++ (SAXPY): PASS first-try.** Full program — kernel + cudaMalloc/
+     Memcpy + grid/block + error-check macro + self-check — compiled (`nvcc -arch=sm_121`)
+     and printed PASS. Flash knows the standard CUDA host API + simple kernels.
+   - **Medium CUDA C++ (parallel reduction): FAILED.** Confabulated a non-existent
+     `cudaAtomicAdd` (correct is the device intrinsic `atomicAdd`) **and** wrapped it in
+     the host error-check macro (device atomics aren't host CUDA APIs). Given the explicit
+     `cudaAtomicAdd undefined` compile error it removed the wrapper but **kept the wrong
+     name** — it doesn't reliably know the less-common device intrinsics, and couldn't
+     self-correct (no GPU/nvcc on the Mac to iterate).
+   - **Complex Triton (GEMV, W3): FAILED.** Real broadcasting bug (`x_tile[:,None].T`),
+     plausible-but-wrong; couldn't fix from the error without a GPU.
+
+   **Pattern:** standard boilerplate + simple kernels = fine; **device intrinsics
+   (`atomicAdd`), shared-mem reductions, tiled GEMVs, and Triton-specific semantics =
+   confabulates plausible-but-wrong code and can't self-correct without a GPU to run on.**
 2. **Manual pointer / linked-data-structure surgery (NC5).** Hand-rolled a doubly-linked-
    list LRU (instead of `OrderedDict`), got single-thread eviction right but the
    **get()-recency-refresh pointer logic wrong**, then **debugged it (inspected
