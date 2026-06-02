@@ -835,6 +835,67 @@ def _moe_forward_decode_packed_nvfp4_fixed_triton(h: torch.Tensor, w: dict, cfg:
     return moe_out.to(h.dtype).reshape_as(h)
 
 
+def moe_forward_verify_smallm_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
+    """Small-M grouped MoE for the MTP spec-verify block (M = K_draft+1).
+
+    Replaces the per-position T=1 MoE loop: routes each of the M positions, then
+    for each UNIQUE active expert runs its gate_up+down ONCE over its gathered
+    rows (a small-M tile) instead of once per position; the dense shared expert
+    is one batched pass over all M rows. Routed dequant uses the canonical
+    ``_dequant_nvfp4_slot`` (W4A16 BF16 numerics) so each row matches the T=1
+    packed path -> token-exact intent. Eager only (host syncs in grouping).
+    Gated by LYNN_MTP_VERIFY_SMALLM=1.
+    """
+    h_flat = h.reshape(-1, h.shape[-1])
+    M, hidden = h_flat.shape
+    top_k = int(cfg["num_experts_per_tok"])
+    dev = h_flat.device
+    out_dtype = h_flat.dtype
+
+    eids = torch.empty(M, top_k, dtype=torch.long, device=dev)
+    wts = torch.empty(M, top_k, dtype=torch.float32, device=dev)
+    sorted_topk = _env_bool("LYNN_ROUTER_TOPK_SORTED", False)
+    for i in range(M):
+        rl = _router_linear(h_flat[i : i + 1], w)
+        rw, ei = _router_topk(rl, top_k, sorted=sorted_topk, scratch_owner=w)
+        rw = _router_softmax(rw, scratch_owner=w)
+        eids[i] = ei[0].to(torch.long)
+        wts[i] = rw.reshape(-1).to(torch.float32)
+
+    gu_packed = w["mlp.experts._gate_up_packed"]
+    gu_scale = w["mlp.experts._gate_up_scale"]
+    gu_g = w["mlp.experts._gate_up_global_scale"]
+    d_packed = w["mlp.experts._down_packed"]
+    d_scale = w["mlp.experts._down_scale"]
+    d_g = w["mlp.experts._down_global_scale"]
+
+    x32 = h_flat.to(torch.float32)
+    moe_out = torch.zeros(M, hidden, device=dev, dtype=torch.float32)
+    for e in torch.unique(eids).tolist():
+        sel = eids == e  # [M, top_k]
+        rows = sel.any(dim=1).nonzero(as_tuple=False).flatten()
+        rw_e = (wts * sel.to(torch.float32)).sum(dim=1)[rows]  # [m_e]
+        xr = x32[rows]  # [m_e, hidden]
+        gu = _dequant_nvfp4_slot(gu_packed[e], gu_scale[e], gu_g, dev).to(torch.float32)  # [2*inter, hidden]
+        inter = xr @ gu.t()  # [m_e, 2*inter]
+        half = inter.shape[-1] // 2
+        act = F.silu(inter[:, :half]) * inter[:, half:]  # [m_e, inter]
+        dn = _dequant_nvfp4_slot(d_packed[e], d_scale[e], d_g, dev).to(torch.float32)  # [hidden, inter]
+        moe_out[rows] += (act @ dn.t()) * rw_e[:, None]
+
+    moe_out = moe_out.to(out_dtype)  # bf16, matching the packed kernel's output
+    if not _skip_shared_from_env() and "mlp.shared_expert.gate_proj.weight" in w:
+        if "mlp.shared_expert._gate_up_proj.weight" in w:
+            gate_up_s = F.linear(h_flat, w["mlp.shared_expert._gate_up_proj.weight"])
+            gate_s, up_s = gate_up_s.chunk(2, dim=-1)
+        else:
+            gate_s = F.linear(h_flat, w["mlp.shared_expert.gate_proj.weight"])
+            up_s = F.linear(h_flat, w["mlp.shared_expert.up_proj.weight"])
+        shared = F.linear(F.silu(gate_s) * up_s, w["mlp.shared_expert.down_proj.weight"])
+        moe_out = _finalize_shared_expert_output(h_flat, moe_out, shared, w)
+    return moe_out.reshape_as(h)
+
+
 def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
     """Decode-only MoE using packed NVFP4 expert weights.
 

@@ -812,6 +812,9 @@ def _decode_layer_k2(
     with profile_section("k2_layer.moe"):
         if h_norm.shape[1] == 1:
             moe_out = base_moe_fn(h_norm, w, cfg)
+        elif os.environ.get("LYNN_MTP_VERIFY_SMALLM", "") == "1":
+            from engine.moe_packed_nvfp4 import moe_forward_verify_smallm_nvfp4
+            moe_out = moe_forward_verify_smallm_nvfp4(h_norm, w, cfg)
         elif os.environ.get("LYNN_MTP_K2_MOE_MODE", "") == "batched_optimized":
             # Diagnostic only. The production packed_nvfp4 decode MoE is T=1
             # exact; this one-call BF16 optimized path tests whether batching
@@ -944,6 +947,9 @@ def _decode_layer_block(
     )
     if h_norm.shape[1] == 1:
         moe_out = base_moe_fn(h_norm, w, cfg)
+    elif os.environ.get("LYNN_MTP_VERIFY_SMALLM", "") == "1":
+        from engine.moe_packed_nvfp4 import moe_forward_verify_smallm_nvfp4
+        moe_out = moe_forward_verify_smallm_nvfp4(h_norm, w, cfg)
     else:
         moe_out = torch.cat(
             [
