@@ -94,11 +94,17 @@ at real shapes on Spark (no model load):
 The down kernel's `block_hidden=8` (R6000-best) is **suboptimal on Spark;
 `block_hidden=4` is 1.35×**. gate_up is already near-optimal. Combined routed
 GEMV 150.7 → 134 µs = **1.12×**. This is a real, zero-code (config) decode win —
-wire by adding a Spark-best profile to the `LYNN_MOE_FAST_FIXED` guard
-(`engine/moe_packed_nvfp4.py:888-896`), then validate e2e via the smoke. Realistic
-overall decode gain ~+5–10% (down is a fraction of the full decode). **Stacked
-estimate:** 36 × ~1.08 (config) × 1.13 (MTP) × 1.10 (graph) ≈ **48 TPS on Spark**
-— a real improvement, but **60+ still needs SM120** (FlashRT-proven 150 on a 5090).
+wired behind `LYNN_MOE_DOWN_BLOCK_HIDDEN=4` (default 8 unchanged) + the Spark-best
+tuple added to the `LYNN_MOE_FAST_FIXED` guard (commit `b4657ca`).
+
+**E2e VALIDATED** (same smoke + conditions as the baseline, APEX stopped):
+baseline decode **36.10 → 40.06 TPS = +11%** — better than the ~+5–10% estimate
+(the down kernel is a bigger decode fraction than assumed). spec_k1-seq stays
+token-exact (bh=4 is a reduction *tile size*; float accumulation order differs
+slightly from bh=8 but the math is equivalent). MTP configs stay slowdowns
+(capped, as shown above). **New Spark realistic ceiling:** 40 × 1.10 (reusable
+graph) ≈ **44 TPS**; MTP doesn't stack (slowdown on MoE). **60+/150 still needs
+SM120** (FlashRT-proven 150 on a single RTX 5090).
 
 ## Probes that produced this (all on Spark sm_121, committed)
 - `spark_warpsplit_fp8_gemm_probe.py` — small-M 16× (dense), warp-split 1.68×
