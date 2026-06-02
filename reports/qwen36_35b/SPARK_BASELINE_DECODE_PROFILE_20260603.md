@@ -40,7 +40,27 @@ incremental and must stack across attention/MoE/linear-attn kernels.
 - Stacked best = bh4 × linear-attn flags ≈ **~41 TPS** (clean re-measure in flight).
 - **Realistic Spark ceiling via incremental kernel tuning ≈ 44–48 TPS; 60+/150 needs SM120** (no FP4 MMA on sm_121 → dequant-GEMV memory-bound, can't match vendor Q4_K_M 69.77). This re-confirms the standing strategy: Spark = long-ctx/fallback; FP4 perf story on 5090/R6000.
 
-## Next (incremental, the only path left on Spark)
-- Squeeze the full-attn qkv/o_proj GEMVs (2.2 + 2.3 ms — the largest instrumented pair).
-- Further linear-attn fusion (the ~38-layer in-proj/recurrent).
-- Per-kernel Spark-specific config sweeps (bh=4 proved the R6000-locked config is suboptimal — likely more such wins).
+## qkv fusion — CONFIRMED lever (microbench, 1.44×, token-exact)
+`spark_qkv_fusion_probe.py` (no model load): the qkv (2.2 ms) runs **3 separate**
+q/k/v GEMVs unless `LYNN_FULL_ATTN_QKV_FUSED=1`. Fusing 3→1 GEMV = **29.5 → 20.5 µs
+(1.44×), exact=True**. Across ~10 full-attn layers that's ~0.7 ms/tok → **~+2.5%
+e2e**, token-exact (pure launch/BW reduction). **Ready to wire**: needs the runner to
+prep the fused `self_attn._qkv_proj.weight` + set the flag (the o_proj could get the
+same treatment).
+
+## Confirmed stackable levers (all measured)
+| lever | gain | status |
+|---|---|---|
+| bh=4 down config | +11% (36→40) | **BANKED + wired** (`b4657ca`) |
+| linear-attn GQA+outconv flags | +2.7%, coherent | measured, opt-in |
+| qkv fusion (3→1 GEMV) | 1.44× on qkv → ~+2.5% e2e, exact | **confirmed, ready to wire** |
+| reusable decode graph | ✗ net-negative (−20%) | rejected (fixed-shape-attn cost) |
+
+Stacked (bh4 × flags × qkv) ≈ **~42 TPS**. Ceiling via incremental tuning ≈ 44–48;
+**60+/150 needs SM120** (no FP4 MMA on sm_121).
+
+## Next (incremental, the only Spark path)
+1. **Wire qkv fusion** (prep fused weight + `LYNN_FULL_ATTN_QKV_FUSED=1`), e2e-measure.
+2. Same fusion for o_proj / the linear-attn in-proj (more 3→1 launch cuts).
+3. Per-kernel Spark config sweeps on the remaining GEMVs (bh=4 proved R6000-locked configs are suboptimal here).
+4. (Infra note: stopping APEX then immediately loading the 90G NVFP4 model races the GPU release → use a longer wait or confirm GPU-free before load; microbenches avoid this entirely.)
