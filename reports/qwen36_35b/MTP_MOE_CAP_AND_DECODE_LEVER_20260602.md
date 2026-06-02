@@ -56,8 +56,36 @@ probe already showed 1.68× on small-N shapes. This lever is:
    N=2048) vs the current kernels; validate cos=1.0.
 3. If >1.2×: wire into resident decode, re-run the e2e TPS smoke; target 36 → 50–60.
 
+## UPDATE — warp-split-K does NOT apply to our decode kernels either (code-read)
+Reading `triton_kernels/nvfp4_moe.py`: the gate_up + down decode kernels are
+**not** single-warp `full_n` GEMVs (FlashRT's underfilled baseline). They are
+**already tiled** grid = (inter/hidden-blocks × experts): gate_up = 64
+inter-blocks × 8 = **512 programs**; down = 256 hidden-blocks × 8 = **2048
+programs** — plenty to fill the GB10 SMs. The SMs are **not underfilled**, so
+warp-split-K (FlashRT's fix for the underfilled `full_n` case) gives no
+occupancy win here. FlashRT's M=1 +8% was over a *bad* baseline; ours is already
+well-tiled. So the redirect above is **also capped** on Spark.
+
+## Honest conclusion — the 36→69 gap is the FP4-MMA-less dequant-GEMV (arch limit)
+The kernels dequant NVFP4→BF16 and **scalar-accumulate** (no tensor-core
+`tl.dot`: M=1 has no 16-row tile to fill, and Spark sm_121 has no FP4/4-bit MMA).
+They are memory-bound on the packed reads + the dequant. The gap to llama.cpp
+Q4_K_M (69.77) is **vendor kernel efficiency for 4-bit dequant GEMV on hardware
+without 4-bit MMA** — a fundamental Spark limit, not a missing trick.
+
+This **reinforces the standing strategy**: Spark = long-context / fallback /
+multi-service host; the FP4-MMA performance story (150 tok/s, FlashRT-proven on a
+single RTX 5090) belongs on **SM120** (RTX 5090 ~$2k / the R6000 we lost). On
+Spark the realistic wins are modest + stackable: MTP **+13%**, reusable decode
+graph **+10%**, and **Spark-specific kernel re-tuning** — the gate_up/down
+`BLOCK_*` + `num_warps` are locked to the R6000-best config (see the
+`LYNN_MOE_FAST_FIXED` guard), which may not be Spark-optimal. That config sweep
+is the one cheap, unexplored decode knob; everything else needs SM120 hardware.
+
 ## Probes that produced this (all on Spark sm_121, committed)
 - `spark_warpsplit_fp8_gemm_probe.py` — small-M 16× (dense), warp-split 1.68×
-  (small-N), cos=1.0. The technique works.
+  (small-N **underfilled**), cos=1.0. The technique works *where it applies*.
 - `spark_moe_verify_grouped_probe.py` — MoE routed verify can't amortize (0.83×,
-  24/24 unique). The MTP-on-MoE ceiling. The redirect.
+  24/24 unique). The MTP-on-MoE ceiling.
+- Code read of `triton_kernels/nvfp4_moe.py` — our decode kernels are already
+  well-tiled → warp-split-K n/a → the gap is the arch-level dequant-GEMV limit.
