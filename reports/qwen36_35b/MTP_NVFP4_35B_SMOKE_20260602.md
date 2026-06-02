@@ -74,3 +74,31 @@ bugs (k1-seq and k2-batched are already exact, so the verifier core is sound).
 1. Batched T≥2 NVFP4 MoE verify kernel (grouped over K+1 positions) — the win.
 2. Re-run this smoke; target `spec_k2_batched` > 36.1 → toward llama.cpp 69.77.
 3. Fix `spec_k1_batched` / `spec_k4_batched` exactness, then sweep K for the knee.
+
+## Implementation anchors (turnkey for the next session)
+The diagnosis is corroborated by the code's own comments — the build is scoped:
+- **`engine/full_forward.py:797-828`** (`_decode_layer_k2`): the MoE-K=2 path. The
+  per-position T=1 loop at **lines 823-828** (`base_moe_fn(h_norm[:, t:t+1, :])`
+  per `t`, then `torch.cat`) is the deliberate slowdown — "trades a tiny
+  per-position launch for backend consistency". Replace with a grouped T≥2 call.
+- The comment at **797-808** already names the plan: *"before writing a real
+  packed T=2 kernel"*; a `LYNN_MTP_K2_MOE_MODE=batched_optimized` hook (line 815)
+  exists but calls the **BF16** `optimized` path once → numerically drifts from
+  the packed_nvfp4 production numerics → accept collapsed (11% vs 77%). So the
+  real kernel must stay in **packed_nvfp4 numerics**, just batched.
+- **The kernel to extend:** the `packed_nvfp4` fused gate/up Triton kernel
+  **hard-codes `h.shape[1]==1`** (the T=1-only contract). Extend it to take M
+  rows per expert (group the K+1 verify rows by expert, read each expert's
+  packed weight once, GEMM all its rows) — the NVFP4 analogue of P2's grouped
+  GEMM, on the verify path.
+- **`_decode_layer_block`** (`full_forward.py:832`) is the K>2 counterpart and
+  carries the same per-position issue + the `spec_k4_batched` exactness bug.
+- **Validate** token-exact vs the current per-position path (already a passing
+  gate for k2), then re-run `scripts/spark_mtp_speculative_smoke.py`.
+
+## Session checkpoint (2026-06-02)
+Banked + pushed: lever proven (80%/65% accept = llama.cpp parity), verify
+correct (k1-seq + k2-batched token-exact), blocker pinpointed and code-confirmed,
+next kernel scoped with anchors above. APEX (:18098) restarted as 3rd-priority
+fallback. The Triton T≥2 kernel is deferred to a fresh session (clean context →
+safe to build + validate + commit without risking a broken packed path).
