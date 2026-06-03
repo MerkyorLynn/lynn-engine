@@ -100,6 +100,38 @@ CHECKS = [
         ],
     ),
     (
+        "scripts/spark_stage6_p4_runtime_bridge_preflight.py",
+        [
+            "lynn-stage6-p4-runtime-bridge-preflight-v1",
+            "fused_zero_shadow_out_contract",
+            "ACTIVE_SHADOW_KEYS",
+            "_remove_active_shadows",
+            "LYNN_NATIVE_ACTIVE_MOE_LAYERS",
+            "moe_forward_decode_packed_nvfp4",
+            "PASS_RUNTIME_BRIDGE_CONTRACT",
+            "banked_runtime_bridge_preflight",
+            "banked_fused_kernel",
+        ],
+    ),
+    (
+        "scripts/summarize_stage6_p4_runtime_bridge_preflight.py",
+        [
+            "PASS_RUNTIME_BRIDGE_CONTRACT",
+            "fused-kernel promotion boundary violated",
+            "Active shadows removed",
+            "Runtime Bridge Preflight Summary",
+        ],
+    ),
+    (
+        "scripts/test_stage6_p4_runtime_bridge_tools.py",
+        [
+            "P4 runtime bridge tooling self-test PASS",
+            "banked_runtime_bridge_preflight",
+            "active_shadows_removed",
+            "Banked fused kernel",
+        ],
+    ),
+    (
         "reports/stage6/P4_NATIVE_FUSED_MOE_ABI_CONTRACT_20260604.md",
         [
             "ABI/PREFLIGHT ONLY; no fused P4 kernel is banked yet",
@@ -108,6 +140,7 @@ CHECKS = [
             "no BF16 expert weight tensors in the ABI",
             "PASS_ABI_CONTRACT",
             "python3 scripts/test_stage6_p4_zero_shadow_firewall.py",
+            "python3 scripts/spark_stage6_p4_runtime_bridge_preflight.py",
             "python3 scripts/test_stage6_p4_native_abi_static.py",
         ],
     ),
