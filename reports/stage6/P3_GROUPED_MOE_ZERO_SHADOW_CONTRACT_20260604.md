@@ -74,7 +74,7 @@ Forbidden for a P3 bank:
 | P3-A | One layer, synthetic hidden, active MoE only | numeric vs BF16 and P2E, no BF16 active shadow, memory peak reported, speed vs P2E reported |
 | P3-B | Multi-layer selected prefill | residual-stack numeric, no active shadow, speed not regressed vs P2N |
 | P3-C | Resident-runner real prompt | generated-token smoke, no reload, memory release evidence, P2-O-style artifact |
-| P3-D | Server/promotion candidate | RC quality battery, rollback flag, README/release matrix update |
+| P3-D | OpenAI server smoke | baseline/candidate server parity, release/reload health counters, default promotion still closed |
 
 P3-A PASS requires all of:
 
@@ -147,3 +147,17 @@ python3 scripts/write_stage6_p3a_report.py \
 
 The report writer may bank only the P3-A contract probe. It must not promote P3
 or claim a fused grouped-MoE kernel.
+
+## P3-D Runnable Server Smoke
+
+P3-D is service-level evidence for the opt-in path, not default promotion:
+
+```bash
+scripts/run_spark_stage6_p3d_server_rc_gate.sh --preset basic --p3c-pass
+```
+
+It launches baseline and candidate `server.openai_http` instances, checks
+`/v1/models`, `/v1/completions`, `/v1/chat/completions`, greedy text parity, and
+candidate `/health` release/reload counters. The result schema must keep
+`banked_default_promotion=false` and `banked_full_rc_quality=false` until the
+separate MMLU/GPQA/tool/long-context RC battery passes.

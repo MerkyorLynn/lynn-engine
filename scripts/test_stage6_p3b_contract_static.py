@@ -90,7 +90,7 @@ CHECKS = [
         [
             "orchestration-level evidence only",
             "child reports remain authoritative",
-            "P2-O, P3-A, P3-B, and P3-C must still",
+            "P2-O, P3-A, P3-B, P3-C, and P3-D must still",
         ],
     ),
     (
@@ -102,6 +102,18 @@ CHECKS = [
             "reload_decode_bf16_shadows()",
             "banked_server_path=false",
             "banked_rc_quality=false",
+        ],
+    ),
+    (
+        "reports/stage6/P3D_SERVER_RC_PROMOTION_GATE_RUNBOOK_20260604.md",
+        [
+            "RUNBOOK/TOOLING ONLY; no P3-D result is banked yet",
+            "OpenAI-compatible",
+            "LYNN_PACKED_PREFILL_SLOW_MODE=p3a_grouped",
+            "LYNN_RELEASE_DECODE_SHADOWS_AFTER_PREFILL=1",
+            "banked_default_promotion=false",
+            "banked_full_rc_quality=false",
+            "scripts/run_spark_stage6_p3d_server_rc_gate.sh",
         ],
     ),
 ]
