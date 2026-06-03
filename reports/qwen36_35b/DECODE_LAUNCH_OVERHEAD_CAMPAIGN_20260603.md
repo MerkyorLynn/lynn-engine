@@ -145,8 +145,21 @@
   llama.cpp's hand-fused 4-bit-read+dequant-in-register Q4_K_M kernel (memory wall ≈40; that's
   why baseline sat at 38.96). 70 is Q4_K_M territory, unreachable for NVFP4 here. B's +10% isn't
   worth multi-day for ~48. → **NEXT = evaluate MTP, not the graph.**
-- **▶ STAGE 5 (next phase): MTP eval (task #11).** Trained sidecar `qwen36-35b-a3b-mtp`, K≥2, on
-  the ~45-TPS NVFP4 stack. Byte-capped ~+13% (llama.cpp-confirmed 79 vs 69.77) → ~45→~51, clears
-  the 47-50 target with NO kernel risk. Best with a fresh context window (new phase: wire sidecar,
-  measure accept-rate + quality). Remaining copy cuts (KV/conv cache-write, cat) are a smaller
-  optional A tail.
+- **▶ STAGE 5 (mainline next): MTP eval (task #11) — wiring ALREADY EXISTS, it's RUN-not-build.**
+  Assets confirmed: trained sidecars on Spark `models/mtp_sidecars/qwen36-35b-a3b-mtp/mtp.safetensors`
+  (+ a newer `qwen36-35b-a3b-mtp-official-lynn-fused/` variant). Engine MTP infra present in the
+  NVFP4 resident runner: `engine/mtp_sidecar.py` (loader: load_mtp_sidecar / mtp_logits /
+  mtp_hidden_and_logits), `engine/mtp_serving.py` (`speculative_step_k1` / `speculative_step_kn_batched`),
+  resident_runner flags `LYNN_MTP_SIDECAR` / `LYNN_MTP_VERIFY` / `LYNN_MTP_SHADOW_VERIFY`.
+  **EVAL RECIPE (fresh context):** on the ~45-TPS RC-validated NVFP4 stack, set
+  `LYNN_MTP_SIDECAR=<path>` + K≥2 step mode + `LYNN_MTP_VERIFY=1`, measure accept-rate + TPS gain +
+  RC quality; pick sidecar variant (base vs official-lynn-fused). Expect **~+13% byte-capped**
+  (llama.cpp APEX proves it on this exact model: 79 vs 69.77) → ~45→~51, clears 47-50, NO kernel risk.
+- **▶ STAGE 6 (endgame, only if MTP tops out — user-directed moat):** the fused
+  **read-4bit + dequant-in-register + bf16-GEMV + zero-shadow + single-launch** kernel. Rationale
+  (recomputed): the REAL wall is bandwidth, not launch — baseline 38.96 ≈ BF16-shadow 6GB/tok ÷
+  240GB/s; reading true 4-bit (1.7GB/tok) moves the wall ~40→~140, where 70 lives (2-3×, not the
+  graph's +10%). Same NVFP4 weights + kernel port to R6000's FP4 MMA = native, faster → Lynn's
+  cross-device core (the L1 moat). llama.cpp Q4_K_M is the **MIT-licensed reference blueprint**
+  (study the pattern, clean-room for NVFP4 — not AGPL, license-clean). Multi-day real kernel work;
+  staged PoC→dense→MoE→fuse, each gated + RC. "啃下来 = Lynn 成 NVFP4 的 llama.cpp."
