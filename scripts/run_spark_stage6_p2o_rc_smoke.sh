@@ -19,8 +19,9 @@ Options:
   --image IMAGE                Docker image. Default: lynn-eval-base:cu13.
   --remote-repo PATH           Spark repo path. Default: /home/merkyor/lynn-engine.
   --local-root PATH            Local artifact root. Default: reports/stage6.
-  --expect-head COMMIT         Require Spark repo HEAD to match this commit. Default: local HEAD.
-  --allow-remote-head-mismatch Do not fail when Spark repo HEAD differs.
+  --expect-head COMMIT         Expected Spark repo HEAD. Default: local HEAD.
+  --allow-provenance-mismatch  Do not fail when both HEAD and manifest differ.
+  --allow-remote-head-mismatch Alias for --allow-provenance-mismatch.
   --no-strict                  Do not fail the script when the summary verdict is not PASS.
   -h, --help                   Show this help.
 
@@ -31,12 +32,40 @@ Environment overrides:
   LYNN_SPARK_REPO
   LYNN_STAGE6_LOCAL_OUT
   LYNN_STAGE6_EXPECT_HEAD
+  LYNN_STAGE6_EXPECT_MANIFEST
 USAGE
 }
 
 shell_quote() {
   printf '%q' "$1"
 }
+
+file_sha256() {
+  if command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$1" | awk '{print $1}'
+  else
+    sha256sum "$1" | awk '{print $1}'
+  fi
+}
+
+manifest_for_files() {
+  local file
+  for file in "$@"; do
+    if [[ ! -f "$file" ]]; then
+      echo "missing $file"
+      continue
+    fi
+    printf '%s %s\n' "$(file_sha256 "$file")" "$file"
+  done
+}
+
+PROVENANCE_FILES=(
+  "scripts/run_spark_stage6_p2o_rc_smoke.sh"
+  "scripts/spark_stage6_p2o_packed_prefill_rc_smoke.py"
+  "scripts/summarize_stage6_p2o_rc_smoke.py"
+  "scripts/write_stage6_p2o_report.py"
+  "reports/stage6/P2O_PACKED_PREFILL_RC_GATE_RUNBOOK_20260604.md"
+)
 
 PRESET="basic"
 HOST="${LYNN_SPARK_HOST:-dgx-spark}"
@@ -48,7 +77,8 @@ REMOTE_REPO="${LYNN_SPARK_REPO:-/home/merkyor/lynn-engine}"
 LOCAL_ROOT="${LYNN_STAGE6_LOCAL_OUT:-reports/stage6}"
 STRICT="1"
 EXPECTED_HEAD="${LYNN_STAGE6_EXPECT_HEAD:-$(git rev-parse HEAD 2>/dev/null || true)}"
-REQUIRE_REMOTE_HEAD="1"
+EXPECTED_MANIFEST="${LYNN_STAGE6_EXPECT_MANIFEST:-$(manifest_for_files "${PROVENANCE_FILES[@]}")}"
+REQUIRE_PROVENANCE="1"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -88,8 +118,12 @@ while [[ $# -gt 0 ]]; do
       EXPECTED_HEAD="$2"
       shift 2
       ;;
+    --allow-provenance-mismatch)
+      REQUIRE_PROVENANCE="0"
+      shift
+      ;;
     --allow-remote-head-mismatch)
-      REQUIRE_REMOTE_HEAD="0"
+      REQUIRE_PROVENANCE="0"
       shift
       ;;
     --no-strict)
@@ -125,25 +159,73 @@ echo "[p2o] remote_run_dir=${REMOTE_RUN_DIR}"
 
 set +e
 ssh "$HOST" \
-  "REMOTE_REPO=$(shell_quote "$REMOTE_REPO") REMOTE_RUN_DIR=$(shell_quote "$REMOTE_RUN_DIR") IMAGE=$(shell_quote "$IMAGE") MODEL=$(shell_quote "$MODEL") PRESET=$(shell_quote "$PRESET") MAX_NEW=$(shell_quote "$MAX_NEW") MAX_SEQ_LEN=$(shell_quote "$MAX_SEQ_LEN") EXPECTED_HEAD=$(shell_quote "$EXPECTED_HEAD") REQUIRE_REMOTE_HEAD=$(shell_quote "$REQUIRE_REMOTE_HEAD") bash -s" <<'REMOTE'
+  "REMOTE_REPO=$(shell_quote "$REMOTE_REPO") REMOTE_RUN_DIR=$(shell_quote "$REMOTE_RUN_DIR") IMAGE=$(shell_quote "$IMAGE") MODEL=$(shell_quote "$MODEL") PRESET=$(shell_quote "$PRESET") MAX_NEW=$(shell_quote "$MAX_NEW") MAX_SEQ_LEN=$(shell_quote "$MAX_SEQ_LEN") EXPECTED_HEAD=$(shell_quote "$EXPECTED_HEAD") EXPECTED_MANIFEST=$(shell_quote "$EXPECTED_MANIFEST") REQUIRE_PROVENANCE=$(shell_quote "$REQUIRE_PROVENANCE") bash -s" <<'REMOTE'
 set -euo pipefail
+file_sha256() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | awk '{print $1}'
+  else
+    shasum -a 256 "$1" | awk '{print $1}'
+  fi
+}
+
+manifest_for_files() {
+  local file
+  for file in "$@"; do
+    if [[ ! -f "$file" ]]; then
+      echo "missing $file"
+      continue
+    fi
+    printf '%s %s\n' "$(file_sha256 "$file")" "$file"
+  done
+}
+
+PROVENANCE_FILES=(
+  "scripts/run_spark_stage6_p2o_rc_smoke.sh"
+  "scripts/spark_stage6_p2o_packed_prefill_rc_smoke.py"
+  "scripts/summarize_stage6_p2o_rc_smoke.py"
+  "scripts/write_stage6_p2o_report.py"
+  "reports/stage6/P2O_PACKED_PREFILL_RC_GATE_RUNBOOK_20260604.md"
+)
+
 cd "$REMOTE_REPO"
+PRE_RUN_GIT_STATUS="$(git status --short 2>/dev/null || true)"
 mkdir -p "$REMOTE_RUN_DIR"
 REMOTE_HEAD="$(git rev-parse HEAD 2>/dev/null || true)"
+REMOTE_MANIFEST="$(manifest_for_files "${PROVENANCE_FILES[@]}")"
 printf '%s\n' "$REMOTE_HEAD" > "$REMOTE_RUN_DIR/git_head.txt"
 printf '%s\n' "${EXPECTED_HEAD:-}" > "$REMOTE_RUN_DIR/expected_git_head.txt"
-git status --short > "$REMOTE_RUN_DIR/git_status.txt" 2>/dev/null || true
+printf '%s\n' "$REMOTE_MANIFEST" > "$REMOTE_RUN_DIR/provenance_manifest.txt"
+printf '%s\n' "$EXPECTED_MANIFEST" > "$REMOTE_RUN_DIR/expected_provenance_manifest.txt"
+printf '%s\n' "$PRE_RUN_GIT_STATUS" > "$REMOTE_RUN_DIR/git_status.txt"
 nvidia-smi --query-gpu=name,utilization.gpu,memory.used,memory.total --format=csv,noheader > "$REMOTE_RUN_DIR/nvidia_smi_before.txt" 2>/dev/null || true
 
-if [[ "${REQUIRE_REMOTE_HEAD:-1}" == "1" && -n "${EXPECTED_HEAD:-}" && "$REMOTE_HEAD" != "$EXPECTED_HEAD" ]]; then
+if [[ "$REMOTE_HEAD" == "${EXPECTED_HEAD:-}" ]]; then
+  echo "remote HEAD ok" > "$REMOTE_RUN_DIR/head_check.txt"
+elif [[ "$REMOTE_MANIFEST" == "${EXPECTED_MANIFEST:-}" ]]; then
   {
-    echo "remote HEAD mismatch"
-    echo "expected: $EXPECTED_HEAD"
-    echo "actual:   $REMOTE_HEAD"
+    echo "remote manifest ok"
+    echo "expected HEAD: ${EXPECTED_HEAD:-}"
+    echo "actual HEAD:   $REMOTE_HEAD"
+  } > "$REMOTE_RUN_DIR/head_check.txt"
+elif [[ "${REQUIRE_PROVENANCE:-1}" == "1" ]]; then
+  {
+    echo "remote provenance mismatch"
+    echo "expected HEAD: ${EXPECTED_HEAD:-}"
+    echo "actual HEAD:   $REMOTE_HEAD"
+    echo "expected manifest:"
+    echo "$EXPECTED_MANIFEST"
+    echo "actual manifest:"
+    echo "$REMOTE_MANIFEST"
   } > "$REMOTE_RUN_DIR/head_check.txt"
   exit 12
+else
+  {
+    echo "remote provenance mismatch allowed"
+    echo "expected HEAD: ${EXPECTED_HEAD:-}"
+    echo "actual HEAD:   $REMOTE_HEAD"
+  } > "$REMOTE_RUN_DIR/head_check.txt"
 fi
-echo "remote HEAD ok" > "$REMOTE_RUN_DIR/head_check.txt"
 
 set +e
 docker run --rm --gpus all --ipc=host \
