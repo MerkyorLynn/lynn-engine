@@ -155,6 +155,43 @@
   `LYNN_MTP_SIDECAR=<path>` + K≥2 step mode + `LYNN_MTP_VERIFY=1`, measure accept-rate + TPS gain +
   RC quality; pick sidecar variant (base vs official-lynn-fused). Expect **~+13% byte-capped**
   (llama.cpp APEX proves it on this exact model: 79 vs 69.77) → ~45→~51, clears 47-50, NO kernel risk.
+- **▶ STAGE 5 RESULT (6/3) — NOT a win this round, but NOT判负 (fixable alignment).** Ran
+  `scripts/spark_mtp_ab.py` on the full ~45 RC stack, both sidecar variants (`qwen36-35b-a3b-mtp`
+  + `-official-lynn-fused`): **`TOKEN_EXACT=True` (verify/reject/rollback wiring correct), but
+  accept = 2/82 ≈ 2.4% → effective ~20 TPS (regression).** Diagnosis: NOT an engine-correctness
+  bug — a draft-head↔serving ALIGNMENT bug. hidden source confirmed pre-final-norm (correct);
+  both sidecars same 2.4% (systematic, not variant) → suspect = **offset mismatch** (trained
+  contract offset=2; serving may apply offset-1 → drafts ~always rejected, 2.4% = "basically
+  random"). NOT判负 because **llama.cpp APEX-MTP serves the SAME head+model at +13% / 60%+ accept**
+  → head is good, +13% is reachable; we only need serving alignment.
+  - **FIX ENTRY (next, focused/fresh ctx):** `engine/mtp_sidecar.py::mtp_logits` offset contract
+    vs the serving loop's draft placement. First add a draft-vs-actual ±1-offset probe to confirm
+    the shift direction, then correct it (likely config-level, no retrain). Cross-check positioning
+    against the working llama.cpp APEX-MTP serving. If fixed → ~45→~51.
+- **✅ STAGE 5 CORRECTION (6/3, SUPERSEDES the above — accept was never the bug; OFFSET HYPOTHESIS FALSE).**
+  Three probes on the same ~45 RC stack (engine md5 == HEAD):
+  - `spark_mtp_offset_align_probe.py`: serving's draft contract (`_mtp_draft_logits`: base_hidden=h_p,
+    embed(x_{p+1}), `cat([embed,hidden])`) predicts **x_{p+2} at 91.5–91.7% top-1** (rank median 0).
+    Draft head is excellent; the "serving offset-1 vs trained offset=2" suspicion was WRONG — the in-use
+    sidecar matches serving's contract. (The A100 `a100_mtp_iterative_train.py` `[hidden,embed]`/offset-1
+    contract is a different, unused training line — a red herring.)
+  - `spark_mtp_block_verify_probe.py`: the **T=2 block verifier is 100% correct** (pos-0 b0==true 36/36,
+    hidden cos=1.0000, lm_head all-positions fine).
+  - `spark_mtp_verify_config_sweep.py` (7 configs, one load): **accept is high everywhere, NOT 2.4%** —
+    seq_k1 / k1b_default / k1b_lin_t1loop = **88.2%**, k2_default (= the old A/B config) = **76.0%**,
+    k1b_fast (true-batched) = **97.0%**; all TOKEN_EXACT except k1b_fast. The earlier `2/82≈2.4%` did
+    not reproduce → stale/narrow measurement, not an offset root cause.
+  - **THE REAL BLOCKER IS SPEED, not accept.** The eager speculative loop costs **~680 ms / event
+    (2 tokens)** — BF16 MTP-draft MoE + non-cheap batched verify + snapshot/restore + dispatch/sync —
+    so even at ~90% accept it is a **net LOSS** vs the 44.39 baseline. (`decode_tps` reads 0 for the spec
+    path = a metric gap; per-event wall-clock is the truth, ≈ 3 TPS effective.) `k1b_fast`
+    (`LYNN_FULL_ATTN_K2_BACKEND=k2` + `LYNN_MTP_VERIFY_SMALLM=1`) targets a true-batched verify but is
+    **NOT token-exact** (kernel drift — the M12 `decode_full_attn_k2` / smallm-MoE T≥2 numerics).
+  - **REVISED VERDICT:** MTP correctness ✅ + accept ✅ (head is good), but MTP is **not a ready 45→51
+    shortcut** in this eager runtime. Realizing it needs (a) a low-overhead speculative runtime (graph the
+    draft+verify, drop per-step state clones) or (b) token-exact true-batched verify kernels — **both
+    overlap Stage 6.** Article framing stays ~45 TPS; MTP = "accept proven, runtime too heavy, speed
+    unrealized". → mainline proceeds to STAGE 6.
 - **▶ STAGE 6 (endgame, only if MTP tops out — user-directed moat):** the fused
   **read-4bit + dequant-in-register + bf16-GEMV + zero-shadow + single-launch** kernel. Rationale
   (recomputed): the REAL wall is bandwidth, not launch — baseline 38.96 ≈ BF16-shadow 6GB/tok ÷
@@ -163,3 +200,99 @@
   cross-device core (the L1 moat). llama.cpp Q4_K_M is the **MIT-licensed reference blueprint**
   (study the pattern, clean-room for NVFP4 — not AGPL, license-clean). Multi-day real kernel work;
   staged PoC→dense→MoE→fuse, each gated + RC. "啃下来 = Lynn 成 NVFP4 的 llama.cpp."
+- **✅ STAGE 6 step 1 — EVIDENCE-LOCK DONE (`spark_stage6_shadow_byte_audit.py`, user-directed before any kernel).**
+  Premise CONFIRMED + target SHARPENED. Resident weights on the full RC stack = **87.22 GiB** =
+  **BF16 64.72 + packed-NVFP4(uint8) 15.00 + FP32 7.50**. `release_decode_bf16_shadows()` drops **60 GiB**
+  (87→27 GiB; the BF16 shadow is a pure dequant duplicate of the 15 GiB packed).
+  - Baseline decode **44.71 TPS → implied ~5.37 GB/token** (≈ the 6 GB BF16-shadow premise — confirmed; NOT pure-FP4 1.7 GB).
+  - **Decode DEPENDS on the BF16 shadow:** post-release decode errors `KeyError('mlp.experts.1.gate_proj.weight')`
+    → the **MoE active-expert decode reads BF16 expert weights**, not packed FP4. (Attn/dense projections already go
+    packed-FP4 via `torch._scaled_mm`/CUTLASS; the MoE experts are the BF16 byte hog = most of the 60 GiB shadow + the ~5 GB/token read.)
+  - **LOCKED TARGET:** Stage 6's highest-value first lever = a **read-4bit + register-dequant + bf16-GEMV MoE
+    active-expert decode kernel** (gate_up + down) reading the packed NVFP4 experts directly, no BF16 shadow. Cuts the
+    dominant weight read ~4× (resident 64.7→15 GiB; per-token MoE read BF16→FP4) → wall ~40→~140, frees ~60 GiB. Attn/dense already packed (secondary).
+  - **PHASE 0 PoC (next; claude-internal writes / LEAD verifies on Spark; codex gated):** ONE active expert's gate_up
+    (or down) as a Triton read-4bit/dequant-in-register/bf16-GEMV; gate `LYNN_MOE_EXPERT_FP4_GEMV=1`. Gates: (a) cos≈1 /
+    token-coherent vs BF16 expert path, (b) isolated microbench faster, (c) runs with the BF16 expert shadow DROPPED
+    (proves shadow-free). Then widen all experts → delete shadow → RC battery → e2e TPS vs 44.71 & vs llama.cpp 69.77.
+- **✅ STAGE 6 step 2 — DEEP TRACE + 2 PROBES (SUPERSEDE step-1; the step-1 "MoE FP4 GEMV" target was WRONG).**
+  Two headless CLIs (codex gpt-5.5 + claude-internal, traces in `reports/stage6/{codex,claude_internal}_decode_trace.md`)
+  + two Spark probes, all converging:
+  - **The MoE expert decode is ALREADY read-4bit / register-dequant / bf16-GEMV** (`triton_kernels/nvfp4_moe.py:251,352`:
+    packed-uint8 load → e2m1 nibble decode in registers → per-16 scale → fp32 accumulate → store bf16 activation only,
+    NO BF16 weight temp in HBM). Writing `LYNN_MOE_EXPERT_FP4_GEMV` would re-implement it → ~0 gain. **DO NOT write it.**
+  - **`spark_stage6_decode_shadow_free_probe.py`:** prefill once (shadows present) → `release_decode_bf16_shadows()` (−60 GiB)
+    → **continue DECODE shadow-free, same state: 42.36 → 43.68 tok/s (1.03×), coherent.** Decode does NOT read the 60 GiB
+    BF16 — it's the **PREFILL** routed-expert shadow (`engine/full_forward.py:323-339`); the step-1 `KeyError(mlp.experts.1.gate_proj.weight)`
+    was a fresh prefill, not decode. → "delete shadow" = **decode-only MEMORY win (87→27 GiB)**, NOT a TPS lever.
+  - **`spark_stage6_packed_decode_sweep.py` (the cheap A/B both CLIs predicted):** routing the genuinely-BF16 decode
+    weights (full-attn q/k/v/o, linear-attn out_proj) to packed FP4 via existing flags gives **NO win** —
+    `full_attn_fp4` 0.999× / `linear_outproj_fp4` **0.775×** / `all_packed` 0.772× (all coherent). Cutting BF16→FP4 reads
+    is neutral-to-NEGATIVE → **decode is latency/launch-bound, NOT bandwidth-bound** (the RC's `PACKED_DECODE=0` was correct).
+    Reconciles the implied 5.37 GB/tok vs actual ~2.6 GB weights (half FP4): the gap is launch/latency, not bytes.
+  - **REVISED STAGE 6 VERDICT:** the "read-4bit / zero-shadow → 40→140" premise is **empirically FALSE for this decode**.
+    read-4bit is already done (MoE); the shadow is prefill-only (memory win); FP4-ing attn is neutral/negative.
+    **The only remaining decode lever is dispatch/launch reduction (reusable decode CUDA graph + launch-folding)** — but the
+    FP8-revival experience put graph at only **+10%** (→ ~48-50, not 70) and it's the hard full-attn-variable-KV path.
+    **Honest ceiling:** matching llama.cpp 69.77 needs ggml-level fused low-dispatch CUDA; on Spark (no FP4 MMA) the engine
+    is structurally capped ~45-50. The kernel moat pays off on **R6000 (FP4 MMA)**, not Spark.
+  - **NEXT (cheap, decides the graph bet):** measure `LYNN_REUSABLE_DECODE_GRAPH=1` e2e TPS vs 44.68 on the NVFP4 stack
+    (infra exists; the +10% was FP8, NVFP4 delta is UNMEASURED). >+15% → graph is worth it; ≈+10% → accept ~45-50 + the
+    60 GiB decode-only memory win, and move kernel work to R6000. **No new kernel until this number exists.**
+- **✅ STAGE 6 step 3 — FINAL: the graph bet is NET-NEGATIVE; Spark NVFP4 decode is at its STRUCTURAL CEILING.**
+  `spark_stage6_reusable_graph_ab.py`: baseline **44.60** → `LYNN_REUSABLE_DECODE_GRAPH=1` **33.46 TPS = 0.750×**, coherent.
+  The reusable graph is a **−25% REGRESSION** (not the FP8 +10%): `LYNN_FULL_ATTN_FIXED_SHAPE` reads the full KV cache via
+  masked SDPA every token + graph-safe MoE dispatch overhead > the dispatch it saves. So **both levers are dead on Spark:**
+  bandwidth (read-4bit already done; FP4-ing attn 0.999×/0.775×) AND dispatch (graph 0.75×).
+  - **CAMPAIGN CONCLUSION:** Spark sm_121 NVFP4 35B-A3B decode is **structurally capped ≈ 44-45 TPS**. The 38.96→45 (+26%)
+    point-fusion gains were real and are banked (RC-validated); beyond that, there is NO software lever on this HW —
+    matching llama.cpp's 69.77 needs ggml-level hand-fused low-dispatch CUDA (a ground-up kernel rewrite) and ultimately
+    FP4-MMA silicon (R6000, retired). **The engine decode-speed track on Spark is concluded at ~45.**
+  - **BANKABLE Stage-6 deliverable = the 60 GiB decode-only MEMORY win** (release_decode_bf16_shadows after prefill →
+    resident 87→27 GiB), which buys KV/long-context/batch headroom on the shared 128 GB Spark — Spark's real value
+    (long-ctx 6.77× + multi-service), not raw single-stream decode TPS. (Productizing it needs a packed prefill MoE or
+    per-request shadow reload — flagged as a follow-up; not done this round.)
+  - Article/README "对标 llama.cpp" framing updated to reflect the ceiling (honest: Spark ~45 is the NVFP4 ceiling; parity
+    is an FP4-MMA / ggml-rewrite goal, not a Spark deliverable).
+- **✅ STAGE 6 step 4 — BANKED the 60 GiB decode-only MEMORY win as a SERVING capability (option (b), user-chosen).**
+  Productized the probe finding (step2): decode never reads the BF16 shadow, so serve at ~27 GiB during decode and rebuild
+  the shadow only when a new prefill needs it.
+  - **New primitive `LynnIncrementalRunner.reload_decode_bf16_shadows()`** (`engine/resident_runner.py`) — exact inverse of
+    `release_decode_bf16_shadows()`. `release` now records what it dropped; `reload` rebuilds those BF16 weights by
+    dequantizing the still-resident packed NVFP4 via the decode-proven `moe_packed_nvfp4._dequant_nvfp4_slot` (the same
+    primitive the graph-safe v31 decode path uses). **NO disk I/O** — the 15 GiB packed stays resident. (Note: on Spark's
+    unified memory you cannot "offload to host" to free the pool; you must drop + rebuild, which is why reload is a dequant.)
+  - **Server (`server/openai_http.py`)** rewired from the old one-shot (2nd request 409'd) to the per-request cycle
+    **reload → prefill → release → decode**; `/health` + response now expose reload seconds / release GiB / reload count.
+  - **Verified on Spark** (`scripts/spark_stage6_shadow_reload_serving_ab.py`, docker `lynn-eval-base:cu13`, APEX stopped):
+    resident **88.16 → 28.18 GiB** on release (drops **60.00 GiB**) → **88.18** on reload. **TOKEN-EXACT** on all three
+    gates: shadow-free decode == baseline, **reloaded-shadow PREFILL == baseline** (reload is bit-faithful), and the server
+    `LynnEngineHandle` path == baseline across 2 sequential requests (no one-shot 409, reload_count=2). **No TPS regression:**
+    decode 44.18 (baseline) / 44.50 (req1) / 44.23 (req2) tok/s. **KV headroom is real & reclaimable:** at 28 GiB resident a
+    **35 GiB** KV cache (max_seq_len ≈ 1.83M) allocates fine, but at 88 GiB resident only **1.3 GiB** is free → the same
+    alloc OOMs. `ALL_PASS=True`.
+  - **COST (the price of option (b)):** per-request reload ≈ **24 s** (60 GiB FP4→BF16 dequant, unoptimized elementwise).
+    So this mode fits **decode-only / single long-prompt** serving where freeing 60 GiB during a long generation (KV /
+    co-resident headroom) is worth a one-time ~24 s, **NOT** high-throughput multi-request serving (every post-release
+    request pays the reload). For zero-reload serving (resident 27 GiB always, no prefill peak), the path remains
+    **option (a): a packed-NVFP4 prefill MoE** (decode kernels are M=1-only; prefill M>1 needs a new batched kernel) — still
+    the documented follow-up.
+  - **CAVEAT (honest):** option (b) frees 60 GiB **only during decode**; it does **not** lower the prefill peak (shadows are
+    reloaded before prefill, and KV is pre-allocated at max_seq_len), so it does **not** by itself let a longer-context
+    *prefill* fit. That requires option (a) or a growable/lazy KV cache.
+- **✅ STAGE 6 step 5 — P0.1 packed-prefill / zero-reload smoke PASSED (correctness + memory proof; not performance path).**
+  `scripts/spark_stage6_packed_prefill_no_reload_smoke.py` now gates the next path after option (b): release the 60 GiB
+  grouped-MoE BF16 shadow, do **not** call `reload_decode_bf16_shadows()`, prefill from resident packed NVFP4, and assert
+  token-exact output + low peak memory.
+  - **Attempt #1 (`LYNN_PACKED_PREFILL_SLOW_MODE=decode_kernel`) failed honestly:** memory was clean (resident 28.18 GiB,
+    peak 28.30 GiB, reload_calls=0) but token state diverged: baseline ids `[20, 198, 1409, 27102]` vs probe
+    `[20, 271, 248068, 198]`. Replaying the T=1 decode MoE kernel is fast, but not BF16-prefill state-coherent across
+    decode steps. It remains a diagnostic only.
+  - **Attempt #2 (`LYNN_PACKED_PREFILL_SLOW_MODE=stream_bf16`) passed:** current-layer packed NVFP4 is temporarily
+    dequantized to BF16, the original BF16 MoE math is run, and the temp dies before the next layer. Spark result:
+    baseline resident **88.18 GiB**, release **60.00 GiB / 80 tensors**, resident after release **28.18 GiB**, probe peak
+    **40.28 GiB** (no hidden 88 GiB reload), reload_calls **0**, token-exact ids `[20, 198, 1409, 27102]`, decode
+    **42.47 TPS** vs baseline **42.97 TPS**, `ALL_PASS=True`.
+  - **Cost / meaning:** proof prefill is **20.75 s** for the tiny `2+2=` smoke. This is not shippable throughput; it proves
+    the zero-resident-shadow invariant and gives P2 a correctness oracle. Next gates: P0.2 resident inventory for
+    projection/shared BF16, then P1 batched packed projections and P2 grouped M>1 packed MoE prefill kernels.

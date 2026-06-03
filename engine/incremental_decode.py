@@ -159,6 +159,39 @@ def _decode_weight(w: dict, key: str):
     return w[key]
 
 
+def _packed_prefill_slow_enabled() -> bool:
+    return os.environ.get("LYNN_PACKED_PREFILL_SLOW", "0").lower() in {"1", "true", "yes", "on"}
+
+
+def _prefill_weight(w: dict, key: str):
+    """Return BF16 prefill weight, or packed alias for the slow no-reload probe."""
+    if key in w:
+        return w[key]
+    packed_key = key + ".packed"
+    if _packed_prefill_slow_enabled() and packed_key in w:
+        return w[packed_key]
+    return w[key]
+
+
+def _linear_prefill(x: torch.Tensor, weight) -> torch.Tensor:
+    """Prefill linear with an intentionally slow packed-NVFP4 fallback.
+
+    The packed resident linear classes are T=1 decode kernels today. Looping over
+    rows is not a performance path; it is a functional no-reload prefill probe
+    for the 60 GiB shadow-free serving line.
+    """
+    if isinstance(weight, (PackedNVFP4FusedLinear, PackedNVFP4Linear)):
+        if not _packed_prefill_slow_enabled():
+            raise RuntimeError("packed prefill linear requires LYNN_PACKED_PREFILL_SLOW=1")
+        flat = x.reshape(-1, x.shape[-1])
+        outs = [
+            weight(flat[i : i + 1], output_dtype=x.dtype).reshape(-1)
+            for i in range(flat.shape[0])
+        ]
+        return torch.stack(outs, dim=0).reshape(*x.shape[:-1], weight.out_features).to(x.dtype)
+    return F.linear(x, weight)
+
+
 def _rms_norm_gated_decode(x: torch.Tensor, weight: torch.Tensor, gate: torch.Tensor) -> torch.Tensor:
     backend = os.environ.get("LYNN_RMSNORM_GATED_BACKEND", "torch")
     if backend == "triton":
@@ -337,9 +370,9 @@ def prefill_full_attn(h, position_ids, w, cfg):
     rotary_dim = int(head_dim * cfg["partial_rotary_factor"])
 
     # 1. Q/K/V projection (Q is 2× for attn_output_gate)
-    q_full = F.linear(h, w["self_attn.q_proj.weight"])
-    k = F.linear(h, w["self_attn.k_proj.weight"])
-    v = F.linear(h, w["self_attn.v_proj.weight"])
+    q_full = _linear_prefill(h, _prefill_weight(w, "self_attn.q_proj.weight"))
+    k = _linear_prefill(h, _prefill_weight(w, "self_attn.k_proj.weight"))
+    v = _linear_prefill(h, _prefill_weight(w, "self_attn.v_proj.weight"))
 
     # Per-head reshape THEN chunk on q_full
     q_full_view = q_full.view(B, T, H_Q, head_dim * 2)
@@ -384,7 +417,7 @@ def prefill_full_attn(h, position_ids, w, cfg):
 
     # 8. o_proj
     attn_out = attn_out.transpose(1, 2).contiguous().view(B, T, H_Q * head_dim)
-    out = F.linear(attn_out, w["self_attn.o_proj.weight"])
+    out = _linear_prefill(attn_out, _prefill_weight(w, "self_attn.o_proj.weight"))
     return out, K_to_cache, V_to_cache
 
 
@@ -1016,10 +1049,10 @@ def prefill_linear_attn(h, w, chunk_size: int = 64):
     B, T, _ = h.shape
 
     def W(k):
-        return w[k]
+        return _prefill_weight(w, k)
 
     # 1. QKV proj
-    mixed = F.linear(h, W("linear_attn.in_proj_qkv.weight"))     # [B, T, conv_dim]
+    mixed = _linear_prefill(h, W("linear_attn.in_proj_qkv.weight"))     # [B, T, conv_dim]
     mixed = mixed.transpose(1, 2)                                # [B, conv_dim, T]
 
     # 2. Causal conv1d (left-pad kernel-1)
@@ -1047,10 +1080,10 @@ def prefill_linear_attn(h, w, chunk_size: int = 64):
     v = v.reshape(B, T, NUM_V_HEADS, HEAD_V_DIM)
 
     # 4. z, beta, g
-    z = F.linear(h, W("linear_attn.in_proj_z.weight")).reshape(B, T, NUM_V_HEADS, HEAD_V_DIM)
-    b = F.linear(h, W("linear_attn.in_proj_b.weight"))
+    z = _linear_prefill(h, W("linear_attn.in_proj_z.weight")).reshape(B, T, NUM_V_HEADS, HEAD_V_DIM)
+    b = _linear_prefill(h, W("linear_attn.in_proj_b.weight"))
     beta = b.sigmoid()
-    a = F.linear(h, W("linear_attn.in_proj_a.weight"))
+    a = _linear_prefill(h, W("linear_attn.in_proj_a.weight"))
     dt_bias = W("linear_attn.dt_bias")
     neg_exp_A_log = w.get("linear_attn._neg_exp_A_log")
     if neg_exp_A_log is None:
@@ -1077,7 +1110,7 @@ def prefill_linear_attn(h, w, chunk_size: int = 64):
     core_attn_out = flat_y.reshape(B, T, NUM_V_HEADS * HEAD_V_DIM)
 
     # 8. out_proj
-    out = F.linear(core_attn_out, W("linear_attn.out_proj.weight"))
+    out = _linear_prefill(core_attn_out, W("linear_attn.out_proj.weight"))
 
     return out, last_state, new_conv_state
 
