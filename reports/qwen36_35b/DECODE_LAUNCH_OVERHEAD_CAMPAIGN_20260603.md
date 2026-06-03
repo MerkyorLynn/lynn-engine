@@ -215,3 +215,27 @@
     (or down) as a Triton read-4bit/dequant-in-register/bf16-GEMV; gate `LYNN_MOE_EXPERT_FP4_GEMV=1`. Gates: (a) cos≈1 /
     token-coherent vs BF16 expert path, (b) isolated microbench faster, (c) runs with the BF16 expert shadow DROPPED
     (proves shadow-free). Then widen all experts → delete shadow → RC battery → e2e TPS vs 44.71 & vs llama.cpp 69.77.
+- **✅ STAGE 6 step 2 — DEEP TRACE + 2 PROBES (SUPERSEDE step-1; the step-1 "MoE FP4 GEMV" target was WRONG).**
+  Two headless CLIs (codex gpt-5.5 + claude-internal, traces in `reports/stage6/{codex,claude_internal}_decode_trace.md`)
+  + two Spark probes, all converging:
+  - **The MoE expert decode is ALREADY read-4bit / register-dequant / bf16-GEMV** (`triton_kernels/nvfp4_moe.py:251,352`:
+    packed-uint8 load → e2m1 nibble decode in registers → per-16 scale → fp32 accumulate → store bf16 activation only,
+    NO BF16 weight temp in HBM). Writing `LYNN_MOE_EXPERT_FP4_GEMV` would re-implement it → ~0 gain. **DO NOT write it.**
+  - **`spark_stage6_decode_shadow_free_probe.py`:** prefill once (shadows present) → `release_decode_bf16_shadows()` (−60 GiB)
+    → **continue DECODE shadow-free, same state: 42.36 → 43.68 tok/s (1.03×), coherent.** Decode does NOT read the 60 GiB
+    BF16 — it's the **PREFILL** routed-expert shadow (`engine/full_forward.py:323-339`); the step-1 `KeyError(mlp.experts.1.gate_proj.weight)`
+    was a fresh prefill, not decode. → "delete shadow" = **decode-only MEMORY win (87→27 GiB)**, NOT a TPS lever.
+  - **`spark_stage6_packed_decode_sweep.py` (the cheap A/B both CLIs predicted):** routing the genuinely-BF16 decode
+    weights (full-attn q/k/v/o, linear-attn out_proj) to packed FP4 via existing flags gives **NO win** —
+    `full_attn_fp4` 0.999× / `linear_outproj_fp4` **0.775×** / `all_packed` 0.772× (all coherent). Cutting BF16→FP4 reads
+    is neutral-to-NEGATIVE → **decode is latency/launch-bound, NOT bandwidth-bound** (the RC's `PACKED_DECODE=0` was correct).
+    Reconciles the implied 5.37 GB/tok vs actual ~2.6 GB weights (half FP4): the gap is launch/latency, not bytes.
+  - **REVISED STAGE 6 VERDICT:** the "read-4bit / zero-shadow → 40→140" premise is **empirically FALSE for this decode**.
+    read-4bit is already done (MoE); the shadow is prefill-only (memory win); FP4-ing attn is neutral/negative.
+    **The only remaining decode lever is dispatch/launch reduction (reusable decode CUDA graph + launch-folding)** — but the
+    FP8-revival experience put graph at only **+10%** (→ ~48-50, not 70) and it's the hard full-attn-variable-KV path.
+    **Honest ceiling:** matching llama.cpp 69.77 needs ggml-level fused low-dispatch CUDA; on Spark (no FP4 MMA) the engine
+    is structurally capped ~45-50. The kernel moat pays off on **R6000 (FP4 MMA)**, not Spark.
+  - **NEXT (cheap, decides the graph bet):** measure `LYNN_REUSABLE_DECODE_GRAPH=1` e2e TPS vs 44.68 on the NVFP4 stack
+    (infra exists; the +10% was FP8, NVFP4 delta is UNMEASURED). >+15% → graph is worth it; ≈+10% → accept ~45-50 + the
+    60 GiB decode-only memory win, and move kernel work to R6000. **No new kernel until this number exists.**
