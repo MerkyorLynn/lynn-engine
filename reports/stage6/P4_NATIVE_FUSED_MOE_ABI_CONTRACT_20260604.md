@@ -129,6 +129,12 @@ GPU-free evidence-tooling self-test:
 python3 scripts/test_stage6_p4_evidence_tools.py
 ```
 
+GPU-free zero-shadow firewall:
+
+```bash
+python3 scripts/test_stage6_p4_zero_shadow_firewall.py
+```
+
 Formal report writer:
 
 ```bash
