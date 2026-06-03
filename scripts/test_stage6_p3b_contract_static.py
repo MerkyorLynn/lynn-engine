@@ -116,6 +116,19 @@ CHECKS = [
             "scripts/run_spark_stage6_p3d_server_rc_gate.sh",
         ],
     ),
+    (
+        "reports/stage6/P3E_RC_QUALITY_BATTERY_RUNBOOK_20260604.md",
+        [
+            "RUNBOOK/TOOLING ONLY; no P3-E result is banked yet",
+            "MMLU sample",
+            "GPQA Diamond sample",
+            "LYNN_SKIP_RELOAD_IF_PACKED_PREFILL=1",
+            "banked_rc_quality_smoke=true",
+            "banked_default_promotion=false",
+            "banked_full_leaderboard_quality=false",
+            "scripts/run_spark_stage6_p3e_rc_quality_battery.sh",
+        ],
+    ),
 ]
 
 
