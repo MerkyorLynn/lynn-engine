@@ -487,3 +487,13 @@
   - **Memory:** P2E peak **5.123 GiB** vs stream peak **17.102 GiB**.
   - **Decision:** bank P2-I. The remaining pre-server risk is now P2-J: trace/replace the old torch-only linear-attn
     prefill wall before scaling to all selected MoE layers or removing reload in serving.
+- **✅ STAGE 6 step 20 — P2-J linear-attn prefill trace PASSED; next native target identified.**
+  `scripts/spark_stage6_p2j_linear_attn_prefill_trace.py` isolates one BF16 linear-attention layer and times each
+  prefill segment while checking exact output/state/conv agreement against `prefill_linear_attn()`.
+  - **Numeric:** T=16/64/128/256/512 all exact vs `prefill_linear_attn` for output, recurrent state, and conv state.
+  - **Dominant segment:** `chunk_gated_delta_with_state` is **71-76%** of traced wall time: T16 **2.56 ms**,
+    T64 **2.42 ms**, T128 **2.68 ms**, T256 **3.47 ms**, T512 **4.08 ms**.
+  - **Not the wall:** QKV/out projection, depthwise conv, and RMSNormGated are all small by comparison; the next-largest
+    non-chunk segment is only **0.165-0.393 ms** across T16..512.
+  - **Decision:** bank P2-J. Next gate P2-K should target a native/fused gated-delta prefill kernel, not more projection
+    bridge tuning. Server promotion remains blocked until P2-K/P2-L and RC quality pass.
