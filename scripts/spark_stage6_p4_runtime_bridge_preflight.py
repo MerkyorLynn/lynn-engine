@@ -30,6 +30,8 @@ from engine.resident_runner import LynnIncrementalRunner  # noqa: E402
 
 
 EXPECTED_BACKEND = "fused_zero_shadow_out_contract"
+NATIVE_CALL_COUNT_KEY = "_p4_fused_zero_shadow_out_contract_call_count"
+NATIVE_LAST_SHAPES_KEY = "_p4_fused_zero_shadow_out_contract_last_shapes"
 ACTIVE_SHADOW_KEYS = ("mlp.experts.gate_up_proj", "mlp.experts.down_proj")
 PACKED_KEYS = (
     "mlp.experts._gate_up_packed",
@@ -209,6 +211,7 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
 
         candidate_error: dict[str, str] | None = None
         candidate = None
+        native_call_count_before = int(w.get(NATIVE_CALL_COUNT_KEY, 0))
         old_backend = _set_env({"LYNN_NATIVE_ACTIVE_MOE_BACKEND": EXPECTED_BACKEND})
         try:
             try:
@@ -217,6 +220,14 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
                 candidate_error = {"type": type(exc).__name__, "message": str(exc)}
         finally:
             _restore_env(old_backend)
+        native_call_count_after = int(w.get(NATIVE_CALL_COUNT_KEY, 0))
+        result["native_backend_call_count"] = {
+            "key": NATIVE_CALL_COUNT_KEY,
+            "before": native_call_count_before,
+            "after": native_call_count_after,
+            "delta": native_call_count_after - native_call_count_before,
+            "last_shapes": w.get(NATIVE_LAST_SHAPES_KEY),
+        }
 
         result["candidate_error"] = candidate_error
         if candidate is not None:
@@ -235,6 +246,7 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
         baseline_shape_ok = result["baseline"]["output_shape"] == list(h_moe.shape)
         baseline_dtype_ok = result["baseline"]["output_dtype"] == "torch.bfloat16"
         native_layer_selected = result.get("native_layer_selected_for_candidate") is True
+        native_backend_called = (result.get("native_backend_call_count") or {}).get("delta") == 1
         packed_manifest_ok = _packed_manifest_ok(result["packed_manifest_before_candidate"])
         active_scratch_ok = _active_scratch_ok(result["active_scratch_manifest"], int(cfg["num_experts_per_tok"]))
         shadow_absent = not result["active_shadow_keys_present_after_delete"]
@@ -255,6 +267,7 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
         result["passes"] = {
             "cuda_available": True,
             "native_layer_selected": native_layer_selected,
+            "native_backend_called": native_backend_called,
             "baseline_triton_nonzero": baseline_ok,
             "baseline_shape_dtype": bool(baseline_shape_ok and baseline_dtype_ok),
             "packed_tensors_present": packed_manifest_ok,
@@ -265,7 +278,7 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
             "candidate_numeric_vs_triton": bool(candidate_numeric_ok),
             "fused_kernel_unbanked": result["banked_fused_kernel"] is False,
             "default_promotion_closed": result["banked_default_promotion"] is False,
-            "all": bool(native_layer_selected and baseline_ok and packed_manifest_ok and active_scratch_ok and removed and shadow_absent and no_bf16_aliases and candidate_numeric_ok),
+            "all": bool(native_layer_selected and native_backend_called and baseline_ok and packed_manifest_ok and active_scratch_ok and removed and shadow_absent and no_bf16_aliases and candidate_numeric_ok),
         }
         result["banked_runtime_bridge_preflight"] = bool(result["passes"]["all"])
         result["decision"] = "PASS_TWO_STAGE_RUNTIME_BRIDGE" if result["passes"]["all"] else "FAIL_RUNTIME_BRIDGE_CONTRACT"

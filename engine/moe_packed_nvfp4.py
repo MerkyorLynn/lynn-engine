@@ -708,6 +708,15 @@ def _active_moe_native_fused_zero_shadow_out_contract(
         _env_int("LYNN_NATIVE_GATEUP_TILE_INTER", 8),
         _env_int("LYNN_NATIVE_DOWN_TILE_HIDDEN", 8),
     )
+    w["_p4_fused_zero_shadow_out_contract_call_count"] = (
+        int(w.get("_p4_fused_zero_shadow_out_contract_call_count", 0)) + 1
+    )
+    w["_p4_fused_zero_shadow_out_contract_last_shapes"] = {
+        "hidden": tuple(hidden_2d.shape),
+        "expert_ids": tuple(expert_ids_2d.shape),
+        "inter_scratch": tuple(inter.shape),
+        "out": tuple(out.shape),
+    }
     return out.reshape_as(hidden)
 
 

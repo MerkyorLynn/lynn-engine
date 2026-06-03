@@ -63,6 +63,7 @@ def _verdict(data: dict[str, Any]) -> tuple[str, str]:
     scratch = data.get("active_scratch_manifest") or {}
     candidate_error = data.get("candidate_error") or {}
     candidate = data.get("candidate") or {}
+    native_call_count = data.get("native_backend_call_count") or {}
     if data.get("schema") != SCHEMA:
         return "FAIL", "schema mismatch"
     if data.get("banked_fused_kernel") is not False:
@@ -74,6 +75,7 @@ def _verdict(data: dict[str, Any]) -> tuple[str, str]:
     for gate in (
         "baseline_triton_nonzero",
         "native_layer_selected",
+        "native_backend_called",
         "baseline_shape_dtype",
         "packed_tensors_present",
         "active_scratch_present",
@@ -93,6 +95,8 @@ def _verdict(data: dict[str, Any]) -> tuple[str, str]:
         return "FAIL", "baseline shape/dtype mismatch"
     if data.get("native_layer_selected_for_candidate") is not True:
         return "FAIL", "native layer selection was not proven"
+    if native_call_count.get("delta") != 1:
+        return "FAIL", "native backend call count did not advance exactly once"
     norm = baseline.get("norm")
     if not isinstance(norm, (int, float)) or not math.isfinite(float(norm)) or float(norm) <= 0.0:
         return "FAIL", "baseline norm is not finite positive"
@@ -123,6 +127,7 @@ def summarize(data: dict[str, Any]) -> str:
     removed = data.get("removed_active_shadows") or {}
     packed = data.get("packed_manifest_before_candidate") or {}
     scratch = data.get("active_scratch_manifest") or {}
+    native_call_count = data.get("native_backend_call_count") or {}
     candidate_error = data.get("candidate_error") or data.get("runner_error") or {}
     lines = [
         "# Stage 6 P4 Runtime Bridge Preflight Summary",
@@ -135,6 +140,7 @@ def summarize(data: dict[str, Any]) -> str:
         f"| Layer | `{data.get('layer')}` |",
         f"| Expected backend | `{data.get('expected_backend')}` |",
         f"| Native layer selected | `{data.get('native_layer_selected_for_candidate')}` |",
+        f"| Native backend call delta | `{native_call_count.get('delta')}` |",
         f"| Banked runtime bridge preflight | `{data.get('banked_runtime_bridge_preflight')}` |",
         f"| Banked fused kernel | `{data.get('banked_fused_kernel')}` |",
         f"| Banked default promotion | `{data.get('banked_default_promotion')}` |",

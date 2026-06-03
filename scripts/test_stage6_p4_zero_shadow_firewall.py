@@ -44,6 +44,8 @@ PY_REQUIRED = [
     "mlp.experts._down_scale",
     "mlp.experts._down_global_scale",
     "active_moe_fused_zero_shadow_out_contract",
+    "_p4_fused_zero_shadow_out_contract_call_count",
+    "_p4_fused_zero_shadow_out_contract_last_shapes",
 ]
 
 PY_DISPATCH_REQUIRED = [
