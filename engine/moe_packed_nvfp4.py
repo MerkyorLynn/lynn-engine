@@ -15,6 +15,7 @@ from triton_kernels.nvfp4_moe import (
     nvfp4_grouped_gate_up_silu_fast_decode,
     nvfp4_grouped_gate_up_silu_fast_decode_effective_scale,
     nvfp4_grouped_gate_up_silu_fast_decode_prepared,
+    nvfp4_prefill_gate_up_silu_one_expert,
 )
 from triton_kernels.shared_expert_gate import (
     HAS_TRITON as HAS_SHARED_EXPERT_GATE_TRITON,
@@ -309,6 +310,131 @@ def _try_fused_shared_expert_output(
         block_out=_env_int("LYNN_SHARED_EXPERT_FUSED_BLOCK_OUT", 32),
         num_warps=_env_int("LYNN_SHARED_EXPERT_FUSED_NUM_WARPS", 4),
     )
+
+
+def active_moe_grouped_prefill_p3a(
+    hidden: torch.Tensor,
+    expert_ids: torch.Tensor,
+    routing_weights: torch.Tensor,
+    gate_up_packed: torch.Tensor,
+    gate_up_scale: torch.Tensor,
+    gate_up_global_scale: torch.Tensor,
+    down_packed: torch.Tensor,
+    down_scale: torch.Tensor,
+    down_global_scale: torch.Tensor,
+    *,
+    block_t: int = 32,
+    block_inter: int = 8,
+    block_hidden: int = 128,
+    num_warps: int = 4,
+    down_block_hidden: int = 8,
+    down_block_inter: int = 512,
+    down_num_warps: int = 8,
+) -> torch.Tensor:
+    """P3-A contract-shaped active-MoE packed prefill callable.
+
+    This is not a banked fused P3 kernel. It exposes the P3 input/output
+    contract using the current P2-E packed gate/up and down slices, so future
+    fused grouped-MoE candidates can replace this callable under the same
+    numeric and memory gates. Shared expert and router computation stay outside
+    this active-expert contract.
+    """
+    if hidden.ndim != 2:
+        raise ValueError(f"hidden must be [tokens, hidden], got {tuple(hidden.shape)}")
+    if expert_ids.ndim != 2 or routing_weights.ndim != 2:
+        raise ValueError(
+            "expert_ids and routing_weights must be [tokens, top_k], got "
+            f"{tuple(expert_ids.shape)} / {tuple(routing_weights.shape)}"
+        )
+    if expert_ids.shape != routing_weights.shape or expert_ids.shape[0] != hidden.shape[0]:
+        raise ValueError(
+            "expert_ids/routing_weights must align with hidden tokens, got "
+            f"hidden={tuple(hidden.shape)} expert_ids={tuple(expert_ids.shape)} "
+            f"routing_weights={tuple(routing_weights.shape)}"
+        )
+    if gate_up_packed.ndim != 3 or gate_up_scale.ndim != 3:
+        raise ValueError(
+            f"expected grouped gate/up tensors, got packed={tuple(gate_up_packed.shape)} "
+            f"scale={tuple(gate_up_scale.shape)}"
+        )
+    if down_packed.ndim != 3 or down_scale.ndim != 3:
+        raise ValueError(
+            f"expected grouped down tensors, got packed={tuple(down_packed.shape)} "
+            f"scale={tuple(down_scale.shape)}"
+        )
+
+    hidden_size = int(hidden.shape[1])
+    intermediate = int(gate_up_packed.shape[1] // 2)
+    if gate_up_packed.shape[1] != intermediate * 2 or gate_up_packed.shape[2] * 2 != hidden_size:
+        raise ValueError(
+            "gate_up packed shape must be [experts, 2*intermediate, hidden/2], got "
+            f"hidden={hidden_size} gate_up={tuple(gate_up_packed.shape)}"
+        )
+    if gate_up_scale.shape[1] != intermediate * 2 or gate_up_scale.shape[2] * 16 != hidden_size:
+        raise ValueError(
+            "gate_up scale shape must be [experts, 2*intermediate, hidden/16], got "
+            f"hidden={hidden_size} scale={tuple(gate_up_scale.shape)}"
+        )
+    if down_packed.shape[1] != hidden_size or down_packed.shape[2] * 2 != intermediate:
+        raise ValueError(
+            "down packed shape must be [experts, hidden, intermediate/2], got "
+            f"hidden={hidden_size} intermediate={intermediate} down={tuple(down_packed.shape)}"
+        )
+    if down_scale.shape[1] != hidden_size or down_scale.shape[2] * 16 != intermediate:
+        raise ValueError(
+            "down scale shape must be [experts, hidden, intermediate/16], got "
+            f"hidden={hidden_size} intermediate={intermediate} scale={tuple(down_scale.shape)}"
+        )
+
+    hidden = hidden.contiguous()
+    tokens, top_k = int(expert_ids.shape[0]), int(expert_ids.shape[1])
+    expert_ids_i64 = expert_ids.to(device=hidden.device, dtype=torch.long).contiguous()
+    expert_ids_i32 = expert_ids_i64.to(torch.int32).contiguous()
+    routing_weights_f32 = routing_weights.to(device=hidden.device, dtype=torch.float32).contiguous()
+
+    flat_experts = expert_ids_i64.reshape(-1)
+    order = torch.argsort(flat_experts)
+    sorted_experts = flat_experts[order]
+    unique, counts = torch.unique_consecutive(sorted_experts, return_counts=True)
+    token_base = torch.arange(tokens, device=hidden.device, dtype=torch.long).repeat_interleave(top_k)
+    slot_base = torch.arange(top_k, device=hidden.device, dtype=torch.long).repeat(tokens)
+    sorted_tokens = token_base[order]
+    sorted_slots = slot_base[order]
+
+    inter = torch.empty((tokens, top_k, intermediate), device=hidden.device, dtype=torch.bfloat16)
+    offset = 0
+    for expert, count in zip(unique.tolist(), counts.tolist(), strict=True):
+        end = offset + int(count)
+        token_idx = sorted_tokens[offset:end].contiguous()
+        slot_idx = sorted_slots[offset:end].contiguous()
+        inter[token_idx, slot_idx] = nvfp4_prefill_gate_up_silu_one_expert(
+            hidden[token_idx],
+            int(expert),
+            gate_up_packed,
+            gate_up_scale,
+            gate_up_global_scale,
+            block_t=block_t,
+            block_inter=block_inter,
+            block_hidden=block_hidden,
+            num_warps=num_warps,
+        )
+        offset = end
+
+    out = torch.empty((tokens, hidden_size), device=hidden.device, dtype=torch.bfloat16)
+    for token in range(tokens):
+        nvfp4_grouped_down_weighted_sum(
+            inter[token],
+            expert_ids_i32[token],
+            routing_weights_f32[token],
+            down_packed,
+            down_scale,
+            down_global_scale,
+            block_hidden=down_block_hidden,
+            block_inter=down_block_inter,
+            num_warps=down_num_warps,
+            out=out[token],
+        )
+    return out.to(hidden.dtype)
 
 
 def _layer_selected_for_native_cuda(cfg: dict) -> bool:

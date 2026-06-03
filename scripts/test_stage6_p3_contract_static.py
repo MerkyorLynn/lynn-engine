@@ -15,6 +15,9 @@ CHECKS = [
             "active_moe_grouped_prefill",
             "Forbidden for a P3 bank",
             "P3-A PASS requires",
+            "P3-A Runnable Probe",
+            "scripts/run_spark_stage6_p3a_contract_probe.sh",
+            "banked_fused_kernel=false",
             "P2-O remains the next resident-runner gate",
         ],
     ),
@@ -37,6 +40,9 @@ CHECKS = [
     (
         "engine/moe_packed_nvfp4.py",
         [
+            "def active_moe_grouped_prefill_p3a",
+            "not a banked fused P3 kernel",
+            "nvfp4_prefill_gate_up_silu_one_expert",
             "def moe_forward_verify_smallm_nvfp4",
             "mlp.experts._gate_up_packed",
             "mlp.experts._down_packed",
@@ -57,6 +63,24 @@ CHECKS = [
             "LYNN_PACKED_PREFILL_SLOW_MODE",
             "p2e_hybrid",
             "LYNN_LINEAR_ATTN_PREFILL_BLOCK_GQA",
+        ],
+    ),
+    (
+        "scripts/spark_stage6_p3a_grouped_moe_contract_probe.py",
+        [
+            "active_moe_grouped_prefill_p3a",
+            "banked_fused_kernel",
+            "shadow_absent_at_candidate_start",
+            "Active MoE only",
+        ],
+    ),
+    (
+        "scripts/run_spark_stage6_p3a_contract_probe.sh",
+        [
+            "PROVENANCE_FILES",
+            "scripts/spark_stage6_p3a_grouped_moe_contract_probe.py",
+            "nvidia_smi_before.txt",
+            "passes.all",
         ],
     ),
 ]
