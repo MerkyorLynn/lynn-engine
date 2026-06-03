@@ -401,3 +401,20 @@
     than resident BF16 prefill.
   - **Decision:** continue to P2-D shared/router-inclusive one-layer harness. Do not integrate server-side until full
     one-layer MoE beats `stream_bf16` and remains memory-clean.
+- **⚠️ STAGE 6 step 14 — P2-D router/shared-inclusive one-layer hybrid is correct and memory-clean, but not a speed promotion.**
+  `scripts/spark_stage6_p2d_one_layer_moe_hybrid_poc.py` adds router linear/top-k/softmax/eager grouping back into the
+  timed path, keeps shared expert on the existing BF16 prefill path, deletes active BF16 expert shadows, and then runs
+  packed active experts from NVFP4.
+  - **Bytes:** one-layer active BF16 expert shadow **1.500 GiB** vs packed active **0.563 GiB**; shared BF16 is only
+    **0.006 GiB**, so shared is not the current memory bottleneck. After deleting active BF16 shadows, harness resident
+    was **0.641 GiB**.
+  - **Numeric/no-shadow:** M=16/64 hybrid output vs full BF16 MoE `cos≈0.999997`, rel_l2≈`0.0023`, argmax match; packed
+    peak stayed **0.642 GiB** after deleting `gate_up_proj` and `down_proj`.
+  - **Latency vs BF16 full MoE:** M=16 **12.43 ms** vs BF16 **11.68 ms** (**0.940x**); M=64 **29.21 ms** vs BF16
+    **21.65 ms** (**0.741x**). Not a BF16-speed win.
+  - **Component costs exposed:** M=64 router/grouping **5.41 ms**, packed active precomputed **23.99 ms**, BF16 shared
+    **0.046 ms**. The next bottlenecks are eager route/group scheduling and packed active latency, not shared expert.
+  - **Latency vs no-reload proof:** M=64 **29.21 ms/layer** vs `stream_bf16` **506.22 ms/layer** (~**17x** faster).
+    P2 still matters for removing the **23-24 s reload**, but it is not ready for serving integration.
+  - **Decision:** bank P2-D as correctness/memory evidence. Next P2-E should reduce route/grouping overhead and packed
+    active scheduling cost; do not wire into `resident_runner` until the one-layer hybrid has a clean speed story.
