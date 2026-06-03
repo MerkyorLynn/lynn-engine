@@ -119,7 +119,8 @@ lookup paths. Router and norms are too small to lead the next phase.
 | P2-D one-layer hybrid | **MIXED PASS 2026-06-04**: router/shared-inclusive hybrid is numeric/no-shadow pass; M64 29.21ms/layer, ~17x faster than `stream_bf16`, but 0.741x vs BF16 full MoE | see `reports/stage6/P2D_ONE_LAYER_MOE_HYBRID_POC_20260604.md`; do not wire into serving |
 | P2-E scheduler / active retune | **PASSED 2026-06-04**: sort scheduler + `block_inter=8` is numeric/no-shadow pass; M64 hybrid 20.25ms/layer vs BF16 21.41ms (1.057x) | see `reports/stage6/P2E_SCHEDULER_ACTIVE_RETUNE_20260604.md`; continue to one-layer opt-in replacement |
 | P2-F one-layer opt-in replacement | **PASSED 2026-06-04**: P2-E moved into engine dispatch as `LYNN_PACKED_PREFILL_SLOW_MODE=p2e_hybrid`; M64 20.23ms/layer vs BF16 21.10ms (1.043x), 24.96x vs `stream_bf16`, peak 0.643GiB | see `reports/stage6/P2F_ONE_LAYER_REPLACEMENT_VERIFY_20260604.md`; continue to multi-layer smoke |
-| P2-G multi-layer no-reload smoke | Select multiple/all MoE layers with `p2e_hybrid` | compare against BF16/stream, memory, latency, and cross-layer numeric drift |
+| P2-G multi-layer no-reload smoke | **PASSED 2026-06-04**: 4-layer residual-scale MoE smoke numeric/no-shadow/speed pass; M64 80.97ms vs BF16 85.12ms (1.051x), 30.04x vs `stream_bf16`, peak 2.527GiB | see `reports/stage6/P2G_MULTILAYER_MOE_SMOKE_20260604.md`; continue to full prefill selected-layer smoke |
+| P2-H full prefill selected-layer smoke | Run complete transformer prefill with selected MoE layers using `p2e_hybrid` | compare token/hidden agreement, memory, and latency before all-layer/server promotion |
 | P3 | Server integration: if `LYNN_PACKED_PREFILL=1`, skip per-request reload and keep 27-28 GiB steady-state | multi-request A/B: no reload, memory flat, decode TPS unchanged |
 | P4 | RC quality and long-context headroom | `spark_rc_quality_regression.py`, long prefill smoke, `/health` metrics |
 

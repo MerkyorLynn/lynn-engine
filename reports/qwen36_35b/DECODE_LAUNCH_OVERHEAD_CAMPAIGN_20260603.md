@@ -446,3 +446,17 @@
   - **Memory:** P2E peak **0.641-0.643 GiB** vs `stream_bf16` peak **12.64 GiB** in the one-layer harness.
   - **Decision:** bank P2-F. Next P2-G should select multiple/all MoE layers with `p2e_hybrid` and measure cross-layer
     numeric drift, memory, and latency before any server default or multi-request promotion.
+- **✅ STAGE 6 step 17 — P2-G 4-layer MoE smoke PASSED; P2E survives consecutive layers.**
+  `scripts/spark_stage6_p2g_multilayer_moe_smoke.py` chains layers 0-3 with residual addition on synthetic hidden states
+  (`h = h + MoE(h)`) to avoid the invalid raw-MoE collapse seen in the first diagnostic attempt.
+  - **Bytes:** 4-layer active BF16 shadow **6.000 GiB** vs packed active **2.250 GiB**; after deleting active BF16
+    shadows, harness resident was **2.525 GiB**.
+  - **Numeric/no-shadow:** stream remains exact vs BF16; P2E vs BF16 after 4 layers has M=16 `cos=0.999999869`,
+    rel_l2=`5.11e-4`, max_abs=`0.00390625`; M=64 `cos=0.999999840`, rel_l2=`5.65e-4`, max_abs=`0.0078125`;
+    argmax matches for both.
+  - **Latency:** M=16 **34.20 ms** vs BF16 **47.23 ms** (**1.381x**) and stream **2388.18 ms** (**69.82x**);
+    M=64 **80.97 ms** vs BF16 **85.12 ms** (**1.051x**) and stream **2432.64 ms** (**30.04x**).
+  - **Memory:** P2E peak **2.526-2.527 GiB** vs stream peak **14.525-14.526 GiB**.
+  - **Decision:** bank P2-G. Next P2-H should move from MoE-only synthetic smoke to full transformer prefill with selected
+    MoE layers on `p2e_hybrid`, then measure token/hidden agreement, memory, and latency before all-layer/server
+    promotion.
