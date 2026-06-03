@@ -196,6 +196,9 @@ class LynnEngineHandle:
         self.release_decode_shadows_after_prefill = (
             os.environ.get("LYNN_RELEASE_DECODE_SHADOWS_AFTER_PREFILL", "0") == "1"
         )
+        self.skip_reload_when_packed_prefill = (
+            os.environ.get("LYNN_SKIP_RELOAD_IF_PACKED_PREFILL", "0") == "1"
+        )
         # True once at least one request has released its decode shadows.
         self.release_decode_shadows_consumed = False
         # Per-request release+reload observability (decode-only memory win).
@@ -230,18 +233,25 @@ class LynnEngineHandle:
         if temperature not in (0, 0.0):
             raise ValueError("Lynn engine MVP server currently supports greedy temperature=0 only")
         reload_seconds: Optional[float] = None
+        reload_skipped_for_packed_prefill = False
         if self.release_decode_shadows_after_prefill and getattr(
             self.runner, "_decode_shadows_released", False
         ):
-            # A prior request released the BF16 shadows after its prefill so it
-            # could decode at ~27 GiB resident. Rebuild them (dequant from the
-            # still-resident packed NVFP4, no disk I/O) before THIS request's
-            # prefill, then generate() releases them again after prefill. This is
-            # the per-request reload->prefill->release->decode serving cycle.
-            reload_report = self.runner.reload_decode_bf16_shadows()
-            reload_seconds = reload_report.get("seconds")
-            self.last_reload_seconds = reload_seconds
-            self.release_reload_count += 1
+            if self.skip_reload_when_packed_prefill and os.environ.get("LYNN_PACKED_PREFILL_SLOW", "0") == "1":
+                # P3-E opt-in path: packed prefill must prove it can run without
+                # rebuilding the released BF16 shadows. Keep default false.
+                reload_skipped_for_packed_prefill = True
+            else:
+                # A prior request released the BF16 shadows after its prefill so
+                # it could decode at ~27 GiB resident. Rebuild them (dequant from
+                # the still-resident packed NVFP4, no disk I/O) before THIS
+                # request's prefill, then generate() releases them again after
+                # prefill. This is the per-request reload->prefill->release->decode
+                # serving cycle.
+                reload_report = self.runner.reload_decode_bf16_shadows()
+                reload_seconds = reload_report.get("seconds")
+                self.last_reload_seconds = reload_seconds
+                self.release_reload_count += 1
         result = self.runner.generate(
             prompt,
             max_new=max_new_tokens,
@@ -278,6 +288,7 @@ class LynnEngineHandle:
             "release_decode_shadows_after_prefill": self.release_decode_shadows_after_prefill,
             "release_decode_shadows_consumed": self.release_decode_shadows_consumed,
             "reload_decode_shadows_seconds": reload_seconds,
+            "reload_decode_shadows_skipped_for_packed_prefill": reload_skipped_for_packed_prefill,
             "release_reload_count": self.release_reload_count,
         }
 
@@ -407,6 +418,7 @@ def make_app(handle: LynnEngineHandle):
             "status": "ok",
             "model": handle.cfg.served_model_name,
             "release_decode_shadows_after_prefill": handle.release_decode_shadows_after_prefill,
+            "skip_reload_when_packed_prefill": handle.skip_reload_when_packed_prefill,
             "release_decode_shadows_consumed": handle.release_decode_shadows_consumed,
             "decode_shadows_currently_released": bool(
                 getattr(handle.runner, "_decode_shadows_released", False)

@@ -11,3 +11,4 @@ python3 scripts/test_stage6_p3b_contract_static.py
 python3 scripts/test_stage6_p3b_evidence_tools.py
 python3 scripts/test_stage6_p3c_evidence_tools.py
 python3 scripts/test_stage6_p3d_evidence_tools.py
+python3 scripts/test_stage6_p3e_evidence_tools.py

@@ -75,6 +75,7 @@ Forbidden for a P3 bank:
 | P3-B | Multi-layer selected prefill | residual-stack numeric, no active shadow, speed not regressed vs P2N |
 | P3-C | Resident-runner real prompt | generated-token smoke, no reload, memory release evidence, P2-O-style artifact |
 | P3-D | OpenAI server smoke | baseline/candidate server parity, release/reload health counters, default promotion still closed |
+| P3-E | RC quality-battery smoke | MMLU/GPQA samples, structured/tool/V8/V9/longctx smoke, default promotion still closed |
 
 P3-A PASS requires all of:
 
@@ -161,3 +162,16 @@ It launches baseline and candidate `server.openai_http` instances, checks
 candidate `/health` release/reload counters. The result schema must keep
 `banked_default_promotion=false` and `banked_full_rc_quality=false` until the
 separate MMLU/GPQA/tool/long-context RC battery passes.
+
+## P3-E Runnable RC Quality Smoke
+
+P3-E is the explicit quality-battery smoke after P3-D:
+
+```bash
+scripts/run_spark_stage6_p3e_rc_quality_battery.sh --p3d-pass
+```
+
+It starts the opt-in server path with `LYNN_SKIP_RELOAD_IF_PACKED_PREFILL=1` and
+runs MMLU/GPQA samples, structured JSON, tool-call, V8/V9-shaped prompt-format,
+and long-context needle smokes. A PASS may bank only `banked_rc_quality_smoke=true`; it must keep
+`banked_default_promotion=false` and `banked_full_leaderboard_quality=false`.
