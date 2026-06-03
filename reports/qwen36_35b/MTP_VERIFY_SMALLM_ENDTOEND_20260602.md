@@ -1,5 +1,11 @@
 # MTP small-M grouped MoE verify — end-to-end result (NEGATIVE, 2026-06-02)
 
+> **⚠️ CORRECTION (2026-06-03):** the "path to 60+/150 needs SM120 hardware" line below
+> is **WRONG** for the 60–70 range — llama.cpp does **69.77 on the same Spark, no FP4
+> MMA, no MTP**, so ~70 is a Spark-side software target (4-bit attn-proj + tighter
+> kernels; measured BW ~240 GB/s, we use only ~37%). SM120 is only for the 100–150
+> FP4-MMA tier. See `SPARK_BASELINE_DECODE_PROFILE_20260603.md` → CORRECTION.
+
 Per the directive to *actually build it* (not extrapolate from a probe): implemented
 `moe_forward_verify_smallm_nvfp4` (route each position → group by expert → run each
 active expert's gate_up+down once over its rows → batched shared expert), wired into
@@ -43,8 +49,9 @@ the diverse-routing HBM cap to ~+13% (llama.cpp-confirmed). The goal
 "0.45× → net win → 60 TPS via MTP" is **structurally unreachable on this MoE**.
 
 The banked real win remains the **+11% decode config** (36→40 TPS,
-`LYNN_MOE_DOWN_BLOCK_HIDDEN=4`). The path to 60+/150 is baseline-decode kernels and
-**SM120 hardware** (FlashRT-proven 150 on a single RTX 5090), not MTP-on-MoE.
+`LYNN_MOE_DOWN_BLOCK_HIDDEN=4`). The path to **~70 is baseline-decode kernel efficiency
+on Spark itself** (4-bit attn-proj + tighter kernels; llama.cpp proves 69.77 there) —
+NOT MTP-on-MoE, and NOT new hardware. Only the 100–150 FP4-MMA tier needs SM120.
 
 `LYNN_MTP_VERIFY_SMALLM` is left **gated OFF** as a negative-result reference so the
 next session doesn't repeat the naive-torch-dequant approach.

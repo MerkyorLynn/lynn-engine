@@ -3,6 +3,32 @@
 Goal (user-picked direction): speed up the **baseline** NVFP4 decode on Spark
 (routing-independent; no MTP, no FP4 MMA, no 5090) — 36 → toward llama.cpp 69.77.
 
+## ⚠️ CORRECTION (2026-06-03) — there is NO "Spark hardware ceiling at 40"
+An earlier draft framed "~40 TPS ceiling, 60+ needs SM120" as a *hardware* limit.
+**That was wrong** and is retracted: **llama.cpp Q4_K_M does 69.77 on the SAME Spark,
+no FP4 MMA, no MTP** — so the hardware plainly does ≥70 on the dequant path. 40 is
+**our engine's current-kernel** number, not Spark's.
+
+### Why llama.cpp does 70 and we do 40 — quantified (measured)
+- **Spark memory BW (measured): ~240 GB/s** (copy 243 / read 230; `spark_decode_tps`-style probe).
+- 35B-A3B active ≈ ~3B params/token → **all-4-bit weights ≈ 1.5 GB/tok → BW-bound ceiling ≈ 160 TPS.**
+- **llama.cpp 70 TPS** moves ~1.6 GB (all-4-bit Q4_K) → ~112 GB/s = **~47% of BW**.
+- **us 40 TPS** move ~2.2 GB → ~88 GB/s = **~37% of BW**. We read MORE because our
+  **full-attn q/k/v/o projections are BF16** (the qkv-prep `torch.cat`s BF16 tensors;
+  only the MoE experts + linear-attn in-proj are 4-bit). llama.cpp keeps everything 4-bit.
+- **Neither is BW-saturated** (both < 50% of 240 GB/s) → at M=1 decode both are
+  **latency/overhead-bound, not memory-bound**. So 40 has ~2.7× BW headroom.
+
+**The 1.75× gap decomposes:** ≈**1.5× from extra bytes** (our BF16 attn-proj + any BF16
+lm_head vs llama.cpp's all-4-bit) + ≈**1.2× from kernel/launch overhead** (our Triton
+"~140 tiny launches/token" vs ggml's fused CUDA). **Both are Spark-side software fixes,
+not hardware.** SM120/FP4-MMA is only for the *100–150* tier, never for 70.
+
+**∴ Realistic Spark target = ~70 (llama.cpp-proven), via: (1) quantize the full-attn
+q/k/v/o (and lm_head) to 4-bit/packed NVFP4 — kill the BF16 traffic; (2) cut kernel
+launch overhead to match ggml.** The "ceiling 40-48 / 60 needs SM120" lines below are
+SUPERSEDED by this correction.
+
 ## Profile (LYNN_MTP_PROFILE, 64-tok decode, production fast-path + bh=4)
 Instrumented decode = **28.4 ms/tok (35.18 TPS)** — note: the profile's per-section
 cuda-sync adds overhead, so this is ~12% slower than the clean 40.06 TPS; the
@@ -38,7 +64,7 @@ incremental and must stack across attention/MoE/linear-attn kernels.
 - **linear-attn GQA+outconv flags: +2.7%, coherent.** ✅ (stacks with bh=4)
 - reusable graph: ✗ net-negative (fixed-shape-attn cost).
 - Stacked best = bh4 × linear-attn flags ≈ **~41 TPS** (clean re-measure in flight).
-- **Realistic Spark ceiling via incremental kernel tuning ≈ 44–48 TPS; 60+/150 needs SM120** (no FP4 MMA on sm_121 → dequant-GEMV memory-bound, can't match vendor Q4_K_M 69.77). This re-confirms the standing strategy: Spark = long-ctx/fallback; FP4 perf story on 5090/R6000.
+- **Our *current-kernel* number ≈ 40–41 TPS — NOT a hardware ceiling** (see CORRECTION up top: llama.cpp = 69.77 on the same Spark, no FP4 MMA). 40→70 is 4-bit attn-proj + tighter kernels, all Spark-side; SM120 only for the 100–150 FP4 tier.
 
 ## qkv fusion — CONFIRMED lever (microbench, 1.44×, token-exact)
 `spark_qkv_fusion_probe.py` (no model load): the qkv (2.2 ms) runs **3 separate**
@@ -56,8 +82,8 @@ same treatment).
 | qkv fusion (3→1 GEMV) | 1.44× on qkv → ~+2.5% e2e, exact | **confirmed, ready to wire** |
 | reusable decode graph | ✗ net-negative (−20%) | rejected (fixed-shape-attn cost) |
 
-Stacked (bh4 × flags × qkv) ≈ **~42 TPS**. Ceiling via incremental tuning ≈ 44–48;
-**60+/150 needs SM120** (no FP4 MMA on sm_121).
+Stacked (bh4 × flags) ≈ **~40–41 TPS = our current-kernel number, NOT the hardware
+ceiling** (llama.cpp 69.77 on the same Spark — see CORRECTION up top).
 
 ## Next (incremental, the only Spark path)
 1. **Wire qkv fusion** (prep fused weight + `LYNN_FULL_ATTN_QKV_FUSED=1`), e2e-measure.
@@ -78,7 +104,9 @@ process A/B** (qkv OFF→ON, same prompt/warmup, `spark_qkv_fusion_e2e_ab.py`):
 **Sharper conclusion:** the only e2e-real win is **bh=4 (+11%, 36→40, measured clean)**.
 qkv fusion +0.3% (skip). The linear-attn flags' +2.7% was *instrumented* and likely
 smaller clean. **The profiled 22.6 ms "remainder" overstated headroom** — under clean
-(unprofiled) decode there's much less to squeeze per-section. **Realistic Spark
-incremental ceiling ≈ 40–41 TPS, not 44–48.** 60+/150 definitively needs SM120 (FP4
-MMA). Lesson for next time: trust **clean e2e A/B**, not profiled-section deltas or
-isolated microbenches, for decode-optimization decisions on this memory-bound path.
+(unprofiled) decode there's much less to squeeze *within our current kernel
+architecture* (~40–41). **But that is OUR-kernel, NOT Spark's ceiling** — see the
+CORRECTION up top: llama.cpp 69.77 on the same hardware proves ~70 is reachable; the
+gap is BF16 attn-traffic + kernel overhead, both Spark-side. Two lessons: (1) trust
+**clean e2e A/B**, not profiled-section deltas; (2) **always benchmark against
+llama.cpp e2e** so a kernel-efficiency gap is never again mistaken for a hardware limit.

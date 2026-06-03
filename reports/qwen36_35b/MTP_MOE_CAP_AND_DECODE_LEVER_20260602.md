@@ -1,5 +1,13 @@
 # MTP on diverse-routing MoE is byte-capped — redirect to decode warp-split (2026-06-02)
 
+> **⚠️ CORRECTION (2026-06-03):** any "Spark ceiling ~44 / 60+ needs SM120" framing
+> below is **WRONG** — llama.cpp Q4_K_M does **69.77 on the same Spark (no FP4 MMA, no
+> MTP)**, so ~70 IS reachable on Spark (measured BW ~240 GB/s; we're at ~37%, not
+> saturated). The gap is BF16 attn-traffic + kernel overhead, both Spark-side software;
+> SM120 is only for the 100–150 FP4-MMA tier. See
+> `SPARK_BASELINE_DECODE_PROFILE_20260603.md` → "Why llama.cpp does 70 and we do 40".
+> (The MTP-on-MoE *byte-cap* conclusion below is still correct and unaffected.)
+
 ## Question
 Can the validated small-M / warp-split-K technique (16× on dense, cos=1.0 — see
 `WARPSPLIT_SMALLM_SPARK_VALIDATED_20260602.md`) flip the MTP smoke's spec_k2
