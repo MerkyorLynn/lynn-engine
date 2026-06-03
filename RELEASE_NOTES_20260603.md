@@ -21,6 +21,7 @@
 - P2-F opt-in one-layer replacement: [Stage 6 Phase 2-F one-layer replacement verify](reports/stage6/P2F_ONE_LAYER_REPLACEMENT_VERIFY_20260604.md)
 - P2-G multi-layer MoE smoke: [Stage 6 Phase 2-G multi-layer MoE smoke](reports/stage6/P2G_MULTILAYER_MOE_SMOKE_20260604.md)
 - P2-H selected-layer full prefill smoke: [Stage 6 Phase 2-H selected-layer prefill smoke](reports/stage6/P2H_SELECTED_LAYER_PREFILL_SMOKE_20260604.md)
+- P2-I selected-MoE expansion smoke: [Stage 6 Phase 2-I selected-MoE expansion smoke](reports/stage6/P2I_SELECTED_MOE_EXPANSION_SMOKE_20260604.md)
 
 ## Banked Results
 
@@ -46,6 +47,7 @@
 | P2-F opt-in engine path | 新增 `LYNN_PACKED_PREFILL_SLOW_MODE=p2e_hybrid`;删除 active BF16 shadow 后,M64 20.23ms vs BF16 21.10ms=1.043x,24.96x vs stream_bf16,peak 0.643GiB |
 | P2-G multi-layer smoke | 4 层 residual-scale MoE smoke PASS;M64 80.97ms vs BF16 85.12ms=1.051x,30.04x vs stream_bf16,numeric pass,peak 2.527GiB vs stream 14.526GiB |
 | P2-H selected-layer full prefill | `_prefill_layer` 完整链路 PASS(RMSNorm + linear/full attention cache + MoE);mixed L0-3 T16 45.97ms vs BF16 58.57ms=1.274x,52.09x vs stream_bf16,numeric pass,peak 2.606GiB vs stream 14.585GiB |
+| P2-I selected-MoE expansion | mixed L0-7 T16 PASS;88.96ms vs BF16 113.82ms=1.279x,46.70x vs stream_bf16,numeric pass,peak 5.123GiB vs stream 17.102GiB |
 
 ## Corrected Engineering Read
 
@@ -78,9 +80,10 @@
 11. **P2-F one-layer opt-in replacement:已过。** P2-E 组合已进入 engine dispatch mode `p2e_hybrid`;M64 20.23ms/layer,1.043x vs BF16 full MoE,24.96x vs `stream_bf16`。
 12. **P2-G multi-layer no-reload smoke:已过。** 4 层 residual-scale MoE smoke numeric/no-shadow/speed 全过;M64 80.97ms/layer-stack,1.051x vs BF16,30.04x vs stream。
 13. **P2-H selected-layer full prefill smoke:已过。** `p2e_hybrid` 已进入完整 `_prefill_layer` 链路;full-attn L3 T64、linear-attn L0 T16、mixed L0-3 T16 均 numeric/no-shadow/speed 通过。
-14. **P2-I / P2-J next:** 扩大 selected MoE 层范围,并单独 trace 旧 torch-only linear-attn prefill 墙;未过前不做 server 默认。
-15. **P3 server promotion:** `LYNN_PACKED_PREFILL=1` 后多请求服务常驻 27-28 GiB,无 reload,decode TPS 不回退。
-16. **P4 native-kernel chase:** 继续向 llama.cpp 的低 dispatch / fused ggml CUDA 路线追赶;有 FP4-MMA 硅时兑现 NVFP4 native moat。
+14. **P2-I selected-MoE expansion:已过。** mixed L0-7 T16 继续保持 numeric/no-shadow/speed 通过;P2E 88.96ms,1.279x vs BF16,46.70x vs stream。
+15. **P2-J next:** 单独 trace 旧 torch-only linear-attn prefill 墙;未过前不做 server 默认。
+16. **P3 server promotion:** `LYNN_PACKED_PREFILL=1` 后多请求服务常驻 27-28 GiB,无 reload,decode TPS 不回退。
+17. **P4 native-kernel chase:** 继续向 llama.cpp 的低 dispatch / fused ggml CUDA 路线追赶;有 FP4-MMA 硅时兑现 NVFP4 native moat。
 
 ## Relation To 2026-05-20 Notes
 

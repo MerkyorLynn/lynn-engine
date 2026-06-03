@@ -476,3 +476,14 @@
     the old torch-only linear-attn prefill path remains a separate P2-J trace/kernel target.
   - **Decision:** bank P2-H. Next gates: P2-I expand selected MoE layers beyond the first four; P2-J isolate/replace
     the linear-attn prefill wall before server promotion.
+- **✅ STAGE 6 step 19 — P2-I 8-layer selected-MoE expansion PASSED.**
+  `scripts/spark_stage6_p2h_selected_layer_prefill_smoke.py` was re-run with `--layers 0-7 --seq-lens 16`, expanding
+  selected full-prefill coverage from four layers to eight layers (linear, linear, linear, full repeated twice).
+  - **Bytes:** 8-layer active BF16 shadow **12.000 GiB** vs packed active **4.500 GiB**; after deleting active BF16
+    shadows, harness resident was **5.041 GiB**.
+  - **Numeric/no-shadow:** stream remains exact vs BF16; P2E vs BF16 has `cos=0.999948277`, rel_l2=`1.017e-2`,
+    max_abs=`0.0625`, argmax match.
+  - **Latency:** T=16 **88.96 ms** vs BF16 **113.82 ms** (**1.279x**) and stream **4154.68 ms** (**46.70x**).
+  - **Memory:** P2E peak **5.123 GiB** vs stream peak **17.102 GiB**.
+  - **Decision:** bank P2-I. The remaining pre-server risk is now P2-J: trace/replace the old torch-only linear-attn
+    prefill wall before scaling to all selected MoE layers or removing reload in serving.
