@@ -79,7 +79,7 @@ CHECKS = [
         [
             "orchestration-level evidence only",
             "child reports remain authoritative",
-            "P2-O and P3-A must still",
+            "P2-O, P3-A, and P3-B must still",
         ],
     ),
 ]

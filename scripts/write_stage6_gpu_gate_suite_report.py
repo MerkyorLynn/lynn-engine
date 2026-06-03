@@ -99,16 +99,20 @@ def write_report(suite_dir: Path, *, report_date: str) -> str:
     dry_count = sum(1 for row in statuses if row["status"] == "DRY_RUN")
     pass_count = sum(1 for row in statuses if row["status"] == "PASS")
     skip_count = sum(1 for row in statuses if row["status"] == "SKIP")
-    verdict = "PASS" if fail_count == 0 and dry_count == 0 else "FAIL" if fail_count else "DRY_RUN"
-    reason = (
-        "all executed child gates passed"
-        if verdict == "PASS"
-        else "one or more child gates failed"
-        if verdict == "FAIL"
-        else "dry-run only; no GPU gate was executed"
-    )
+    if fail_count:
+        verdict = "FAIL"
+        reason = "one or more child gates failed"
+    elif dry_count:
+        verdict = "DRY_RUN"
+        reason = "dry-run only; no GPU gate was executed"
+    elif pass_count == 0:
+        verdict = "SKIP"
+        reason = "no child gate was executed"
+    else:
+        verdict = "PASS"
+        reason = "all executed child gates passed"
     decision = (
-        "Use child P2-O/P3-A reports to decide what can be banked; this suite report only aggregates evidence."
+        "Use child P2-O/P3-A/P3-B reports to decide what can be banked; this suite report only aggregates evidence."
         if verdict == "PASS"
         else "Do not bank new GPU results from this suite."
     )
@@ -174,7 +178,7 @@ def write_report(suite_dir: Path, *, report_date: str) -> str:
         "",
         decision,
         "",
-        "A PASS here is orchestration-level evidence only. P2-O and P3-A must still",
+        "A PASS here is orchestration-level evidence only. P2-O, P3-A, and P3-B must still",
         "be banked through their own report writers and gate-specific caveats.",
     ])
     return "\n".join(lines).rstrip() + "\n"

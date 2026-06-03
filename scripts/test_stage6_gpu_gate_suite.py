@@ -95,6 +95,7 @@ def main() -> int:
         assert "Verdict: **DRY_RUN**" in report
         assert "dry-run only" in report
 
+        before_skip = set(tmp.glob("stage6_gpu_gate_suite_*"))
         skip = run([
             "scripts/run_stage6_gpu_gate_suite.sh",
             "--dry-run",
@@ -106,6 +107,26 @@ def main() -> int:
             "--skip-p3b",
         ])
         assert "artifacts:" in skip.stdout
+        after_skip = set(tmp.glob("stage6_gpu_gate_suite_*"))
+        new_skip = sorted(after_skip - before_skip)
+        assert len(new_skip) == 1
+        assert "Verdict: **SKIP**" in (new_skip[0] / "report.md").read_text()
+
+        before_skip_real = set(tmp.glob("stage6_gpu_gate_suite_*"))
+        skip_real = run([
+            "scripts/run_stage6_gpu_gate_suite.sh",
+            "--local-root",
+            str(tmp),
+            "--skip-p2o-basic",
+            "--skip-p2o-rc-mini",
+            "--skip-p3a",
+            "--skip-p3b",
+        ])
+        assert "artifacts:" in skip_real.stdout
+        after_skip_real = set(tmp.glob("stage6_gpu_gate_suite_*"))
+        new_skip_real = sorted(after_skip_real - before_skip_real)
+        assert len(new_skip_real) == 1
+        assert "Verdict: **SKIP**" in (new_skip_real[0] / "report.md").read_text()
 
         synthetic = tmp / "synthetic_suite"
         synthetic.mkdir()

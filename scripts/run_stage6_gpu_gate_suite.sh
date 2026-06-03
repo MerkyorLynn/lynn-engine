@@ -164,7 +164,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 STAMP="$(date +%Y%m%d_%H%M%S)"
-RUN_NAME="stage6_gpu_gate_suite_${STAMP}"
+RUN_NAME="stage6_gpu_gate_suite_${STAMP}_$$"
 SUITE_DIR="${LOCAL_ROOT}/${RUN_NAME}"
 STATUS_TSV="${SUITE_DIR}/suite_status.tsv"
 SUMMARY_MD="${SUITE_DIR}/summary.md"

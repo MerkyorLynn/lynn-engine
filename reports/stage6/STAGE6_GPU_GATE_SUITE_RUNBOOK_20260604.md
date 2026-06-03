@@ -40,6 +40,13 @@ The suite writes a parent artifact directory:
 reports/stage6/stage6_gpu_gate_suite_YYYYmmdd_HHMMSS/
 ```
 
+Actual directories include a PID suffix to avoid collisions during fast
+headless/CI reruns:
+
+```text
+reports/stage6/stage6_gpu_gate_suite_YYYYmmdd_HHMMSS_PID/
+```
+
 Required suite-level files:
 
 - `suite_meta.env` — local HEAD, expected Spark HEAD, host, model, image, mode;
