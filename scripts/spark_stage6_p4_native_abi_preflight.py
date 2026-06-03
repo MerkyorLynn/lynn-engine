@@ -77,6 +77,47 @@ def _tensor_manifest(inputs: dict[str, torch.Tensor]) -> dict[str, Any]:
     }
 
 
+def _byte_budget(tensor_manifest: dict[str, Any], *, experts: int) -> dict[str, Any]:
+    packed_weight_names = [
+        "gate_up_packed",
+        "gate_up_scale",
+        "gate_up_global_scale",
+        "down_packed",
+        "down_scale",
+        "down_global_scale",
+    ]
+    activation_io_names = ["hidden", "expert_ids", "routing_weights", "out"]
+    forbidden_shadow_names = [
+        "gate_up_proj",
+        "down_proj",
+        "gate_up_weight",
+        "down_weight",
+    ]
+    packed_weight_bytes = sum(int((tensor_manifest.get(name) or {}).get("bytes") or 0) for name in packed_weight_names)
+    activation_io_bytes = sum(int((tensor_manifest.get(name) or {}).get("bytes") or 0) for name in activation_io_names)
+    # Equivalent full BF16 active-expert shadow for this fixture:
+    # gate/up [E, 1024, 2048] + down [E, 2048, 512], two bytes per BF16 element.
+    bf16_shadow_equivalent_bytes = int(experts * ((1024 * 2048) + (2048 * 512)) * 2)
+    forbidden_present = [
+        name
+        for name in tensor_manifest
+        if any(forbidden in name for forbidden in forbidden_shadow_names)
+    ]
+    return {
+        "packed_weight_names": packed_weight_names,
+        "activation_io_names": activation_io_names,
+        "packed_weight_bytes": packed_weight_bytes,
+        "activation_io_bytes": activation_io_bytes,
+        "bf16_shadow_equivalent_bytes": bf16_shadow_equivalent_bytes,
+        "packed_vs_bf16_shadow_ratio": (
+            packed_weight_bytes / bf16_shadow_equivalent_bytes if bf16_shadow_equivalent_bytes else None
+        ),
+        "forbidden_shadow_tensor_names": forbidden_present,
+        "zero_shadow_abi": not forbidden_present,
+        "packed_byte_budget": packed_weight_bytes > 0 and packed_weight_bytes < bf16_shadow_equivalent_bytes,
+    }
+
+
 def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
     result: dict[str, Any] = {
         "schema": "lynn-stage6-p4-native-fused-moe-abi-preflight-v1",
@@ -125,6 +166,7 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
 
     inputs = _make_inputs(args.tokens, args.experts, args.top_k)
     result["tensor_manifest"] = _tensor_manifest(inputs)
+    result["byte_budget"] = _byte_budget(result["tensor_manifest"], experts=args.experts)
     try:
         getattr(ext, SYMBOL)(
             inputs["hidden"],
@@ -148,18 +190,24 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
             "extension_loaded": True,
             "symbol_present": True,
             "fail_loud_boundary": False,
+            "zero_shadow_abi": bool(result["byte_budget"]["zero_shadow_abi"]),
+            "packed_byte_budget": bool(result["byte_budget"]["packed_byte_budget"]),
         }
     except Exception as exc:
         message = str(exc)
         result["call_error_tail"] = message[-2000:]
         fail_loud = EXPECTED_ERROR in message
+        zero_shadow_abi = bool(result["byte_budget"]["zero_shadow_abi"])
+        packed_byte_budget = bool(result["byte_budget"]["packed_byte_budget"])
         result["decision"] = "PASS_ABI_CONTRACT" if fail_loud else "BLOCKED_GUARD_OR_RUNTIME"
-        result["banked_native_abi_preflight"] = bool(fail_loud)
+        result["banked_native_abi_preflight"] = bool(fail_loud and zero_shadow_abi and packed_byte_budget)
         result["passes"] = {
-            "all": bool(fail_loud),
+            "all": bool(fail_loud and zero_shadow_abi and packed_byte_budget),
             "extension_loaded": True,
             "symbol_present": True,
             "fail_loud_boundary": bool(fail_loud),
+            "zero_shadow_abi": zero_shadow_abi,
+            "packed_byte_budget": packed_byte_budget,
         }
     return result
 

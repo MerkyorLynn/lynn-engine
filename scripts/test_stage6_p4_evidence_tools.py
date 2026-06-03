@@ -51,13 +51,37 @@ def pass_fixture() -> dict:
         "tensor_manifest": {
             "hidden": {"shape": [2, 2048], "dtype": "torch.bfloat16", "bytes": 8192, "contiguous": True},
             "gate_up_packed": {"shape": [8, 1024, 1024], "dtype": "torch.uint8", "bytes": 8388608, "contiguous": True},
+            "gate_up_scale": {"shape": [8, 1024, 128], "dtype": "torch.float32", "bytes": 4194304, "contiguous": True},
+            "gate_up_global_scale": {"shape": [1], "dtype": "torch.float32", "bytes": 4, "contiguous": True},
             "down_packed": {"shape": [8, 2048, 256], "dtype": "torch.uint8", "bytes": 4194304, "contiguous": True},
+            "down_scale": {"shape": [8, 2048, 32], "dtype": "torch.float32", "bytes": 2097152, "contiguous": True},
+            "down_global_scale": {"shape": [1], "dtype": "torch.float32", "bytes": 4, "contiguous": True},
+        },
+        "byte_budget": {
+            "packed_weight_names": [
+                "gate_up_packed",
+                "gate_up_scale",
+                "gate_up_global_scale",
+                "down_packed",
+                "down_scale",
+                "down_global_scale",
+            ],
+            "activation_io_names": ["hidden", "expert_ids", "routing_weights", "out"],
+            "packed_weight_bytes": 18874372,
+            "activation_io_bytes": 16640,
+            "bf16_shadow_equivalent_bytes": 50331648,
+            "packed_vs_bf16_shadow_ratio": 0.3750000794728597,
+            "forbidden_shadow_tensor_names": [],
+            "zero_shadow_abi": True,
+            "packed_byte_budget": True,
         },
         "call_error_tail": "P4 fused 4-bit zero-shadow CUDA kernel is not implemented yet",
         "passes": {
             "extension_loaded": True,
             "symbol_present": True,
             "fail_loud_boundary": True,
+            "zero_shadow_abi": True,
+            "packed_byte_budget": True,
             "all": True,
         },
     }
@@ -76,6 +100,18 @@ def symbol_fail_fixture() -> dict:
 def promotion_fail_fixture() -> dict:
     data = pass_fixture()
     data["banked_fused_kernel"] = True
+    return data
+
+
+def shadow_fail_fixture() -> dict:
+    data = pass_fixture()
+    data["banked_native_abi_preflight"] = False
+    data["byte_budget"] = dict(data["byte_budget"])
+    data["byte_budget"]["forbidden_shadow_tensor_names"] = ["mlp.experts.gate_up_proj.weight"]
+    data["byte_budget"]["zero_shadow_abi"] = False
+    data["passes"] = dict(data["passes"])
+    data["passes"]["zero_shadow_abi"] = False
+    data["passes"]["all"] = False
     return data
 
 
@@ -102,9 +138,11 @@ def main() -> int:
         pass_json = tmp / "pass.json"
         symbol_fail_json = tmp / "symbol_fail.json"
         promotion_fail_json = tmp / "promotion_fail.json"
+        shadow_fail_json = tmp / "shadow_fail.json"
         write_json(pass_json, pass_fixture())
         write_json(symbol_fail_json, symbol_fail_fixture())
         write_json(promotion_fail_json, promotion_fail_fixture())
+        write_json(shadow_fail_json, shadow_fail_fixture())
 
         run(["bash", "-n", "scripts/run_spark_stage6_p4_native_abi_preflight.sh"])
         help_proc = run(["scripts/run_spark_stage6_p4_native_abi_preflight.sh", "--help"])
@@ -129,6 +167,8 @@ def main() -> int:
         ])
         assert "Verdict | **PASS**" in pass_summary.stdout
         assert "Banked fused kernel | `False`" in pass_summary.stdout
+        assert "Zero-shadow ABI | `True`" in pass_summary.stdout
+        assert "Packed byte budget | `True`" in pass_summary.stdout
 
         fail_summary = run([
             sys.executable,
@@ -146,6 +186,14 @@ def main() -> int:
         ], expect=2)
         assert "fused-kernel promotion boundary violated" in promotion_fail.stdout
 
+        shadow_fail = run([
+            sys.executable,
+            "scripts/summarize_stage6_p4_native_abi_preflight.py",
+            str(shadow_fail_json),
+            "--strict-exit",
+        ], expect=2)
+        assert "ABI preflight was not banked" in shadow_fail.stdout
+
         artifact = tmp / "artifact"
         write_artifact(artifact, pass_fixture())
         run([
@@ -161,6 +209,8 @@ def main() -> int:
         assert "Verdict: **PASS**" in report
         assert "Bank P4 native ABI preflight only" in report
         assert "Banked fused kernel | `False`" in report
+        assert "Zero-shadow ABI | `true`" in report
+        assert "Packed byte budget | `true`" in report
 
     print("P4 native ABI evidence tooling self-test PASS")
     return 0

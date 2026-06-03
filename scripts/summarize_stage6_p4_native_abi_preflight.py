@@ -22,7 +22,7 @@ def _verdict(data: dict[str, Any]) -> tuple[str, str]:
         return "FAIL", "default promotion boundary violated"
     if data.get("banked_native_abi_preflight") is not True:
         return "FAIL", "ABI preflight was not banked"
-    for gate in ("extension_loaded", "symbol_present", "fail_loud_boundary", "all"):
+    for gate in ("extension_loaded", "symbol_present", "fail_loud_boundary", "zero_shadow_abi", "packed_byte_budget", "all"):
         if passes.get(gate) is not True:
             return "FAIL", f"{gate} gate fail"
     if data.get("decision") != "PASS_ABI_CONTRACT":
@@ -34,6 +34,7 @@ def summarize(data: dict[str, Any]) -> str:
     verdict, reason = _verdict(data)
     passes = data.get("passes") or {}
     tensor_manifest = data.get("tensor_manifest") or {}
+    byte_budget = data.get("byte_budget") or {}
     lines = [
         "# Stage 6 P4 Native Fused-MoE ABI Preflight Summary",
         "",
@@ -52,6 +53,11 @@ def summarize(data: dict[str, Any]) -> str:
         f"| Extension loaded | `{passes.get('extension_loaded')}` |",
         f"| Symbol present | `{passes.get('symbol_present')}` |",
         f"| Fail-loud boundary | `{passes.get('fail_loud_boundary')}` |",
+        f"| Zero-shadow ABI | `{passes.get('zero_shadow_abi')}` |",
+        f"| Packed byte budget | `{passes.get('packed_byte_budget')}` |",
+        f"| Packed weight bytes | `{byte_budget.get('packed_weight_bytes')}` |",
+        f"| BF16 shadow-equivalent bytes | `{byte_budget.get('bf16_shadow_equivalent_bytes')}` |",
+        f"| Packed/BF16 ratio | `{byte_budget.get('packed_vs_bf16_shadow_ratio')}` |",
         f"| Elapsed seconds | `{data.get('elapsed_s')}` |",
         "",
         "## Tensor ABI",
