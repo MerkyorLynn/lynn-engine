@@ -134,6 +134,8 @@ def write_report(artifact_dir: Path, *, report_date: str) -> str:
         f"| Extension loaded | `{_fmt_bool(passes.get('extension_loaded'))}` |",
         f"| Symbol present | `{_fmt_bool(passes.get('symbol_present'))}` |",
         f"| Fail-loud boundary | `{_fmt_bool(passes.get('fail_loud_boundary'))}` |",
+        f"| Zero-shadow ABI | `{_fmt_bool(passes.get('zero_shadow_abi'))}` |",
+        f"| Packed byte budget | `{_fmt_bool(passes.get('packed_byte_budget'))}` |",
         f"| Aggregate | `{_fmt_bool(passes.get('all'))}` |",
         f"| Banked native ABI preflight | `{data.get('banked_native_abi_preflight')}` |",
         f"| Banked fused kernel | `{data.get('banked_fused_kernel')}` |",

@@ -98,6 +98,19 @@ That means the extension built, the symbol exists, a valid packed-NVFP4 tensor
 bundle passed all static guards, and the call stopped only at the intentional
 not-implemented boundary.
 
+The preflight also records an ABI byte budget:
+
+- `packed_weight_bytes`: packed NVFP4 expert bytes plus scale tensors admitted
+  into the native symbol;
+- `bf16_shadow_equivalent_bytes`: equivalent full BF16 active-expert shadow for
+  the same fixture shape;
+- `forbidden_shadow_tensor_names`: must be empty;
+- `passes.zero_shadow_abi=true` and `passes.packed_byte_budget=true`.
+
+This is an ABI/input proof, not an HBM profiler. The eventual fused kernel still
+needs a separate runtime byte-count/profiler artifact before `banked_fused_kernel`
+can become true.
+
 Non-bankable decisions:
 
 | Decision | Meaning |

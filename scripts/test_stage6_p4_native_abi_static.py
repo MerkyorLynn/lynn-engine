@@ -50,6 +50,10 @@ CHECKS = [
             "lynn-stage6-p4-native-fused-moe-abi-preflight-v1",
             "banked_native_abi_preflight",
             "banked_fused_kernel",
+            "byte_budget",
+            "bf16_shadow_equivalent_bytes",
+            "packed_vs_bf16_shadow_ratio",
+            "forbidden_shadow_tensor_names",
             "PASS_ABI_CONTRACT",
             "BLOCKED_SYMBOL_MISSING",
             "UNEXPECTED_IMPLEMENTED",
@@ -72,6 +76,8 @@ CHECKS = [
             "PASS_ABI_CONTRACT",
             "fused-kernel promotion boundary violated",
             "Banked fused kernel",
+            "Zero-shadow ABI",
+            "Packed byte budget",
         ],
     ),
     (
@@ -79,6 +85,7 @@ CHECKS = [
         [
             "Bank P4 native ABI preflight only",
             "Banked fused kernel",
+            "Packed byte budget",
             "Provenance manifest",
         ],
     ),
