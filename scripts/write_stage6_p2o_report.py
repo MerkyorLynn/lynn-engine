@@ -28,11 +28,13 @@ def _tail(path: Path, lines: int) -> str:
 def _artifact_table(artifact_dir: Path) -> str:
     names = [
         "expected_git_head.txt",
+        "expected_provenance_manifest.txt",
         "git_head.txt",
         "git_status.txt",
         "head_check.txt",
         "nvidia_smi_before.txt",
         "nvidia_smi_after.txt",
+        "provenance_manifest.txt",
         "docker_exit_code.txt",
         "run.log",
         "result.json",
@@ -65,6 +67,8 @@ def write_report(artifact_dir: Path, *, report_date: str) -> str:
     release = memory.get("release") or {}
     git_head = _read(artifact_dir / "git_head.txt", "unknown")
     expected_head = _read(artifact_dir / "expected_git_head.txt", "unknown")
+    manifest = _read(artifact_dir / "provenance_manifest.txt", "missing")
+    expected_manifest = _read(artifact_dir / "expected_provenance_manifest.txt", "missing")
     head_check = _read(artifact_dir / "head_check.txt", "missing")
     git_status = _read(artifact_dir / "git_status.txt", "")
     gpu_before = _read(artifact_dir / "nvidia_smi_before.txt", "missing")
@@ -107,6 +111,7 @@ def write_report(artifact_dir: Path, *, report_date: str) -> str:
         f"| Expected HEAD | `{expected_head}` |",
         f"| Remote HEAD | `{git_head}` |",
         f"| Head check | `{head_check}` |",
+        f"| Manifest matches | `{manifest == expected_manifest}` |",
         f"| Docker exit code | `{docker_exit}` |",
         f"| Git status dirty | `{bool(git_status)}` |",
         f"| Preset | `{data.get('preset', 'unknown')}` |",
@@ -123,6 +128,12 @@ def write_report(artifact_dir: Path, *, report_date: str) -> str:
         "",
         "```text",
         gpu_after,
+        "```",
+        "",
+        "Provenance manifest:",
+        "",
+        "```text",
+        manifest,
         "```",
         "",
         "## Gate Summary",

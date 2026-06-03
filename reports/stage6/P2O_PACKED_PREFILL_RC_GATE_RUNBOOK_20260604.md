@@ -52,11 +52,13 @@ reports/stage6/p2o_<preset>_packed_prefill_rc_smoke_<timestamp>/
 Expected files:
 
 - `expected_git_head.txt`
+- `expected_provenance_manifest.txt`
 - `git_head.txt`
-- `git_status.txt`
+- `git_status.txt` (captured before creating the artifact directory)
 - `head_check.txt`
 - `nvidia_smi_before.txt`
 - `nvidia_smi_after.txt`
+- `provenance_manifest.txt`
 - `run.log`
 - `result.json`
 - `summary.md`
@@ -66,9 +68,13 @@ Expected files:
 Use `scripts/summarize_stage6_p2o_rc_smoke.py --strict-exit` as the authority
 for the smoke verdict.
 
-The Spark runner also gates evidence provenance before Docker starts: by default
-the remote repo `HEAD` must match the local `HEAD` used to launch the command.
-If this is intentionally not desired, pass `--allow-remote-head-mismatch` and
+The Spark runner also gates evidence provenance before Docker starts. A run may
+proceed when either the remote repo `HEAD` matches the expected local `HEAD`, or
+the P2-O evidence-file manifest matches exactly. This allows clean feature/main
+cherry-picks with different commit hashes while still proving the gate scripts
+and runbook content are identical.
+
+If this is intentionally not desired, pass `--allow-provenance-mismatch` and
 treat the artifact as a non-canonical diagnostic run.
 
 `PASS` requires:
