@@ -111,6 +111,44 @@ This is an ABI/input proof, not an HBM profiler. The eventual fused kernel still
 needs a separate runtime byte-count/profiler artifact before `banked_fused_kernel`
 can become true.
 
+## Runtime Bridge Preflight
+
+The synthetic ABI preflight proves the native symbol boundary. The runtime
+bridge preflight proves the real resident-runner decode path can reach that
+boundary with real layer tensors and no active-expert BF16 shadows.
+
+Direct Spark command:
+
+```bash
+python3 scripts/spark_stage6_p4_runtime_bridge_preflight.py \
+  --model /home/merkyor/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-from-bf16-20260526 \
+  --out reports/stage6/p4_runtime_bridge_preflight/result.json \
+  --strict-exit
+```
+
+Expected bankable bridge decision:
+
+```text
+PASS_RUNTIME_BRIDGE_CONTRACT
+```
+
+That means the runner first produced a nonzero Triton baseline, removed the
+active-expert BF16 shadow tensors, switched to
+`LYNN_NATIVE_ACTIVE_MOE_BACKEND=fused_zero_shadow_out_contract`, and stopped only
+at the intentional not-implemented CUDA boundary.
+
+Bridge summary command:
+
+```bash
+python3 scripts/summarize_stage6_p4_runtime_bridge_preflight.py \
+  reports/stage6/p4_runtime_bridge_preflight/result.json \
+  --markdown-out reports/stage6/p4_runtime_bridge_preflight/summary.md \
+  --strict-exit
+```
+
+This banks only `banked_runtime_bridge_preflight=true`. It must keep
+`banked_fused_kernel=false` and `banked_default_promotion=false`.
+
 Non-bankable decisions:
 
 | Decision | Meaning |
