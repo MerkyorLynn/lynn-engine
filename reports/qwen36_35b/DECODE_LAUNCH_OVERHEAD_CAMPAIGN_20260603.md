@@ -99,3 +99,19 @@
     **Expected +3-5%** (smaller than RMSNorm's +8.7% — fewer/tinier ops, as the front-loaded
     pattern predicts) → toward the 47-50 target. Verify: token-coherent + e2e A/B + re-run RC.
     Tooling: claude-internal writes the kernel → LEAD verifies on Spark (codex still gated).
+- **✅ STAGE 3 — g/beta-fold (claude-internal): +2.6% (42.93→44.03), RC-VALIDATED.**
+  New `_recurrent_fused_prepare_from_outconv_gqa_gbeta_kernel` computes beta/g per-head in
+  the recurrent kernel from raw a/b/dt_bias/neg_exp_A_log. Gate `LYNN_LINEAR_ATTN_FUSE_GBETA=1`,
+  default OFF, fallback byte-identical. A/B coherent; TOKEN_EXACT=False (the predicted
+  bf16-vs-fp32 sigmoid / softplus=log1p(exp) last-bit — numeric, not logic). **RC re-run with
+  g/beta in the toggle set: 40/40 identical-greedy (struct 12/12 · v9 8/8 · gpqa 10/10 · tool
+  8/8 · long 2/2), all per-suite scores identical baseline-vs-fused, RC_QUALITY_PRESERVED=True,
+  in-run TPS 39.8→44.1.** → late-token divergence is reproducibility nuance, not capability,
+  same verdict as RMSNorm/shared-expert. Commit 65418ec (draft) + this result.
+- **SCOREBOARD (5 RC-validated launch-cuts): 36 → 44 TPS (+22%), ~63% to llama.cpp 70.**
+  bh4 +11% / RMSNorm +8.7% / full-attn +0.6% (exact) / shared-expert +2.8% / g/beta +2.6%.
+  The full fused stack is RC-validated (behaviorally identical to baseline) → promotable default.
+- **▶ STAGE 4 (next):** remaining linear-attn elementwise (z-reshape / conv-pre / out_proj
+  adjacency) is thin per-layer; re-profile to find the next real cluster before writing. The
+  HIGH-risk router stays DEFERRED behind hard gates (expert-id/top-k/logits-cos parity +
+  token-divergence first-error + MMLU/GPQA/V8/V9). Target 47-50 stable; 70 = campaign target.
