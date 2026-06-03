@@ -651,6 +651,49 @@ def _active_moe_native_grouped_per16_fused(
     )
 
 
+def _active_moe_native_fused_zero_shadow_out_contract(
+    hidden: torch.Tensor,
+    expert_ids: torch.Tensor,
+    routing_weights: torch.Tensor,
+    w: dict,
+) -> torch.Tensor:
+    """P4 caller-owned-output ABI for the future fused zero-shadow kernel."""
+    from engine.native_cuda import load_lynn_native_extension
+
+    hidden_2d = hidden.reshape(1, -1).contiguous()
+    expert_ids_2d = expert_ids.reshape(1, -1).to(torch.int32).contiguous()
+    routing_weights_2d = routing_weights.reshape(1, -1).to(torch.float32).contiguous()
+    out_scratch = w.get("mlp.experts._active_out_scratch")
+    if (
+        out_scratch is not None
+        and out_scratch.numel() == hidden.numel()
+        and out_scratch.dtype == torch.bfloat16
+        and out_scratch.device == hidden.device
+        and out_scratch.is_contiguous()
+    ):
+        out = out_scratch.view(1, -1)
+    else:
+        out = torch.empty_like(hidden_2d)
+
+    ext = load_lynn_native_extension(verbose=_env_bool("LYNN_NATIVE_CUDA_VERBOSE", False))
+    ext.active_moe_fused_zero_shadow_out_contract(
+        hidden_2d,
+        expert_ids_2d,
+        routing_weights_2d,
+        w["mlp.experts._gate_up_packed"],
+        w["mlp.experts._gate_up_scale"],
+        w["mlp.experts._gate_up_global_scale"],
+        w["mlp.experts._down_packed"],
+        w["mlp.experts._down_scale"],
+        w["mlp.experts._down_global_scale"],
+        out,
+        _env_int("LYNN_NATIVE_FUSED_ZERO_SHADOW_TILE_TOKENS", 1),
+        _env_int("LYNN_NATIVE_GATEUP_TILE_INTER", 8),
+        _env_int("LYNN_NATIVE_DOWN_TILE_HIDDEN", 8),
+    )
+    return out.reshape_as(hidden)
+
+
 def _active_moe_native_grouped_per16_nonatomic(
     hidden: torch.Tensor,
     expert_ids: torch.Tensor,
@@ -1186,6 +1229,8 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
             moe_out = _active_moe_native_grouped_per16_nonatomic_out(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
         elif backend == "grouped_per16_nonatomic" and _layer_selected_for_native_cuda(cfg):
             moe_out = _active_moe_native_grouped_per16_nonatomic(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
+        elif backend == "fused_zero_shadow_out_contract" and _layer_selected_for_native_cuda(cfg):
+            moe_out = _active_moe_native_fused_zero_shadow_out_contract(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
         elif backend == "grouped_per16_fused" and _layer_selected_for_native_cuda(cfg):
             moe_out = _active_moe_native_grouped_per16_fused(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
         elif backend == "grouped_per16" and _layer_selected_for_native_cuda(cfg):
@@ -1200,6 +1245,7 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
             "cuda_scalar_contract",
             "grouped_per16",
             "grouped_per16_fused",
+            "fused_zero_shadow_out_contract",
             "grouped_per16_nonatomic",
             "grouped_per16_nonatomic_out",
         }:
@@ -1295,7 +1341,8 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
             raise ValueError(
                 "LYNN_NATIVE_ACTIVE_MOE_BACKEND must be 'triton', 'cuda_scalar', "
                 "'cuda_scalar_contract', 'grouped_per16', 'grouped_per16_fused', "
-                "'grouped_per16_nonatomic', 'grouped_per16_nonatomic_out', "
+                "'fused_zero_shadow_out_contract', 'grouped_per16_nonatomic', "
+                "'grouped_per16_nonatomic_out', "
                 "'packed_pretransposed_graphsafe_v31', "
                 "'packed_pretransposed_graphsafe_v32_ordered', "
                 f"got {backend!r}"

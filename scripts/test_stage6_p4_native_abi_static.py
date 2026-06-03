@@ -36,6 +36,15 @@ CHECKS = [
         ],
     ),
     (
+        "engine/moe_packed_nvfp4.py",
+        [
+            "def _active_moe_native_fused_zero_shadow_out_contract",
+            "active_moe_fused_zero_shadow_out_contract",
+            "LYNN_NATIVE_FUSED_ZERO_SHADOW_TILE_TOKENS",
+            "fused_zero_shadow_out_contract",
+        ],
+    ),
+    (
         "scripts/spark_stage6_p4_native_abi_preflight.py",
         [
             "lynn-stage6-p4-native-fused-moe-abi-preflight-v1",

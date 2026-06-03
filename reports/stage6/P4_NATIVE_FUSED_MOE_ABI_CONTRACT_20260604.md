@@ -55,6 +55,19 @@ Important properties:
 - valid input currently reaches an intentional `P4 fused 4-bit zero-shadow CUDA
   kernel is not implemented yet` error.
 
+## Runtime Bridge
+
+The opt-in backend name is now reserved in `engine/moe_packed_nvfp4.py`:
+
+```bash
+LYNN_NATIVE_ACTIVE_MOE_BACKEND=fused_zero_shadow_out_contract
+```
+
+It wraps the current decode token as `[1, H]`, passes packed NVFP4 active-expert
+weights into `active_moe_fused_zero_shadow_out_contract`, and stops at the same
+fail-loud boundary. This backend must remain default-off until the CUDA math is
+implemented and the byte-count, numeric, speed, and RC gates pass.
+
 ## GPU Preflight
 
 Run on a CUDA host after syncing the branch:
