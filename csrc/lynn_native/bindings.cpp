@@ -255,6 +255,20 @@ torch::Tensor lynn_dense_fp4xfp8_mma_scaled_probe(
     torch::Tensor weight_packed, torch::Tensor weight_scale,
     torch::Tensor weight_global,
     int64_t M, int64_t N, int64_t K);
+void lynn_native_active_moe_fused_zero_shadow_out_contract(
+    torch::Tensor hidden,
+    torch::Tensor expert_ids,
+    torch::Tensor routing_weights,
+    torch::Tensor gate_up_packed,
+    torch::Tensor gate_up_scale,
+    torch::Tensor gate_up_global_scale,
+    torch::Tensor down_packed,
+    torch::Tensor down_scale,
+    torch::Tensor down_global_scale,
+    torch::Tensor out,
+    int64_t tile_tokens,
+    int64_t tile_inter,
+    int64_t tile_hidden);
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
   m.def("add_one", &lynn_native_add_one, "Lynn native CUDA extension smoke kernel");
@@ -406,4 +420,8 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
       "dense_fp4xfp8_mma_scaled_probe",
       &lynn_dense_fp4xfp8_mma_scaled_probe,
       "P194 SM120a FP4xFP8 MMA with split16 Lynn per-group scales");
+  m.def(
+      "active_moe_fused_zero_shadow_out_contract",
+      &lynn_native_active_moe_fused_zero_shadow_out_contract,
+      "P4 fail-loud caller-owned-output ABI for fused packed-NVFP4 zero-shadow active MoE");
 }
