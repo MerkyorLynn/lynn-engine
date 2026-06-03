@@ -14,6 +14,9 @@ REPORT = ROOT / "reports" / "stage6" / "P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_
 PREFLIGHT = ROOT / "scripts" / "spark_stage6_p4b_single_kernel_preflight.py"
 SUMMARIZER = ROOT / "scripts" / "summarize_stage6_p4b_single_kernel_preflight.py"
 WRAPPER = ROOT / "scripts" / "run_spark_stage6_p4b_single_kernel_preflight.sh"
+RUNTIME_PREFLIGHT = ROOT / "scripts" / "spark_stage6_p4b_runtime_bridge_preflight.py"
+RUNTIME_SUMMARIZER = ROOT / "scripts" / "summarize_stage6_p4b_runtime_bridge_preflight.py"
+RUNTIME_WRAPPER = ROOT / "scripts" / "run_spark_stage6_p4b_runtime_bridge_preflight.sh"
 
 
 def _extract_cu_function(text: str, name: str) -> str:
@@ -62,6 +65,9 @@ def main() -> int:
     preflight_text = PREFLIGHT.read_text(encoding="utf-8") if PREFLIGHT.exists() else ""
     summarizer_text = SUMMARIZER.read_text(encoding="utf-8") if SUMMARIZER.exists() else ""
     wrapper_text = WRAPPER.read_text(encoding="utf-8") if WRAPPER.exists() else ""
+    runtime_preflight_text = RUNTIME_PREFLIGHT.read_text(encoding="utf-8") if RUNTIME_PREFLIGHT.exists() else ""
+    runtime_summarizer_text = RUNTIME_SUMMARIZER.read_text(encoding="utf-8") if RUNTIME_SUMMARIZER.exists() else ""
+    runtime_wrapper_text = RUNTIME_WRAPPER.read_text(encoding="utf-8") if RUNTIME_WRAPPER.exists() else ""
     cu_fn = _extract_cu_function(cu_text, "lynn_native_active_moe_fused_zero_shadow_single_kernel_contract")
     py_fn = _extract_py_function(py_text, "_active_moe_native_fused_zero_shadow_single_kernel_contract")
     fallback_set = _extract_active_moe_backend_fallback_set(py_text)
@@ -136,7 +142,9 @@ def main() -> int:
             "banked_fused_kernel=false",
             "fused_zero_shadow_single_kernel_contract",
             "run_spark_stage6_p4b_single_kernel_preflight.sh",
+            "run_spark_stage6_p4b_runtime_bridge_preflight.sh",
             "PASS_SINGLE_KERNEL_FAILLOUD_CONTRACT",
+            "PASS_P4B_RUNTIME_BRIDGE_FAILLOUD",
             "must not reuse the historical `active_moe_fused_atomic_scalar_kernel`",
             "No output scratch",
         ],
@@ -174,6 +182,40 @@ def main() -> int:
             "p4b_single_kernel_preflight_",
             "spark_stage6_p4b_single_kernel_preflight.py",
             "summarize_stage6_p4b_single_kernel_preflight.py",
+        ],
+        failures,
+    )
+    _check_contains(
+        "P4B runtime bridge preflight",
+        runtime_preflight_text,
+        [
+            "PASS_P4B_RUNTIME_BRIDGE_FAILLOUD",
+            "banked_p4b_runtime_bridge_preflight",
+            "_p4b_fused_zero_shadow_single_kernel_contract_call_count",
+            "p4b_last_shapes_out_only",
+            "do not bank fused-kernel speed or promote this backend",
+        ],
+        failures,
+    )
+    _check_contains(
+        "P4B runtime bridge summarizer",
+        runtime_summarizer_text,
+        [
+            "PASS_P4B_RUNTIME_BRIDGE_FAILLOUD",
+            "P4B native backend call count did not advance exactly once",
+            "P4B last_shapes did not prove out-only ABI",
+            "real runtime bridge reaches P4B fail-loud symbol",
+        ],
+        failures,
+    )
+    _check_contains(
+        "P4B runtime Spark wrapper",
+        runtime_wrapper_text,
+        [
+            "LYNN_STAGE6_EXPECT_MANIFEST",
+            "p4b_runtime_bridge_preflight_",
+            "spark_stage6_p4b_runtime_bridge_preflight.py",
+            "summarize_stage6_p4b_runtime_bridge_preflight.py",
         ],
         failures,
     )

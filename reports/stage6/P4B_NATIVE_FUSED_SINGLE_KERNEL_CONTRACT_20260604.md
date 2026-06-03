@@ -90,6 +90,7 @@ exists.
 ```bash
 python3 scripts/test_stage6_p4b_single_kernel_static.py
 python3 scripts/test_stage6_p4b_single_kernel_evidence_tools.py
+python3 scripts/test_stage6_p4b_runtime_bridge_tools.py
 ```
 
 The static gate checks:
@@ -125,6 +126,33 @@ This banks only `banked_single_kernel_contract_preflight=true`. It must keep
 output is a failure until the real fused CUDA/CUTLASS implementation is present
 and a new byte-count/numeric/speed/RC gate replaces this fail-loud contract
 gate.
+
+## Runtime Bridge Fail-Loud Gate
+
+```bash
+scripts/run_spark_stage6_p4b_runtime_bridge_preflight.sh \
+  --host dgx-spark \
+  --image lynn-eval-base:cu13 \
+  --expect-head "$(git rev-parse HEAD)"
+```
+
+Expected decision while P4B is still unimplemented:
+
+```text
+PASS_P4B_RUNTIME_BRIDGE_FAILLOUD
+```
+
+This gate uses a real resident runner path, first obtains a Triton baseline,
+then deletes active BF16 expert shadows and switches to
+`LYNN_NATIVE_ACTIVE_MOE_BACKEND=fused_zero_shadow_single_kernel_contract`.
+It banks only `banked_p4b_runtime_bridge_preflight=true` when the P4B call
+counter advances exactly once, the last-shape evidence is out-only
+(`hidden`, `expert_ids`, `out`, no `inter_scratch`), and the native symbol
+throws the expected fail-loud not-implemented error.
+
+It must keep `banked_fused_kernel=false` and `banked_default_promotion=false`.
+When the real fused implementation lands, this fail-loud gate must be replaced
+by an output-returning numeric/speed/RC gate.
 
 ## Promotion Gate
 

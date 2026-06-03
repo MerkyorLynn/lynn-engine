@@ -63,6 +63,7 @@ def main() -> int:
         assert gates["p3e_rc_quality_battery"]["status"] == "READY_WAITING_SPARK"
         assert gates["p4_runtime_bridge_preflight"]["status"] == "READY_WAITING_SPARK"
         assert gates["p4b_single_kernel_preflight"]["status"] == "READY_WAITING_SPARK"
+        assert gates["p4b_runtime_bridge_preflight"]["status"] == "READY_WAITING_SPARK"
         assert gates["p4b_single_kernel_contract"]["status"] == "CONTRACT_READY_UNIMPLEMENTED"
         assert "P4 fused kernel banked | `false`" in text
         assert "TEST_BLOCKED_BY_SSH" in text
