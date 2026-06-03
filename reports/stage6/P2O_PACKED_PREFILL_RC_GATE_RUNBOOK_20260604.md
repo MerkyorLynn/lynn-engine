@@ -90,12 +90,18 @@ not. This must not be promoted as RC-equivalent.
 
 Only after a real Spark artifact exists:
 
-1. add a dated report, `P2O_PACKED_PREFILL_RC_SMOKE_20260604.md`;
-2. copy the summary table and artifact path;
-3. update README/README_EN/RELEASE_NOTES only with the exact verdict;
-4. keep the caveat explicit: active MoE shadows only, projection shadows remain
+1. write a dated report from the artifact:
+
+   ```bash
+   python3 scripts/write_stage6_p2o_report.py \
+     reports/stage6/p2o_basic_packed_prefill_rc_smoke_<timestamp> \
+     --report-out reports/stage6/P2O_PACKED_PREFILL_RC_SMOKE_20260604.md
+   ```
+
+2. update README/README_EN/RELEASE_NOTES only with the exact verdict;
+3. keep the caveat explicit: active MoE shadows only, projection shadows remain
    resident;
-5. push both the feature branch and `main`.
+4. push both the feature branch and `main`.
 
 ## Current State
 
