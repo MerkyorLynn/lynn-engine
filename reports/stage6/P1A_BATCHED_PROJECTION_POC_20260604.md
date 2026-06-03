@@ -18,9 +18,10 @@ gate. The kernel removes the Python row loop by launching over
 independently, so it does not reuse activation tiles across tokens. BF16
 `F.linear` amortizes the projection much better for M>1.
 
-This is still useful evidence: the packed contract is correct for M>1, and the
-next kernel shape is now clear. P1-A needs a true tiled
-`BLOCK_T x BLOCK_OUT x BLOCK_K` kernel, not another row-loop wrapper.
+This is still useful evidence: the packed contract is correct for M>1. A
+follow-up tiled scalar bridge was attempted and also rejected for M>1
+performance on Spark; see
+`reports/stage6/P1A_TILED_PROJECTION_SWEEP_20260604.md`.
 
 ## Numeric Gate
 
@@ -64,11 +65,10 @@ Keep `nvfp4_batched_matmul_packed` and its Spark harness as a correctness and
 regression probe, but do **not** wire it into `resident_runner` or count it as a
 serving performance win.
 
-Next implementation target:
+Follow-up:
 
-| item | requirement |
+| item | status |
 |---|---|
-| kernel shape | `BLOCK_T x BLOCK_OUT x BLOCK_K` |
-| activation reuse | load a token tile once and use it across output-row blocks |
-| output | FP32 or BF16, reported explicitly |
-| gate | same numeric/no-shadow evidence plus M=4/16/64 latency not worse than BF16 |
+| tiled scalar bridge | attempted in `P1A_TILED_PROJECTION_SWEEP_20260604.md`; numeric/no-shadow pass, perf fail |
+| serving integration | no promotion |
+| next useful target | P2 grouped MoE prefill, or a native FP4-MMA/CUTLASS-style bridge for dense M>1 |

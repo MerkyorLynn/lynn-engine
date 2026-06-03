@@ -3,8 +3,7 @@
 
 P1 proved a single real projection can run from packed NVFP4 without a BF16
 shadow. P1-A asks the next question for prefill: can one kernel launch cover
-multiple token rows, avoiding the slow Python row loop while preserving the same
-packed weight contract?
+multiple token rows while preserving the same packed weight contract?
 """
 from __future__ import annotations
 
@@ -33,7 +32,10 @@ from scripts.spark_stage6_p1_dense_projection_poc import (  # noqa: E402
     _load_projection,
     _nbytes,
 )
-from triton_kernels.nvfp4_linear import nvfp4_batched_matmul_packed  # noqa: E402
+from triton_kernels.nvfp4_linear import (  # noqa: E402
+    nvfp4_batched_matmul_packed,
+    nvfp4_tiled_batched_matmul_packed,
+)
 
 
 def _parse_batches(text: str) -> list[int]:
@@ -62,6 +64,7 @@ def main() -> None:
     ap.add_argument("--repeats", type=int, default=5)
     ap.add_argument("--block-m", type=int, default=16)
     ap.add_argument("--block-n", type=int, default=128)
+    ap.add_argument("--block-t", type=int, default=16)
     ap.add_argument("--json-out", default="")
     args = ap.parse_args()
 
@@ -105,11 +108,12 @@ def main() -> None:
         xs[batch] = x
         ref_fp32 = x.float() @ w_fp32.t()
         ref_bf16 = F.linear(x, w_bf16).float()
-        y = nvfp4_batched_matmul_packed(
+        y = nvfp4_tiled_batched_matmul_packed(
             x,
             packed,
             scale,
             global_scale,
+            block_t=args.block_t,
             block_m=args.block_m,
             block_n=args.block_n,
         )
@@ -135,9 +139,24 @@ def main() -> None:
     torch.cuda.empty_cache()
     torch.cuda.reset_peak_memory_stats()
     before_packed_alloc = int(torch.cuda.memory_allocated())
-    bench_packed: dict[str, Any] = {}
+    bench_tiled: dict[str, Any] = {}
+    bench_naive: dict[str, Any] = {}
     for batch, x in xs.items():
-        bench_packed[str(batch)] = _bench_cuda(
+        bench_tiled[str(batch)] = _bench_cuda(
+            lambda x=x: nvfp4_tiled_batched_matmul_packed(
+                x,
+                packed,
+                scale,
+                global_scale,
+                block_t=args.block_t,
+                block_m=args.block_m,
+                block_n=args.block_n,
+            ),
+            warmup=args.warmup,
+            iters=args.iters,
+            repeats=args.repeats,
+        )
+        bench_naive[str(batch)] = _bench_cuda(
             lambda x=x: nvfp4_batched_matmul_packed(
                 x,
                 packed,
@@ -155,22 +174,28 @@ def main() -> None:
 
     rows: list[dict[str, Any]] = []
     for batch in args.batches:
-        bp = bench_packed[str(batch)]
+        bt = bench_tiled[str(batch)]
+        bn = bench_naive[str(batch)]
         bb = bench_bf16[str(batch)]
-        speedup = bb["median_us"] / bp["median_us"] if bp["median_us"] else math.nan
+        speedup = bb["median_us"] / bt["median_us"] if bt["median_us"] else math.nan
+        speedup_vs_naive = bn["median_us"] / bt["median_us"] if bt["median_us"] else math.nan
         rows.append(
             {
                 "batch": batch,
-                "packed_median_us": bp["median_us"],
+                "tiled_median_us": bt["median_us"],
+                "naive_median_us": bn["median_us"],
                 "bf16_median_us": bb["median_us"],
                 "speedup_vs_bf16": speedup,
-                "packed_us_per_token": bp["median_us"] / batch,
+                "speedup_vs_naive": speedup_vs_naive,
+                "tiled_us_per_token": bt["median_us"] / batch,
+                "naive_us_per_token": bn["median_us"] / batch,
                 "bf16_us_per_token": bb["median_us"] / batch,
             }
         )
         print(
-            f"[bench M={batch}] packed={bp['median_us']:.2f}us "
-            f"bf16={bb['median_us']:.2f}us speedup={speedup:.3f}x",
+            f"[bench M={batch}] tiled={bt['median_us']:.2f}us "
+            f"naive={bn['median_us']:.2f}us bf16={bb['median_us']:.2f}us "
+            f"vs_bf16={speedup:.3f}x vs_naive={speedup_vs_naive:.3f}x",
             flush=True,
         )
 
@@ -188,6 +213,7 @@ def main() -> None:
         "base_key": args.base_key,
         "seed": args.seed,
         "batches": args.batches,
+        "tile": {"block_t": args.block_t, "block_m": args.block_m, "block_n": args.block_n},
         "shape": {"out_features": out_features, "in_features": in_features},
         "dtypes": {
             "packed": str(packed.dtype),
@@ -202,7 +228,8 @@ def main() -> None:
         "numeric": numeric,
         "bench": {
             "rows": rows,
-            "packed_triton": bench_packed,
+            "tiled_triton": bench_tiled,
+            "naive_triton": bench_naive,
             "bf16_shadow_linear": bench_bf16,
         },
         "memory_after_deleting_bf16_refs": {
@@ -217,8 +244,8 @@ def main() -> None:
             "all": bool(numeric_pass and no_shadow_pass and perf_pass_all),
         },
         "notes": [
-            "The first P1-A kernel removes the Python row loop but does not yet share activation tiles across tokens.",
-            "Perf may need tiling work before promotion even if numeric/no-shadow pass.",
+            "The tiled kernel computes a BLOCK_T x BLOCK_OUT output tile per program.",
+            "Promotion still requires M>1 latency not worse than BF16.",
         ],
     }
     print("=============== RESULT JSON ===============", flush=True)
