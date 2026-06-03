@@ -156,6 +156,11 @@ def main() -> int:
             "scripts/spark_stage6_p4_runtime_bridge_preflight.py",
             "scripts/summarize_stage6_p4_runtime_bridge_preflight.py",
         ])
+        run(["bash", "-n", "scripts/run_spark_stage6_p4_runtime_bridge_preflight.sh"])
+        help_proc = run(["scripts/run_spark_stage6_p4_runtime_bridge_preflight.sh", "--help"])
+        assert "--rel-l2-threshold" in help_proc.stdout
+        assert "LYNN_STAGE6_P4_MODEL" in help_proc.stdout
+        assert "summarize_stage6_p4_runtime_bridge_preflight.py" not in help_proc.stderr
 
         pass_summary = run([
             sys.executable,

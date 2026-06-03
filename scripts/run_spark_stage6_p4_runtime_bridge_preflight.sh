@@ -1,20 +1,21 @@
 #!/usr/bin/env bash
-# Run Stage 6 P4 native fused-MoE ABI preflight on Spark and pull artifacts.
+# Run Stage 6 P4 runtime bridge preflight on Spark and pull artifacts.
 set -euo pipefail
 
 usage() {
   cat <<'USAGE'
-Usage: run_spark_stage6_p4_native_abi_preflight.sh [options]
+Usage: run_spark_stage6_p4_runtime_bridge_preflight.sh [options]
 
 Options:
   --host HOST                  SSH host alias. Default: $LYNN_SPARK_HOST or dgx-spark.
   --image IMAGE                Docker image. Default: lynn-eval-base:cu13.
   --remote-repo PATH           Spark repo path. Default: /home/merkyor/lynn-engine.
+  --model PATH                 Model path on Spark.
   --local-root PATH            Local artifact root. Default: reports/stage6.
   --expect-head COMMIT         Expected Spark repo HEAD. Default: local HEAD.
-  --tokens N                   Fixture token count. Default: 1.
-  --experts N                  Fixture expert count. Default: 8.
-  --top-k N                    Fixture top-k. Default: 8.
+  --layer N                    Layer index. Default: 0.
+  --rel-l2-threshold X         Candidate-vs-Triton rel-L2 threshold. Default: 0.02.
+  --max-abs-threshold X        Candidate-vs-Triton max-abs threshold. Default: 1.0.
   --allow-provenance-mismatch  Do not fail when both HEAD and manifest differ.
   --no-strict                  Pull artifacts but do not fail on result passes.all=false.
   -h, --help                   Show this help.
@@ -26,6 +27,7 @@ Environment overrides:
   LYNN_STAGE6_LOCAL_OUT
   LYNN_STAGE6_EXPECT_HEAD
   LYNN_STAGE6_EXPECT_MANIFEST
+  LYNN_STAGE6_P4_MODEL
 USAGE
 }
 
@@ -53,13 +55,14 @@ manifest_for_files() {
 }
 
 PROVENANCE_FILES=(
-  "scripts/run_spark_stage6_p4_native_abi_preflight.sh"
-  "scripts/spark_stage6_p4_native_abi_preflight.py"
-  "scripts/summarize_stage6_p4_native_abi_preflight.py"
-  "scripts/write_stage6_p4_native_abi_report.py"
+  "scripts/run_spark_stage6_p4_runtime_bridge_preflight.sh"
+  "scripts/spark_stage6_p4_runtime_bridge_preflight.py"
+  "scripts/summarize_stage6_p4_runtime_bridge_preflight.py"
+  "scripts/test_stage6_p4_runtime_bridge_tools.py"
   "scripts/test_stage6_p4_native_abi_static.py"
   "engine/native_cuda.py"
   "engine/moe_packed_nvfp4.py"
+  "engine/resident_runner.py"
   "csrc/lynn_native/bindings.cpp"
   "csrc/lynn_native/moe_fused_zero_shadow_contract.cu"
   "reports/stage6/P4_NATIVE_FUSED_MOE_ABI_CONTRACT_20260604.md"
@@ -68,81 +71,46 @@ PROVENANCE_FILES=(
 HOST="${LYNN_SPARK_HOST:-dgx-spark}"
 IMAGE="${LYNN_SPARK_IMAGE:-lynn-eval-base:cu13}"
 REMOTE_REPO="${LYNN_SPARK_REPO:-/home/merkyor/lynn-engine}"
+MODEL="${LYNN_STAGE6_P4_MODEL:-/home/merkyor/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-from-bf16-20260526}"
 LOCAL_ROOT="${LYNN_STAGE6_LOCAL_OUT:-reports/stage6}"
 EXPECTED_HEAD="${LYNN_STAGE6_EXPECT_HEAD:-$(git rev-parse HEAD 2>/dev/null || true)}"
 EXPECTED_MANIFEST="${LYNN_STAGE6_EXPECT_MANIFEST:-$(manifest_for_files "${PROVENANCE_FILES[@]}")}"
-TOKENS="1"
-EXPERTS="8"
-TOP_K="8"
+LAYER="0"
+REL_L2_THRESHOLD="0.02"
+MAX_ABS_THRESHOLD="1.0"
 REQUIRE_PROVENANCE="1"
 STRICT="1"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --host)
-      HOST="$2"
-      shift 2
-      ;;
-    --image)
-      IMAGE="$2"
-      shift 2
-      ;;
-    --remote-repo)
-      REMOTE_REPO="$2"
-      shift 2
-      ;;
-    --local-root)
-      LOCAL_ROOT="$2"
-      shift 2
-      ;;
-    --expect-head)
-      EXPECTED_HEAD="$2"
-      shift 2
-      ;;
-    --tokens)
-      TOKENS="$2"
-      shift 2
-      ;;
-    --experts)
-      EXPERTS="$2"
-      shift 2
-      ;;
-    --top-k)
-      TOP_K="$2"
-      shift 2
-      ;;
-    --allow-provenance-mismatch)
-      REQUIRE_PROVENANCE="0"
-      shift
-      ;;
-    --no-strict)
-      STRICT="0"
-      shift
-      ;;
-    -h|--help)
-      usage
-      exit 0
-      ;;
-    *)
-      echo "unknown argument: $1" >&2
-      usage >&2
-      exit 2
-      ;;
+    --host) HOST="$2"; shift 2 ;;
+    --image) IMAGE="$2"; shift 2 ;;
+    --remote-repo) REMOTE_REPO="$2"; shift 2 ;;
+    --model) MODEL="$2"; shift 2 ;;
+    --local-root) LOCAL_ROOT="$2"; shift 2 ;;
+    --expect-head) EXPECTED_HEAD="$2"; shift 2 ;;
+    --layer) LAYER="$2"; shift 2 ;;
+    --rel-l2-threshold) REL_L2_THRESHOLD="$2"; shift 2 ;;
+    --max-abs-threshold) MAX_ABS_THRESHOLD="$2"; shift 2 ;;
+    --allow-provenance-mismatch) REQUIRE_PROVENANCE="0"; shift ;;
+    --no-strict) STRICT="0"; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "unknown argument: $1" >&2; usage >&2; exit 2 ;;
   esac
 done
 
 STAMP="$(date +%Y%m%d_%H%M%S)"
-RUN_NAME="p4_native_abi_preflight_${STAMP}"
+RUN_NAME="p4_runtime_bridge_preflight_${STAMP}"
 REMOTE_RUN_DIR="${REMOTE_REPO}/reports/stage6/${RUN_NAME}"
 LOCAL_RUN_DIR="${LOCAL_ROOT}/${RUN_NAME}"
 
-echo "[p4] host=${HOST}"
-echo "[p4] expect_head=${EXPECTED_HEAD:-none}"
-echo "[p4] remote_run_dir=${REMOTE_RUN_DIR}"
+echo "[p4-runtime] host=${HOST}"
+echo "[p4-runtime] expect_head=${EXPECTED_HEAD:-none}"
+echo "[p4-runtime] remote_run_dir=${REMOTE_RUN_DIR}"
 
 set +e
 ssh "$HOST" \
-  "REMOTE_REPO=$(shell_quote "$REMOTE_REPO") REMOTE_RUN_DIR=$(shell_quote "$REMOTE_RUN_DIR") IMAGE=$(shell_quote "$IMAGE") TOKENS=$(shell_quote "$TOKENS") EXPERTS=$(shell_quote "$EXPERTS") TOP_K=$(shell_quote "$TOP_K") EXPECTED_HEAD=$(shell_quote "$EXPECTED_HEAD") EXPECTED_MANIFEST=$(shell_quote "$EXPECTED_MANIFEST") REQUIRE_PROVENANCE=$(shell_quote "$REQUIRE_PROVENANCE") bash -s" <<'REMOTE'
+  "REMOTE_REPO=$(shell_quote "$REMOTE_REPO") REMOTE_RUN_DIR=$(shell_quote "$REMOTE_RUN_DIR") IMAGE=$(shell_quote "$IMAGE") MODEL=$(shell_quote "$MODEL") LAYER=$(shell_quote "$LAYER") REL_L2_THRESHOLD=$(shell_quote "$REL_L2_THRESHOLD") MAX_ABS_THRESHOLD=$(shell_quote "$MAX_ABS_THRESHOLD") EXPECTED_HEAD=$(shell_quote "$EXPECTED_HEAD") EXPECTED_MANIFEST=$(shell_quote "$EXPECTED_MANIFEST") REQUIRE_PROVENANCE=$(shell_quote "$REQUIRE_PROVENANCE") STRICT=$(shell_quote "$STRICT") bash -s" <<'REMOTE'
 set -euo pipefail
 file_sha256() {
   if command -v sha256sum >/dev/null 2>&1; then
@@ -164,13 +132,14 @@ manifest_for_files() {
 }
 
 PROVENANCE_FILES=(
-  "scripts/run_spark_stage6_p4_native_abi_preflight.sh"
-  "scripts/spark_stage6_p4_native_abi_preflight.py"
-  "scripts/summarize_stage6_p4_native_abi_preflight.py"
-  "scripts/write_stage6_p4_native_abi_report.py"
+  "scripts/run_spark_stage6_p4_runtime_bridge_preflight.sh"
+  "scripts/spark_stage6_p4_runtime_bridge_preflight.py"
+  "scripts/summarize_stage6_p4_runtime_bridge_preflight.py"
+  "scripts/test_stage6_p4_runtime_bridge_tools.py"
   "scripts/test_stage6_p4_native_abi_static.py"
   "engine/native_cuda.py"
   "engine/moe_packed_nvfp4.py"
+  "engine/resident_runner.py"
   "csrc/lynn_native/bindings.cpp"
   "csrc/lynn_native/moe_fused_zero_shadow_contract.cu"
   "reports/stage6/P4_NATIVE_FUSED_MOE_ABI_CONTRACT_20260604.md"
@@ -207,11 +176,12 @@ elif [[ "${REQUIRE_PROVENANCE:-1}" == "1" ]]; then
   } > "$REMOTE_RUN_DIR/head_check.txt"
   exit 12
 else
-  {
-    echo "remote provenance mismatch allowed"
-    echo "expected HEAD: ${EXPECTED_HEAD:-}"
-    echo "actual HEAD:   $REMOTE_HEAD"
-  } > "$REMOTE_RUN_DIR/head_check.txt"
+  echo "remote provenance mismatch allowed" > "$REMOTE_RUN_DIR/head_check.txt"
+fi
+
+STRICT_FLAG="--strict-exit"
+if [[ "${STRICT:-1}" != "1" ]]; then
+  STRICT_FLAG=""
 fi
 
 set +e
@@ -221,16 +191,28 @@ docker run --rm --gpus all --ipc=host \
   -v /home/merkyor:/home/merkyor \
   -w "$REMOTE_REPO" \
   "$IMAGE" \
-  python3 scripts/spark_stage6_p4_native_abi_preflight.py \
+  python3 scripts/spark_stage6_p4_runtime_bridge_preflight.py \
+    --model "$MODEL" \
     --out "$REMOTE_RUN_DIR/result.json" \
-    --tokens "$TOKENS" \
-    --experts "$EXPERTS" \
-    --top-k "$TOP_K" \
-    --strict-exit \
+    --layer "$LAYER" \
+    --rel-l2-threshold "$REL_L2_THRESHOLD" \
+    --max-abs-threshold "$MAX_ABS_THRESHOLD" \
+    $STRICT_FLAG \
   > "$REMOTE_RUN_DIR/run.log" 2>&1
 DOCKER_STATUS=$?
 set -e
 printf '%s\n' "$DOCKER_STATUS" > "$REMOTE_RUN_DIR/docker_exit_code.txt"
+if [[ -f "$REMOTE_RUN_DIR/result.json" ]]; then
+  python3 scripts/summarize_stage6_p4_runtime_bridge_preflight.py \
+    "$REMOTE_RUN_DIR/result.json" \
+    --markdown-out "$REMOTE_RUN_DIR/summary.md" \
+    $STRICT_FLAG \
+    >> "$REMOTE_RUN_DIR/run.log" 2>&1
+  SUMMARY_STATUS=$?
+  if [[ "$DOCKER_STATUS" -eq 0 ]]; then
+    DOCKER_STATUS="$SUMMARY_STATUS"
+  fi
+fi
 nvidia-smi --query-gpu=name,utilization.gpu,memory.used,memory.total --format=csv,noheader > "$REMOTE_RUN_DIR/nvidia_smi_after.txt" 2>/dev/null || true
 exit "$DOCKER_STATUS"
 REMOTE
@@ -243,12 +225,12 @@ rsync -av "${HOST}:${REMOTE_RUN_DIR}/" "$LOCAL_RUN_DIR/"
 RSYNC_STATUS=$?
 set -e
 if [[ "$RSYNC_STATUS" -ne 0 ]]; then
-  echo "[p4] rsync failed with status ${RSYNC_STATUS}" >&2
+  echo "[p4-runtime] rsync failed with status ${RSYNC_STATUS}" >&2
   exit "$RSYNC_STATUS"
 fi
 
 if [[ ! -f "$LOCAL_RUN_DIR/result.json" ]]; then
-  echo "[p4] missing result.json; pulled failure artifacts to ${LOCAL_RUN_DIR}" >&2
+  echo "[p4-runtime] missing result.json; pulled failure artifacts to ${LOCAL_RUN_DIR}" >&2
   if [[ -f "$LOCAL_RUN_DIR/head_check.txt" ]]; then
     cat "$LOCAL_RUN_DIR/head_check.txt" >&2 || true
   fi
@@ -258,22 +240,16 @@ if [[ ! -f "$LOCAL_RUN_DIR/result.json" ]]; then
   exit "$REMOTE_STATUS"
 fi
 
-SUMMARY_ARGS=(
-  "$LOCAL_RUN_DIR/result.json"
-  --markdown-out "$LOCAL_RUN_DIR/summary.md"
-)
-if [[ "$STRICT" == "1" ]]; then
-  SUMMARY_ARGS+=(--strict-exit)
+LOCAL_STRICT_FLAG="--strict-exit"
+if [[ "$STRICT" != "1" ]]; then
+  LOCAL_STRICT_FLAG=""
 fi
-set +e
-python3 scripts/summarize_stage6_p4_native_abi_preflight.py "${SUMMARY_ARGS[@]}"
-SUMMARY_STATUS=$?
-set -e
+python3 scripts/summarize_stage6_p4_runtime_bridge_preflight.py \
+  "$LOCAL_RUN_DIR/result.json" \
+  --markdown-out "$LOCAL_RUN_DIR/summary.md" \
+  $LOCAL_STRICT_FLAG
 
-echo "[p4] artifacts=${LOCAL_RUN_DIR}"
-if [[ "$STRICT" == "1" && "$SUMMARY_STATUS" -ne 0 ]]; then
-  exit "$SUMMARY_STATUS"
-fi
-if [[ "$STRICT" == "1" && "$REMOTE_STATUS" -ne 0 ]]; then
+echo "[p4-runtime] artifacts: ${LOCAL_RUN_DIR}"
+if [[ "$REMOTE_STATUS" -ne 0 && "$STRICT" == "1" ]]; then
   exit "$REMOTE_STATUS"
 fi

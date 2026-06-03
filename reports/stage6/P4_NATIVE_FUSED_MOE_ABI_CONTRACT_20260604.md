@@ -125,6 +125,12 @@ The synthetic ABI preflight proves the native symbol boundary. The runtime
 bridge preflight proves the real resident-runner decode path can reach that
 boundary with real layer tensors and no active-expert BF16 shadows.
 
+Run through the Spark artifact wrapper after syncing the branch:
+
+```bash
+scripts/run_spark_stage6_p4_runtime_bridge_preflight.sh
+```
+
 Direct Spark command:
 
 ```bash

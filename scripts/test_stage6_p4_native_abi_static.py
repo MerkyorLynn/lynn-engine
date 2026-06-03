@@ -74,6 +74,18 @@ CHECKS = [
         ],
     ),
     (
+        "scripts/run_spark_stage6_p4_runtime_bridge_preflight.sh",
+        [
+            "PROVENANCE_FILES",
+            "scripts/spark_stage6_p4_runtime_bridge_preflight.py",
+            "scripts/summarize_stage6_p4_runtime_bridge_preflight.py",
+            "LYNN_STAGE6_P4_MODEL",
+            "rel-l2-threshold",
+            "nvidia_smi_before.txt",
+            "summary.md",
+        ],
+    ),
+    (
         "scripts/summarize_stage6_p4_native_abi_preflight.py",
         [
             "PASS_TWO_STAGE_REFERENCE_CONTRACT",
