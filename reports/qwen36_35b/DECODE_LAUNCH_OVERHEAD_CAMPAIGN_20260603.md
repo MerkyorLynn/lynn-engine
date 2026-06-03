@@ -254,3 +254,29 @@
     per-request shadow reload — flagged as a follow-up; not done this round.)
   - Article/README "对标 llama.cpp" framing updated to reflect the ceiling (honest: Spark ~45 is the NVFP4 ceiling; parity
     is an FP4-MMA / ggml-rewrite goal, not a Spark deliverable).
+- **✅ STAGE 6 step 4 — BANKED the 60 GiB decode-only MEMORY win as a SERVING capability (option (b), user-chosen).**
+  Productized the probe finding (step2): decode never reads the BF16 shadow, so serve at ~27 GiB during decode and rebuild
+  the shadow only when a new prefill needs it.
+  - **New primitive `LynnIncrementalRunner.reload_decode_bf16_shadows()`** (`engine/resident_runner.py`) — exact inverse of
+    `release_decode_bf16_shadows()`. `release` now records what it dropped; `reload` rebuilds those BF16 weights by
+    dequantizing the still-resident packed NVFP4 via the decode-proven `moe_packed_nvfp4._dequant_nvfp4_slot` (the same
+    primitive the graph-safe v31 decode path uses). **NO disk I/O** — the 15 GiB packed stays resident. (Note: on Spark's
+    unified memory you cannot "offload to host" to free the pool; you must drop + rebuild, which is why reload is a dequant.)
+  - **Server (`server/openai_http.py`)** rewired from the old one-shot (2nd request 409'd) to the per-request cycle
+    **reload → prefill → release → decode**; `/health` + response now expose reload seconds / release GiB / reload count.
+  - **Verified on Spark** (`scripts/spark_stage6_shadow_reload_serving_ab.py`, docker `lynn-eval-base:cu13`, APEX stopped):
+    resident **88.16 → 28.18 GiB** on release (drops **60.00 GiB**) → **88.18** on reload. **TOKEN-EXACT** on all three
+    gates: shadow-free decode == baseline, **reloaded-shadow PREFILL == baseline** (reload is bit-faithful), and the server
+    `LynnEngineHandle` path == baseline across 2 sequential requests (no one-shot 409, reload_count=2). **No TPS regression:**
+    decode 44.18 (baseline) / 44.50 (req1) / 44.23 (req2) tok/s. **KV headroom is real & reclaimable:** at 28 GiB resident a
+    **35 GiB** KV cache (max_seq_len ≈ 1.83M) allocates fine, but at 88 GiB resident only **1.3 GiB** is free → the same
+    alloc OOMs. `ALL_PASS=True`.
+  - **COST (the price of option (b)):** per-request reload ≈ **24 s** (60 GiB FP4→BF16 dequant, unoptimized elementwise).
+    So this mode fits **decode-only / single long-prompt** serving where freeing 60 GiB during a long generation (KV /
+    co-resident headroom) is worth a one-time ~24 s, **NOT** high-throughput multi-request serving (every post-release
+    request pays the reload). For zero-reload serving (resident 27 GiB always, no prefill peak), the path remains
+    **option (a): a packed-NVFP4 prefill MoE** (decode kernels are M=1-only; prefill M>1 needs a new batched kernel) — still
+    the documented follow-up.
+  - **CAVEAT (honest):** option (b) frees 60 GiB **only during decode**; it does **not** lower the prefill peak (shadows are
+    reloaded before prefill, and KV is pre-allocated at max_seq_len), so it does **not** by itself let a longer-context
+    *prefill* fit. That requires option (a) or a growable/lazy KV cache.

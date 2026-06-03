@@ -18,6 +18,15 @@ Engine lifecycle:
   - Single `LynnInferenceState` is reset between requests (no concurrent decode).
   - Generations are serialized with an asyncio.Lock.
 
+Decode-only memory win (LYNN_RELEASE_DECODE_SHADOWS_AFTER_PREFILL=1):
+  - Decode never reads the BF16 expert shadow (only PREFILL does), so after each
+    request's prefill the runner releases ~60 GiB of BF16 shadow and decodes at
+    ~27 GiB resident (vs ~87 GiB). The next request reloads the shadow (dequant
+    from the resident packed NVFP4, no disk I/O) before its prefill. The cycle is
+    reload -> prefill -> release -> decode. This frees 60 GiB DURING decode for
+    KV / batch / co-resident headroom on the shared 128 GB box. (It does not lower
+    the prefill peak; a longer-context prefill still needs a packed prefill path.)
+
 Run:
     LYNN_PREFILL_WARMUP=1 \
     LYNN_LINEAR_ATTN_RECURRENT_BACKEND=triton_fused_prepare \
@@ -187,7 +196,12 @@ class LynnEngineHandle:
         self.release_decode_shadows_after_prefill = (
             os.environ.get("LYNN_RELEASE_DECODE_SHADOWS_AFTER_PREFILL", "0") == "1"
         )
+        # True once at least one request has released its decode shadows.
         self.release_decode_shadows_consumed = False
+        # Per-request release+reload observability (decode-only memory win).
+        self.release_reload_count = 0
+        self.last_reload_seconds: Optional[float] = None
+        self.last_release_gib: Optional[float] = None
 
     def load(self):
         """Eagerly load the resident Lynn engine runner."""
@@ -215,11 +229,19 @@ class LynnEngineHandle:
         """Greedy (or temp=0) incremental decode. Returns dict with text + tokens."""
         if temperature not in (0, 0.0):
             raise ValueError("Lynn engine MVP server currently supports greedy temperature=0 only")
-        if self.release_decode_shadows_after_prefill and self.release_decode_shadows_consumed:
-            raise RuntimeError(
-                "LYNN_RELEASE_DECODE_SHADOWS_AFTER_PREFILL=1 is a one-shot/session-scoped mode. "
-                "BF16 shadows were already released; restart the server for another prefill request."
-            )
+        reload_seconds: Optional[float] = None
+        if self.release_decode_shadows_after_prefill and getattr(
+            self.runner, "_decode_shadows_released", False
+        ):
+            # A prior request released the BF16 shadows after its prefill so it
+            # could decode at ~27 GiB resident. Rebuild them (dequant from the
+            # still-resident packed NVFP4, no disk I/O) before THIS request's
+            # prefill, then generate() releases them again after prefill. This is
+            # the per-request reload->prefill->release->decode serving cycle.
+            reload_report = self.runner.reload_decode_bf16_shadows()
+            reload_seconds = reload_report.get("seconds")
+            self.last_reload_seconds = reload_seconds
+            self.release_reload_count += 1
         result = self.runner.generate(
             prompt,
             max_new=max_new_tokens,
@@ -228,6 +250,9 @@ class LynnEngineHandle:
         )
         if self.release_decode_shadows_after_prefill:
             self.release_decode_shadows_consumed = True
+            release_report = (result.get("timings") or {}).get("decode_bf16_shadow_release")
+            if isinstance(release_report, dict):
+                self.last_release_gib = release_report.get("released_gib")
         completion = result["completion_text"]
         completion, format_guard_stopped = apply_format_guard(completion, format_guard)
         if stop:
@@ -252,6 +277,8 @@ class LynnEngineHandle:
             "stopped_reason": result.get("stopped_reason"),
             "release_decode_shadows_after_prefill": self.release_decode_shadows_after_prefill,
             "release_decode_shadows_consumed": self.release_decode_shadows_consumed,
+            "reload_decode_shadows_seconds": reload_seconds,
+            "release_reload_count": self.release_reload_count,
         }
 
 
@@ -381,6 +408,12 @@ def make_app(handle: LynnEngineHandle):
             "model": handle.cfg.served_model_name,
             "release_decode_shadows_after_prefill": handle.release_decode_shadows_after_prefill,
             "release_decode_shadows_consumed": handle.release_decode_shadows_consumed,
+            "decode_shadows_currently_released": bool(
+                getattr(handle.runner, "_decode_shadows_released", False)
+            ),
+            "release_reload_count": handle.release_reload_count,
+            "last_reload_seconds": handle.last_reload_seconds,
+            "last_release_gib": handle.last_release_gib,
             "runtime": runtime,
         }
 

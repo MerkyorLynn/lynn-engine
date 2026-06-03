@@ -339,6 +339,12 @@ class LynnIncrementalRunner:
         if os.environ.get("LYNN_FULL_ATTN_QKV_FUSED", "0") == "1":
             self._prepare_full_attn_qkv_fused()
         self._prepare_linear_attn_decode_constants()
+        # Decode-only BF16-shadow release/reload bookkeeping. The shadows are
+        # present right after load; release_decode_bf16_shadows() drops them and
+        # records what it dropped so reload_decode_bf16_shadows() can rebuild the
+        # exact same keys from the resident packed NVFP4 (no disk I/O).
+        self._decode_shadows_released: bool = False
+        self._released_decode_shadow_items: list[dict[str, Any]] = []
         self._linear_block_graph_slot: dict[str, Any] | None = None
         self.prefill_warmup_seconds: float | None = None
         self.linear_block_graph_prewarm_seconds: float | None = None
@@ -1392,12 +1398,113 @@ class LynnIncrementalRunner:
         if self.device.startswith("cuda"):
             torch.cuda.empty_cache()
             torch.cuda.synchronize()
+        # Record exactly what was dropped so reload_decode_bf16_shadows() is a
+        # precise inverse. Only update the record when this call actually dropped
+        # something, so a redundant release (nothing left to drop) cannot clobber
+        # a prior record with an empty list and strand the shadows as released.
+        if released:
+            self._decode_shadows_released = True
+            self._released_decode_shadow_items = [
+                {"layer": r["layer"], "key": r["key"], "reason": r["reason"]}
+                for r in released
+            ]
         return {
             "released_tensors": len(released),
             "released_bytes": released_bytes,
             "released_gib": released_bytes / (1024**3),
             "items": released[:50],
             "truncated_items": max(0, len(released) - 50),
+        }
+
+    def reload_decode_bf16_shadows(self) -> dict[str, Any]:
+        """Rebuild the BF16 decode shadows dropped by ``release_decode_bf16_shadows``.
+
+        Inverse of the release primitive. PREFILL needs the BF16 weights (the
+        stacked MoE experts ``gate_up_proj``/``down_proj`` and any packed linear
+        aliases); decode does not. This dequantizes the still-resident packed
+        NVFP4 tensors back into those BF16 weights so a new prefill can run after
+        a prior request released the shadows to decode at ~27 GiB.
+
+        It does NO disk I/O -- the 15 GiB packed weights stay resident, so this
+        is the cheap per-request path that makes
+        ``generate(release_decode_shadows_after_prefill=True)`` safe for
+        multi-request serving: reload -> prefill -> release -> decode.
+        """
+        if not getattr(self, "_decode_shadows_released", False):
+            return {
+                "reloaded_tensors": 0,
+                "reloaded_bytes": 0,
+                "reloaded_gib": 0.0,
+                "seconds": 0.0,
+                "noop": True,
+            }
+        from engine.moe_packed_nvfp4 import _dequant_nvfp4_slot
+
+        t0 = time.time()
+        reloaded: list[dict[str, Any]] = []
+        reloaded_bytes = 0
+        for item in self._released_decode_shadow_items:
+            layer_idx = int(item["layer"])
+            key = item["key"]
+            reason = item["reason"]
+            w = self.layer_weights[layer_idx]
+            if key in w:
+                continue  # already present (defensive; e.g. partial reload)
+            if reason == "packed_grouped_moe_gate_up":
+                tensor = _dequant_nvfp4_slot(
+                    w["mlp.experts._gate_up_packed"],
+                    w["mlp.experts._gate_up_scale"],
+                    w["mlp.experts._gate_up_global_scale"],
+                    self.device,
+                )
+            elif reason == "packed_grouped_moe_down":
+                tensor = _dequant_nvfp4_slot(
+                    w["mlp.experts._down_packed"],
+                    w["mlp.experts._down_scale"],
+                    w["mlp.experts._down_global_scale"],
+                    self.device,
+                )
+            elif reason == "packed_linear_alias":
+                packed = w.get(key + ".packed")
+                if packed is None:
+                    raise RuntimeError(
+                        f"reload_decode_bf16_shadows: missing packed alias for {key!r} "
+                        f"(layer {layer_idx}); cannot rebuild BF16 shadow."
+                    )
+                tensor = _dequant_nvfp4_slot(
+                    packed.weight_packed,
+                    packed.weight_scale,
+                    packed.weight_global_scale,
+                    self.device,
+                )
+            else:
+                raise RuntimeError(
+                    f"reload_decode_bf16_shadows: unknown release reason {reason!r} "
+                    f"for {key!r} (layer {layer_idx})."
+                )
+            if tensor.dtype != self.dtype:
+                tensor = tensor.to(self.dtype)
+            w[key] = tensor
+            nbytes = int(tensor.numel() * tensor.element_size())
+            reloaded_bytes += nbytes
+            reloaded.append({
+                "layer": layer_idx,
+                "key": key,
+                "bytes": nbytes,
+                "reason": reason,
+            })
+        if self.device.startswith("cuda"):
+            torch.cuda.synchronize()
+        seconds = time.time() - t0
+        self._decode_shadows_released = False
+        self._released_decode_shadow_items = []
+        return {
+            "reloaded_tensors": len(reloaded),
+            "reloaded_bytes": reloaded_bytes,
+            "reloaded_gib": reloaded_bytes / (1024**3),
+            "seconds": seconds,
+            "items": reloaded[:50],
+            "truncated_items": max(0, len(reloaded) - 50),
         }
 
     def _prepare_packed_decode_aliases(self) -> None:
