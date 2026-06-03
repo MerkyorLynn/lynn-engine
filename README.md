@@ -1,11 +1,13 @@
 # Lynn Engine
 
 > **🚀 战略校正(2026-06-03):Lynn engine 重启为并行主线,目标「对标 llama.cpp」,不再是"降级为 R&D / 只用 llama.cpp"。** 客户端短期仍以 llama.cpp/GGUF 为**务实默认后端**;引擎并行推进——同模型同硬件**对标 llama.cpp**,终局 = 自己啃下**融合 4-bit / 零-shadow 内核**(单投影 PoC → 全 dense + 删 shadow → MoE grouped 专家 → 融合减 launch,每阶段 gate + RC),在 FP4-MMA 卡(R6000 一代)上**逼近乃至超过**。**做引擎,要做就自己把内核啃下来。**
+>
+> **✅ 自有核心已 bank 的最新突破:** 35B NVFP4 服务已把 decode 阶段 BF16 dequant-shadow 从常驻内存中释放,**resident 88→28 GiB(省 ~60 GiB)**,token-exact,TPS 0.998× 无回归;`server/openai_http.py` 已接入 `reload→prefill→release→decode` 服务循环。下一关是 **packed-NVFP4 prefill / zero-reload**:先用 `LYNN_PACKED_PREFILL_SLOW=1` 做无 reload correctness/memory gate,再下沉为真正的 **C++/CUDA/Triton batched/grouped kernels**。Python 只做控制面和验证,追赶 llama.cpp 靠 native kernel。
 
 > **🆕 2026-06-03 Decode 内核启动开销战役 — Spark NVFP4 35B-A3B 单流 38.96 → ~45 TPS,质量 RC 等价。**
 > 实测 decode 是 launch-bound(census:**~1527 CUDA launch/token**,~40% 时间耗在 CPU 端 dispatch)。逐簇融合 launch + 消拷贝:**fused RMSNorm(最大头)/ shared-expert / linear-attn g/beta-fold / full-attn(token-exact)/ NVFP4 `_scaled_mm` bf16-out copy-elision**,**5 个 RC-validated launch-cut**——在 structured/V9/GPQA/tool-call/long-form 上 **40/40 greedy 输出与 baseline 逐字一致**,继承 **MMLU 84.40 / GPQA-Diamond 49.49**。全部 gated、默认安全、可回滚。
 >
-> **🎯 对标 llama.cpp 的决心。** 同硬件 Q4_K_M **69.77** 仍领先,但根因已查清:它的手写融合核**直接读 4-bit 权重、寄存器内反量化、bf16 GEMV**(带宽最优、单 launch);我们还卡在 BF16 dequant-shadow 的 **~2× 带宽墙**(baseline 38.96 ≈ 6GB/token ÷ 240GB/s ≈ 40)。**终局路线已定**:写 Lynn 自己的「**读 4-bit + 寄存器反量化 + bf16 GEMV + 零 shadow + 单 launch**」NVFP4 内核,把带宽墙从 ~40 推到 ~140(**70 就活在这区间**)。同一套 NVFP4 权重 + 内核挪到有 FP4 MMA 的 R6000 直接 native 更快——**这是 Lynn 跨设备的核心资产**。llama.cpp 是 **MIT**,蓝图开源、可 clean-room 参考。**啃下来 = Lynn 成为 NVFP4 的 llama.cpp。** 详见 [decode launch-overhead campaign](reports/qwen36_35b/DECODE_LAUNCH_OVERHEAD_CAMPAIGN_20260603.md)。
+> **🎯 关于对标 llama.cpp(口径已据 6/3 evidence-lock 校正)。** 同硬件 Q4_K_M **69.77** 领先 ~1.5×。**起初以为根因是 BF16 dequant-shadow 的 ~2× 带宽墙、写个零-shadow 内核就能把墙从 ~40 推到 ~140;6/3 实测(2 个无头 CLI 代码 trace + 4 个 Spark 探针)把这个前提证伪了**:read-4bit 其实已做(MoE 专家走「packed-4bit→寄存器反量化→bf16 GEMV」Triton 核)、那 60 GiB BF16 是 **prefill 专用**(decode 整块删掉照跑、TPS 不降 42.4→43.7)、把 attn 改读 FP4 **无收益甚至更慢**(full-attn 0.999× / linear out_proj 0.775×)、reusable decode CUDA graph **净负 0.75×**。→ **decode 是 launch-bound,且 Spark sm_121(无 FP4 MMA)结构性卡 ~45。** 与 69.77 的差距是 llama.cpp 手写、低-dispatch、成熟度极高的 ggml CUDA —— 需 ground-up 内核重写 + 最终 FP4-MMA 硅(R6000 已退租),**不是 Spark 的交付目标**。本轮 bankable 红利:**decode-only 删 shadow → 常驻 87→27 GiB**(腾 60 GiB 给 KV/长上下文/batch)。跨设备内核 moat(同套 NVFP4 权重挪 FP4-MMA 卡变 native)逻辑仍在,有那张卡时才兑现。详见 [decode launch-overhead campaign](reports/qwen36_35b/DECODE_LAUNCH_OVERHEAD_CAMPAIGN_20260603.md)。
 
 > **🆕 2026-05-28 Qwen3.6-35B-A3B update — Spark 已切到最快 APEX-MTP I-Balanced 单流路线。**
 > 当前 `lynn-apex-mtp-llamacpp.service` 使用
@@ -29,25 +31,25 @@
 > **🆕 2026-05-20 状态变更(⚠️ 已被顶部 6/3 重启校正取代)— 当时把 Lynn engine 降级为 R&D 持续探索路径;现引擎已重启为对标 llama.cpp 的并行主线。**
 > Lynn 客户端短期投奔 llama.cpp 生态作为默认本地推理底层(Mac Metal / Win MSVC / Linux CUDA 全平台 + Q4_K_M GGUF)。
 > 默认 ship 模型 = **Qwen3.5-9B Q4_K_M-imatrix(5.3GB)** thinking-on excl_pf MMLU 90+ / GPQA 80+。
-> **完整决策见 → [RELEASE_NOTES_20260520.md](./RELEASE_NOTES_20260520.md)**
+> 历史决策见 [5/20 Release Notes](./RELEASE_NOTES_20260520.md);当前权威状态见 [6/3 Restart Notes](./RELEASE_NOTES_20260603.md)。
 >
 > Lynn engine 工程财产全留(5 CLI 并行 + 7 bug fix trail + 178s repack + autotune sweep 2160 config 都是真东西)。回主线门槛:**同硬件同模型速度接近或超过 llama.cpp,且质量有不可替代优势**。
 >
-> ⚠️ 以下 5/16 状态文档保留作历史进度记录,**最新状态以 RELEASE_NOTES_20260520 为准**。
+> ⚠️ 以下 5/16 状态文档保留作历史进度记录,**最新状态以 RELEASE_NOTES_20260603 为准**。
 
 ---
 
 > **为 NVIDIA Blackwell 写的 Lynn 27B-A3B NVFP4 单模型推理引擎。**
 > 从零写,锁定 Lynn 自家的 variable-pruned MoE + NVFP4 格式,目标很窄也很硬:在 R6000 / Spark 这类 Blackwell 机器上,把 Lynn 27B A3B MoE 基座跑成可生产、可优化、可长期接管的推理内核。
 
-[Read in English](README_EN.md) · [📝 知乎工程复盘(2026-05-11)](https://zhuanlan.zhihu.com/p/2036443846322680848) · [战略文档](docs/STRATEGY.md) · [架构设计](docs/DESIGN.md) · **[🆕 5/20 Release Notes](RELEASE_NOTES_20260520.md)**
+[Read in English](README_EN.md) · [📝 6月知乎连载:从零开始 Qwen 3.6 35B-A3B 写专用推理引擎踩坑心得分享](https://zhuanlan.zhihu.com/p/2045562329396400486) · [战略文档](docs/STRATEGY.md) · [架构设计](docs/DESIGN.md) · **[🆕 6/3 Restart Notes](RELEASE_NOTES_20260603.md)** · [5/20 历史 Release Notes](RELEASE_NOTES_20260520.md)
 
 [![commits](https://img.shields.io/github/commit-activity/m/MerkyorLynn/lynn-engine)](https://github.com/MerkyorLynn/lynn-engine/commits/main)
 [![license](https://img.shields.io/badge/license-TBD-orange)](.)
 
 ## 当前状态(2026-06-03)
 
-**6/3 战略校正(取代 5/20 pivot)**:Lynn engine **重启为并行主线,目标对标 llama.cpp** —— 不再是"降级为 R&D / 客户端投奔 llama.cpp"。客户端短期仍以 llama.cpp/GGUF 作**务实默认后端**,但引擎同步推进:同模型同硬件对标 llama.cpp,终局是自己啃下融合 4-bit / 零-shadow 内核,在 FP4-MMA 卡(R6000 一代)上逼近乃至超过。6/3 实测口径(Spark sm_121 无 FP4 MMA,decode 结构性卡 ~45,parity 是 ggml 重写 / FP4-MMA 硅目标)见顶部 6/3 战役;5/20 决策背景见 [RELEASE_NOTES_20260520.md](RELEASE_NOTES_20260520.md)。
+**6/3 战略校正(取代 5/20 pivot)**:Lynn engine **重启为并行主线,目标对标 llama.cpp** —— 不再是"降级为 R&D / 客户端投奔 llama.cpp"。客户端短期仍以 llama.cpp/GGUF 作**务实默认后端**,但引擎同步推进:同模型同硬件对标 llama.cpp,终局是自己啃下融合 4-bit / 零-shadow 内核,在 FP4-MMA 卡(R6000 一代)上逼近乃至超过。6/3 实测口径(Spark sm_121 无 FP4 MMA,decode 结构性卡 ~45,parity 是 ggml 重写 / FP4-MMA 硅目标)见顶部 6/3 战役与 [6/3 Restart Notes](RELEASE_NOTES_20260603.md);5/20 决策背景仅作历史记录。
 
 ### 5/16-5/20 Spark sm_121 W4A8 FP8 Phase 2 实测信号
 
@@ -58,7 +60,7 @@
 | 路径 | 模型大小 | 单流 TPS | MMLU 500 | GPQA Diamond 198 | 备注 |
 |---|---:|---:|---:|---:|---|
 | Lynn-native NVFP4 W4A16 / lynn-engine | 23 GB | **38.96 → ~45** | 84.40% | 49.49% | 5/18 base → **6/3 launch-overhead 战役(5 cut,RC-validated)** |
-| **llama.cpp Q4_K_M-imatrix** | **20 GB** | **69.77** | 83.00% | **50.00%** | 同硬件 ~1.55× lynn-engine(战役后)— **对标目标** |
+| **llama.cpp Q4_K_M-imatrix** | **20 GB** | **69.77** | 83.00% | **50.00%** | 同硬件 ~1.55× lynn-engine — 6/3 实测 Spark NVFP4 decode 结构性卡 ~45(带宽 + dispatch 杠杆均已否决);parity 需 ggml 级重写 / FP4-MMA 硅,**非 Spark 交付目标** |
 | **llama.cpp APEX-MTP I-Balanced** | **25 GB** | **77.01** | **90.00% thinking32** | **78.79% / 83.87% excl_pf thinking32** | 当前 Spark 单流最快;高并发仍需 AR admission |
 | SGLang BF16 official | 67 GB | 30.14 | 86.40% | 45.45% | reference |
 | Lynn W4A8 FP8(工程探索期) | 35 GB | — | — | — | 架构未完成,见 RELEASE_NOTES |
@@ -80,17 +82,17 @@
 
 **普通用户最直观的卖点 = "本地无限 token"**:9B 跑本地,无 quota / 无 API key / 无跨境延迟,智能体跑一晚不限消费。
 
-### Lynn engine 持续 R&D
+### Lynn engine 重启主线
 
-- **W4A8 FP8 路径继续 R&D**,门槛拉高:同模型同硬件下,**Lynn engine 速度必须接近或超过 llama.cpp,且质量上有不可替代优势** — 两条门槛全过才回主线
-- **消费 Blackwell 32GB FP4 MMA 卡普及时**,Lynn engine 路径回主线 reset(R6000-class 硬件)
-- **长 ctx 6.77× SGLang 在 16K 上下文** 数据点保留,作为 NVIDIA Pro 用户"高级模式"卖点
-- **MTP K=1 sequential 6/6 @ 26.4 TPS** correctness-clean baseline 保留
-- **Wave 2 全部 commit 留在 main 分支不 revert** — 5 CLI 并行 + 7 bug fix trail + 178s repack + autotune sweep 2160 config 全是真实工程财产
+- **Lynn engine 已重启为并行主线**,目标是同模型同硬件对标 llama.cpp,不是停在 R&D 降级状态。
+- **已 bank:** 35B NVFP4 decode-only shadow release,常驻 88→28 GiB,token-exact,TPS 0.998×。
+- **下一关:** packed-NVFP4 prefill / zero-reload,先用 proof flag 过 no-reload correctness/memory gate,再下沉 C++/CUDA/Triton batched/grouped kernels。
+- **Spark sm_121 诚实口径:** decode 结构性卡 ~45,追 69.77 需要 native runtime + fused kernels + 最终 FP4-MMA 硅。
+- **Wave 2 全部 commit 留在 main 分支不 revert** — 5 CLI 并行 + 7 bug fix trail + 178s repack + autotune sweep 2160 config 全是真实工程财产。
 
 ---
 
-> 以下 5/15-5/16 R6000 27B Lynn-native NVFP4 工程记录保留作历史进度参考。当前公开数据 + 默认 ship 配置以本节(2026-05-20)和 [RELEASE_NOTES_20260520](RELEASE_NOTES_20260520.md) 为准。
+> 以下 5/15-5/16 R6000 27B Lynn-native NVFP4 工程记录保留作历史进度参考。当前公开数据 + 引擎重启口径以本节(2026-06-03)和 [RELEASE_NOTES_20260603](RELEASE_NOTES_20260603.md) 为准。
 
 ## 5/15-5/16 R6000 27B Lynn-native NVFP4 工程记录(历史)
 
@@ -352,9 +354,9 @@ BASE 35B-A3B
 
 Recovery v1.1 targeted longctx/chem/sql 已试过,但未取代 step5000:它没有改善 longctx,并拉低总分。因此当前基座选择 **step5000 final**。
 
-## 路线 — Lynn 客户端 llama.cpp 默认 ship + Lynn engine R&D 长期
+## 路线 — Lynn engine native-kernel 重启 + llama.cpp 务实 fallback
 
-详见 [`RELEASE_NOTES_20260520.md`](RELEASE_NOTES_20260520.md) 完整决策。**5/20 之后的两条线**:
+详见 [`RELEASE_NOTES_20260603.md`](RELEASE_NOTES_20260603.md) 当前重启口径。客户端短期仍可把 llama.cpp/GGUF 作为务实 fallback,但 Lynn engine 已回到并行主线:用自研 native kernels 追赶 llama.cpp。
 
 ### 短期(2-4 周):Lynn 客户端 llama.cpp 集成 ship 路径
 
@@ -552,5 +554,6 @@ TBD(大概率 MIT,B 阶段生产切换前定下来)。
 - [剪枝 pipeline(calibration / profile / decide / LoRA)](pruning/README.md)
 - [HTTP server(brain 接入指引)](server/README.md)
 - [English README](README_EN.md)
-- [📝 知乎工程复盘:从零开始 Qwen 3.6 35B-A3B 写专用推理引擎(2026-05-11 mega-post)](https://zhuanlan.zhihu.com/p/2036443846322680848) — Phase 2 + Phase 3.2 + NVFP4 路线决策三段合并,~15-20k 中文字
+- [📝 知乎 2026年6月连载:从零开始 Qwen 3.6 35B-A3B 写专用推理引擎踩坑心得分享](https://zhuanlan.zhihu.com/p/2045562329396400486)
+- [📝 历史工程复盘:从零开始 Qwen 3.6 35B-A3B 写专用推理引擎(2026-05-11 mega-post)](https://zhuanlan.zhihu.com/p/2036443846322680848) — Phase 2 + Phase 3.2 + NVFP4 路线决策三段合并
 - [Toolabstain 论文(姊妹项目)](https://github.com/MerkyorLynn/toolabstain-paper)
