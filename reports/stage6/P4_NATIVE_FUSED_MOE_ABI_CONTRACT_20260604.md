@@ -2,7 +2,7 @@
 
 Date: 2026-06-04
 
-Verdict: **ABI/PREFLIGHT ONLY; no fused P4 kernel is banked yet.**
+Verdict: **TWO-STAGE REFERENCE/PREFLIGHT ONLY; no fused P4 kernel is banked yet.**
 
 P3 proved the zero-reload serving path can be quality-smoked behind an opt-in
 server flag, but it still uses the existing packed/Triton active-MoE pieces.
@@ -20,8 +20,9 @@ The language decision is now explicit:
   weight-layout contracts must stop drifting.
 
 This P4 contract does not claim speed. It makes the future fused kernel an
-extension symbol that must compile, bind, and fail loudly until the real CUDA
-math replaces the placeholder boundary.
+extension symbol with a conservative T=1 two-stage packed-NVFP4 reference path.
+The reference path proves the real boundary can return output without BF16
+expert shadows, but it is not the final fused/fast kernel.
 
 ## P4 ABI
 
@@ -54,8 +55,8 @@ Important properties:
 - no Python callback or Triton fallback inside the symbol;
 - shape/layout guards match the Lynn native per-16 Qwen3.6-35B-A3B active MoE
   contract: `H=2048`, `I=512`, `2I=1024`;
-- valid input currently reaches an intentional `P4 fused 4-bit zero-shadow CUDA
-  kernel is not implemented yet` error.
+- valid T=1 decode input currently runs the existing graph-safe two-stage
+  packed-NVFP4 scalar reference inside the native extension.
 
 ## Runtime Bridge
 
@@ -66,9 +67,9 @@ LYNN_NATIVE_ACTIVE_MOE_BACKEND=fused_zero_shadow_out_contract
 ```
 
 It wraps the current decode token as `[1, H]`, passes packed NVFP4 active-expert
-weights into `active_moe_fused_zero_shadow_out_contract`, and stops at the same
-fail-loud boundary. This backend must remain default-off until the CUDA math is
-implemented and the byte-count, numeric, speed, and RC gates pass.
+weights into `active_moe_fused_zero_shadow_out_contract`, and reaches the
+two-stage reference boundary. This backend must remain default-off until the
+byte-count, numeric, speed, and RC gates pass.
 
 The bridge requires `LYNN_MOE_ACTIVE_SCRATCH=1`, which lets
 `resident_runner.py` preallocate `mlp.experts._active_inter_scratch [top_k,512]`
@@ -98,12 +99,12 @@ python3 scripts/spark_stage6_p4_native_abi_preflight.py \
 Expected bankable preflight decision:
 
 ```text
-PASS_ABI_CONTRACT
+PASS_TWO_STAGE_REFERENCE_CONTRACT
 ```
 
 That means the extension built, the symbol exists, a valid packed-NVFP4 tensor
-bundle passed all static guards, and the call stopped only at the intentional
-not-implemented boundary.
+bundle passed all static guards, and the two-stage reference returned finite
+output while `banked_fused_kernel=false`.
 
 The preflight also records an ABI byte budget:
 
@@ -136,14 +137,15 @@ python3 scripts/spark_stage6_p4_runtime_bridge_preflight.py \
 Expected bankable bridge decision:
 
 ```text
-PASS_RUNTIME_BRIDGE_CONTRACT
+PASS_TWO_STAGE_RUNTIME_BRIDGE
 ```
 
 That means the runner first produced a nonzero Triton baseline, removed the
 active-expert BF16 shadow tensors, switched to
-`LYNN_NATIVE_ACTIVE_MOE_BACKEND=fused_zero_shadow_out_contract`, and stopped only
-at the intentional not-implemented CUDA boundary while using caller-owned
-active-MoE scratch.
+`LYNN_NATIVE_ACTIVE_MOE_BACKEND=fused_zero_shadow_out_contract`, returned a
+candidate output from the native two-stage reference while using caller-owned
+active-MoE scratch, and passed a smoke-level numeric comparison against the
+current Triton path.
 
 Bridge summary command:
 
@@ -165,7 +167,7 @@ Non-bankable decisions:
 | `BLOCKED_COMPILE` | native extension did not build/load |
 | `BLOCKED_SYMBOL_MISSING` | pybind/source list drift |
 | `BLOCKED_GUARD_OR_RUNTIME` | tensor ABI drift or unexpected runtime failure |
-| `UNEXPECTED_IMPLEMENTED` | someone removed fail-loud before adding evidence gates |
+| `FAIL_REFERENCE_OUTPUT` | two-stage reference returned non-finite output |
 
 ## Promotion Boundary
 

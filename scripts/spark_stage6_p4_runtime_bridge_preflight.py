@@ -3,8 +3,8 @@
 
 This gate is narrower than a fused-kernel benchmark: it loads a real resident
 runner, obtains a real layer MoE input, deletes active-expert BF16 shadows, then
-checks that the opt-in P4 backend reaches the native zero-shadow fail-loud
-boundary through ``moe_forward_decode_packed_nvfp4``.
+checks that the opt-in P4 backend reaches the native zero-shadow two-stage
+reference path through ``moe_forward_decode_packed_nvfp4``.
 """
 from __future__ import annotations
 
@@ -30,7 +30,6 @@ from engine.resident_runner import LynnIncrementalRunner  # noqa: E402
 
 
 EXPECTED_BACKEND = "fused_zero_shadow_out_contract"
-EXPECTED_ERROR = "P4 fused 4-bit zero-shadow CUDA kernel is not implemented yet"
 ACTIVE_SHADOW_KEYS = ("mlp.experts.gate_up_proj", "mlp.experts.down_proj")
 PACKED_KEYS = (
     "mlp.experts._gate_up_packed",
@@ -151,7 +150,7 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
         "layer": args.layer,
         "prompt": args.prompt,
         "expected_backend": EXPECTED_BACKEND,
-        "expected_error": EXPECTED_ERROR,
+        "expected_reference": "caller-owned two-stage packed-NVFP4 active-MoE reference",
         "banked_runtime_bridge_preflight": False,
         "banked_fused_kernel": False,
         "banked_default_promotion": False,
@@ -208,24 +207,48 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
         result["bf16_active_shadow_aliases_after_delete"] = _bf16_active_shadow_aliases(w)
 
         candidate_error: dict[str, str] | None = None
+        candidate = None
         old_backend = _set_env({"LYNN_NATIVE_ACTIVE_MOE_BACKEND": EXPECTED_BACKEND})
         try:
             try:
-                _ = moe_forward_decode_packed_nvfp4(h_moe, w, cfg)
-                result["candidate_unexpected_output"] = True
+                candidate = moe_forward_decode_packed_nvfp4(h_moe, w, cfg)
             except Exception as exc:
                 candidate_error = {"type": type(exc).__name__, "message": str(exc)}
         finally:
             _restore_env(old_backend)
 
         result["candidate_error"] = candidate_error
+        if candidate is not None:
+            diff = (candidate.float() - baseline.float()).abs()
+            baseline_norm_for_rel = baseline.float().norm().clamp_min(1e-20)
+            result["candidate"] = {
+                "backend": EXPECTED_BACKEND,
+                "output_shape": list(candidate.shape),
+                "output_dtype": str(candidate.dtype),
+                "norm": float(candidate.float().norm().item()),
+                "finite": bool(torch.isfinite(candidate.float()).all().item()),
+                "max_abs_diff_vs_baseline": float(diff.max().item()),
+                "mean_abs_diff_vs_baseline": float(diff.mean().item()),
+                "rel_l2_vs_baseline": float((candidate.float() - baseline.float()).norm().item() / baseline_norm_for_rel.item()),
+            }
         baseline_shape_ok = result["baseline"]["output_shape"] == list(h_moe.shape)
         baseline_dtype_ok = result["baseline"]["output_dtype"] == "torch.bfloat16"
         packed_manifest_ok = _packed_manifest_ok(result["packed_manifest_before_candidate"])
         active_scratch_ok = _active_scratch_ok(result["active_scratch_manifest"], int(cfg["num_experts_per_tok"]))
         shadow_absent = not result["active_shadow_keys_present_after_delete"]
         no_bf16_aliases = not result["bf16_active_shadow_aliases_after_delete"]
-        fail_loud = bool(candidate_error and EXPECTED_ERROR in candidate_error.get("message", ""))
+        candidate_out = result.get("candidate") or {}
+        candidate_shape_ok = candidate_out.get("output_shape") == result["baseline"]["output_shape"]
+        candidate_dtype_ok = candidate_out.get("output_dtype") == "torch.bfloat16"
+        candidate_finite = candidate_out.get("finite") is True
+        candidate_numeric_ok = (
+            candidate_error is None
+            and candidate_shape_ok
+            and candidate_dtype_ok
+            and candidate_finite
+            and float(candidate_out.get("rel_l2_vs_baseline", 1.0)) <= args.rel_l2_threshold
+            and float(candidate_out.get("max_abs_diff_vs_baseline", 1e9)) <= args.max_abs_threshold
+        )
         baseline_ok = baseline_norm > 0.0 and math.isfinite(baseline_norm) and baseline_shape_ok and baseline_dtype_ok
         result["passes"] = {
             "cuda_available": True,
@@ -234,13 +257,15 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
             "packed_tensors_present": packed_manifest_ok,
             "active_scratch_present": active_scratch_ok,
             "active_shadows_removed": bool(removed) and shadow_absent and no_bf16_aliases,
-            "candidate_fail_loud": fail_loud,
+            "candidate_output_returned": candidate_error is None and candidate is not None,
+            "candidate_shape_dtype": bool(candidate_shape_ok and candidate_dtype_ok),
+            "candidate_numeric_vs_triton": bool(candidate_numeric_ok),
             "fused_kernel_unbanked": result["banked_fused_kernel"] is False,
             "default_promotion_closed": result["banked_default_promotion"] is False,
-            "all": bool(baseline_ok and packed_manifest_ok and active_scratch_ok and removed and shadow_absent and no_bf16_aliases and fail_loud),
+            "all": bool(baseline_ok and packed_manifest_ok and active_scratch_ok and removed and shadow_absent and no_bf16_aliases and candidate_numeric_ok),
         }
         result["banked_runtime_bridge_preflight"] = bool(result["passes"]["all"])
-        result["decision"] = "PASS_RUNTIME_BRIDGE_CONTRACT" if result["passes"]["all"] else "FAIL_RUNTIME_BRIDGE_CONTRACT"
+        result["decision"] = "PASS_TWO_STAGE_RUNTIME_BRIDGE" if result["passes"]["all"] else "FAIL_RUNTIME_BRIDGE_CONTRACT"
         return result
     except Exception as exc:
         result["decision"] = "BLOCKED_RUNTIME_EXCEPTION"
@@ -257,6 +282,8 @@ def main() -> int:
     ap.add_argument("--layer", type=int, default=0)
     ap.add_argument("--prompt", default="Explain MoE active parameters in one sentence.")
     ap.add_argument("--max-seq-len", type=int, default=4096)
+    ap.add_argument("--rel-l2-threshold", type=float, default=0.02)
+    ap.add_argument("--max-abs-threshold", type=float, default=1.0)
     ap.add_argument("--strict-exit", action="store_true")
     ap.add_argument("--verbose", action="store_true")
     args = ap.parse_args()

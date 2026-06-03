@@ -36,12 +36,12 @@ def write_json(path: Path, data: dict) -> None:
 def pass_fixture() -> dict:
     return {
         "schema": "lynn-stage6-p4-runtime-bridge-preflight-v1",
-        "decision": "PASS_RUNTIME_BRIDGE_CONTRACT",
+        "decision": "PASS_TWO_STAGE_RUNTIME_BRIDGE",
         "model": "/models/demo",
         "layer": 0,
         "prompt": "fixture",
         "expected_backend": "fused_zero_shadow_out_contract",
-        "expected_error": "P4 fused 4-bit zero-shadow CUDA kernel is not implemented yet",
+        "expected_reference": "caller-owned two-stage packed-NVFP4 active-MoE reference",
         "banked_runtime_bridge_preflight": True,
         "banked_fused_kernel": False,
         "banked_default_promotion": False,
@@ -64,9 +64,16 @@ def pass_fixture() -> dict:
             "mlp.experts._down_scale": {"shape": [256, 2048, 32], "dtype": "torch.float32", "bytes": 67108864, "contiguous": True},
             "mlp.experts._down_global_scale": {"shape": [1], "dtype": "torch.float32", "bytes": 4, "contiguous": True},
         },
-        "candidate_error": {
-            "type": "RuntimeError",
-            "message": "P4 fused 4-bit zero-shadow CUDA kernel is not implemented yet",
+        "candidate_error": None,
+        "candidate": {
+            "backend": "fused_zero_shadow_out_contract",
+            "output_shape": [1, 1, 2048],
+            "output_dtype": "torch.bfloat16",
+            "norm": 12.49,
+            "finite": True,
+            "max_abs_diff_vs_baseline": 0.25,
+            "mean_abs_diff_vs_baseline": 0.01,
+            "rel_l2_vs_baseline": 0.01,
         },
         "passes": {
             "cuda_available": True,
@@ -75,7 +82,9 @@ def pass_fixture() -> dict:
             "packed_tensors_present": True,
             "active_scratch_present": True,
             "active_shadows_removed": True,
-            "candidate_fail_loud": True,
+            "candidate_output_returned": True,
+            "candidate_shape_dtype": True,
+            "candidate_numeric_vs_triton": True,
             "fused_kernel_unbanked": True,
             "default_promotion_closed": True,
             "all": True,
@@ -158,6 +167,7 @@ def main() -> int:
         assert "Banked fused kernel | `False`" in pass_summary.stdout
         assert "Active scratch present | `True`" in pass_summary.stdout
         assert "Active shadows removed | `True`" in pass_summary.stdout
+        assert "Candidate output returned | `True`" in pass_summary.stdout
 
         shadow_fail = run([
             sys.executable,

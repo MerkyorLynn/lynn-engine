@@ -18,9 +18,8 @@ CHECKS = [
             "inter_scratch must be [T, top_k, 512]",
             "gate_up_packed must be [E, 1024, 1024]",
             "down_packed must be [E, 2048, 256]",
-            "active_moe_fused_zero_shadow_out_contract passed all packed-NVFP4 shape/layout checks",
-            "caller-owned-scratch/output",
-            "do not add BF16 expert shadows",
+            "lynn_native_active_moe_grouped_per16_nonatomic_out_reference",
+            "P4 two-stage reference currently supports T=1 decode only",
         ],
     ),
     (
@@ -34,7 +33,7 @@ CHECKS = [
         [
             "void lynn_native_active_moe_fused_zero_shadow_out_contract",
             "active_moe_fused_zero_shadow_out_contract",
-            "P4 fail-loud caller-owned-scratch/output ABI",
+            "P4 two-stage caller-owned-scratch/output reference",
         ],
     ),
     (
@@ -58,10 +57,10 @@ CHECKS = [
             "inter_scratch",
             "packed_vs_bf16_shadow_ratio",
             "forbidden_shadow_tensor_names",
-            "PASS_ABI_CONTRACT",
+            "PASS_TWO_STAGE_REFERENCE_CONTRACT",
             "BLOCKED_SYMBOL_MISSING",
-            "UNEXPECTED_IMPLEMENTED",
-            "P4 fused 4-bit zero-shadow CUDA kernel is not implemented yet",
+            "reference_output_returned",
+            "output_finite",
         ],
     ),
     (
@@ -77,7 +76,7 @@ CHECKS = [
     (
         "scripts/summarize_stage6_p4_native_abi_preflight.py",
         [
-            "PASS_ABI_CONTRACT",
+            "PASS_TWO_STAGE_REFERENCE_CONTRACT",
             "fused-kernel promotion boundary violated",
             "Banked fused kernel",
             "Zero-shadow ABI",
@@ -108,6 +107,7 @@ CHECKS = [
         [
             "lynn-stage6-p4-runtime-bridge-preflight-v1",
             "fused_zero_shadow_out_contract",
+            "PASS_TWO_STAGE_RUNTIME_BRIDGE",
             "ACTIVE_SHADOW_KEYS",
             "_remove_active_shadows",
             "LYNN_NATIVE_ACTIVE_MOE_LAYERS",
@@ -115,7 +115,7 @@ CHECKS = [
             "active_scratch_manifest",
             "bf16_active_shadow_aliases_after_delete",
             "moe_forward_decode_packed_nvfp4",
-            "PASS_RUNTIME_BRIDGE_CONTRACT",
+            "PASS_TWO_STAGE_RUNTIME_BRIDGE",
             "banked_runtime_bridge_preflight",
             "banked_fused_kernel",
         ],
@@ -123,10 +123,11 @@ CHECKS = [
     (
         "scripts/summarize_stage6_p4_runtime_bridge_preflight.py",
         [
-            "PASS_RUNTIME_BRIDGE_CONTRACT",
+            "PASS_TWO_STAGE_RUNTIME_BRIDGE",
             "fused-kernel promotion boundary violated",
             "Active shadows removed",
             "Active scratch present",
+            "Candidate numeric vs Triton",
             "Runtime Bridge Preflight Summary",
         ],
     ),
@@ -143,11 +144,11 @@ CHECKS = [
     (
         "reports/stage6/P4_NATIVE_FUSED_MOE_ABI_CONTRACT_20260604.md",
         [
-            "ABI/PREFLIGHT ONLY; no fused P4 kernel is banked yet",
+            "TWO-STAGE REFERENCE/PREFLIGHT ONLY; no fused P4 kernel is banked yet",
             "active_moe_fused_zero_shadow_out_contract",
             "caller-owned `inter_scratch` and `out`",
             "no BF16 expert weight tensors in the ABI",
-            "PASS_ABI_CONTRACT",
+            "PASS_TWO_STAGE_REFERENCE_CONTRACT",
             "python3 scripts/test_stage6_p4_zero_shadow_firewall.py",
             "python3 scripts/spark_stage6_p4_runtime_bridge_preflight.py",
             "python3 scripts/test_stage6_p4_native_abi_static.py",

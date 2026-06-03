@@ -62,6 +62,7 @@ def _verdict(data: dict[str, Any]) -> tuple[str, str]:
     packed = data.get("packed_manifest_before_candidate") or {}
     scratch = data.get("active_scratch_manifest") or {}
     candidate_error = data.get("candidate_error") or {}
+    candidate = data.get("candidate") or {}
     if data.get("schema") != SCHEMA:
         return "FAIL", "schema mismatch"
     if data.get("banked_fused_kernel") is not False:
@@ -76,15 +77,17 @@ def _verdict(data: dict[str, Any]) -> tuple[str, str]:
         "packed_tensors_present",
         "active_scratch_present",
         "active_shadows_removed",
-        "candidate_fail_loud",
+        "candidate_output_returned",
+        "candidate_shape_dtype",
+        "candidate_numeric_vs_triton",
         "fused_kernel_unbanked",
         "default_promotion_closed",
         "all",
     ):
         if passes.get(gate) is not True:
             return "FAIL", f"{gate} gate fail"
-    if data.get("decision") != "PASS_RUNTIME_BRIDGE_CONTRACT":
-        return "FAIL", "top-level decision is not PASS_RUNTIME_BRIDGE_CONTRACT"
+    if data.get("decision") != "PASS_TWO_STAGE_RUNTIME_BRIDGE":
+        return "FAIL", "top-level decision is not PASS_TWO_STAGE_RUNTIME_BRIDGE"
     if baseline.get("output_shape") != [1, 1, 2048] or baseline.get("output_dtype") != "torch.bfloat16":
         return "FAIL", "baseline shape/dtype mismatch"
     norm = baseline.get("norm")
@@ -98,17 +101,22 @@ def _verdict(data: dict[str, Any]) -> tuple[str, str]:
         return "FAIL", "explicit BF16 active shadow keys remain"
     if data.get("bf16_active_shadow_aliases_after_delete"):
         return "FAIL", "BF16 active shadow aliases remain"
-    if candidate_error.get("type") not in {"RuntimeError", "Error"}:
-        return "FAIL", "candidate error type mismatch"
-    if str(data.get("expected_error", "")) not in str(candidate_error.get("message", "")):
-        return "FAIL", "candidate error does not contain expected P4 fail-loud marker"
-    return "PASS", "runtime bridge reaches P4 fail-loud on real runner path"
+    if candidate_error:
+        return "FAIL", "candidate raised instead of returning output"
+    if candidate.get("output_shape") != baseline.get("output_shape") or candidate.get("output_dtype") != "torch.bfloat16":
+        return "FAIL", "candidate shape/dtype mismatch"
+    if candidate.get("finite") is not True:
+        return "FAIL", "candidate output is not finite"
+    if not isinstance(candidate.get("rel_l2_vs_baseline"), (int, float)):
+        return "FAIL", "missing candidate rel_l2 metric"
+    return "PASS", "runtime bridge returns two-stage P4 output on real runner path"
 
 
 def summarize(data: dict[str, Any]) -> str:
     verdict, reason = _verdict(data)
     passes = data.get("passes") or {}
     baseline = data.get("baseline") or {}
+    candidate = data.get("candidate") or {}
     removed = data.get("removed_active_shadows") or {}
     packed = data.get("packed_manifest_before_candidate") or {}
     scratch = data.get("active_scratch_manifest") or {}
@@ -127,10 +135,14 @@ def summarize(data: dict[str, Any]) -> str:
         f"| Banked fused kernel | `{data.get('banked_fused_kernel')}` |",
         f"| Banked default promotion | `{data.get('banked_default_promotion')}` |",
         f"| Baseline norm | `{baseline.get('norm')}` |",
+        f"| Candidate norm | `{candidate.get('norm')}` |",
+        f"| Candidate rel L2 vs baseline | `{candidate.get('rel_l2_vs_baseline')}` |",
+        f"| Candidate max abs diff vs baseline | `{candidate.get('max_abs_diff_vs_baseline')}` |",
         f"| Packed tensors present | `{passes.get('packed_tensors_present')}` |",
         f"| Active scratch present | `{passes.get('active_scratch_present')}` |",
         f"| Active shadows removed | `{passes.get('active_shadows_removed')}` |",
-        f"| Candidate fail-loud | `{passes.get('candidate_fail_loud')}` |",
+        f"| Candidate output returned | `{passes.get('candidate_output_returned')}` |",
+        f"| Candidate numeric vs Triton | `{passes.get('candidate_numeric_vs_triton')}` |",
         f"| Elapsed seconds | `{data.get('elapsed_s')}` |",
         "",
         "## Removed Active Shadows",
