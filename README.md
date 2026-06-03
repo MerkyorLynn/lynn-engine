@@ -1,5 +1,7 @@
 # Lynn Engine
 
+> **🚀 战略校正(2026-06-03):Lynn engine 重启为并行主线,目标「对标 llama.cpp」,不再是"降级为 R&D / 只用 llama.cpp"。** 客户端短期仍以 llama.cpp/GGUF 为**务实默认后端**;引擎并行推进——同模型同硬件**对标 llama.cpp**,终局 = 自己啃下**融合 4-bit / 零-shadow 内核**(单投影 PoC → 全 dense + 删 shadow → MoE grouped 专家 → 融合减 launch,每阶段 gate + RC),在 FP4-MMA 卡(R6000 一代)上**逼近乃至超过**。**做引擎,要做就自己把内核啃下来。**
+
 > **🆕 2026-06-03 Decode 内核启动开销战役 — Spark NVFP4 35B-A3B 单流 38.96 → ~45 TPS,质量 RC 等价。**
 > 实测 decode 是 launch-bound(census:**~1527 CUDA launch/token**,~40% 时间耗在 CPU 端 dispatch)。逐簇融合 launch + 消拷贝:**fused RMSNorm(最大头)/ shared-expert / linear-attn g/beta-fold / full-attn(token-exact)/ NVFP4 `_scaled_mm` bf16-out copy-elision**,**5 个 RC-validated launch-cut**——在 structured/V9/GPQA/tool-call/long-form 上 **40/40 greedy 输出与 baseline 逐字一致**,继承 **MMLU 84.40 / GPQA-Diamond 49.49**。全部 gated、默认安全、可回滚。
 >
@@ -16,7 +18,7 @@
 > [知乎/公众号草稿](reports/articles/QWEN36_35B_A3B_QUALITY_SPEED_OPTIMAL_PATH_20260528.md)。
 
 > **🆕 2026-05-27 Active R&D update — Lynn engine 没有放弃,正在把 Nemotron-style self-spec 的可移植部分落到 Qwen35 APEX-MTP。**
-> 5/20 的产品默认推理 pivot 仍然成立:客户端默认走 llama.cpp/GGUF。新的 5/27 进展是 engine 研发线继续推进:
+> (历史记录;最新口径以顶部 6/3 重启校正为准)当时客户端默认走 llama.cpp/GGUF,engine 研发线持续推进:
 > **Qwen3.6-35B-A3B W4A16 + official APEX/MTP sidecar 已跑通 K=2 verify/accept/crop/full-accept/prefix-repair token-exact smoke**。
 > 当前 blocker 不是算法控制流,而是 K2 verifier 的 T=1-equivalent attention / `o_proj` kernel 成本。详见
 > [5/27 active status](reports/mtp/LYNN_ENGINE_ACTIVE_RESEARCH_STATUS_20260527.md) 和
@@ -24,7 +26,7 @@
 >
 > 简单说:产品 fallback 先用 llama.cpp,但 Lynn engine 主线正在继续吃 APEX-MTP / K=N / self-spec 这条硬路线。
 
-> **🆕 2026-05-20 重大状态变更 — Lynn engine 从产品默认推理底层降级为 R&D 持续探索路径。**
+> **🆕 2026-05-20 状态变更(⚠️ 已被顶部 6/3 重启校正取代)— 当时把 Lynn engine 降级为 R&D 持续探索路径;现引擎已重启为对标 llama.cpp 的并行主线。**
 > Lynn 客户端短期投奔 llama.cpp 生态作为默认本地推理底层(Mac Metal / Win MSVC / Linux CUDA 全平台 + Q4_K_M GGUF)。
 > 默认 ship 模型 = **Qwen3.5-9B Q4_K_M-imatrix(5.3GB)** thinking-on excl_pf MMLU 90+ / GPQA 80+。
 > **完整决策见 → [RELEASE_NOTES_20260520.md](./RELEASE_NOTES_20260520.md)**
@@ -43,9 +45,9 @@
 [![commits](https://img.shields.io/github/commit-activity/m/MerkyorLynn/lynn-engine)](https://github.com/MerkyorLynn/lynn-engine/commits/main)
 [![license](https://img.shields.io/badge/license-TBD-orange)](.)
 
-## 当前状态(2026-05-20)
+## 当前状态(2026-06-03)
 
-**5/20 战略 pivot**:Lynn engine 从产品默认推理底层 → **R&D 持续探索路径**。Lynn 客户端短期投奔 llama.cpp 生态作为默认本地推理底层。完整决策见 [RELEASE_NOTES_20260520.md](RELEASE_NOTES_20260520.md)。
+**6/3 战略校正(取代 5/20 pivot)**:Lynn engine **重启为并行主线,目标对标 llama.cpp** —— 不再是"降级为 R&D / 客户端投奔 llama.cpp"。客户端短期仍以 llama.cpp/GGUF 作**务实默认后端**,但引擎同步推进:同模型同硬件对标 llama.cpp,终局是自己啃下融合 4-bit / 零-shadow 内核,在 FP4-MMA 卡(R6000 一代)上逼近乃至超过。6/3 实测口径(Spark sm_121 无 FP4 MMA,decode 结构性卡 ~45,parity 是 ggml 重写 / FP4-MMA 硅目标)见顶部 6/3 战役;5/20 决策背景见 [RELEASE_NOTES_20260520.md](RELEASE_NOTES_20260520.md)。
 
 ### 5/16-5/20 Spark sm_121 W4A8 FP8 Phase 2 实测信号
 

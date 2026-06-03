@@ -1,11 +1,13 @@
 # Lynn Engine
 
+> **🚀 Strategic correction (2026-06-03): Lynn engine is restarted as a parallel mainline, target = benchmark against (rival) llama.cpp — no longer "downgraded to R&D / just use llama.cpp".** The client still ships llama.cpp/GGUF short-term as a **pragmatic default backend**; the engine advances in parallel — same model + hardware vs llama.cpp, endgame = chewing through the **fused 4-bit / zero-shadow kernel** ourselves (single-projection PoC → all dense + drop shadow → MoE grouped experts → fuse to cut launches, gate + RC each step), approaching and even **surpassing it on FP4-MMA cards (R6000 class)**. **If you're going to build an engine, build the kernels yourself.**
+
 > **🆕 2026-06-03 Decode kernel-launch campaign — Spark NVFP4 35B-A3B single-stream 38.96 → ~45 TPS, RC quality-identical.**
 > Decode is launch-bound (census: **~1527 CUDA launches/token**, ~40% of token time is CPU-side dispatch). We fused launch clusters + elided copies: **fused RMSNorm (biggest) / shared-expert / linear-attn g/beta-fold / full-attn (token-exact) / NVFP4 `_scaled_mm` bf16-out copy-elision** — **5 RC-validated launch-cuts**, with **40/40 greedy outputs bit-identical to baseline** across structured/V9/GPQA/tool-call/long-form, inheriting **MMLU 84.40 / GPQA-Diamond 49.49**. All gated, default-safe, reversible.
 >
 > **🎯 Determined to catch llama.cpp.** Q4_K_M still leads at **69.77** on the same box — and we now know exactly why: its hand-fused kernel **reads 4-bit weights directly, dequantizes in registers, runs a bf16 GEMV** (bandwidth-optimal, single launch); we still hit a **~2× bandwidth wall** from the BF16 dequant-shadow (baseline 38.96 ≈ 6 GB/token ÷ 240 GB/s ≈ 40). **The endgame is set**: write Lynn's own "**read-4bit + dequant-in-register + bf16-GEMV + zero-shadow + single-launch**" NVFP4 kernel, moving the wall ~40 → ~140 (**where 70 lives**). The same NVFP4 weights + kernel run native (faster) on R6000's FP4 MMA — **Lynn's cross-device core**. llama.cpp is **MIT**: the blueprint is open and clean-room-referenceable. **Conquer it = Lynn becomes the llama.cpp of NVFP4.** See [decode launch-overhead campaign](reports/qwen36_35b/DECODE_LAUNCH_OVERHEAD_CAMPAIGN_20260603.md).
 
-> **🆕 2026-05-20 major status change — Lynn engine pivots from "product default inference backend" to "R&D exploration track".**
+> **🆕 2026-05-20 status change (⚠️ superseded by the 6/3 restart correction above) — at the time Lynn engine was downgraded to an "R&D exploration track"; it is now restarted as a parallel mainline benchmarking against llama.cpp.**
 > The Lynn client adopts the **llama.cpp** ecosystem as the short-term default local inference backend (Mac Metal / Windows / Linux CUDA + Q4_K_M GGUF).
 > Default ship model = **Qwen3.5-9B Q4_K_M-imatrix (5.3 GB)**, thinking-on excl_pf MMLU 90+ / GPQA 80+.
 > **Full decision → [RELEASE_NOTES_20260520.md](./RELEASE_NOTES_20260520.md)** (Chinese only for now; English summary in this README's "Current status (2026-05-20)" section below).
@@ -24,9 +26,9 @@
 [![commits](https://img.shields.io/github/commit-activity/m/MerkyorLynn/lynn-engine)](https://github.com/MerkyorLynn/lynn-engine/commits/main)
 [![license](https://img.shields.io/badge/license-TBD-orange)](.)
 
-## Current status (2026-05-20)
+## Current status (2026-06-03)
 
-**5/20 strategic pivot**: Lynn engine moves from "product default inference backend" → **R&D exploration track**. The Lynn client adopts llama.cpp ecosystem as the short-term default local inference backend. Full decision in [RELEASE_NOTES_20260520.md](RELEASE_NOTES_20260520.md) (Chinese).
+**6/3 strategic correction (supersedes the 5/20 pivot)**: Lynn engine is **restarted as a parallel mainline, target = benchmark against (rival) llama.cpp** — no longer "downgraded to R&D / client defects to llama.cpp". The client still uses llama.cpp/GGUF short-term as a **pragmatic default backend**, but the engine advances in lockstep: same model + hardware vs llama.cpp, endgame = chewing through the fused 4-bit / zero-shadow kernel ourselves, approaching and even surpassing it on FP4-MMA silicon (R6000 class). The 6/3 measured read (Spark sm_121 has no FP4 MMA → decode structurally capped ~45; parity is a ggml-rewrite / FP4-MMA goal) is in the top 6/3 banner; 5/20 decision background in [RELEASE_NOTES_20260520.md](RELEASE_NOTES_20260520.md) (Chinese).
 
 ### 5/16-5/20 Spark sm_121 W4A8 FP8 Phase 2 — what we learned
 
