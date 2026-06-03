@@ -39,9 +39,17 @@ def _fmt(x: float | None, unit: str = "") -> str:
 def _verdict(data: dict[str, Any]) -> tuple[str, str]:
     passes = data.get("passes") or {}
     if passes.get("all") is True:
-        return "PASS", "functional + token-exact"
+        return "PASS", "functional + generated-token exact smoke"
+    hard_gates = (
+        "prompt_count",
+        "release_meaningful",
+        "memory_drop_meaningful",
+        "reload_not_called",
+    )
+    if any(passes.get(key) is not True for key in hard_gates):
+        return "FAIL", "hard evidence gate fail"
     if passes.get("functional_non_degenerate") and passes.get("text_prefix_200_match"):
-        return "WARN", "functional/text-prefix pass, token-exact fail"
+        return "WARN", "functional/text-prefix pass, generated-token exact fail"
     if passes.get("functional_non_degenerate"):
         return "FAIL", "functional pass, exact/text gate fail"
     return "FAIL", "functional non-degenerate gate fail"
@@ -83,12 +91,17 @@ def summarize(data: dict[str, Any]) -> str:
         f"| Model | `{data.get('model', 'unknown')}` |",
         f"| Max new tokens | `{data.get('max_new', 'unknown')}` |",
         f"| Functional non-degenerate | `{passes.get('functional_non_degenerate')}` |",
-        f"| Token-exact prompts | `{token_exact}/{n}` |",
+        f"| Prompt count gate | `{passes.get('prompt_count')}` |",
+        f"| Generated-ID exact prompts | `{token_exact}/{n}` |",
         f"| Text-prefix prompts | `{text_exact}/{n}` |",
+        f"| Release meaningful | `{passes.get('release_meaningful')}` |",
+        f"| Memory drop meaningful | `{passes.get('memory_drop_meaningful')}` |",
+        f"| Reload not called | `{passes.get('reload_not_called')}` |",
         f"| Baseline degenerate | `{base_degenerate}/{len(baseline)}` |",
         f"| Opt-in degenerate | `{opt_degenerate}/{len(optin)}` |",
         f"| Loaded memory | `{_fmt(_f(memory.get('loaded_gib'), default=float('nan')), ' GiB')}` |",
         f"| After release memory | `{_fmt(_f(memory.get('after_release_gib'), default=float('nan')), ' GiB')}` |",
+        f"| Memory drop | `{_fmt(_f(memory.get('drop_gib'), default=float('nan')), ' GiB')}` |",
         f"| Released memory | `{_fmt(_f(release.get('released_gib'), default=float('nan')), ' GiB')}` |",
         f"| Baseline prefill avg | `{_fmt(base_prefill, ' s')}` |",
         f"| Opt-in prefill avg | `{_fmt(opt_prefill, ' s')}` |",
