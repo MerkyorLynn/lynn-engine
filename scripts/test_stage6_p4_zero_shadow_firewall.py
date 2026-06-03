@@ -46,6 +46,11 @@ PY_REQUIRED = [
     "active_moe_fused_zero_shadow_out_contract",
 ]
 
+PY_DISPATCH_REQUIRED = [
+    "refusing to ",
+    "fall back to the generic Triton two-stage path",
+]
+
 CU_REQUIRED = [
     "lynn_native_active_moe_grouped_per16_nonatomic_out_reference",
     "torch::Tensor inter_scratch",
@@ -70,6 +75,13 @@ def _extract_function(text: str, name: str) -> str:
     return text[start:end]
 
 
+def _extract_active_moe_backend_fallback_set(text: str) -> str:
+    match = re.search(r"elif backend in \{(?P<body>.*?)\}:", text, re.DOTALL)
+    if not match:
+        raise AssertionError("missing active-MoE generic backend fallback set")
+    return match.group("body")
+
+
 def _check_contains(label: str, text: str, needles: list[str], failures: list[str]) -> None:
     for needle in needles:
         if needle not in text:
@@ -87,9 +99,12 @@ def main() -> int:
     py_text = PY_BACKEND.read_text(encoding="utf-8")
     cu_text = CU_CONTRACT.read_text(encoding="utf-8")
     py_fn = _extract_function(py_text, "_active_moe_native_fused_zero_shadow_out_contract")
+    fallback_set = _extract_active_moe_backend_fallback_set(py_text)
 
     _check_contains("P4 Python backend", py_fn, PY_REQUIRED, failures)
     _check_absent("P4 Python backend", py_fn, PY_FORBIDDEN, failures)
+    _check_contains("active-MoE dispatch", py_text, PY_DISPATCH_REQUIRED, failures)
+    _check_absent("active-MoE generic fallback set", fallback_set, ["fused_zero_shadow_out_contract"], failures)
     _check_contains("P4 CUDA contract", cu_text, CU_REQUIRED, failures)
     _check_absent("P4 CUDA contract", cu_text, CU_FORBIDDEN, failures)
 

@@ -76,6 +76,13 @@ The bridge requires `LYNN_MOE_ACTIVE_SCRATCH=1`, which lets
 and `mlp.experts._active_out_scratch [2048]` per layer. The P4 symbol must not
 allocate its own hot-path tensors.
 
+False-pass guard: `fused_zero_shadow_out_contract` is not allowed to fall
+through the generic Triton two-stage backend set. If the requested layer does
+not match `LYNN_NATIVE_ACTIVE_MOE_LAYERS`, the dispatch path must fail loudly.
+The runtime bridge preflight records `native_layer_selected_for_candidate=true`
+and the summarizer treats that as a hard gate before banking
+`PASS_TWO_STAGE_RUNTIME_BRIDGE`.
+
 ## GPU Preflight
 
 Run through the Spark artifact wrapper after syncing the branch:
@@ -200,6 +207,14 @@ GPU-free zero-shadow firewall:
 
 ```bash
 python3 scripts/test_stage6_p4_zero_shadow_firewall.py
+```
+
+Stage 6 evidence ledger:
+
+```bash
+python3 scripts/write_stage6_evidence_ledger.py \
+  --markdown-out reports/stage6/STAGE6_EVIDENCE_LEDGER_20260604.md \
+  --json-out reports/stage6/stage6_evidence_ledger_20260604.json
 ```
 
 Formal report writer:
