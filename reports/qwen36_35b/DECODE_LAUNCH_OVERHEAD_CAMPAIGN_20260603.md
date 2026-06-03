@@ -155,6 +155,19 @@
   `LYNN_MTP_SIDECAR=<path>` + K≥2 step mode + `LYNN_MTP_VERIFY=1`, measure accept-rate + TPS gain +
   RC quality; pick sidecar variant (base vs official-lynn-fused). Expect **~+13% byte-capped**
   (llama.cpp APEX proves it on this exact model: 79 vs 69.77) → ~45→~51, clears 47-50, NO kernel risk.
+- **▶ STAGE 5 RESULT (6/3) — NOT a win this round, but NOT判负 (fixable alignment).** Ran
+  `scripts/spark_mtp_ab.py` on the full ~45 RC stack, both sidecar variants (`qwen36-35b-a3b-mtp`
+  + `-official-lynn-fused`): **`TOKEN_EXACT=True` (verify/reject/rollback wiring correct), but
+  accept = 2/82 ≈ 2.4% → effective ~20 TPS (regression).** Diagnosis: NOT an engine-correctness
+  bug — a draft-head↔serving ALIGNMENT bug. hidden source confirmed pre-final-norm (correct);
+  both sidecars same 2.4% (systematic, not variant) → suspect = **offset mismatch** (trained
+  contract offset=2; serving may apply offset-1 → drafts ~always rejected, 2.4% = "basically
+  random"). NOT判负 because **llama.cpp APEX-MTP serves the SAME head+model at +13% / 60%+ accept**
+  → head is good, +13% is reachable; we only need serving alignment.
+  - **FIX ENTRY (next, focused/fresh ctx):** `engine/mtp_sidecar.py::mtp_logits` offset contract
+    vs the serving loop's draft placement. First add a draft-vs-actual ±1-offset probe to confirm
+    the shift direction, then correct it (likely config-level, no retrain). Cross-check positioning
+    against the working llama.cpp APEX-MTP serving. If fixed → ~45→~51.
 - **▶ STAGE 6 (endgame, only if MTP tops out — user-directed moat):** the fused
   **read-4bit + dequant-in-register + bf16-GEMV + zero-shadow + single-launch** kernel. Rationale
   (recomputed): the REAL wall is bandwidth, not launch — baseline 38.96 ≈ BF16-shadow 6GB/tok ÷
