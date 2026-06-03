@@ -846,6 +846,37 @@ class LynnIncrementalRunner:
             )
             w[key] = fused
 
+    def _prepare_full_attn_qkv_native_fp4(self) -> None:
+        """Attach packed-NVFP4 aliases for full-attn q/k/v/o projections.
+
+        These ship PACKED 4-bit in the checkpoint (`self_attn.*_proj.weight.packed`)
+        but the loader dequantizes them to a BF16 shadow. Attaching the packed
+        objects under the `.packed` alias lets decode read the 4-bit weights
+        (via `LYNN_PACKED_DECODE_FULL_ATTN=1` in `_decode_weight`) instead of the
+        BF16 shadow — ~4x less attn-projection weight traffic at ZERO quality
+        change (identical quantized weights). Opt-in; coexists with the BF16 path.
+        """
+        from engine.nvfp4_runtime import load_packed_nvfp4_linear
+
+        attached = 0
+        for layer_idx, (layer_type, w) in enumerate(zip(self.layer_types, self.layer_weights)):
+            if layer_type != "full_attention":
+                continue
+            base = f"model.language_model.layers.{layer_idx}.self_attn"
+            for proj in ("q_proj", "k_proj", "v_proj", "o_proj"):
+                pkey = f"self_attn.{proj}.weight.packed"
+                if pkey in w:
+                    continue
+                try:
+                    w[pkey] = load_packed_nvfp4_linear(self.model_dir, f"{base}.{proj}", device=self.device)
+                    attached += 1
+                except Exception as exc:  # noqa: BLE001
+                    if self.verbose:
+                        print(f"[resident] full-attn {proj} L{layer_idx} packed load failed: {exc}", flush=True)
+        self.full_attn_qkv_native_fp4_attached = attached
+        if self.verbose:
+            print(f"[resident] full-attn qkv native-fp4 attached={attached}", flush=True)
+
     def _prepare_linear_attn_decode_constants(self) -> None:
         """Precompute tiny static decode constants for linear-attention layers."""
         for layer_type, w in zip(self.layer_types, self.layer_weights):

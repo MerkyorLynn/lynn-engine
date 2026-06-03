@@ -19,10 +19,21 @@ no FP4 MMA, no MTP** — so the hardware plainly does ≥70 on the dequant path.
 - **Neither is BW-saturated** (both < 50% of 240 GB/s) → at M=1 decode both are
   **latency/overhead-bound, not memory-bound**. So 40 has ~2.7× BW headroom.
 
-**The 1.75× gap decomposes:** ≈**1.5× from extra bytes** (our BF16 attn-proj + any BF16
-lm_head vs llama.cpp's all-4-bit) + ≈**1.2× from kernel/launch overhead** (our Triton
-"~140 tiny launches/token" vs ggml's fused CUDA). **Both are Spark-side software fixes,
-not hardware.** SM120/FP4-MMA is only for the *100–150* tier, never for 70.
+**The 1.75× gap is ~ALL kernel/launch overhead, NOT bytes** (measured, two ways):
+- **qkv fusion** (3→1 GEMV, less traffic+launches): clean A/B = **+0.3%**.
+- **packed-4-bit attn** (4× less attn-proj traffic, same weights): clean A/B = **0.994× (−0.6%)**.
+Both *traffic* levers gave ≈nothing → at M=1 the GEMVs are **latency/launch-bound, not
+bandwidth-bound** (we run at ~37% of BW; cutting bytes doesn't help a latency-bound op,
+and the packed kernel's own dequant overhead cancels the saving). So the entire 1.75× is
+**per-operation overhead**: our ~140 tiny Triton launches/token (per-expert MoE, per-layer
+linear-attn, etc.) vs llama.cpp/ggml's fused, low-dispatch CUDA. **Spark-side software, not
+hardware** — SM120/FP4-MMA is only for the 100–150 tier, never for 70.
+
+**∴ The ONLY lever that moves 40→70 is cutting launch/dispatch overhead** (fuse kernels;
+or a CUDA-graph that handles the *incremental* KV without forcing full-attn fixed-shape —
+the reason the existing reusable graph was net-negative). The three "obvious" quick levers
+are now all measured dead-ends for this: graph −20%, qkv-fusion +0.3%, packed-attn −0.6%.
+Matching ggml's per-op efficiency is real sustained kernel work, not a flag.
 
 **∴ Realistic Spark target = ~70 (llama.cpp-proven), via: (1) quantize the full-attn
 q/k/v/o (and lm_head) to 4-bit/packed NVFP4 — kill the BF16 traffic; (2) cut kernel
