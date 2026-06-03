@@ -1,0 +1,200 @@
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 13.0.1
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+/usr/local/lib/python3.12/dist-packages/torch/cuda/__init__.py:283: UserWarning:
+    Found GPU0 NVIDIA GB10 which is of cuda capability 12.1.
+    Minimum and Maximum cuda capability supported by this version of PyTorch is
+    (8.0) - (12.0)
+
+  warnings.warn(
+  Lynn variable NVFP4 slow dequant load: 1.69 GB in 4.5s
+=============== STAGE 6 PHASE 2-KA GATED-DELTA NATIVE LOOP POC ===============
+model      : /home/merkyor/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-from-bf16-20260526
+layer      : 0
+seq_lens   : [256, 512]
+chunk_size : 64
+[T=256] chunk=3.40ms native_alloc=8.90ms native_inplace=8.03ms
+  alloc cos=0.999993283 rel_l2=3.673e-03; inplace cos=0.999993283 rel_l2=3.673e-03
+[T=512] chunk=4.16ms native_alloc=16.28ms native_inplace=15.62ms
+  alloc cos=0.999993027 rel_l2=3.774e-03; inplace cos=0.999993027 rel_l2=3.774e-03
+=============== RESULT JSON ===============
+{
+  "schema": "lynn-stage6-p2ka-gated-delta-native-loop-poc-v1",
+  "model": "/home/merkyor/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-from-bf16-20260526",
+  "layer": 0,
+  "seed": 20260604,
+  "seq_lens": [
+    256,
+    512
+  ],
+  "chunk_size": 64,
+  "rows": [
+    {
+      "seq_len": 256,
+      "chunk_reference_ms": 3.4043450141325593,
+      "native_loop_alloc_ms": 8.899837033823133,
+      "native_loop_inplace_ms": 8.025048999115825,
+      "alloc_vs_chunk": 0.3825176799524096,
+      "inplace_vs_chunk": 0.42421485706911444,
+      "estimated_kernel_launches": 256,
+      "ref_bench": {
+        "repeats": 1,
+        "median_ms": 3.4043450141325593,
+        "min_ms": 3.4043450141325593,
+        "max_ms": 3.4043450141325593,
+        "all_ms": [
+          3.4043450141325593
+        ]
+      },
+      "alloc_bench": {
+        "repeats": 1,
+        "median_ms": 8.899837033823133,
+        "min_ms": 8.899837033823133,
+        "max_ms": 8.899837033823133,
+        "all_ms": [
+          8.899837033823133
+        ]
+      },
+      "inplace_bench": {
+        "repeats": 1,
+        "median_ms": 8.025048999115825,
+        "min_ms": 8.025048999115825,
+        "max_ms": 8.025048999115825,
+        "all_ms": [
+          8.025048999115825
+        ]
+      }
+    },
+    {
+      "seq_len": 512,
+      "chunk_reference_ms": 4.157044924795628,
+      "native_loop_alloc_ms": 16.276239999569952,
+      "native_loop_inplace_ms": 15.624329098500311,
+      "alloc_vs_chunk": 0.25540572791415367,
+      "inplace_vs_chunk": 0.2660622992890388,
+      "estimated_kernel_launches": 512,
+      "ref_bench": {
+        "repeats": 1,
+        "median_ms": 4.157044924795628,
+        "min_ms": 4.157044924795628,
+        "max_ms": 4.157044924795628,
+        "all_ms": [
+          4.157044924795628
+        ]
+      },
+      "alloc_bench": {
+        "repeats": 1,
+        "median_ms": 16.276239999569952,
+        "min_ms": 16.276239999569952,
+        "max_ms": 16.276239999569952,
+        "all_ms": [
+          16.276239999569952
+        ]
+      },
+      "inplace_bench": {
+        "repeats": 1,
+        "median_ms": 15.624329098500311,
+        "min_ms": 15.624329098500311,
+        "max_ms": 15.624329098500311,
+        "all_ms": [
+          15.624329098500311
+        ]
+      }
+    }
+  ],
+  "numeric": {
+    "T256_alloc_out_vs_chunk": {
+      "cosine": 0.9999932829193929,
+      "rel_l2": 0.0036726668329478515,
+      "max_abs": 0.000244140625,
+      "mean_abs": 1.4601393448031416e-07,
+      "argmax_a": 317007,
+      "argmax_b": 317007,
+      "argmax_match": true
+    },
+    "T256_alloc_state_vs_chunk": {
+      "cosine": 0.9999957706772971,
+      "rel_l2": 0.0029108583750048736,
+      "max_abs": 0.0011115632951259613,
+      "mean_abs": 2.264018695798951e-06,
+      "argmax_a": 427599,
+      "argmax_b": 427599,
+      "argmax_match": true
+    },
+    "T256_inplace_out_vs_chunk": {
+      "cosine": 0.9999932829193929,
+      "rel_l2": 0.0036726668329478515,
+      "max_abs": 0.000244140625,
+      "mean_abs": 1.4601393448031416e-07,
+      "argmax_a": 317007,
+      "argmax_b": 317007,
+      "argmax_match": true
+    },
+    "T256_inplace_state_vs_chunk": {
+      "cosine": 0.9999957706772971,
+      "rel_l2": 0.0029108583750048736,
+      "max_abs": 0.0011115632951259613,
+      "mean_abs": 2.264018695798951e-06,
+      "argmax_a": 427599,
+      "argmax_b": 427599,
+      "argmax_match": true
+    },
+    "T512_alloc_out_vs_chunk": {
+      "cosine": 0.9999930270744047,
+      "rel_l2": 0.0037737562236723307,
+      "max_abs": 0.000244140625,
+      "mean_abs": 1.7610748610691858e-07,
+      "argmax_a": 1985487,
+      "argmax_b": 1985487,
+      "argmax_match": true
+    },
+    "T512_alloc_state_vs_chunk": {
+      "cosine": 0.9999958835211507,
+      "rel_l2": 0.0028703235281639997,
+      "max_abs": 0.0014786720275878906,
+      "mean_abs": 2.501671908199607e-06,
+      "argmax_a": 239439,
+      "argmax_b": 239439,
+      "argmax_match": true
+    },
+    "T512_inplace_out_vs_chunk": {
+      "cosine": 0.9999930270744047,
+      "rel_l2": 0.0037737562236723307,
+      "max_abs": 0.000244140625,
+      "mean_abs": 1.7610748610691858e-07,
+      "argmax_a": 1985487,
+      "argmax_b": 1985487,
+      "argmax_match": true
+    },
+    "T512_inplace_state_vs_chunk": {
+      "cosine": 0.9999958835211507,
+      "rel_l2": 0.0028703235281639997,
+      "max_abs": 0.0014786720275878906,
+      "mean_abs": 2.501671908199607e-06,
+      "argmax_a": 239439,
+      "argmax_b": 239439,
+      "argmax_match": true
+    }
+  },
+  "passes": {
+    "numeric": true,
+    "speed_vs_chunk_reference": false,
+    "all": false
+  },
+  "notes": [
+    "This is a lower-bound reuse of the existing single-token Triton recurrent kernel.",
+    "It intentionally launches one recurrent kernel per token; a true prefill kernel must process a chunk/block per launch."
+  ]
+}
