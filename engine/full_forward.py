@@ -222,6 +222,27 @@ def _packed_prefill_slow_enabled() -> bool:
     return os.environ.get("LYNN_PACKED_PREFILL_SLOW", "0").lower() in {"1", "true", "yes", "on"}
 
 
+def _packed_prefill_p2e_layer_selected(cfg: dict) -> bool:
+    raw = os.environ.get("LYNN_PACKED_PREFILL_P2E_LAYERS", "").strip()
+    if not raw or raw.lower() in {"all", "*"}:
+        return True
+    layer_idx = cfg.get("layer_idx")
+    if layer_idx is None:
+        return False
+    layer_idx = int(layer_idx)
+    for item in raw.split(","):
+        item = item.strip()
+        if not item:
+            continue
+        if "-" in item:
+            lo, hi = item.split("-", 1)
+            if int(lo) <= layer_idx <= int(hi):
+                return True
+        elif layer_idx == int(item):
+            return True
+    return False
+
+
 def _moe_forward_packed_prefill_decode_kernel_slow(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
     """Functional packed-NVFP4 MoE prefill by replaying the T=1 decode MoE.
 
@@ -308,14 +329,104 @@ def _moe_forward_packed_prefill_stream_bf16(h: torch.Tensor, w: dict, cfg: dict)
     return moe_out.view(B, M, D)
 
 
+def _moe_forward_packed_prefill_p2e_hybrid(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
+    """P2-E packed-prefill hybrid: sort scheduler + retuned packed active MoE.
+
+    This is an opt-in one-layer replacement candidate for no-reload prefill. It
+    keeps the shared expert on the existing BF16 path, but the active routed
+    experts read the resident packed NVFP4 tensors directly after the BF16 active
+    shadows have been released.
+    """
+    from triton_kernels.nvfp4_moe import (
+        nvfp4_grouped_down_weighted_sum,
+        nvfp4_prefill_gate_up_silu_one_expert,
+    )
+
+    B, M, D = h.shape
+    K = int(cfg["num_experts_per_tok"])
+    h_flat = h.view(B * M, D)
+
+    router_logits = F.linear(h_flat, w["mlp.gate.weight"])
+    routing_logits, expert_indices_long = torch.topk(router_logits, K, dim=-1)
+    routing_weights = F.softmax(routing_logits, dim=-1, dtype=torch.float32).contiguous()
+    expert_indices = expert_indices_long.to(torch.int32).contiguous()
+
+    flat_experts = expert_indices_long.reshape(-1).to(torch.int64)
+    order = torch.argsort(flat_experts)
+    sorted_experts = flat_experts[order]
+    unique, counts = torch.unique_consecutive(sorted_experts, return_counts=True)
+    token_base = torch.arange(h_flat.shape[0], device=h.device, dtype=torch.long).repeat_interleave(K)
+    slot_base = torch.arange(K, device=h.device, dtype=torch.long).repeat(h_flat.shape[0])
+    sorted_tokens = token_base[order]
+    sorted_slots = slot_base[order]
+
+    block_t = int(os.environ.get("LYNN_PACKED_PREFILL_P2E_BLOCK_T", "32"))
+    block_inter = int(os.environ.get("LYNN_PACKED_PREFILL_P2E_BLOCK_INTER", "8"))
+    block_hidden = int(os.environ.get("LYNN_PACKED_PREFILL_P2E_BLOCK_HIDDEN", "128"))
+    num_warps = int(os.environ.get("LYNN_PACKED_PREFILL_P2E_NUM_WARPS", "4"))
+    down_block_hidden = int(os.environ.get("LYNN_PACKED_PREFILL_P2E_DOWN_BLOCK_HIDDEN", "8"))
+    down_block_inter = int(os.environ.get("LYNN_PACKED_PREFILL_P2E_DOWN_BLOCK_INTER", "512"))
+    down_num_warps = int(os.environ.get("LYNN_PACKED_PREFILL_P2E_DOWN_NUM_WARPS", "8"))
+
+    intermediate = int(w["mlp.experts._gate_up_packed"].shape[1] // 2)
+    inter = torch.empty((h_flat.shape[0], K, intermediate), device=h.device, dtype=torch.bfloat16)
+    offset = 0
+    for expert, count in zip(unique.tolist(), counts.tolist(), strict=True):
+        end = offset + int(count)
+        token_idx = sorted_tokens[offset:end].contiguous()
+        slot_idx = sorted_slots[offset:end].contiguous()
+        y = nvfp4_prefill_gate_up_silu_one_expert(
+            h_flat[token_idx],
+            int(expert),
+            w["mlp.experts._gate_up_packed"],
+            w["mlp.experts._gate_up_scale"],
+            w["mlp.experts._gate_up_global_scale"],
+            block_t=block_t,
+            block_inter=block_inter,
+            block_hidden=block_hidden,
+            num_warps=num_warps,
+        )
+        inter[token_idx, slot_idx] = y
+        offset = end
+
+    moe_out = torch.empty_like(h_flat)
+    for token in range(h_flat.shape[0]):
+        nvfp4_grouped_down_weighted_sum(
+            inter[token],
+            expert_indices[token],
+            routing_weights[token],
+            w["mlp.experts._down_packed"],
+            w["mlp.experts._down_scale"],
+            w["mlp.experts._down_global_scale"],
+            block_hidden=down_block_hidden,
+            block_inter=down_block_inter,
+            num_warps=down_num_warps,
+            out=moe_out[token],
+        )
+
+    if "mlp.shared_expert.gate_proj.weight" in w:
+        gate_s = F.linear(h_flat, w["mlp.shared_expert.gate_proj.weight"])
+        up_s = F.linear(h_flat, w["mlp.shared_expert.up_proj.weight"])
+        shared_ffn = F.linear(F.silu(gate_s) * up_s, w["mlp.shared_expert.down_proj.weight"])
+        if "mlp.shared_expert_gate.weight" in w:
+            shared_gate = torch.sigmoid(F.linear(h_flat, w["mlp.shared_expert_gate.weight"]))
+            shared_ffn = shared_ffn * shared_gate
+        moe_out = moe_out + shared_ffn
+    return moe_out.view(B, M, D).to(h.dtype)
+
+
 def _moe_forward_packed_prefill_slow(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
     mode = os.environ.get("LYNN_PACKED_PREFILL_SLOW_MODE", "stream_bf16").strip().lower()
     if mode in {"stream_bf16", "stream", "bf16"}:
         return _moe_forward_packed_prefill_stream_bf16(h, w, cfg)
     if mode in {"decode_kernel", "decode", "packed_decode"}:
         return _moe_forward_packed_prefill_decode_kernel_slow(h, w, cfg)
+    if mode in {"p2e", "p2e_hybrid", "grouped_sort", "sort_hybrid"}:
+        if _packed_prefill_p2e_layer_selected(cfg):
+            return _moe_forward_packed_prefill_p2e_hybrid(h, w, cfg)
+        return _moe_forward_packed_prefill_stream_bf16(h, w, cfg)
     raise ValueError(
-        "LYNN_PACKED_PREFILL_SLOW_MODE must be stream_bf16 or decode_kernel, "
+        "LYNN_PACKED_PREFILL_SLOW_MODE must be stream_bf16, decode_kernel, or p2e_hybrid, "
         f"got {mode!r}"
     )
 

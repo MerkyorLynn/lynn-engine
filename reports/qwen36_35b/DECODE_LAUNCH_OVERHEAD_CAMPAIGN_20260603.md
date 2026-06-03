@@ -433,3 +433,16 @@
   - **Decision:** bank P2-E and continue to P2-F: move the P2-E combination from harness composition to a
     flag-gated one-layer prefill replacement. This is still Python/Triton scheduling; the long-term llama.cpp chase
     remains CUDA C++ / CUTLASS-style grouped kernels plus C++ hot-path runtime when paired with FP4-MMA hardware.
+- **✅ STAGE 6 step 16 — P2-F opt-in engine path PASSED; `p2e_hybrid` is no longer just a harness.**
+  `engine/full_forward.py` now supports `LYNN_PACKED_PREFILL_SLOW_MODE=p2e_hybrid` with
+  `LYNN_PACKED_PREFILL_P2E_LAYERS=<list>` and P2-E tile envs. Default remains off; non-selected layers fall back to
+  `stream_bf16`.
+  - **Engine-dispatch verification:** `scripts/spark_stage6_p2f_one_layer_replacement_verify.py` ran `_moe_forward()`
+    itself, not a harness-only composition, after deleting `mlp.experts.gate_up_proj` and `mlp.experts.down_proj`.
+  - **Numeric/no-shadow:** M=16/64 P2E vs BF16 full MoE `cos≈0.999997`, rel_l2≈`0.0023`, argmax match; active BF16
+    shadows absent.
+  - **Latency:** M=16 **8.23 ms** vs BF16 **11.63 ms** (**1.412x**) and `stream_bf16` **494.66 ms** (**60.08x**);
+    M=64 **20.23 ms** vs BF16 **21.10 ms** (**1.043x**) and `stream_bf16` **504.93 ms** (**24.96x**).
+  - **Memory:** P2E peak **0.641-0.643 GiB** vs `stream_bf16` peak **12.64 GiB** in the one-layer harness.
+  - **Decision:** bank P2-F. Next P2-G should select multiple/all MoE layers with `p2e_hybrid` and measure cross-layer
+    numeric drift, memory, and latency before any server default or multi-request promotion.
