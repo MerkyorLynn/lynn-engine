@@ -294,5 +294,18 @@
     **40.28 GiB** (no hidden 88 GiB reload), reload_calls **0**, token-exact ids `[20, 198, 1409, 27102]`, decode
     **42.47 TPS** vs baseline **42.97 TPS**, `ALL_PASS=True`.
   - **Cost / meaning:** proof prefill is **20.75 s** for the tiny `2+2=` smoke. This is not shippable throughput; it proves
-    the zero-resident-shadow invariant and gives P2 a correctness oracle. Next gates: P0.2 resident inventory for
-    projection/shared BF16, then P1 batched packed projections and P2 grouped M>1 packed MoE prefill kernels.
+    the zero-resident-shadow invariant and gives P2 a correctness oracle. This promoted P0.2 resident inventory, now
+    recorded below, then P1 batched packed projections and P2 grouped M>1 packed MoE prefill kernels.
+- **✅ STAGE 6 step 6 — P0.2 resident BF16 inventory PASSED (kernel-order gate; no speed claim).**
+  `scripts/spark_stage6_p02_resident_inventory.py` ran on Spark after stopping idle APEX, docker status **0**, then APEX
+  was restored on `:18098` and `/health` returned `{"status":"ok"}`.
+  - **Load / release:** resident after load **88.16 GiB**; BF16 total before release **64.72 GiB**; release dropped
+    **60.00 GiB / 80 tensors**; resident after release **28.16 GiB**.
+  - **After-release BF16 inventory:** total **4.72 GiB**: `linear_attn.projection` **1.884 GiB**,
+    `outside.embed` **0.947 GiB**, `outside.lm_head` **0.947 GiB**, `full_attn.projection` **0.508 GiB**,
+    `moe.shared_expert` **0.391 GiB**, `moe.router` **0.039 GiB**, norms negligible.
+  - **Packed alias finding:** normal inventory found **0.0 GiB** packed-alias candidates, so the next memory reductions
+    require explicit packed-prefill / packed-lookup paths rather than simply releasing an existing alias.
+  - **Decision:** P1 should lead with batched packed projection prefill plus embed/lm_head semantics; P2 remains the
+    grouped M>1 packed MoE prefill kernel that replaces the **20.75 s** `stream_bf16` proof and avoids the **23-24 s**
+    full reload. Router is not first-order leverage.
