@@ -43,6 +43,7 @@ def _child_dirs(suite_dir: Path) -> list[Path]:
         "p2o_rc-mini_packed_prefill_rc_smoke_",
         "p3a_layer",
         "p3b_layers",
+        "p3c_",
     )
     return sorted(
         p
@@ -112,7 +113,7 @@ def write_report(suite_dir: Path, *, report_date: str) -> str:
         verdict = "PASS"
         reason = "all executed child gates passed"
     decision = (
-        "Use child P2-O/P3-A/P3-B reports to decide what can be banked; this suite report only aggregates evidence."
+        "Use child P2-O/P3-A/P3-B/P3-C reports to decide what can be banked; this suite report only aggregates evidence."
         if verdict == "PASS"
         else "Do not bank new GPU results from this suite."
     )
@@ -178,7 +179,7 @@ def write_report(suite_dir: Path, *, report_date: str) -> str:
         "",
         decision,
         "",
-        "A PASS here is orchestration-level evidence only. P2-O, P3-A, and P3-B must still",
+        "A PASS here is orchestration-level evidence only. P2-O, P3-A, P3-B, and P3-C must still",
         "be banked through their own report writers and gate-specific caveats.",
     ])
     return "\n".join(lines).rstrip() + "\n"

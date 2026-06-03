@@ -36,8 +36,10 @@ def main() -> int:
         assert "--dry-run" in help_proc.stdout
         assert "--skip-p3a" in help_proc.stdout
         assert "--skip-p3b" in help_proc.stdout
+        assert "--skip-p3c" in help_proc.stdout
         assert "--p2o-max-seq-len" in help_proc.stdout
         assert "--p3b-layers" in help_proc.stdout
+        assert "--p3c-preset" in help_proc.stdout
 
         dry = run([
             "scripts/run_stage6_gpu_gate_suite.sh",
@@ -67,11 +69,14 @@ def main() -> int:
             "0-3",
             "--p3b-tokens",
             "16,64",
+            "--p3c-preset",
+            "basic",
         ])
         assert "p2o-basic" in dry.stdout
         assert "p2o-rc-mini" in dry.stdout
         assert "p3a-contract" in dry.stdout
         assert "p3b-selected-prefill" in dry.stdout
+        assert "p3c-resident-prompt" in dry.stdout
         suite_dirs = list(tmp.glob("stage6_gpu_gate_suite_*"))
         assert len(suite_dirs) == 1
         suite = suite_dirs[0]
@@ -83,6 +88,7 @@ def main() -> int:
         assert "p2o-rc-mini\tDRY_RUN\t0" in status
         assert "p3a-contract\tDRY_RUN\t0" in status
         assert "p3b-selected-prefill\tDRY_RUN\t0" in status
+        assert "p3c-resident-prompt\tDRY_RUN\t0" in status
         assert "scripts/run_spark_stage6_p2o_rc_smoke.sh" in commands
         assert "--preset rc-mini" in commands
         assert "scripts/run_spark_stage6_p3a_contract_probe.sh" in commands
@@ -91,6 +97,8 @@ def main() -> int:
         assert "scripts/run_spark_stage6_p3b_selected_prefill_gate.sh" in commands
         assert "--predecessors-pass" in commands
         assert "16,64" in commands or "16\\,64" in commands
+        assert "scripts/run_spark_stage6_p3c_resident_prompt_gate.sh" in commands
+        assert "--p3b-pass" in commands
         assert "Failures | `0`" in summary
         assert "Verdict: **DRY_RUN**" in report
         assert "dry-run only" in report
@@ -117,6 +125,7 @@ def main() -> int:
             "--skip-p2o-rc-mini",
             "--skip-p3a",
             "--skip-p3b",
+            "--skip-p3c",
         ])
         assert "artifacts:" in skip.stdout
         after_skip = set(tmp.glob("stage6_gpu_gate_suite_*"))
@@ -133,6 +142,7 @@ def main() -> int:
             "--skip-p2o-rc-mini",
             "--skip-p3a",
             "--skip-p3b",
+            "--skip-p3c",
         ])
         assert "artifacts:" in skip_real.stdout
         after_skip_real = set(tmp.glob("stage6_gpu_gate_suite_*"))
@@ -160,6 +170,7 @@ def main() -> int:
             "p2o-rc-mini\tPASS\t0\n"
             "p3a-contract\tPASS\t0\n"
             "p3b-selected-prefill\tPASS\t0\n"
+            "p3c-resident-prompt\tPASS\t0\n"
         )
         (synthetic / "commands.sh").write_text("echo synthetic\n")
         (synthetic / "summary.md").write_text("# Synthetic summary\n\nFailures | `0`\n")
@@ -176,6 +187,12 @@ def main() -> int:
         (p3b_child / "summary.md").write_text("# P3-B child summary\n\nVerdict | **PASS**\n")
         (p3b_child / "head_check.txt").write_text("remote HEAD ok\n")
         (p3b_child / "docker_exit_code.txt").write_text("0\n")
+        p3c_child = synthetic / "p3c_basic_resident_prompt_gate_20260604_000000"
+        p3c_child.mkdir()
+        (p3c_child / "result.json").write_text("{}\n")
+        (p3c_child / "summary.md").write_text("# P3-C child summary\n\nVerdict | **PASS**\n")
+        (p3c_child / "head_check.txt").write_text("remote HEAD ok\n")
+        (p3c_child / "docker_exit_code.txt").write_text("0\n")
         report_out = tmp / "synthetic_report.md"
         run([
             sys.executable,
@@ -190,8 +207,10 @@ def main() -> int:
         assert "Verdict: **PASS**" in synthetic_report
         assert "p3a_layer0_grouped_moe_contract_probe" in synthetic_report
         assert "p3b_layers0-3_selected_prefill_gate" in synthetic_report
+        assert "p3c_basic_resident_prompt_gate" in synthetic_report
         assert "Child summary" in synthetic_report
         assert "P3-B child summary" in synthetic_report
+        assert "P3-C child summary" in synthetic_report
 
     print("Stage 6 GPU gate-suite self-test PASS")
     return 0

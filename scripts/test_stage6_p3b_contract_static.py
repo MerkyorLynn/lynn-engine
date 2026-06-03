@@ -90,7 +90,18 @@ CHECKS = [
         [
             "orchestration-level evidence only",
             "child reports remain authoritative",
-            "P2-O, P3-A, and P3-B must still",
+            "P2-O, P3-A, P3-B, and P3-C must still",
+        ],
+    ),
+    (
+        "reports/stage6/P3C_RESIDENT_PROMPT_GATE_RUNBOOK_20260604.md",
+        [
+            "RUNBOOK/TOOLING ONLY; no P3-C result is banked yet",
+            "P3-B selected-prefill report",
+            "LYNN_PACKED_PREFILL_SLOW_MODE=p3a_grouped",
+            "reload_decode_bf16_shadows()",
+            "banked_server_path=false",
+            "banked_rc_quality=false",
         ],
     ),
 ]
