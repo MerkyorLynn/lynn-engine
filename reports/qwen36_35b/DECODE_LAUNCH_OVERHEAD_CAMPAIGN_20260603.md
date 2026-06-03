@@ -346,3 +346,18 @@
   - **Decision:** scalar-dequant dense M>1 packed prefill is closed on Spark. Do not wire into resident_runner. Dense M>1
     needs native FP4-MMA/CUTLASS-style kernels if pursued; Stage 6 should move to P2 grouped MoE prefill or native runtime
     work.
+- **✅ STAGE 6 step 10 — P2 grouped MoE prefill census PASSED; first real kernel target locked.**
+  `scripts/spark_stage6_p2_grouped_moe_prefill_census.py` ran one real layer's routed MoE with BF16 resident shadow,
+  then deleted `mlp.experts.gate_up_proj` / `down_proj` and compared the two packed proof paths.
+  - **Bytes:** one-layer grouped expert BF16 shadow **1.500 GiB** vs packed expert tensors **0.563 GiB** (**2.667x**);
+    after deleting the BF16 shadow, memory was **0.641 GiB** for the single-layer harness.
+  - **Numeric:** `stream_bf16` is exact vs BF16 (`rel_l2=0`, argmax match); `smallm` verifier is tight but not exact
+    (`cos≈0.9999975`, `rel_l2≈0.002`, argmax match).
+  - **Latency:** BF16 prefill **4.16/6.17/12.30/21.45 ms** for M=1/4/16/64. `stream_bf16` is **487.86-506.22 ms**
+    per layer, explaining the **~20.75 s** 40-layer no-reload proof. `smallm` is **9.96/39.49/128.43/260.65 ms**:
+    **1.94-48.97x** faster than stream, but still **0.082-0.418x** of BF16.
+  - **Memory:** `stream_bf16` peaks **12.64 GiB** in the one-layer harness because it materializes wide dequant
+    temporaries; `smallm` peaks **0.70 GiB** after BF16 shadow deletion.
+  - **Decision:** P2 should target the routed expert inner loop with prefill router semantics preserved:
+    `h_flat[M,2048] + expert_ids[M,8] + routing_weights[M,8] + packed gate/up/down -> moe_out[M,2048]`. Do not
+    promote `stream_bf16` or `smallm`; use them as numeric/memory oracles.
