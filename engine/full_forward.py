@@ -415,6 +415,62 @@ def _moe_forward_packed_prefill_p2e_hybrid(h: torch.Tensor, w: dict, cfg: dict) 
     return moe_out.view(B, M, D).to(h.dtype)
 
 
+def _moe_forward_packed_prefill_p3a_grouped(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
+    """P3-B candidate: route selected prefill layers through the P3-A contract.
+
+    This mode is deliberately opt-in and still not a fused P3 kernel. It lets the
+    selected-layer prefill gate exercise the P3-A grouped active-MoE callable
+    inside the real layer stack while keeping router and shared expert on the
+    existing BF16 paths.
+    """
+    from engine.moe_packed_nvfp4 import active_moe_grouped_prefill_p3a
+
+    B, M, D = h.shape
+    K = int(cfg["num_experts_per_tok"])
+    h_flat = h.view(B * M, D)
+
+    router_logits = F.linear(h_flat, w["mlp.gate.weight"])
+    routing_logits, expert_indices_long = torch.topk(router_logits, K, dim=-1)
+    routing_weights = F.softmax(routing_logits, dim=-1, dtype=torch.float32).contiguous()
+
+    block_t = int(os.environ.get("LYNN_PACKED_PREFILL_P2E_BLOCK_T", "32"))
+    block_inter = int(os.environ.get("LYNN_PACKED_PREFILL_P2E_BLOCK_INTER", "8"))
+    block_hidden = int(os.environ.get("LYNN_PACKED_PREFILL_P2E_BLOCK_HIDDEN", "128"))
+    num_warps = int(os.environ.get("LYNN_PACKED_PREFILL_P2E_NUM_WARPS", "4"))
+    down_block_hidden = int(os.environ.get("LYNN_PACKED_PREFILL_P2E_DOWN_BLOCK_HIDDEN", "8"))
+    down_block_inter = int(os.environ.get("LYNN_PACKED_PREFILL_P2E_DOWN_BLOCK_INTER", "512"))
+    down_num_warps = int(os.environ.get("LYNN_PACKED_PREFILL_P2E_DOWN_NUM_WARPS", "8"))
+
+    moe_out = active_moe_grouped_prefill_p3a(
+        h_flat,
+        expert_indices_long,
+        routing_weights,
+        w["mlp.experts._gate_up_packed"],
+        w["mlp.experts._gate_up_scale"],
+        w["mlp.experts._gate_up_global_scale"],
+        w["mlp.experts._down_packed"],
+        w["mlp.experts._down_scale"],
+        w["mlp.experts._down_global_scale"],
+        block_t=block_t,
+        block_inter=block_inter,
+        block_hidden=block_hidden,
+        num_warps=num_warps,
+        down_block_hidden=down_block_hidden,
+        down_block_inter=down_block_inter,
+        down_num_warps=down_num_warps,
+    )
+
+    if "mlp.shared_expert.gate_proj.weight" in w:
+        gate_s = F.linear(h_flat, w["mlp.shared_expert.gate_proj.weight"])
+        up_s = F.linear(h_flat, w["mlp.shared_expert.up_proj.weight"])
+        shared_ffn = F.linear(F.silu(gate_s) * up_s, w["mlp.shared_expert.down_proj.weight"])
+        if "mlp.shared_expert_gate.weight" in w:
+            shared_gate = torch.sigmoid(F.linear(h_flat, w["mlp.shared_expert_gate.weight"]))
+            shared_ffn = shared_ffn * shared_gate
+        moe_out = moe_out + shared_ffn
+    return moe_out.view(B, M, D).to(h.dtype)
+
+
 def _moe_forward_packed_prefill_slow(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
     mode = os.environ.get("LYNN_PACKED_PREFILL_SLOW_MODE", "stream_bf16").strip().lower()
     if mode in {"stream_bf16", "stream", "bf16"}:
@@ -425,8 +481,12 @@ def _moe_forward_packed_prefill_slow(h: torch.Tensor, w: dict, cfg: dict) -> tor
         if _packed_prefill_p2e_layer_selected(cfg):
             return _moe_forward_packed_prefill_p2e_hybrid(h, w, cfg)
         return _moe_forward_packed_prefill_stream_bf16(h, w, cfg)
+    if mode in {"p3a_grouped", "p3_grouped", "p3b_selected"}:
+        if _packed_prefill_p2e_layer_selected(cfg):
+            return _moe_forward_packed_prefill_p3a_grouped(h, w, cfg)
+        return _moe_forward_packed_prefill_stream_bf16(h, w, cfg)
     raise ValueError(
-        "LYNN_PACKED_PREFILL_SLOW_MODE must be stream_bf16, decode_kernel, or p2e_hybrid, "
+        "LYNN_PACKED_PREFILL_SLOW_MODE must be stream_bf16, decode_kernel, p2e_hybrid, or p3a_grouped, "
         f"got {mode!r}"
     )
 

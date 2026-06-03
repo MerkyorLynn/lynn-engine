@@ -8,3 +8,4 @@ python3 scripts/test_stage6_p3_contract_static.py
 python3 scripts/test_stage6_p3a_evidence_tools.py
 python3 scripts/test_stage6_gpu_gate_suite.py
 python3 scripts/test_stage6_p3b_contract_static.py
+python3 scripts/test_stage6_p3b_evidence_tools.py

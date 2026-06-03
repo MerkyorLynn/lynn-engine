@@ -42,6 +42,7 @@ def _child_dirs(suite_dir: Path) -> list[Path]:
         "p2o_basic_packed_prefill_rc_smoke_",
         "p2o_rc-mini_packed_prefill_rc_smoke_",
         "p3a_layer",
+        "p3b_layers",
     )
     return sorted(
         p

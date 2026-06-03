@@ -10,7 +10,9 @@ artifact-producing command:
 
 - P2-O packed-prefill RC smoke, `basic` preset;
 - P2-O packed-prefill RC smoke, `rc-mini` preset;
-- P3-A grouped active-MoE contract probe.
+- P3-A grouped active-MoE contract probe;
+- P3-B selected-prefill composition gate, only after the predecessors above all
+  PASS.
 
 ## Command
 
@@ -55,12 +57,17 @@ They remain authoritative for each gate:
   `summary.md` from `scripts/summarize_stage6_p2o_rc_smoke.py`.
 - P3-A uses `scripts/run_spark_stage6_p3a_contract_probe.sh`, `result.json`, and
   `summary.md` from `scripts/summarize_stage6_p3a_contract_probe.py`.
+- P3-B uses `scripts/run_spark_stage6_p3b_selected_prefill_gate.sh`,
+  `result.json`, `summary.md` from
+  `scripts/summarize_stage6_p3b_selected_prefill_gate.py`, and `report.md` from
+  `scripts/write_stage6_p3b_report.py`.
 
 ## Strict Verdict Rule
 
 Default mode is strict. The suite exits non-zero if any child gate exits
-non-zero, but it still attempts every enabled child gate so failure evidence is
-preserved.
+non-zero, but it still attempts prerequisite gates so failure evidence is
+preserved. P3-B is skipped if P2-O basic, P2-O rc-mini, or P3-A does not PASS,
+because it cannot be banked without those predecessors.
 
 A suite pass does not automatically promote P2-O or P3. Promotion still requires
 reading the child summaries and updating the relevant Stage 6 report with exact
@@ -96,8 +103,8 @@ GPU-free tooling check:
 scripts/run_stage6_evidence_ci.sh
 ```
 
-This validates the P2-O evidence tools, P3 contract static checks, P3-A evidence
-summarizer, and this suite wrapper's dry-run path.
+This validates the P2-O evidence tools, P3 contract static checks, P3-A/P3-B
+evidence summarizers, and this suite wrapper's dry-run path.
 
 Formal report writer:
 
@@ -107,5 +114,5 @@ python3 scripts/write_stage6_gpu_gate_suite_report.py \
   --report-out reports/stage6/STAGE6_GPU_GATE_SUITE_REPORT_20260604.md
 ```
 
-The suite report is orchestration-level evidence only. Child P2-O/P3-A reports
-remain authoritative for banking any specific gate.
+The suite report is orchestration-level evidence only. Child P2-O/P3-A/P3-B
+reports remain authoritative for banking any specific gate.

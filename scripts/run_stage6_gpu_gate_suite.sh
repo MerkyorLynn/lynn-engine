@@ -23,10 +23,13 @@ Options:
   --skip-p2o-basic             Skip P2-O basic preset.
   --skip-p2o-rc-mini           Skip P2-O rc-mini preset.
   --skip-p3a                   Skip P3-A grouped-MoE contract probe.
+  --skip-p3b                   Skip P3-B selected-prefill composition gate.
   --p2o-max-new N              P2-O generated tokens. Default: 8.
   --p2o-max-seq-len N          P2-O max_seq_len. Default: 2048.
   --p3a-layer N                P3-A layer. Default: 0.
   --p3a-batches CSV            P3-A batches. Default: 1,16,64.
+  --p3b-layers SPEC            P3-B layer spec. Default: 0-3.
+  --p3b-tokens CSV             P3-B sequence lengths. Default: 16,64.
   -h, --help                   Show this help.
 
 Environment overrides:
@@ -62,10 +65,13 @@ REQUIRE_PROVENANCE="1"
 RUN_P2O_BASIC="1"
 RUN_P2O_RC_MINI="1"
 RUN_P3A="1"
+RUN_P3B="1"
 P2O_MAX_NEW="8"
 P2O_MAX_SEQ_LEN="2048"
 P3A_LAYER="0"
 P3A_BATCHES="1,16,64"
+P3B_LAYERS="0-3"
+P3B_TOKENS="16,64"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -117,6 +123,10 @@ while [[ $# -gt 0 ]]; do
       RUN_P3A="0"
       shift
       ;;
+    --skip-p3b)
+      RUN_P3B="0"
+      shift
+      ;;
     --p2o-max-new)
       P2O_MAX_NEW="$2"
       shift 2
@@ -131,6 +141,14 @@ while [[ $# -gt 0 ]]; do
       ;;
     --p3a-batches)
       P3A_BATCHES="$2"
+      shift 2
+      ;;
+    --p3b-layers)
+      P3B_LAYERS="$2"
+      shift 2
+      ;;
+    --p3b-tokens|--p3b-seq-lens)
+      P3B_TOKENS="$2"
       shift 2
       ;;
     -h|--help)
@@ -208,13 +226,19 @@ run_step() {
 }
 
 failures=0
+P2O_BASIC_STATUS="SKIP"
+P2O_RC_MINI_STATUS="SKIP"
+P3A_STATUS="SKIP"
 if [[ "$RUN_P2O_BASIC" == "1" ]]; then
   run_step "p2o-basic" \
     scripts/run_spark_stage6_p2o_rc_smoke.sh \
       "${common_args[@]}" \
       --preset basic \
       --max-new "$P2O_MAX_NEW" \
-      --max-seq-len "$P2O_MAX_SEQ_LEN" || failures=$((failures + 1))
+      --max-seq-len "$P2O_MAX_SEQ_LEN" && P2O_BASIC_STATUS="PASS" || {
+        P2O_BASIC_STATUS="FAIL"
+        failures=$((failures + 1))
+      }
 else
   printf '%s\t%s\t%s\n' "p2o-basic" "SKIP" "0" >> "$STATUS_TSV"
 fi
@@ -225,7 +249,10 @@ if [[ "$RUN_P2O_RC_MINI" == "1" ]]; then
       "${common_args[@]}" \
       --preset rc-mini \
       --max-new "$P2O_MAX_NEW" \
-      --max-seq-len "$P2O_MAX_SEQ_LEN" || failures=$((failures + 1))
+      --max-seq-len "$P2O_MAX_SEQ_LEN" && P2O_RC_MINI_STATUS="PASS" || {
+        P2O_RC_MINI_STATUS="FAIL"
+        failures=$((failures + 1))
+      }
 else
   printf '%s\t%s\t%s\n' "p2o-rc-mini" "SKIP" "0" >> "$STATUS_TSV"
 fi
@@ -235,9 +262,28 @@ if [[ "$RUN_P3A" == "1" ]]; then
     scripts/run_spark_stage6_p3a_contract_probe.sh \
       "${common_args[@]}" \
       --layer "$P3A_LAYER" \
-      --batches "$P3A_BATCHES" || failures=$((failures + 1))
+      --batches "$P3A_BATCHES" && P3A_STATUS="PASS" || {
+        P3A_STATUS="FAIL"
+        failures=$((failures + 1))
+      }
 else
   printf '%s\t%s\t%s\n' "p3a-contract" "SKIP" "0" >> "$STATUS_TSV"
+fi
+
+if [[ "$RUN_P3B" == "1" ]]; then
+  if [[ "$DRY_RUN" == "1" || ( "$P2O_BASIC_STATUS" == "PASS" && "$P2O_RC_MINI_STATUS" == "PASS" && "$P3A_STATUS" == "PASS" ) ]]; then
+    run_step "p3b-selected-prefill" \
+      scripts/run_spark_stage6_p3b_selected_prefill_gate.sh \
+        "${common_args[@]}" \
+        --layers "$P3B_LAYERS" \
+        --tokens "$P3B_TOKENS" \
+        --predecessors-pass && true || failures=$((failures + 1))
+  else
+    echo "[suite] p3b-selected-prefill: skipped because predecessors did not all PASS"
+    printf '%s\t%s\t%s\n' "p3b-selected-prefill" "SKIP" "0" >> "$STATUS_TSV"
+  fi
+else
+  printf '%s\t%s\t%s\n' "p3b-selected-prefill" "SKIP" "0" >> "$STATUS_TSV"
 fi
 
 {
