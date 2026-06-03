@@ -115,3 +115,19 @@
   adjacency) is thin per-layer; re-profile to find the next real cluster before writing. The
   HIGH-risk router stays DEFERRED behind hard gates (expert-id/top-k/logits-cos parity +
   token-divergence first-error + MMLU/GPQA/V8/V9). Target 47-50 stable; 70 = campaign target.
+- **✅ STAGE 4 step 1 — DECODE LAUNCH CENSUS (empirical, full 5-fusion stack).**
+  `scripts/spark_decode_launch_profile.py` (delta-of-16-vs-32-tokens, cancels prefill/warmup):
+  **≈ 1527 CUDA launches / decode token** (the earlier "~140" guess was an order-of-magnitude
+  low). With BW at 37% of 240 GB/s, ~half the token time is launch/dispatch, not bytes.
+  Top clusters /tok: **aten::copy_ 230** · mm 110 + gemvx 68+57 (≈235 projection GEMMs, M=1) ·
+  _rmsnorm 92 (= norm sites, already 1-launch-each) · elementwise 90 + add 80 + direct_copy 79 ·
+  MoE grouped kernels 45-each (gate_up/down/topk/softmax/shared) · quantize_fp4 35 · cutlass
+  NVFP4 gemm 34 · conv 34 · **g/beta kernel 34 (confirmed live)**.
+  **Strategic conclusions:** (1) MoE/router is ALREADY grouped (45/layer, NOT per-expert×8) →
+  the high-risk router is MOOT for launch count; don't touch it. (2) norms are already 1-launch
+  each → can't cut count without norm+matmul fusion or a graph. (3) point-fusion has hit
+  diminishing returns — the remaining mass is DISTRIBUTED copies/elementwise/matmuls, not a
+  single fusable cluster. → **Stage-4 real choices: (A) copy-hunt the 230/tok aten::copy_
+  (tractable, incremental) or (B) CUDA-graph the decode (structural; collapses 1527 launches;
+  the M3 reusable-graph historically gave +10% → ~48, hits 47-50; HARD — full-attn variable
+  KV-shape is the known blocker that sank prior attempts). Awaiting user direction.**
