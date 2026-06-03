@@ -2,7 +2,7 @@
 
 > **🚀 战略校正(2026-06-03):Lynn engine 重启为并行主线,目标「对标 llama.cpp」,不再是"降级为 R&D / 只用 llama.cpp"。** 客户端短期仍以 llama.cpp/GGUF 为**务实默认后端**;引擎并行推进——同模型同硬件**对标 llama.cpp**,终局 = 自己啃下**融合 4-bit / 零-shadow 内核**(单投影 PoC → 全 dense + 删 shadow → MoE grouped 专家 → 融合减 launch,每阶段 gate + RC),在 FP4-MMA 卡(R6000 一代)上**逼近乃至超过**。**做引擎,要做就自己把内核啃下来。**
 >
-> **✅ 自有核心已 bank 的最新突破:** 35B NVFP4 服务已把 decode 阶段 BF16 dequant-shadow 从常驻内存中释放,**resident 88→28 GiB(省 ~60 GiB)**,token-exact,TPS 0.998× 无回归;`server/openai_http.py` 已接入 `reload→prefill→release→decode` 服务循环。**P0.1/P0.2 packed-prefill gates 已过:**释放 60GiB shadow 后不调用 reload,`stream_bf16` 证明 token-exact no-reload prefill(peak **40.28 GiB**,proof prefill **20.75s**);P0.2 resident inventory 显示 after-release BF16 只剩 **4.72 GiB**(`linear_attn.projection` 1.884 / embed 0.947 / lm_head 0.947 / full-attn projection 0.508 / shared-expert 0.391 GiB)。下一关:P1/P2 真正 **C++/CUDA/Triton batched/grouped packed-prefill kernels**。Python 只做控制面和验证,追赶 llama.cpp 靠 native kernel。
+> **✅ 自有核心已 bank 的最新突破:** 35B NVFP4 服务已把 decode 阶段 BF16 dequant-shadow 从常驻内存中释放,**resident 88→28 GiB(省 ~60 GiB)**,token-exact,TPS 0.998× 无回归;`server/openai_http.py` 已接入 `reload→prefill→release→decode` 服务循环。**P0.1/P0.2 packed-prefill gates 已过:**释放 60GiB shadow 后不调用 reload,`stream_bf16` 证明 token-exact no-reload prefill(peak **40.28 GiB**,proof prefill **20.75s**);P0.2 resident inventory 显示 after-release BF16 只剩 **4.72 GiB**。**2026-06-04 P1 单 dense projection PoC 已过:**真实 `linear_attn.in_proj_qkv` 从 packed E2M1 + FP16 scale 直接跑 Triton matvec,不读 BF16 shadow,numeric PASS,32.00→10.00 MiB(3.20×),**160.29us vs BF16 190.03us = 1.186×**。下一关:P1-A batched/M>1 packed projections + P2 grouped MoE prefill。Python 只做控制面和验证,追赶 llama.cpp 靠 native kernel。
 
 > **🆕 2026-06-03 Decode 内核启动开销战役 — Spark NVFP4 35B-A3B 单流 38.96 → ~45 TPS,质量 RC 等价。**
 > 实测 decode 是 launch-bound(census:**~1527 CUDA launch/token**,~40% 时间耗在 CPU 端 dispatch)。逐簇融合 launch + 消拷贝:**fused RMSNorm(最大头)/ shared-expert / linear-attn g/beta-fold / full-attn(token-exact)/ NVFP4 `_scaled_mm` bf16-out copy-elision**,**5 个 RC-validated launch-cut**——在 structured/V9/GPQA/tool-call/long-form 上 **40/40 greedy 输出与 baseline 逐字一致**,继承 **MMLU 84.40 / GPQA-Diamond 49.49**。全部 gated、默认安全、可回滚。
@@ -42,7 +42,7 @@
 > **为 NVIDIA Blackwell 写的 Lynn 27B-A3B NVFP4 单模型推理引擎。**
 > 从零写,锁定 Lynn 自家的 variable-pruned MoE + NVFP4 格式,目标很窄也很硬:在 R6000 / Spark 这类 Blackwell 机器上,把 Lynn 27B A3B MoE 基座跑成可生产、可优化、可长期接管的推理内核。
 
-[Read in English](README_EN.md) · [📝 6月知乎连载:从零开始 Qwen 3.6 35B-A3B 写专用推理引擎踩坑心得分享](https://zhuanlan.zhihu.com/p/2045562329396400486) · [战略文档](docs/STRATEGY.md) · [架构设计](docs/DESIGN.md) · **[🆕 6/3 Restart Notes](RELEASE_NOTES_20260603.md)** · [5/20 历史 Release Notes](RELEASE_NOTES_20260520.md)
+[Read in English](README_EN.md) · [📝 6月知乎连载:从零开始 Qwen 3.6 35B-A3B 写专用推理引擎踩坑心得分享](https://zhuanlan.zhihu.com/p/2045562329396400486) · [战略文档](docs/STRATEGY.md) · [架构设计](docs/DESIGN.md) · **[🆕 6/3 Restart Notes](RELEASE_NOTES_20260603.md)** · [P1 dense projection PoC](reports/stage6/P1_DENSE_PROJECTION_POC_20260604.md) · [5/20 历史 Release Notes](RELEASE_NOTES_20260520.md)
 
 [![commits](https://img.shields.io/github/commit-activity/m/MerkyorLynn/lynn-engine)](https://github.com/MerkyorLynn/lynn-engine/commits/main)
 [![license](https://img.shields.io/badge/license-TBD-orange)](.)
@@ -87,7 +87,8 @@
 - **Lynn engine 已重启为并行主线**,目标是同模型同硬件对标 llama.cpp,不是停在 R&D 降级状态。
 - **已 bank:** 35B NVFP4 decode-only shadow release,常驻 88→28 GiB,token-exact,TPS 0.998×。
 - **已过 P0.2:** release 后剩余 BF16 resident 只有 4.72 GiB,下一刀优先 projection / embed / lm_head,router 不是第一杠杆。
-- **下一关:** P1/P2 下沉 C++/CUDA/Triton batched/grouped packed-prefill kernels。
+- **已过 P1 单投影:** `linear_attn.in_proj_qkv` packed Triton matvec numeric/no-shadow/microbench 全过,1.186× vs BF16 shadow。
+- **下一关:** P1-A batched/M>1 packed projections,随后 P2 grouped MoE packed-prefill kernels。
 - **Spark sm_121 诚实口径:** decode 结构性卡 ~45,追 69.77 需要 native runtime + fused kernels + 最终 FP4-MMA 硅。
 - **Wave 2 全部 commit 留在 main 分支不 revert** — 5 CLI 并行 + 7 bug fix trail + 178s repack + autotune sweep 2160 config 全是真实工程财产。
 
