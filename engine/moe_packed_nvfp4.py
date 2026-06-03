@@ -21,6 +21,10 @@ from triton_kernels.shared_expert_gate import (
     add_shared_expert_gate_from_scalar_triton,
     apply_shared_expert_gate_triton,
 )
+from triton_kernels.shared_expert_fused import (
+    HAS_TRITON as HAS_SHARED_EXPERT_FUSED_TRITON,
+    shared_expert_decode_fused_triton,
+)
 
 
 def _env_int(name: str, default: int) -> int:
@@ -246,6 +250,65 @@ def _finalize_shared_expert_output(h_flat: torch.Tensor, moe_out: torch.Tensor, 
         return add_shared_expert_gate_from_scalar_triton(moe_out, shared, gate)
     shared = _apply_shared_expert_gate(h_flat, shared, w)
     return _add_shared_expert_output(moe_out, shared)
+
+
+def _try_fused_shared_expert_output(
+    h_flat: torch.Tensor, moe_out: torch.Tensor, w: dict
+) -> torch.Tensor | None:
+    """Fused Triton shared-expert tail for M=1 decode (LYNN_SHARED_EXPERT_FUSED=1).
+
+    Collapses the eager BF16 shared-expert chain (gate_up F.linear -> SwiGLU ->
+    down F.linear -> optional sigmoid scalar gate -> residual add) into two
+    Triton launches, writing the gated shared output in place into ``moe_out``.
+    Returns ``moe_out`` on success, or ``None`` to fall through to the existing
+    eager BF16 path. Off by default; coexists with the current path.
+
+    Requires the fused ``mlp.shared_expert._gate_up_proj.weight`` alias
+    (attached by ``resident_runner._prepare_shared_expert_gate_up_fused``,
+    enabled by default and also forced on when this flag is set).
+    """
+    if not _env_bool("LYNN_SHARED_EXPERT_FUSED", False):
+        return None
+    if not HAS_SHARED_EXPERT_FUSED_TRITON:
+        raise RuntimeError("LYNN_SHARED_EXPERT_FUSED=1 requires Triton")
+    gate_up = w.get("mlp.shared_expert._gate_up_proj.weight")
+    down = w.get("mlp.shared_expert.down_proj.weight")
+    if gate_up is None or down is None:
+        return None
+    if (
+        h_flat.ndim != 2
+        or h_flat.shape[0] != 1
+        or moe_out.shape != h_flat.shape
+        or not h_flat.is_cuda
+        or h_flat.dtype != torch.bfloat16
+        or moe_out.dtype != torch.bfloat16
+        or gate_up.dtype != torch.bfloat16
+        or down.dtype != torch.bfloat16
+    ):
+        return None
+    hidden = h_flat.shape[1]
+    if gate_up.ndim != 2 or gate_up.shape[1] != hidden or gate_up.shape[0] % 2 != 0:
+        return None
+    intermediate = gate_up.shape[0] // 2
+    if down.ndim != 2 or tuple(down.shape) != (hidden, intermediate):
+        return None
+    gate = w.get("mlp.shared_expert_gate.weight")
+    if gate is not None and (
+        gate.ndim != 2 or tuple(gate.shape) != (1, hidden) or gate.dtype != torch.bfloat16
+    ):
+        return None
+    return shared_expert_decode_fused_triton(
+        h_flat,
+        moe_out,
+        gate_up,
+        down,
+        gate,
+        inter=w.get("mlp.shared_expert._inter_scratch"),
+        block_hidden=_env_int("LYNN_SHARED_EXPERT_FUSED_BLOCK_HIDDEN", 128),
+        block_inter=_env_int("LYNN_SHARED_EXPERT_FUSED_BLOCK_INTER", 32),
+        block_out=_env_int("LYNN_SHARED_EXPERT_FUSED_BLOCK_OUT", 32),
+        num_warps=_env_int("LYNN_SHARED_EXPERT_FUSED_NUM_WARPS", 4),
+    )
 
 
 def _layer_selected_for_native_cuda(cfg: dict) -> bool:
@@ -824,6 +887,9 @@ def _moe_forward_decode_packed_nvfp4_fixed_triton(h: torch.Tensor, w: dict, cfg:
         return moe_out.to(h.dtype).reshape_as(h)
 
     if "mlp.shared_expert.gate_proj.weight" in w:
+        fused_shared = _try_fused_shared_expert_output(h_flat, moe_out, w)
+        if fused_shared is not None:
+            return fused_shared.to(h.dtype).reshape_as(h)
         if "mlp.shared_expert._gate_up_proj.weight" in w:
             gate_up_s = F.linear(h_flat, w["mlp.shared_expert._gate_up_proj.weight"])
             gate_s, up_s = gate_up_s.chunk(2, dim=-1)
@@ -1113,6 +1179,16 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
         return moe_out.to(h.dtype).reshape_as(h)
 
     if "mlp.shared_expert.gate_proj.weight" in w:
+        # The fused Triton shared-expert (LYNN_SHARED_EXPERT_FUSED=1) targets the
+        # BF16 path only; leave the explicit packed scalar-bridge path untouched.
+        if not (
+            "mlp.shared_expert.gate_proj.weight.packed" in w
+            and "mlp.shared_expert.up_proj.weight.packed" in w
+            and "mlp.shared_expert.down_proj.weight.packed" in w
+        ):
+            fused_shared = _try_fused_shared_expert_output(h_flat, moe_out, w)
+            if fused_shared is not None:
+                return fused_shared.to(h.dtype).reshape_as(h)
         if (
             "mlp.shared_expert.gate_proj.weight.packed" in w
             and "mlp.shared_expert.up_proj.weight.packed" in w
