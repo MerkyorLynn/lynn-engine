@@ -18,6 +18,7 @@
 - P2-C active routed MoE lower-bound: [Stage 6 Phase 2-C active MoE lower-bound](reports/stage6/P2C_ACTIVE_MOE_LOWER_BOUND_POC_20260604.md)
 - P2-D one-layer MoE hybrid: [Stage 6 Phase 2-D router/shared-inclusive MoE hybrid](reports/stage6/P2D_ONE_LAYER_MOE_HYBRID_POC_20260604.md)
 - P2-E scheduler/active retune: [Stage 6 Phase 2-E scheduler active retune](reports/stage6/P2E_SCHEDULER_ACTIVE_RETUNE_20260604.md)
+- P2-F opt-in one-layer replacement: [Stage 6 Phase 2-F one-layer replacement verify](reports/stage6/P2F_ONE_LAYER_REPLACEMENT_VERIFY_20260604.md)
 
 ## Banked Results
 
@@ -40,6 +41,7 @@
 | P2-C active routed MoE | packed gate/up+down active path numeric/no-shadow PASS;M64 23.83ms/layer,约 21x 快于 stream_bf16,但 0.560x vs BF16 active;继续 P2-D |
 | P2-D one-layer hybrid | router/shared 加回后 numeric/no-shadow PASS;M64 29.21ms/layer,约 17x 快于 stream_bf16,但 0.741x vs BF16 full MoE;不接 serving,下一步降 router/grouping + packed-active 调度成本 |
 | P2-E scheduler/active retune | sort scheduler 把 M64 route/grouping 5.02ms 降到 0.61ms;`block_inter=8` 把 active 24.48ms 降到 20.12ms;hybrid M64 20.25ms vs BF16 21.41ms=1.057x,numeric/no-shadow PASS |
+| P2-F opt-in engine path | 新增 `LYNN_PACKED_PREFILL_SLOW_MODE=p2e_hybrid`;删除 active BF16 shadow 后,M64 20.23ms vs BF16 21.10ms=1.043x,24.96x vs stream_bf16,peak 0.643GiB |
 
 ## Corrected Engineering Read
 
@@ -69,9 +71,10 @@
 8. **P2-C active routed MoE lower-bound:已过。** packed active path M64 23.83ms/layer,约 21x 快于 stream_bf16 proof,证明 no-reload 服务路径还有价值;但仍慢于 BF16 active。
 9. **P2-D router/shared-inclusive one-layer hybrid:混合通过。** numeric/no-shadow 过,M64 29.21ms/layer,约 17x 快于 stream_bf16,但 0.741x vs BF16 full MoE;不接 serving。
 10. **P2-E grouped scheduler / active retune:已过。** sort scheduler + `block_inter=8` 后,M64 hybrid 20.25ms/layer,1.057x vs BF16 full MoE,仍保持 no-active-shadow。
-11. **P2-F one-layer opt-in replacement:** 把 P2-E 组合从 harness 变成 flag-gated one-layer prefill replacement,验证 against `stream_bf16` / BF16 full MoE / memory / token-numeric。
-12. **P3 server promotion:** `LYNN_PACKED_PREFILL=1` 后多请求服务常驻 27-28 GiB,无 reload,decode TPS 不回退。
-13. **P4 native-kernel chase:** 继续向 llama.cpp 的低 dispatch / fused ggml CUDA 路线追赶;有 FP4-MMA 硅时兑现 NVFP4 native moat。
+11. **P2-F one-layer opt-in replacement:已过。** P2-E 组合已进入 engine dispatch mode `p2e_hybrid`;M64 20.23ms/layer,1.043x vs BF16 full MoE,24.96x vs `stream_bf16`。
+12. **P2-G multi-layer no-reload smoke:** 选择多层/全层 MoE 走 `p2e_hybrid`,验证 numeric/memory/latency 并观察跨层误差。
+13. **P3 server promotion:** `LYNN_PACKED_PREFILL=1` 后多请求服务常驻 27-28 GiB,无 reload,decode TPS 不回退。
+14. **P4 native-kernel chase:** 继续向 llama.cpp 的低 dispatch / fused ggml CUDA 路线追赶;有 FP4-MMA 硅时兑现 NVFP4 native moat。
 
 ## Relation To 2026-05-20 Notes
 
