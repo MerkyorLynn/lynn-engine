@@ -2,9 +2,9 @@
 """Stage 6 P4 native fused-MoE ABI preflight.
 
 This is a capability/contract gate, not a speed gate. It verifies that the
-caller-owned-output packed-NVFP4 zero-shadow C++ hot-path symbol is built into
-the Lynn native extension and that a valid tensor bundle reaches the intentional
-P4 "kernel not implemented yet" fail-loud boundary.
+caller-owned-scratch/output packed-NVFP4 zero-shadow C++ hot-path symbol is
+built into the Lynn native extension and that a valid tensor bundle reaches the
+intentional P4 "kernel not implemented yet" fail-loud boundary.
 """
 from __future__ import annotations
 
@@ -50,6 +50,7 @@ def _make_inputs(tokens: int, experts: int, top_k: int) -> dict[str, torch.Tenso
     down_packed = torch.zeros(experts, 2048, 256, dtype=torch.uint8, device="cuda")
     down_scale = torch.ones(experts, 2048, 32, dtype=torch.float32, device="cuda")
     down_global_scale = torch.ones(1, dtype=torch.float32, device="cuda")
+    inter_scratch = torch.empty(tokens, top_k, 512, dtype=torch.bfloat16, device="cuda")
     out = torch.empty_like(hidden)
     return {
         "hidden": hidden,
@@ -61,6 +62,7 @@ def _make_inputs(tokens: int, experts: int, top_k: int) -> dict[str, torch.Tenso
         "down_packed": down_packed,
         "down_scale": down_scale,
         "down_global_scale": down_global_scale,
+        "inter_scratch": inter_scratch,
         "out": out,
     }
 
@@ -86,7 +88,7 @@ def _byte_budget(tensor_manifest: dict[str, Any], *, experts: int) -> dict[str, 
         "down_scale",
         "down_global_scale",
     ]
-    activation_io_names = ["hidden", "expert_ids", "routing_weights", "out"]
+    activation_io_names = ["hidden", "expert_ids", "routing_weights", "inter_scratch", "out"]
     forbidden_shadow_names = [
         "gate_up_proj",
         "down_proj",
@@ -178,6 +180,7 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
             inputs["down_packed"],
             inputs["down_scale"],
             inputs["down_global_scale"],
+            inputs["inter_scratch"],
             inputs["out"],
             args.tile_tokens,
             args.tile_inter,

@@ -20,6 +20,8 @@ PY_FORBIDDEN = [
     "nvfp4_grouped_down",
     "F.linear",
     "_dequant_nvfp4_slot",
+    "torch.empty",
+    "empty_like",
 ]
 
 CU_FORBIDDEN = [
@@ -33,6 +35,8 @@ CU_FORBIDDEN = [
 ]
 
 PY_REQUIRED = [
+    "mlp.experts._active_inter_scratch",
+    "mlp.experts._active_out_scratch",
     "mlp.experts._gate_up_packed",
     "mlp.experts._gate_up_scale",
     "mlp.experts._gate_up_global_scale",
@@ -43,8 +47,11 @@ PY_REQUIRED = [
 ]
 
 CU_REQUIRED = [
+    "torch::Tensor inter_scratch",
     "torch::Tensor out",
+    "check_cuda_tensor(inter_scratch, \"inter_scratch\", torch::kBFloat16)",
     "check_cuda_tensor(out, \"out\", torch::kBFloat16)",
+    "inter_scratch must be [T, top_k, 512]",
     "gate_up_packed must be [E, 1024, 1024]",
     "down_packed must be [E, 2048, 256]",
     "do not add BF16 expert shadows",

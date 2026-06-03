@@ -50,12 +50,16 @@ def pass_fixture() -> dict:
         "elapsed_s": 1.23,
         "tensor_manifest": {
             "hidden": {"shape": [2, 2048], "dtype": "torch.bfloat16", "bytes": 8192, "contiguous": True},
+            "expert_ids": {"shape": [2, 8], "dtype": "torch.int32", "bytes": 64, "contiguous": True},
+            "routing_weights": {"shape": [2, 8], "dtype": "torch.float32", "bytes": 64, "contiguous": True},
             "gate_up_packed": {"shape": [8, 1024, 1024], "dtype": "torch.uint8", "bytes": 8388608, "contiguous": True},
             "gate_up_scale": {"shape": [8, 1024, 128], "dtype": "torch.float32", "bytes": 4194304, "contiguous": True},
             "gate_up_global_scale": {"shape": [1], "dtype": "torch.float32", "bytes": 4, "contiguous": True},
             "down_packed": {"shape": [8, 2048, 256], "dtype": "torch.uint8", "bytes": 4194304, "contiguous": True},
             "down_scale": {"shape": [8, 2048, 32], "dtype": "torch.float32", "bytes": 2097152, "contiguous": True},
             "down_global_scale": {"shape": [1], "dtype": "torch.float32", "bytes": 4, "contiguous": True},
+            "inter_scratch": {"shape": [2, 8, 512], "dtype": "torch.bfloat16", "bytes": 16384, "contiguous": True},
+            "out": {"shape": [2, 2048], "dtype": "torch.bfloat16", "bytes": 8192, "contiguous": True},
         },
         "byte_budget": {
             "packed_weight_names": [
@@ -66,7 +70,7 @@ def pass_fixture() -> dict:
                 "down_scale",
                 "down_global_scale",
             ],
-            "activation_io_names": ["hidden", "expert_ids", "routing_weights", "out"],
+            "activation_io_names": ["hidden", "expert_ids", "routing_weights", "inter_scratch", "out"],
             "packed_weight_bytes": 18874372,
             "activation_io_bytes": 16640,
             "bf16_shadow_equivalent_bytes": 50331648,

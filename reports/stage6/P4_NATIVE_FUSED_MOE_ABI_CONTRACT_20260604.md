@@ -7,8 +7,8 @@ Verdict: **ABI/PREFLIGHT ONLY; no fused P4 kernel is banked yet.**
 P3 proved the zero-reload serving path can be quality-smoked behind an opt-in
 server flag, but it still uses the existing packed/Triton active-MoE pieces.
 P4 is where the Lynn-owned C++/CUDA hot path becomes a real replacement point:
-one native boundary, caller-owned output, packed NVFP4 weights only, and no BF16
-expert shadow.
+one native boundary, caller-owned scratch/output, packed NVFP4 weights only,
+and no BF16 expert shadow.
 
 ## Why this exists
 
@@ -38,6 +38,7 @@ active_moe_fused_zero_shadow_out_contract(
   down_packed[E, 2048, 256] uint8 contiguous,
   down_scale[E, 2048, 32] fp32 contiguous,
   down_global_scale[1] fp32 contiguous,
+  inter_scratch[T, top_k, 512] bf16 contiguous,
   out[T, 2048] bf16 contiguous,
   tile_tokens,
   tile_inter,
@@ -47,7 +48,8 @@ active_moe_fused_zero_shadow_out_contract(
 
 Important properties:
 
-- caller-owned `out`, so the production path can become graph/runtime friendly;
+- caller-owned `inter_scratch` and `out`, so the production path can become
+  graph/runtime friendly without internal allocation;
 - no BF16 expert weight tensors in the ABI;
 - no Python callback or Triton fallback inside the symbol;
 - shape/layout guards match the Lynn native per-16 Qwen3.6-35B-A3B active MoE
@@ -67,6 +69,11 @@ It wraps the current decode token as `[1, H]`, passes packed NVFP4 active-expert
 weights into `active_moe_fused_zero_shadow_out_contract`, and stops at the same
 fail-loud boundary. This backend must remain default-off until the CUDA math is
 implemented and the byte-count, numeric, speed, and RC gates pass.
+
+The bridge requires `LYNN_MOE_ACTIVE_SCRATCH=1`, which lets
+`resident_runner.py` preallocate `mlp.experts._active_inter_scratch [top_k,512]`
+and `mlp.experts._active_out_scratch [2048]` per layer. The P4 symbol must not
+allocate its own hot-path tensors.
 
 ## GPU Preflight
 
@@ -135,7 +142,8 @@ PASS_RUNTIME_BRIDGE_CONTRACT
 That means the runner first produced a nonzero Triton baseline, removed the
 active-expert BF16 shadow tensors, switched to
 `LYNN_NATIVE_ACTIVE_MOE_BACKEND=fused_zero_shadow_out_contract`, and stopped only
-at the intentional not-implemented CUDA boundary.
+at the intentional not-implemented CUDA boundary while using caller-owned
+active-MoE scratch.
 
 Bridge summary command:
 

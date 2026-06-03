@@ -24,6 +24,7 @@ void lynn_native_active_moe_fused_zero_shadow_out_contract(
     torch::Tensor down_packed,
     torch::Tensor down_scale,
     torch::Tensor down_global_scale,
+    torch::Tensor inter_scratch,
     torch::Tensor out,
     int64_t tile_tokens,
     int64_t tile_inter,
@@ -37,6 +38,7 @@ void lynn_native_active_moe_fused_zero_shadow_out_contract(
   check_cuda_tensor(down_packed, "down_packed", torch::kUInt8);
   check_cuda_tensor(down_scale, "down_scale", torch::kFloat32);
   check_cuda_tensor(down_global_scale, "down_global_scale", torch::kFloat32);
+  check_cuda_tensor(inter_scratch, "inter_scratch", torch::kBFloat16);
   check_cuda_tensor(out, "out", torch::kBFloat16);
 
   TORCH_CHECK(hidden.dim() == 2, "hidden must be [T, 2048]");
@@ -51,6 +53,11 @@ void lynn_native_active_moe_fused_zero_shadow_out_contract(
   TORCH_CHECK(routing_weights.size(0) == tokens, "routing_weights token dimension must match hidden");
   TORCH_CHECK(routing_weights.size(1) == expert_ids.size(1), "routing_weights top_k must match expert_ids");
   TORCH_CHECK(expert_ids.size(1) > 0, "top_k must be non-empty");
+  const int64_t top_k = expert_ids.size(1);
+  TORCH_CHECK(
+      inter_scratch.dim() == 3 && inter_scratch.size(0) == tokens &&
+          inter_scratch.size(1) == top_k && inter_scratch.size(2) == kIntermediate,
+      "inter_scratch must be [T, top_k, 512]");
 
   TORCH_CHECK(gate_up_packed.dim() == 3, "gate_up_packed must be [E, 1024, 1024]");
   TORCH_CHECK(gate_up_scale.dim() == 3, "gate_up_scale must be [E, 1024, 128]");
@@ -85,6 +92,6 @@ void lynn_native_active_moe_fused_zero_shadow_out_contract(
       false,
       "active_moe_fused_zero_shadow_out_contract passed all packed-NVFP4 shape/layout checks, "
       "but the P4 fused 4-bit zero-shadow CUDA kernel is not implemented yet. "
-      "This is the caller-owned-output C++ hot-path ABI: replace only the inner math, "
+      "This is the caller-owned-scratch/output C++ hot-path ABI: replace only the inner math, "
       "do not add BF16 expert shadows or Python/Triton fallback inside this symbol.");
 }

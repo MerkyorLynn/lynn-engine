@@ -657,23 +657,39 @@ def _active_moe_native_fused_zero_shadow_out_contract(
     routing_weights: torch.Tensor,
     w: dict,
 ) -> torch.Tensor:
-    """P4 caller-owned-output ABI for the future fused zero-shadow kernel."""
+    """P4 caller-owned scratch/output ABI for the future fused zero-shadow kernel."""
     from engine.native_cuda import load_lynn_native_extension
 
     hidden_2d = hidden.reshape(1, -1).contiguous()
     expert_ids_2d = expert_ids.reshape(1, -1).to(torch.int32).contiguous()
     routing_weights_2d = routing_weights.reshape(1, -1).to(torch.float32).contiguous()
+    inter_scratch = w.get("mlp.experts._active_inter_scratch")
     out_scratch = w.get("mlp.experts._active_out_scratch")
+    top_k = int(expert_ids_2d.shape[1])
     if (
-        out_scratch is not None
-        and out_scratch.numel() == hidden.numel()
-        and out_scratch.dtype == torch.bfloat16
-        and out_scratch.device == hidden.device
-        and out_scratch.is_contiguous()
+        inter_scratch is None
+        or tuple(inter_scratch.shape) != (top_k, 512)
+        or inter_scratch.dtype != torch.bfloat16
+        or inter_scratch.device != hidden.device
+        or not inter_scratch.is_contiguous()
     ):
-        out = out_scratch.view(1, -1)
-    else:
-        out = torch.empty_like(hidden_2d)
+        raise RuntimeError(
+            "LYNN_NATIVE_ACTIVE_MOE_BACKEND=fused_zero_shadow_out_contract requires "
+            "LYNN_MOE_ACTIVE_SCRATCH=1 so resident_runner preallocates MoE inter scratch."
+        )
+    if (
+        out_scratch is None
+        or out_scratch.numel() != hidden.numel()
+        or out_scratch.dtype != torch.bfloat16
+        or out_scratch.device != hidden.device
+        or not out_scratch.is_contiguous()
+    ):
+        raise RuntimeError(
+            "LYNN_NATIVE_ACTIVE_MOE_BACKEND=fused_zero_shadow_out_contract requires "
+            "LYNN_MOE_ACTIVE_SCRATCH=1 so resident_runner preallocates MoE out scratch."
+        )
+    inter = inter_scratch.view(1, top_k, 512)
+    out = out_scratch.view(1, -1)
 
     ext = load_lynn_native_extension(verbose=_env_bool("LYNN_NATIVE_CUDA_VERBOSE", False))
     ext.active_moe_fused_zero_shadow_out_contract(
@@ -686,6 +702,7 @@ def _active_moe_native_fused_zero_shadow_out_contract(
         w["mlp.experts._down_packed"],
         w["mlp.experts._down_scale"],
         w["mlp.experts._down_global_scale"],
+        inter,
         out,
         _env_int("LYNN_NATIVE_FUSED_ZERO_SHADOW_TILE_TOKENS", 1),
         _env_int("LYNN_NATIVE_GATEUP_TILE_INTER", 8),
