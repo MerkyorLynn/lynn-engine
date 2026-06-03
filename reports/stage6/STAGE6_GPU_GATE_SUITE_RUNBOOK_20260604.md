@@ -45,6 +45,8 @@ Required suite-level files:
 - `commands.sh` — exact child wrapper commands;
 - `suite_status.tsv` — child step status and exit code;
 - `summary.md` — suite-level human summary.
+- `report.md` — formal suite report from
+  `scripts/write_stage6_gpu_gate_suite_report.py`.
 
 Child wrappers write their own artifact subdirectories under the suite root.
 They remain authoritative for each gate:
@@ -96,3 +98,14 @@ scripts/run_stage6_evidence_ci.sh
 
 This validates the P2-O evidence tools, P3 contract static checks, P3-A evidence
 summarizer, and this suite wrapper's dry-run path.
+
+Formal report writer:
+
+```bash
+python3 scripts/write_stage6_gpu_gate_suite_report.py \
+  reports/stage6/stage6_gpu_gate_suite_YYYYmmdd_HHMMSS \
+  --report-out reports/stage6/STAGE6_GPU_GATE_SUITE_REPORT_20260604.md
+```
+
+The suite report is orchestration-level evidence only. Child P2-O/P3-A reports
+remain authoritative for banking any specific gate.

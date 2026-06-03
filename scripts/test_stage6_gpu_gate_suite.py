@@ -71,6 +71,7 @@ def main() -> int:
         status = (suite / "suite_status.tsv").read_text()
         commands = (suite / "commands.sh").read_text()
         summary = (suite / "summary.md").read_text()
+        report = (suite / "report.md").read_text()
         assert "p2o-basic\tDRY_RUN\t0" in status
         assert "p2o-rc-mini\tDRY_RUN\t0" in status
         assert "p3a-contract\tDRY_RUN\t0" in status
@@ -80,6 +81,8 @@ def main() -> int:
         assert "--batches" in commands
         assert "1,4" in commands or "1\\,4" in commands
         assert "Failures | `0`" in summary
+        assert "Verdict: **DRY_RUN**" in report
+        assert "dry-run only" in report
 
         skip = run([
             "scripts/run_stage6_gpu_gate_suite.sh",
@@ -91,6 +94,50 @@ def main() -> int:
             "--skip-p3a",
         ])
         assert "artifacts:" in skip.stdout
+
+        synthetic = tmp / "synthetic_suite"
+        synthetic.mkdir()
+        (synthetic / "suite_meta.env").write_text(
+            "\n".join([
+                "local_head=abc",
+                "expected_head=abc",
+                "host=dgx-spark",
+                "model=/models/demo",
+                "image=demo:latest",
+                "remote_repo=/remote/repo",
+                "strict=1",
+                "dry_run=0",
+            ]) + "\n"
+        )
+        (synthetic / "suite_status.tsv").write_text(
+            "step\tstatus\texit_code\n"
+            "p2o-basic\tPASS\t0\n"
+            "p2o-rc-mini\tPASS\t0\n"
+            "p3a-contract\tPASS\t0\n"
+        )
+        (synthetic / "commands.sh").write_text("echo synthetic\n")
+        (synthetic / "summary.md").write_text("# Synthetic summary\n\nFailures | `0`\n")
+        (synthetic / "local_git_status.txt").write_text("")
+        child = synthetic / "p3a_layer0_grouped_moe_contract_probe_20260604_000000"
+        child.mkdir()
+        (child / "result.json").write_text("{}\n")
+        (child / "summary.md").write_text("# Child summary\n\nVerdict | **PASS**\n")
+        (child / "head_check.txt").write_text("remote HEAD ok\n")
+        (child / "docker_exit_code.txt").write_text("0\n")
+        report_out = tmp / "synthetic_report.md"
+        run([
+            sys.executable,
+            "scripts/write_stage6_gpu_gate_suite_report.py",
+            str(synthetic),
+            "--report-out",
+            str(report_out),
+            "--date",
+            "2026-06-04",
+        ])
+        synthetic_report = report_out.read_text()
+        assert "Verdict: **PASS**" in synthetic_report
+        assert "p3a_layer0_grouped_moe_contract_probe" in synthetic_report
+        assert "Child summary" in synthetic_report
 
     print("Stage 6 GPU gate-suite self-test PASS")
     return 0
