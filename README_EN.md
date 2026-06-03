@@ -1,5 +1,10 @@
 # Lynn Engine
 
+> **🆕 2026-06-03 Decode kernel-launch campaign — Spark NVFP4 35B-A3B single-stream 38.96 → ~45 TPS, RC quality-identical.**
+> Decode is launch-bound (census: **~1527 CUDA launches/token**, ~40% of token time is CPU-side dispatch). We fused launch clusters + elided copies: **fused RMSNorm (biggest) / shared-expert / linear-attn g/beta-fold / full-attn (token-exact) / NVFP4 `_scaled_mm` bf16-out copy-elision** — **5 RC-validated launch-cuts**, with **40/40 greedy outputs bit-identical to baseline** across structured/V9/GPQA/tool-call/long-form, inheriting **MMLU 84.40 / GPQA-Diamond 49.49**. All gated, default-safe, reversible.
+>
+> **🎯 Determined to catch llama.cpp.** Q4_K_M still leads at **69.77** on the same box — and we now know exactly why: its hand-fused kernel **reads 4-bit weights directly, dequantizes in registers, runs a bf16 GEMV** (bandwidth-optimal, single launch); we still hit a **~2× bandwidth wall** from the BF16 dequant-shadow (baseline 38.96 ≈ 6 GB/token ÷ 240 GB/s ≈ 40). **The endgame is set**: write Lynn's own "**read-4bit + dequant-in-register + bf16-GEMV + zero-shadow + single-launch**" NVFP4 kernel, moving the wall ~40 → ~140 (**where 70 lives**). The same NVFP4 weights + kernel run native (faster) on R6000's FP4 MMA — **Lynn's cross-device core**. llama.cpp is **MIT**: the blueprint is open and clean-room-referenceable. **Conquer it = Lynn becomes the llama.cpp of NVFP4.** See [decode launch-overhead campaign](reports/qwen36_35b/DECODE_LAUNCH_OVERHEAD_CAMPAIGN_20260603.md).
+
 > **🆕 2026-05-20 major status change — Lynn engine pivots from "product default inference backend" to "R&D exploration track".**
 > The Lynn client adopts the **llama.cpp** ecosystem as the short-term default local inference backend (Mac Metal / Windows / Linux CUDA + Q4_K_M GGUF).
 > Default ship model = **Qwen3.5-9B Q4_K_M-imatrix (5.3 GB)**, thinking-on excl_pf MMLU 90+ / GPQA 80+.
@@ -27,12 +32,12 @@
 
 5 parallel CLIs + 23 commits driving Wave 2 W4A8 FP8 e2e. The final retry #4 exposed an **architectural signal**: Python overhead dominates decode time. With 30 MoE layers × 8 active experts × per-expert `_scaled_mm` = 240+ kernel launches/token, and CUDA graph capture disabled (because the active-expert dispatch contains host syncs), every launch pays the full Python/CUDA dispatch overhead. This is bug #7 — **not fixable by patching kernels**. It requires vectorised expert dispatch + CUTLASS grouped GEMM + a C++ service loop, which is months of engineering.
 
-### 35B horizontal comparison (Spark sm_121 GB10 single-stream, 2026-05-18)
+### 35B horizontal comparison (Spark sm_121 GB10 single-stream; baseline 2026-05-18, lynn-engine row updated 6/3)
 
 | Path | Model size | Single-stream TPS | MMLU 500 | GPQA Diamond 198 | Note |
 |---|---:|---:|---:|---:|---|
-| Lynn-native NVFP4 W4A16 / lynn-engine | 23 GB | 38.96 | 84.40% | 49.49% | 5/18 baseline |
-| **llama.cpp Q4_K_M-imatrix** | **20 GB** | **69.77** | 83.00% | **50.00%** | 1.8× lynn-engine on same hardware |
+| Lynn-native NVFP4 W4A16 / lynn-engine | 23 GB | **38.96 → ~45** | 84.40% | 49.49% | 5/18 base → **6/3 launch-overhead campaign (5 cuts, RC-validated)** |
+| **llama.cpp Q4_K_M-imatrix** | **20 GB** | **69.77** | 83.00% | **50.00%** | ~1.55× lynn-engine (post-campaign) — **the target** |
 | SGLang BF16 official | 67 GB | 30.14 | 86.40% | 45.45% | reference |
 | Lynn W4A8 FP8 (engineering exploration) | 35 GB | — | — | — | architecture incomplete, see RELEASE_NOTES |
 
