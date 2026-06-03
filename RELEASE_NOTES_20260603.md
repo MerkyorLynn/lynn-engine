@@ -23,6 +23,7 @@
 - P2-H selected-layer full prefill smoke: [Stage 6 Phase 2-H selected-layer prefill smoke](reports/stage6/P2H_SELECTED_LAYER_PREFILL_SMOKE_20260604.md)
 - P2-I selected-MoE expansion smoke: [Stage 6 Phase 2-I selected-MoE expansion smoke](reports/stage6/P2I_SELECTED_MOE_EXPANSION_SMOKE_20260604.md)
 - P2-J linear-attn prefill trace: [Stage 6 Phase 2-J linear-attn prefill trace](reports/stage6/P2J_LINEAR_ATTN_PREFILL_TRACE_20260604.md)
+- P2-KA gated-delta recurrent-loop PoC: [Stage 6 Phase 2-KA gated-delta native recurrent-loop PoC](reports/stage6/P2KA_GATED_DELTA_NATIVE_LOOP_POC_20260604.md)
 
 ## Banked Results
 
@@ -50,6 +51,7 @@
 | P2-H selected-layer full prefill | `_prefill_layer` 完整链路 PASS(RMSNorm + linear/full attention cache + MoE);mixed L0-3 T16 45.97ms vs BF16 58.57ms=1.274x,52.09x vs stream_bf16,numeric pass,peak 2.606GiB vs stream 14.585GiB |
 | P2-I selected-MoE expansion | mixed L0-7 T16 PASS;88.96ms vs BF16 113.82ms=1.279x,46.70x vs stream_bf16,numeric pass,peak 5.123GiB vs stream 17.102GiB |
 | P2-J linear-attn prefill trace | trace exact vs `prefill_linear_attn`;`chunk_gated_delta_with_state` 占 T16..512 traced wall **71-76%**,锁定下一 native kernel 目标 |
+| P2-KA gated-delta recurrent loop | numeric PASS(min cosine 0.999989555,argmax match),speed FAIL:T512 native loop 15.62ms vs chunk 4.16ms=0.266x;反证逐 token 复用 decode kernel,下一步 P2-KB 真 chunk/block prefill kernel |
 
 ## Corrected Engineering Read
 
@@ -84,9 +86,10 @@
 13. **P2-H selected-layer full prefill smoke:已过。** `p2e_hybrid` 已进入完整 `_prefill_layer` 链路;full-attn L3 T64、linear-attn L0 T16、mixed L0-3 T16 均 numeric/no-shadow/speed 通过。
 14. **P2-I selected-MoE expansion:已过。** mixed L0-7 T16 继续保持 numeric/no-shadow/speed 通过;P2E 88.96ms,1.279x vs BF16,46.70x vs stream。
 15. **P2-J linear-attn prefill trace:已过。** T16..512 trace 精确,`chunk_gated_delta_with_state` 占 71-76%,下一 native kernel 目标明确。
-16. **P2-K next:** gated-delta prefill kernel PoC;未过前不做 server 默认。
-17. **P3 server promotion:** `LYNN_PACKED_PREFILL=1` 后多请求服务常驻 27-28 GiB,无 reload,decode TPS 不回退。
-18. **P4 native-kernel chase:** 继续向 llama.cpp 的低 dispatch / fused ggml CUDA 路线追赶;有 FP4-MMA 硅时兑现 NVFP4 native moat。
+16. **P2-KA recurrent-loop PoC:已反证。** 现有 single-token Triton decode recurrent kernel 可复现 gated-delta 数学(min cosine 0.999989555,argmax match),但逐 token launch 在 T512 只有 0.266x vs chunk reference;不 promote。
+17. **P2-KB next:** 真 chunk/block-level gated-delta prefill kernel;未过前不做 server 默认。
+18. **P3 server promotion:** `LYNN_PACKED_PREFILL=1` 后多请求服务常驻 27-28 GiB,无 reload,decode TPS 不回退。
+19. **P4 native-kernel chase:** 继续向 llama.cpp 的低 dispatch / fused ggml CUDA 路线追赶;有 FP4-MMA 硅时兑现 NVFP4 native moat。
 
 ## Relation To 2026-05-20 Notes
 

@@ -497,3 +497,14 @@
     non-chunk segment is only **0.165-0.393 ms** across T16..512.
   - **Decision:** bank P2-J. Next gate P2-K should target a native/fused gated-delta prefill kernel, not more projection
     bridge tuning. Server promotion remains blocked until P2-K/P2-L and RC quality pass.
+- **⚠️ STAGE 6 step 21 — P2-KA gated-delta native recurrent-loop PoC NUMERIC PASS / SPEED FAIL.**
+  `scripts/spark_stage6_p2k_gated_delta_native_loop_poc.py` tries the cheapest native reuse path: loop over prefill tokens
+  and call the existing single-token Triton decode recurrent kernel (`recurrent_gated_delta_fused_prepare_gqa`).
+  - **Numeric:** T=16/64/128/256/512 all pass vs `chunk_gated_delta_with_state` for output/state with min cosine
+    **0.999989555** and argmax match.
+  - **Latency:** short T16/T64 look faster because the torch chunk reference has fixed overhead, but the one-launch-per-token
+    shape falls over as T grows: T128 **4.05 ms vs chunk 2.46 ms (0.608x)**, T256 **8.03 ms vs 3.40 ms (0.424x)**,
+    T512 **15.62 ms vs 4.16 ms (0.266x)**.
+  - **Decision:** bank P2-KA as a rejected implementation path. The decode recurrent kernel is useful as a math oracle, but
+    prefill needs P2-KB: a true chunk/block-level gated-delta kernel that processes multiple tokens per launch. Server
+    promotion remains blocked until P2-KB/P2-L and RC quality pass.
