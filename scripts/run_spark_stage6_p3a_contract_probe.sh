@@ -60,6 +60,7 @@ manifest_for_files() {
 PROVENANCE_FILES=(
   "scripts/run_spark_stage6_p3a_contract_probe.sh"
   "scripts/spark_stage6_p3a_grouped_moe_contract_probe.py"
+  "scripts/summarize_stage6_p3a_contract_probe.py"
   "engine/moe_packed_nvfp4.py"
   "triton_kernels/nvfp4_moe.py"
   "reports/stage6/P3_GROUPED_MOE_ZERO_SHADOW_CONTRACT_20260604.md"
@@ -168,6 +169,7 @@ manifest_for_files() {
 PROVENANCE_FILES=(
   "scripts/run_spark_stage6_p3a_contract_probe.sh"
   "scripts/spark_stage6_p3a_grouped_moe_contract_probe.py"
+  "scripts/summarize_stage6_p3a_contract_probe.py"
   "engine/moe_packed_nvfp4.py"
   "triton_kernels/nvfp4_moe.py"
   "reports/stage6/P3_GROUPED_MOE_ZERO_SHADOW_CONTRACT_20260604.md"
@@ -254,18 +256,11 @@ if [[ ! -f "$LOCAL_RUN_DIR/result.json" ]]; then
   exit "$REMOTE_STATUS"
 fi
 
-python3 - "$LOCAL_RUN_DIR/result.json" "$STRICT" <<'PY'
-import json
-import sys
-
-path, strict = sys.argv[1], sys.argv[2] == "1"
-data = json.loads(open(path).read())
-passes = data.get("passes", {})
-print(f"[p3a] verdict={data.get('verdict')} passes.all={passes.get('all')}")
-print(f"[p3a] banked_fused_kernel={data.get('banked_fused_kernel')}")
-if strict and not passes.get("all"):
-    raise SystemExit(2)
-PY
+SUMMARY_ARGS=("$LOCAL_RUN_DIR/result.json" "--markdown-out" "$LOCAL_RUN_DIR/summary.md")
+if [[ "$STRICT" == "1" ]]; then
+  SUMMARY_ARGS+=("--strict-exit")
+fi
+python3 scripts/summarize_stage6_p3a_contract_probe.py "${SUMMARY_ARGS[@]}"
 
 if [[ "$REMOTE_STATUS" -ne 0 && "$STRICT" == "1" ]]; then
   exit "$REMOTE_STATUS"

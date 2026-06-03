@@ -124,5 +124,15 @@ P3-A probe artifact must report:
 - speed versus BF16 active MoE, with no promotion claim.
 
 The wrapper records remote HEAD or provenance-manifest match, Docker exit code,
-`nvidia-smi` before/after, `run.log`, and `result.json` under
-`reports/stage6/p3a_layer*_grouped_moe_contract_probe_*`.
+`nvidia-smi` before/after, `run.log`, `result.json`, and `summary.md` under
+`reports/stage6/p3a_layer*_grouped_moe_contract_probe_*`. The summary helper is:
+
+```bash
+python3 scripts/summarize_stage6_p3a_contract_probe.py \
+  reports/stage6/p3a_layer*/result.json \
+  --markdown-out /tmp/p3a_summary.md \
+  --strict-exit
+```
+
+`--strict-exit` fails unless `banked_fused_kernel=false`, numeric passes, and the
+active BF16 shadow is absent at candidate start.
