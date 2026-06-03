@@ -334,6 +334,84 @@ if HAS_TRITON:
         tl.store(out_ptr + token * out_stride_t + rows, acc, mask=(token < T) & row_mask)
 
 
+    @triton.jit
+    def _nvfp4_tiled_batched_matmul_kernel(
+        x_ptr,
+        packed_ptr,
+        scale_ptr,
+        global_scale_ptr,
+        out_ptr,
+        T: tl.constexpr,
+        M: tl.constexpr,
+        N: tl.constexpr,
+        x_stride_t: tl.constexpr,
+        out_stride_t: tl.constexpr,
+        packed_stride_m: tl.constexpr,
+        packed_stride_n: tl.constexpr,
+        scale_stride_m: tl.constexpr,
+        scale_stride_g: tl.constexpr,
+        BLOCK_T: tl.constexpr,
+        BLOCK_M: tl.constexpr,
+        BLOCK_N: tl.constexpr,
+        HAS_GLOBAL_SCALE: tl.constexpr,
+    ):
+        token_block = tl.program_id(0)
+        row_block = tl.program_id(1)
+        tokens = token_block * BLOCK_T + tl.arange(0, BLOCK_T)
+        rows = row_block * BLOCK_M + tl.arange(0, BLOCK_M)
+        token_mask = tokens < T
+        row_mask = rows < M
+
+        acc = tl.zeros((BLOCK_T, BLOCK_M), dtype=tl.float32)
+        global_scale = tl.full((), 1.0, dtype=tl.float32)
+        if HAS_GLOBAL_SCALE:
+            global_scale = tl.load(global_scale_ptr).to(tl.float32)
+
+        for n0 in range(0, N, BLOCK_N):
+            cols = n0 + tl.arange(0, BLOCK_N)
+            col_mask = cols < N
+            packed_cols = cols // 2
+            scale_cols = cols // 16
+
+            x = tl.load(
+                x_ptr + tokens[:, None] * x_stride_t + cols[None, :],
+                mask=token_mask[:, None] & col_mask[None, :],
+                other=0.0,
+            ).to(tl.float32)
+
+            packed_offsets = (
+                rows[:, None] * packed_stride_m
+                + packed_cols[None, :] * packed_stride_n
+            )
+            packed = tl.load(
+                packed_ptr + packed_offsets,
+                mask=row_mask[:, None] & col_mask[None, :],
+                other=0,
+            )
+            low = packed & 0x0F
+            high = (packed >> 4) & 0x0F
+            nibble = tl.where((cols[None, :] & 1) == 0, low, high)
+            w_fp4 = _e2m1_from_nibble(nibble)
+
+            scale_offsets = (
+                rows[:, None] * scale_stride_m
+                + scale_cols[None, :] * scale_stride_g
+            )
+            scale = tl.load(
+                scale_ptr + scale_offsets,
+                mask=row_mask[:, None] & col_mask[None, :],
+                other=0.0,
+            ).to(tl.float32)
+            w_eff_t = tl.trans(w_fp4 * (scale / global_scale))
+            acc += tl.dot(x, w_eff_t, input_precision="tf32")
+
+        tl.store(
+            out_ptr + tokens[:, None] * out_stride_t + rows[None, :],
+            acc,
+            mask=token_mask[:, None] & row_mask[None, :],
+        )
+
+
 def nvfp4_matvec_packed(
     x: torch.Tensor,
     weight_packed: torch.Tensor,
@@ -401,6 +479,83 @@ def nvfp4_matvec_packed(
         weight_packed.stride(1),
         weight_scale.stride(0),
         weight_scale.stride(1),
+        block_m,
+        block_n,
+        has_global_scale,
+        num_warps=4,
+    )
+    return out
+
+
+def nvfp4_tiled_batched_matmul_packed(
+    x: torch.Tensor,
+    weight_packed: torch.Tensor,
+    weight_scale: torch.Tensor,
+    weight_global_scale: torch.Tensor | None = None,
+    *,
+    block_t: int = 16,
+    block_m: int = 16,
+    block_n: int = 128,
+) -> torch.Tensor:
+    """Run batched `x @ weight.T` from packed NVFP4 with token/output tiling.
+
+    Unlike `nvfp4_batched_matmul_packed`, this kernel computes a
+    `[BLOCK_T, BLOCK_M]` output tile per program and reuses the same packed
+    weight tile across multiple token rows. It is still a scalar-dequant bridge
+    rather than a hardware FP4-MMA kernel, but it is the first real P1-A shape.
+    """
+    _require_triton()
+    if not x.is_cuda or not weight_packed.is_cuda or not weight_scale.is_cuda:
+        raise ValueError("x, weight_packed, and weight_scale must be CUDA tensors")
+    if x.ndim != 2:
+        raise ValueError(f"x must be [tokens, in_features], got shape={tuple(x.shape)}")
+    if weight_packed.dtype != torch.uint8:
+        raise TypeError(f"weight_packed must be uint8, got {weight_packed.dtype}")
+    if weight_packed.ndim != 2 or weight_scale.ndim != 2:
+        raise ValueError(
+            "weight_packed and weight_scale must be 2D; "
+            f"got packed={tuple(weight_packed.shape)} scale={tuple(weight_scale.shape)}"
+        )
+
+    tokens, in_features = map(int, x.shape)
+    out_features = int(weight_packed.shape[0])
+    if weight_packed.shape[1] * 2 != in_features:
+        raise ValueError(f"packed weight in_features={weight_packed.shape[1] * 2}, x has {in_features}")
+    if weight_scale.shape[0] != out_features or weight_scale.shape[1] * 16 != in_features:
+        raise ValueError(
+            "weight_scale must be [out_features, in_features / 16]; "
+            f"got packed={tuple(weight_packed.shape)} scale={tuple(weight_scale.shape)}"
+        )
+    if block_t <= 0 or block_m <= 0 or block_n <= 0:
+        raise ValueError("block_t, block_m, and block_n must be positive")
+
+    x = x.contiguous()
+    weight_packed = weight_packed.contiguous()
+    weight_scale = weight_scale.contiguous()
+    out = torch.empty((tokens, out_features), device=x.device, dtype=torch.float32)
+    has_global_scale = weight_global_scale is not None
+    if weight_global_scale is not None:
+        weight_global_scale = weight_global_scale.to(device=x.device).contiguous()
+    else:
+        weight_global_scale = torch.empty((1,), device=x.device, dtype=torch.float32)
+
+    grid = (triton.cdiv(tokens, block_t), triton.cdiv(out_features, block_m))
+    _nvfp4_tiled_batched_matmul_kernel[grid](
+        x,
+        weight_packed,
+        weight_scale,
+        weight_global_scale,
+        out,
+        tokens,
+        out_features,
+        in_features,
+        x.stride(0),
+        out.stride(0),
+        weight_packed.stride(0),
+        weight_packed.stride(1),
+        weight_scale.stride(0),
+        weight_scale.stride(1),
+        block_t,
         block_m,
         block_n,
         has_global_scale,

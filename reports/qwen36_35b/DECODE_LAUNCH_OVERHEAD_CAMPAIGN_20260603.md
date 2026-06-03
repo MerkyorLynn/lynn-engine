@@ -335,3 +335,14 @@
     M=16 **0.067x**, M=64 **0.016x** vs BF16. BF16 `F.linear` amortizes the batch; this bridge does not.
   - **Decision:** keep it as a correctness/regression probe only. Do not wire into resident_runner. Next P1-A attempt must
     be a true tiled `BLOCK_T x BLOCK_OUT x BLOCK_K` packed projection kernel.
+- **⚠️ STAGE 6 step 9 — P1-A tiled scalar projection bridge also REJECTED for Spark performance.**
+  `nvfp4_tiled_batched_matmul_packed()` added a real `BLOCK_T x BLOCK_OUT x BLOCK_K` style bridge and swept
+  `BLOCK_T={8,16,32}`, `BLOCK_OUT={16,32,64}`, `BLOCK_K=128` for M=16/64.
+  - **Numeric/no-shadow:** all nine configs passed vs FP32 dequant oracle; representative best-shape
+    `cos=0.999999979`, `rel_l2≈2.6e-04`, argmax match, timed packed peak **0.0200 GiB** after deleting BF16/FP32 refs.
+  - **Perf vs naive:** tiled is real progress over the naive bridge, up to **25.93x** faster.
+  - **Perf vs BF16:** still fails the promotion gate. Best M=16 is **209.11 us** vs BF16 **156.60 us** (**0.749x**);
+    best M=64 is **421.43 us** vs BF16 **151.17 us** (**0.359x**).
+  - **Decision:** scalar-dequant dense M>1 packed prefill is closed on Spark. Do not wire into resident_runner. Dense M>1
+    needs native FP4-MMA/CUTLASS-style kernels if pursued; Stage 6 should move to P2 grouped MoE prefill or native runtime
+    work.

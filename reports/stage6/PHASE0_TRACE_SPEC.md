@@ -111,7 +111,7 @@ lookup paths. Router and norms are too small to lead the next phase.
 |---|---|---|
 | P1 single projection | **PASSED 2026-06-04**: real `linear_attn.in_proj_qkv` M=1 packed Triton matvec | numeric/no-shadow/microbench all pass; see `reports/stage6/P1_DENSE_PROJECTION_POC_20260604.md` |
 | P1-A naive batched bridge | **REJECTED 2026-06-04**: numeric/no-shadow pass, M>1 perf fail | see `reports/stage6/P1A_BATCHED_PROJECTION_POC_20260604.md` |
-| P1-A tiled projections | Replace row-loop packed linear prefill with `BLOCK_T x BLOCK_OUT x BLOCK_K` packed-NVFP4 kernels for full-attn and linear-attn qkv/z/b/a/o | token-exact, lower prefill latency than reload+BF16, no projection BF16 shadow |
+| P1-A tiled scalar bridge | **REJECTED 2026-06-04**: numeric/no-shadow pass and up to 25.93x faster than naive, but still slower than BF16 GEMM for M>1 | see `reports/stage6/P1A_TILED_PROJECTION_SWEEP_20260604.md`; dense M>1 needs native FP4-MMA/CUTLASS-style bridge if pursued |
 | P2 | Replace row-loop packed MoE prefill with grouped M>1 packed expert kernels | token-exact vs BF16 MoE prefill, no MoE BF16 shadow, latency measured by prompt length |
 | P3 | Server integration: if `LYNN_PACKED_PREFILL=1`, skip per-request reload and keep 27-28 GiB steady-state | multi-request A/B: no reload, memory flat, decode TPS unchanged |
 | P4 | RC quality and long-context headroom | `spark_rc_quality_regression.py`, long prefill smoke, `/health` metrics |
