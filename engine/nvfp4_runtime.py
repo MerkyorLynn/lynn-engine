@@ -13,6 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import json
 import os
+import sys
 from pathlib import Path
 
 import torch
@@ -25,6 +26,70 @@ from triton_kernels.nvfp4_linear import (
 
 _SWIZZLE_INDEX_CACHE: dict[tuple[int, int, int, int, str], torch.Tensor] = {}
 _SWIZZLE_FP8_ONES_CACHE: dict[tuple[int, int, str], torch.Tensor] = {}
+
+# --- LYNN_NVFP4_BF16_OUT decode copy-elision -------------------------------
+# The single-token decode matmul (`forward_native_fast_2d`) historically asks
+# torch._scaled_mm for fp16 out and then `.float()`s to fp32; the decode caller
+# (`engine/incremental_decode._linear`) then does `out.to(x.dtype)` with x in
+# bf16, which is a real fp32->bf16 `aten::copy_` on EVERY projection. On the
+# launch-bound Spark GB10 decode path that is one launch + memory pass per proj.
+#
+# With LYNN_NVFP4_BF16_OUT=1 we ask _scaled_mm for bf16 out directly and return
+# bf16 (no fp32 round-trip), so `_linear`'s `out.to(bf16)` becomes a no-op and
+# the copy disappears. fp32-accumulate->bf16 is one fewer rounding than
+# fp32->fp16->bf16, so this is quality-neutral-or-better (not token-exact).
+#
+# Robustness: the block-scaled NVFP4 (ue4m3xe2m1) path may reject bf16 out on
+# some sm_121 builds. The first rejection disables bf16-out for the rest of the
+# process (one-time warning) and every call falls back to today's exact fp16
+# path. Default OFF reproduces today's behavior bit-for-bit.
+_BF16_OUT_DISABLED = False
+_BF16_OUT_FALLBACK_WARNED = False
+
+
+def _disable_bf16_out(exc: Exception) -> None:
+    """Permanently fall back to fp16 out after a bf16-out rejection."""
+    global _BF16_OUT_DISABLED, _BF16_OUT_FALLBACK_WARNED
+    _BF16_OUT_DISABLED = True
+    if not _BF16_OUT_FALLBACK_WARNED:
+        _BF16_OUT_FALLBACK_WARNED = True
+        print(
+            "[nvfp4_runtime] LYNN_NVFP4_BF16_OUT=1 requested but torch._scaled_mm "
+            f"rejected out_dtype=bfloat16 ({exc!r}); falling back to fp16 out for "
+            "the rest of this process.",
+            file=sys.stderr,
+        )
+
+
+def _native_decode_scaled_mm(act_view, weight_t, scale_a, scale_b):
+    """torch._scaled_mm for the single-token NVFP4 decode path.
+
+    Returns ``(out_2d, is_bf16)``. With LYNN_NVFP4_BF16_OUT=1 (and bf16 out not
+    previously rejected) this returns the bf16 result directly; the caller must
+    NOT `.float()` it (so the downstream `out.to(bf16)` stays a no-op). Otherwise
+    it returns the fp16 result and ``is_bf16=False``, and the caller `.float()`s
+    it exactly as before.
+    """
+    if os.environ.get("LYNN_NVFP4_BF16_OUT", "0") == "1" and not _BF16_OUT_DISABLED:
+        try:
+            out = torch._scaled_mm(
+                act_view,
+                weight_t,
+                scale_a=scale_a,
+                scale_b=scale_b,
+                out_dtype=torch.bfloat16,
+            )[0]
+            return out, True
+        except Exception as exc:  # pragma: no cover - device/kernel dependent
+            _disable_bf16_out(exc)
+    out = torch._scaled_mm(
+        act_view,
+        weight_t,
+        scale_a=scale_a,
+        scale_b=scale_b,
+        out_dtype=torch.float16,
+    )[0]
+    return out, False
 
 
 def _scale_shape(dim: int, k: int) -> tuple[int, int]:
@@ -294,13 +359,13 @@ class PackedNVFP4Linear:
         if not hasattr(torch, "float4_e2m1fn_x2") or not hasattr(torch, "_scaled_mm"):
             raise RuntimeError("native_scaled_mm requires torch.float4_e2m1fn_x2 and torch._scaled_mm")
         act_packed, scale_a = quantize_fp4_m1_native(x_2d)
-        return torch._scaled_mm(
+        out, is_bf16 = _native_decode_scaled_mm(
             act_packed.view(torch.float4_e2m1fn_x2),
             self._native_weight_t(),
-            scale_a=scale_a,
-            scale_b=self._native_scale_b(),
-            out_dtype=torch.float16,
-        )[0].float()
+            scale_a,
+            self._native_scale_b(),
+        )
+        return out if is_bf16 else out.float()
 
     def forward(
         self,
@@ -415,13 +480,13 @@ class PackedNVFP4FusedLinear:
             act_packed, scale_a = quantize_fp4_m1_native_out(x_2d, act_packed_scratch, scale_a_scratch)
         else:
             act_packed, scale_a = quantize_fp4_m1_native(x_2d)
-        return torch._scaled_mm(
+        out, is_bf16 = _native_decode_scaled_mm(
             act_packed.view(torch.float4_e2m1fn_x2),
             self._native_weight_t(),
-            scale_a=scale_a,
-            scale_b=self.native_scale_b,
-            out_dtype=torch.float16,
-        )[0].float()
+            scale_a,
+            self.native_scale_b,
+        )
+        return out if is_bf16 else out.float()
 
     def forward(
         self,

@@ -556,8 +556,18 @@ def decode_full_attn(h_new, new_position_id, w, cfg, K_cache_full, V_cache_full,
 
     # 9. o_proj
     with profile_section("full_attn_t1.o_proj_total"):
-        attn_out = attn_out.transpose(1, 2).contiguous().view(B, 1, H_Q * head_dim)
-        return _full_attn_o_proj(attn_out, _decode_weight(w, "self_attn.o_proj.weight"))
+        # T=1 decode: transpose(1,2) swaps a size-1 dim, so for a contiguous
+        # attn_out the transposed view is already contiguous and the explicit
+        # .contiguous() is a redundant copy. LYNN_DECODE_OPROJ_NOCOPY=1 uses
+        # .reshape() (view when possible, copy only if actually non-contiguous)
+        # — value-identical, never crashes. Default keeps the forced copy so
+        # behavior is unchanged.
+        attn_flat = attn_out.transpose(1, 2)
+        if os.environ.get("LYNN_DECODE_OPROJ_NOCOPY", "0") == "1":
+            attn_flat = attn_flat.reshape(B, 1, H_Q * head_dim)
+        else:
+            attn_flat = attn_flat.contiguous().view(B, 1, H_Q * head_dim)
+        return _full_attn_o_proj(attn_flat, _decode_weight(w, "self_attn.o_proj.weight"))
 
 
 def decode_full_attn_k2(
