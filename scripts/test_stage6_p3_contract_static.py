@@ -17,6 +17,7 @@ CHECKS = [
             "P3-A PASS requires",
             "P3-A Runnable Probe",
             "scripts/run_spark_stage6_p3a_contract_probe.sh",
+            "scripts/write_stage6_p3a_report.py",
             "banked_fused_kernel=false",
             "P2-O remains the next resident-runner gate",
         ],
@@ -80,6 +81,7 @@ CHECKS = [
             "PROVENANCE_FILES",
             "scripts/spark_stage6_p3a_grouped_moe_contract_probe.py",
             "scripts/summarize_stage6_p3a_contract_probe.py",
+            "scripts/write_stage6_p3a_report.py",
             "nvidia_smi_before.txt",
             "summary.md",
         ],
@@ -93,11 +95,20 @@ CHECKS = [
         ],
     ),
     (
+        "scripts/write_stage6_p3a_report.py",
+        [
+            "Bank P3-A as a contract-shaped grouped active-MoE probe only",
+            "Do not promote P3 or claim a fused kernel",
+            "Manifest matches",
+        ],
+    ),
+    (
         "scripts/test_stage6_p3a_evidence_tools.py",
         [
             "fail_promoted_fixture",
             "P3-A evidence tooling self-test PASS",
             "Banked fused kernel | `False`",
+            "scripts/write_stage6_p3a_report.py",
         ],
     ),
 ]
