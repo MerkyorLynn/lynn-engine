@@ -267,6 +267,12 @@ fi
   echo '```'
 } > "$SUMMARY_MD"
 
+if [[ -f scripts/write_stage6_gpu_gate_suite_report.py ]]; then
+  python3 scripts/write_stage6_gpu_gate_suite_report.py \
+    "$SUITE_DIR" \
+    --report-out "$SUITE_DIR/report.md" || true
+fi
+
 echo "[suite] artifacts: ${SUITE_DIR}"
 if [[ "$STRICT" == "1" && "$failures" -ne 0 ]]; then
   exit 2
