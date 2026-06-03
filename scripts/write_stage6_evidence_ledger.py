@@ -270,6 +270,17 @@ def collect_gates() -> list[Gate]:
             ],
             "Run on Spark; may bank fail-loud single-kernel contract preflight only, not fused-kernel speed.",
         ),
+        _ready_gate(
+            "p4b_runtime_bridge_preflight",
+            "P4B real runtime bridge fail-loud preflight",
+            [
+                "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md",
+                "scripts/run_spark_stage6_p4b_runtime_bridge_preflight.sh",
+                "scripts/spark_stage6_p4b_runtime_bridge_preflight.py",
+                "scripts/summarize_stage6_p4b_runtime_bridge_preflight.py",
+            ],
+            "Run on Spark; proves resident-runner routing reaches P4B fail-loud symbol after active BF16 shadows are removed.",
+        ),
         _contract_gate(
             "p4b_single_kernel_contract",
             "P4B true fused single-kernel ABI",
