@@ -111,6 +111,8 @@ def main() -> int:
             "LYNN_NATIVE_ACTIVE_MOE_BACKEND=fused_zero_shadow_single_kernel_contract requires",
             "active_moe_fused_zero_shadow_single_kernel_contract",
             "mlp.experts._active_out_scratch",
+            "_p4b_fused_zero_shadow_single_kernel_contract_call_count",
+            "_p4b_fused_zero_shadow_single_kernel_contract_last_shapes",
             "LYNN_NATIVE_FUSED_ZERO_SHADOW_TILE_EXPERTS",
         ],
         failures,
