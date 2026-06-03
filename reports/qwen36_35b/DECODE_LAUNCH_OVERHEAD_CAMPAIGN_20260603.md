@@ -508,3 +508,12 @@
   - **Decision:** bank P2-KA as a rejected implementation path. The decode recurrent kernel is useful as a math oracle, but
     prefill needs P2-KB: a true chunk/block-level gated-delta kernel that processes multiple tokens per launch. Server
     promotion remains blocked until P2-KB/P2-L and RC quality pass.
+- **✅ STAGE 6 step 22 — P2-KB gated-delta block Triton kernel CORE PASSED.**
+  `triton_kernels/gated_delta.py::recurrent_gated_delta_block_gqa()` moves the P2-KA recurrent loop inside one Triton
+  launch while keeping the gated-delta core isolated from projection/conv/g-beta fusion.
+  - **Numeric:** T=16/64/128/256/512 all pass vs `_chunk_gated_delta_with_state` with min cosine **0.999989555**,
+    max rel_l2 **0.004794770**, and argmax match. It also matches the P2-KA host-loop oracle to near machine precision.
+  - **Latency:** T512 block kernel **1.16 ms**, vs P2-KA host loop **16.28 ms** (**14.04x**) and torch chunk reference
+    **4.55 ms** (**3.92x**). T256 is **0.62 ms** vs host loop **8.89 ms** (**14.31x**).
+  - **Decision:** bank P2-KB as a core-kernel pass. Next gate P2-L should wire it into `prefill_linear_attn` behind an
+    opt-in flag and rerun selected-layer/full-prefill smoke before any server/default promotion.

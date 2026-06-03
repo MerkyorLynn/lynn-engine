@@ -1,0 +1,214 @@
+{
+  "schema": "lynn-stage6-p2kb-gated-delta-block-kernel-poc-v1",
+  "model": "/home/merkyor/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-from-bf16-20260526",
+  "layer": 0,
+  "seed": 20260604,
+  "seq_lens": [
+    256,
+    512
+  ],
+  "chunk_size": 64,
+  "rows": [
+    {
+      "seq_len": 256,
+      "chunk_reference_ms": 3.4914769930765033,
+      "host_loop_inplace_ms": 8.890799013897777,
+      "block_kernel_inplace_ms": 0.6213929736986756,
+      "block_vs_chunk": 5.618790589623857,
+      "block_vs_host_loop": 14.307852502704804,
+      "estimated_kernel_launches": {
+        "chunk_reference": "torch graph",
+        "host_loop": 256,
+        "block_kernel": 1
+      },
+      "ref_bench": {
+        "repeats": 1,
+        "median_ms": 3.4914769930765033,
+        "min_ms": 3.4914769930765033,
+        "max_ms": 3.4914769930765033,
+        "all_ms": [
+          3.4914769930765033
+        ]
+      },
+      "loop_bench": {
+        "repeats": 1,
+        "median_ms": 8.890799013897777,
+        "min_ms": 8.890799013897777,
+        "max_ms": 8.890799013897777,
+        "all_ms": [
+          8.890799013897777
+        ]
+      },
+      "block_bench": {
+        "repeats": 1,
+        "median_ms": 0.6213929736986756,
+        "min_ms": 0.6213929736986756,
+        "max_ms": 0.6213929736986756,
+        "all_ms": [
+          0.6213929736986756
+        ]
+      }
+    },
+    {
+      "seq_len": 512,
+      "chunk_reference_ms": 4.547554068267345,
+      "host_loop_inplace_ms": 16.283571952953935,
+      "block_kernel_inplace_ms": 1.159665989689529,
+      "block_vs_chunk": 3.9214343687744413,
+      "block_vs_host_loop": 14.041605167116652,
+      "estimated_kernel_launches": {
+        "chunk_reference": "torch graph",
+        "host_loop": 512,
+        "block_kernel": 1
+      },
+      "ref_bench": {
+        "repeats": 1,
+        "median_ms": 4.547554068267345,
+        "min_ms": 4.547554068267345,
+        "max_ms": 4.547554068267345,
+        "all_ms": [
+          4.547554068267345
+        ]
+      },
+      "loop_bench": {
+        "repeats": 1,
+        "median_ms": 16.283571952953935,
+        "min_ms": 16.283571952953935,
+        "max_ms": 16.283571952953935,
+        "all_ms": [
+          16.283571952953935
+        ]
+      },
+      "block_bench": {
+        "repeats": 1,
+        "median_ms": 1.159665989689529,
+        "min_ms": 1.159665989689529,
+        "max_ms": 1.159665989689529,
+        "all_ms": [
+          1.159665989689529
+        ]
+      }
+    }
+  ],
+  "numeric": {
+    "T256_loop_out_vs_chunk": {
+      "cosine": 0.9999932829193929,
+      "rel_l2": 0.0036726668329478515,
+      "max_abs": 0.000244140625,
+      "mean_abs": 1.4601393448031416e-07,
+      "argmax_a": 317007,
+      "argmax_b": 317007,
+      "argmax_match": true
+    },
+    "T256_loop_state_vs_chunk": {
+      "cosine": 0.9999957706772971,
+      "rel_l2": 0.0029108583750048736,
+      "max_abs": 0.0011115632951259613,
+      "mean_abs": 2.264018695798951e-06,
+      "argmax_a": 427599,
+      "argmax_b": 427599,
+      "argmax_match": true
+    },
+    "T256_block_out_vs_chunk": {
+      "cosine": 0.9999932835442679,
+      "rel_l2": 0.0036725104197044803,
+      "max_abs": 0.000244140625,
+      "mean_abs": 1.4599801800124193e-07,
+      "argmax_a": 317007,
+      "argmax_b": 317007,
+      "argmax_match": true
+    },
+    "T256_block_state_vs_chunk": {
+      "cosine": 0.9999957706880741,
+      "rel_l2": 0.0029108547302896335,
+      "max_abs": 0.0011116191744804382,
+      "mean_abs": 2.264018399544928e-06,
+      "argmax_a": 427599,
+      "argmax_b": 427599,
+      "argmax_match": true
+    },
+    "T256_block_out_vs_loop": {
+      "cosine": 0.9999999994346156,
+      "rel_l2": 3.3627609059649e-05,
+      "max_abs": 1.52587890625e-05,
+      "mean_abs": 1.5946704894076458e-11,
+      "argmax_a": 317007,
+      "argmax_b": 317007,
+      "argmax_match": true
+    },
+    "T256_block_state_vs_loop": {
+      "cosine": 0.9999999999999899,
+      "rel_l2": 1.425860584950406e-07,
+      "max_abs": 5.960464477539063e-08,
+      "mean_abs": 5.339773986892424e-11,
+      "argmax_a": 427599,
+      "argmax_b": 427599,
+      "argmax_match": true
+    },
+    "T512_loop_out_vs_chunk": {
+      "cosine": 0.9999930270744047,
+      "rel_l2": 0.0037737562236723307,
+      "max_abs": 0.000244140625,
+      "mean_abs": 1.7610748610691858e-07,
+      "argmax_a": 1985487,
+      "argmax_b": 1985487,
+      "argmax_match": true
+    },
+    "T512_loop_state_vs_chunk": {
+      "cosine": 0.9999958835211507,
+      "rel_l2": 0.0028703235281639997,
+      "max_abs": 0.0014786720275878906,
+      "mean_abs": 2.501671908199607e-06,
+      "argmax_a": 239439,
+      "argmax_b": 239439,
+      "argmax_match": true
+    },
+    "T512_block_out_vs_chunk": {
+      "cosine": 0.9999930270743392,
+      "rel_l2": 0.0037737562385570422,
+      "max_abs": 0.000244140625,
+      "mean_abs": 1.761075848755681e-07,
+      "argmax_a": 1985487,
+      "argmax_b": 1985487,
+      "argmax_match": true
+    },
+    "T512_block_state_vs_chunk": {
+      "cosine": 0.9999958835183589,
+      "rel_l2": 0.00287032436665329,
+      "max_abs": 0.001478675752878189,
+      "mean_abs": 2.5016734540358047e-06,
+      "argmax_a": 239439,
+      "argmax_b": 239439,
+      "argmax_match": true
+    },
+    "T512_block_out_vs_loop": {
+      "cosine": 0.9999999999997449,
+      "rel_l2": 7.138390538636388e-07,
+      "max_abs": 2.384185791015625e-07,
+      "mean_abs": 7.08384306075116e-13,
+      "argmax_a": 1985487,
+      "argmax_b": 1985487,
+      "argmax_match": true
+    },
+    "T512_block_state_vs_loop": {
+      "cosine": 0.9999999999999867,
+      "rel_l2": 1.6297734842465468e-07,
+      "max_abs": 7.450580596923828e-08,
+      "mean_abs": 7.089238594387194e-11,
+      "argmax_a": 239439,
+      "argmax_b": 239439,
+      "argmax_match": true
+    }
+  },
+  "passes": {
+    "numeric": true,
+    "launch_cut_vs_host_loop": true,
+    "speed_vs_chunk_reference": true,
+    "all": true
+  },
+  "notes": [
+    "P2-KB moves the P2-KA recurrent loop inside one Triton launch.",
+    "It is a lower-bound block recurrent kernel, not the HF chunk triangular algorithm.",
+    "Promotion still requires full prefill integration plus RC quality."
+  ]
+}

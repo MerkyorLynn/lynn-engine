@@ -1,0 +1,309 @@
+{
+  "schema": "lynn-stage6-p2kb-gated-delta-block-kernel-poc-v1",
+  "model": "/home/merkyor/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-from-bf16-20260526",
+  "layer": 0,
+  "seed": 20260604,
+  "seq_lens": [
+    16,
+    64,
+    128
+  ],
+  "chunk_size": 64,
+  "rows": [
+    {
+      "seq_len": 16,
+      "chunk_reference_ms": 2.791453036479652,
+      "host_loop_inplace_ms": 0.8316539460793138,
+      "block_kernel_inplace_ms": 0.0789460027590394,
+      "block_vs_chunk": 35.3590167826455,
+      "block_vs_host_loop": 10.534465546250706,
+      "estimated_kernel_launches": {
+        "chunk_reference": "torch graph",
+        "host_loop": 16,
+        "block_kernel": 1
+      },
+      "ref_bench": {
+        "repeats": 1,
+        "median_ms": 2.791453036479652,
+        "min_ms": 2.791453036479652,
+        "max_ms": 2.791453036479652,
+        "all_ms": [
+          2.791453036479652
+        ]
+      },
+      "loop_bench": {
+        "repeats": 1,
+        "median_ms": 0.8316539460793138,
+        "min_ms": 0.8316539460793138,
+        "max_ms": 0.8316539460793138,
+        "all_ms": [
+          0.8316539460793138
+        ]
+      },
+      "block_bench": {
+        "repeats": 1,
+        "median_ms": 0.0789460027590394,
+        "min_ms": 0.0789460027590394,
+        "max_ms": 0.0789460027590394,
+        "all_ms": [
+          0.0789460027590394
+        ]
+      }
+    },
+    {
+      "seq_len": 64,
+      "chunk_reference_ms": 3.0313300667330623,
+      "host_loop_inplace_ms": 2.1509069483727217,
+      "block_kernel_inplace_ms": 0.13514002785086632,
+      "block_vs_chunk": 22.43103035377708,
+      "block_vs_host_loop": 15.916135156834166,
+      "estimated_kernel_launches": {
+        "chunk_reference": "torch graph",
+        "host_loop": 64,
+        "block_kernel": 1
+      },
+      "ref_bench": {
+        "repeats": 1,
+        "median_ms": 3.0313300667330623,
+        "min_ms": 3.0313300667330623,
+        "max_ms": 3.0313300667330623,
+        "all_ms": [
+          3.0313300667330623
+        ]
+      },
+      "loop_bench": {
+        "repeats": 1,
+        "median_ms": 2.1509069483727217,
+        "min_ms": 2.1509069483727217,
+        "max_ms": 2.1509069483727217,
+        "all_ms": [
+          2.1509069483727217
+        ]
+      },
+      "block_bench": {
+        "repeats": 1,
+        "median_ms": 0.13514002785086632,
+        "min_ms": 0.13514002785086632,
+        "max_ms": 0.13514002785086632,
+        "all_ms": [
+          0.13514002785086632
+        ]
+      }
+    },
+    {
+      "seq_len": 128,
+      "chunk_reference_ms": 2.885327092371881,
+      "host_loop_inplace_ms": 4.3550950940698385,
+      "block_kernel_inplace_ms": 0.46521308831870556,
+      "block_vs_chunk": 6.202162331243822,
+      "block_vs_host_loop": 9.36150594947637,
+      "estimated_kernel_launches": {
+        "chunk_reference": "torch graph",
+        "host_loop": 128,
+        "block_kernel": 1
+      },
+      "ref_bench": {
+        "repeats": 1,
+        "median_ms": 2.885327092371881,
+        "min_ms": 2.885327092371881,
+        "max_ms": 2.885327092371881,
+        "all_ms": [
+          2.885327092371881
+        ]
+      },
+      "loop_bench": {
+        "repeats": 1,
+        "median_ms": 4.3550950940698385,
+        "min_ms": 4.3550950940698385,
+        "max_ms": 4.3550950940698385,
+        "all_ms": [
+          4.3550950940698385
+        ]
+      },
+      "block_bench": {
+        "repeats": 1,
+        "median_ms": 0.46521308831870556,
+        "min_ms": 0.46521308831870556,
+        "max_ms": 0.46521308831870556,
+        "all_ms": [
+          0.46521308831870556
+        ]
+      }
+    }
+  ],
+  "numeric": {
+    "T16_loop_out_vs_chunk": {
+      "cosine": 0.9999901852746956,
+      "rel_l2": 0.0045231602953582405,
+      "max_abs": 6.103515625e-05,
+      "mean_abs": 5.037435638847315e-08,
+      "argmax_a": 60,
+      "argmax_b": 60,
+      "argmax_match": true
+    },
+    "T16_loop_state_vs_chunk": {
+      "cosine": 0.9999966247922555,
+      "rel_l2": 0.0026347029235468996,
+      "max_abs": 0.0007161162793636322,
+      "mean_abs": 7.325777299941071e-07,
+      "argmax_a": 447695,
+      "argmax_b": 447695,
+      "argmax_match": true
+    },
+    "T16_block_out_vs_chunk": {
+      "cosine": 0.9999901852746956,
+      "rel_l2": 0.0045231602953582405,
+      "max_abs": 6.103515625e-05,
+      "mean_abs": 5.037435638847315e-08,
+      "argmax_a": 60,
+      "argmax_b": 60,
+      "argmax_match": true
+    },
+    "T16_block_state_vs_chunk": {
+      "cosine": 0.9999966247941698,
+      "rel_l2": 0.0026347021419742115,
+      "max_abs": 0.0007161162793636322,
+      "mean_abs": 7.325777736402749e-07,
+      "argmax_a": 447695,
+      "argmax_b": 447695,
+      "argmax_match": true
+    },
+    "T16_block_out_vs_loop": {
+      "cosine": 0.9999999999999998,
+      "rel_l2": 0.0,
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "argmax_a": 60,
+      "argmax_b": 60,
+      "argmax_match": true
+    },
+    "T16_block_state_vs_loop": {
+      "cosine": 0.9999999999999996,
+      "rel_l2": 2.8095784099430434e-08,
+      "max_abs": 1.4901161193847656e-08,
+      "mean_abs": 1.6855718447254028e-12,
+      "argmax_a": 447695,
+      "argmax_b": 447695,
+      "argmax_match": true
+    },
+    "T64_loop_out_vs_chunk": {
+      "cosine": 0.9999895546437324,
+      "rel_l2": 0.0047947701910761266,
+      "max_abs": 6.103515625e-05,
+      "mean_abs": 8.06108551561842e-08,
+      "argmax_a": 60,
+      "argmax_b": 60,
+      "argmax_match": true
+    },
+    "T64_loop_state_vs_chunk": {
+      "cosine": 0.999996389737554,
+      "rel_l2": 0.0026903727067823487,
+      "max_abs": 0.00058756023645401,
+      "mean_abs": 1.2519636791986478e-06,
+      "argmax_a": 427599,
+      "argmax_b": 427599,
+      "argmax_match": true
+    },
+    "T64_block_out_vs_chunk": {
+      "cosine": 0.999989554643891,
+      "rel_l2": 0.004794770041325551,
+      "max_abs": 6.103515625e-05,
+      "mean_abs": 8.061040164395643e-08,
+      "argmax_a": 60,
+      "argmax_b": 60,
+      "argmax_match": true
+    },
+    "T64_block_state_vs_chunk": {
+      "cosine": 0.9999963897370233,
+      "rel_l2": 0.0026903727906565393,
+      "max_abs": 0.0005875527858734131,
+      "mean_abs": 1.2519636644228602e-06,
+      "argmax_a": 427599,
+      "argmax_b": 427599,
+      "argmax_match": true
+    },
+    "T64_block_out_vs_loop": {
+      "cosine": 0.9999999999989939,
+      "rel_l2": 1.4186051348906476e-06,
+      "max_abs": 1.1920928955078125e-07,
+      "mean_abs": 4.570926970259848e-13,
+      "argmax_a": 60,
+      "argmax_b": 60,
+      "argmax_match": true
+    },
+    "T64_block_state_vs_loop": {
+      "cosine": 0.999999999999997,
+      "rel_l2": 7.897697858393752e-08,
+      "max_abs": 2.9802322387695312e-08,
+      "mean_abs": 1.4194638792046149e-11,
+      "argmax_a": 427599,
+      "argmax_b": 427599,
+      "argmax_match": true
+    },
+    "T128_loop_out_vs_chunk": {
+      "cosine": 0.9999930120302745,
+      "rel_l2": 0.0037721888902991947,
+      "max_abs": 0.0001220703125,
+      "mean_abs": 1.0472791544100153e-07,
+      "argmax_a": 480847,
+      "argmax_b": 480847,
+      "argmax_match": true
+    },
+    "T128_loop_state_vs_chunk": {
+      "cosine": 0.9999960242457839,
+      "rel_l2": 0.0028272189381765784,
+      "max_abs": 0.0008661970496177673,
+      "mean_abs": 1.8115187673230024e-06,
+      "argmax_a": 447695,
+      "argmax_b": 447695,
+      "argmax_match": true
+    },
+    "T128_block_out_vs_chunk": {
+      "cosine": 0.9999930120302755,
+      "rel_l2": 0.0037721888900363685,
+      "max_abs": 0.0001220703125,
+      "mean_abs": 1.0472791014142131e-07,
+      "argmax_a": 480847,
+      "argmax_b": 480847,
+      "argmax_match": true
+    },
+    "T128_block_state_vs_chunk": {
+      "cosine": 0.9999960242400919,
+      "rel_l2": 0.0028272208907787083,
+      "max_abs": 0.0008661951869726181,
+      "mean_abs": 1.8115194050225225e-06,
+      "argmax_a": 447695,
+      "argmax_b": 447695,
+      "argmax_match": true
+    },
+    "T128_block_out_vs_loop": {
+      "cosine": 0.9999999999999993,
+      "rel_l2": 4.096561989418688e-08,
+      "max_abs": 7.450580596923828e-09,
+      "mean_abs": 2.406234933527429e-14,
+      "argmax_a": 480847,
+      "argmax_b": 480847,
+      "argmax_match": true
+    },
+    "T128_block_state_vs_loop": {
+      "cosine": 0.9999999999999947,
+      "rel_l2": 1.0333178317421986e-07,
+      "max_abs": 4.470348358154297e-08,
+      "mean_abs": 3.122579200045335e-11,
+      "argmax_a": 447695,
+      "argmax_b": 447695,
+      "argmax_match": true
+    }
+  },
+  "passes": {
+    "numeric": true,
+    "launch_cut_vs_host_loop": true,
+    "speed_vs_chunk_reference": true,
+    "all": true
+  },
+  "notes": [
+    "P2-KB moves the P2-KA recurrent loop inside one Triton launch.",
+    "It is a lower-bound block recurrent kernel, not the HF chunk triangular algorithm.",
+    "Promotion still requires full prefill integration plus RC quality."
+  ]
+}
