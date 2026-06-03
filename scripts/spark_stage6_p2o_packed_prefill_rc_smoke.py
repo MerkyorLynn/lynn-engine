@@ -60,12 +60,9 @@ FUSION_ENV = {
     "LYNN_NVFP4_BF16_OUT": "1",
     "LYNN_DECODE_OPROJ_NOCOPY": "1",
 }
-for k, v in {**BASE_ENV, **FUSION_ENV}.items():
-    os.environ.setdefault(k, v)
-
-import torch  # noqa: E402
-from engine.resident_runner import LynnIncrementalRunner  # noqa: E402
-
+CANONICAL_ENV = {**BASE_ENV, **FUSION_ENV}
+for k, v in CANONICAL_ENV.items():
+    os.environ[k] = v
 
 DEFAULT_MODEL = "/home/merkyor/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-from-bf16-20260526"
 DEFAULT_PROMPTS = [
@@ -117,8 +114,8 @@ def _degenerate(text: str) -> bool:
     return False
 
 
-def _set_prefill_optin(enabled: bool) -> dict[str, str | None]:
-    updates = {
+def _prefill_updates(enabled: bool) -> dict[str, str]:
+    return {
         "LYNN_PACKED_PREFILL_SLOW": "1" if enabled else "0",
         "LYNN_PACKED_PREFILL_SLOW_MODE": "p2e_hybrid",
         "LYNN_PACKED_PREFILL_P2E_LAYERS": "all",
@@ -131,6 +128,10 @@ def _set_prefill_optin(enabled: bool) -> dict[str, str | None]:
         "LYNN_PACKED_PREFILL_P2E_DOWN_NUM_WARPS": "8",
         "LYNN_LINEAR_ATTN_PREFILL_BLOCK_GQA": "1" if enabled else "0",
     }
+
+
+def _set_prefill_optin(enabled: bool) -> dict[str, str | None]:
+    updates = _prefill_updates(enabled)
     old = {k: os.environ.get(k) for k in updates}
     os.environ.update(updates)
     return old
@@ -145,7 +146,7 @@ def _restore_env(old: dict[str, str | None]) -> None:
 
 
 def _run_batch(
-    runner: LynnIncrementalRunner,
+    runner: Any,
     prompts: list[str],
     *,
     max_new: int,
@@ -184,13 +185,24 @@ def main() -> None:
     ap.add_argument("--json-out", default="")
     ap.add_argument("--prompts-json", default="")
     ap.add_argument("--preset", choices=("basic", "rc-mini"), default="basic")
+    ap.add_argument("--min-release-gib", type=float, default=30.0)
     args = ap.parse_args()
 
-    if not torch.cuda.is_available():
-        raise RuntimeError("CUDA is required")
+    if args.max_new <= 0:
+        raise ValueError("--max-new must be positive")
     prompts = _prompt_preset(args.preset)
     if args.prompts_json:
         prompts = json.loads(Path(args.prompts_json).read_text())
+    if not isinstance(prompts, list) or not prompts:
+        raise ValueError("prompt list must be non-empty")
+    if any(not isinstance(prompt, str) or not prompt.strip() for prompt in prompts):
+        raise ValueError("all prompts must be non-empty strings")
+
+    import torch  # noqa: WPS433
+    from engine.resident_runner import LynnIncrementalRunner  # noqa: WPS433
+
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA is required")
 
     print("=============== STAGE 6 PHASE 2-O PACKED-PREFILL RC SMOKE ===============", flush=True)
     print(f"model       : {args.model}", flush=True)
@@ -218,7 +230,18 @@ def main() -> None:
     mem_after_release_gib = float(torch.cuda.memory_allocated() / (1024**3))
 
     print("[phase] packed-prefill opt-in no-reload generate", flush=True)
-    optin = _run_batch(runner, prompts, max_new=args.max_new, optin=True)
+    reload_calls: list[dict[str, Any]] = []
+    original_reload = runner.reload_decode_bf16_shadows
+
+    def forbidden_reload(*_args: Any, **_kwargs: Any) -> dict[str, Any]:
+        reload_calls.append({"time": time.time()})
+        raise RuntimeError("P2-O forbids reload_decode_bf16_shadows() in opt-in no-reload phase")
+
+    runner.reload_decode_bf16_shadows = forbidden_reload  # type: ignore[method-assign]
+    try:
+        optin = _run_batch(runner, prompts, max_new=args.max_new, optin=True)
+    finally:
+        runner.reload_decode_bf16_shadows = original_reload  # type: ignore[method-assign]
 
     comparisons: list[dict[str, Any]] = []
     for base, cand in zip(baseline, optin):
@@ -237,38 +260,64 @@ def main() -> None:
             "optin_text": cand.get("completion_text", ""),
         })
 
-    functional_pass = all(not row["degenerate"] for row in baseline + optin)
-    token_exact = all(row["token_exact"] for row in comparisons)
-    text_prefix_match = all(row["text_prefix_200_match"] for row in comparisons)
+    prompt_count_pass = (
+        len(prompts) > 0
+        and len(baseline) == len(prompts)
+        and len(optin) == len(prompts)
+        and len(comparisons) == len(prompts)
+    )
+    functional_pass = prompt_count_pass and all(not row["degenerate"] for row in baseline + optin)
+    token_exact = prompt_count_pass and all(row["token_exact"] for row in comparisons)
+    text_prefix_match = prompt_count_pass and all(row["text_prefix_200_match"] for row in comparisons)
+    release_gib = float(release.get("released_gib", 0.0) or 0.0)
+    release_tensors = int(release.get("released_tensors", 0) or 0)
+    memory_drop_gib = mem_loaded_gib - mem_after_release_gib
+    release_meaningful = release_tensors > 0 and release_gib >= args.min_release_gib
+    memory_drop_meaningful = memory_drop_gib >= (args.min_release_gib * 0.5)
+    reload_not_called = len(reload_calls) == 0
     result = {
         "schema": "lynn-stage6-p2o-packed-prefill-rc-smoke-v1",
         "model": args.model,
         "preset": args.preset,
         "max_new": args.max_new,
+        "min_release_gib": args.min_release_gib,
         "env": {
-            **BASE_ENV,
-            **FUSION_ENV,
-            "LYNN_PACKED_PREFILL_SLOW_MODE": "p2e_hybrid",
-            "LYNN_PACKED_PREFILL_P2E_LAYERS": "all",
-            "LYNN_LINEAR_ATTN_PREFILL_BLOCK_GQA": "1",
+            "canonical_effective": {k: os.environ.get(k) for k in sorted(CANONICAL_ENV)},
+            "prefill_baseline": _prefill_updates(False),
+            "prefill_optin": _prefill_updates(True),
         },
         "memory": {
             "loaded_gib": mem_loaded_gib,
             "after_release_gib": mem_after_release_gib,
+            "drop_gib": memory_drop_gib,
             "release": release,
         },
         "baseline": baseline,
         "optin_no_reload": optin,
         "comparisons": comparisons,
         "passes": {
+            "prompt_count": bool(prompt_count_pass),
             "functional_non_degenerate": bool(functional_pass),
+            "generated_token_exact": bool(token_exact),
             "token_exact": bool(token_exact),
             "text_prefix_200_match": bool(text_prefix_match),
-            "all": bool(functional_pass and token_exact),
+            "release_meaningful": bool(release_meaningful),
+            "memory_drop_meaningful": bool(memory_drop_meaningful),
+            "reload_not_called": bool(reload_not_called),
+            "all": bool(
+                prompt_count_pass
+                and functional_pass
+                and token_exact
+                and release_meaningful
+                and memory_drop_meaningful
+                and reload_not_called
+            ),
         },
+        "reload_calls": reload_calls,
         "notes": [
             "This releases only active MoE BF16 expert shadows; projection shadows remain resident.",
             "The gate is a real-prompt resident-runner smoke, not a full RC quality battery.",
+            "Token-exact means generated new_ids match on this smoke prompt set; it is not a logits/hidden-state/full-RC proof.",
             "Default path remains unchanged when opt-in flags are unset.",
         ],
     }

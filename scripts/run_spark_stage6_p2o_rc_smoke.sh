@@ -109,6 +109,7 @@ echo "[p2o] host=${HOST}"
 echo "[p2o] preset=${PRESET}"
 echo "[p2o] remote_run_dir=${REMOTE_RUN_DIR}"
 
+set +e
 ssh "$HOST" \
   "REMOTE_REPO=$(shell_quote "$REMOTE_REPO") REMOTE_RUN_DIR=$(shell_quote "$REMOTE_RUN_DIR") IMAGE=$(shell_quote "$IMAGE") MODEL=$(shell_quote "$MODEL") PRESET=$(shell_quote "$PRESET") MAX_NEW=$(shell_quote "$MAX_NEW") MAX_SEQ_LEN=$(shell_quote "$MAX_SEQ_LEN") bash -s" <<'REMOTE'
 set -euo pipefail
@@ -118,6 +119,7 @@ git rev-parse HEAD > "$REMOTE_RUN_DIR/git_head.txt" 2>/dev/null || true
 git status --short > "$REMOTE_RUN_DIR/git_status.txt" 2>/dev/null || true
 nvidia-smi --query-gpu=name,utilization.gpu,memory.used,memory.total --format=csv,noheader > "$REMOTE_RUN_DIR/nvidia_smi_before.txt" 2>/dev/null || true
 
+set +e
 docker run --rm --gpus all --ipc=host \
   -e PYTHONNOUSERSITE=1 \
   -e PYTHONUNBUFFERED=1 \
@@ -131,17 +133,48 @@ docker run --rm --gpus all --ipc=host \
     --max-seq-len "$MAX_SEQ_LEN" \
     --json-out "$REMOTE_RUN_DIR/result.json" \
   > "$REMOTE_RUN_DIR/run.log" 2>&1
+DOCKER_STATUS=$?
+set -e
+printf '%s\n' "$DOCKER_STATUS" > "$REMOTE_RUN_DIR/docker_exit_code.txt"
 
 nvidia-smi --query-gpu=name,utilization.gpu,memory.used,memory.total --format=csv,noheader > "$REMOTE_RUN_DIR/nvidia_smi_after.txt" 2>/dev/null || true
+exit "$DOCKER_STATUS"
 REMOTE
+REMOTE_STATUS=$?
+set -e
 
 mkdir -p "$LOCAL_RUN_DIR"
+set +e
 rsync -av "${HOST}:${REMOTE_RUN_DIR}/" "$LOCAL_RUN_DIR/"
+RSYNC_STATUS=$?
+set -e
+if [[ "$RSYNC_STATUS" -ne 0 ]]; then
+  echo "[p2o] rsync failed with status ${RSYNC_STATUS}" >&2
+  exit "$RSYNC_STATUS"
+fi
+
+if [[ ! -f "$LOCAL_RUN_DIR/result.json" ]]; then
+  echo "[p2o] missing result.json; pulled failure artifacts to ${LOCAL_RUN_DIR}" >&2
+  if [[ -f "$LOCAL_RUN_DIR/run.log" ]]; then
+    tail -n 80 "$LOCAL_RUN_DIR/run.log" >&2 || true
+  fi
+  if [[ "$REMOTE_STATUS" -ne 0 ]]; then
+    exit "$REMOTE_STATUS"
+  fi
+  exit 3
+fi
 
 SUMMARY_ARGS=("$LOCAL_RUN_DIR/result.json" "--markdown-out" "$LOCAL_RUN_DIR/summary.md")
 if [[ "$STRICT" == "1" ]]; then
   SUMMARY_ARGS+=("--strict-exit")
 fi
+set +e
 python3 scripts/summarize_stage6_p2o_rc_smoke.py "${SUMMARY_ARGS[@]}"
+SUMMARY_STATUS=$?
+set -e
 
 echo "[p2o] local_run_dir=${LOCAL_RUN_DIR}"
+if [[ "$REMOTE_STATUS" -ne 0 ]]; then
+  exit "$REMOTE_STATUS"
+fi
+exit "$SUMMARY_STATUS"
