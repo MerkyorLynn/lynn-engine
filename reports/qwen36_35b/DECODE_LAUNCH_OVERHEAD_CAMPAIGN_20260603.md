@@ -372,3 +372,17 @@
     M=1/4/16/64 (**0.197/0.227/0.233/0.079x**). Small tile sweep best M=64 is **0.115x**; larger tiles OOR on Spark.
   - **Decision:** keep as a component probe only. Do not wire into `resident_runner`. Next P2-B should measure routed
     gate/up grouping over unique experts; beating BF16 likely needs native FP4-MMA/CUTLASS-style kernels.
+- **✅ STAGE 6 step 12 — P2-B routed gate/up grouping lower-bound PASSED; P2 remains viable as no-reload service path.**
+  `scripts/spark_stage6_p2b_routed_gateup_grouping_poc.py` preserved the prefill router, precomputed token/slot groups
+  by unique expert, then called the P2-A packed gate/up component once per unique expert.
+  - **Route shape:** M=16 has **95** unique experts over 128 route slots; M=64 has **207** unique experts over 512 route
+    slots. Largest M64 group has only **10** rows, so this is a high-dispatch shape.
+  - **Numeric/no-shadow:** packed grouped gate/up vs BF16 grouped gate/up `cos≈0.999992`, rel_l2≈`0.004`, argmax match;
+    packed bench ran after deleting `mlp.experts.gate_up_proj`, peak **0.955 GiB**.
+  - **Latency vs BF16 gate/up:** M=16 **9.34 ms** vs BF16 **4.14 ms** (**0.443x**); M=64 **20.00 ms** vs BF16
+    **8.47 ms** (**0.423x**). Not a BF16-speed win.
+  - **Latency vs no-reload proof:** M=64 gate/up lower-bound **20.00 ms/layer** is far below P2 census `stream_bf16`
+    **506 ms/layer**. Down projection will add work, but P2 remains plausible as a way to remove the **23-24 s**
+    per-request reload.
+  - **Decision:** continue to P2-C routed down projection and full routed output accounting. Do not integrate server-side
+    until full one-layer routed MoE beats `stream_bf16` and stays memory-clean.
