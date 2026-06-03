@@ -197,9 +197,9 @@ common_args=(
 if [[ "$REQUIRE_PROVENANCE" == "0" ]]; then
   common_args+=(--allow-provenance-mismatch)
 fi
-if [[ "$STRICT" == "0" ]]; then
-  common_args+=(--no-strict)
-fi
+# Do not pass --no-strict to child gates. Suite --no-strict only controls the
+# suite's final exit code; child wrappers must stay strict so PASS/FAIL remains
+# valid evidence for predecessor-gated steps such as P3-B.
 
 run_step() {
   local name="$1"
@@ -271,7 +271,7 @@ else
 fi
 
 if [[ "$RUN_P3B" == "1" ]]; then
-  if [[ "$DRY_RUN" == "1" || ( "$P2O_BASIC_STATUS" == "PASS" && "$P2O_RC_MINI_STATUS" == "PASS" && "$P3A_STATUS" == "PASS" ) ]]; then
+  if [[ "$DRY_RUN" == "1" || ( "$STRICT" == "1" && "$P2O_BASIC_STATUS" == "PASS" && "$P2O_RC_MINI_STATUS" == "PASS" && "$P3A_STATUS" == "PASS" ) ]]; then
     run_step "p3b-selected-prefill" \
       scripts/run_spark_stage6_p3b_selected_prefill_gate.sh \
         "${common_args[@]}" \
@@ -279,7 +279,7 @@ if [[ "$RUN_P3B" == "1" ]]; then
         --tokens "$P3B_TOKENS" \
         --predecessors-pass && true || failures=$((failures + 1))
   else
-    echo "[suite] p3b-selected-prefill: skipped because predecessors did not all PASS"
+    echo "[suite] p3b-selected-prefill: skipped because strict predecessor PASS evidence is unavailable"
     printf '%s\t%s\t%s\n' "p3b-selected-prefill" "SKIP" "0" >> "$STATUS_TSV"
   fi
 else

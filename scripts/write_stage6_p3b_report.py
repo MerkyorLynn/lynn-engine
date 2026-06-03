@@ -64,6 +64,8 @@ def write_report(artifact_dir: Path, *, report_date: str) -> str:
     verdict, reason = _verdict(data)
     passes = data.get("passes") or {}
     bytes_ = data.get("bytes") or {}
+    shadow_checks = data.get("shadow_absence_checks") or {}
+    reload_trap = data.get("reload_trap") or {}
     git_head = _read(artifact_dir / "git_head.txt", "unknown")
     expected_head = _read(artifact_dir / "expected_git_head.txt", "unknown")
     manifest = _read(artifact_dir / "provenance_manifest.txt", "missing")
@@ -149,6 +151,7 @@ def write_report(artifact_dir: Path, *, report_date: str) -> str:
         f"| Final stack cosine min | `{passes.get('final_stack_cosine_min', 'unknown')}` |",
         f"| Final stack argmax | `{_fmt_bool(passes.get('final_stack_argmax_match'))}` |",
         f"| Active BF16 shadow absent | `{_fmt_bool(passes.get('no_active_bf16_shadow'))}` |",
+        f"| Reload trap installed | `{_fmt_bool(passes.get('reload_trap_installed'))}` |",
         f"| Reload not called | `{_fmt_bool(passes.get('reload_not_called'))}` |",
         f"| Speed vs P2-N reference | `{_fmt_bool(passes.get('speed_vs_p2n_reference'))}` |",
         f"| Banked fused kernel flag is false | `{data.get('banked_fused_kernel') is False}` |",
@@ -156,6 +159,8 @@ def write_report(artifact_dir: Path, *, report_date: str) -> str:
         f"| BF16 active expert bytes | `{bytes_.get('bf16_active_experts', 'unknown')}` |",
         f"| Packed active expert bytes | `{bytes_.get('packed_active_experts', 'unknown')}` |",
         f"| Memory after deleting active BF16 GiB | `{bytes_.get('mem_after_deleting_bf16_active_gib', 'unknown')}` |",
+        f"| Reload trap status | `{reload_trap.get('status', 'unknown')}` |",
+        f"| Shadow absence checks | `{shadow_checks}` |",
         "",
         "## Decision",
         "",

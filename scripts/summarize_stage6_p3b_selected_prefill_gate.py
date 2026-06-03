@@ -33,7 +33,9 @@ def _avg(rows: list[dict[str, Any]], key: str) -> float | None:
 
 def _verdict(data: dict[str, Any]) -> tuple[str, str]:
     passes = data.get("passes") or {}
-    if data.get("banked_fused_kernel") or data.get("banked_server_path"):
+    if data.get("schema") != "lynn-stage6-p3b-selected-prefill-gate-v1":
+        return "FAIL", "schema mismatch"
+    if data.get("banked_fused_kernel") is not False or data.get("banked_server_path") is not False:
         return "FAIL", "promotion boundary violated"
     if passes.get("predecessors_pass") is not True:
         return "FAIL", "predecessor evidence gate fail"
@@ -43,10 +45,14 @@ def _verdict(data: dict[str, Any]) -> tuple[str, str]:
         return "FAIL", "argmax gate fail"
     if passes.get("no_active_bf16_shadow") is not True:
         return "FAIL", "active BF16 expert shadow was not absent"
+    if passes.get("reload_trap_installed") is not True:
+        return "FAIL", "reload trap was not installed"
     if passes.get("reload_not_called") is not True:
         return "FAIL", "reload was called"
     if passes.get("speed_vs_p2n_reference") is not True:
         return "FAIL", "P3-B candidate slower than P2-N reference"
+    if data.get("verdict") != "PASS":
+        return "FAIL", "top-level verdict is not PASS"
     if passes.get("all") is True:
         return "PASS", "selected-prefill composition gates passed"
     return "FAIL", "selected-prefill aggregate gate fail"
@@ -82,6 +88,7 @@ def summarize(data: dict[str, Any]) -> str:
         f"| Final stack cosine min | `{_fmt(_f(passes.get('final_stack_cosine_min'), default=float('nan')))}` |",
         f"| Final stack argmax | `{passes.get('final_stack_argmax_match')}` |",
         f"| Active BF16 shadow absent | `{passes.get('no_active_bf16_shadow')}` |",
+        f"| Reload trap installed | `{passes.get('reload_trap_installed')}` |",
         f"| Reload not called | `{passes.get('reload_not_called')}` |",
         f"| Speed vs P2-N reference | `{passes.get('speed_vs_p2n_reference')}` |",
         f"| BF16 active expert bytes | `{bytes_.get('bf16_active_experts', 'unknown')}` |",

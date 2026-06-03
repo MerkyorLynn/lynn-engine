@@ -25,11 +25,21 @@ CHECKS = [
         ],
     ),
     (
+        "scripts/run_spark_stage6_p3b_selected_prefill_gate.sh",
+        [
+            "missing result.json",
+            "Do not bank P3-B",
+            "summary.md",
+            "report.md",
+        ],
+    ),
+    (
         "scripts/spark_stage6_p3b_selected_prefill_gate.py",
         [
             "lynn-stage6-p3b-selected-prefill-gate-v1",
             "p3a_grouped",
             "predecessors_pass",
+            "reload_trap_installed",
             "speed_vs_p2n_reference",
             "banked_fused_kernel",
             "banked_server_path",
@@ -39,6 +49,7 @@ CHECKS = [
         "scripts/summarize_stage6_p3b_selected_prefill_gate.py",
         [
             "predecessor evidence gate fail",
+            "reload trap was not installed",
             "P3-B candidate slower than P2-N reference",
             "promotion boundary violated",
         ],

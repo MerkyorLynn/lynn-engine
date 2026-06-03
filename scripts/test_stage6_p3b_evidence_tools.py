@@ -97,12 +97,24 @@ def pass_fixture() -> dict:
             "p2n_peak": {"16": {"peak_gib": 5.0}, "64": {"peak_gib": 5.5}},
             "p3b_peak": {"16": {"peak_gib": 5.0}, "64": {"peak_gib": 5.5}},
         },
+        "shadow_absence_checks": {
+            "after_delete": True,
+            "after_p2n_T16": True,
+            "after_p3b_T16": True,
+            "after_p2n_T64": True,
+            "after_p3b_T64": True,
+        },
+        "reload_trap": {
+            "installed": True,
+            "status": "installed",
+        },
         "passes": {
             "predecessors_pass": True,
             "numeric": True,
             "final_stack_cosine_min": 0.99990,
             "final_stack_argmax_match": True,
             "no_active_bf16_shadow": True,
+            "reload_trap_installed": True,
             "reload_not_called": True,
             "speed_vs_p2n_reference": True,
             "all": True,
@@ -139,6 +151,13 @@ def promoted_fail_fixture() -> dict:
     return data
 
 
+def malformed_pass_fixture() -> dict:
+    data = pass_fixture()
+    del data["banked_fused_kernel"]
+    del data["banked_server_path"]
+    return data
+
+
 def write_artifact(path: Path, data: dict, *, manifest_match: bool = True) -> None:
     path.mkdir(parents=True, exist_ok=True)
     write_json(path / "result.json", data)
@@ -163,10 +182,12 @@ def main() -> int:
         predecessor_fail_json = tmp / "predecessor_fail.json"
         speed_fail_json = tmp / "speed_fail.json"
         promoted_fail_json = tmp / "promoted_fail.json"
+        malformed_pass_json = tmp / "malformed_pass.json"
         write_json(pass_json, pass_fixture())
         write_json(predecessor_fail_json, predecessor_fail_fixture())
         write_json(speed_fail_json, speed_fail_fixture())
         write_json(promoted_fail_json, promoted_fail_fixture())
+        write_json(malformed_pass_json, malformed_pass_fixture())
 
         run(["bash", "-n", "scripts/run_spark_stage6_p3b_selected_prefill_gate.sh"])
         help_proc = run(["scripts/run_spark_stage6_p3b_selected_prefill_gate.sh", "--help"])
@@ -219,6 +240,14 @@ def main() -> int:
         ], expect=2)
         assert "promotion boundary violated" in promoted_fail.stdout
 
+        malformed_fail = run([
+            sys.executable,
+            "scripts/summarize_stage6_p3b_selected_prefill_gate.py",
+            str(malformed_pass_json),
+            "--strict-exit",
+        ], expect=2)
+        assert "promotion boundary violated" in malformed_fail.stdout
+
         pass_art = tmp / "pass_artifact"
         fail_art = tmp / "fail_artifact"
         write_artifact(pass_art, pass_fixture())
@@ -257,6 +286,7 @@ def main() -> int:
         assert "Bank P3-B selected-prefill composition only" in pass_text
         assert "not bank a fused grouped-MoE kernel" in pass_text
         assert "P3-C server integration" in pass_text
+        assert "Reload trap installed" in pass_text
         assert "Verdict: **FAIL**" in fail_text
         assert "Do not bank P3-B" in fail_text
 
