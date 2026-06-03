@@ -168,6 +168,30 @@
     vs the serving loop's draft placement. First add a draft-vs-actual ±1-offset probe to confirm
     the shift direction, then correct it (likely config-level, no retrain). Cross-check positioning
     against the working llama.cpp APEX-MTP serving. If fixed → ~45→~51.
+- **✅ STAGE 5 CORRECTION (6/3, SUPERSEDES the above — accept was never the bug; OFFSET HYPOTHESIS FALSE).**
+  Three probes on the same ~45 RC stack (engine md5 == HEAD):
+  - `spark_mtp_offset_align_probe.py`: serving's draft contract (`_mtp_draft_logits`: base_hidden=h_p,
+    embed(x_{p+1}), `cat([embed,hidden])`) predicts **x_{p+2} at 91.5–91.7% top-1** (rank median 0).
+    Draft head is excellent; the "serving offset-1 vs trained offset=2" suspicion was WRONG — the in-use
+    sidecar matches serving's contract. (The A100 `a100_mtp_iterative_train.py` `[hidden,embed]`/offset-1
+    contract is a different, unused training line — a red herring.)
+  - `spark_mtp_block_verify_probe.py`: the **T=2 block verifier is 100% correct** (pos-0 b0==true 36/36,
+    hidden cos=1.0000, lm_head all-positions fine).
+  - `spark_mtp_verify_config_sweep.py` (7 configs, one load): **accept is high everywhere, NOT 2.4%** —
+    seq_k1 / k1b_default / k1b_lin_t1loop = **88.2%**, k2_default (= the old A/B config) = **76.0%**,
+    k1b_fast (true-batched) = **97.0%**; all TOKEN_EXACT except k1b_fast. The earlier `2/82≈2.4%` did
+    not reproduce → stale/narrow measurement, not an offset root cause.
+  - **THE REAL BLOCKER IS SPEED, not accept.** The eager speculative loop costs **~680 ms / event
+    (2 tokens)** — BF16 MTP-draft MoE + non-cheap batched verify + snapshot/restore + dispatch/sync —
+    so even at ~90% accept it is a **net LOSS** vs the 44.39 baseline. (`decode_tps` reads 0 for the spec
+    path = a metric gap; per-event wall-clock is the truth, ≈ 3 TPS effective.) `k1b_fast`
+    (`LYNN_FULL_ATTN_K2_BACKEND=k2` + `LYNN_MTP_VERIFY_SMALLM=1`) targets a true-batched verify but is
+    **NOT token-exact** (kernel drift — the M12 `decode_full_attn_k2` / smallm-MoE T≥2 numerics).
+  - **REVISED VERDICT:** MTP correctness ✅ + accept ✅ (head is good), but MTP is **not a ready 45→51
+    shortcut** in this eager runtime. Realizing it needs (a) a low-overhead speculative runtime (graph the
+    draft+verify, drop per-step state clones) or (b) token-exact true-batched verify kernels — **both
+    overlap Stage 6.** Article framing stays ~45 TPS; MTP = "accept proven, runtime too heavy, speed
+    unrealized". → mainline proceeds to STAGE 6.
 - **▶ STAGE 6 (endgame, only if MTP tops out — user-directed moat):** the fused
   **read-4bit + dequant-in-register + bf16-GEMV + zero-shadow + single-launch** kernel. Rationale
   (recomputed): the REAL wall is bandwidth, not launch — baseline 38.96 ≈ BF16-shadow 6GB/tok ÷
