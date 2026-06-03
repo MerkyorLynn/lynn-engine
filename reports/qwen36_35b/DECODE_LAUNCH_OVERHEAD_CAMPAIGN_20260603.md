@@ -323,3 +323,15 @@
     **0.0177 GiB**, below the single projection's **0.03125 GiB** BF16 shadow size.
   - **Microbench:** packed Triton **160.29 us** vs BF16 `F.linear` **190.03 us**, **1.186x** speedup. This banks the
     single-projection contract, not full dense-path integration. Next gate: P1-A batched/M>1 packed projections.
+- **⚠️ STAGE 6 step 8 — P1-A naive batched projection bridge REJECTED for performance (numeric/no-shadow PASS).**
+  `scripts/spark_stage6_p1a_batched_projection_poc.py` added a single-launch bridge over
+  `tokens x output-row-blocks` for the same real `linear_attn.in_proj_qkv` projection. It intentionally did not reuse
+  activation tiles across tokens.
+  - **Numeric:** M=1/4/16/64 all passed vs FP32 dequant oracle (`cos=1.000000000`, rel_l2 <= `3.161e-07`, argmax
+    match).
+  - **No hidden BF16 shadow:** timed packed benchmark ran after deleting FP32/BF16 refs; peak **0.0200 GiB**, below the
+    projection BF16 shadow (**0.03125 GiB**).
+  - **Perf:** M=1 packed **159.27 us** vs BF16 **181.80 us** (**1.141x**), but M>1 fails badly: M=4 **0.260x**,
+    M=16 **0.067x**, M=64 **0.016x** vs BF16. BF16 `F.linear` amortizes the batch; this bridge does not.
+  - **Decision:** keep it as a correctness/regression probe only. Do not wire into resident_runner. Next P1-A attempt must
+    be a true tiled `BLOCK_T x BLOCK_OUT x BLOCK_K` packed projection kernel.
