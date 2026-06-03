@@ -21,6 +21,17 @@ The backend is intentionally fail-loud today. It is present to freeze the ABI
 and prevent P4A's two-stage reference from being mistaken for the final fused
 kernel.
 
+The Python wrapper records runtime evidence before invoking the native symbol:
+
+```text
+_p4b_fused_zero_shadow_single_kernel_contract_call_count
+_p4b_fused_zero_shadow_single_kernel_contract_last_shapes
+```
+
+These counters are allowed to increment even while the native symbol fails
+loud. They are for future runtime-bridge evidence only; they do not bank fused
+speed.
+
 ## ABI
 
 Native symbol:

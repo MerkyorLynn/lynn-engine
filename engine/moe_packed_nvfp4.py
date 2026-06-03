@@ -747,6 +747,14 @@ def _active_moe_native_fused_zero_shadow_single_kernel_contract(
     out = out_scratch.view(1, -1)
 
     ext = load_lynn_native_extension(verbose=_env_bool("LYNN_NATIVE_CUDA_VERBOSE", False))
+    w["_p4b_fused_zero_shadow_single_kernel_contract_call_count"] = (
+        int(w.get("_p4b_fused_zero_shadow_single_kernel_contract_call_count", 0)) + 1
+    )
+    w["_p4b_fused_zero_shadow_single_kernel_contract_last_shapes"] = {
+        "hidden": tuple(hidden_2d.shape),
+        "expert_ids": tuple(expert_ids_2d.shape),
+        "out": tuple(out.shape),
+    }
     ext.active_moe_fused_zero_shadow_single_kernel_contract(
         hidden_2d,
         expert_ids_2d,
