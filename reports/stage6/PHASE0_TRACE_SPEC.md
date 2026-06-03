@@ -113,6 +113,7 @@ lookup paths. Router and norms are too small to lead the next phase.
 | P1-A naive batched bridge | **REJECTED 2026-06-04**: numeric/no-shadow pass, M>1 perf fail | see `reports/stage6/P1A_BATCHED_PROJECTION_POC_20260604.md` |
 | P1-A tiled scalar bridge | **REJECTED 2026-06-04**: numeric/no-shadow pass and up to 25.93x faster than naive, but still slower than BF16 GEMM for M>1 | see `reports/stage6/P1A_TILED_PROJECTION_SWEEP_20260604.md`; dense M>1 needs native FP4-MMA/CUTLASS-style bridge if pursued |
 | P2 census | **PASSED 2026-06-04**: single-layer routed MoE census proves `stream_bf16` is exact but 0.49-0.51s/layer; `smallm` verifier is memory-clean but slow | see `reports/stage6/P2_GROUPED_MOE_PREFILL_CENSUS_20260604.md` |
+| P2-A single-expert gate/up | **COMPONENT ONLY 2026-06-04**: packed no-shadow gate/up+silu passes numeric in main run, but scalar-dequant loses to BF16 (best sweep M=64 0.115x) | see `reports/stage6/P2A_GATEUP_PREFILL_POC_20260604.md`; do not wire into serving |
 | P2 kernel | Replace row-loop / stream-dequant packed MoE prefill with routed grouped M>1 packed expert kernels | numeric vs BF16 + stream oracle, no MoE BF16 shadow, peak near selected-expert scratch, latency beats stream and approaches BF16 |
 | P3 | Server integration: if `LYNN_PACKED_PREFILL=1`, skip per-request reload and keep 27-28 GiB steady-state | multi-request A/B: no reload, memory flat, decode TPS unchanged |
 | P4 | RC quality and long-context headroom | `spark_rc_quality_regression.py`, long prefill smoke, `/health` metrics |

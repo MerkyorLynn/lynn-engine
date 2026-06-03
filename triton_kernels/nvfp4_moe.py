@@ -495,6 +495,122 @@ if HAS_TRITON:
 
         tl.store(out_ptr + rows, acc.to(tl.bfloat16), mask=row_mask)
 
+
+    @triton.jit
+    def _prefill_gate_up_silu_one_expert_kernel(
+        x_ptr,
+        gate_up_packed_ptr,
+        gate_up_scale_ptr,
+        global_scale_ptr,
+        out_ptr,
+        T: tl.constexpr,
+        x_stride_t: tl.constexpr,
+        x_stride_h: tl.constexpr,
+        out_stride_t: tl.constexpr,
+        out_stride_i: tl.constexpr,
+        PACKED_STRIDE_E: tl.constexpr,
+        PACKED_STRIDE_M: tl.constexpr,
+        PACKED_STRIDE_N: tl.constexpr,
+        SCALE_STRIDE_E: tl.constexpr,
+        SCALE_STRIDE_M: tl.constexpr,
+        SCALE_STRIDE_G: tl.constexpr,
+        EXPERT_ID: tl.constexpr,
+        HIDDEN: tl.constexpr,
+        INTERMEDIATE: tl.constexpr,
+        BLOCK_T: tl.constexpr,
+        BLOCK_INTER: tl.constexpr,
+        BLOCK_HIDDEN: tl.constexpr,
+        SCALE_EFFECTIVE: tl.constexpr,
+    ):
+        token_block = tl.program_id(0)
+        inter_block = tl.program_id(1)
+        tokens = token_block * BLOCK_T + tl.arange(0, BLOCK_T)
+        inter_offsets = inter_block * BLOCK_INTER + tl.arange(0, BLOCK_INTER)
+        token_mask = tokens < T
+        inter_mask = inter_offsets < INTERMEDIATE
+
+        gate_acc = tl.zeros((BLOCK_T, BLOCK_INTER), dtype=tl.float32)
+        up_acc = tl.zeros((BLOCK_T, BLOCK_INTER), dtype=tl.float32)
+        if SCALE_EFFECTIVE:
+            global_scale = 1.0
+        else:
+            global_scale = tl.load(global_scale_ptr).to(tl.float32)
+
+        h_offsets = tl.arange(0, BLOCK_HIDDEN)
+        for h0 in range(0, HIDDEN, BLOCK_HIDDEN):
+            cols = h0 + h_offsets
+            col_mask = cols < HIDDEN
+            packed_cols = cols // 2
+            scale_cols = cols // 16
+            x = tl.load(
+                x_ptr + tokens[:, None] * x_stride_t + cols[None, :] * x_stride_h,
+                mask=token_mask[:, None] & col_mask[None, :],
+                other=0.0,
+            ).to(tl.float32)
+
+            gate_rows = inter_offsets
+            up_rows = INTERMEDIATE + inter_offsets
+            gate_packed_offsets = (
+                EXPERT_ID * PACKED_STRIDE_E
+                + gate_rows[:, None] * PACKED_STRIDE_M
+                + packed_cols[None, :] * PACKED_STRIDE_N
+            )
+            up_packed_offsets = (
+                EXPERT_ID * PACKED_STRIDE_E
+                + up_rows[:, None] * PACKED_STRIDE_M
+                + packed_cols[None, :] * PACKED_STRIDE_N
+            )
+            gate_scale_offsets = (
+                EXPERT_ID * SCALE_STRIDE_E
+                + gate_rows[:, None] * SCALE_STRIDE_M
+                + scale_cols[None, :] * SCALE_STRIDE_G
+            )
+            up_scale_offsets = (
+                EXPERT_ID * SCALE_STRIDE_E
+                + up_rows[:, None] * SCALE_STRIDE_M
+                + scale_cols[None, :] * SCALE_STRIDE_G
+            )
+            gate_packed = tl.load(
+                gate_up_packed_ptr + gate_packed_offsets,
+                mask=inter_mask[:, None] & col_mask[None, :],
+                other=0,
+            )
+            up_packed = tl.load(
+                gate_up_packed_ptr + up_packed_offsets,
+                mask=inter_mask[:, None] & col_mask[None, :],
+                other=0,
+            )
+            gate_nibble = tl.where((cols[None, :] & 1) == 0, gate_packed & 0x0F, (gate_packed >> 4) & 0x0F)
+            up_nibble = tl.where((cols[None, :] & 1) == 0, up_packed & 0x0F, (up_packed >> 4) & 0x0F)
+            gate_w = _e2m1_from_nibble_fast(gate_nibble)
+            up_w = _e2m1_from_nibble_fast(up_nibble)
+            gate_scale = tl.load(
+                gate_up_scale_ptr + gate_scale_offsets,
+                mask=inter_mask[:, None] & col_mask[None, :],
+                other=0.0,
+            ).to(tl.float32)
+            up_scale = tl.load(
+                gate_up_scale_ptr + up_scale_offsets,
+                mask=inter_mask[:, None] & col_mask[None, :],
+                other=0.0,
+            ).to(tl.float32)
+            if SCALE_EFFECTIVE:
+                gate_eff = gate_w * gate_scale
+                up_eff = up_w * up_scale
+            else:
+                gate_eff = gate_w * (gate_scale / global_scale)
+                up_eff = up_w * (up_scale / global_scale)
+            gate_acc += tl.dot(x, tl.trans(gate_eff), input_precision="tf32")
+            up_acc += tl.dot(x, tl.trans(up_eff), input_precision="tf32")
+
+        gate_silu = gate_acc * tl.sigmoid(gate_acc)
+        out = gate_silu * up_acc
+        tl.store(
+            out_ptr + tokens[:, None] * out_stride_t + inter_offsets[None, :] * out_stride_i,
+            out.to(tl.bfloat16),
+            mask=token_mask[:, None] & inter_mask[None, :],
+        )
+
     @triton.jit
     def _grouped_gate_up_silu_merged_topk_kernel(
         x_ptr,
@@ -988,6 +1104,85 @@ def nvfp4_grouped_down_weighted_sum(
         BLOCK_HIDDEN=block_hidden,
         BLOCK_INTER=block_inter,
         SCALE_EFFECTIVE=False,
+        num_warps=num_warps,
+    )
+    return out
+
+
+def nvfp4_prefill_gate_up_silu_one_expert(
+    x: torch.Tensor,
+    expert_id: int,
+    gate_up_packed: torch.Tensor,
+    gate_up_scale: torch.Tensor,
+    gate_up_global_scale: torch.Tensor,
+    *,
+    block_t: int = 16,
+    block_inter: int = 16,
+    block_hidden: int = 128,
+    scale_effective: bool = False,
+    num_warps: int = 4,
+    out: torch.Tensor | None = None,
+) -> torch.Tensor:
+    """Batched single-expert gate/up+SwiGLU from packed NVFP4.
+
+    This is the first P2-A prefill slice. It deliberately handles only one
+    expert and only the gate/up half; routed grouping, down projection, and
+    index-add stay in the harness until the kernel contract is proven.
+    """
+    _require_triton()
+    if x.ndim != 2 or x.shape[1] != HIDDEN_SIZE:
+        raise ValueError(f"x must be [tokens, {HIDDEN_SIZE}], got {tuple(x.shape)}")
+    if gate_up_packed.ndim != 3 or gate_up_scale.ndim != 3:
+        raise ValueError(
+            f"expected grouped 3D tensors, got packed={tuple(gate_up_packed.shape)} scale={tuple(gate_up_scale.shape)}"
+        )
+    if not (0 <= int(expert_id) < int(gate_up_packed.shape[0])):
+        raise ValueError(f"expert_id={expert_id} outside [0, {gate_up_packed.shape[0]})")
+    if gate_up_packed.shape[1] != INTERMEDIATE_SIZE * 2 or gate_up_packed.shape[2] * 2 != HIDDEN_SIZE:
+        raise ValueError(f"unexpected gate_up_packed shape {tuple(gate_up_packed.shape)}")
+    if gate_up_scale.shape[1] != INTERMEDIATE_SIZE * 2 or gate_up_scale.shape[2] * 16 != HIDDEN_SIZE:
+        raise ValueError(f"unexpected gate_up_scale shape {tuple(gate_up_scale.shape)}")
+    if block_t <= 0 or block_inter <= 0 or block_hidden <= 0:
+        raise ValueError("block_t, block_inter, and block_hidden must be positive")
+
+    x = x.contiguous()
+    gate_up_packed = gate_up_packed.contiguous()
+    gate_up_scale = gate_up_scale.contiguous()
+    gate_up_global_scale = gate_up_global_scale.to(device=x.device).contiguous()
+    tokens = int(x.shape[0])
+    if out is None:
+        out = torch.empty((tokens, INTERMEDIATE_SIZE), device=x.device, dtype=torch.bfloat16)
+    else:
+        if out.shape != (tokens, INTERMEDIATE_SIZE):
+            raise ValueError(f"out must be [{tokens}, {INTERMEDIATE_SIZE}], got {tuple(out.shape)}")
+        if out.device != x.device or out.dtype != torch.bfloat16:
+            raise ValueError("out must be a bfloat16 tensor on the same device as x")
+
+    grid = (triton.cdiv(tokens, block_t), triton.cdiv(INTERMEDIATE_SIZE, block_inter))
+    _prefill_gate_up_silu_one_expert_kernel[grid](
+        x,
+        gate_up_packed,
+        gate_up_scale,
+        gate_up_global_scale,
+        out,
+        tokens,
+        x.stride(0),
+        x.stride(1),
+        out.stride(0),
+        out.stride(1),
+        gate_up_packed.stride(0),
+        gate_up_packed.stride(1),
+        gate_up_packed.stride(2),
+        gate_up_scale.stride(0),
+        gate_up_scale.stride(1),
+        gate_up_scale.stride(2),
+        int(expert_id),
+        HIDDEN=HIDDEN_SIZE,
+        INTERMEDIATE=INTERMEDIATE_SIZE,
+        BLOCK_T=block_t,
+        BLOCK_INTER=block_inter,
+        BLOCK_HIDDEN=block_hidden,
+        SCALE_EFFECTIVE=scale_effective,
         num_warps=num_warps,
     )
     return out

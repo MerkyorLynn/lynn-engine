@@ -70,7 +70,8 @@
 - **P1 single projection passed:** `linear_attn.in_proj_qkv` packed Triton matvec passed numeric/no-shadow/microbench gates, 1.186× vs BF16 shadow.
 - **P1-A rejected:** both naive and tiled scalar batched bridges passed numeric/no-shadow gates, but both lose to BF16 tensor-core GEMM for M>1; do not wire into serving.
 - **P2 census passed:** one-layer MoE confirms `stream_bf16` is the 20s no-reload proof bottleneck; the small-M verifier is memory-clean but slow.
-- **Next gate:** P2 routed grouped MoE packed-prefill kernel; dense M>1 needs a native FP4-MMA/CUTLASS-style bridge if it remains a target.
+- **P2-A component evidence:** single-expert packed gate/up runs without BF16 shadow, but scalar dequant loses to BF16 (M=64 best 0.115x); do not wire into serving.
+- **Next gate:** P2-B routed gate/up grouping cost; dense/MoE M>1 needs a native FP4-MMA/CUTLASS-style bridge to catch BF16.
 - **Honest Spark sm_121 read:** decode is structurally capped around ~45; chasing 69.77 needs native runtime + fused kernels + eventually FP4-MMA silicon.
 - **All Wave 2 commits remain on main, not reverted** — 5 parallel CLIs + 7 bug fix trail + 178s repack + 2160-config autotune sweep are real engineering artefacts.
 

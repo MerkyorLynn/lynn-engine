@@ -89,8 +89,9 @@
 - **已过 P0.2:** release 后剩余 BF16 resident 只有 4.72 GiB,下一刀优先 projection / embed / lm_head,router 不是第一杠杆。
 - **已过 P1 单投影:** `linear_attn.in_proj_qkv` packed Triton matvec numeric/no-shadow/microbench 全过,1.186× vs BF16 shadow。
 - **P1-A 反证完成:** naive 与 tiled scalar batched bridge 都 numeric/no-shadow 过,但 M>1 都输 BF16 tensor-core GEMM;不进入 serving。
-- **P2 census 已过:** 单层 MoE 证实 `stream_bf16` 是 20s no-reload proof 的主耗时,small-M verifier 内存干净但慢;下一步写 routed grouped MoE prefill kernel。
-- **下一关:** P2 routed grouped MoE packed-prefill kernel;dense M>1 若继续追,必须走 native FP4-MMA/CUTLASS-style bridge。
+- **P2 census 已过:** 单层 MoE 证实 `stream_bf16` 是 20s no-reload proof 的主耗时,small-M verifier 内存干净但慢。
+- **P2-A 组件证据:** 单 expert packed gate/up no-shadow 可跑,但 scalar-dequant 输 BF16(M=64 best 0.115x);不进入 serving。
+- **下一关:** P2-B routed gate/up grouping 成本评估;dense/MoE M>1 若要追平 BF16,最终要 native FP4-MMA/CUTLASS-style bridge。
 - **Spark sm_121 诚实口径:** decode 结构性卡 ~45,追 69.77 需要 native runtime + fused kernels + 最终 FP4-MMA 硅。
 - **Wave 2 全部 commit 留在 main 分支不 revert** — 5 CLI 并行 + 7 bug fix trail + 178s repack + autotune sweep 2160 config 全是真实工程财产。
 

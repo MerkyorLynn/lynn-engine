@@ -361,3 +361,14 @@
   - **Decision:** P2 should target the routed expert inner loop with prefill router semantics preserved:
     `h_flat[M,2048] + expert_ids[M,8] + routing_weights[M,8] + packed gate/up/down -> moe_out[M,2048]`. Do not
     promote `stream_bf16` or `smallm`; use them as numeric/memory oracles.
+- **⚠️ STAGE 6 step 11 — P2-A single-expert packed gate/up component is valid but NOT a performance win.**
+  `nvfp4_prefill_gate_up_silu_one_expert()` added the smallest routed-MoE prefill slice: one expert, M>1 hidden rows,
+  packed NVFP4 gate/up weights, fused `silu(gate) * up`, BF16 intermediate output.
+  - **Bytes:** one expert's BF16 gate/up shadow **4.00 MiB** vs packed **1.50 MiB** (**2.667x** smaller).
+  - **Numeric:** main run passes component numeric gate (`cos≈0.99999`, rel_l2 `0.0038-0.0045`, argmax match for
+    M=1/4/16/64). A sweep with another expert had M=64 argmax mismatches, so this is not RC-quality.
+  - **No hidden BF16 gate/up:** packed bench ran after deleting `mlp.experts.gate_up_proj`; peak stayed **0.953 GiB**.
+  - **Perf:** main run packed **82.77/82.72/82.67/240.33 us** vs BF16 **16.29/18.81/19.22/19.10 us** for
+    M=1/4/16/64 (**0.197/0.227/0.233/0.079x**). Small tile sweep best M=64 is **0.115x**; larger tiles OOR on Spark.
+  - **Decision:** keep as a component probe only. Do not wire into `resident_runner`. Next P2-B should measure routed
+    gate/up grouping over unique experts; beating BF16 likely needs native FP4-MMA/CUTLASS-style kernels.
