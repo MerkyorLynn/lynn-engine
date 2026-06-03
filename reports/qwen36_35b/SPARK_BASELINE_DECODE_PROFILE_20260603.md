@@ -64,3 +64,21 @@ Stacked (bh4 × flags × qkv) ≈ **~42 TPS**. Ceiling via incremental tuning �
 2. Same fusion for o_proj / the linear-attn in-proj (more 3→1 launch cuts).
 3. Per-kernel Spark config sweeps on the remaining GEMVs (bh=4 proved R6000-locked configs are suboptimal here).
 4. (Infra note: stopping APEX then immediately loading the 90G NVFP4 model races the GPU release → use a longer wait or confirm GPU-free before load; microbenches avoid this entirely.)
+
+## UPDATE — qkv fusion e2e A/B: NEGLIGIBLE (+0.3%), and profiling overstated headroom
+Wired it (it was an existing opt-in flag, no code change) and ran a **clean same-
+process A/B** (qkv OFF→ON, same prompt/warmup, `spark_qkv_fusion_e2e_ab.py`):
+- **A (off) 38.82 TPS → B (on, 10 layers fused) 38.93 = +0.3%.** Coherent both;
+  not bit-identical (fused GEMV's accumulation order flips a few greedy argmaxes —
+  same math, quality-neutral).
+- The isolated microbench's **1.44× did NOT translate**: the profiler's per-section
+  `cuda-sync` **inflated** the section times. The "qkv = 2.2 ms" was a profiling
+  artifact; the real qkv is small, so fusing saves ~90 µs/tok ≈ 0.3%.
+
+**Sharper conclusion:** the only e2e-real win is **bh=4 (+11%, 36→40, measured clean)**.
+qkv fusion +0.3% (skip). The linear-attn flags' +2.7% was *instrumented* and likely
+smaller clean. **The profiled 22.6 ms "remainder" overstated headroom** — under clean
+(unprofiled) decode there's much less to squeeze per-section. **Realistic Spark
+incremental ceiling ≈ 40–41 TPS, not 44–48.** 60+/150 definitively needs SM120 (FP4
+MMA). Lesson for next time: trust **clean e2e A/B**, not profiled-section deltas or
+isolated microbenches, for decode-optimization decisions on this memory-bound path.
