@@ -1248,6 +1248,12 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
             moe_out = _active_moe_native_grouped_per16_nonatomic(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
         elif backend == "fused_zero_shadow_out_contract" and _layer_selected_for_native_cuda(cfg):
             moe_out = _active_moe_native_fused_zero_shadow_out_contract(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
+        elif backend == "fused_zero_shadow_out_contract":
+            raise RuntimeError(
+                "LYNN_NATIVE_ACTIVE_MOE_BACKEND=fused_zero_shadow_out_contract requires "
+                "the current layer to match LYNN_NATIVE_ACTIVE_MOE_LAYERS; refusing to "
+                "fall back to the generic Triton two-stage path"
+            )
         elif backend == "grouped_per16_fused" and _layer_selected_for_native_cuda(cfg):
             moe_out = _active_moe_native_grouped_per16_fused(hidden, expert_ids, routing_weights, w).reshape_as(h_flat)
         elif backend == "grouped_per16" and _layer_selected_for_native_cuda(cfg):
@@ -1262,7 +1268,6 @@ def moe_forward_decode_packed_nvfp4(h: torch.Tensor, w: dict, cfg: dict) -> torc
             "cuda_scalar_contract",
             "grouped_per16",
             "grouped_per16_fused",
-            "fused_zero_shadow_out_contract",
             "grouped_per16_nonatomic",
             "grouped_per16_nonatomic_out",
         }:

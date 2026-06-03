@@ -25,7 +25,7 @@ sys.path.insert(0, str(ROOT))
 from benchmarks.p10e_packed_active_expert_probe import _prefill_to_layer_input  # noqa: E402
 from benchmarks.p37_moe_config_generate_gate import BASE_ENV  # noqa: E402
 from engine.full_forward import _rms_norm  # noqa: E402
-from engine.moe_packed_nvfp4 import moe_forward_decode_packed_nvfp4  # noqa: E402
+from engine.moe_packed_nvfp4 import _layer_selected_for_native_cuda, moe_forward_decode_packed_nvfp4  # noqa: E402
 from engine.resident_runner import LynnIncrementalRunner  # noqa: E402
 
 
@@ -187,6 +187,7 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
         w = runner.layer_weights[args.layer]
         cfg = runner.layer_cfgs[args.layer]
         h_moe = _rms_norm(h_layer, w["post_attention_layernorm.weight"])
+        result["native_layer_selected_for_candidate"] = bool(_layer_selected_for_native_cuda(cfg))
         result["packed_manifest_before_candidate"] = _packed_manifest(w)
         result["active_scratch_manifest"] = {
             key: _tensor_meta(w[key]) for key in ACTIVE_SCRATCH_KEYS if isinstance(w.get(key), torch.Tensor)
@@ -233,6 +234,7 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
             }
         baseline_shape_ok = result["baseline"]["output_shape"] == list(h_moe.shape)
         baseline_dtype_ok = result["baseline"]["output_dtype"] == "torch.bfloat16"
+        native_layer_selected = result.get("native_layer_selected_for_candidate") is True
         packed_manifest_ok = _packed_manifest_ok(result["packed_manifest_before_candidate"])
         active_scratch_ok = _active_scratch_ok(result["active_scratch_manifest"], int(cfg["num_experts_per_tok"]))
         shadow_absent = not result["active_shadow_keys_present_after_delete"]
@@ -252,6 +254,7 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
         baseline_ok = baseline_norm > 0.0 and math.isfinite(baseline_norm) and baseline_shape_ok and baseline_dtype_ok
         result["passes"] = {
             "cuda_available": True,
+            "native_layer_selected": native_layer_selected,
             "baseline_triton_nonzero": baseline_ok,
             "baseline_shape_dtype": bool(baseline_shape_ok and baseline_dtype_ok),
             "packed_tensors_present": packed_manifest_ok,
@@ -262,7 +265,7 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
             "candidate_numeric_vs_triton": bool(candidate_numeric_ok),
             "fused_kernel_unbanked": result["banked_fused_kernel"] is False,
             "default_promotion_closed": result["banked_default_promotion"] is False,
-            "all": bool(baseline_ok and packed_manifest_ok and active_scratch_ok and removed and shadow_absent and no_bf16_aliases and candidate_numeric_ok),
+            "all": bool(native_layer_selected and baseline_ok and packed_manifest_ok and active_scratch_ok and removed and shadow_absent and no_bf16_aliases and candidate_numeric_ok),
         }
         result["banked_runtime_bridge_preflight"] = bool(result["passes"]["all"])
         result["decision"] = "PASS_TWO_STAGE_RUNTIME_BRIDGE" if result["passes"]["all"] else "FAIL_RUNTIME_BRIDGE_CONTRACT"

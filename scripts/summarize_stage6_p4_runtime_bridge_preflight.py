@@ -73,6 +73,7 @@ def _verdict(data: dict[str, Any]) -> tuple[str, str]:
         return "FAIL", "runtime bridge preflight was not banked"
     for gate in (
         "baseline_triton_nonzero",
+        "native_layer_selected",
         "baseline_shape_dtype",
         "packed_tensors_present",
         "active_scratch_present",
@@ -90,6 +91,8 @@ def _verdict(data: dict[str, Any]) -> tuple[str, str]:
         return "FAIL", "top-level decision is not PASS_TWO_STAGE_RUNTIME_BRIDGE"
     if baseline.get("output_shape") != [1, 1, 2048] or baseline.get("output_dtype") != "torch.bfloat16":
         return "FAIL", "baseline shape/dtype mismatch"
+    if data.get("native_layer_selected_for_candidate") is not True:
+        return "FAIL", "native layer selection was not proven"
     norm = baseline.get("norm")
     if not isinstance(norm, (int, float)) or not math.isfinite(float(norm)) or float(norm) <= 0.0:
         return "FAIL", "baseline norm is not finite positive"
@@ -131,6 +134,7 @@ def summarize(data: dict[str, Any]) -> str:
         f"| Model | `{data.get('model', 'unknown')}` |",
         f"| Layer | `{data.get('layer')}` |",
         f"| Expected backend | `{data.get('expected_backend')}` |",
+        f"| Native layer selected | `{data.get('native_layer_selected_for_candidate')}` |",
         f"| Banked runtime bridge preflight | `{data.get('banked_runtime_bridge_preflight')}` |",
         f"| Banked fused kernel | `{data.get('banked_fused_kernel')}` |",
         f"| Banked default promotion | `{data.get('banked_default_promotion')}` |",

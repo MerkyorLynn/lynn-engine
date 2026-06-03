@@ -44,6 +44,8 @@ CHECKS = [
             "LYNN_NATIVE_FUSED_ZERO_SHADOW_TILE_TOKENS",
             "LYNN_MOE_ACTIVE_SCRATCH=1",
             "fused_zero_shadow_out_contract",
+            "refusing to ",
+            "fall back to the generic Triton two-stage path",
         ],
     ),
     (
@@ -125,6 +127,7 @@ CHECKS = [
             "LYNN_NATIVE_ACTIVE_MOE_LAYERS",
             "LYNN_MOE_ACTIVE_SCRATCH",
             "active_scratch_manifest",
+            "native_layer_selected_for_candidate",
             "bf16_active_shadow_aliases_after_delete",
             "moe_forward_decode_packed_nvfp4",
             "PASS_TWO_STAGE_RUNTIME_BRIDGE",

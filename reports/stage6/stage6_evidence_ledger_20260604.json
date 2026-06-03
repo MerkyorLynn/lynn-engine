@@ -1,0 +1,180 @@
+{
+  "schema": "lynn-stage6-evidence-ledger-v1",
+  "generated_at_utc": "2026-06-03T23:15:25+00:00",
+  "spark_status": "BLOCKED_BY_SSH",
+  "spark_note": "dgx-spark and dgx-via-ssh returned Connection refused during this 2026-06-04 continuation; P4 runtime remains unbanked until a Spark artifact passes.",
+  "counts": {
+    "BANKED": 9,
+    "CLOSED_NEGATIVE": 2,
+    "READY_WAITING_SPARK": 7
+  },
+  "promotion_boundaries": {
+    "p3_default_promotion": false,
+    "p4_banked_fused_kernel": false,
+    "p4_default_promotion": false
+  },
+  "gates": [
+    {
+      "gate": "stage6_60g_decode_release",
+      "title": "60 GiB decode-only shadow release",
+      "status": "BANKED",
+      "evidence": "report contains explicit pass evidence",
+      "artifact": "reports/stage6/DECODE_ONLY_SHADOW_FREE_SERVING_RECIPE.md",
+      "next_step": "Use as serving capability; high-throughput multi-request still needs packed prefill.",
+      "decision": ""
+    },
+    {
+      "gate": "p0_1_no_reload_prefill",
+      "title": "P0.1 packed-prefill no-reload smoke",
+      "status": "BANKED",
+      "evidence": "report contains explicit pass evidence",
+      "artifact": "reports/stage6/P01_NO_RELOAD_SMOKE_20260603.md",
+      "next_step": "Replace slow stream_bf16 proof path with real grouped kernels.",
+      "decision": ""
+    },
+    {
+      "gate": "p0_2_resident_inventory",
+      "title": "P0.2 resident BF16 inventory",
+      "status": "BANKED",
+      "evidence": "report contains explicit pass evidence",
+      "artifact": "reports/stage6/P02_RESIDENT_INVENTORY_20260603.md",
+      "next_step": "Prioritize projection/embed/lm-head residents after MoE shadow removal.",
+      "decision": ""
+    },
+    {
+      "gate": "p1_single_dense_projection",
+      "title": "P1 single dense projection packed-NVFP4 PoC",
+      "status": "BANKED",
+      "evidence": "report contains explicit pass evidence",
+      "artifact": "reports/stage6/P1_DENSE_PROJECTION_POC_20260604.md",
+      "next_step": "Do not infer M>1 serving win from this M=1 gate.",
+      "decision": ""
+    },
+    {
+      "gate": "p1a_batched_dense_rejected",
+      "title": "P1-A batched dense scalar bridge rejection",
+      "status": "CLOSED_NEGATIVE",
+      "evidence": "report closes the scalar M>1 dense bridge as slower than BF16",
+      "artifact": "reports/stage6/P1A_TILED_PROJECTION_SWEEP_20260604.md",
+      "next_step": "Keep as correctness probe; real M>1 dense win needs FP4-MMA/CUTLASS.",
+      "decision": ""
+    },
+    {
+      "gate": "p2_grouped_moe_census",
+      "title": "P2 grouped MoE packed-prefill census",
+      "status": "BANKED",
+      "evidence": "report contains explicit pass evidence",
+      "artifact": "reports/stage6/P2_GROUPED_MOE_PREFILL_CENSUS_20260604.md",
+      "next_step": "Use routed grouped MoE as the real packed-prefill target.",
+      "decision": ""
+    },
+    {
+      "gate": "p2ka_gated_delta_loop_rejected",
+      "title": "P2-KA gated-delta token loop rejection",
+      "status": "CLOSED_NEGATIVE",
+      "evidence": "latest result.json failed as an intentional negative gate",
+      "artifact": "reports/stage6/p2ka_gated_delta_native_loop_long_20260604_023700",
+      "next_step": "Use block linear-attn instead of token-loop decode recurrence.",
+      "decision": "passes.all=false"
+    },
+    {
+      "gate": "p2kb_block_linear_kernel",
+      "title": "P2-KB gated-delta block kernel PoC",
+      "status": "BANKED",
+      "evidence": "latest result.json has passes.all=true",
+      "artifact": "reports/stage6/p2kb_gated_delta_block_kernel_long_20260604_024710",
+      "next_step": "Keep composing into selected-layer prefill gates.",
+      "decision": "passes.all=true"
+    },
+    {
+      "gate": "p2l_linear_attn_block_integration",
+      "title": "P2-L block linear-attn integration smoke",
+      "status": "BANKED",
+      "evidence": "latest result.json has passes.all=true",
+      "artifact": "reports/stage6/p2l_linear_attn_block_integration_long_20260604_025348",
+      "next_step": "Combine with packed MoE in selected-layer gates.",
+      "decision": "passes.all=true"
+    },
+    {
+      "gate": "p2m_selected_layer_block_linear",
+      "title": "P2-M selected-layer block-linear smoke",
+      "status": "BANKED",
+      "evidence": "latest result.json has passes.all=true",
+      "artifact": "reports/stage6/p2m_selected_layer_block_linear_20260604_030005",
+      "next_step": "Expand layer coverage before server RC.",
+      "decision": "passes.all=true"
+    },
+    {
+      "gate": "p2n_wider_layer_block_linear",
+      "title": "P2-N wider selected-layer block-linear smoke",
+      "status": "BANKED",
+      "evidence": "latest result.json has passes.all=true",
+      "artifact": "reports/stage6/p2n_wider_layer_block_linear_20260604_030926",
+      "next_step": "Next real proof is P2-O/P3 server-shaped RC.",
+      "decision": "passes.all=true"
+    },
+    {
+      "gate": "p2o_packed_prefill_rc",
+      "title": "P2-O packed-prefill RC smoke",
+      "status": "READY_WAITING_SPARK",
+      "evidence": "tooling/runbook exists, but no Spark PASS artifact is banked",
+      "artifact": "reports/stage6/P2O_PACKED_PREFILL_RC_GATE_RUNBOOK_20260604.md, scripts/run_spark_stage6_p2o_rc_smoke.sh",
+      "next_step": "Run on Spark when SSH is reachable.",
+      "decision": ""
+    },
+    {
+      "gate": "p3b_selected_prefill",
+      "title": "P3-B selected-prefill composition gate",
+      "status": "READY_WAITING_SPARK",
+      "evidence": "tooling/runbook exists, but no Spark PASS artifact is banked",
+      "artifact": "reports/stage6/P3B_SELECTED_PREFILL_GATE_RUNBOOK_20260604.md, scripts/run_spark_stage6_p3b_selected_prefill_gate.sh",
+      "next_step": "Run after P2-O basic/rc-mini plus P3-A predecessor evidence.",
+      "decision": ""
+    },
+    {
+      "gate": "p3c_resident_prompt",
+      "title": "P3-C resident-prompt gate",
+      "status": "READY_WAITING_SPARK",
+      "evidence": "tooling/runbook exists, but no Spark PASS artifact is banked",
+      "artifact": "reports/stage6/P3C_RESIDENT_PROMPT_GATE_RUNBOOK_20260604.md, scripts/run_spark_stage6_p3c_resident_prompt_gate.sh",
+      "next_step": "Run after P3-B PASS.",
+      "decision": ""
+    },
+    {
+      "gate": "p3d_server_rc",
+      "title": "P3-D OpenAI server RC smoke",
+      "status": "READY_WAITING_SPARK",
+      "evidence": "tooling/runbook exists, but no Spark PASS artifact is banked",
+      "artifact": "reports/stage6/P3D_SERVER_RC_PROMOTION_GATE_RUNBOOK_20260604.md, scripts/run_spark_stage6_p3d_server_rc_gate.sh",
+      "next_step": "Run after P3-C PASS; banks opt-in server smoke only.",
+      "decision": ""
+    },
+    {
+      "gate": "p3e_rc_quality_battery",
+      "title": "P3-E RC quality-battery smoke",
+      "status": "READY_WAITING_SPARK",
+      "evidence": "tooling/runbook exists, but no Spark PASS artifact is banked",
+      "artifact": "reports/stage6/P3E_RC_QUALITY_BATTERY_RUNBOOK_20260604.md, scripts/run_spark_stage6_p3e_rc_quality_battery.sh",
+      "next_step": "Run after P3-D PASS; full leaderboard/default promotion remains closed.",
+      "decision": ""
+    },
+    {
+      "gate": "p4_native_abi_preflight",
+      "title": "P4 native ABI two-stage reference preflight",
+      "status": "READY_WAITING_SPARK",
+      "evidence": "tooling/runbook exists, but no Spark PASS artifact is banked",
+      "artifact": "reports/stage6/P4_NATIVE_FUSED_MOE_ABI_CONTRACT_20260604.md, scripts/run_spark_stage6_p4_native_abi_preflight.sh",
+      "next_step": "Run on Spark; may bank native ABI preflight only, not fused kernel.",
+      "decision": ""
+    },
+    {
+      "gate": "p4_runtime_bridge_preflight",
+      "title": "P4 real runtime bridge preflight",
+      "status": "READY_WAITING_SPARK",
+      "evidence": "tooling/runbook exists, but no Spark PASS artifact is banked",
+      "artifact": "reports/stage6/P4_NATIVE_FUSED_MOE_ABI_CONTRACT_20260604.md, scripts/run_spark_stage6_p4_runtime_bridge_preflight.sh",
+      "next_step": "Run on Spark; must prove native layer selection and no fallback.",
+      "decision": ""
+    }
+  ]
+}
