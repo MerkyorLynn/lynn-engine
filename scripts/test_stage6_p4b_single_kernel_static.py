@@ -83,6 +83,13 @@ def main() -> int:
         cu_fn,
         [
             "inter_scratch",
+            "inter_out",
+            "torch::empty",
+            "torch::zeros",
+            "TensorOptions",
+            "active_moe_fused_atomic_scalar_kernel",
+            "atomicAdd",
+            "float* __restrict__ out",
             "lynn_native_active_moe_grouped_per16_nonatomic_out_reference",
         ],
         failures,
@@ -128,6 +135,8 @@ def main() -> int:
             "fused_zero_shadow_single_kernel_contract",
             "run_spark_stage6_p4b_single_kernel_preflight.sh",
             "PASS_SINGLE_KERNEL_FAILLOUD_CONTRACT",
+            "must not reuse the historical `active_moe_fused_atomic_scalar_kernel`",
+            "No output scratch",
         ],
         failures,
     )

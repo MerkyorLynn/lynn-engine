@@ -48,6 +48,15 @@ Required properties:
 - no BF16 expert weight tensors in the ABI;
 - no `inter_scratch` argument and no P4A two-stage reference call;
 - caller-owned output only;
+- No output scratch allocation. P4B must not allocate `torch::empty`,
+  `torch::zeros`, `TensorOptions`, or any hidden float accumulator tensor inside
+  the native entry point;
+- must not reuse the historical `active_moe_fused_atomic_scalar_kernel` path:
+  that path is single-launch and packed, but it accumulates into a float output
+  buffer and therefore is not the P4B zero-scratch/caller-owned BF16 ABI;
+- no `atomicAdd(out, ...)` shortcut against the caller-owned BF16 output; the
+  first true reference should compute each output element/tile inside its owning
+  block and write BF16 once;
 - no Python/Triton fallback inside the native symbol;
 - dispatch must not fall through the generic Triton backend set;
 - `banked_fused_kernel=false` until a real implementation passes byte-count,
@@ -79,6 +88,8 @@ The static gate checks:
 - generic active-MoE fallback set does not include
   `fused_zero_shadow_single_kernel_contract`;
 - C++ P4B function body does not mention `inter_scratch`;
+- C++ P4B function body does not allocate hidden scratch or reuse the old
+  float-output atomic scalar kernel;
 - C++ P4B function body does not call the two-stage
   `lynn_native_active_moe_grouped_per16_nonatomic_out_reference`;
 - fail-loud message is present.
