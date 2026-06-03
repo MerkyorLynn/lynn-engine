@@ -32,11 +32,13 @@ try:
         recurrent_gated_delta_fused_prepare,
         recurrent_gated_delta_fused_prepare_gqa,
         recurrent_gated_delta_fused_prepare_from_outconv_gqa,
+        recurrent_gated_delta_block_gqa,
     )
 except Exception:  # pragma: no cover - optional acceleration path.
     recurrent_gated_delta_fused_prepare = None
     recurrent_gated_delta_fused_prepare_gqa = None
     recurrent_gated_delta_fused_prepare_from_outconv_gqa = None
+    recurrent_gated_delta_block_gqa = None
 
 try:
     # Stage-3 g/beta-fold variant (LYNN_LINEAR_ATTN_FUSE_GBETA). Imported
@@ -1090,17 +1092,24 @@ def prefill_linear_attn(h, w, chunk_size: int = 64):
         neg_exp_A_log = -W("linear_attn.A_log").float().exp()
     g = neg_exp_A_log * F.softplus(a.float() + dt_bias.float())
 
-    # 5. q, k repeat by V_PER_K. Prefill keeps the reference tensor layout; the
-    # P10-D GQA shortcut is decode-only.
-    if V_PER_K > 1:
-        q = q.repeat_interleave(V_PER_K, dim=2)
-        k = k.repeat_interleave(V_PER_K, dim=2)
+    if os.environ.get("LYNN_LINEAR_ATTN_PREFILL_BLOCK_GQA", "0") == "1":
+        if recurrent_gated_delta_block_gqa is None:
+            raise RuntimeError("LYNN_LINEAR_ATTN_PREFILL_BLOCK_GQA requested but Triton block kernel is unavailable")
+        if B != 1:
+            raise RuntimeError("LYNN_LINEAR_ATTN_PREFILL_BLOCK_GQA currently supports B=1 only")
+        core_attn_out, last_state = recurrent_gated_delta_block_gqa(q.contiguous(), k.contiguous(), v.contiguous(), g.contiguous(), beta.contiguous(), torch.zeros((1, NUM_V_HEADS, HEAD_K_DIM, HEAD_V_DIM), device=h.device, dtype=torch.float32))
+    else:
+        # 5. q, k repeat by V_PER_K. Prefill keeps the reference tensor layout;
+        # the block-GQA path above avoids this materialization when explicitly enabled.
+        if V_PER_K > 1:
+            q = q.repeat_interleave(V_PER_K, dim=2)
+            k = k.repeat_interleave(V_PER_K, dim=2)
 
-    # 6. chunk_gated_delta_rule WITH output_final_state=True
-    core_attn_out, last_state = _chunk_gated_delta_with_state(
-        q, k, v, g, beta, chunk_size=chunk_size, use_qk_l2norm=True,
-        initial_state=None, output_final_state=True,
-    )
+        # 6. chunk_gated_delta_rule WITH output_final_state=True
+        core_attn_out, last_state = _chunk_gated_delta_with_state(
+            q, k, v, g, beta, chunk_size=chunk_size, use_qk_l2norm=True,
+            initial_state=None, output_final_state=True,
+        )
 
     # 7. RMSNormGated
     norm_w = W("linear_attn.norm.weight")

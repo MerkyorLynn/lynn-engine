@@ -25,6 +25,7 @@
 - P2-J linear-attn prefill trace: [Stage 6 Phase 2-J linear-attn prefill trace](reports/stage6/P2J_LINEAR_ATTN_PREFILL_TRACE_20260604.md)
 - P2-KA gated-delta recurrent-loop PoC: [Stage 6 Phase 2-KA gated-delta native recurrent-loop PoC](reports/stage6/P2KA_GATED_DELTA_NATIVE_LOOP_POC_20260604.md)
 - P2-KB gated-delta block-kernel PoC: [Stage 6 Phase 2-KB gated-delta block-kernel PoC](reports/stage6/P2KB_GATED_DELTA_BLOCK_KERNEL_POC_20260604.md)
+- P2-L linear-attn block integration: [Stage 6 Phase 2-L linear-attn block integration smoke](reports/stage6/P2L_LINEAR_ATTN_BLOCK_INTEGRATION_SMOKE_20260604.md)
 
 ## Banked Results
 
@@ -54,6 +55,7 @@
 | P2-J linear-attn prefill trace | trace exact vs `prefill_linear_attn`;`chunk_gated_delta_with_state` 占 T16..512 traced wall **71-76%**,锁定下一 native kernel 目标 |
 | P2-KA gated-delta recurrent loop | numeric PASS(min cosine 0.999989555,argmax match),speed FAIL:T512 native loop 15.62ms vs chunk 4.16ms=0.266x;反证逐 token 复用 decode kernel,下一步 P2-KB 真 chunk/block prefill kernel |
 | P2-KB gated-delta block kernel | core kernel PASS:一个 Triton launch 内循环 T token;T512 1.16ms vs host loop 16.28ms=14.04x,vs chunk 4.55ms=3.92x;numeric pass(min cosine 0.999989555,argmax match);下一步 P2-L 接入 `prefill_linear_attn` |
+| P2-L linear-attn block integration | opt-in `prefill_linear_attn` PASS:`LYNN_LINEAR_ATTN_PREFILL_BLOCK_GQA=1`;T512 2.18ms vs 5.58ms=2.56x,T16..512 output/state/conv numeric pass(min cosine 0.999983974,argmax match) |
 
 ## Corrected Engineering Read
 
@@ -90,9 +92,10 @@
 15. **P2-J linear-attn prefill trace:已过。** T16..512 trace 精确,`chunk_gated_delta_with_state` 占 71-76%,下一 native kernel 目标明确。
 16. **P2-KA recurrent-loop PoC:已反证。** 现有 single-token Triton decode recurrent kernel 可复现 gated-delta 数学(min cosine 0.999989555,argmax match),但逐 token launch 在 T512 只有 0.266x vs chunk reference;不 promote。
 17. **P2-KB block-kernel PoC:已过 core gate。** 一个 Triton launch 内循环 T token,修掉 P2-KA 的逐 token launch 失败;T512 1.16ms vs host loop 16.28ms=14.04x,vs chunk 4.55ms=3.92x,numeric pass。
-18. **P2-L next:** opt-in 接入 `prefill_linear_attn`,再跑 selected-layer/full-prefill smoke;未过前不做 server 默认。
-19. **P3 server promotion:** `LYNN_PACKED_PREFILL=1` 后多请求服务常驻 27-28 GiB,无 reload,decode TPS 不回退。
-20. **P4 native-kernel chase:** 继续向 llama.cpp 的低 dispatch / fused ggml CUDA 路线追赶;有 FP4-MMA 硅时兑现 NVFP4 native moat。
+18. **P2-L linear-attn integration:已过。** `LYNN_LINEAR_ATTN_PREFILL_BLOCK_GQA=1` 接入 `prefill_linear_attn`;T512 2.18ms vs 5.58ms=2.56x,T16..512 output/state/conv numeric pass。
+19. **P2-M next:** selected-layer/full-prefill smoke 同时打开 block linear-attn + P2-E MoE opt-in;未过前不做 server 默认。
+20. **P3 server promotion:** `LYNN_PACKED_PREFILL=1` 后多请求服务常驻 27-28 GiB,无 reload,decode TPS 不回退。
+21. **P4 native-kernel chase:** 继续向 llama.cpp 的低 dispatch / fused ggml CUDA 路线追赶;有 FP4-MMA 硅时兑现 NVFP4 native moat。
 
 ## Relation To 2026-05-20 Notes
 
