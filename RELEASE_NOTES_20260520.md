@@ -1,5 +1,7 @@
 # Lynn Engine — Release Notes 2026-05-20
 
+> **2026-06-03 update:** 本文是历史决策记录,不再是当前状态权威。Lynn engine 已重启为并行主线,目标同模型同硬件对标 llama.cpp;当前口径见 [RELEASE_NOTES_20260603.md](RELEASE_NOTES_20260603.md) 和 6 月知乎连载 [从零开始 Qwen 3.6 35B-A3B 写专用推理引擎踩坑心得分享](https://zhuanlan.zhihu.com/p/2045562329396400486)。
+
 > **状态变更:Lynn Engine 从产品默认推理底层 → R&D 持续探索路径。Lynn 客户端 5/20 决定短期投奔 llama.cpp 生态作为默认本地推理。**
 
 > **2026-05-27 续线说明**:5/20 不是放弃 engine,而是把它从产品默认路径降级为高门槛 R&D。5/27 起本仓 active branch 聚焦

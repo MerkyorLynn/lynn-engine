@@ -12,25 +12,25 @@
 > **🆕 2026-05-20 status change (⚠️ superseded by the 6/3 restart correction above) — at the time Lynn engine was downgraded to an "R&D exploration track"; it is now restarted as a parallel mainline benchmarking against llama.cpp.**
 > The Lynn client adopts the **llama.cpp** ecosystem as the short-term default local inference backend (Mac Metal / Windows / Linux CUDA + Q4_K_M GGUF).
 > Default ship model = **Qwen3.5-9B Q4_K_M-imatrix (5.3 GB)**, thinking-on excl_pf MMLU 90+ / GPQA 80+.
-> **Full decision → [RELEASE_NOTES_20260520.md](./RELEASE_NOTES_20260520.md)** (Chinese only for now; English summary in this README's "Current status (2026-05-20)" section below).
+> Historical decision → [5/20 Release Notes](./RELEASE_NOTES_20260520.md). Current authority → [6/3 Restart Notes](./RELEASE_NOTES_20260603.md).
 >
 > All Lynn engine engineering artefacts kept on `main` (5 parallel CLIs + 7 bug fix trail + 178s repack + 2160-config autotune sweep — all real). Bar to return to mainline: **at same hardware × same model, Lynn engine speed ≥ llama.cpp AND quality has a moat llama.cpp can't provide** — both gates must pass.
 >
-> ⚠️ The 5/16 status content below is preserved as historical progress notes. **The current status authority is the "Current status (2026-05-20)" section introduced below.**
+> ⚠️ The 5/16 status content below is preserved as historical progress notes. **The current status authority is the 2026-06-03 restart section and notes.**
 
 ---
 
 > **Custom inference engine for Lynn 27B-A3B NVFP4 on NVIDIA Blackwell.**
 > This is a narrow, vertical engine for Lynn's own variable-pruned MoE + NVFP4 artifact. The goal is not to become another general serving framework; the goal is to make one model family fast, understandable, and production-ownable on R6000 / Spark-class Blackwell hardware.
 
-[阅读中文版](README.md) · [Strategy](docs/STRATEGY.md) · [Architecture](docs/DESIGN.md) · **[🆕 5/20 Release Notes](RELEASE_NOTES_20260520.md)**
+[阅读中文版](README.md) · [Chinese Zhihu June series: Qwen 3.6 35B-A3B custom inference engine](https://zhuanlan.zhihu.com/p/2045562329396400486) · [Strategy](docs/STRATEGY.md) · [Architecture](docs/DESIGN.md) · **[🆕 6/3 Restart Notes](RELEASE_NOTES_20260603.md)** · [5/20 historical notes](RELEASE_NOTES_20260520.md)
 
 [![commits](https://img.shields.io/github/commit-activity/m/MerkyorLynn/lynn-engine)](https://github.com/MerkyorLynn/lynn-engine/commits/main)
 [![license](https://img.shields.io/badge/license-TBD-orange)](.)
 
 ## Current status (2026-06-03)
 
-**6/3 strategic correction (supersedes the 5/20 pivot)**: Lynn engine is **restarted as a parallel mainline, target = benchmark against (rival) llama.cpp** — no longer "downgraded to R&D / client defects to llama.cpp". The client still uses llama.cpp/GGUF short-term as a **pragmatic default backend**, but the engine advances in lockstep: same model + hardware vs llama.cpp, endgame = chewing through the fused 4-bit / zero-shadow kernel ourselves, approaching and even surpassing it on FP4-MMA silicon (R6000 class). The 6/3 measured read (Spark sm_121 has no FP4 MMA → decode structurally capped ~45; parity is a ggml-rewrite / FP4-MMA goal) is in the top 6/3 banner; 5/20 decision background in [RELEASE_NOTES_20260520.md](RELEASE_NOTES_20260520.md) (Chinese).
+**6/3 strategic correction (supersedes the 5/20 pivot)**: Lynn engine is **restarted as a parallel mainline, target = benchmark against (rival) llama.cpp** — no longer "downgraded to R&D / client defects to llama.cpp". The client still uses llama.cpp/GGUF short-term as a **pragmatic default backend**, but the engine advances in lockstep: same model + hardware vs llama.cpp, endgame = chewing through the fused 4-bit / zero-shadow kernel ourselves, approaching and even surpassing it on FP4-MMA silicon (R6000 class). The 6/3 measured read (Spark sm_121 has no FP4 MMA → decode structurally capped ~45; parity is a ggml-rewrite / FP4-MMA goal) is in the top 6/3 banner and [6/3 Restart Notes](RELEASE_NOTES_20260603.md); the 5/20 decision is historical background only.
 
 ### 5/16-5/20 Spark sm_121 W4A8 FP8 Phase 2 — what we learned
 
@@ -62,17 +62,17 @@
 
 **The killer selling point for ordinary users = "unlimited local tokens"**: 9B running locally, no quota, no API key, no cross-border latency, agent running overnight with no metering.
 
-### Lynn engine continues as R&D
+### Lynn engine restarted mainline
 
-- **W4A8 FP8 path continues as R&D**, but the bar is now raised: at the same hardware × same model, **Lynn engine speed must approach or exceed llama.cpp, AND quality must have a moat we cannot get from llama.cpp** — both gates must pass before this returns to mainline.
-- **When consumer Blackwell 32GB cards with FP4 MMA become widely available**, the Lynn engine path becomes competitive again (R6000-class hardware).
-- **Long-context 6.77× SGLang at 16K** preserved as an "advanced mode" selling point for NVIDIA Pro users.
-- **MTP K=1 sequential 6/6 @ 26.4 TPS** correctness-clean baseline preserved for future overlay on top of W4A8 base.
+- **Lynn engine is restarted as a parallel mainline**, aiming at same-model same-hardware comparison against llama.cpp instead of remaining demoted to R&D.
+- **Banked:** 35B NVFP4 decode-only shadow release, resident 88→28 GiB, token-exact, 0.998× TPS.
+- **Next gate:** packed-NVFP4 prefill / zero-reload, first as a no-reload correctness/memory proof, then as C++/CUDA/Triton batched/grouped kernels.
+- **Honest Spark sm_121 read:** decode is structurally capped around ~45; chasing 69.77 needs native runtime + fused kernels + eventually FP4-MMA silicon.
 - **All Wave 2 commits remain on main, not reverted** — 5 parallel CLIs + 7 bug fix trail + 178s repack + 2160-config autotune sweep are real engineering artefacts.
 
 ---
 
-> The 5/15-5/16 R6000 27B Lynn-native NVFP4 engineering record below is preserved as historical progress reference. **Current public data and default ship configuration are governed by this section (2026-05-20) and [RELEASE_NOTES_20260520](RELEASE_NOTES_20260520.md)**.
+> The 5/15-5/16 R6000 27B Lynn-native NVFP4 engineering record below is preserved as historical progress reference. **Current public data and engine restart framing are governed by this section (2026-06-03) and [RELEASE_NOTES_20260603](RELEASE_NOTES_20260603.md)**.
 
 ## 5/15-5/16 R6000 27B Lynn-native NVFP4 engineering record (historical)
 
@@ -659,9 +659,9 @@ Known quality status:
 
 Recovery v1.1 targeted longctx/chem/sql was tested but did not replace step5000: it did not improve longctx and reduced aggregate scores. The selected base is therefore **step5000 final**.
 
-## Roadmap (2026-05-20): Lynn client default ships on llama.cpp; Lynn engine continues as R&D
+## Roadmap: Lynn engine native-kernel restart + pragmatic llama.cpp fallback
 
-Full decision in [`RELEASE_NOTES_20260520.md`](RELEASE_NOTES_20260520.md). The two parallel tracks after 5/20:
+Current restart framing is in [`RELEASE_NOTES_20260603.md`](RELEASE_NOTES_20260603.md). The client may still use llama.cpp/GGUF as a pragmatic short-term fallback, but Lynn engine is back on the parallel mainline: catching llama.cpp through native kernels.
 
 ### Short term (2-4 weeks): Lynn client + llama.cpp integration ship path
 
