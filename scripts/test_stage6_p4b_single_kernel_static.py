@@ -11,6 +11,9 @@ CU = ROOT / "csrc" / "lynn_native" / "moe_fused_zero_shadow_contract.cu"
 BINDINGS = ROOT / "csrc" / "lynn_native" / "bindings.cpp"
 PY_BACKEND = ROOT / "engine" / "moe_packed_nvfp4.py"
 REPORT = ROOT / "reports" / "stage6" / "P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md"
+PREFLIGHT = ROOT / "scripts" / "spark_stage6_p4b_single_kernel_preflight.py"
+SUMMARIZER = ROOT / "scripts" / "summarize_stage6_p4b_single_kernel_preflight.py"
+WRAPPER = ROOT / "scripts" / "run_spark_stage6_p4b_single_kernel_preflight.sh"
 
 
 def _extract_cu_function(text: str, name: str) -> str:
@@ -56,6 +59,9 @@ def main() -> int:
     bindings_text = BINDINGS.read_text(encoding="utf-8")
     py_text = PY_BACKEND.read_text(encoding="utf-8")
     report_text = REPORT.read_text(encoding="utf-8") if REPORT.exists() else ""
+    preflight_text = PREFLIGHT.read_text(encoding="utf-8") if PREFLIGHT.exists() else ""
+    summarizer_text = SUMMARIZER.read_text(encoding="utf-8") if SUMMARIZER.exists() else ""
+    wrapper_text = WRAPPER.read_text(encoding="utf-8") if WRAPPER.exists() else ""
     cu_fn = _extract_cu_function(cu_text, "lynn_native_active_moe_fused_zero_shadow_single_kernel_contract")
     py_fn = _extract_py_function(py_text, "_active_moe_native_fused_zero_shadow_single_kernel_contract")
     fallback_set = _extract_active_moe_backend_fallback_set(py_text)
@@ -120,6 +126,43 @@ def main() -> int:
             "not implemented yet",
             "banked_fused_kernel=false",
             "fused_zero_shadow_single_kernel_contract",
+            "run_spark_stage6_p4b_single_kernel_preflight.sh",
+            "PASS_SINGLE_KERNEL_FAILLOUD_CONTRACT",
+        ],
+        failures,
+    )
+    _check_contains(
+        "P4B fail-loud preflight",
+        preflight_text,
+        [
+            "PASS_SINGLE_KERNEL_FAILLOUD_CONTRACT",
+            "FAIL_SINGLE_KERNEL_CONTRACT",
+            "banked_single_kernel_contract_preflight",
+            "banked_fused_kernel",
+            "no_inter_scratch_abi",
+            "do not bank fused-kernel speed or promote this backend",
+        ],
+        failures,
+    )
+    _check_contains(
+        "P4B preflight summarizer",
+        summarizer_text,
+        [
+            "PASS_SINGLE_KERNEL_FAILLOUD_CONTRACT",
+            "fused-kernel promotion boundary violated",
+            "tensor manifest contains inter_scratch",
+            "single-kernel fail-loud contract preflight passed",
+        ],
+        failures,
+    )
+    _check_contains(
+        "P4B Spark wrapper",
+        wrapper_text,
+        [
+            "LYNN_STAGE6_EXPECT_MANIFEST",
+            "p4b_single_kernel_preflight_",
+            "spark_stage6_p4b_single_kernel_preflight.py",
+            "summarize_stage6_p4b_single_kernel_preflight.py",
         ],
         failures,
     )
