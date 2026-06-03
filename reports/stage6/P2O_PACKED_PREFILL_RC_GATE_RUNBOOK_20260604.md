@@ -51,8 +51,10 @@ reports/stage6/p2o_<preset>_packed_prefill_rc_smoke_<timestamp>/
 
 Expected files:
 
+- `expected_git_head.txt`
 - `git_head.txt`
 - `git_status.txt`
+- `head_check.txt`
 - `nvidia_smi_before.txt`
 - `nvidia_smi_after.txt`
 - `run.log`
@@ -63,6 +65,11 @@ Expected files:
 
 Use `scripts/summarize_stage6_p2o_rc_smoke.py --strict-exit` as the authority
 for the smoke verdict.
+
+The Spark runner also gates evidence provenance before Docker starts: by default
+the remote repo `HEAD` must match the local `HEAD` used to launch the command.
+If this is intentionally not desired, pass `--allow-remote-head-mismatch` and
+treat the artifact as a non-canonical diagnostic run.
 
 `PASS` requires:
 
