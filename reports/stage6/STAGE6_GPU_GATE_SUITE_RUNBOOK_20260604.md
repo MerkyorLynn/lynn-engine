@@ -12,7 +12,8 @@ artifact-producing command:
 - P2-O packed-prefill RC smoke, `rc-mini` preset;
 - P3-A grouped active-MoE contract probe;
 - P3-B selected-prefill composition gate, only after the predecessors above all
-  PASS.
+  PASS;
+- P3-C resident-runner real-prompt gate, only after P3-B PASS.
 
 ## Command
 
@@ -68,13 +69,18 @@ They remain authoritative for each gate:
   `result.json`, `summary.md` from
   `scripts/summarize_stage6_p3b_selected_prefill_gate.py`, and `report.md` from
   `scripts/write_stage6_p3b_report.py`.
+- P3-C uses `scripts/run_spark_stage6_p3c_resident_prompt_gate.sh`,
+  `result.json`, `summary.md` from
+  `scripts/summarize_stage6_p3c_resident_prompt_gate.py`, and `report.md` from
+  `scripts/write_stage6_p3c_report.py`.
 
 ## Strict Verdict Rule
 
 Default mode is strict. The suite exits non-zero if any child gate exits
 non-zero, but it still attempts prerequisite gates so failure evidence is
 preserved. P3-B is skipped if P2-O basic, P2-O rc-mini, or P3-A does not PASS,
-because it cannot be banked without those predecessors.
+because it cannot be banked without those predecessors. P3-C is skipped unless
+P3-B PASS evidence exists.
 
 A suite pass does not automatically promote P2-O or P3. Promotion still requires
 reading the child summaries and updating the relevant Stage 6 report with exact
@@ -110,7 +116,7 @@ GPU-free tooling check:
 scripts/run_stage6_evidence_ci.sh
 ```
 
-This validates the P2-O evidence tools, P3 contract static checks, P3-A/P3-B
+This validates the P2-O evidence tools, P3 contract static checks, P3-A/P3-B/P3-C
 evidence summarizers, and this suite wrapper's dry-run path.
 
 Formal report writer:
@@ -121,5 +127,5 @@ python3 scripts/write_stage6_gpu_gate_suite_report.py \
   --report-out reports/stage6/STAGE6_GPU_GATE_SUITE_REPORT_20260604.md
 ```
 
-The suite report is orchestration-level evidence only. Child P2-O/P3-A/P3-B
+The suite report is orchestration-level evidence only. Child P2-O/P3-A/P3-B/P3-C
 reports remain authoritative for banking any specific gate.
