@@ -131,3 +131,22 @@
   (tractable, incremental) or (B) CUDA-graph the decode (structural; collapses 1527 launches;
   the M3 reusable-graph historically gave +10% → ~48, hits 47-50; HARD — full-attn variable
   KV-shape is the known blocker that sank prior attempts). Awaiting user direction.**
+- **✅ STAGE 4A — copy-hunt (claude-internal): bf16-out +3.3% + o_proj-nocopy, RC-VALIDATED.**
+  Root cause of the #1 copy cluster: `native_fast_2d` did `_scaled_mm`→fp16 then `.float()`→fp32,
+  then `_linear .to(bf16)` = **2 copies/projection**. `LYNN_NVFP4_BF16_OUT=1` → `_scaled_mm
+  out_dtype=bfloat16` directly (**WORKS on sm_121, no fallback**) → both copies gone. Plus
+  `LYNN_DECODE_OPROJ_NOCOPY` (drop redundant T=1 o_proj `.contiguous()`). A/B 43.94→45.37 (+3.3%);
+  RC with both flags in the toggle = **40/40 identical-greedy, scores identical,
+  RC_QUALITY_PRESERVED=True, in-run 39.6→44.2**.
+- **SCOREBOARD — Stage 4A complete: 36 → ~45 TPS (+26%), 7 flags, all RC-validated.**
+  bh4 / RMSNorm / full-attn / shared-expert / g/beta / bf16-out / o_proj-nocopy.
+- **DECISION (user): finish A, SKIP B (CUDA-graph).** Why: NVFP4 is structurally capped on
+  sm_121 — no FP4 MMA, and the BF16 dequant-shadow makes decode read ~2× the bytes of
+  llama.cpp's hand-fused 4-bit-read+dequant-in-register Q4_K_M kernel (memory wall ≈40; that's
+  why baseline sat at 38.96). 70 is Q4_K_M territory, unreachable for NVFP4 here. B's +10% isn't
+  worth multi-day for ~48. → **NEXT = evaluate MTP, not the graph.**
+- **▶ STAGE 5 (next phase): MTP eval (task #11).** Trained sidecar `qwen36-35b-a3b-mtp`, K≥2, on
+  the ~45-TPS NVFP4 stack. Byte-capped ~+13% (llama.cpp-confirmed 79 vs 69.77) → ~45→~51, clears
+  the 47-50 target with NO kernel risk. Best with a fresh context window (new phase: wire sidecar,
+  measure accept-rate + quality). Remaining copy cuts (KV/conv cache-write, cat) are a smaller
+  optional A tail.

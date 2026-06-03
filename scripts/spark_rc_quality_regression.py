@@ -34,7 +34,8 @@ os.environ.setdefault("LYNN_LINEAR_ATTN_GQA_RECURRENT", "1")
 os.environ.setdefault("LYNN_LINEAR_ATTN_RECURRENT_FROM_OUTCONV", "1")
 
 FUSION_FLAGS = ["LYNN_RMSNORM_FUSED", "LYNN_FULL_ATTN_FUSED", "LYNN_SHARED_EXPERT_FUSED",
-                "LYNN_LINEAR_ATTN_FUSE_GBETA"]  # Stage 3 added — re-validate the full 4-fusion stack
+                "LYNN_LINEAR_ATTN_FUSE_GBETA",            # Stage 3
+                "LYNN_NVFP4_BF16_OUT", "LYNN_DECODE_OPROJ_NOCOPY"]  # Stage 4A copy-hunt — re-validate full stack
 def set_fusion(on):
     for f in FUSION_FLAGS:
         os.environ[f] = "1" if on else "0"
