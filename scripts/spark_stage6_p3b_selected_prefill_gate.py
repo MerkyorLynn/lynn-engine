@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 from pathlib import Path
 from typing import Any, Callable
 
@@ -144,7 +145,7 @@ def main() -> None:
     torch.cuda.empty_cache()
     torch.cuda.synchronize()
     mem_after_delete = _cuda_mem_gib()
-    active_shadow_absent = _shadow_absent(selected_layers)
+    shadow_absence_checks = {"after_delete": _shadow_absent(selected_layers)}
 
     numeric: dict[str, Any] = {}
     bench_p2n: dict[str, Any] = {}
@@ -153,6 +154,30 @@ def main() -> None:
     peak_p3b: dict[str, Any] = {}
     rows: list[dict[str, Any]] = []
     reload_calls: list[dict[str, Any]] = []
+    reload_trap_installed = False
+    reload_trap_status = "not installed"
+    original_reload = None
+    reload_owner = None
+    try:
+        from engine.resident_runner import LynnIncrementalRunner  # noqa: WPS433
+
+        original_reload = LynnIncrementalRunner.reload_decode_bf16_shadows
+        reload_owner = LynnIncrementalRunner
+
+        def forbidden_reload(self: Any, *_args: Any, **_kwargs: Any) -> dict[str, Any]:
+            reload_calls.append({
+                "time": time.time(),
+                "source": "LynnIncrementalRunner.reload_decode_bf16_shadows",
+            })
+            raise RuntimeError("P3-B forbids reload_decode_bf16_shadows() during selected-prefill gate")
+
+        LynnIncrementalRunner.reload_decode_bf16_shadows = forbidden_reload  # type: ignore[method-assign]
+        reload_trap_installed = True
+        reload_trap_status = "installed"
+    except Exception as exc:  # pragma: no cover - exercised on Spark if import is broken
+        reload_trap_status = f"install_failed: {exc!r}"
+        reload_calls.append({"time": time.time(), "source": "reload_trap_install", "error": repr(exc)})
+
     for seq_len, (h, pos) in inputs.items():
         base_fn = lambda h=h, pos=pos: _run_prefill_layers(h, position_ids=pos, layers=selected_layers, text_cfg=text_cfg)
 
@@ -162,6 +187,7 @@ def main() -> None:
         numeric[f"p2n_T{seq_len}_vs_bf16"] = _diff_stats(p2n, refs[seq_len])
         peak_p2n[str(seq_len)] = _peak_once(p2n_fn)
         bench_p2n[str(seq_len)] = _bench_cuda(p2n_fn, warmup=args.warmup, iters=args.iters, repeats=args.repeats)
+        shadow_absence_checks[f"after_p2n_T{seq_len}"] = _shadow_absent(selected_layers)
 
         print(f"[phase] p3b_p3a_grouped T={seq_len}", flush=True)
         p3b_fn = lambda base_fn=base_fn: _run_mode("p3a_grouped", layer_ids, True, base_fn)
@@ -170,6 +196,7 @@ def main() -> None:
         numeric[f"p3b_T{seq_len}_vs_p2n"] = _diff_stats(p3b, p2n)
         peak_p3b[str(seq_len)] = _peak_once(p3b_fn)
         bench_p3b[str(seq_len)] = _bench_cuda(p3b_fn, warmup=args.warmup, iters=args.iters, repeats=args.repeats)
+        shadow_absence_checks[f"after_p3b_T{seq_len}"] = _shadow_absent(selected_layers)
 
         bf = bench_bf16[str(seq_len)]["median_us"]
         p2n_us = bench_p2n[str(seq_len)]["median_us"]
@@ -194,13 +221,16 @@ def main() -> None:
             f"cos={row['p3b_cosine_vs_bf16']:.9f} argmax={row['p3b_argmax_vs_bf16']}",
             flush=True,
         )
+    if reload_trap_installed and reload_owner is not None and original_reload is not None:
+        reload_owner.reload_decode_bf16_shadows = original_reload  # type: ignore[method-assign]
 
     p3b_vs_bf16_stats = [v for k, v in numeric.items() if k.startswith("p3b_") and k.endswith("_vs_bf16")]
     final_stack_cosine = min((float(v["cosine"]) for v in p3b_vs_bf16_stats), default=0.0)
     final_stack_argmax = all(bool(v["argmax_match"]) for v in p3b_vs_bf16_stats)
     numeric_pass = final_stack_cosine >= args.min_cosine and final_stack_argmax
     speed_vs_p2n_pass = all((r["p3b_vs_p2n"] or 0.0) >= args.min_speed_vs_p2n for r in rows)
-    reload_not_called = len(reload_calls) == 0
+    active_shadow_absent = all(bool(v) for v in shadow_absence_checks.values())
+    reload_not_called = reload_trap_installed and len(reload_calls) == 0
 
     result = {
         "schema": "lynn-stage6-p3b-selected-prefill-gate-v1",
@@ -239,18 +269,25 @@ def main() -> None:
             "p2n_peak": peak_p2n,
             "p3b_peak": peak_p3b,
         },
+        "shadow_absence_checks": shadow_absence_checks,
+        "reload_trap": {
+            "installed": bool(reload_trap_installed),
+            "status": reload_trap_status,
+        },
         "passes": {
             "predecessors_pass": bool(args.predecessors_pass),
             "numeric": bool(numeric_pass),
             "final_stack_cosine_min": final_stack_cosine,
             "final_stack_argmax_match": bool(final_stack_argmax),
             "no_active_bf16_shadow": bool(active_shadow_absent),
+            "reload_trap_installed": bool(reload_trap_installed),
             "reload_not_called": bool(reload_not_called),
             "speed_vs_p2n_reference": bool(speed_vs_p2n_pass),
             "all": bool(
                 args.predecessors_pass
                 and numeric_pass
                 and active_shadow_absent
+                and reload_trap_installed
                 and reload_not_called
                 and speed_vs_p2n_pass
             ),

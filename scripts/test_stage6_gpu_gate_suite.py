@@ -95,6 +95,18 @@ def main() -> int:
         assert "Verdict: **DRY_RUN**" in report
         assert "dry-run only" in report
 
+        dry_no_strict = run([
+            "scripts/run_stage6_gpu_gate_suite.sh",
+            "--dry-run",
+            "--no-strict",
+            "--local-root",
+            str(tmp),
+        ])
+        assert "artifacts:" in dry_no_strict.stdout
+        no_strict_dirs = sorted(tmp.glob("stage6_gpu_gate_suite_*"), key=lambda p: p.stat().st_mtime)
+        no_strict_commands = (no_strict_dirs[-1] / "commands.sh").read_text()
+        assert "--no-strict" not in no_strict_commands
+
         before_skip = set(tmp.glob("stage6_gpu_gate_suite_*"))
         skip = run([
             "scripts/run_stage6_gpu_gate_suite.sh",
