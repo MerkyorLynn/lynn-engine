@@ -4,6 +4,8 @@ Date: 2026-06-04
 
 Verdict: **TWO-STAGE REFERENCE/PREFLIGHT ONLY; no fused P4 kernel is banked yet.**
 
+P4B true fused single-kernel contract: [P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md](P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md).
+
 P3 proved the zero-reload serving path can be quality-smoked behind an opt-in
 server flag, but it still uses the existing packed/Triton active-MoE pieces.
 P4 is where the Lynn-owned C++/CUDA hot path becomes a real replacement point:

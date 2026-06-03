@@ -270,6 +270,20 @@ void lynn_native_active_moe_fused_zero_shadow_out_contract(
     int64_t tile_tokens,
     int64_t tile_inter,
     int64_t tile_hidden);
+void lynn_native_active_moe_fused_zero_shadow_single_kernel_contract(
+    torch::Tensor hidden,
+    torch::Tensor expert_ids,
+    torch::Tensor routing_weights,
+    torch::Tensor gate_up_packed,
+    torch::Tensor gate_up_scale,
+    torch::Tensor gate_up_global_scale,
+    torch::Tensor down_packed,
+    torch::Tensor down_scale,
+    torch::Tensor down_global_scale,
+    torch::Tensor out,
+    int64_t tile_tokens,
+    int64_t tile_experts,
+    int64_t tile_hidden);
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
   m.def("add_one", &lynn_native_add_one, "Lynn native CUDA extension smoke kernel");
@@ -425,4 +439,8 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
       "active_moe_fused_zero_shadow_out_contract",
       &lynn_native_active_moe_fused_zero_shadow_out_contract,
       "P4 two-stage caller-owned-scratch/output reference for fused packed-NVFP4 zero-shadow active MoE");
+  m.def(
+      "active_moe_fused_zero_shadow_single_kernel_contract",
+      &lynn_native_active_moe_fused_zero_shadow_single_kernel_contract,
+      "P4B fail-loud single-kernel ABI for true fused packed-NVFP4 zero-shadow active MoE");
 }
