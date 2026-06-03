@@ -28,7 +28,7 @@ gate, not a full all-shadow-free serving promotion.
 Local evidence-tooling self-test (GPU-free):
 
 ```bash
-python3 scripts/test_stage6_p2o_evidence_tools.py
+scripts/run_stage6_p2o_evidence_ci.sh
 ```
 
 Primary Spark path:
