@@ -88,6 +88,9 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
         "tile_tokens": args.tile_tokens,
         "tile_inter": args.tile_inter,
         "tile_hidden": args.tile_hidden,
+        "banked_native_abi_preflight": False,
+        "banked_fused_kernel": False,
+        "banked_default_promotion": False,
         **_env_snapshot(),
     }
     if not torch.cuda.is_available():
@@ -151,6 +154,7 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
         result["call_error_tail"] = message[-2000:]
         fail_loud = EXPECTED_ERROR in message
         result["decision"] = "PASS_ABI_CONTRACT" if fail_loud else "BLOCKED_GUARD_OR_RUNTIME"
+        result["banked_native_abi_preflight"] = bool(fail_loud)
         result["passes"] = {
             "all": bool(fail_loud),
             "extension_loaded": True,
