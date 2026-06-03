@@ -200,3 +200,18 @@
   cross-device core (the L1 moat). llama.cpp Q4_K_M is the **MIT-licensed reference blueprint**
   (study the pattern, clean-room for NVFP4 — not AGPL, license-clean). Multi-day real kernel work;
   staged PoC→dense→MoE→fuse, each gated + RC. "啃下来 = Lynn 成 NVFP4 的 llama.cpp."
+- **✅ STAGE 6 step 1 — EVIDENCE-LOCK DONE (`spark_stage6_shadow_byte_audit.py`, user-directed before any kernel).**
+  Premise CONFIRMED + target SHARPENED. Resident weights on the full RC stack = **87.22 GiB** =
+  **BF16 64.72 + packed-NVFP4(uint8) 15.00 + FP32 7.50**. `release_decode_bf16_shadows()` drops **60 GiB**
+  (87→27 GiB; the BF16 shadow is a pure dequant duplicate of the 15 GiB packed).
+  - Baseline decode **44.71 TPS → implied ~5.37 GB/token** (≈ the 6 GB BF16-shadow premise — confirmed; NOT pure-FP4 1.7 GB).
+  - **Decode DEPENDS on the BF16 shadow:** post-release decode errors `KeyError('mlp.experts.1.gate_proj.weight')`
+    → the **MoE active-expert decode reads BF16 expert weights**, not packed FP4. (Attn/dense projections already go
+    packed-FP4 via `torch._scaled_mm`/CUTLASS; the MoE experts are the BF16 byte hog = most of the 60 GiB shadow + the ~5 GB/token read.)
+  - **LOCKED TARGET:** Stage 6's highest-value first lever = a **read-4bit + register-dequant + bf16-GEMV MoE
+    active-expert decode kernel** (gate_up + down) reading the packed NVFP4 experts directly, no BF16 shadow. Cuts the
+    dominant weight read ~4× (resident 64.7→15 GiB; per-token MoE read BF16→FP4) → wall ~40→~140, frees ~60 GiB. Attn/dense already packed (secondary).
+  - **PHASE 0 PoC (next; claude-internal writes / LEAD verifies on Spark; codex gated):** ONE active expert's gate_up
+    (or down) as a Triton read-4bit/dequant-in-register/bf16-GEMV; gate `LYNN_MOE_EXPERT_FP4_GEMV=1`. Gates: (a) cos≈1 /
+    token-coherent vs BF16 expert path, (b) isolated microbench faster, (c) runs with the BF16 expert shadow DROPPED
+    (proves shadow-free). Then widen all experts → delete shadow → RC battery → e2e TPS vs 44.71 & vs llama.cpp 69.77.
