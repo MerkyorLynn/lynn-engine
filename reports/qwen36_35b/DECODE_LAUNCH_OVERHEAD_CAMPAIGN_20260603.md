@@ -55,3 +55,13 @@
   #6 full-attn cache-write + gated o_proj (low risk), #5 linear-attn micro-op fusion, then the
   HIGH-risk #2 router + #4 active-MoE-boundary fusion (strict expert-id / cos parity gates).
 - Method holds: codex writes → LEAD verifies token-coherent + clean e2e A/B on Spark vs llama.cpp 69.77.
+- **✅ STAGE 1 — full-attn fusion (claude-internal): TOKEN-EXACT + +0.6% (42.28→42.54).**
+  claude-internal self-implemented `triton_kernels/full_attn_fused.py` (qk_norm_rope+K/V
+  cache-write → 1 launch; gate-sigmoid+transpose fold → 1 launch) + wired
+  `incremental_decode.py` behind `LYNN_FULL_ATTN_FUSED=1`. A/B token-exact=True (its
+  bit-exact design held). Small (~60 launches, only 10 full-attn layers) but free + exact +
+  stacks. **Key learning: the NORMS were ~half the launch overhead** (RMSNorm +8.7%); the
+  rest is distributed across smaller clusters → next-biggest is the shared expert.
+- **▶ STAGE 2 — shared-expert fusion** (codex drafted; dispatching claude-internal to
+  self-implement, ~160-200 launches/tok, the biggest remaining cut). Then Stage 3 =
+  linear-attn micro-ops (38 layers) / router. Stacked best so far ≈ **42.5 TPS**.

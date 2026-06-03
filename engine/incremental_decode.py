@@ -431,17 +431,44 @@ def decode_full_attn(h_new, new_position_id, w, cfg, K_cache_full, V_cache_full,
         if os.environ.get("LYNN_FULL_ATTN_ROPE_CACHE", "0") == "1"
         else _build_rope_cos_sin
     )
+    # LYNN_FULL_ATTN_FUSED=1: collapse q/k norm + RoPE + the K/V cache writes
+    # into ONE Triton launch (3 launches → 1). bf16 caches only; the gate/o_proj
+    # epilogue is fused separately below. write_pos == pos_tensor for every
+    # current caller (T=1 decode and the t1_loop K2/block verifiers), so the
+    # written cache row matches both the fixed-shape and variable-slice paths.
+    fused = (
+        os.environ.get("LYNN_FULL_ATTN_FUSED", "0") == "1"
+        and q.is_cuda
+        and K_cache_full.dtype == torch.bfloat16
+        and V_cache_full.dtype == torch.bfloat16
+    )
     with profile_section("full_attn_t1.rope"):
         cos, sin = rope_builder(pos_tensor, rotary_dim, rope_theta, h_new.device, h_new.dtype)
-        q, k_new = _qk_norm_rope_pair_decode(
-            q,
-            k_new,
-            w["self_attn.q_norm.weight"],
-            w["self_attn.k_norm.weight"],
-            cos,
-            sin,
-            rotary_dim,
-        )
+        if fused:
+            from triton_kernels.full_attn_fused import qk_norm_rope_cache_write_triton
+            q = qk_norm_rope_cache_write_triton(
+                q,
+                k_new,
+                v_new,
+                w["self_attn.q_norm.weight"],
+                w["self_attn.k_norm.weight"],
+                cos,
+                sin,
+                rotary_dim,
+                K_cache_full,
+                V_cache_full,
+                pos_tensor.reshape(-1)[:1],
+            )
+        else:
+            q, k_new = _qk_norm_rope_pair_decode(
+                q,
+                k_new,
+                w["self_attn.q_norm.weight"],
+                w["self_attn.k_norm.weight"],
+                cos,
+                sin,
+                rotary_dim,
+            )
 
     # 4. Append to cache at position cached_seq_len
     #    M3 fixed-shape (graph-replayable) path: write K/V via index_copy_ (the
@@ -453,7 +480,9 @@ def decode_full_attn(h_new, new_position_id, w, cfg, K_cache_full, V_cache_full,
     fixed_shape = os.environ.get("LYNN_FULL_ATTN_FIXED_SHAPE", "0") == "1"
     attn_valid_mask = None
     with profile_section("full_attn_t1.cache_write"):
-        if fixed_shape:
+        if fused:
+            pass  # post-RoPE K and raw V were written by the fused kernel above
+        elif fixed_shape:
             pos_idx = pos_tensor.reshape(-1)[:1]
             K_cache_full.index_copy_(2, pos_idx, k_new)
             V_cache_full.index_copy_(2, pos_idx, v_new)
@@ -503,7 +532,16 @@ def decode_full_attn(h_new, new_position_id, w, cfg, K_cache_full, V_cache_full,
     else:
         raise ValueError(f"Unknown LYNN_FULL_ATTN_DECODE_BACKEND: {full_attn_backend}")
 
-    # 8. attn_output_gate
+    # 8. attn_output_gate (+ transpose/contiguous reshape for o_proj)
+    if fused and attn_out.is_cuda and attn_out.dtype == torch.bfloat16:
+        # FUSED: sigmoid(gate) ⊙ attn_out AND the transpose→contiguous→view
+        # reshape in one Triton launch (~5 launches → 1). Emits [1,1,H_Q*D].
+        with profile_section("full_attn_t1.gate"):
+            from triton_kernels.full_attn_fused import gate_sigmoid_fold_triton
+            attn_flat = gate_sigmoid_fold_triton(attn_out, gate)
+        with profile_section("full_attn_t1.o_proj_total"):
+            return _full_attn_o_proj(attn_flat, _decode_weight(w, "self_attn.o_proj.weight"))
+
     with profile_section("full_attn_t1.gate"):
         attn_out = attn_out * torch.sigmoid(gate.float()).to(attn_out.dtype)
 
