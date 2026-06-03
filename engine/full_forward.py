@@ -218,6 +218,29 @@ def _full_attn_forward(h: torch.Tensor, position_ids: torch.Tensor,
     return F.linear(attn_out, w["self_attn.o_proj.weight"])
 
 
+def _packed_prefill_slow_enabled() -> bool:
+    return os.environ.get("LYNN_PACKED_PREFILL_SLOW", "0").lower() in {"1", "true", "yes", "on"}
+
+
+def _moe_forward_packed_prefill_slow(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
+    """Functional packed-NVFP4 MoE prefill by replaying exact T=1 decode MoE.
+
+    This is deliberately a proof path, not the final kernel. It lets a released
+    shadow-free runner test `prefill without reload` before we invest in the
+    real batched/grouped packed-prefill MoE kernel.
+    """
+    if h.shape[0] != 1:
+        raise NotImplementedError("LYNN_PACKED_PREFILL_SLOW currently supports batch=1")
+    from engine.moe_packed_nvfp4 import moe_forward_decode_packed_nvfp4
+
+    flat = h.reshape(-1, 1, h.shape[-1])
+    outs = [
+        moe_forward_decode_packed_nvfp4(flat[i : i + 1], w, cfg).reshape(-1)
+        for i in range(flat.shape[0])
+    ]
+    return torch.stack(outs, dim=0).reshape_as(h).to(h.dtype)
+
+
 def _moe_forward(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
     """MoE forward: 256 experts, top-K=8 routing, shared expert with sigmoid gate.
 
@@ -233,6 +256,13 @@ def _moe_forward(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
     if E <= 0:
         raise RuntimeError("MoE forward called for a dense FFN layer")
     K = cfg["num_experts_per_tok"]
+
+    if (
+        _packed_prefill_slow_enabled()
+        and "mlp.experts._gate_up_packed" in w
+        and "mlp.experts._down_packed" in w
+    ):
+        return _moe_forward_packed_prefill_slow(h, w, cfg)
 
     h_flat = h.view(B * M, D)
     router_logits = F.linear(h_flat, w["mlp.gate.weight"])

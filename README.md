@@ -1,6 +1,8 @@
 # Lynn Engine
 
 > **🚀 战略校正(2026-06-03):Lynn engine 重启为并行主线,目标「对标 llama.cpp」,不再是"降级为 R&D / 只用 llama.cpp"。** 客户端短期仍以 llama.cpp/GGUF 为**务实默认后端**;引擎并行推进——同模型同硬件**对标 llama.cpp**,终局 = 自己啃下**融合 4-bit / 零-shadow 内核**(单投影 PoC → 全 dense + 删 shadow → MoE grouped 专家 → 融合减 launch,每阶段 gate + RC),在 FP4-MMA 卡(R6000 一代)上**逼近乃至超过**。**做引擎,要做就自己把内核啃下来。**
+>
+> **✅ 自有核心已 bank 的最新突破:** 35B NVFP4 服务已把 decode 阶段 BF16 dequant-shadow 从常驻内存中释放,**resident 88→28 GiB(省 ~60 GiB)**,token-exact,TPS 0.998× 无回归;`server/openai_http.py` 已接入 `reload→prefill→release→decode` 服务循环。下一关是 **packed-NVFP4 prefill / zero-reload**:先用 `LYNN_PACKED_PREFILL_SLOW=1` 做无 reload correctness/memory gate,再下沉为真正的 **C++/CUDA/Triton batched/grouped kernels**。Python 只做控制面和验证,追赶 llama.cpp 靠 native kernel。
 
 > **🆕 2026-06-03 Decode 内核启动开销战役 — Spark NVFP4 35B-A3B 单流 38.96 → ~45 TPS,质量 RC 等价。**
 > 实测 decode 是 launch-bound(census:**~1527 CUDA launch/token**,~40% 时间耗在 CPU 端 dispatch)。逐簇融合 launch + 消拷贝:**fused RMSNorm(最大头)/ shared-expert / linear-attn g/beta-fold / full-attn(token-exact)/ NVFP4 `_scaled_mm` bf16-out copy-elision**,**5 个 RC-validated launch-cut**——在 structured/V9/GPQA/tool-call/long-form 上 **40/40 greedy 输出与 baseline 逐字一致**,继承 **MMLU 84.40 / GPQA-Diamond 49.49**。全部 gated、默认安全、可回滚。

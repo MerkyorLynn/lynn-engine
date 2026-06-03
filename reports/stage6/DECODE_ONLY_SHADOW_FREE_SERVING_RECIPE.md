@@ -31,9 +31,11 @@ output change.
    decode streams / a larger KV (if allocated after release). This is the drop-in for the desktop
    single-session chat (the common case) and Spark's long-ctx value.
 2. **Multi-request server (needs the follow-up).** Interleaved prefills would pay **~23 s reload each** —
-   too heavy. The right fix is a **packed-NVFP4 prefill path** (option (a) in the spawned task) so prefill
-   never needs the shadow → steady **27 GiB always**, zero reload. Until then, multi-request servers should
-   NOT use the release/reload cycle per request.
+   too heavy. The right fix is a **packed-NVFP4 prefill path** so prefill never needs the shadow →
+   steady **27 GiB always**, zero reload. Phase-0 now has a default-off proof flag,
+   `LYNN_PACKED_PREFILL_SLOW=1`, that loops through existing packed T=1 kernels to validate no-reload
+   correctness before writing the real batched/grouped prefill kernels. Until that gate passes,
+   high-throughput multi-request servers should NOT use the release/reload cycle per request.
 
 ## Caveat (follow-up)
 KV is pre-allocated at `LynnInferenceState` creation (`max_seq_len`, **before** prefill/release), so fitting
@@ -43,5 +45,6 @@ a longer single-request context yet.
 
 ## Wiring pointer (Brain / desktop serving)
 For single-session chat: pass `release_decode_shadows_after_prefill=True` to the resident runner's
-`generate`. For a server that prefills per request: implement the packed prefill (spawned task
-"Productize decode-only shadow-free") rather than per-request reload.
+`generate`. For a server that prefills per request: first run the Phase-0 no-reload smoke in
+`reports/stage6/PHASE0_TRACE_SPEC.md`, then replace the slow proof path with real packed-prefill kernels
+rather than per-request reload.
