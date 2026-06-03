@@ -47,9 +47,12 @@ Default is off. When enabled:
 - Prefill linear projections use BF16 weights if present.
 - If a BF16 `.weight` has been released but `.weight.packed` exists,
   `_linear_prefill` loops over rows with the existing packed-NVFP4 T=1 kernels.
-- MoE prefill loops over prompt tokens and calls
-  `moe_forward_decode_packed_nvfp4` for each token, preserving the exact packed
-  decode MoE math while avoiding BF16 expert shadows.
+- MoE prefill defaults to `LYNN_PACKED_PREFILL_SLOW_MODE=stream_bf16`: it reads
+  packed NVFP4, dequants only the current layer into temporary BF16 tensors, runs
+  the same BF16 MoE math, and releases those temporaries before the next layer.
+- `LYNN_PACKED_PREFILL_SLOW_MODE=decode_kernel` keeps the older T=1 decode-kernel
+  replay as a diagnostic only; Spark P0.1 attempt #1 proved it is memory-clean
+  but not token-exact across decode state.
 
 This is intentionally slow. Its only purpose is to prove no-reload correctness
 and memory residency before writing batched/grouped prefill kernels.
@@ -74,6 +77,12 @@ Run after the 60 GiB release path is already verified:
 P0.1 deliberately does **not** delete every projection/shared-expert BF16 weight.
 Those aliases interact with decode env flags and shared-expert routing, so they are
 the next gate rather than part of the first no-reload proof.
+
+**Result (2026-06-03): PASSED with `LYNN_PACKED_PREFILL_SLOW_MODE=stream_bf16`.**
+See `reports/stage6/P01_NO_RELOAD_SMOKE_20260603.md`.
+
+The older `decode_kernel` replay mode failed token-exactness despite clean memory
+and no reload, so it remains diagnostic only.
 
 Passing P0.1 promotes the next goal:
 

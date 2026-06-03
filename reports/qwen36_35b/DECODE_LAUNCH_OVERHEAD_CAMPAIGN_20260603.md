@@ -280,3 +280,19 @@
   - **CAVEAT (honest):** option (b) frees 60 GiB **only during decode**; it does **not** lower the prefill peak (shadows are
     reloaded before prefill, and KV is pre-allocated at max_seq_len), so it does **not** by itself let a longer-context
     *prefill* fit. That requires option (a) or a growable/lazy KV cache.
+- **✅ STAGE 6 step 5 — P0.1 packed-prefill / zero-reload smoke PASSED (correctness + memory proof; not performance path).**
+  `scripts/spark_stage6_packed_prefill_no_reload_smoke.py` now gates the next path after option (b): release the 60 GiB
+  grouped-MoE BF16 shadow, do **not** call `reload_decode_bf16_shadows()`, prefill from resident packed NVFP4, and assert
+  token-exact output + low peak memory.
+  - **Attempt #1 (`LYNN_PACKED_PREFILL_SLOW_MODE=decode_kernel`) failed honestly:** memory was clean (resident 28.18 GiB,
+    peak 28.30 GiB, reload_calls=0) but token state diverged: baseline ids `[20, 198, 1409, 27102]` vs probe
+    `[20, 271, 248068, 198]`. Replaying the T=1 decode MoE kernel is fast, but not BF16-prefill state-coherent across
+    decode steps. It remains a diagnostic only.
+  - **Attempt #2 (`LYNN_PACKED_PREFILL_SLOW_MODE=stream_bf16`) passed:** current-layer packed NVFP4 is temporarily
+    dequantized to BF16, the original BF16 MoE math is run, and the temp dies before the next layer. Spark result:
+    baseline resident **88.18 GiB**, release **60.00 GiB / 80 tensors**, resident after release **28.18 GiB**, probe peak
+    **40.28 GiB** (no hidden 88 GiB reload), reload_calls **0**, token-exact ids `[20, 198, 1409, 27102]`, decode
+    **42.47 TPS** vs baseline **42.97 TPS**, `ALL_PASS=True`.
+  - **Cost / meaning:** proof prefill is **20.75 s** for the tiny `2+2=` smoke. This is not shippable throughput; it proves
+    the zero-resident-shadow invariant and gives P2 a correctness oracle. Next gates: P0.2 resident inventory for
+    projection/shared BF16, then P1 batched packed projections and P2 grouped M>1 packed MoE prefill kernels.

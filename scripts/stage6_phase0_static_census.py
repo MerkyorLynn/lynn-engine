@@ -44,14 +44,19 @@ ANCHORS = [
         "needle": 'os.environ.get("LYNN_PACKED_PREFILL_SLOW", "0")',
     },
     {
-        "claim": "MoE packed-prefill proof path reuses exact T=1 packed decode MoE",
+        "claim": "MoE packed-prefill exact proof path streams current-layer BF16 from packed NVFP4",
         "file": "engine/full_forward.py",
-        "needle": "moe_forward_decode_packed_nvfp4(flat[i : i + 1], w, cfg)",
+        "needle": "def _moe_forward_packed_prefill_stream_bf16",
     },
     {
         "claim": "MoE packed-prefill proof path is gated by grouped packed aliases",
         "file": "engine/full_forward.py",
         "needle": '"mlp.experts._gate_up_packed" in w',
+    },
+    {
+        "claim": "old decode-kernel replay remains diagnostic, not P0.1 default",
+        "file": "engine/full_forward.py",
+        "needle": "LYNN_PACKED_PREFILL_SLOW_MODE=decode_kernel",
     },
     {
         "claim": "current packed linear kernels are still T=1-only",
@@ -102,7 +107,7 @@ def build_report() -> dict:
         "next_gate": (
             "Run scripts/spark_stage6_packed_prefill_no_reload_smoke.py on Spark; "
             "assert no reload, token-exact output, resident ~28 GiB before/after "
-            "prefill, and record slow packed-prefill latency."
+            "prefill, and record streaming-dequant packed-prefill latency."
         ),
         "checks": checks,
     }

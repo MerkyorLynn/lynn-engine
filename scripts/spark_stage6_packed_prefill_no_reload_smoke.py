@@ -56,6 +56,7 @@ BASE_ENV = {
     "LYNN_MTP_VERIFY": "0",
     "LYNN_MTP_SHADOW_VERIFY": "0",
     "LYNN_MTP_SPECULATIVE": "0",
+    "LYNN_PACKED_PREFILL_SLOW_MODE": "stream_bf16",
     "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True",
 }
 for key, value in BASE_ENV.items():
@@ -106,6 +107,7 @@ def main() -> None:
         "prompt": PROMPT,
         "max_new": MAXNEW,
         "gate_scope": "MoE BF16 shadow only; projection/shared alias full zero-shadow is later P0.2/P1",
+        "packed_prefill_slow_mode": os.environ.get("LYNN_PACKED_PREFILL_SLOW_MODE", "stream_bf16"),
     }
 
     runner = LynnIncrementalRunner(MODEL, device="cuda", dtype=torch.bfloat16, verbose=False)

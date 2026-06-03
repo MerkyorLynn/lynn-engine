@@ -222,12 +222,12 @@ def _packed_prefill_slow_enabled() -> bool:
     return os.environ.get("LYNN_PACKED_PREFILL_SLOW", "0").lower() in {"1", "true", "yes", "on"}
 
 
-def _moe_forward_packed_prefill_slow(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
-    """Functional packed-NVFP4 MoE prefill by replaying exact T=1 decode MoE.
+def _moe_forward_packed_prefill_decode_kernel_slow(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
+    """Functional packed-NVFP4 MoE prefill by replaying the T=1 decode MoE.
 
-    This is deliberately a proof path, not the final kernel. It lets a released
-    shadow-free runner test `prefill without reload` before we invest in the
-    real batched/grouped packed-prefill MoE kernel.
+    This path is useful as a fast diagnostic, but Spark P0.1 showed it is not
+    token-exact against the BF16 prefill state across decode steps. Keep it
+    available behind LYNN_PACKED_PREFILL_SLOW_MODE=decode_kernel only.
     """
     if h.shape[0] != 1:
         raise NotImplementedError("LYNN_PACKED_PREFILL_SLOW currently supports batch=1")
@@ -239,6 +239,85 @@ def _moe_forward_packed_prefill_slow(h: torch.Tensor, w: dict, cfg: dict) -> tor
         for i in range(flat.shape[0])
     ]
     return torch.stack(outs, dim=0).reshape_as(h).to(h.dtype)
+
+
+def _moe_forward_packed_prefill_stream_bf16(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
+    """No-reload packed prefill proof by streaming one layer's BF16 shadow.
+
+    P0.1 is a correctness/memory gate, not the final performance path. The
+    persistent 60 GiB MoE BF16 shadow has been released; this function reads the
+    resident packed NVFP4 tensors, dequants only the current layer into temporary
+    BF16 tensors, runs the same math as the original BF16 prefill MoE, then lets
+    those temporaries die before the next layer.
+
+    That proves zero-resident-shadow serving can be token-exact. P2 replaces this
+    with real grouped M>1 packed kernels so we stop paying the per-layer temporary
+    dequant cost.
+    """
+    from engine.moe_packed_nvfp4 import _dequant_nvfp4_slot
+
+    B, M, D = h.shape
+    E = int(cfg.get("num_experts", 0) or 0)
+    if E <= 0:
+        raise RuntimeError("MoE packed-prefill stream called for a dense FFN layer")
+    K = cfg["num_experts_per_tok"]
+    h_flat = h.view(B * M, D)
+
+    gate_up_shadow = _dequant_nvfp4_slot(
+        w["mlp.experts._gate_up_packed"],
+        w["mlp.experts._gate_up_scale"],
+        w["mlp.experts._gate_up_global_scale"],
+        h.device,
+    ).to(h.dtype)
+    down_shadow = _dequant_nvfp4_slot(
+        w["mlp.experts._down_packed"],
+        w["mlp.experts._down_scale"],
+        w["mlp.experts._down_global_scale"],
+        h.device,
+    ).to(h.dtype)
+
+    router_logits = F.linear(h_flat, w["mlp.gate.weight"])
+    routing_weights, expert_indices = torch.topk(router_logits, K, dim=-1)
+    routing_weights = F.softmax(routing_weights, dim=-1, dtype=torch.float32).to(h.dtype)
+    moe_out = torch.zeros_like(h_flat)
+
+    for e in range(E):
+        mask = expert_indices == e
+        if not mask.any():
+            continue
+        token_idx, slot_idx = mask.nonzero(as_tuple=True)
+        x_e = h_flat[token_idx]
+        gate_up = F.linear(x_e, gate_up_shadow[e])
+        gate_e, up_e = gate_up.chunk(2, dim=-1)
+        ffn_e = F.linear(F.silu(gate_e) * up_e, down_shadow[e])
+        weight_e = routing_weights[token_idx, slot_idx].unsqueeze(-1)
+        moe_out.index_add_(0, token_idx, ffn_e * weight_e)
+
+    # Shared expert is not part of the 60 GiB grouped MoE shadow release in P0.1.
+    # Keep the existing BF16 shared path so this proof isolates the banked shadow.
+    if "mlp.shared_expert.gate_proj.weight" in w:
+        gate_s = F.linear(h_flat, w["mlp.shared_expert.gate_proj.weight"])
+        up_s = F.linear(h_flat, w["mlp.shared_expert.up_proj.weight"])
+        shared_ffn = F.linear(F.silu(gate_s) * up_s, w["mlp.shared_expert.down_proj.weight"])
+        if "mlp.shared_expert_gate.weight" in w:
+            shared_gate = torch.sigmoid(F.linear(h_flat, w["mlp.shared_expert_gate.weight"]))
+            shared_ffn = shared_ffn * shared_gate
+        moe_out = moe_out + shared_ffn
+
+    del gate_up_shadow, down_shadow
+    return moe_out.view(B, M, D)
+
+
+def _moe_forward_packed_prefill_slow(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
+    mode = os.environ.get("LYNN_PACKED_PREFILL_SLOW_MODE", "stream_bf16").strip().lower()
+    if mode in {"stream_bf16", "stream", "bf16"}:
+        return _moe_forward_packed_prefill_stream_bf16(h, w, cfg)
+    if mode in {"decode_kernel", "decode", "packed_decode"}:
+        return _moe_forward_packed_prefill_decode_kernel_slow(h, w, cfg)
+    raise ValueError(
+        "LYNN_PACKED_PREFILL_SLOW_MODE must be stream_bf16 or decode_kernel, "
+        f"got {mode!r}"
+    )
 
 
 def _moe_forward(h: torch.Tensor, w: dict, cfg: dict) -> torch.Tensor:
