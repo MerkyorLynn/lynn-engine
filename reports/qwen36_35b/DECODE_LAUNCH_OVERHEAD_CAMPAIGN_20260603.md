@@ -460,3 +460,19 @@
   - **Decision:** bank P2-G. Next P2-H should move from MoE-only synthetic smoke to full transformer prefill with selected
     MoE layers on `p2e_hybrid`, then measure token/hidden agreement, memory, and latency before all-layer/server
     promotion.
+- **✅ STAGE 6 step 18 — P2-H selected-layer full prefill PASSED; P2E is inside `_prefill_layer`.**
+  `scripts/spark_stage6_p2h_selected_layer_prefill_smoke.py` runs the full engine prefill layer path: RMSNorm,
+  linear/full attention cache population, residuals, and MoE FFN. Active BF16 expert shadows are deleted before packed
+  modes run.
+  - **Coverage:** full-attn layer 3 at T=16/64, linear-attn layer 0 at T=16, and mixed layers 0-3 at T=16 all passed.
+  - **Numeric/no-shadow:** stream remains exact vs BF16. P2E vs BF16: full-attn T64 `cos=0.999999681`, rel_l2=`7.99e-4`;
+    linear-attn T16 `cos=0.999999834`, rel_l2=`5.76e-4`; mixed 0-3 T16 `cos=0.999983027`, rel_l2=`5.83e-3`;
+    argmax matches in all banked runs.
+  - **Latency:** mixed 0-3 T16 **45.97 ms** vs BF16 **58.57 ms** (**1.274x**) and stream **2394.57 ms** (**52.09x**);
+    full-attn T64 **20.51 ms** vs BF16 **20.75 ms** (**1.012x**) and stream **941.14 ms** (**45.90x**).
+  - **Memory:** mixed 0-3 T16 P2E peak **2.606 GiB** after deleting **6.000 GiB** BF16 active shadow; stream peak
+    **14.585 GiB**.
+  - **Caveat:** this is synthetic-hidden selected-layer prefill, not tokenized full-model e2e. Mixed T64 is not banked;
+    the old torch-only linear-attn prefill path remains a separate P2-J trace/kernel target.
+  - **Decision:** bank P2-H. Next gates: P2-I expand selected MoE layers beyond the first four; P2-J isolate/replace
+    the linear-attn prefill wall before server promotion.
