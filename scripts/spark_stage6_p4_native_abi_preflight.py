@@ -4,7 +4,7 @@
 This is a capability/contract gate, not a speed gate. It verifies that the
 caller-owned-scratch/output packed-NVFP4 zero-shadow C++ hot-path symbol is
 built into the Lynn native extension and that a valid tensor bundle reaches the
-intentional P4 "kernel not implemented yet" fail-loud boundary.
+caller-owned two-stage reference path without BF16 expert shadows.
 """
 from __future__ import annotations
 
@@ -22,7 +22,6 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 SYMBOL = "active_moe_fused_zero_shadow_out_contract"
-EXPECTED_ERROR = "P4 fused 4-bit zero-shadow CUDA kernel is not implemented yet"
 
 
 def _env_snapshot() -> dict[str, Any]:
@@ -124,7 +123,7 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
     result: dict[str, Any] = {
         "schema": "lynn-stage6-p4-native-fused-moe-abi-preflight-v1",
         "symbol": SYMBOL,
-        "expected_error": EXPECTED_ERROR,
+        "expected_reference": "caller-owned two-stage packed-NVFP4 active-MoE reference",
         "tokens": args.tokens,
         "experts": args.experts,
         "top_k": args.top_k,
@@ -187,28 +186,39 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
             args.tile_hidden,
         )
         torch.cuda.synchronize()
-        result["decision"] = "UNEXPECTED_IMPLEMENTED"
+        output_finite = bool(torch.isfinite(inputs["out"].float()).all().item())
+        result["output"] = {
+            "shape": list(inputs["out"].shape),
+            "dtype": str(inputs["out"].dtype),
+            "finite": output_finite,
+            "norm": float(inputs["out"].float().norm().item()),
+        }
+        zero_shadow_abi = bool(result["byte_budget"]["zero_shadow_abi"])
+        packed_byte_budget = bool(result["byte_budget"]["packed_byte_budget"])
+        result["decision"] = "PASS_TWO_STAGE_REFERENCE_CONTRACT" if output_finite else "FAIL_REFERENCE_OUTPUT"
+        result["banked_native_abi_preflight"] = bool(output_finite and zero_shadow_abi and packed_byte_budget)
         result["passes"] = {
-            "all": False,
+            "all": bool(output_finite and zero_shadow_abi and packed_byte_budget),
             "extension_loaded": True,
             "symbol_present": True,
-            "fail_loud_boundary": False,
-            "zero_shadow_abi": bool(result["byte_budget"]["zero_shadow_abi"]),
-            "packed_byte_budget": bool(result["byte_budget"]["packed_byte_budget"]),
+            "reference_output_returned": True,
+            "output_finite": output_finite,
+            "zero_shadow_abi": zero_shadow_abi,
+            "packed_byte_budget": packed_byte_budget,
         }
     except Exception as exc:
         message = str(exc)
         result["call_error_tail"] = message[-2000:]
-        fail_loud = EXPECTED_ERROR in message
         zero_shadow_abi = bool(result["byte_budget"]["zero_shadow_abi"])
         packed_byte_budget = bool(result["byte_budget"]["packed_byte_budget"])
-        result["decision"] = "PASS_ABI_CONTRACT" if fail_loud else "BLOCKED_GUARD_OR_RUNTIME"
-        result["banked_native_abi_preflight"] = bool(fail_loud and zero_shadow_abi and packed_byte_budget)
+        result["decision"] = "BLOCKED_GUARD_OR_RUNTIME"
+        result["banked_native_abi_preflight"] = False
         result["passes"] = {
-            "all": bool(fail_loud and zero_shadow_abi and packed_byte_budget),
+            "all": False,
             "extension_loaded": True,
             "symbol_present": True,
-            "fail_loud_boundary": bool(fail_loud),
+            "reference_output_returned": False,
+            "output_finite": False,
             "zero_shadow_abi": zero_shadow_abi,
             "packed_byte_budget": packed_byte_budget,
         }
@@ -218,7 +228,7 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
 def main() -> int:
     ap = argparse.ArgumentParser(description="P4 native fused-MoE ABI preflight.")
     ap.add_argument("--out", required=True, help="Output JSON path.")
-    ap.add_argument("--tokens", type=int, default=2)
+    ap.add_argument("--tokens", type=int, default=1)
     ap.add_argument("--experts", type=int, default=8)
     ap.add_argument("--top-k", type=int, default=8)
     ap.add_argument("--tile-tokens", type=int, default=1)

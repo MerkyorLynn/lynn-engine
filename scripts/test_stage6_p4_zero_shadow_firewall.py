@@ -47,14 +47,15 @@ PY_REQUIRED = [
 ]
 
 CU_REQUIRED = [
+    "lynn_native_active_moe_grouped_per16_nonatomic_out_reference",
     "torch::Tensor inter_scratch",
     "torch::Tensor out",
     "check_cuda_tensor(inter_scratch, \"inter_scratch\", torch::kBFloat16)",
     "check_cuda_tensor(out, \"out\", torch::kBFloat16)",
     "inter_scratch must be [T, top_k, 512]",
+    "P4 two-stage reference currently supports T=1 decode only",
     "gate_up_packed must be [E, 1024, 1024]",
     "down_packed must be [E, 2048, 256]",
-    "do not add BF16 expert shadows",
 ]
 
 

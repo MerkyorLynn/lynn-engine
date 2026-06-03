@@ -36,9 +36,9 @@ def write_json(path: Path, data: dict) -> None:
 def pass_fixture() -> dict:
     return {
         "schema": "lynn-stage6-p4-native-fused-moe-abi-preflight-v1",
-        "decision": "PASS_ABI_CONTRACT",
+        "decision": "PASS_TWO_STAGE_REFERENCE_CONTRACT",
         "symbol": "active_moe_fused_zero_shadow_out_contract",
-        "expected_error": "P4 fused 4-bit zero-shadow CUDA kernel is not implemented yet",
+        "expected_reference": "caller-owned two-stage packed-NVFP4 active-MoE reference",
         "banked_native_abi_preflight": True,
         "banked_fused_kernel": False,
         "banked_default_promotion": False,
@@ -79,11 +79,12 @@ def pass_fixture() -> dict:
             "zero_shadow_abi": True,
             "packed_byte_budget": True,
         },
-        "call_error_tail": "P4 fused 4-bit zero-shadow CUDA kernel is not implemented yet",
+        "output": {"shape": [2, 2048], "dtype": "torch.bfloat16", "finite": True, "norm": 0.0},
         "passes": {
             "extension_loaded": True,
             "symbol_present": True,
-            "fail_loud_boundary": True,
+            "reference_output_returned": True,
+            "output_finite": True,
             "zero_shadow_abi": True,
             "packed_byte_budget": True,
             "all": True,
@@ -96,7 +97,8 @@ def symbol_fail_fixture() -> dict:
     data["decision"] = "BLOCKED_SYMBOL_MISSING"
     data["passes"] = dict(data["passes"])
     data["passes"]["symbol_present"] = False
-    data["passes"]["fail_loud_boundary"] = False
+    data["passes"]["reference_output_returned"] = False
+    data["passes"]["output_finite"] = False
     data["passes"]["all"] = False
     return data
 

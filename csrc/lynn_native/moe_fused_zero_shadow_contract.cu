@@ -1,5 +1,20 @@
 #include <torch/extension.h>
 
+torch::Tensor lynn_native_active_moe_grouped_per16_nonatomic_out_reference(
+    torch::Tensor x,
+    torch::Tensor expert_ids,
+    torch::Tensor routing_weights,
+    torch::Tensor gate_up_packed,
+    torch::Tensor gate_up_scale,
+    torch::Tensor gate_up_global_scale,
+    torch::Tensor down_packed,
+    torch::Tensor down_scale,
+    torch::Tensor down_global_scale,
+    torch::Tensor inter_out,
+    torch::Tensor out,
+    int64_t tile_inter,
+    int64_t tile_hidden);
+
 namespace {
 
 constexpr int64_t kHidden = 2048;
@@ -81,17 +96,30 @@ void lynn_native_active_moe_fused_zero_shadow_out_contract(
   TORCH_CHECK(down_global_scale.numel() == 1, "down_global_scale must be scalar");
 
   TORCH_CHECK(tile_tokens > 0, "tile_tokens must be positive");
-  TORCH_CHECK(
-      tile_inter == 1 || tile_inter == 2 || tile_inter == 4 || tile_inter == 8 || tile_inter == 16,
-      "tile_inter must be one of {1, 2, 4, 8, 16}");
-  TORCH_CHECK(
-      tile_hidden == 1 || tile_hidden == 2 || tile_hidden == 4 || tile_hidden == 8 || tile_hidden == 16,
-      "tile_hidden must be one of {1, 2, 4, 8, 16}");
+  TORCH_CHECK(tokens == 1, "P4 two-stage reference currently supports T=1 decode only");
+  TORCH_CHECK(tile_tokens == 1, "P4 two-stage reference currently supports tile_tokens=1 only");
+  TORCH_CHECK(tile_inter == 1 || tile_inter == 2 || tile_inter == 4 || tile_inter == 8,
+              "tile_inter must be one of {1, 2, 4, 8}");
+  TORCH_CHECK(tile_hidden == 1 || tile_hidden == 2 || tile_hidden == 4 || tile_hidden == 8,
+              "tile_hidden must be one of {1, 2, 4, 8}");
 
-  TORCH_CHECK(
-      false,
-      "active_moe_fused_zero_shadow_out_contract passed all packed-NVFP4 shape/layout checks, "
-      "but the P4 fused 4-bit zero-shadow CUDA kernel is not implemented yet. "
-      "This is the caller-owned-scratch/output C++ hot-path ABI: replace only the inner math, "
-      "do not add BF16 expert shadows or Python/Triton fallback inside this symbol.");
+  auto hidden_1d = hidden.view({kHidden});
+  auto expert_ids_1d = expert_ids.view({top_k});
+  auto routing_weights_1d = routing_weights.view({top_k});
+  auto inter_2d = inter_scratch.view({top_k, kIntermediate});
+  auto out_1d = out.view({kHidden});
+  lynn_native_active_moe_grouped_per16_nonatomic_out_reference(
+      hidden_1d,
+      expert_ids_1d,
+      routing_weights_1d,
+      gate_up_packed,
+      gate_up_scale,
+      gate_up_global_scale,
+      down_packed,
+      down_scale,
+      down_global_scale,
+      inter_2d,
+      out_1d,
+      tile_inter,
+      tile_hidden);
 }

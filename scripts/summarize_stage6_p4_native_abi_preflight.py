@@ -49,14 +49,22 @@ def _verdict(data: dict[str, Any]) -> tuple[str, str]:
         return "FAIL", "default promotion boundary violated"
     if data.get("banked_native_abi_preflight") is not True:
         return "FAIL", "ABI preflight was not banked"
-    for gate in ("extension_loaded", "symbol_present", "fail_loud_boundary", "zero_shadow_abi", "packed_byte_budget", "all"):
+    for gate in (
+        "extension_loaded",
+        "symbol_present",
+        "reference_output_returned",
+        "output_finite",
+        "zero_shadow_abi",
+        "packed_byte_budget",
+        "all",
+    ):
         if passes.get(gate) is not True:
             return "FAIL", f"{gate} gate fail"
-    if data.get("decision") != "PASS_ABI_CONTRACT":
-        return "FAIL", "top-level decision is not PASS_ABI_CONTRACT"
+    if data.get("decision") != "PASS_TWO_STAGE_REFERENCE_CONTRACT":
+        return "FAIL", "top-level decision is not PASS_TWO_STAGE_REFERENCE_CONTRACT"
     if not _tensor_manifest_ok(tensor_manifest):
         return "FAIL", "tensor ABI manifest mismatch"
-    return "PASS", "native ABI preflight passed; fused kernel still unbanked"
+    return "PASS", "two-stage native reference preflight passed; fused kernel still unbanked"
 
 
 def summarize(data: dict[str, Any]) -> str:
@@ -81,7 +89,8 @@ def summarize(data: dict[str, Any]) -> str:
         f"| Banked default promotion | `{data.get('banked_default_promotion')}` |",
         f"| Extension loaded | `{passes.get('extension_loaded')}` |",
         f"| Symbol present | `{passes.get('symbol_present')}` |",
-        f"| Fail-loud boundary | `{passes.get('fail_loud_boundary')}` |",
+        f"| Reference output returned | `{passes.get('reference_output_returned')}` |",
+        f"| Output finite | `{passes.get('output_finite')}` |",
         f"| Zero-shadow ABI | `{passes.get('zero_shadow_abi')}` |",
         f"| Packed byte budget | `{passes.get('packed_byte_budget')}` |",
         f"| Packed weight bytes | `{byte_budget.get('packed_weight_bytes')}` |",
