@@ -79,8 +79,25 @@ CHECKS = [
         [
             "PROVENANCE_FILES",
             "scripts/spark_stage6_p3a_grouped_moe_contract_probe.py",
+            "scripts/summarize_stage6_p3a_contract_probe.py",
             "nvidia_smi_before.txt",
-            "passes.all",
+            "summary.md",
+        ],
+    ),
+    (
+        "scripts/summarize_stage6_p3a_contract_probe.py",
+        [
+            "promotion boundary violated",
+            "P3-A contract probe pass; fused kernel not banked",
+            "shadow_absent_at_candidate_start",
+        ],
+    ),
+    (
+        "scripts/test_stage6_p3a_evidence_tools.py",
+        [
+            "fail_promoted_fixture",
+            "P3-A evidence tooling self-test PASS",
+            "Banked fused kernel | `False`",
         ],
     ),
 ]
