@@ -39,6 +39,15 @@ except Exception:  # pragma: no cover - optional acceleration path.
     recurrent_gated_delta_fused_prepare_from_outconv_gqa = None
 
 try:
+    # Stage-3 g/beta-fold variant (LYNN_LINEAR_ATTN_FUSE_GBETA). Imported
+    # separately so its absence never disables the precomputed-g/beta path above.
+    from triton_kernels.gated_delta import (
+        recurrent_gated_delta_fused_prepare_from_outconv_gqa_gbeta,
+    )
+except Exception:  # pragma: no cover - optional acceleration path.
+    recurrent_gated_delta_fused_prepare_from_outconv_gqa_gbeta = None
+
+try:
     from triton_kernels.rmsnorm_gated import rms_norm_gated_triton
 except Exception:  # pragma: no cover - optional acceleration path.
     rms_norm_gated_triton = None
@@ -1175,12 +1184,10 @@ def decode_linear_attn(h_new, w, recurrent_state, conv_state, *, recurrent_backe
 
     # 3. z, beta, g (using h_new)
     z = z.reshape(B, 1, NUM_V_HEADS, HEAD_V_DIM)
-    beta = b.sigmoid()
     dt_bias = W("linear_attn.dt_bias")
     neg_exp_A_log = w.get("linear_attn._neg_exp_A_log")
     if neg_exp_A_log is None:
         neg_exp_A_log = -W("linear_attn.A_log").float().exp()
-    g = neg_exp_A_log * F.softplus(a.float() + dt_bias.float())
 
     # 4. q, k repeat by V_PER_K. P10-D can avoid this materialization for the
     # Triton recurrent path by reading q/k as grouped-query heads directly.
@@ -1194,12 +1201,37 @@ def decode_linear_attn(h_new, w, recurrent_state, conv_state, *, recurrent_backe
         use_gqa_recurrent
         and os.environ.get("LYNN_LINEAR_ATTN_RECURRENT_FROM_OUTCONV", "0") == "1"
     )
+
+    # P-Stage3 launch-fold: on the outconv recurrent path, compute g/beta
+    # per-head INSIDE the recurrent Triton kernel from raw a/b/dt_bias/
+    # neg_exp_A_log instead of pre-computing them here — folds away ~4 tiny
+    # elementwise launches/layer (sigmoid, add, softplus, mul). Math identical;
+    # token-exactness is the target. Default OFF; falls back to the precomputed
+    # g/beta path when the flag is unset or the fused kernel is unavailable.
+    fuse_gbeta = (
+        use_outconv_recurrent
+        and os.environ.get("LYNN_LINEAR_ATTN_FUSE_GBETA", "0") == "1"
+        and recurrent_gated_delta_fused_prepare_from_outconv_gqa_gbeta is not None
+    )
+
+    # Pre-compute g/beta outside only when NOT folding them into the kernel.
+    # (When folding, a/dt_bias stay raw and are cast to fp32 inside Triton, so we
+    # also skip the per-token a.float()/dt_bias.float() casts here.)
+    if not fuse_gbeta:
+        beta = b.sigmoid()
+        g = neg_exp_A_log * F.softplus(a.float() + dt_bias.float())
+
     if use_outconv_recurrent:
-        if recurrent_gated_delta_fused_prepare_from_outconv_gqa is None:
-            raise RuntimeError("outconv recurrent requested but Triton kernel is unavailable")
-        core_attn_out, new_recurrent_state = recurrent_gated_delta_fused_prepare_from_outconv_gqa(
-            out_conv, g, beta, recurrent_state
-        )
+        if fuse_gbeta:
+            core_attn_out, new_recurrent_state = recurrent_gated_delta_fused_prepare_from_outconv_gqa_gbeta(
+                out_conv, a, b, dt_bias, neg_exp_A_log, recurrent_state
+            )
+        else:
+            if recurrent_gated_delta_fused_prepare_from_outconv_gqa is None:
+                raise RuntimeError("outconv recurrent requested but Triton kernel is unavailable")
+            core_attn_out, new_recurrent_state = recurrent_gated_delta_fused_prepare_from_outconv_gqa(
+                out_conv, g, beta, recurrent_state
+            )
     else:
         q, k, v = torch.split(out_conv, [KEY_DIM, KEY_DIM, VALUE_DIM], dim=-1)
         q = q.reshape(B, 1, NUM_K_HEADS, HEAD_K_DIM)
