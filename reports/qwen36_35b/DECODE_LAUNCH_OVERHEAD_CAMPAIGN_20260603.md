@@ -81,3 +81,21 @@
   token-divergence first-error + MMLU/GPQA/V8/V9 smoke). Stage-3 target 43.5→**47-50 stable**;
   70 is the campaign target, NOT the Stage-3 acceptance line. Stacked best = **43.5 TPS**
   (RC-validated — promotable to default candidate).
+- **STAGE 3 step 1 — DIAGNOSIS DONE (code-level, no GPU).** Traced `decode_linear_attn`
+  under full base config (`INPROJ_FUSED_NATIVE_FP4` + `GQA_RECURRENT` + `FROM_OUTCONV` on).
+  Per linear-attn layer the launches are: in_proj GEMM (1) + out_proj GEMM (1) — necessary
+  matmuls; conv-update (1, already Triton-fused); recurrent from_outconv (1, already fused);
+  RMSNormGated (1, already Triton). **The ONLY still-separate cluster = `beta=b.sigmoid()`
+  + `g=neg_exp_A_log*softplus(a.float()+dt_bias.float())`** ≈ 4 tiny elementwise launches/layer
+  × ~38 layers ≈ **100-150 launches/token** (dispatch ≈ 1ms/tok ≈ ~4.6% of the 23ms/tok budget).
+  - **STAGE 3 SPEC (the kernel to write — implement→verify):** the kernel
+    `triton_kernels/gated_delta.py::_recurrent_fused_prepare_kernel` (+ gqa variant) ALREADY
+    `tl.exp(g)` and loads `beta` raw → extend its signature to take **raw `a_ptr, b_ptr`
+    + `dt_bias`, `neg_exp_A_log`** and compute, per-head inside the kernel:
+    `beta = tl.sigmoid(b)`, `g = neg_exp_A_log * softplus(a + dt_bias)` (softplus =
+    `log1p(exp(x))`), then the existing `exp(g)`. Eliminates the outside elementwise launches.
+    Gate `LYNN_LINEAR_ATTN_FUSE_GBETA=1`, fallback to the current pre-computed g/beta path.
+    Math is identical → expect token-exact (cos≈1). Free micro-win: cache `dt_bias.float()`.
+    **Expected +3-5%** (smaller than RMSNorm's +8.7% — fewer/tinier ops, as the front-loaded
+    pattern predicts) → toward the 47-50 target. Verify: token-coherent + e2e A/B + re-run RC.
+    Tooling: claude-internal writes the kernel → LEAD verifies on Spark (codex still gated).
