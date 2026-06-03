@@ -111,6 +111,10 @@ def _has_dense_fp4xfp8_sidecar(w: dict) -> bool:
     return all(k in w for k in required)
 
 
+_TRITON_RMSNORM = None
+_RMSNORM_OFFSET_CACHE: dict = {}
+
+
 def _rms_norm(x: torch.Tensor, weight: torch.Tensor, eps: float = 1e-6) -> torch.Tensor:
     """Qwen3_5MoeRMSNorm — note the `(1.0 + weight)` factor, not plain `weight`.
 
@@ -122,6 +126,20 @@ def _rms_norm(x: torch.Tensor, weight: torch.Tensor, eps: float = 1e-6) -> torch
     See https://github.com/huggingface/transformers/pull/29402 — Qwen-family
     diverges from Llama-style RMSNorm (which is `weight * x` only).
     """
+    if os.environ.get("LYNN_RMSNORM_FUSED", "0") == "1" and x.is_cuda:
+        # Fused Triton RMSNorm: 1 launch vs ~6-8 eager (pow/mean/add/rsqrt/mul/...).
+        # rmsnorm_triton does x/rms*scale; pass the cached (1.0+weight) so it matches
+        # Qwen's +1 offset exactly. Offset computed once per weight (data_ptr cache).
+        global _TRITON_RMSNORM
+        if _TRITON_RMSNORM is None:
+            from triton_kernels.rmsnorm import make_triton_rmsnorm
+            _TRITON_RMSNORM = make_triton_rmsnorm()
+        ck = (weight.data_ptr(), int(weight.shape[0]))
+        offset = _RMSNORM_OFFSET_CACHE.get(ck)
+        if offset is None:
+            offset = (1.0 + weight.float()).contiguous()
+            _RMSNORM_OFFSET_CACHE[ck] = offset
+        return _TRITON_RMSNORM(x, offset, eps).to(x.dtype)
     in_dtype = x.dtype
     x_f = x.float()
     var = x_f.pow(2).mean(-1, keepdim=True)

@@ -40,4 +40,18 @@
 
 ## Status / log
 - 2026-06-03: campaign opened. Team: codex ✅ (gpt-5.5), Lynn/Flash ✅ (glue), claude ✅;
-  codebuddy ✗ (not installed). Phase 0 kicking off + codex dispatched on launch-structure analysis.
+  codebuddy ✗ (not installed).
+- **codex** delivered a 6-target ranked fusion analysis (`codex_fusion_analysis.md`); its top
+  pick was the MoE router (high-savings, HIGH risk). **LEAD overrode → RMSNorm first** (similar
+  savings, low risk, prove-the-loop).
+- **✅ PHASE 1 WIN — RMSNorm fusion = +8.7% (38.72 → 42.08 TPS), clean same-process A/B.**
+  The Triton RMSNorm kernel already existed (`triton_kernels/rmsnorm.py`); wired `_rms_norm`
+  (full_forward.py) to it with a cached `(1.0+weight)` offset → 1 launch vs ~6-8 eager, over
+  80 layer-norms/token. Gate `LYNN_RMSNORM_FUSED=1`. Coherent; not bit-identical (Triton
+  reduction order vs torch `mean`, ~1e-7, quality-neutral — same as every kernel swap here).
+  **This is the FIRST lever to move e2e TPS** (the 3 traffic levers gave ~0) → confirms the
+  diagnosis (launch overhead) AND the approach. Stacked best now ≈ **42 TPS** (bh4 + flags + fused norm).
+- **Next targets** (codex-scoped, descending risk-adjusted ROI): #3 shared-expert finalize fusion,
+  #6 full-attn cache-write + gated o_proj (low risk), #5 linear-attn micro-op fusion, then the
+  HIGH-risk #2 router + #4 active-MoE-boundary fusion (strict expert-id / cos parity gates).
+- Method holds: codex writes → LEAD verifies token-coherent + clean e2e A/B on Spark vs llama.cpp 69.77.
