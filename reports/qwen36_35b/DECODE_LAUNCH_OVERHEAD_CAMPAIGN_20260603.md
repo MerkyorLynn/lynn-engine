@@ -517,3 +517,11 @@
     **4.55 ms** (**3.92x**). T256 is **0.62 ms** vs host loop **8.89 ms** (**14.31x**).
   - **Decision:** bank P2-KB as a core-kernel pass. Next gate P2-L should wire it into `prefill_linear_attn` behind an
     opt-in flag and rerun selected-layer/full-prefill smoke before any server/default promotion.
+- **✅ STAGE 6 step 23 — P2-L `prefill_linear_attn` block-kernel opt-in integration PASSED.**
+  `LYNN_LINEAR_ATTN_PREFILL_BLOCK_GQA=1` now routes `prefill_linear_attn()` through
+  `recurrent_gated_delta_block_gqa()` while leaving the default path unchanged.
+  - **Numeric:** T=16/64/128/256/512 output, recurrent state, and conv state all pass with argmax match. Min output/state/conv
+    cosine is **0.999983974**; max rel_l2 **0.005845026**.
+  - **Latency:** T512 **2.18 ms** vs reference **5.58 ms** (**2.56x**); T128 **0.90 ms** vs **3.37 ms** (**3.74x**).
+  - **Decision:** bank P2-L as an opt-in layer-level pass. Next gate P2-M should rerun selected-layer/full-prefill smoke with
+    the block linear-attn flag plus existing P2-E MoE opt-in before server/default promotion.

@@ -1,0 +1,179 @@
+{
+  "schema": "lynn-stage6-p2l-linear-attn-block-integration-smoke-v1",
+  "model": "/home/merkyor/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-from-bf16-20260526",
+  "layer": 0,
+  "seed": 20260604,
+  "seq_lens": [
+    16,
+    64,
+    128
+  ],
+  "chunk_size": 64,
+  "rows": [
+    {
+      "seq_len": 16,
+      "reference_ms": 3.312729997560382,
+      "block_optin_ms": 1.200433005578816,
+      "block_vs_reference": 2.7596125582727327,
+      "ref_bench": {
+        "repeats": 1,
+        "median_ms": 3.312729997560382,
+        "min_ms": 3.312729997560382,
+        "max_ms": 3.312729997560382,
+        "all_ms": [
+          3.312729997560382
+        ]
+      },
+      "block_bench": {
+        "repeats": 1,
+        "median_ms": 1.200433005578816,
+        "min_ms": 1.200433005578816,
+        "max_ms": 1.200433005578816,
+        "all_ms": [
+          1.200433005578816
+        ]
+      }
+    },
+    {
+      "seq_len": 64,
+      "reference_ms": 3.192308940924704,
+      "block_optin_ms": 1.0697570396587253,
+      "block_vs_reference": 2.9841438967703517,
+      "ref_bench": {
+        "repeats": 1,
+        "median_ms": 3.192308940924704,
+        "min_ms": 3.192308940924704,
+        "max_ms": 3.192308940924704,
+        "all_ms": [
+          3.192308940924704
+        ]
+      },
+      "block_bench": {
+        "repeats": 1,
+        "median_ms": 1.0697570396587253,
+        "min_ms": 1.0697570396587253,
+        "max_ms": 1.0697570396587253,
+        "all_ms": [
+          1.0697570396587253
+        ]
+      }
+    },
+    {
+      "seq_len": 128,
+      "reference_ms": 3.3727330155670643,
+      "block_optin_ms": 0.902006053365767,
+      "block_vs_reference": 3.7391467640177884,
+      "ref_bench": {
+        "repeats": 1,
+        "median_ms": 3.3727330155670643,
+        "min_ms": 3.3727330155670643,
+        "max_ms": 3.3727330155670643,
+        "all_ms": [
+          3.3727330155670643
+        ]
+      },
+      "block_bench": {
+        "repeats": 1,
+        "median_ms": 0.902006053365767,
+        "min_ms": 0.902006053365767,
+        "max_ms": 0.902006053365767,
+        "all_ms": [
+          0.902006053365767
+        ]
+      }
+    }
+  ],
+  "numeric": {
+    "T16_out": {
+      "cosine": 0.9999839739604357,
+      "rel_l2": 0.005845026731015832,
+      "max_abs": 0.0009765625,
+      "mean_abs": 2.9498639754876876e-05,
+      "argmax_a": 31989,
+      "argmax_b": 31989,
+      "argmax_match": true
+    },
+    "T16_recurrent_state": {
+      "cosine": 0.9999966247941698,
+      "rel_l2": 0.0026347021419742115,
+      "max_abs": 0.0007161162793636322,
+      "mean_abs": 7.325777736402749e-07,
+      "argmax_a": 447695,
+      "argmax_b": 447695,
+      "argmax_match": true
+    },
+    "T16_conv_state": {
+      "cosine": 1.0000000000000002,
+      "rel_l2": 0.0,
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "argmax_a": 19073,
+      "argmax_b": 19073,
+      "argmax_match": true
+    },
+    "T64_out": {
+      "cosine": 0.9999853853490519,
+      "rel_l2": 0.0058155687143210955,
+      "max_abs": 0.001953125,
+      "mean_abs": 3.7029930350040985e-05,
+      "argmax_a": 62736,
+      "argmax_b": 62736,
+      "argmax_match": true
+    },
+    "T64_recurrent_state": {
+      "cosine": 0.9999963897370233,
+      "rel_l2": 0.0026903727906565393,
+      "max_abs": 0.0005875527858734131,
+      "mean_abs": 1.2519636644228602e-06,
+      "argmax_a": 427599,
+      "argmax_b": 427599,
+      "argmax_match": true
+    },
+    "T64_conv_state": {
+      "cosine": 1.0000000000000002,
+      "rel_l2": 0.0,
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "argmax_a": 17135,
+      "argmax_b": 17135,
+      "argmax_match": true
+    },
+    "T128_out": {
+      "cosine": 0.9999889798929348,
+      "rel_l2": 0.004695265886031841,
+      "max_abs": 0.001953125,
+      "mean_abs": 4.105447838598231e-05,
+      "argmax_a": 185589,
+      "argmax_b": 185589,
+      "argmax_match": true
+    },
+    "T128_recurrent_state": {
+      "cosine": 0.9999960242400919,
+      "rel_l2": 0.0028272208907787083,
+      "max_abs": 0.0008661951869726181,
+      "mean_abs": 1.8115194050225225e-06,
+      "argmax_a": 447695,
+      "argmax_b": 447695,
+      "argmax_match": true
+    },
+    "T128_conv_state": {
+      "cosine": 1.0000000000000002,
+      "rel_l2": 0.0,
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "argmax_a": 14831,
+      "argmax_b": 14831,
+      "argmax_match": true
+    }
+  },
+  "passes": {
+    "numeric": true,
+    "speed_vs_reference": true,
+    "all": true
+  },
+  "notes": [
+    "This smoke only exercises prefill_linear_attn with LYNN_LINEAR_ATTN_PREFILL_BLOCK_GQA=1.",
+    "Default path remains unchanged when the flag is unset.",
+    "Promotion still requires selected-layer/full-prefill and RC quality gates."
+  ]
+}

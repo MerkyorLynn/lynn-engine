@@ -1,0 +1,157 @@
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 13.0.1
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+/usr/local/lib/python3.12/dist-packages/torch/cuda/__init__.py:283: UserWarning:
+    Found GPU0 NVIDIA GB10 which is of cuda capability 12.1.
+    Minimum and Maximum cuda capability supported by this version of PyTorch is
+    (8.0) - (12.0)
+
+  warnings.warn(
+  Lynn variable NVFP4 slow dequant load: 1.69 GB in 5.3s
+=============== STAGE 6 PHASE 2-L LINEAR-ATTN BLOCK INTEGRATION SMOKE ===============
+model      : /home/merkyor/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-from-bf16-20260526
+layer      : 0
+seq_lens   : [256, 512]
+chunk_size : 64
+[T=256] ref=4.35ms block=1.70ms ratio=2.560x out_cos=0.999990103 out_rel_l2=4.459e-03
+[T=512] ref=5.58ms block=2.18ms ratio=2.563x out_cos=0.999990844 out_rel_l2=4.279e-03
+=============== RESULT JSON ===============
+{
+  "schema": "lynn-stage6-p2l-linear-attn-block-integration-smoke-v1",
+  "model": "/home/merkyor/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-from-bf16-20260526",
+  "layer": 0,
+  "seed": 20260604,
+  "seq_lens": [
+    256,
+    512
+  ],
+  "chunk_size": 64,
+  "rows": [
+    {
+      "seq_len": 256,
+      "reference_ms": 4.351126961410046,
+      "block_optin_ms": 1.6998469363898039,
+      "block_vs_reference": 2.5597169181897788,
+      "ref_bench": {
+        "repeats": 1,
+        "median_ms": 4.351126961410046,
+        "min_ms": 4.351126961410046,
+        "max_ms": 4.351126961410046,
+        "all_ms": [
+          4.351126961410046
+        ]
+      },
+      "block_bench": {
+        "repeats": 1,
+        "median_ms": 1.6998469363898039,
+        "min_ms": 1.6998469363898039,
+        "max_ms": 1.6998469363898039,
+        "all_ms": [
+          1.6998469363898039
+        ]
+      }
+    },
+    {
+      "seq_len": 512,
+      "reference_ms": 5.578298936598003,
+      "block_optin_ms": 2.1766190184280276,
+      "block_vs_reference": 2.562827435288467,
+      "ref_bench": {
+        "repeats": 1,
+        "median_ms": 5.578298936598003,
+        "min_ms": 5.578298936598003,
+        "max_ms": 5.578298936598003,
+        "all_ms": [
+          5.578298936598003
+        ]
+      },
+      "block_bench": {
+        "repeats": 1,
+        "median_ms": 2.1766190184280276,
+        "min_ms": 2.1766190184280276,
+        "max_ms": 2.1766190184280276,
+        "all_ms": [
+          2.1766190184280276
+        ]
+      }
+    }
+  ],
+  "numeric": {
+    "T256_out": {
+      "cosine": 0.9999901033051334,
+      "rel_l2": 0.004459088118052406,
+      "max_abs": 0.00390625,
+      "mean_abs": 5.801022976914538e-05,
+      "argmax_a": 267536,
+      "argmax_b": 267536,
+      "argmax_match": true
+    },
+    "T256_recurrent_state": {
+      "cosine": 0.9999957706880741,
+      "rel_l2": 0.0029108547302896335,
+      "max_abs": 0.0011116191744804382,
+      "mean_abs": 2.264018399544928e-06,
+      "argmax_a": 427599,
+      "argmax_b": 427599,
+      "argmax_match": true
+    },
+    "T256_conv_state": {
+      "cosine": 1.0,
+      "rel_l2": 0.0,
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "argmax_a": 21359,
+      "argmax_b": 21359,
+      "argmax_match": true
+    },
+    "T512_out": {
+      "cosine": 0.999990843836355,
+      "rel_l2": 0.00427934213742985,
+      "max_abs": 0.00390625,
+      "mean_abs": 6.038733198890367e-05,
+      "argmax_a": 322805,
+      "argmax_b": 322805,
+      "argmax_match": true
+    },
+    "T512_recurrent_state": {
+      "cosine": 0.9999958835183589,
+      "rel_l2": 0.00287032436665329,
+      "max_abs": 0.001478675752878189,
+      "mean_abs": 2.5016734540358047e-06,
+      "argmax_a": 239439,
+      "argmax_b": 239439,
+      "argmax_match": true
+    },
+    "T512_conv_state": {
+      "cosine": 0.9999999999999998,
+      "rel_l2": 0.0,
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "argmax_a": 21359,
+      "argmax_b": 21359,
+      "argmax_match": true
+    }
+  },
+  "passes": {
+    "numeric": true,
+    "speed_vs_reference": true,
+    "all": true
+  },
+  "notes": [
+    "This smoke only exercises prefill_linear_attn with LYNN_LINEAR_ATTN_PREFILL_BLOCK_GQA=1.",
+    "Default path remains unchanged when the flag is unset.",
+    "Promotion still requires selected-layer/full-prefill and RC quality gates."
+  ]
+}
