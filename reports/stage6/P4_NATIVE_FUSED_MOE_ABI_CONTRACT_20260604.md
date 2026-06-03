@@ -70,7 +70,17 @@ implemented and the byte-count, numeric, speed, and RC gates pass.
 
 ## GPU Preflight
 
-Run on a CUDA host after syncing the branch:
+Run through the Spark artifact wrapper after syncing the branch:
+
+```bash
+scripts/run_spark_stage6_p4_native_abi_preflight.sh
+```
+
+The wrapper records remote HEAD/provenance manifest, `nvidia-smi` before/after,
+Docker exit code, `run.log`, `result.json`, and `summary.md` under
+`reports/stage6/p4_native_abi_preflight_*`.
+
+Direct in-container command:
 
 ```bash
 python3 scripts/spark_stage6_p4_native_abi_preflight.py \
@@ -111,4 +121,18 @@ GPU-free static check:
 
 ```bash
 python3 scripts/test_stage6_p4_native_abi_static.py
+```
+
+GPU-free evidence-tooling self-test:
+
+```bash
+python3 scripts/test_stage6_p4_evidence_tools.py
+```
+
+Formal report writer:
+
+```bash
+python3 scripts/write_stage6_p4_native_abi_report.py \
+  reports/stage6/p4_native_abi_preflight_<timestamp> \
+  --report-out reports/stage6/P4_NATIVE_ABI_PREFLIGHT_RESULT_20260604.md
 ```

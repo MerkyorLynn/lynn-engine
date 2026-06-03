@@ -48,10 +48,38 @@ CHECKS = [
         "scripts/spark_stage6_p4_native_abi_preflight.py",
         [
             "lynn-stage6-p4-native-fused-moe-abi-preflight-v1",
+            "banked_native_abi_preflight",
+            "banked_fused_kernel",
             "PASS_ABI_CONTRACT",
             "BLOCKED_SYMBOL_MISSING",
             "UNEXPECTED_IMPLEMENTED",
             "P4 fused 4-bit zero-shadow CUDA kernel is not implemented yet",
+        ],
+    ),
+    (
+        "scripts/run_spark_stage6_p4_native_abi_preflight.sh",
+        [
+            "PROVENANCE_FILES",
+            "scripts/spark_stage6_p4_native_abi_preflight.py",
+            "scripts/summarize_stage6_p4_native_abi_preflight.py",
+            "nvidia_smi_before.txt",
+            "summary.md",
+        ],
+    ),
+    (
+        "scripts/summarize_stage6_p4_native_abi_preflight.py",
+        [
+            "PASS_ABI_CONTRACT",
+            "fused-kernel promotion boundary violated",
+            "Banked fused kernel",
+        ],
+    ),
+    (
+        "scripts/write_stage6_p4_native_abi_report.py",
+        [
+            "Bank P4 native ABI preflight only",
+            "Banked fused kernel",
+            "Provenance manifest",
         ],
     ),
     (
