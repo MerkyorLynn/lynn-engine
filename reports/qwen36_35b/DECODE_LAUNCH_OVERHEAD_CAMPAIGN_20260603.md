@@ -418,3 +418,18 @@
     P2 still matters for removing the **23-24 s reload**, but it is not ready for serving integration.
   - **Decision:** bank P2-D as correctness/memory evidence. Next P2-E should reduce route/grouping overhead and packed
     active scheduling cost; do not wire into `resident_runner` until the one-layer hybrid has a clean speed story.
+- **✅ STAGE 6 step 15 — P2-E scheduler/active retune PASSED; first one-layer packed MoE hybrid beats BF16 full MoE.**
+  `scripts/spark_stage6_p2e_scheduler_active_retune.py` tested two low-risk changes before production edits:
+  `argsort + unique_consecutive` route grouping and packed gate/up `block_inter=8`.
+  - **Scheduler:** M=64 route/grouping improved **5.02 ms → 0.61 ms** (**8.17x**) by replacing per-expert mask scans
+    with one sort + consecutive grouping. M=16 improved **2.32 ms → 0.34 ms** (**6.83x**).
+  - **Packed active retune:** M=64 packed active improved **24.48 ms → 20.12 ms** with
+    `block_t=32, block_inter=8, block_hidden=128, num_warps=4`. `block_inter=32` hit Spark shared-memory OOR
+    (**114688 > 101376 bytes**). Scratch-buffer reuse was rejected (**0.963x/0.974x** for M16/M64).
+  - **Hybrid vs BF16 full MoE:** with sort scheduler + `block_inter=8`, M=16 **8.87 ms** vs BF16 **11.58 ms**
+    (**1.306x**); M=64 **20.25 ms** vs BF16 **21.41 ms** (**1.057x**).
+  - **Numeric/no-shadow:** hybrid sort vs BF16 full MoE `cos≈0.999997`, rel_l2≈`0.0023`, argmax match; active BF16
+    expert shadows were deleted and resident stayed **~0.641 GiB**.
+  - **Decision:** bank P2-E and continue to P2-F: move the P2-E combination from harness composition to a
+    flag-gated one-layer prefill replacement. This is still Python/Triton scheduling; the long-term llama.cpp chase
+    remains CUDA C++ / CUTLASS-style grouped kernels plus C++ hot-path runtime when paired with FP4-MMA hardware.
