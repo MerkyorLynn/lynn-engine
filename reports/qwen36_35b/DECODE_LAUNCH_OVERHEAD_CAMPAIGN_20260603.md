@@ -309,3 +309,17 @@
   - **Decision:** P1 should lead with batched packed projection prefill plus embed/lm_head semantics; P2 remains the
     grouped M>1 packed MoE prefill kernel that replaces the **20.75 s** `stream_bf16` proof and avoids the **23-24 s**
     full reload. Router is not first-order leverage.
+- **✅ STAGE 6 step 7 — P1 single dense projection packed-NVFP4 PoC PASSED.**
+  `scripts/spark_stage6_p1_dense_projection_poc.py` ran a real
+  `model.language_model.layers.0.linear_attn.in_proj_qkv.weight` projection on Spark without constructing the full
+  runner or stopping APEX. APEX stayed online and `/health` remained `{"status":"ok"}`.
+  - **Artifact correction:** planning assumed E4M3 scale; the real Lynn-native 35B artifact stores this projection's
+    scale as **FP16**. Shape: packed `uint8[8192,1024]`, scale `float16[8192,128]`, global scale `float32[]`.
+  - **Bytes:** BF16 shadow **32.00 MiB** vs packed+scale+global **10.00 MiB** (**3.20x** smaller); timed packed args
+    **10.04 MiB**.
+  - **Numeric:** packed Triton vs FP32 dequant oracle `cos=1.000000000`, `rel_l2=1.387e-07`, `max_abs=7.153e-07`,
+    argmax match. Vs BF16 shadow `cos=0.999998123`, `rel_l2=1.938e-03`, argmax match.
+  - **No hidden BF16 shadow:** timed packed benchmark ran after deleting FP32/BF16 reference weights; peak allocation
+    **0.0177 GiB**, below the single projection's **0.03125 GiB** BF16 shadow size.
+  - **Microbench:** packed Triton **160.29 us** vs BF16 `F.linear` **190.03 us**, **1.186x** speedup. This banks the
+    single-projection contract, not full dense-path integration. Next gate: P1-A batched/M>1 packed projections.
