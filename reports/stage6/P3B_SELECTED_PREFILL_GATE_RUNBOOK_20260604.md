@@ -8,6 +8,9 @@ P3-B is the first multi-layer gate after the P3-A grouped active-MoE contract
 probe. Its purpose is to verify that the P3-A contract can be composed into a
 selected prefill stack without rebuilding active BF16 expert shadows.
 
+Tooling status: the headless runner/reporting path now exists, but no Spark
+P3-B PASS artifact has been banked yet.
+
 ## Required Predecessors
 
 Do not run or report P3-B as a bankable gate unless these artifacts exist and
@@ -68,20 +71,23 @@ and cannot be promoted.
 
 ## Suggested Command Shape
 
-The eventual runner should look like:
+Standalone runner:
 
 ```bash
 scripts/run_spark_stage6_p3b_selected_prefill_gate.sh \
   --layers 0-3 \
-  --tokens 16,64
+  --tokens 16,64 \
+  --predecessors-pass
 ```
 
-Until that runner exists, P3-B remains runbook-only. The current executable next
-step is still the suite:
+The suite runs P3-B after P2-O basic, P2-O rc-mini, and P3-A all PASS:
 
 ```bash
 scripts/run_stage6_gpu_gate_suite.sh
 ```
+
+If a predecessor fails, the suite records P3-B as skipped rather than spending
+GPU on an artifact that cannot be banked.
 
 ## Relationship To P3-C/P3-D
 

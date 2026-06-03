@@ -21,7 +21,41 @@ CHECKS = [
             "active BF16 expert shadow reload/rebuild",
             "final selected-stack cosine >= 0.999",
             "no reload call is observed",
-            "scripts/run_stage6_gpu_gate_suite.sh",
+            "scripts/run_spark_stage6_p3b_selected_prefill_gate.sh",
+        ],
+    ),
+    (
+        "scripts/spark_stage6_p3b_selected_prefill_gate.py",
+        [
+            "lynn-stage6-p3b-selected-prefill-gate-v1",
+            "p3a_grouped",
+            "predecessors_pass",
+            "speed_vs_p2n_reference",
+            "banked_fused_kernel",
+            "banked_server_path",
+        ],
+    ),
+    (
+        "scripts/summarize_stage6_p3b_selected_prefill_gate.py",
+        [
+            "predecessor evidence gate fail",
+            "P3-B candidate slower than P2-N reference",
+            "promotion boundary violated",
+        ],
+    ),
+    (
+        "scripts/write_stage6_p3b_report.py",
+        [
+            "Bank P3-B selected-prefill composition only",
+            "Do not bank P3-B",
+            "P3-C server integration",
+        ],
+    ),
+    (
+        "engine/full_forward.py",
+        [
+            "p3a_grouped",
+            "_moe_forward_packed_prefill_p3a_grouped",
         ],
     ),
     (
