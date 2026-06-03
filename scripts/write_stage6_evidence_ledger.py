@@ -123,6 +123,20 @@ def _ready_gate(gate: str, title: str, required: list[str], next_step: str) -> G
     return Gate(gate, title, "READY_WAITING_SPARK", "tooling/runbook exists, but no Spark PASS artifact is banked", ", ".join(required), next_step)
 
 
+def _contract_gate(gate: str, title: str, required: list[str], next_step: str) -> Gate:
+    missing = [rel for rel in required if not (ROOT / rel).exists()]
+    if missing:
+        return Gate(gate, title, "MISSING_TOOLING", f"missing: {', '.join(missing)}", "", next_step)
+    return Gate(
+        gate,
+        title,
+        "CONTRACT_READY_UNIMPLEMENTED",
+        "fail-loud ABI/static gate exists, but no fused implementation or GPU result is banked",
+        ", ".join(required),
+        next_step,
+    )
+
+
 def collect_gates() -> list[Gate]:
     gates: list[Gate] = [
         _report_gate(
@@ -244,6 +258,12 @@ def collect_gates() -> list[Gate]:
             "P4 real runtime bridge preflight",
             ["reports/stage6/P4_NATIVE_FUSED_MOE_ABI_CONTRACT_20260604.md", "scripts/run_spark_stage6_p4_runtime_bridge_preflight.sh"],
             "Run on Spark; must prove native layer selection and no fallback.",
+        ),
+        _contract_gate(
+            "p4b_single_kernel_contract",
+            "P4B true fused single-kernel ABI",
+            ["reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md", "scripts/test_stage6_p4b_single_kernel_static.py"],
+            "Replace fail-loud contract with a real fused CUDA/CUTLASS kernel, then run byte-count/numeric/speed/RC gates.",
         ),
     ]
     return gates

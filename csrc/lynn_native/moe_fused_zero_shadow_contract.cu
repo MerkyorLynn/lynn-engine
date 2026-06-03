@@ -123,3 +123,70 @@ void lynn_native_active_moe_fused_zero_shadow_out_contract(
       tile_inter,
       tile_hidden);
 }
+
+void lynn_native_active_moe_fused_zero_shadow_single_kernel_contract(
+    torch::Tensor hidden,
+    torch::Tensor expert_ids,
+    torch::Tensor routing_weights,
+    torch::Tensor gate_up_packed,
+    torch::Tensor gate_up_scale,
+    torch::Tensor gate_up_global_scale,
+    torch::Tensor down_packed,
+    torch::Tensor down_scale,
+    torch::Tensor down_global_scale,
+    torch::Tensor out,
+    int64_t tile_tokens,
+    int64_t tile_experts,
+    int64_t tile_hidden) {
+  check_cuda_tensor(hidden, "hidden", torch::kBFloat16);
+  check_cuda_tensor(expert_ids, "expert_ids", torch::kInt32);
+  check_cuda_tensor(routing_weights, "routing_weights", torch::kFloat32);
+  check_cuda_tensor(gate_up_packed, "gate_up_packed", torch::kUInt8);
+  check_cuda_tensor(gate_up_scale, "gate_up_scale", torch::kFloat32);
+  check_cuda_tensor(gate_up_global_scale, "gate_up_global_scale", torch::kFloat32);
+  check_cuda_tensor(down_packed, "down_packed", torch::kUInt8);
+  check_cuda_tensor(down_scale, "down_scale", torch::kFloat32);
+  check_cuda_tensor(down_global_scale, "down_global_scale", torch::kFloat32);
+  check_cuda_tensor(out, "out", torch::kBFloat16);
+
+  TORCH_CHECK(hidden.dim() == 2, "P4B hidden must be [T, 2048]");
+  const int64_t tokens = hidden.size(0);
+  TORCH_CHECK(tokens > 0, "P4B hidden token dimension must be non-empty");
+  TORCH_CHECK(hidden.size(1) == kHidden, "P4B hidden dim must be 2048");
+  TORCH_CHECK(out.dim() == 2 && out.size(0) == tokens && out.size(1) == kHidden, "P4B out must be [T, 2048]");
+
+  TORCH_CHECK(expert_ids.dim() == 2, "P4B expert_ids must be [T, top_k]");
+  TORCH_CHECK(routing_weights.dim() == 2, "P4B routing_weights must be [T, top_k]");
+  TORCH_CHECK(expert_ids.size(0) == tokens, "P4B expert_ids token dimension must match hidden");
+  TORCH_CHECK(routing_weights.size(0) == tokens, "P4B routing_weights token dimension must match hidden");
+  TORCH_CHECK(routing_weights.size(1) == expert_ids.size(1), "P4B routing_weights top_k must match expert_ids");
+  TORCH_CHECK(expert_ids.size(1) > 0, "P4B top_k must be non-empty");
+
+  TORCH_CHECK(gate_up_packed.dim() == 3, "P4B gate_up_packed must be [E, 1024, 1024]");
+  TORCH_CHECK(gate_up_scale.dim() == 3, "P4B gate_up_scale must be [E, 1024, 128]");
+  TORCH_CHECK(down_packed.dim() == 3, "P4B down_packed must be [E, 2048, 256]");
+  TORCH_CHECK(down_scale.dim() == 3, "P4B down_scale must be [E, 2048, 32]");
+  const int64_t experts = gate_up_packed.size(0);
+  TORCH_CHECK(experts > 0, "P4B expert dimension must be non-empty");
+  TORCH_CHECK(gate_up_scale.size(0) == experts, "P4B gate_up_scale expert dimension must match gate_up_packed");
+  TORCH_CHECK(down_packed.size(0) == experts, "P4B down_packed expert dimension must match gate_up_packed");
+  TORCH_CHECK(down_scale.size(0) == experts, "P4B down_scale expert dimension must match gate_up_packed");
+  TORCH_CHECK(gate_up_packed.size(1) == kGateUpRows, "P4B gate_up_packed row dim must be 1024");
+  TORCH_CHECK(gate_up_packed.size(2) == kHidden / 2, "P4B gate_up_packed packed hidden dim must be 1024");
+  TORCH_CHECK(gate_up_scale.size(1) == kGateUpRows, "P4B gate_up_scale row dim must be 1024");
+  TORCH_CHECK(gate_up_scale.size(2) == kHidden / 16, "P4B gate_up_scale group dim must be 128");
+  TORCH_CHECK(down_packed.size(1) == kHidden, "P4B down_packed row dim must be 2048");
+  TORCH_CHECK(down_packed.size(2) == kIntermediate / 2, "P4B down_packed packed inter dim must be 256");
+  TORCH_CHECK(down_scale.size(1) == kHidden, "P4B down_scale row dim must be 2048");
+  TORCH_CHECK(down_scale.size(2) == kIntermediate / 16, "P4B down_scale group dim must be 32");
+  TORCH_CHECK(gate_up_global_scale.numel() == 1, "P4B gate_up_global_scale must be scalar");
+  TORCH_CHECK(down_global_scale.numel() == 1, "P4B down_global_scale must be scalar");
+  TORCH_CHECK(tile_tokens > 0, "P4B tile_tokens must be positive");
+  TORCH_CHECK(tile_experts > 0, "P4B tile_experts must be positive");
+  TORCH_CHECK(tile_hidden > 0, "P4B tile_hidden must be positive");
+
+  TORCH_CHECK(
+      false,
+      "P4B single-kernel fused zero-shadow contract is not implemented yet; "
+      "do not bank fused-kernel speed or promote this backend");
+}
