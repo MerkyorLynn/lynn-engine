@@ -535,3 +535,13 @@
   - **Memory:** active BF16 expert shadows deleted (**6.000 GiB**); P2M peak T64 **2.599 GiB**.
   - **Decision:** bank P2-M. Next gate P2-N should expand layer coverage, then run RC/server-promotion smoke before any
     default-path decision.
+- **✅ STAGE 6 step 25 — P2-N wider selected-layer coverage PASSED.**
+  The same combined opt-in path (`p2e_hybrid` MoE + `LYNN_LINEAR_ATTN_PREFILL_BLOCK_GQA=1`) was expanded from layers 0-3
+  to layers 0-7 (six linear-attention layers plus two full-attention layers).
+  - **Numeric:** P2N vs BF16 / P2E comparisons pass with min cosine **0.999894142**, max rel_l2 **0.014593820**, and
+    argmax match.
+  - **Latency:** T16 **74.98 ms** vs BF16 **115.56 ms** (**1.541x**) and P2E-only **88.76 ms** (**1.184x**);
+    T64 **162.25 ms** vs BF16 **185.03 ms** (**1.140x**) and P2E-only **174.98 ms** (**1.078x**).
+  - **Memory:** active BF16 expert shadows deleted (**12.000 GiB**); P2N peak T64 **5.116 GiB**.
+  - **Decision:** bank P2-N as wider-layer coverage. Next gate should move to RC/server smoke on the combined opt-in path
+    before any default-path promotion.

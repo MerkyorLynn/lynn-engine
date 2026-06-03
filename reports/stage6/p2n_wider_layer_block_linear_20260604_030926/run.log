@@ -1,0 +1,275 @@
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 13.0.1
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+/usr/local/lib/python3.12/dist-packages/torch/cuda/__init__.py:283: UserWarning:
+    Found GPU0 NVIDIA GB10 which is of cuda capability 12.1.
+    Minimum and Maximum cuda capability supported by this version of PyTorch is
+    (8.0) - (12.0)
+
+  warnings.warn(
+  Lynn variable NVFP4 slow dequant load: 1.69 GB in 5.4s
+  Lynn variable NVFP4 slow dequant load: 1.69 GB in 0.8s
+  Lynn variable NVFP4 slow dequant load: 1.69 GB in 4.9s
+  Lynn variable NVFP4 slow dequant load: 1.67 GB in 4.8s
+  Lynn variable NVFP4 slow dequant load: 1.69 GB in 4.6s
+  Lynn variable NVFP4 slow dequant load: 1.69 GB in 5.0s
+  Lynn variable NVFP4 slow dequant load: 1.69 GB in 3.8s
+  Lynn variable NVFP4 slow dequant load: 1.67 GB in 2.7s
+=============== STAGE 6 PHASE 2-M SELECTED-LAYER BLOCK-LINEAR SMOKE ===============
+model        : /home/merkyor/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-from-bf16-20260526
+layers       : [0, 1, 2, 3, 4, 5, 6, 7]
+layer_types  : ['linear_attention', 'linear_attention', 'linear_attention', 'full_attention', 'linear_attention', 'linear_attention', 'linear_attention', 'full_attention']
+seq_lens     : [16, 64]
+BF16 active  : 12.000 GiB
+packed active: 4.500 GiB
+[phase] bf16 reference T=16
+[phase] bf16 reference T=64
+[phase] p2e_hybrid linear-reference T=16
+[phase] p2m_hybrid block-linear T=16
+[T=16] layers=8 bf16=115562.43us p2e=88758.53us p2m=74981.22us p2m_vs_bf16=1.541x p2m_vs_p2e=1.184x
+[phase] p2e_hybrid linear-reference T=64
+[phase] p2m_hybrid block-linear T=64
+[T=64] layers=8 bf16=185034.04us p2e=174978.18us p2m=162245.29us p2m_vs_bf16=1.140x p2m_vs_p2e=1.078x
+=============== RESULT JSON ===============
+{
+  "schema": "lynn-stage6-p2m-selected-layer-block-linear-smoke-v1",
+  "model": "/home/merkyor/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-from-bf16-20260526",
+  "layers": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "layer_types": [
+    "linear_attention",
+    "linear_attention",
+    "linear_attention",
+    "full_attention",
+    "linear_attention",
+    "linear_attention",
+    "linear_attention",
+    "full_attention"
+  ],
+  "seed": 20260604,
+  "seq_lens": [
+    16,
+    64
+  ],
+  "env": {
+    "LYNN_PACKED_PREFILL_SLOW_MODE": "p2e_hybrid",
+    "LYNN_LINEAR_ATTN_PREFILL_BLOCK_GQA": "1",
+    "LYNN_PACKED_PREFILL_P2E_LAYERS": "0,1,2,3,4,5,6,7"
+  },
+  "shape": {
+    "hidden": 2048,
+    "num_experts": 256,
+    "top_k": 8
+  },
+  "bytes": {
+    "bf16_active_experts": 12884901888,
+    "packed_active_experts": 4831838272,
+    "mem_after_deleting_bf16_active_gib": 5.041736602783203
+  },
+  "numeric": {
+    "p2e_T16_vs_bf16": {
+      "cosine": 0.9999482766001418,
+      "rel_l2": 0.010171354898923717,
+      "max_abs": 0.0625,
+      "mean_abs": 0.002709843567572534,
+      "argmax_a": 3317,
+      "argmax_b": 3317,
+      "argmax_match": true
+    },
+    "p2m_T16_vs_bf16": {
+      "cosine": 0.9999345366253016,
+      "rel_l2": 0.011443645263804309,
+      "max_abs": 0.109375,
+      "mean_abs": 0.0031149068963713944,
+      "argmax_a": 3317,
+      "argmax_b": 3317,
+      "argmax_match": true
+    },
+    "p2m_T16_vs_p2e": {
+      "cosine": 0.9999400557650643,
+      "rel_l2": 0.010954572769594061,
+      "max_abs": 0.078125,
+      "mean_abs": 0.0029603406437672675,
+      "argmax_a": 3317,
+      "argmax_b": 3317,
+      "argmax_match": true
+    },
+    "p2e_T64_vs_bf16": {
+      "cosine": 0.9999384145695068,
+      "rel_l2": 0.011141135185024005,
+      "max_abs": 0.125,
+      "mean_abs": 0.002604825858725235,
+      "argmax_a": 93052,
+      "argmax_b": 93052,
+      "argmax_match": true
+    },
+    "p2m_T64_vs_bf16": {
+      "cosine": 0.9998941415782823,
+      "rel_l2": 0.014593820067914806,
+      "max_abs": 0.15625,
+      "mean_abs": 0.003446528979111463,
+      "argmax_a": 93052,
+      "argmax_b": 93052,
+      "argmax_match": true
+    },
+    "p2m_T64_vs_p2e": {
+      "cosine": 0.9999004139117915,
+      "rel_l2": 0.01411280497810573,
+      "max_abs": 0.125,
+      "mean_abs": 0.0034684395941440016,
+      "argmax_a": 93052,
+      "argmax_b": 93052,
+      "argmax_match": true
+    }
+  },
+  "bench": {
+    "rows": [
+      {
+        "seq_len": 16,
+        "bf16_prefill_us": 115562.43133544922,
+        "p2e_hybrid_us": 88758.52966308594,
+        "p2m_block_linear_us": 74981.21643066406,
+        "p2m_vs_bf16": 1.5412184122447659,
+        "p2m_vs_p2e": 1.1837435278895736
+      },
+      {
+        "seq_len": 64,
+        "bf16_prefill_us": 185034.04235839844,
+        "p2e_hybrid_us": 174978.17993164062,
+        "p2m_block_linear_us": 162245.2850341797,
+        "p2m_vs_bf16": 1.140458672308523,
+        "p2m_vs_p2e": 1.0784792907527547
+      }
+    ],
+    "bf16_prefill": {
+      "16": {
+        "warmup": 0,
+        "iters": 1,
+        "repeats": 1,
+        "median_us": 115562.43133544922,
+        "min_us": 115562.43133544922,
+        "max_us": 115562.43133544922,
+        "all_us": [
+          115562.43133544922
+        ]
+      },
+      "64": {
+        "warmup": 0,
+        "iters": 1,
+        "repeats": 1,
+        "median_us": 185034.04235839844,
+        "min_us": 185034.04235839844,
+        "max_us": 185034.04235839844,
+        "all_us": [
+          185034.04235839844
+        ]
+      }
+    },
+    "p2e_hybrid_linear_reference": {
+      "16": {
+        "warmup": 0,
+        "iters": 1,
+        "repeats": 1,
+        "median_us": 88758.52966308594,
+        "min_us": 88758.52966308594,
+        "max_us": 88758.52966308594,
+        "all_us": [
+          88758.52966308594
+        ]
+      },
+      "64": {
+        "warmup": 0,
+        "iters": 1,
+        "repeats": 1,
+        "median_us": 174978.17993164062,
+        "min_us": 174978.17993164062,
+        "max_us": 174978.17993164062,
+        "all_us": [
+          174978.17993164062
+        ]
+      }
+    },
+    "p2m_hybrid_block_linear": {
+      "16": {
+        "warmup": 0,
+        "iters": 1,
+        "repeats": 1,
+        "median_us": 74981.21643066406,
+        "min_us": 74981.21643066406,
+        "max_us": 74981.21643066406,
+        "all_us": [
+          74981.21643066406
+        ]
+      },
+      "64": {
+        "warmup": 0,
+        "iters": 1,
+        "repeats": 1,
+        "median_us": 162245.2850341797,
+        "min_us": 162245.2850341797,
+        "max_us": 162245.2850341797,
+        "all_us": [
+          162245.2850341797
+        ]
+      }
+    }
+  },
+  "memory": {
+    "p2e_peak": {
+      "16": {
+        "before_gib": 5.041797637939453,
+        "after_gib": 5.041858673095703,
+        "peak_gib": 5.12293815612793
+      },
+      "64": {
+        "before_gib": 5.042041778564453,
+        "after_gib": 5.042285919189453,
+        "peak_gib": 5.128705024719238
+      }
+    },
+    "p2m_peak": {
+      "16": {
+        "before_gib": 5.041858673095703,
+        "after_gib": 5.041919708251953,
+        "peak_gib": 5.107476711273193
+      },
+      "64": {
+        "before_gib": 5.042224884033203,
+        "after_gib": 5.042469024658203,
+        "peak_gib": 5.115692615509033
+      }
+    }
+  },
+  "passes": {
+    "numeric": true,
+    "no_bf16_active_shadow": true,
+    "speed_vs_p2e": true,
+    "speed_vs_bf16": true,
+    "all": true
+  },
+  "notes": [
+    "P2-M combines the P2-E packed MoE opt-in path with the P2-L block linear-attn flag.",
+    "This is selected-layer full transformer prefill on synthetic hidden states, not full tokenized end-to-end prefill.",
+    "Default path remains unchanged when the opt-in flags are unset."
+  ]
+}
