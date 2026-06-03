@@ -102,3 +102,27 @@ python3 scripts/test_stage6_p3_contract_static.py
 
 This only verifies that the repo still exposes the APIs and evidence artifacts
 this contract depends on. It is not a kernel or speed test.
+
+## P3-A Runnable Probe
+
+The first runnable P3-A artifact is a contract-shaped probe, not a banked fused
+kernel:
+
+```bash
+scripts/run_spark_stage6_p3a_contract_probe.sh --layer 0 --batches 1,16,64
+```
+
+It computes active-MoE router outputs once, builds a BF16 active expert
+reference, deletes `mlp.experts.gate_up_proj` and `mlp.experts.down_proj`, then
+runs `active_moe_grouped_prefill_p3a(...)` from packed tensors only. A valid
+P3-A probe artifact must report:
+
+- `banked_fused_kernel=false`;
+- `passes.shadow_absent_at_candidate_start=true`;
+- cosine / argmax against BF16 active reference;
+- packed bytes, released BF16 bytes, inter scratch estimate, memory peak;
+- speed versus BF16 active MoE, with no promotion claim.
+
+The wrapper records remote HEAD or provenance-manifest match, Docker exit code,
+`nvidia-smi` before/after, `run.log`, and `result.json` under
+`reports/stage6/p3a_layer*_grouped_moe_contract_probe_*`.
