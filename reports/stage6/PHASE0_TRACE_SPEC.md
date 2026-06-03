@@ -84,13 +84,31 @@ See `reports/stage6/P01_NO_RELOAD_SMOKE_20260603.md`.
 The older `decode_kernel` replay mode failed token-exactness despite clean memory
 and no reload, so it remains diagnostic only.
 
-Passing P0.1 promotes the next goal:
+P0.1 promoted the resident inventory gate; P0.2 is now recorded below.
+
+## Spark Gate P0.2
+
+**Result (2026-06-03): PASSED as a resident-byte inventory gate.**
+See `reports/stage6/P02_RESIDENT_INVENTORY_20260603.md`.
+
+After the 60 GiB grouped-MoE shadow release, only **4.72 GiB** BF16 resident
+weights remain:
+
+- `linear_attn.projection`: 1.884 GiB
+- `outside.embed`: 0.947 GiB
+- `outside.lm_head`: 0.947 GiB
+- `full_attn.projection`: 0.508 GiB
+- `moe.shared_expert`: 0.391 GiB
+- `moe.router`: 0.039 GiB
+
+The script found **0.0 GiB** packed-alias candidates in the normal inventory
+mode, so further resident reductions require explicit packed-prefill / packed
+lookup paths. Router and norms are too small to lead the next phase.
 
 ## Next Engineering Phases
 
 | phase | target | gate |
 |---|---|---|
-| P0.2 | Extend proof path to projection/shared aliases without changing decode semantics | token-exact, no hidden reload, explicit list of remaining BF16 residents |
 | P1 | Replace row-loop packed linear prefill with batched packed-NVFP4 projection kernels for full-attn and linear-attn qkv/z/b/a/o | token-exact, lower prefill latency than reload+BF16, no projection BF16 shadow |
 | P2 | Replace row-loop packed MoE prefill with grouped M>1 packed expert kernels | token-exact vs BF16 MoE prefill, no MoE BF16 shadow, latency measured by prompt length |
 | P3 | Server integration: if `LYNN_PACKED_PREFILL=1`, skip per-request reload and keep 27-28 GiB steady-state | multi-request A/B: no reload, memory flat, decode TPS unchanged |

@@ -8,6 +8,7 @@
 - GitHub 战役文档: [Decode launch-overhead campaign](reports/qwen36_35b/DECODE_LAUNCH_OVERHEAD_CAMPAIGN_20260603.md)
 - Stage-6 服务能力: [Decode-only shadow-free serving recipe](reports/stage6/DECODE_ONLY_SHADOW_FREE_SERVING_RECIPE.md)
 - 下一关 contract: [Stage 6 Phase-0 packed-prefill / zero-reload](reports/stage6/PHASE0_TRACE_SPEC.md)
+- P0.2 resident inventory: [Stage 6 P0.2 resident BF16 inventory](reports/stage6/P02_RESIDENT_INVENTORY_20260603.md)
 
 ## Banked Results
 
@@ -20,6 +21,7 @@
 | 60GiB memory win | decode 阶段释放 BF16 dequant-shadow,常驻 `88 -> 28 GiB`,token-exact,TPS 0.998x |
 | 服务集成 | `server/openai_http.py` 已接 `reload -> prefill -> release -> decode` cycle 与 health metrics |
 | P0.1 no-reload proof | `stream_bf16` 模式 ALL_PASS:释放后不 reload,peak 40.28 GiB,token-exact,probe prefill 20.75s |
+| P0.2 resident inventory | release 后 BF16 resident 只剩 4.72 GiB;最大项为 linear-attn projection 1.884 GiB、embed/lm_head 各 0.947 GiB |
 
 ## Corrected Engineering Read
 
@@ -40,8 +42,8 @@
 短期 gate:
 
 1. **P0.1 packed-prefill no-reload smoke:已过。** `LYNN_PACKED_PREFILL_SLOW_MODE=stream_bf16` 证明 BF16 shadow 已释放后无需 reload 仍能从 packed NVFP4 完成 token-exact prefill;旧 `decode_kernel` replay memory-clean 但 token 不等价,仅保留诊断。
-2. **P0.2 resident inventory:** 列出 projection/shared BF16 residents,明确哪些可删、哪些会改变 decode semantics。
-3. **P1 batched packed projections:** 替换 row-loop proof,做 full-attn / linear-attn 的 batched packed-NVFP4 prefill projections。
+2. **P0.2 resident inventory:已过。** release 后 BF16 resident 只剩 4.72 GiB,排序为 projection / embed / lm_head / shared-expert;router 只有 0.039 GiB,不是第一杠杆。
+3. **P1 batched packed projections:** 替换 row-loop proof,做 full-attn / linear-attn 的 batched packed-NVFP4 prefill projections,并评估 embed/lm_head packed lookup 语义。
 4. **P2 grouped packed MoE prefill:** 写 M>1 grouped expert kernels,替换 20.75s streaming-dequant proof path并消除每请求 ~23s reload。
 5. **P3 server promotion:** `LYNN_PACKED_PREFILL=1` 后多请求服务常驻 27-28 GiB,无 reload,decode TPS 不回退。
 6. **P4 native-kernel chase:** 继续向 llama.cpp 的低 dispatch / fused ggml CUDA 路线追赶;有 FP4-MMA 硅时兑现 NVFP4 native moat。
