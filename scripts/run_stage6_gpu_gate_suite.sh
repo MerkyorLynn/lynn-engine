@@ -25,6 +25,7 @@ Options:
   --skip-p3a                   Skip P3-A grouped-MoE contract probe.
   --skip-p3b                   Skip P3-B selected-prefill composition gate.
   --skip-p3c                   Skip P3-C resident-prompt gate.
+  --skip-p3d                   Skip P3-D OpenAI server RC smoke gate.
   --p2o-max-new N              P2-O generated tokens. Default: 8.
   --p2o-max-seq-len N          P2-O max_seq_len. Default: 2048.
   --p3a-layer N                P3-A layer. Default: 0.
@@ -32,6 +33,7 @@ Options:
   --p3b-layers SPEC            P3-B layer spec. Default: 0-3.
   --p3b-tokens CSV             P3-B sequence lengths. Default: 16,64.
   --p3c-preset basic|rc-mini   P3-C prompt preset. Default: basic.
+  --p3d-preset basic|rc-mini   P3-D prompt preset. Default: basic.
   -h, --help                   Show this help.
 
 Environment overrides:
@@ -69,6 +71,7 @@ RUN_P2O_RC_MINI="1"
 RUN_P3A="1"
 RUN_P3B="1"
 RUN_P3C="1"
+RUN_P3D="1"
 P2O_MAX_NEW="8"
 P2O_MAX_SEQ_LEN="2048"
 P3A_LAYER="0"
@@ -76,6 +79,7 @@ P3A_BATCHES="1,16,64"
 P3B_LAYERS="0-3"
 P3B_TOKENS="16,64"
 P3C_PRESET="basic"
+P3D_PRESET="basic"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -135,6 +139,10 @@ while [[ $# -gt 0 ]]; do
       RUN_P3C="0"
       shift
       ;;
+    --skip-p3d)
+      RUN_P3D="0"
+      shift
+      ;;
     --p2o-max-new)
       P2O_MAX_NEW="$2"
       shift 2
@@ -161,6 +169,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --p3c-preset)
       P3C_PRESET="$2"
+      shift 2
+      ;;
+    --p3d-preset)
+      P3D_PRESET="$2"
       shift 2
       ;;
     -h|--help)
@@ -242,6 +254,7 @@ P2O_BASIC_STATUS="SKIP"
 P2O_RC_MINI_STATUS="SKIP"
 P3A_STATUS="SKIP"
 P3B_STATUS="SKIP"
+P3C_STATUS="SKIP"
 if [[ "$RUN_P2O_BASIC" == "1" ]]; then
   run_step "p2o-basic" \
     scripts/run_spark_stage6_p2o_rc_smoke.sh \
@@ -304,19 +317,39 @@ fi
 
 if [[ "$RUN_P3C" == "1" ]]; then
   if [[ "$DRY_RUN" == "1" || ( "$STRICT" == "1" && "$P3B_STATUS" == "PASS" ) ]]; then
-    run_step "p3c-resident-prompt" \
-      scripts/run_spark_stage6_p3c_resident_prompt_gate.sh \
-        "${common_args[@]}" \
-        --preset "$P3C_PRESET" \
-        --max-new "$P2O_MAX_NEW" \
-        --max-seq-len "$P2O_MAX_SEQ_LEN" \
-        --p3b-pass && true || failures=$((failures + 1))
+	    run_step "p3c-resident-prompt" \
+	      scripts/run_spark_stage6_p3c_resident_prompt_gate.sh \
+	        "${common_args[@]}" \
+	        --preset "$P3C_PRESET" \
+	        --max-new "$P2O_MAX_NEW" \
+	        --max-seq-len "$P2O_MAX_SEQ_LEN" \
+	        --p3b-pass && P3C_STATUS="PASS" || {
+	      P3C_STATUS="FAIL"
+	      failures=$((failures + 1))
+	    }
   else
     echo "[suite] p3c-resident-prompt: skipped because strict P3-B PASS evidence is unavailable"
     printf '%s\t%s\t%s\n' "p3c-resident-prompt" "SKIP" "0" >> "$STATUS_TSV"
   fi
 else
   printf '%s\t%s\t%s\n' "p3c-resident-prompt" "SKIP" "0" >> "$STATUS_TSV"
+fi
+
+if [[ "$RUN_P3D" == "1" ]]; then
+  if [[ "$DRY_RUN" == "1" || ( "$STRICT" == "1" && "$P3C_STATUS" == "PASS" ) ]]; then
+    run_step "p3d-server-rc" \
+      scripts/run_spark_stage6_p3d_server_rc_gate.sh \
+        "${common_args[@]}" \
+        --preset "$P3D_PRESET" \
+        --max-new "$P2O_MAX_NEW" \
+        --max-seq-len "$P2O_MAX_SEQ_LEN" \
+        --p3c-pass && true || failures=$((failures + 1))
+  else
+    echo "[suite] p3d-server-rc: skipped because strict P3-C PASS evidence is unavailable"
+    printf '%s\t%s\t%s\n' "p3d-server-rc" "SKIP" "0" >> "$STATUS_TSV"
+  fi
+else
+  printf '%s\t%s\t%s\n' "p3d-server-rc" "SKIP" "0" >> "$STATUS_TSV"
 fi
 
 {
