@@ -75,6 +75,33 @@ DEFAULT_PROMPTS = [
 ]
 
 
+def _long_context_prompt() -> str:
+    filler = "\n".join(
+        f"Context line {i:04d}: keep reading; the answer key is not on this line."
+        for i in range(220)
+    )
+    return (
+        "You are testing long-context retrieval. The secret code is LYNN-ZERO-SHADOW-42.\n"
+        f"{filler}\n"
+        "Question: answer with only the secret code."
+    )
+
+
+def _prompt_preset(name: str) -> list[str]:
+    if name == "basic":
+        return list(DEFAULT_PROMPTS)
+    if name == "rc-mini":
+        return [
+            "Answer exactly and briefly: 17 + 25 = ?",
+            "Return compact JSON only with keys tool and arguments for a weather lookup in Shanghai.",
+            "Write a tiny Python function named add_one that returns x + 1.",
+            "用一句中文解释为什么水会结冰。",
+            "V9 prompt-format smoke: reply with exactly two bullet points about Lynn engine.",
+            _long_context_prompt(),
+        ]
+    raise ValueError(f"unknown prompt preset: {name}")
+
+
 def _norm(text: str) -> str:
     return re.sub(r"\s+", " ", (text or "").strip().lower())
 
@@ -156,11 +183,12 @@ def main() -> None:
     ap.add_argument("--max-seq-len", type=int, default=2048)
     ap.add_argument("--json-out", default="")
     ap.add_argument("--prompts-json", default="")
+    ap.add_argument("--preset", choices=("basic", "rc-mini"), default="basic")
     args = ap.parse_args()
 
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA is required")
-    prompts = DEFAULT_PROMPTS
+    prompts = _prompt_preset(args.preset)
     if args.prompts_json:
         prompts = json.loads(Path(args.prompts_json).read_text())
 
@@ -215,6 +243,7 @@ def main() -> None:
     result = {
         "schema": "lynn-stage6-p2o-packed-prefill-rc-smoke-v1",
         "model": args.model,
+        "preset": args.preset,
         "max_new": args.max_new,
         "env": {
             **BASE_ENV,
