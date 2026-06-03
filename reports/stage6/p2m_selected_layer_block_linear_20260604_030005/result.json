@@ -1,0 +1,222 @@
+{
+  "schema": "lynn-stage6-p2m-selected-layer-block-linear-smoke-v1",
+  "model": "/home/merkyor/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-from-bf16-20260526",
+  "layers": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "layer_types": [
+    "linear_attention",
+    "linear_attention",
+    "linear_attention",
+    "full_attention"
+  ],
+  "seed": 20260604,
+  "seq_lens": [
+    16,
+    64
+  ],
+  "env": {
+    "LYNN_PACKED_PREFILL_SLOW_MODE": "p2e_hybrid",
+    "LYNN_LINEAR_ATTN_PREFILL_BLOCK_GQA": "1",
+    "LYNN_PACKED_PREFILL_P2E_LAYERS": "0,1,2,3"
+  },
+  "shape": {
+    "hidden": 2048,
+    "num_experts": 256,
+    "top_k": 8
+  },
+  "bytes": {
+    "bf16_active_experts": 6442450944,
+    "packed_active_experts": 2415919136,
+    "mem_after_deleting_bf16_active_gib": 2.5251412391662598
+  },
+  "numeric": {
+    "p2e_T16_vs_bf16": {
+      "cosine": 0.9999830266040741,
+      "rel_l2": 0.005827926354859107,
+      "max_abs": 0.046875,
+      "mean_abs": 0.001407503616064787,
+      "argmax_a": 23797,
+      "argmax_b": 23797,
+      "argmax_match": true
+    },
+    "p2m_T16_vs_bf16": {
+      "cosine": 0.9999791852074875,
+      "rel_l2": 0.006454828157456241,
+      "max_abs": 0.03515625,
+      "mean_abs": 0.0016887588426470757,
+      "argmax_a": 23797,
+      "argmax_b": 23797,
+      "argmax_match": true
+    },
+    "p2m_T16_vs_p2e": {
+      "cosine": 0.9999763769151685,
+      "rel_l2": 0.006882129202254879,
+      "max_abs": 0.0625,
+      "mean_abs": 0.001797444187104702,
+      "argmax_a": 23797,
+      "argmax_b": 23797,
+      "argmax_match": true
+    },
+    "p2e_T64_vs_bf16": {
+      "cosine": 0.999979045059807,
+      "rel_l2": 0.006474305652091579,
+      "max_abs": 0.0390625,
+      "mean_abs": 0.0015113078407011926,
+      "argmax_a": 77045,
+      "argmax_b": 77045,
+      "argmax_match": true
+    },
+    "p2m_T64_vs_bf16": {
+      "cosine": 0.9999491846441616,
+      "rel_l2": 0.010081087143216207,
+      "max_abs": 0.0703125,
+      "mean_abs": 0.0023604859015904367,
+      "argmax_a": 77045,
+      "argmax_b": 77045,
+      "argmax_match": true
+    },
+    "p2m_T64_vs_p2e": {
+      "cosine": 0.9999533053257247,
+      "rel_l2": 0.009664048961009536,
+      "max_abs": 0.0703125,
+      "mean_abs": 0.0023085393477231264,
+      "argmax_a": 77045,
+      "argmax_b": 77045,
+      "argmax_match": true
+    }
+  },
+  "bench": {
+    "rows": [
+      {
+        "seq_len": 16,
+        "bf16_prefill_us": 57400.638580322266,
+        "p2e_hybrid_us": 45105.857849121094,
+        "p2m_block_linear_us": 39116.48178100586,
+        "p2m_vs_bf16": 1.4674284589723714,
+        "p2m_vs_p2e": 1.1531164306045425
+      },
+      {
+        "seq_len": 64,
+        "bf16_prefill_us": 93593.94836425781,
+        "p2e_hybrid_us": 90594.0170288086,
+        "p2m_block_linear_us": 84256.98852539062,
+        "p2m_vs_bf16": 1.110815257016378,
+        "p2m_vs_p2e": 1.0752107168120342
+      }
+    ],
+    "bf16_prefill": {
+      "16": {
+        "warmup": 0,
+        "iters": 1,
+        "repeats": 1,
+        "median_us": 57400.638580322266,
+        "min_us": 57400.638580322266,
+        "max_us": 57400.638580322266,
+        "all_us": [
+          57400.638580322266
+        ]
+      },
+      "64": {
+        "warmup": 0,
+        "iters": 1,
+        "repeats": 1,
+        "median_us": 93593.94836425781,
+        "min_us": 93593.94836425781,
+        "max_us": 93593.94836425781,
+        "all_us": [
+          93593.94836425781
+        ]
+      }
+    },
+    "p2e_hybrid_linear_reference": {
+      "16": {
+        "warmup": 0,
+        "iters": 1,
+        "repeats": 1,
+        "median_us": 45105.857849121094,
+        "min_us": 45105.857849121094,
+        "max_us": 45105.857849121094,
+        "all_us": [
+          45105.857849121094
+        ]
+      },
+      "64": {
+        "warmup": 0,
+        "iters": 1,
+        "repeats": 1,
+        "median_us": 90594.0170288086,
+        "min_us": 90594.0170288086,
+        "max_us": 90594.0170288086,
+        "all_us": [
+          90594.0170288086
+        ]
+      }
+    },
+    "p2m_hybrid_block_linear": {
+      "16": {
+        "warmup": 0,
+        "iters": 1,
+        "repeats": 1,
+        "median_us": 39116.48178100586,
+        "min_us": 39116.48178100586,
+        "max_us": 39116.48178100586,
+        "all_us": [
+          39116.48178100586
+        ]
+      },
+      "64": {
+        "warmup": 0,
+        "iters": 1,
+        "repeats": 1,
+        "median_us": 84256.98852539062,
+        "min_us": 84256.98852539062,
+        "max_us": 84256.98852539062,
+        "all_us": [
+          84256.98852539062
+        ]
+      }
+    }
+  },
+  "memory": {
+    "p2e_peak": {
+      "16": {
+        "before_gib": 2.5252022743225098,
+        "after_gib": 2.5252633094787598,
+        "peak_gib": 2.6063427925109863
+      },
+      "64": {
+        "before_gib": 2.5254464149475098,
+        "after_gib": 2.5256905555725098,
+        "peak_gib": 2.612109661102295
+      }
+    },
+    "p2m_peak": {
+      "16": {
+        "before_gib": 2.5252633094787598,
+        "after_gib": 2.5253243446350098,
+        "peak_gib": 2.59088134765625
+      },
+      "64": {
+        "before_gib": 2.5256295204162598,
+        "after_gib": 2.5258736610412598,
+        "peak_gib": 2.59909725189209
+      }
+    }
+  },
+  "passes": {
+    "numeric": true,
+    "no_bf16_active_shadow": true,
+    "speed_vs_p2e": true,
+    "speed_vs_bf16": true,
+    "all": true
+  },
+  "notes": [
+    "P2-M combines the P2-E packed MoE opt-in path with the P2-L block linear-attn flag.",
+    "This is selected-layer full transformer prefill on synthetic hidden states, not full tokenized end-to-end prefill.",
+    "Default path remains unchanged when the opt-in flags are unset."
+  ]
+}

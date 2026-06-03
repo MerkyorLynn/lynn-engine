@@ -525,3 +525,13 @@
   - **Latency:** T512 **2.18 ms** vs reference **5.58 ms** (**2.56x**); T128 **0.90 ms** vs **3.37 ms** (**3.74x**).
   - **Decision:** bank P2-L as an opt-in layer-level pass. Next gate P2-M should rerun selected-layer/full-prefill smoke with
     the block linear-attn flag plus existing P2-E MoE opt-in before server/default promotion.
+- **✅ STAGE 6 step 24 — P2-M selected-layer full-prefill smoke PASSED.**
+  `scripts/spark_stage6_p2m_selected_layer_block_linear_smoke.py` runs real layers 0-3 through `_prefill_layer` with both
+  `LYNN_PACKED_PREFILL_SLOW_MODE=p2e_hybrid` and `LYNN_LINEAR_ATTN_PREFILL_BLOCK_GQA=1`.
+  - **Numeric:** P2M vs BF16 / P2E comparisons pass with min cosine **0.999949185**, max rel_l2 **0.010081087**, and
+    argmax match.
+  - **Latency:** T16 **39.12 ms** vs BF16 **57.40 ms** (**1.467x**) and P2E-only **45.11 ms** (**1.153x**);
+    T64 **84.26 ms** vs BF16 **93.59 ms** (**1.111x**) and P2E-only **90.59 ms** (**1.075x**).
+  - **Memory:** active BF16 expert shadows deleted (**6.000 GiB**); P2M peak T64 **2.599 GiB**.
+  - **Decision:** bank P2-M. Next gate P2-N should expand layer coverage, then run RC/server-promotion smoke before any
+    default-path decision.
