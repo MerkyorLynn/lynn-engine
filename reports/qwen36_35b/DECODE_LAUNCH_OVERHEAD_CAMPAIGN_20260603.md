@@ -62,6 +62,22 @@
   bit-exact design held). Small (~60 launches, only 10 full-attn layers) but free + exact +
   stacks. **Key learning: the NORMS were ~half the launch overhead** (RMSNorm +8.7%); the
   rest is distributed across smaller clusters → next-biggest is the shared expert.
-- **▶ STAGE 2 — shared-expert fusion** (codex drafted; dispatching claude-internal to
-  self-implement, ~160-200 launches/tok, the biggest remaining cut). Then Stage 3 =
-  linear-attn micro-ops (38 layers) / router. Stacked best so far ≈ **42.5 TPS**.
+- **✅ STAGE 2 — shared-expert fusion (claude-internal): +2.8% (42.38→43.54), coherent.**
+  fused gate_up→SwiGLU→down→gate→add, gated `LYNN_SHARED_EXPERT_FUSED=1`, BF16-only, fallback.
+- **SCOREBOARD (4 verified launch-cuts): 36 → 43.5 TPS (+21%), 62% to llama.cpp 70.**
+  bh4 +11% / RMSNorm +8.7% / full-attn +0.6% (exact) / shared-expert +2.8%. All gated/committed.
+- **✅ RC QUALITY GATE — the fused stack is BEHAVIORALLY IDENTICAL to baseline.**
+  `scripts/spark_rc_quality_regression.py`: baseline (3 fusions OFF) vs fused (ON), same-process,
+  greedy, 40 diverse prompts (structured / V9 math / GPQA / tool-call / long-form). Result:
+  **40/40 identical-greedy outputs** (struct 12/12, v9 8/8, gpqa 10/10, tool 8/8, long 2/2);
+  every per-suite score identical OFF-vs-ON; TPS 39.1→42.4 (+8.6%) re-confirmed in-run.
+  `RC_QUALITY_PRESERVED=True` — the non-bit-identical reduction-order deltas do NOT flip greedy
+  tokens across the battery → ZERO silent capability drop. *Caveat:* absolute struct 0/12 + v9 0/8
+  are no_think/template harness artifacts (EQUAL for both configs) — this run proves EQUIVALENCE,
+  not absolute model quality; a thinking-on absolute eval (served endpoint) is a separate task.
+  Ran in docker `lynn-eval-base:cu13` w/ `PYTHONNOUSERSITE=1` (mounted ~/.local hf-hub 1.12 shadowed transformers).
+- **▶ STAGE 3 (next, per user-set priority): linear-attn micro-op fusion** (38 layers, LOWER
+  risk than router). Router DEFERRED behind hard gates (expert-id/top-k/logits-cos parity +
+  token-divergence first-error + MMLU/GPQA/V8/V9 smoke). Stage-3 target 43.5→**47-50 stable**;
+  70 is the campaign target, NOT the Stage-3 acceptance line. Stacked best = **43.5 TPS**
+  (RC-validated — promotable to default candidate).
