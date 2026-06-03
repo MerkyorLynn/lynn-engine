@@ -116,6 +116,58 @@ if HAS_TRITON:
         tl.store(out_ptr + head * HEAD_V + offs_v, out)
 
     @triton.jit
+    def _recurrent_block_gqa_kernel(
+        q_ptr,
+        k_ptr,
+        v_ptr,
+        g_ptr,
+        beta_ptr,
+        s_prev_ptr,
+        out_ptr,
+        s_new_ptr,
+        BLOCK_K: tl.constexpr,
+        BLOCK_V: tl.constexpr,
+        HEAD_V: tl.constexpr,
+        NUM_K: tl.constexpr,
+        NUM_V: tl.constexpr,
+        V_PER_K: tl.constexpr,
+        T: tl.constexpr,
+    ):
+        # P2-KB lower-bound: move the P2-KA host loop over T tokens into one
+        # Triton launch. This keeps the exact recurrent update used by decode;
+        # it is not the HF chunk triangular algorithm.
+        head = tl.program_id(0)
+        kv_head = head // V_PER_K
+        v_block = tl.program_id(1)
+        offs_k = tl.arange(0, BLOCK_K)
+        offs_v = v_block * BLOCK_V + tl.arange(0, BLOCK_V)
+
+        s_offsets = head * BLOCK_K * HEAD_V + offs_k[:, None] * HEAD_V + offs_v[None, :]
+        s = tl.load(s_prev_ptr + s_offsets).to(tl.float32)
+
+        for t in tl.range(0, T):
+            q_base = (t * NUM_K + kv_head) * BLOCK_K
+            v_base = (t * NUM_V + head) * HEAD_V
+            q_raw = tl.load(q_ptr + q_base + offs_k).to(tl.float32)
+            k_raw = tl.load(k_ptr + q_base + offs_k).to(tl.float32)
+            q_norm = tl.rsqrt(tl.sum(q_raw * q_raw, axis=0) + 1.0e-6)
+            k_norm = tl.rsqrt(tl.sum(k_raw * k_raw, axis=0) + 1.0e-6)
+            q = q_raw * q_norm * 0.08838834764831845
+            k_val = k_raw * k_norm
+            v_val = tl.load(v_ptr + v_base + offs_v).to(tl.float32)
+            g_exp = tl.exp(tl.load(g_ptr + t * NUM_V + head).to(tl.float32))
+            beta_val = tl.load(beta_ptr + t * NUM_V + head).to(tl.float32)
+
+            s_decay = s * g_exp
+            kv_mem = tl.sum(s_decay * k_val[:, None], axis=0)
+            delta = (v_val - kv_mem) * beta_val
+            s = s_decay + k_val[:, None] * delta[None, :]
+            out = tl.sum(s * q[:, None], axis=0)
+            tl.store(out_ptr + v_base + offs_v, out)
+
+        tl.store(s_new_ptr + s_offsets, s)
+
+    @triton.jit
     def _recurrent_fused_prepare_from_outconv_gqa_kernel(
         out_conv_ptr,
         g_ptr,
@@ -358,6 +410,65 @@ def recurrent_gated_delta_fused_prepare_gqa(
         num_warps=4,
     )
     return out.reshape(1, 1, NUM_V_HEADS, HEAD_V_DIM).to(initial_dtype), s_new
+
+
+def recurrent_gated_delta_block_gqa(
+    q: torch.Tensor,
+    k: torch.Tensor,
+    v: torch.Tensor,
+    g: torch.Tensor,
+    beta: torch.Tensor,
+    s_prev: torch.Tensor,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Block recurrent GQA update for prefill experiments.
+
+    This is the P2-KB minimum viable true-kernel candidate. It runs the same
+    per-token recurrence as ``recurrent_gated_delta_fused_prepare_gqa`` but
+    loops over the full sequence inside one Triton launch instead of launching
+    once per token from Python.
+
+    Shapes:
+      q/k:   [B=1, T, 16, 128]
+      v:     [B=1, T, 32, 128]
+      g/beta:[B=1, T, 32]
+      state: [B=1, 32, 128, 128] FP32
+    """
+    _require_triton()
+    if q.ndim != 4 or q.shape[0] != 1 or q.shape[2:] != (NUM_K_HEADS, HEAD_K_DIM):
+        raise ValueError(f"q shape must be [1,T,{NUM_K_HEADS},{HEAD_K_DIM}], got {tuple(q.shape)}")
+    t_len = int(q.shape[1])
+    if t_len <= 0:
+        raise ValueError("T must be positive")
+    if k.shape != q.shape or v.shape != (1, t_len, NUM_V_HEADS, HEAD_V_DIM):
+        raise ValueError(f"unexpected k/v shape: k={tuple(k.shape)} v={tuple(v.shape)}")
+    if g.shape != (1, t_len, NUM_V_HEADS) or beta.shape != (1, t_len, NUM_V_HEADS):
+        raise ValueError(f"unexpected g/beta shape: g={tuple(g.shape)} beta={tuple(beta.shape)}")
+    if s_prev.shape != (1, NUM_V_HEADS, HEAD_K_DIM, HEAD_V_DIM):
+        raise ValueError(f"state shape must be [1,{NUM_V_HEADS},{HEAD_K_DIM},{HEAD_V_DIM}], got {tuple(s_prev.shape)}")
+
+    initial_dtype = q.dtype
+    out = torch.empty((1, t_len, NUM_V_HEADS, HEAD_V_DIM), device=q.device, dtype=initial_dtype)
+    inplace_state = os.environ.get("LYNN_LINEAR_ATTN_RECURRENT_INPLACE", "0") == "1"
+    s_new = s_prev if inplace_state else torch.empty_like(s_prev)
+    _recurrent_block_gqa_kernel[(NUM_V_HEADS, 4)](
+        q.contiguous().reshape(t_len, NUM_K_HEADS, HEAD_K_DIM),
+        k.contiguous().reshape(t_len, NUM_K_HEADS, HEAD_K_DIM),
+        v.contiguous().reshape(t_len, NUM_V_HEADS, HEAD_V_DIM),
+        g.contiguous().reshape(t_len, NUM_V_HEADS),
+        beta.contiguous().reshape(t_len, NUM_V_HEADS),
+        s_prev.contiguous().reshape(NUM_V_HEADS, HEAD_K_DIM, HEAD_V_DIM),
+        out.reshape(t_len, NUM_V_HEADS, HEAD_V_DIM),
+        s_new.reshape(NUM_V_HEADS, HEAD_K_DIM, HEAD_V_DIM),
+        BLOCK_K=HEAD_K_DIM,
+        BLOCK_V=32,
+        HEAD_V=HEAD_V_DIM,
+        NUM_K=NUM_K_HEADS,
+        NUM_V=NUM_V_HEADS,
+        V_PER_K=2,
+        T=t_len,
+        num_warps=4,
+    )
+    return out, s_new
 
 
 def recurrent_gated_delta_fused_prepare_from_outconv_gqa(
