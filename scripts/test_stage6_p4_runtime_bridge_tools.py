@@ -43,6 +43,18 @@ def pass_fixture() -> dict:
         "expected_backend": "fused_zero_shadow_out_contract",
         "expected_reference": "caller-owned two-stage packed-NVFP4 active-MoE reference",
         "native_layer_selected_for_candidate": True,
+        "native_backend_call_count": {
+            "key": "_p4_fused_zero_shadow_out_contract_call_count",
+            "before": 0,
+            "after": 1,
+            "delta": 1,
+            "last_shapes": {
+                "hidden": [1, 2048],
+                "expert_ids": [1, 8],
+                "inter_scratch": [1, 8, 512],
+                "out": [1, 2048],
+            },
+        },
         "banked_runtime_bridge_preflight": True,
         "banked_fused_kernel": False,
         "banked_default_promotion": False,
@@ -79,6 +91,7 @@ def pass_fixture() -> dict:
         "passes": {
             "cuda_available": True,
             "native_layer_selected": True,
+            "native_backend_called": True,
             "baseline_triton_nonzero": True,
             "baseline_shape_dtype": True,
             "packed_tensors_present": True,
@@ -147,6 +160,18 @@ def native_selection_fail_fixture() -> dict:
     return data
 
 
+def native_call_fail_fixture() -> dict:
+    data = pass_fixture()
+    data["banked_runtime_bridge_preflight"] = False
+    data["native_backend_call_count"] = dict(data["native_backend_call_count"])
+    data["native_backend_call_count"]["after"] = 0
+    data["native_backend_call_count"]["delta"] = 0
+    data["passes"] = dict(data["passes"])
+    data["passes"]["native_backend_called"] = False
+    data["passes"]["all"] = False
+    return data
+
+
 def main() -> int:
     with tempfile.TemporaryDirectory() as tmp_s:
         tmp = Path(tmp_s)
@@ -156,12 +181,14 @@ def main() -> int:
         packed_fail_json = tmp / "packed_fail.json"
         scratch_fail_json = tmp / "scratch_fail.json"
         native_selection_fail_json = tmp / "native_selection_fail.json"
+        native_call_fail_json = tmp / "native_call_fail.json"
         write_json(pass_json, pass_fixture())
         write_json(shadow_fail_json, shadow_fail_fixture())
         write_json(promotion_fail_json, promotion_fail_fixture())
         write_json(packed_fail_json, packed_manifest_fail_fixture())
         write_json(scratch_fail_json, scratch_fail_fixture())
         write_json(native_selection_fail_json, native_selection_fail_fixture())
+        write_json(native_call_fail_json, native_call_fail_fixture())
 
         run([
             sys.executable,
@@ -186,6 +213,7 @@ def main() -> int:
         assert "Banked fused kernel | `False`" in pass_summary.stdout
         assert "Active scratch present | `True`" in pass_summary.stdout
         assert "Native layer selected | `True`" in pass_summary.stdout
+        assert "Native backend call delta | `1`" in pass_summary.stdout
         assert "Active shadows removed | `True`" in pass_summary.stdout
         assert "Candidate output returned | `True`" in pass_summary.stdout
 
@@ -228,6 +256,14 @@ def main() -> int:
             "--strict-exit",
         ], expect=2)
         assert "runtime bridge preflight was not banked" in native_selection_fail.stdout
+
+        native_call_fail = run([
+            sys.executable,
+            "scripts/summarize_stage6_p4_runtime_bridge_preflight.py",
+            str(native_call_fail_json),
+            "--strict-exit",
+        ], expect=2)
+        assert "runtime bridge preflight was not banked" in native_call_fail.stdout
 
     print("P4 runtime bridge tooling self-test PASS")
     return 0

@@ -11,8 +11,8 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 
 | Field | Value |
 |---|---|
-| Status | `BLOCKED_BY_SSH` |
-| Note | dgx-spark and dgx-via-ssh returned Connection refused during this 2026-06-04 continuation; P4 runtime remains unbanked until a Spark artifact passes. |
+| Status | `BLOCKED_BY_SPARK_SSH` |
+| Note | FRP ssh-dgx closed at 2026-06-04 04:45:23 CST; jump ports 2222/2224 are not listening; N5 can reach Spark 192.168.100.26:22 at TCP/ping level but SSH banner exchange times out. See reports/stage6/SPARK_CONNECTIVITY_DIAGNOSTIC_20260604.md. |
 
 ## Promotion Boundaries
 

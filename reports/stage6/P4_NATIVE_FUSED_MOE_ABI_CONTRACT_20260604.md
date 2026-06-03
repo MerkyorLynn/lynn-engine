@@ -80,8 +80,10 @@ False-pass guard: `fused_zero_shadow_out_contract` is not allowed to fall
 through the generic Triton two-stage backend set. If the requested layer does
 not match `LYNN_NATIVE_ACTIVE_MOE_LAYERS`, the dispatch path must fail loudly.
 The runtime bridge preflight records `native_layer_selected_for_candidate=true`
-and the summarizer treats that as a hard gate before banking
-`PASS_TWO_STAGE_RUNTIME_BRIDGE`.
+and requires `_p4_fused_zero_shadow_out_contract_call_count` to advance exactly
+once. The summarizer treats both as hard gates before banking
+`PASS_TWO_STAGE_RUNTIME_BRIDGE`, so a packed/no-shadow Triton fallback cannot
+masquerade as native P4 bridge evidence.
 
 ## GPU Preflight
 
