@@ -12,6 +12,7 @@
 - P1 dense projection PoC: [Stage 6 Phase 1 single dense projection PoC](reports/stage6/P1_DENSE_PROJECTION_POC_20260604.md)
 - P1-A batched projection result: [Stage 6 Phase 1-A batched projection PoC](reports/stage6/P1A_BATCHED_PROJECTION_POC_20260604.md)
 - P1-A tiled projection sweep: [Stage 6 Phase 1-A tiled projection sweep](reports/stage6/P1A_TILED_PROJECTION_SWEEP_20260604.md)
+- P2 grouped MoE prefill census: [Stage 6 Phase 2 grouped MoE prefill census](reports/stage6/P2_GROUPED_MOE_PREFILL_CENSUS_20260604.md)
 
 ## Banked Results
 
@@ -28,6 +29,7 @@
 | P1 single dense projection | 真实 `linear_attn.in_proj_qkv` packed Triton matvec ALL_PASS:32.00->10.00 MiB,cos=1.0,no BF16 shadow,160.29us vs BF16 190.03us(1.186x) |
 | P1-A naive batched projection | numeric/no-shadow PASS,但 M>1 perf FAIL:M=4/16/64 仅 0.260x/0.067x/0.016x;不 promote |
 | P1-A tiled scalar projection | numeric/no-shadow PASS,最多 25.93x 快于 naive,但仍输 BF16 GEMM:M=16 best 0.742x、M=64 best 0.359x;不 promote |
+| P2 grouped MoE census | 单层 `stream_bf16` 精确但 0.49-0.51s/layer;small-M verifier peak 0.70GiB 但仍慢 BF16;下一步是真 routed grouped MoE prefill kernel |
 
 ## Corrected Engineering Read
 
@@ -51,9 +53,10 @@
 2. **P0.2 resident inventory:已过。** release 后 BF16 resident 只剩 4.72 GiB,排序为 projection / embed / lm_head / shared-expert;router 只有 0.039 GiB,不是第一杠杆。
 3. **P1 single dense projection:已过。** 真实 `linear_attn.in_proj_qkv` 从 packed E2M1 + FP16 scale 直接跑 Triton matvec,numeric/no-shadow/microbench 全过。
 4. **P1-A naive + tiled scalar batched projection:已反证。** 两版都数值正确且不读 BF16 shadow,但 M>1 仍输 BF16 tensor-core GEMM;dense M>1 若继续追,必须换 native FP4-MMA/CUTLASS-style bridge。
-5. **P2 grouped packed MoE prefill:** 写 M>1 grouped expert kernels,替换 20.75s streaming-dequant proof path并消除每请求 ~23s reload。
-6. **P3 server promotion:** `LYNN_PACKED_PREFILL=1` 后多请求服务常驻 27-28 GiB,无 reload,decode TPS 不回退。
-7. **P4 native-kernel chase:** 继续向 llama.cpp 的低 dispatch / fused ggml CUDA 路线追赶;有 FP4-MMA 硅时兑现 NVFP4 native moat。
+5. **P2 grouped MoE census:已过。** 单层实测把 20.75s no-reload proof 的主耗时钉死在 `stream_bf16` 全层临时 dequant;small-M verifier 证明 selected-expert 路径可低内存但仍慢。
+6. **P2 routed grouped packed MoE prefill:** 写 M>1 grouped expert kernels,替换 20.75s streaming-dequant proof path并消除每请求 ~23s reload。
+7. **P3 server promotion:** `LYNN_PACKED_PREFILL=1` 后多请求服务常驻 27-28 GiB,无 reload,decode TPS 不回退。
+8. **P4 native-kernel chase:** 继续向 llama.cpp 的低 dispatch / fused ggml CUDA 路线追赶;有 FP4-MMA 硅时兑现 NVFP4 native moat。
 
 ## Relation To 2026-05-20 Notes
 
