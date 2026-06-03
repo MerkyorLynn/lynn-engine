@@ -259,6 +259,17 @@ def collect_gates() -> list[Gate]:
             ["reports/stage6/P4_NATIVE_FUSED_MOE_ABI_CONTRACT_20260604.md", "scripts/run_spark_stage6_p4_runtime_bridge_preflight.sh"],
             "Run on Spark; must prove native layer selection and no fallback.",
         ),
+        _ready_gate(
+            "p4b_single_kernel_preflight",
+            "P4B single-kernel fail-loud preflight",
+            [
+                "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md",
+                "scripts/run_spark_stage6_p4b_single_kernel_preflight.sh",
+                "scripts/spark_stage6_p4b_single_kernel_preflight.py",
+                "scripts/summarize_stage6_p4b_single_kernel_preflight.py",
+            ],
+            "Run on Spark; may bank fail-loud single-kernel contract preflight only, not fused-kernel speed.",
+        ),
         _contract_gate(
             "p4b_single_kernel_contract",
             "P4B true fused single-kernel ABI",

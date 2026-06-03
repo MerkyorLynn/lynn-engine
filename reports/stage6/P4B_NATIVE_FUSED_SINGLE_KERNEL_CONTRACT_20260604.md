@@ -69,6 +69,7 @@ exists.
 
 ```bash
 python3 scripts/test_stage6_p4b_single_kernel_static.py
+python3 scripts/test_stage6_p4b_single_kernel_evidence_tools.py
 ```
 
 The static gate checks:
@@ -81,6 +82,27 @@ The static gate checks:
 - C++ P4B function body does not call the two-stage
   `lynn_native_active_moe_grouped_per16_nonatomic_out_reference`;
 - fail-loud message is present.
+
+## Spark Preflight
+
+```bash
+scripts/run_spark_stage6_p4b_single_kernel_preflight.sh \
+  --host dgx-spark \
+  --image lynn-eval-base:cu13 \
+  --expect-head "$(git rev-parse HEAD)"
+```
+
+Expected decision while P4B is still unimplemented:
+
+```text
+PASS_SINGLE_KERNEL_FAILLOUD_CONTRACT
+```
+
+This banks only `banked_single_kernel_contract_preflight=true`. It must keep
+`banked_fused_kernel=false` and `banked_default_promotion=false`. A returned
+output is a failure until the real fused CUDA/CUTLASS implementation is present
+and a new byte-count/numeric/speed/RC gate replaces this fail-loud contract
+gate.
 
 ## Promotion Gate
 
