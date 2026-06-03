@@ -239,3 +239,18 @@
   - **NEXT (cheap, decides the graph bet):** measure `LYNN_REUSABLE_DECODE_GRAPH=1` e2e TPS vs 44.68 on the NVFP4 stack
     (infra exists; the +10% was FP8, NVFP4 delta is UNMEASURED). >+15% → graph is worth it; ≈+10% → accept ~45-50 + the
     60 GiB decode-only memory win, and move kernel work to R6000. **No new kernel until this number exists.**
+- **✅ STAGE 6 step 3 — FINAL: the graph bet is NET-NEGATIVE; Spark NVFP4 decode is at its STRUCTURAL CEILING.**
+  `spark_stage6_reusable_graph_ab.py`: baseline **44.60** → `LYNN_REUSABLE_DECODE_GRAPH=1` **33.46 TPS = 0.750×**, coherent.
+  The reusable graph is a **−25% REGRESSION** (not the FP8 +10%): `LYNN_FULL_ATTN_FIXED_SHAPE` reads the full KV cache via
+  masked SDPA every token + graph-safe MoE dispatch overhead > the dispatch it saves. So **both levers are dead on Spark:**
+  bandwidth (read-4bit already done; FP4-ing attn 0.999×/0.775×) AND dispatch (graph 0.75×).
+  - **CAMPAIGN CONCLUSION:** Spark sm_121 NVFP4 35B-A3B decode is **structurally capped ≈ 44-45 TPS**. The 38.96→45 (+26%)
+    point-fusion gains were real and are banked (RC-validated); beyond that, there is NO software lever on this HW —
+    matching llama.cpp's 69.77 needs ggml-level hand-fused low-dispatch CUDA (a ground-up kernel rewrite) and ultimately
+    FP4-MMA silicon (R6000, retired). **The engine decode-speed track on Spark is concluded at ~45.**
+  - **BANKABLE Stage-6 deliverable = the 60 GiB decode-only MEMORY win** (release_decode_bf16_shadows after prefill →
+    resident 87→27 GiB), which buys KV/long-context/batch headroom on the shared 128 GB Spark — Spark's real value
+    (long-ctx 6.77× + multi-service), not raw single-stream decode TPS. (Productizing it needs a packed prefill MoE or
+    per-request shadow reload — flagged as a follow-up; not done this round.)
+  - Article/README "对标 llama.cpp" framing updated to reflect the ceiling (honest: Spark ~45 is the NVFP4 ceiling; parity
+    is an FP4-MMA / ggml-rewrite goal, not a Spark deliverable).

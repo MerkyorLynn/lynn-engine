@@ -3,7 +3,7 @@
 > **🆕 2026-06-03 Decode 内核启动开销战役 — Spark NVFP4 35B-A3B 单流 38.96 → ~45 TPS,质量 RC 等价。**
 > 实测 decode 是 launch-bound(census:**~1527 CUDA launch/token**,~40% 时间耗在 CPU 端 dispatch)。逐簇融合 launch + 消拷贝:**fused RMSNorm(最大头)/ shared-expert / linear-attn g/beta-fold / full-attn(token-exact)/ NVFP4 `_scaled_mm` bf16-out copy-elision**,**5 个 RC-validated launch-cut**——在 structured/V9/GPQA/tool-call/long-form 上 **40/40 greedy 输出与 baseline 逐字一致**,继承 **MMLU 84.40 / GPQA-Diamond 49.49**。全部 gated、默认安全、可回滚。
 >
-> **🎯 对标 llama.cpp 的决心。** 同硬件 Q4_K_M **69.77** 仍领先,但根因已查清:它的手写融合核**直接读 4-bit 权重、寄存器内反量化、bf16 GEMV**(带宽最优、单 launch);我们还卡在 BF16 dequant-shadow 的 **~2× 带宽墙**(baseline 38.96 ≈ 6GB/token ÷ 240GB/s ≈ 40)。**终局路线已定**:写 Lynn 自己的「**读 4-bit + 寄存器反量化 + bf16 GEMV + 零 shadow + 单 launch**」NVFP4 内核,把带宽墙从 ~40 推到 ~140(**70 就活在这区间**)。同一套 NVFP4 权重 + 内核挪到有 FP4 MMA 的 R6000 直接 native 更快——**这是 Lynn 跨设备的核心资产**。llama.cpp 是 **MIT**,蓝图开源、可 clean-room 参考。**啃下来 = Lynn 成为 NVFP4 的 llama.cpp。** 详见 [decode launch-overhead campaign](reports/qwen36_35b/DECODE_LAUNCH_OVERHEAD_CAMPAIGN_20260603.md)。
+> **🎯 关于对标 llama.cpp(口径已据 6/3 evidence-lock 校正)。** 同硬件 Q4_K_M **69.77** 领先 ~1.5×。**起初以为根因是 BF16 dequant-shadow 的 ~2× 带宽墙、写个零-shadow 内核就能把墙从 ~40 推到 ~140;6/3 实测(2 个无头 CLI 代码 trace + 4 个 Spark 探针)把这个前提证伪了**:read-4bit 其实已做(MoE 专家走「packed-4bit→寄存器反量化→bf16 GEMV」Triton 核)、那 60 GiB BF16 是 **prefill 专用**(decode 整块删掉照跑、TPS 不降 42.4→43.7)、把 attn 改读 FP4 **无收益甚至更慢**(full-attn 0.999× / linear out_proj 0.775×)、reusable decode CUDA graph **净负 0.75×**。→ **decode 是 launch-bound,且 Spark sm_121(无 FP4 MMA)结构性卡 ~45。** 与 69.77 的差距是 llama.cpp 手写、低-dispatch、成熟度极高的 ggml CUDA —— 需 ground-up 内核重写 + 最终 FP4-MMA 硅(R6000 已退租),**不是 Spark 的交付目标**。本轮 bankable 红利:**decode-only 删 shadow → 常驻 87→27 GiB**(腾 60 GiB 给 KV/长上下文/batch)。跨设备内核 moat(同套 NVFP4 权重挪 FP4-MMA 卡变 native)逻辑仍在,有那张卡时才兑现。详见 [decode launch-overhead campaign](reports/qwen36_35b/DECODE_LAUNCH_OVERHEAD_CAMPAIGN_20260603.md)。
 
 > **🆕 2026-05-28 Qwen3.6-35B-A3B update — Spark 已切到最快 APEX-MTP I-Balanced 单流路线。**
 > 当前 `lynn-apex-mtp-llamacpp.service` 使用
@@ -56,7 +56,7 @@
 | 路径 | 模型大小 | 单流 TPS | MMLU 500 | GPQA Diamond 198 | 备注 |
 |---|---:|---:|---:|---:|---|
 | Lynn-native NVFP4 W4A16 / lynn-engine | 23 GB | **38.96 → ~45** | 84.40% | 49.49% | 5/18 base → **6/3 launch-overhead 战役(5 cut,RC-validated)** |
-| **llama.cpp Q4_K_M-imatrix** | **20 GB** | **69.77** | 83.00% | **50.00%** | 同硬件 ~1.55× lynn-engine(战役后)— **对标目标** |
+| **llama.cpp Q4_K_M-imatrix** | **20 GB** | **69.77** | 83.00% | **50.00%** | 同硬件 ~1.55× lynn-engine — 6/3 实测 Spark NVFP4 decode 结构性卡 ~45(带宽 + dispatch 杠杆均已否决);parity 需 ggml 级重写 / FP4-MMA 硅,**非 Spark 交付目标** |
 | **llama.cpp APEX-MTP I-Balanced** | **25 GB** | **77.01** | **90.00% thinking32** | **78.79% / 83.87% excl_pf thinking32** | 当前 Spark 单流最快;高并发仍需 AR admission |
 | SGLang BF16 official | 67 GB | 30.14 | 86.40% | 45.45% | reference |
 | Lynn W4A8 FP8(工程探索期) | 35 GB | — | — | — | 架构未完成,见 RELEASE_NOTES |

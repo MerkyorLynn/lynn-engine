@@ -87,14 +87,16 @@ Lynn engine 是给 NVIDIA Blackwell 写的、锁定 Lynn 自家 NVFP4 格式的*
 
 ## 6. 诚实对标 llama.cpp:为什么它强,我们的终局
 
-同卡 Q4_K_M 69.77 仍领先 ~1.5×。**根因不是它用了 FP4 MMA(它也没用,GB10 没这硬件)**,而是:
+同卡 Q4_K_M 69.77 仍领先 ~1.5×。**起初我们以为根因是 BF16 dequant-shadow 的 ~2× 带宽墙(以为写个「读-4bit / 零-shadow」内核就能把墙从 ~40 推到 ~140)。6/3 的 evidence-lock(2 个无头 CLI 代码 trace + 4 个 Spark 实测探针)把这个前提证伪了:**
 
-- **它手写的融合核「直接读 4-bit 权重 → 寄存器内反量化 → bf16 GEMV」**,内存只走 4-bit(M=1 decode 的瓶颈就是权重带宽),单 launch、零 BF16 shadow。
-- **我们还卡在 BF16 dequant-shadow**:很多矩阵乘读的是 BF16(2× 字节),38.96 ≈ 6GB/token ÷ 240GB/s ≈ 40 —— 一堵纯带宽墙。
+- **read-4bit 其实我们已经做了**:MoE 专家 decode 走的就是「packed-4bit load → 寄存器内 e2m1 反量化 → fp32 累加 → 只存 bf16 激活」的 Triton 核(`triton_kernels/nvfp4_moe.py`),HBM 里没有 BF16 权重 temp;attn/dense/lm_head 走 `_scaled_mm` 的 packed-FP4 路径。
+- **那 60 GiB BF16 shadow 是 prefill 专用**:decode 把它整块删掉照常跑、TPS 不降(实测 42.4 → 43.7)——它是显存占用,不在 decode 读路径上。
+- **把仍是 BF16 的 attn/out_proj 改读 FP4:full-attn 0.999×、linear out_proj 0.775×(反而更慢)** → decode 根本**不是带宽-bound,是 launch/dispatch-bound**。
+- **dispatch 这条路也堵死**:reusable decode CUDA graph 实测 **0.75×(净负 25%)**——fixed-shape 全-KV SDPA + graph-safe MoE 的开销 > 省下的 launch。
 
-**终局路线已经清晰**:写 Lynn 自己的「**读 4-bit + 寄存器反量化 + bf16 GEMV + 零 shadow + 单 launch**」NVFP4 内核。它一刀拆两堵墙:带宽从 2× 降到 1×(墙从 ~40 推到 ~140,**70 就活在这区间**)+ 顺手把 dequant/cast 的 launch 也融掉。
+**诚实的结论**:Spark sm_121(无 FP4 MMA)上,Lynn NVFP4 35B-A3B decode **结构性卡在 ~45 TPS**。38.96 → 45 的点融合收益是真的、已 bank;但**带宽墙大半早就拆掉了**,剩下与 69.77 的差距是 llama.cpp 那套手写、低-dispatch、成熟度极高的 ggml CUDA —— 不是"写个零-shadow 内核"能补的洞,而是 ground-up 的内核重写,且最终要 **FP4-MMA 硅**(R6000,已退租)才真正回本。**llama.cpp parity 不是 Spark 的交付目标,这点要说清楚。**
 
-为什么这是机会不是难题:**llama.cpp 是 MIT 协议,蓝图开源、可 clean-room 参考**;它能搞,我们不仅能搞,还多两张牌——**同一套 NVFP4 权重 + 内核,挪到有 FP4 MMA 的 R6000 上直接变 native 更快**(跨设备核心资产),且 NVFP4(E2M1+E4M3)是更硬件对齐的格式。**啃下来 = Lynn 成为 NVFP4 的 llama.cpp。**
+**Spark 的真实价值不在单流 decode 峰值**,而在:长 ctx 6.77× SGLang、stddev 极小的确定性、多服务常驻;外加这次 evidence-lock 顺手挖出的 **decode-only 删 shadow → 常驻 87 → 27 GiB**(给 KV / 长上下文 / batch 腾出 60 GiB 头寸)。**跨设备内核 moat(同一套 NVFP4 权重挪到 FP4-MMA 卡变 native)逻辑仍成立,但它在有那张卡时才兑现,不在 Spark。** llama.cpp 的 MIT 蓝图依旧是 clean-room 参考——只是这是长期 R&D,不是本轮"终局"。
 
 ---
 
