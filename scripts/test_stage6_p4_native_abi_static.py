@@ -83,6 +83,16 @@ CHECKS = [
         ],
     ),
     (
+        "scripts/test_stage6_p4_zero_shadow_firewall.py",
+        [
+            "P4 zero-shadow firewall PASS",
+            "mlp.experts.gate_up_proj",
+            "reload_decode_bf16_shadows",
+            "torch::empty",
+            "active_moe_fused_zero_shadow_out_contract",
+        ],
+    ),
+    (
         "reports/stage6/P4_NATIVE_FUSED_MOE_ABI_CONTRACT_20260604.md",
         [
             "ABI/PREFLIGHT ONLY; no fused P4 kernel is banked yet",
@@ -90,6 +100,7 @@ CHECKS = [
             "caller-owned `out`",
             "no BF16 expert weight tensors in the ABI",
             "PASS_ABI_CONTRACT",
+            "python3 scripts/test_stage6_p4_zero_shadow_firewall.py",
             "python3 scripts/test_stage6_p4_native_abi_static.py",
         ],
     ),
