@@ -15,6 +15,7 @@
 - P2 grouped MoE prefill census: [Stage 6 Phase 2 grouped MoE prefill census](reports/stage6/P2_GROUPED_MOE_PREFILL_CENSUS_20260604.md)
 - P2-A single-expert gate/up PoC: [Stage 6 Phase 2-A gate/up prefill PoC](reports/stage6/P2A_GATEUP_PREFILL_POC_20260604.md)
 - P2-B routed gate/up grouping PoC: [Stage 6 Phase 2-B routed gate/up grouping](reports/stage6/P2B_ROUTED_GATEUP_GROUPING_POC_20260604.md)
+- P2-C active routed MoE lower-bound: [Stage 6 Phase 2-C active MoE lower-bound](reports/stage6/P2C_ACTIVE_MOE_LOWER_BOUND_POC_20260604.md)
 
 ## Banked Results
 
@@ -34,6 +35,7 @@
 | P2 grouped MoE census | 单层 `stream_bf16` 精确但 0.49-0.51s/layer;small-M verifier peak 0.70GiB 但仍慢 BF16;下一步是真 routed grouped MoE prefill kernel |
 | P2-A single-expert gate/up | packed no-shadow component numeric PASS,但 scalar-dequant gate/up 输 BF16:M=16 0.233x、M=64 0.079x;best sweep M=64 0.115x;不 promote |
 | P2-B routed gate/up grouping | route-grouped packed gate/up numeric/no-shadow PASS;M64 207 unique experts=20.0ms/layer,比 BF16 gate/up 慢(0.423x)但远低于 stream_bf16 0.5s/layer |
+| P2-C active routed MoE | packed gate/up+down active path numeric/no-shadow PASS;M64 23.83ms/layer,约 21x 快于 stream_bf16,但 0.560x vs BF16 active;继续 P2-D |
 
 ## Corrected Engineering Read
 
@@ -60,9 +62,10 @@
 5. **P2 grouped MoE census:已过。** 单层实测把 20.75s no-reload proof 的主耗时钉死在 `stream_bf16` 全层临时 dequant;small-M verifier 证明 selected-expert 路径可低内存但仍慢。
 6. **P2-A single-expert gate/up:组件证据已过但不 promote。** 说明 scalar-dequant packed gate/up 可低内存运行,但追不上 BF16 tensor-core;下一步看 routed grouping 总 launch/unique-expert 成本,不是继续调单 kernel。
 7. **P2-B routed gate/up grouping:lower-bound 已过。** 207 unique experts 的 M64 gate/up 为 20.0ms/layer,虽慢于 BF16,但比 stream-dequant proof 低一个数量级;P2 作为 no-reload 服务路径仍成立。
-8. **P2 routed grouped packed MoE prefill:** 写 M>1 grouped expert kernels,替换 20.75s streaming-dequant proof path并消除每请求 ~23s reload。
-9. **P3 server promotion:** `LYNN_PACKED_PREFILL=1` 后多请求服务常驻 27-28 GiB,无 reload,decode TPS 不回退。
-10. **P4 native-kernel chase:** 继续向 llama.cpp 的低 dispatch / fused ggml CUDA 路线追赶;有 FP4-MMA 硅时兑现 NVFP4 native moat。
+8. **P2-C active routed MoE lower-bound:已过。** packed active path M64 23.83ms/layer,约 21x 快于 stream_bf16 proof,证明 no-reload 服务路径还有价值;但仍慢于 BF16 active。
+9. **P2 routed grouped packed MoE prefill:** 写 M>1 grouped expert kernels,替换 20.75s streaming-dequant proof path并消除每请求 ~23s reload。
+10. **P3 server promotion:** `LYNN_PACKED_PREFILL=1` 后多请求服务常驻 27-28 GiB,无 reload,decode TPS 不回退。
+11. **P4 native-kernel chase:** 继续向 llama.cpp 的低 dispatch / fused ggml CUDA 路线追赶;有 FP4-MMA 硅时兑现 NVFP4 native moat。
 
 ## Relation To 2026-05-20 Notes
 

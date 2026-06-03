@@ -386,3 +386,18 @@
     per-request reload.
   - **Decision:** continue to P2-C routed down projection and full routed output accounting. Do not integrate server-side
     until full one-layer routed MoE beats `stream_bf16` and stays memory-clean.
+- **✅ STAGE 6 step 13 — P2-C active routed MoE lower-bound PASSED; no-reload path remains viable.**
+  `scripts/spark_stage6_p2c_active_moe_lower_bound_poc.py` composed P2-B packed gate/up grouping with the existing
+  packed down weighted-sum kernel. Routes were precomputed; shared expert, router timing, residual, and norms are out of
+  scope.
+  - **Bytes:** one-layer active BF16 expert shadow **1.500 GiB** vs packed **0.563 GiB** (**2.667x** smaller); after
+    deleting BF16 active shadows, resident in the harness was **0.641 GiB**.
+  - **Numeric/no-shadow:** M=16/64 active routed output vs BF16 active output `cos≈0.999981`, rel_l2≈`0.006`, argmax
+    match; packed peak **0.642 GiB** after deleting `gate_up_proj` and `down_proj`.
+  - **Latency vs BF16 active:** M=16 **10.13 ms** vs BF16 **6.42 ms** (**0.633x**); M=64 **23.83 ms** vs BF16
+    **13.34 ms** (**0.560x**). Not a BF16-speed win.
+  - **Latency vs no-reload proof:** M=64 **23.83 ms/layer** vs P2 census `stream_bf16` **506.22 ms/layer** (~**21x**
+    faster). This is the important service signal: P2 can plausibly remove the **23-24 s reload** even if it is slower
+    than resident BF16 prefill.
+  - **Decision:** continue to P2-D shared/router-inclusive one-layer harness. Do not integrate server-side until full
+    one-layer MoE beats `stream_bf16` and remains memory-clean.

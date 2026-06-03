@@ -90,8 +90,8 @@
 - **已过 P1 单投影:** `linear_attn.in_proj_qkv` packed Triton matvec numeric/no-shadow/microbench 全过,1.186× vs BF16 shadow。
 - **P1-A 反证完成:** naive 与 tiled scalar batched bridge 都 numeric/no-shadow 过,但 M>1 都输 BF16 tensor-core GEMM;不进入 serving。
 - **P2 census 已过:** 单层 MoE 证实 `stream_bf16` 是 20s no-reload proof 的主耗时,small-M verifier 内存干净但慢。
-- **P2-A/P2-B 组件证据:** 单 expert packed gate/up 输 BF16,但 routed gate/up grouping lower-bound 已过(M64/207 unique experts=20.0ms/layer,no-shadow,numeric pass),P2 作为 no-reload 服务路径仍有戏。
-- **下一关:** P2-C routed down projection + full routed output;dense/MoE M>1 若要追平 BF16,最终要 native FP4-MMA/CUTLASS-style bridge。
+- **P2-A/B/C 组件证据:** 单 expert gate/up 输 BF16,但 routed gate/up + down active path 已过(M64/207 unique experts=23.83ms/layer,no-shadow,numeric pass,约 21x 快于 `stream_bf16`),P2 作为 no-reload 服务路径仍有戏。
+- **下一关:** P2-D shared/router-inclusive one-layer MoE;dense/MoE M>1 若要追平 BF16,最终要 native FP4-MMA/CUTLASS-style bridge。
 - **Spark sm_121 诚实口径:** decode 结构性卡 ~45,追 69.77 需要 native runtime + fused kernels + 最终 FP4-MMA 硅。
 - **Wave 2 全部 commit 留在 main 分支不 revert** — 5 CLI 并行 + 7 bug fix trail + 178s repack + autotune sweep 2160 config 全是真实工程财产。
 
