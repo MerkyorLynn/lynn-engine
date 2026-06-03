@@ -51,9 +51,18 @@ def pass_fixture() -> dict:
             "mlp.experts.down_proj": {"shape": [256, 2048, 512], "dtype": "torch.bfloat16", "bytes": 536870912},
         },
         "active_shadow_keys_present_after_delete": [],
+        "bf16_active_shadow_aliases_after_delete": {},
+        "active_scratch_manifest": {
+            "mlp.experts._active_inter_scratch": {"shape": [8, 512], "dtype": "torch.bfloat16", "bytes": 8192, "contiguous": True},
+            "mlp.experts._active_out_scratch": {"shape": [2048], "dtype": "torch.bfloat16", "bytes": 4096, "contiguous": True},
+        },
         "packed_manifest_before_candidate": {
-            "mlp.experts._gate_up_packed": {"shape": [256, 1024, 1024], "dtype": "torch.uint8", "bytes": 268435456},
-            "mlp.experts._down_packed": {"shape": [256, 2048, 256], "dtype": "torch.uint8", "bytes": 134217728},
+            "mlp.experts._gate_up_packed": {"shape": [256, 1024, 1024], "dtype": "torch.uint8", "bytes": 268435456, "contiguous": True},
+            "mlp.experts._gate_up_scale": {"shape": [256, 1024, 128], "dtype": "torch.float32", "bytes": 134217728, "contiguous": True},
+            "mlp.experts._gate_up_global_scale": {"shape": [1], "dtype": "torch.float32", "bytes": 4, "contiguous": True},
+            "mlp.experts._down_packed": {"shape": [256, 2048, 256], "dtype": "torch.uint8", "bytes": 134217728, "contiguous": True},
+            "mlp.experts._down_scale": {"shape": [256, 2048, 32], "dtype": "torch.float32", "bytes": 67108864, "contiguous": True},
+            "mlp.experts._down_global_scale": {"shape": [1], "dtype": "torch.float32", "bytes": 4, "contiguous": True},
         },
         "candidate_error": {
             "type": "RuntimeError",
@@ -62,7 +71,9 @@ def pass_fixture() -> dict:
         "passes": {
             "cuda_available": True,
             "baseline_triton_nonzero": True,
+            "baseline_shape_dtype": True,
             "packed_tensors_present": True,
+            "active_scratch_present": True,
             "active_shadows_removed": True,
             "candidate_fail_loud": True,
             "fused_kernel_unbanked": True,
@@ -88,15 +99,46 @@ def promotion_fail_fixture() -> dict:
     return data
 
 
+def packed_manifest_fail_fixture() -> dict:
+    data = pass_fixture()
+    data["banked_runtime_bridge_preflight"] = False
+    data["packed_manifest_before_candidate"] = dict(data["packed_manifest_before_candidate"])
+    data["packed_manifest_before_candidate"].pop("mlp.experts._down_scale")
+    data["passes"] = dict(data["passes"])
+    data["passes"]["packed_tensors_present"] = False
+    data["passes"]["all"] = False
+    return data
+
+
+def scratch_fail_fixture() -> dict:
+    data = pass_fixture()
+    data["banked_runtime_bridge_preflight"] = False
+    data["active_scratch_manifest"] = dict(data["active_scratch_manifest"])
+    data["active_scratch_manifest"]["mlp.experts._active_inter_scratch"] = {
+        "shape": [4, 512],
+        "dtype": "torch.bfloat16",
+        "bytes": 4096,
+        "contiguous": True,
+    }
+    data["passes"] = dict(data["passes"])
+    data["passes"]["active_scratch_present"] = False
+    data["passes"]["all"] = False
+    return data
+
+
 def main() -> int:
     with tempfile.TemporaryDirectory() as tmp_s:
         tmp = Path(tmp_s)
         pass_json = tmp / "pass.json"
         shadow_fail_json = tmp / "shadow_fail.json"
         promotion_fail_json = tmp / "promotion_fail.json"
+        packed_fail_json = tmp / "packed_fail.json"
+        scratch_fail_json = tmp / "scratch_fail.json"
         write_json(pass_json, pass_fixture())
         write_json(shadow_fail_json, shadow_fail_fixture())
         write_json(promotion_fail_json, promotion_fail_fixture())
+        write_json(packed_fail_json, packed_manifest_fail_fixture())
+        write_json(scratch_fail_json, scratch_fail_fixture())
 
         run([
             sys.executable,
@@ -114,6 +156,7 @@ def main() -> int:
         ])
         assert "Verdict | **PASS**" in pass_summary.stdout
         assert "Banked fused kernel | `False`" in pass_summary.stdout
+        assert "Active scratch present | `True`" in pass_summary.stdout
         assert "Active shadows removed | `True`" in pass_summary.stdout
 
         shadow_fail = run([
@@ -131,6 +174,22 @@ def main() -> int:
             "--strict-exit",
         ], expect=2)
         assert "fused-kernel promotion boundary violated" in promotion_fail.stdout
+
+        packed_fail = run([
+            sys.executable,
+            "scripts/summarize_stage6_p4_runtime_bridge_preflight.py",
+            str(packed_fail_json),
+            "--strict-exit",
+        ], expect=2)
+        assert "runtime bridge preflight was not banked" in packed_fail.stdout
+
+        scratch_fail = run([
+            sys.executable,
+            "scripts/summarize_stage6_p4_runtime_bridge_preflight.py",
+            str(scratch_fail_json),
+            "--strict-exit",
+        ], expect=2)
+        assert "runtime bridge preflight was not banked" in scratch_fail.stdout
 
     print("P4 runtime bridge tooling self-test PASS")
     return 0

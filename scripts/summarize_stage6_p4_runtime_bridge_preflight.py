@@ -4,16 +4,64 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 from pathlib import Path
 from typing import Any
 
 
 SCHEMA = "lynn-stage6-p4-runtime-bridge-preflight-v1"
+PACKED_KEYS = {
+    "mlp.experts._gate_up_packed": ((None, 1024, 1024), "torch.uint8"),
+    "mlp.experts._gate_up_scale": ((None, 1024, 128), "torch.float32"),
+    "mlp.experts._gate_up_global_scale": ((1,), "torch.float32"),
+    "mlp.experts._down_packed": ((None, 2048, 256), "torch.uint8"),
+    "mlp.experts._down_scale": ((None, 2048, 32), "torch.float32"),
+    "mlp.experts._down_global_scale": ((1,), "torch.float32"),
+}
+SCRATCH_KEYS = {
+    "mlp.experts._active_inter_scratch": ("torch.bfloat16", 2),
+    "mlp.experts._active_out_scratch": ("torch.bfloat16", 1),
+}
+
+
+def _shape_matches(actual: list[int], expected: tuple[int | None, ...]) -> bool:
+    return len(actual) == len(expected) and all(exp is None or got == exp for got, exp in zip(actual, expected))
+
+
+def _packed_manifest_ok(manifest: dict[str, Any]) -> bool:
+    if set(manifest) != set(PACKED_KEYS):
+        return False
+    for key, meta in manifest.items():
+        shape, dtype = PACKED_KEYS[key]
+        if meta.get("dtype") != dtype or not meta.get("contiguous"):
+            return False
+        if not _shape_matches(list(meta.get("shape") or []), shape):
+            return False
+    return True
+
+
+def _scratch_manifest_ok(manifest: dict[str, Any]) -> bool:
+    if set(manifest) != set(SCRATCH_KEYS):
+        return False
+    for key, meta in manifest.items():
+        dtype, dims = SCRATCH_KEYS[key]
+        shape = list(meta.get("shape") or [])
+        if meta.get("dtype") != dtype or not meta.get("contiguous") or len(shape) != dims:
+            return False
+        if key.endswith("_active_inter_scratch") and shape[-1] != 512:
+            return False
+        if key.endswith("_active_out_scratch") and shape != [2048]:
+            return False
+    return True
 
 
 def _verdict(data: dict[str, Any]) -> tuple[str, str]:
     passes = data.get("passes") or {}
+    baseline = data.get("baseline") or {}
+    packed = data.get("packed_manifest_before_candidate") or {}
+    scratch = data.get("active_scratch_manifest") or {}
+    candidate_error = data.get("candidate_error") or {}
     if data.get("schema") != SCHEMA:
         return "FAIL", "schema mismatch"
     if data.get("banked_fused_kernel") is not False:
@@ -24,7 +72,9 @@ def _verdict(data: dict[str, Any]) -> tuple[str, str]:
         return "FAIL", "runtime bridge preflight was not banked"
     for gate in (
         "baseline_triton_nonzero",
+        "baseline_shape_dtype",
         "packed_tensors_present",
+        "active_scratch_present",
         "active_shadows_removed",
         "candidate_fail_loud",
         "fused_kernel_unbanked",
@@ -35,6 +85,23 @@ def _verdict(data: dict[str, Any]) -> tuple[str, str]:
             return "FAIL", f"{gate} gate fail"
     if data.get("decision") != "PASS_RUNTIME_BRIDGE_CONTRACT":
         return "FAIL", "top-level decision is not PASS_RUNTIME_BRIDGE_CONTRACT"
+    if baseline.get("output_shape") != [1, 1, 2048] or baseline.get("output_dtype") != "torch.bfloat16":
+        return "FAIL", "baseline shape/dtype mismatch"
+    norm = baseline.get("norm")
+    if not isinstance(norm, (int, float)) or not math.isfinite(float(norm)) or float(norm) <= 0.0:
+        return "FAIL", "baseline norm is not finite positive"
+    if not _packed_manifest_ok(packed):
+        return "FAIL", "packed manifest mismatch"
+    if not _scratch_manifest_ok(scratch):
+        return "FAIL", "active scratch manifest mismatch"
+    if data.get("active_shadow_keys_present_after_delete"):
+        return "FAIL", "explicit BF16 active shadow keys remain"
+    if data.get("bf16_active_shadow_aliases_after_delete"):
+        return "FAIL", "BF16 active shadow aliases remain"
+    if candidate_error.get("type") not in {"RuntimeError", "Error"}:
+        return "FAIL", "candidate error type mismatch"
+    if str(data.get("expected_error", "")) not in str(candidate_error.get("message", "")):
+        return "FAIL", "candidate error does not contain expected P4 fail-loud marker"
     return "PASS", "runtime bridge reaches P4 fail-loud on real runner path"
 
 
@@ -44,6 +111,7 @@ def summarize(data: dict[str, Any]) -> str:
     baseline = data.get("baseline") or {}
     removed = data.get("removed_active_shadows") or {}
     packed = data.get("packed_manifest_before_candidate") or {}
+    scratch = data.get("active_scratch_manifest") or {}
     candidate_error = data.get("candidate_error") or data.get("runner_error") or {}
     lines = [
         "# Stage 6 P4 Runtime Bridge Preflight Summary",
@@ -60,6 +128,7 @@ def summarize(data: dict[str, Any]) -> str:
         f"| Banked default promotion | `{data.get('banked_default_promotion')}` |",
         f"| Baseline norm | `{baseline.get('norm')}` |",
         f"| Packed tensors present | `{passes.get('packed_tensors_present')}` |",
+        f"| Active scratch present | `{passes.get('active_scratch_present')}` |",
         f"| Active shadows removed | `{passes.get('active_shadows_removed')}` |",
         f"| Candidate fail-loud | `{passes.get('candidate_fail_loud')}` |",
         f"| Elapsed seconds | `{data.get('elapsed_s')}` |",
@@ -70,6 +139,9 @@ def summarize(data: dict[str, Any]) -> str:
         "|---|---|---|---:|",
     ]
     for key, meta in removed.items():
+        lines.append(f"| `{key}` | `{meta.get('shape')}` | `{meta.get('dtype')}` | `{meta.get('bytes')}` |")
+    lines.extend(["", "## Active Scratch", "", "| Key | Shape | DType | Bytes |", "|---|---|---|---:|"])
+    for key, meta in scratch.items():
         lines.append(f"| `{key}` | `{meta.get('shape')}` | `{meta.get('dtype')}` | `{meta.get('bytes')}` |")
     lines.extend(["", "## Packed Tensor Inputs", "", "| Key | Shape | DType | Bytes |", "|---|---|---|---:|"])
     for key, meta in packed.items():

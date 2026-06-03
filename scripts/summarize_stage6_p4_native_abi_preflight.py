@@ -10,10 +10,37 @@ from typing import Any
 
 
 SCHEMA = "lynn-stage6-p4-native-fused-moe-abi-preflight-v1"
+EXPECTED_TENSORS = {
+    "hidden": ("torch.bfloat16", 2),
+    "expert_ids": ("torch.int32", 2),
+    "routing_weights": ("torch.float32", 2),
+    "gate_up_packed": ("torch.uint8", 3),
+    "gate_up_scale": ("torch.float32", 3),
+    "gate_up_global_scale": ("torch.float32", 1),
+    "down_packed": ("torch.uint8", 3),
+    "down_scale": ("torch.float32", 3),
+    "down_global_scale": ("torch.float32", 1),
+    "inter_scratch": ("torch.bfloat16", 3),
+    "out": ("torch.bfloat16", 2),
+}
+
+
+def _tensor_manifest_ok(manifest: dict[str, Any]) -> bool:
+    if set(manifest) != set(EXPECTED_TENSORS):
+        return False
+    for key, meta in manifest.items():
+        dtype, dims = EXPECTED_TENSORS[key]
+        if meta.get("dtype") != dtype or not meta.get("contiguous"):
+            return False
+        shape = list(meta.get("shape") or [])
+        if len(shape) != dims:
+            return False
+    return True
 
 
 def _verdict(data: dict[str, Any]) -> tuple[str, str]:
     passes = data.get("passes") or {}
+    tensor_manifest = data.get("tensor_manifest") or {}
     if data.get("schema") != SCHEMA:
         return "FAIL", "schema mismatch"
     if data.get("banked_fused_kernel") is not False:
@@ -27,6 +54,8 @@ def _verdict(data: dict[str, Any]) -> tuple[str, str]:
             return "FAIL", f"{gate} gate fail"
     if data.get("decision") != "PASS_ABI_CONTRACT":
         return "FAIL", "top-level decision is not PASS_ABI_CONTRACT"
+    if not _tensor_manifest_ok(tensor_manifest):
+        return "FAIL", "tensor ABI manifest mismatch"
     return "PASS", "native ABI preflight passed; fused kernel still unbanked"
 
 

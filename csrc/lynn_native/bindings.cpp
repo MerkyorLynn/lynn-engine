@@ -265,6 +265,7 @@ void lynn_native_active_moe_fused_zero_shadow_out_contract(
     torch::Tensor down_packed,
     torch::Tensor down_scale,
     torch::Tensor down_global_scale,
+    torch::Tensor inter_scratch,
     torch::Tensor out,
     int64_t tile_tokens,
     int64_t tile_inter,
@@ -423,5 +424,5 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
   m.def(
       "active_moe_fused_zero_shadow_out_contract",
       &lynn_native_active_moe_fused_zero_shadow_out_contract,
-      "P4 fail-loud caller-owned-output ABI for fused packed-NVFP4 zero-shadow active MoE");
+      "P4 fail-loud caller-owned-scratch/output ABI for fused packed-NVFP4 zero-shadow active MoE");
 }

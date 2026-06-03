@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 from pathlib import Path
 import sys
@@ -39,6 +40,23 @@ PACKED_KEYS = (
     "mlp.experts._down_scale",
     "mlp.experts._down_global_scale",
 )
+ACTIVE_SCRATCH_KEYS = ("mlp.experts._active_inter_scratch", "mlp.experts._active_out_scratch")
+EXPECTED_PACKED_SHAPES = {
+    "mlp.experts._gate_up_packed": (None, 1024, 1024),
+    "mlp.experts._gate_up_scale": (None, 1024, 128),
+    "mlp.experts._gate_up_global_scale": (1,),
+    "mlp.experts._down_packed": (None, 2048, 256),
+    "mlp.experts._down_scale": (None, 2048, 32),
+    "mlp.experts._down_global_scale": (1,),
+}
+EXPECTED_PACKED_DTYPES = {
+    "mlp.experts._gate_up_packed": "torch.uint8",
+    "mlp.experts._gate_up_scale": "torch.float32",
+    "mlp.experts._gate_up_global_scale": "torch.float32",
+    "mlp.experts._down_packed": "torch.uint8",
+    "mlp.experts._down_scale": "torch.float32",
+    "mlp.experts._down_global_scale": "torch.float32",
+}
 
 
 def _set_env(updates: dict[str, str]) -> dict[str, str | None]:
@@ -81,6 +99,51 @@ def _packed_manifest(w: dict[str, Any]) -> dict[str, Any]:
     return {key: _tensor_meta(w[key]) for key in PACKED_KEYS if isinstance(w.get(key), torch.Tensor)}
 
 
+def _shape_matches(actual: list[int], expected: tuple[int | None, ...]) -> bool:
+    return len(actual) == len(expected) and all(exp is None or got == exp for got, exp in zip(actual, expected))
+
+
+def _packed_manifest_ok(manifest: dict[str, Any]) -> bool:
+    if set(manifest) != set(PACKED_KEYS):
+        return False
+    for key, meta in manifest.items():
+        if meta.get("dtype") != EXPECTED_PACKED_DTYPES[key]:
+            return False
+        if not meta.get("contiguous"):
+            return False
+        if not _shape_matches(list(meta.get("shape") or []), EXPECTED_PACKED_SHAPES[key]):
+            return False
+    return True
+
+
+def _active_scratch_ok(manifest: dict[str, Any], top_k: int) -> bool:
+    expected = {
+        "mlp.experts._active_inter_scratch": ([top_k, 512], "torch.bfloat16"),
+        "mlp.experts._active_out_scratch": ([2048], "torch.bfloat16"),
+    }
+    if set(manifest) != set(expected):
+        return False
+    for key, (shape, dtype) in expected.items():
+        meta = manifest[key]
+        if meta.get("shape") != shape or meta.get("dtype") != dtype or not meta.get("contiguous"):
+            return False
+    return True
+
+
+def _bf16_active_shadow_aliases(w: dict[str, Any]) -> dict[str, Any]:
+    aliases: dict[str, Any] = {}
+    for key, value in w.items():
+        if not isinstance(value, torch.Tensor) or value.dtype != torch.bfloat16:
+            continue
+        if "mlp.experts" not in key:
+            continue
+        if key.startswith("mlp.experts._active_"):
+            continue
+        if "gate_up" in key or "down" in key:
+            aliases[key] = _tensor_meta(value)
+    return aliases
+
+
 def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
     result: dict[str, Any] = {
         "schema": "lynn-stage6-p4-runtime-bridge-preflight-v1",
@@ -102,6 +165,7 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
     env = dict(BASE_ENV)
     env.update({
         "LYNN_MOE_FAST_FIXED": "0",
+        "LYNN_MOE_ACTIVE_SCRATCH": "1",
         "LYNN_NATIVE_ACTIVE_MOE_BACKEND": "triton",
         "LYNN_NATIVE_ACTIVE_MOE_LAYERS": str(args.layer),
         "LYNN_NATIVE_GATEUP_BACKEND": "triton_fast_decode",
@@ -125,6 +189,9 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
         cfg = runner.layer_cfgs[args.layer]
         h_moe = _rms_norm(h_layer, w["post_attention_layernorm.weight"])
         result["packed_manifest_before_candidate"] = _packed_manifest(w)
+        result["active_scratch_manifest"] = {
+            key: _tensor_meta(w[key]) for key in ACTIVE_SCRATCH_KEYS if isinstance(w.get(key), torch.Tensor)
+        }
 
         baseline = moe_forward_decode_packed_nvfp4(h_moe, w, cfg)
         baseline_norm = float(baseline.float().norm().item())
@@ -138,6 +205,7 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
         removed = _remove_active_shadows(w)
         result["removed_active_shadows"] = removed
         result["active_shadow_keys_present_after_delete"] = [key for key in ACTIVE_SHADOW_KEYS if key in w]
+        result["bf16_active_shadow_aliases_after_delete"] = _bf16_active_shadow_aliases(w)
 
         candidate_error: dict[str, str] | None = None
         old_backend = _set_env({"LYNN_NATIVE_ACTIVE_MOE_BACKEND": EXPECTED_BACKEND})
@@ -151,19 +219,25 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
             _restore_env(old_backend)
 
         result["candidate_error"] = candidate_error
-        packed_present = all(key in result["packed_manifest_before_candidate"] for key in PACKED_KEYS)
+        baseline_shape_ok = result["baseline"]["output_shape"] == list(h_moe.shape)
+        baseline_dtype_ok = result["baseline"]["output_dtype"] == "torch.bfloat16"
+        packed_manifest_ok = _packed_manifest_ok(result["packed_manifest_before_candidate"])
+        active_scratch_ok = _active_scratch_ok(result["active_scratch_manifest"], int(cfg["num_experts_per_tok"]))
         shadow_absent = not result["active_shadow_keys_present_after_delete"]
+        no_bf16_aliases = not result["bf16_active_shadow_aliases_after_delete"]
         fail_loud = bool(candidate_error and EXPECTED_ERROR in candidate_error.get("message", ""))
-        baseline_ok = baseline_norm > 0.0
+        baseline_ok = baseline_norm > 0.0 and math.isfinite(baseline_norm) and baseline_shape_ok and baseline_dtype_ok
         result["passes"] = {
             "cuda_available": True,
             "baseline_triton_nonzero": baseline_ok,
-            "packed_tensors_present": packed_present,
-            "active_shadows_removed": bool(removed) and shadow_absent,
+            "baseline_shape_dtype": bool(baseline_shape_ok and baseline_dtype_ok),
+            "packed_tensors_present": packed_manifest_ok,
+            "active_scratch_present": active_scratch_ok,
+            "active_shadows_removed": bool(removed) and shadow_absent and no_bf16_aliases,
             "candidate_fail_loud": fail_loud,
             "fused_kernel_unbanked": result["banked_fused_kernel"] is False,
             "default_promotion_closed": result["banked_default_promotion"] is False,
-            "all": bool(baseline_ok and packed_present and removed and shadow_absent and fail_loud),
+            "all": bool(baseline_ok and packed_manifest_ok and active_scratch_ok and removed and shadow_absent and no_bf16_aliases and fail_loud),
         }
         result["banked_runtime_bridge_preflight"] = bool(result["passes"]["all"])
         result["decision"] = "PASS_RUNTIME_BRIDGE_CONTRACT" if result["passes"]["all"] else "FAIL_RUNTIME_BRIDGE_CONTRACT"
