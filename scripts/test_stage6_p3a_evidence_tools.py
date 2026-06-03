@@ -133,6 +133,23 @@ def fail_promoted_fixture() -> dict:
     return data
 
 
+def write_artifact(path: Path, data: dict, *, manifest_match: bool = True) -> None:
+    path.mkdir(parents=True, exist_ok=True)
+    write_json(path / "result.json", data)
+    (path / "expected_git_head.txt").write_text("expected-head\n")
+    (path / "git_head.txt").write_text("remote-head\n")
+    (path / "head_check.txt").write_text("remote manifest ok\n")
+    expected_manifest = "abc scripts/run_spark_stage6_p3a_contract_probe.sh\n"
+    actual_manifest = expected_manifest if manifest_match else "def scripts/run_spark_stage6_p3a_contract_probe.sh\n"
+    (path / "expected_provenance_manifest.txt").write_text(expected_manifest)
+    (path / "provenance_manifest.txt").write_text(actual_manifest)
+    (path / "git_status.txt").write_text("")
+    (path / "docker_exit_code.txt").write_text("0\n")
+    (path / "nvidia_smi_before.txt").write_text("NVIDIA GPU, 0 %, 1024 MiB, 122880 MiB\n")
+    (path / "nvidia_smi_after.txt").write_text("NVIDIA GPU, 0 %, 1024 MiB, 122880 MiB\n")
+    (path / "run.log").write_text("fixture log tail\n")
+
+
 def main() -> int:
     with tempfile.TemporaryDirectory() as tmp_s:
         tmp = Path(tmp_s)
@@ -156,6 +173,7 @@ def main() -> int:
             "py_compile",
             "scripts/spark_stage6_p3a_grouped_moe_contract_probe.py",
             "scripts/summarize_stage6_p3a_contract_probe.py",
+            "scripts/write_stage6_p3a_report.py",
         ])
 
         pass_summary = run([
@@ -193,6 +211,61 @@ def main() -> int:
             "--strict-exit",
         ], expect=2)
         assert "promotion boundary violated" in fail_promoted.stdout
+
+        pass_art = tmp / "pass_artifact"
+        fail_art = tmp / "fail_artifact"
+        promoted_art = tmp / "promoted_artifact"
+        write_artifact(pass_art, pass_fixture())
+        write_artifact(fail_art, fail_numeric_fixture())
+        write_artifact(promoted_art, fail_promoted_fixture())
+        run([
+            sys.executable,
+            "scripts/summarize_stage6_p3a_contract_probe.py",
+            str(pass_art / "result.json"),
+            "--markdown-out",
+            str(pass_art / "summary.md"),
+            "--strict-exit",
+        ])
+        pass_report = tmp / "pass_report.md"
+        fail_report = tmp / "fail_report.md"
+        promoted_report = tmp / "promoted_report.md"
+        run([
+            sys.executable,
+            "scripts/write_stage6_p3a_report.py",
+            str(pass_art),
+            "--report-out",
+            str(pass_report),
+            "--date",
+            "2026-06-04",
+        ])
+        run([
+            sys.executable,
+            "scripts/write_stage6_p3a_report.py",
+            str(fail_art),
+            "--report-out",
+            str(fail_report),
+            "--date",
+            "2026-06-04",
+        ])
+        run([
+            sys.executable,
+            "scripts/write_stage6_p3a_report.py",
+            str(promoted_art),
+            "--report-out",
+            str(promoted_report),
+            "--date",
+            "2026-06-04",
+        ])
+        pass_text = pass_report.read_text()
+        fail_text = fail_report.read_text()
+        promoted_text = promoted_report.read_text()
+        assert "Verdict: **PASS**" in pass_text
+        assert "Bank P3-A as a contract-shaped grouped active-MoE probe only" in pass_text
+        assert "Do not promote P3 or claim a fused kernel" in pass_text
+        assert "Manifest matches | `True`" in pass_text
+        assert "Verdict: **FAIL**" in fail_text
+        assert "Do not bank P3-A" in fail_text
+        assert "promotion boundary violated" in promoted_text
 
     print("P3-A evidence tooling self-test PASS")
     return 0

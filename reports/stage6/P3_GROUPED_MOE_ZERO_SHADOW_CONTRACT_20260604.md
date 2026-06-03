@@ -136,3 +136,14 @@ python3 scripts/summarize_stage6_p3a_contract_probe.py \
 
 `--strict-exit` fails unless `banked_fused_kernel=false`, numeric passes, and the
 active BF16 shadow is absent at candidate start.
+
+Formal report writer:
+
+```bash
+python3 scripts/write_stage6_p3a_report.py \
+  reports/stage6/p3a_layer*_grouped_moe_contract_probe_* \
+  --report-out reports/stage6/P3A_GROUPED_MOE_CONTRACT_PROBE_20260604.md
+```
+
+The report writer may bank only the P3-A contract probe. It must not promote P3
+or claim a fused grouped-MoE kernel.
