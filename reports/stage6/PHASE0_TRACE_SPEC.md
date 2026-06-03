@@ -58,17 +58,22 @@ and memory residency before writing batched/grouped prefill kernels.
 
 Run after the 60 GiB release path is already verified:
 
-1. Load RC stack with packed aliases attached.
+1. Load RC stack with packed MoE aliases attached.
 2. Run one baseline request with BF16 shadows present.
-3. Call `release_decode_bf16_shadows()`.
+3. Call `release_decode_bf16_shadows(include_projection_aliases=False)` to drop
+   the banked MoE BF16 shadow only.
 4. Without calling `reload_decode_bf16_shadows()`, run a second prefill with
    `LYNN_PACKED_PREFILL_SLOW=1`.
 5. Assert:
    - no `reload_decode_bf16_shadows()` call;
-   - no `KeyError('*.weight')` from released BF16 shadows;
+   - no `KeyError('mlp.experts.*')` from released BF16 expert shadows;
    - token-exact output against the BF16 prefill baseline for a short prompt;
    - resident memory stays near 28 GiB before and after prefill;
    - record packed-prefill latency honestly.
+
+P0.1 deliberately does **not** delete every projection/shared-expert BF16 weight.
+Those aliases interact with decode env flags and shared-expert routing, so they are
+the next gate rather than part of the first no-reload proof.
 
 Passing P0.1 promotes the next goal:
 
@@ -76,8 +81,9 @@ Passing P0.1 promotes the next goal:
 
 | phase | target | gate |
 |---|---|---|
-| P1 | Replace row-loop packed linear prefill with batched packed-NVFP4 projection kernels for full-attn and linear-attn qkv/z/b/a/o | token-exact, lower prefill latency than reload+BF16, no BF16 shadow |
-| P2 | Replace row-loop packed MoE prefill with grouped M>1 packed expert kernels | token-exact vs BF16 MoE prefill, no BF16 shadow, latency measured by prompt length |
+| P0.2 | Extend proof path to projection/shared aliases without changing decode semantics | token-exact, no hidden reload, explicit list of remaining BF16 residents |
+| P1 | Replace row-loop packed linear prefill with batched packed-NVFP4 projection kernels for full-attn and linear-attn qkv/z/b/a/o | token-exact, lower prefill latency than reload+BF16, no projection BF16 shadow |
+| P2 | Replace row-loop packed MoE prefill with grouped M>1 packed expert kernels | token-exact vs BF16 MoE prefill, no MoE BF16 shadow, latency measured by prompt length |
 | P3 | Server integration: if `LYNN_PACKED_PREFILL=1`, skip per-request reload and keep 27-28 GiB steady-state | multi-request A/B: no reload, memory flat, decode TPS unchanged |
 | P4 | RC quality and long-context headroom | `spark_rc_quality_regression.py`, long prefill smoke, `/health` metrics |
 

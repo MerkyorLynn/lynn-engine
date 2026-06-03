@@ -3,7 +3,9 @@
 
 This is not a GPU benchmark. It records checkable source anchors for the current
 contract: decode-only shadow release is banked, and the next probe is
-`LYNN_PACKED_PREFILL_SLOW=1` no-reload prefill from packed NVFP4 aliases.
+`LYNN_PACKED_PREFILL_SLOW=1` no-reload prefill from packed NVFP4 MoE aliases.
+Projection/shared alias deletion is tracked as the next gate, not bundled into
+the first smoke.
 """
 from __future__ import annotations
 
@@ -61,6 +63,16 @@ ANCHORS = [
         "file": "server/openai_http.py",
         "needle": "reload_decode_bf16_shadows()",
     },
+    {
+        "claim": "Spark P0.1 no-reload smoke runner exists",
+        "file": "scripts/spark_stage6_packed_prefill_no_reload_smoke.py",
+        "needle": "P0.1 forbids reload_decode_bf16_shadows()",
+    },
+    {
+        "claim": "P0.1 releases MoE shadow without projection/shared alias deletion",
+        "file": "scripts/spark_stage6_packed_prefill_no_reload_smoke.py",
+        "needle": "include_projection_aliases=False",
+    },
 ]
 
 
@@ -88,9 +100,9 @@ def build_report() -> dict:
         "repo": str(ROOT),
         "verdict": "READY_FOR_SPARK_NO_RELOAD_SMOKE" if all_ok else "ANCHOR_MISSING",
         "next_gate": (
-            "Run a Spark smoke with LYNN_PACKED_PREFILL_SLOW=1 after "
-            "release_decode_bf16_shadows(); assert no reload, token-exact output, "
-            "resident ~28 GiB before/after prefill, and record prefill latency."
+            "Run scripts/spark_stage6_packed_prefill_no_reload_smoke.py on Spark; "
+            "assert no reload, token-exact output, resident ~28 GiB before/after "
+            "prefill, and record slow packed-prefill latency."
         ),
         "checks": checks,
     }
