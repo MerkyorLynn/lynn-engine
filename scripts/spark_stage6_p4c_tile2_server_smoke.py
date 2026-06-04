@@ -89,7 +89,10 @@ def _server_env(
     env.setdefault("PYTHONUNBUFFERED", "1")
     env.setdefault("PYTHONNOUSERSITE", "1")
     env.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
-    env.setdefault("LYNN_NATIVE_CUDA_BUILD_DIR", str(work_dir / f"native_build_{label}"))
+    env.setdefault(
+        "LYNN_NATIVE_CUDA_BUILD_DIR",
+        f"/tmp/lynn_engine_native_build/p4c_tile2_server_smoke_{label}_{os.getpid()}",
+    )
     return env
 
 
