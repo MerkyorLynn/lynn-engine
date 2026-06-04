@@ -1,15 +1,15 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T07:15:43+00:00",
-  "spark_status": "P3C_BASIC_RESIDENT_PROMPT_BANKED",
-  "spark_note": "P3-C basic resident-prompt PASS: 3/3 generated-ID exact, 88.161->28.178 GiB, released 60.000 GiB, reload not called. Candidate prefill remains slow at 151.861s avg (0.008x), so this banks real-prompt correctness/memory only; P3-D server, RC, default promotion, and throughput remain separate gates.",
+  "generated_at_utc": "2026-06-04T07:36:38+00:00",
+  "spark_status": "P3A_BATCHED_DOWN_DIAGNOSTIC_BANKED",
+  "spark_note": "P3-A batched-down diagnostic PASS: numeric/shadow gates pass, argmax 3/3, min cosine 0.999981, average speed 0.760x vs BF16 active (old P3-A 0.744x). Single down-launch batching is a small diagnostic improvement but speed gate remains closed; do not promote. Next speed cuts: route materialization / true gate-up+down batching, plus decode GPU-idle probe for compiled hot-loop ROI.",
   "counts": {
     "BANKED": 25,
     "CLOSED_NEGATIVE": 4,
     "TIMEOUT_NOT_CLEAN": 1,
+    "DIAGNOSTIC_BANKED": 2,
     "READY_WAITING_SPARK": 4,
     "REFERENCE_IMPL_BANKED_SPEED_CLOSED": 1,
-    "DIAGNOSTIC_BANKED": 1,
     "DECISION_BANKED": 1
   },
   "promotion_boundaries": {
@@ -152,6 +152,15 @@
       "artifact": "reports/stage6/p3a_layer0_grouped_moe_contract_probe_20260604_143854",
       "next_step": "Banks only the P3-A active-MoE contract probe; speed/default/fused-kernel promotion remain closed.",
       "decision": "PASS"
+    },
+    {
+      "gate": "p3a_batched_down_candidate",
+      "title": "P3-A batched-down speed candidate",
+      "status": "DIAGNOSTIC_BANKED",
+      "evidence": "numeric/shadow gates pass, but average speed is 0.760x vs BF16 active",
+      "artifact": "reports/stage6/p3a_batched_down_layer0_grouped_moe_contract_probe_20260604_152955",
+      "next_step": "Do not promote; continue with route/materialization or true batched gate-up/down fusion.",
+      "decision": "PASS_BUT_SPEED_GATE_CLOSED"
     },
     {
       "gate": "p3b_selected_prefill",
