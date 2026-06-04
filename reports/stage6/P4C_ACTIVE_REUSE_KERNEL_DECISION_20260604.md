@@ -326,3 +326,33 @@ Observed non-exact examples:
 Decision: keep P4C tile=2 as opt-in server-smoke evidence only. Do **not**
 promote it to RC/default, and do not widen server prompts again until a
 first-divergence trace explains the token/layer where Triton and P4C separate.
+
+## Shadow-Cycle First-Divergence Diagnostic
+
+The server-like first-divergence diagnostic was then run with the same candidate
+backend and an explicit BF16 shadow lifecycle:
+
+```bash
+python3 benchmarks/p33_native_active_moe_first_divergence.py \
+  --candidate-backend fused_zero_shadow_active_reuse_contract \
+  --native-active-moe-layers 0,1,...,39 \
+  --candidate-release-shadows-before-decode
+```
+
+Banked diagnostic artifact:
+
+```text
+reports/stage6/p4c_tile2_shadow_cycle_first_divergence_20260604_130839
+```
+
+Result: the arithmetic prompt stayed top-1 identical for **8/8** reference
+steps, including the server-like `reload→release→decode` shadow cycle. The
+first hidden drift still starts early: `step=0/layer=13`,
+`cosine=0.9999949336`, `rel_l2=0.00362795`, `max_abs=0.0078125`. Logits are
+already non-identical (`step0 rel_l2=0.1021`, cosine `0.99487`), and step1
+candidate margin compresses from Triton `0.28125` to candidate `0.046875`.
+
+Interpretation: P4C tile=2 is not an immediate first-token failure on the
+arithmetic smoke, but it has enough accumulated hidden/logit drift to explain
+why wider rc-mini prompts split. This diagnostic supports the same boundary:
+P4C tile=2 remains an opt-in diagnostic/basic-smoke path, not RC/default.

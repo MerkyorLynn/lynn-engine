@@ -89,6 +89,10 @@ def main() -> int:
         if gates["p4c_tile2_rcmini_agreement"]["status"] == "CLOSED_NEGATIVE":
             assert gates["p4c_tile2_rcmini_agreement"]["decision"] == "FAIL_P4C_TILE2_SERVER_SMOKE"
             assert "first-divergence" in gates["p4c_tile2_rcmini_agreement"]["next_step"]
+        assert gates["p4c_tile2_shadow_cycle_first_divergence"]["status"] in {"DIAGNOSTIC_BANKED", "NOT_RUN"}
+        if gates["p4c_tile2_shadow_cycle_first_divergence"]["status"] == "DIAGNOSTIC_BANKED":
+            assert gates["p4c_tile2_shadow_cycle_first_divergence"]["decision"] == "pass=true; first_top1_divergence=null"
+            assert "go/no-go diagnostic" in gates["p4c_tile2_shadow_cycle_first_divergence"]["next_step"]
         assert gates["p4c_active_reuse_decision"]["status"] == "DECISION_BANKED"
         assert "active reuse" in gates["p4c_active_reuse_decision"]["evidence"]
         assert "P4C active-reuse" in gates["p4c_active_reuse_decision"]["next_step"]

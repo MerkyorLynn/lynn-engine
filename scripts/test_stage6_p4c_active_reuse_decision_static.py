@@ -67,6 +67,10 @@ def main() -> int:
             "FAIL_P4C_TILE2_SERVER_SMOKE",
             "completion text exact **3/6**",
             "first-divergence trace explains the token/layer",
+            "Shadow-Cycle First-Divergence Diagnostic",
+            "reports/stage6/p4c_tile2_shadow_cycle_first_divergence_20260604_130839",
+            "step=0/layer=13",
+            "P4C tile=2 remains an opt-in diagnostic/basic-smoke path",
         ],
         failures,
     )

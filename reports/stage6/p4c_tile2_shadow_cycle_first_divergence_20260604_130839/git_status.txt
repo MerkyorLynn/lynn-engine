@@ -1,0 +1,3 @@
+?? reports/stage6/p4c_tile2_first_divergence_20260604_125903/
+?? reports/stage6/p4c_tile2_server_smoke_20260604_124019/
+?? reports/stage6/p4c_tile2_shadow_cycle_first_divergence_20260604_130839/
