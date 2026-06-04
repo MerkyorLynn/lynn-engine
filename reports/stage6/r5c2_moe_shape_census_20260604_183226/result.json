@@ -1,0 +1,278 @@
+{
+  "schema": "lynn-stage6-r5c2-moe-shape-census-v1",
+  "created_at_utc": "2026-06-04T10:32:26+00:00",
+  "cutlass_dir": "/root/autodl-tmp/src/cutlass",
+  "git": {
+    "head": {
+      "cmd": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/root/autodl-tmp/src/cutlass",
+      "ok": true,
+      "returncode": 0,
+      "stdout": "2599f2975b06a67d5ee25e4a7292afeda1475c9b",
+      "stderr": ""
+    },
+    "branch": {
+      "cmd": [
+        "git",
+        "branch",
+        "--show-current"
+      ],
+      "cwd": "/root/autodl-tmp/src/cutlass",
+      "ok": true,
+      "returncode": 0,
+      "stdout": "main",
+      "stderr": ""
+    },
+    "status": {
+      "cmd": [
+        "git",
+        "status",
+        "--short"
+      ],
+      "cwd": "/root/autodl-tmp/src/cutlass",
+      "ok": true,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  },
+  "examples": {
+    "sm120_grouped_gemm": "/root/autodl-tmp/src/cutlass/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm.cu",
+    "sm100_moe_gemm": "/root/autodl-tmp/src/cutlass/examples/92_blackwell_moe_gemm/92_blackwell_moe_gemm_fp4_grouped.cu"
+  },
+  "evidence_hits": {
+    "ex79": [
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm.cu",
+        "line": 97,
+        "text": "using ProblemShape = cutlass::gemm::GroupProblemShape<Shape<int,int,int>>; // <M,N,K> per group"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm.cu",
+        "line": 105,
+        "text": "using         ElementA    = cutlass::nv_float4_t<ElementInput>;             // Element type for A matrix operand"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm.cu",
+        "line": 110,
+        "text": "using         ElementB    = cutlass::nv_float4_t<ElementInput>;             // Element type for B matrix operand"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm.cu",
+        "line": 116,
+        "text": "using         ElementSFD  = cutlass::float_ue4m3_t;                         // Element type for SF Output operands"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm.cu",
+        "line": 127,
+        "text": "using ArchTag             = cutlass::arch::Sm120;                           // Tag indicating the minimum SM that supports the intended feature"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm.cu",
+        "line": 293,
+        "text": "std::vector<typename ProblemShape::UnderlyingProblemShape> problem_sizes_host;"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm.cu",
+        "line": 326,
+        "text": "problem_sizes_host.clear();"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm.cu",
+        "line": 351,
+        "text": "problem_sizes_host.reserve(groups);"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm.cu",
+        "line": 366,
+        "text": "problem_sizes_host.push_back({m, n, k});"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm.cu",
+        "line": 405,
+        "text": "problem_sizes_host.push_back({extent.m(), extent.n(), extent.k()});"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm.cu",
+        "line": 408,
+        "text": "groups = static_cast<int>(problem_sizes_host.size());"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm.cu",
+        "line": 442,
+        "text": "double gflops(double runtime_s, std::vector<typename ProblemShape::UnderlyingProblemShape> problem_sizes_host) const"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm.cu",
+        "line": 447,
+        "text": "for (auto const & problem : problem_sizes_host) {"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm.cu",
+        "line": 515,
+        "text": "auto problem = options.problem_sizes_host.at(i);"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm.cu",
+        "line": 558,
+        "text": "problem_sizes.copy_from_host(options.problem_sizes_host.data());"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm.cu",
+        "line": 705,
+        "text": "{options.groups, problem_sizes.get(), options.problem_sizes_host.data()},"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm.cu",
+        "line": 730,
+        "text": "auto problem = options.problem_sizes_host.at(i);"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm.cu",
+        "line": 799,
+        "text": "std::cout << \"    \" << options.problem_sizes_host.at(i);"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm.cu",
+        "line": 855,
+        "text": "result.gflops          = options.gflops(result.avg_runtime_ms / 1000.0, options.problem_sizes_host);"
+      }
+    ],
+    "ex92": [
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/92_blackwell_moe_gemm/92_blackwell_moe_gemm_fp4_grouped.cu",
+        "line": 189,
+        "text": "if constexpr (cute::is_same_v<Element, cutlass::float_ue8m0_t> || cute::is_same_v<Element, cutlass::float_ue4m3_t>) {"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/92_blackwell_moe_gemm/92_blackwell_moe_gemm_fp4_grouped.cu",
+        "line": 218,
+        "text": "class MainloopScheduleType = cutlass::gemm::KernelMixedTmaCpAsyncWarpSpecialized1SmBlockScaledSm100,"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/92_blackwell_moe_gemm/92_blackwell_moe_gemm_fp4_grouped.cu",
+        "line": 233,
+        "text": "using ElementSF    = cutlass::float_ue4m3_t;                               // Element type for SF matrix operands"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/92_blackwell_moe_gemm/92_blackwell_moe_gemm_fp4_grouped.cu",
+        "line": 235,
+        "text": "using ElementA = cutlass::nv_float4_t<ElementInput>;"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/92_blackwell_moe_gemm/92_blackwell_moe_gemm_fp4_grouped.cu",
+        "line": 236,
+        "text": "using ElementB = cutlass::nv_float4_t<ElementInput>;"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/92_blackwell_moe_gemm/92_blackwell_moe_gemm_fp4_grouped.cu",
+        "line": 264,
+        "text": "cutlass::arch::Sm100, cutlass::arch::OpClassBlockScaledTensorOp,"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/92_blackwell_moe_gemm/92_blackwell_moe_gemm_fp4_grouped.cu",
+        "line": 278,
+        "text": "cutlass::arch::Sm100, cutlass::arch::OpClassBlockScaledTensorOp,"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/92_blackwell_moe_gemm/92_blackwell_moe_gemm_fp4_grouped.cu",
+        "line": 287,
+        "text": "using ProblemShape = cutlass::gemm::MoEProblemShape<Shape<int,int,int>>; // <M,N,K> per group"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/92_blackwell_moe_gemm/92_blackwell_moe_gemm_fp4_grouped.cu",
+        "line": 342,
+        "text": "cutlass::DeviceAllocation<int32_t> tokens_per_expert;"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/92_blackwell_moe_gemm/92_blackwell_moe_gemm_fp4_grouped.cu",
+        "line": 345,
+        "text": "std::vector<int32_t> tokens_per_expert_host;"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/92_blackwell_moe_gemm/92_blackwell_moe_gemm_fp4_grouped.cu",
+        "line": 505,
+        "text": "void benchmark_tokens_per_expert(std::string const& benchmark_path) {"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/92_blackwell_moe_gemm/92_blackwell_moe_gemm_fp4_grouped.cu",
+        "line": 531,
+        "text": "tokens_per_expert_host.push_back(extent.n());"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/92_blackwell_moe_gemm/92_blackwell_moe_gemm_fp4_grouped.cu",
+        "line": 544,
+        "text": "benchmark_tokens_per_expert(options.benchmark_path);"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/92_blackwell_moe_gemm/92_blackwell_moe_gemm_fp4_grouped.cu",
+        "line": 545,
+        "text": "if (tokens_per_expert_host.empty()) {"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/92_blackwell_moe_gemm/92_blackwell_moe_gemm_fp4_grouped.cu",
+        "line": 549,
+        "text": "tokens_per_expert.reset(tokens_per_expert_host.size());"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/92_blackwell_moe_gemm/92_blackwell_moe_gemm_fp4_grouped.cu",
+        "line": 550,
+        "text": "tokens_per_expert.copy_from_host(tokens_per_expert_host.data());"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/92_blackwell_moe_gemm/92_blackwell_moe_gemm_fp4_grouped.cu",
+        "line": 552,
+        "text": "ProblemShape problem_size {options.m, options.n, options.k, options.groups, tokens_per_expert.get(), tokens_per_expert_host.data()};"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/92_blackwell_moe_gemm/92_blackwell_moe_gemm_fp4_grouped.cu",
+        "line": 722,
+        "text": "cutlass::gemm::KernelMixedTmaCpAsyncWarpSpecialized1SmBlockScaledSm100,"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/92_blackwell_moe_gemm/92_blackwell_moe_gemm_fp4_grouped.cu",
+        "line": 730,
+        "text": "cutlass::gemm::KernelMixedTmaCpAsyncWarpSpecialized2SmBlockScaledSm100,"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/examples/92_blackwell_moe_gemm/92_blackwell_moe_gemm_fp4_grouped.cu",
+        "line": 738,
+        "text": "cutlass::gemm::KernelMixedTmaCpAsyncWarpSpecialized2SmBlockScaledSm100,"
+      }
+    ]
+  },
+  "passes": {
+    "ex79_exists": true,
+    "ex92_exists": true,
+    "ex79_sm120": true,
+    "ex79_group_problem_shape": true,
+    "ex79_nvfp4_ue4m3": true,
+    "ex79_lacks_moe_problem_shape": true,
+    "ex79_lacks_tokens_per_expert": true,
+    "ex92_moe_problem_shape": true,
+    "ex92_tokens_per_expert": true,
+    "ex92_nvfp4_ue4m3": true,
+    "ex92_sm100_schedule": true,
+    "ex92_lacks_sm120_schedule": true,
+    "requires_new_minimal_harness": true,
+    "banked_moe_shape_census": true,
+    "banked_selected_expert_gate_up_smoke": false,
+    "banked_grouped_moe_fp4_mma_poc": false,
+    "banked_kernel_speed": false,
+    "banked_default_promotion": false,
+    "all": true
+  },
+  "decision": "PASS_R5C2_MOE_SHAPE_CENSUS_NEW_HARNESS_REQUIRED",
+  "next_contract": {
+    "r5c2_selected_expert_gate_up_numeric_smoke": [
+      "combine 92-style MoEProblemShape/tokens_per_expert semantics with 79d-style SM120 NVF4+UE4M3 schedule",
+      "preserve expert IDs/top-k token assignment",
+      "verify per-expert gate/up outputs against host reference",
+      "bank only selected-expert numeric smoke; no speed/default promotion"
+    ]
+  }
+}

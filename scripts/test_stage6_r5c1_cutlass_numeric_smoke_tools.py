@@ -78,6 +78,7 @@ def main() -> int:
             "summarize_stage6_r5c1_cutlass_numeric_smoke.py",
             "nvidia_smi_before.txt",
             "CUTLASS_DIR",
+            "probe_rc",
         ],
         DOC: [
             "R5-C1",
