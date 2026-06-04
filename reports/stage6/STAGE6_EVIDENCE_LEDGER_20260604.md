@@ -11,8 +11,8 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 
 | Field | Value |
 |---|---|
-| Status | `BLOCKED_BY_SPARK_SSH` |
-| Note | FRP ssh-dgx closed at 2026-06-04 04:45:23 CST; jump ports 2222/2224 are not listening; N5 can reach Spark 192.168.100.26:22 at TCP/ping level but SSH banner exchange times out. See reports/stage6/SPARK_CONNECTIVITY_DIAGNOSTIC_20260604.md. |
+| Status | `REACHABLE_VIA_DGX_VIA_SSH` |
+| Note | Spark SSH recovered via dgx-via-ssh on 2026-06-04; dgx-spark direct alias still reports local forward ports 18007/18008 already in use. P4B fail-loud synthetic and runtime bridge gates were run on /home/merkyor/lynn-engine-codex-stage6 at 41cdb1d. |
 
 ## Promotion Boundaries
 
@@ -44,18 +44,18 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 | `p3e_rc_quality_battery` | **READY_WAITING_SPARK** | tooling/runbook exists, but no Spark PASS artifact is banked | `reports/stage6/P3E_RC_QUALITY_BATTERY_RUNBOOK_20260604.md, scripts/run_spark_stage6_p3e_rc_quality_battery.sh` | Run after P3-D PASS; full leaderboard/default promotion remains closed. |
 | `p4_native_abi_preflight` | **READY_WAITING_SPARK** | tooling/runbook exists, but no Spark PASS artifact is banked | `reports/stage6/P4_NATIVE_FUSED_MOE_ABI_CONTRACT_20260604.md, scripts/run_spark_stage6_p4_native_abi_preflight.sh` | Run on Spark; may bank native ABI preflight only, not fused kernel. |
 | `p4_runtime_bridge_preflight` | **READY_WAITING_SPARK** | tooling/runbook exists, but no Spark PASS artifact is banked | `reports/stage6/P4_NATIVE_FUSED_MOE_ABI_CONTRACT_20260604.md, scripts/run_spark_stage6_p4_runtime_bridge_preflight.sh` | Run on Spark; must prove native layer selection and no fallback. |
-| `p4b_single_kernel_preflight` | **READY_WAITING_SPARK** | tooling/runbook exists, but no Spark PASS artifact is banked | `reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md, scripts/run_spark_stage6_p4b_single_kernel_preflight.sh, scripts/spark_stage6_p4b_single_kernel_preflight.py, scripts/summarize_stage6_p4b_single_kernel_preflight.py` | Run on Spark; may bank fail-loud single-kernel contract preflight only, not fused-kernel speed. |
-| `p4b_runtime_bridge_preflight` | **READY_WAITING_SPARK** | tooling/runbook exists, but no Spark PASS artifact is banked | `reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md, scripts/run_spark_stage6_p4b_runtime_bridge_preflight.sh, scripts/spark_stage6_p4b_runtime_bridge_preflight.py, scripts/summarize_stage6_p4b_runtime_bridge_preflight.py` | Run on Spark; proves resident-runner routing reaches P4B fail-loud symbol after active BF16 shadows are removed. |
+| `p4b_single_kernel_preflight` | **BANKED** `PASS_SINGLE_KERNEL_FAILLOUD_CONTRACT` | latest Spark result.json has passes.all=true | `reports/stage6/p4b_single_kernel_preflight_20260604_081151` | Run on Spark; may bank fail-loud single-kernel contract preflight only, not fused-kernel speed. |
+| `p4b_runtime_bridge_preflight` | **BANKED** `PASS_P4B_RUNTIME_BRIDGE_FAILLOUD` | latest Spark result.json has passes.all=true | `reports/stage6/p4b_runtime_bridge_preflight_20260604_081234` | Run on Spark; proves resident-runner routing reaches P4B fail-loud symbol after active BF16 shadows are removed. |
 | `p4b_single_kernel_contract` | **CONTRACT_READY_UNIMPLEMENTED** | fail-loud ABI/static gate exists, but no fused implementation or GPU result is banked | `reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md, scripts/test_stage6_p4b_single_kernel_static.py` | Replace fail-loud contract with a real fused CUDA/CUTLASS kernel, then run byte-count/numeric/speed/RC gates. |
 
 ## Counts
 
 | Status | Count |
 |---|---:|
-| `BANKED` | 9 |
+| `BANKED` | 11 |
 | `CLOSED_NEGATIVE` | 2 |
 | `CONTRACT_READY_UNIMPLEMENTED` | 1 |
-| `READY_WAITING_SPARK` | 9 |
+| `READY_WAITING_SPARK` | 7 |
 
 ## Local Check
 

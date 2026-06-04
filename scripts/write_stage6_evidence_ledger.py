@@ -123,6 +123,23 @@ def _ready_gate(gate: str, title: str, required: list[str], next_step: str) -> G
     return Gate(gate, title, "READY_WAITING_SPARK", "tooling/runbook exists, but no Spark PASS artifact is banked", ", ".join(required), next_step)
 
 
+def _result_or_ready_gate(
+    gate: str,
+    title: str,
+    prefixes: list[str],
+    required: list[str],
+    next_step: str,
+) -> Gate:
+    run_dir, data = _latest_result(prefixes)
+    if data is not None:
+        if data.get("_json_error"):
+            return Gate(gate, title, "FAILED_ARTIFACT", "latest result.json is not valid JSON", _artifact(run_dir), next_step)
+        if _passes_all(data):
+            return Gate(gate, title, "BANKED", "latest Spark result.json has passes.all=true", _artifact(run_dir), next_step, _decision(data))
+        return Gate(gate, title, "FAILED_ARTIFACT", "latest Spark result.json did not pass", _artifact(run_dir), next_step, _decision(data))
+    return _ready_gate(gate, title, required, next_step)
+
+
 def _contract_gate(gate: str, title: str, required: list[str], next_step: str) -> Gate:
     missing = [rel for rel in required if not (ROOT / rel).exists()]
     if missing:
@@ -259,9 +276,10 @@ def collect_gates() -> list[Gate]:
             ["reports/stage6/P4_NATIVE_FUSED_MOE_ABI_CONTRACT_20260604.md", "scripts/run_spark_stage6_p4_runtime_bridge_preflight.sh"],
             "Run on Spark; must prove native layer selection and no fallback.",
         ),
-        _ready_gate(
+        _result_or_ready_gate(
             "p4b_single_kernel_preflight",
             "P4B single-kernel fail-loud preflight",
+            ["p4b_single_kernel_preflight_"],
             [
                 "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md",
                 "scripts/run_spark_stage6_p4b_single_kernel_preflight.sh",
@@ -270,9 +288,10 @@ def collect_gates() -> list[Gate]:
             ],
             "Run on Spark; may bank fail-loud single-kernel contract preflight only, not fused-kernel speed.",
         ),
-        _ready_gate(
+        _result_or_ready_gate(
             "p4b_runtime_bridge_preflight",
             "P4B real runtime bridge fail-loud preflight",
+            ["p4b_runtime_bridge_preflight_"],
             [
                 "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md",
                 "scripts/run_spark_stage6_p4b_runtime_bridge_preflight.sh",

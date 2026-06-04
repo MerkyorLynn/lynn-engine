@@ -1,12 +1,12 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-03T23:58:20+00:00",
-  "spark_status": "BLOCKED_BY_SPARK_SSH",
-  "spark_note": "FRP ssh-dgx closed at 2026-06-04 04:45:23 CST; jump ports 2222/2224 are not listening; N5 can reach Spark 192.168.100.26:22 at TCP/ping level but SSH banner exchange times out. See reports/stage6/SPARK_CONNECTIVITY_DIAGNOSTIC_20260604.md.",
+  "generated_at_utc": "2026-06-04T00:19:39+00:00",
+  "spark_status": "REACHABLE_VIA_DGX_VIA_SSH",
+  "spark_note": "Spark SSH recovered via dgx-via-ssh on 2026-06-04; dgx-spark direct alias still reports local forward ports 18007/18008 already in use. P4B fail-loud synthetic and runtime bridge gates were run on /home/merkyor/lynn-engine-codex-stage6 at 41cdb1d.",
   "counts": {
-    "BANKED": 9,
+    "BANKED": 11,
     "CLOSED_NEGATIVE": 2,
-    "READY_WAITING_SPARK": 9,
+    "READY_WAITING_SPARK": 7,
     "CONTRACT_READY_UNIMPLEMENTED": 1
   },
   "promotion_boundaries": {
@@ -180,20 +180,20 @@
     {
       "gate": "p4b_single_kernel_preflight",
       "title": "P4B single-kernel fail-loud preflight",
-      "status": "READY_WAITING_SPARK",
-      "evidence": "tooling/runbook exists, but no Spark PASS artifact is banked",
-      "artifact": "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md, scripts/run_spark_stage6_p4b_single_kernel_preflight.sh, scripts/spark_stage6_p4b_single_kernel_preflight.py, scripts/summarize_stage6_p4b_single_kernel_preflight.py",
+      "status": "BANKED",
+      "evidence": "latest Spark result.json has passes.all=true",
+      "artifact": "reports/stage6/p4b_single_kernel_preflight_20260604_081151",
       "next_step": "Run on Spark; may bank fail-loud single-kernel contract preflight only, not fused-kernel speed.",
-      "decision": ""
+      "decision": "PASS_SINGLE_KERNEL_FAILLOUD_CONTRACT"
     },
     {
       "gate": "p4b_runtime_bridge_preflight",
       "title": "P4B real runtime bridge fail-loud preflight",
-      "status": "READY_WAITING_SPARK",
-      "evidence": "tooling/runbook exists, but no Spark PASS artifact is banked",
-      "artifact": "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md, scripts/run_spark_stage6_p4b_runtime_bridge_preflight.sh, scripts/spark_stage6_p4b_runtime_bridge_preflight.py, scripts/summarize_stage6_p4b_runtime_bridge_preflight.py",
+      "status": "BANKED",
+      "evidence": "latest Spark result.json has passes.all=true",
+      "artifact": "reports/stage6/p4b_runtime_bridge_preflight_20260604_081234",
       "next_step": "Run on Spark; proves resident-runner routing reaches P4B fail-loud symbol after active BF16 shadows are removed.",
-      "decision": ""
+      "decision": "PASS_P4B_RUNTIME_BRIDGE_FAILLOUD"
     },
     {
       "gate": "p4b_single_kernel_contract",
