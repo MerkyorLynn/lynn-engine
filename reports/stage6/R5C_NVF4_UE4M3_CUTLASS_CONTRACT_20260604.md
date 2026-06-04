@@ -50,7 +50,9 @@ banked_default_promotion=false
 | R5-C2 | Selected expert gate/up native GEMM smoke | Preserve expert IDs/top-k and scale semantics |
 | R5-C2B-static | Slot-preserving selected-output contract | Preserve `(token, top_k slot, expert)` through grouping and scatter-back |
 | R5-C2C | Real D-row slot scatter smoke | Copy real CUTLASS D row digests through the slot bridge into `[T, top_k, N_gateup]` |
-| R5-C3 | Grouped active-MoE prefill POC | Only then may speed be measured against W4A16/P2-N/P3 paths |
+| R5-C3A | Gate/up prefill timing trace | Trace-only speed signal; no full-MoE speed/default claim |
+| R5-C3B | Gate/up value materialization | Materialize full D-row values, scatter to `[T, top_k, N_gateup]`, and record host SwiGLU checksum |
+| R5-C3C | Down + weighted-sum numeric parity | Only then may full active-MoE prefill speed be measured against W4A16/P2-N/P3 paths |
 
 ## R5-C1 Minimal Numeric GEMM Smoke Gate
 
@@ -171,6 +173,49 @@ R5-C2C output width is `N_gateup`, not post-SwiGLU `inter`. R5-C2C therefore
 does **not** perform SwiGLU activation, down projection, router validation,
 server/RC validation, speed promotion, or runtime default promotion.
 
+## R5-C3A Gate/Up Prefill Timing Trace
+
+R5-C3A records the first prefill/batch speed trace on the R6000 FP4-MMA lane,
+but remains trace-only. The banked artifact measures the same selected-expert
+gate/up shape already covered by R5-C2C correctness:
+
+```text
+8 active experts x M256 x N1024 x K2048
+```
+
+The best CUTLASS native NVF4+UE4M3 schedule measured 0.0206ms / 416 TFLOPS,
+while same-shape BF16 `bmm` measured 0.0435ms / 198 TFLOPS. This is a positive
+gate/up compute signal, but it does **not** bank full MoE speed, decode TPS,
+server/RC behavior, or runtime defaults.
+
+## R5-C3B Gate/Up Value Materialization Smoke Gate
+
+R5-C3B upgrades R5-C2C from digests to full D-row values. A PASS requires:
+
+```text
+PASS_R5C3B_GATEUP_VALUE_MATERIALIZATION_SMOKE
+banked_gateup_value_materialization=true
+banked_host_swiglu_checksum_smoke=true
+banked_down_projection_numeric_parity=false
+banked_grouped_moe_fp4_mma_poc=false
+banked_kernel_speed=false
+banked_default_promotion=false
+```
+
+The gate must prove:
+
+- full real CUTLASS D/ref row values and exact value bits were captured;
+- value-bit digests match the emitted row hashes;
+- values scatter through the R5-C2B inverse-order bridge into
+  `[T, top_k, N_gateup]`;
+- D/ref scattered values have max_abs 0 for the smoke;
+- host-side SwiGLU checksum is finite and deterministic;
+- swapped rows, missing rows, and duplicate selected slots are detected.
+
+R5-C3B does **not** bank down projection, weighted top-k reduction, full
+grouped-MoE speed, decode TPS, server/RC behavior, or runtime default promotion.
+The next gate is R5-C3C down projection + weighted top-k numeric parity.
+
 ## Commands
 
 On the R6000 lane:
@@ -181,6 +226,7 @@ scripts/r6000_stage6_r5c1_cutlass_numeric_smoke.sh
 scripts/r6000_stage6_r5c2_moe_shape_census.sh
 scripts/r6000_stage6_r5c2_selected_expert_gateup_smoke.sh
 scripts/r6000_stage6_r5c2c_real_d_row_slot_scatter_smoke.sh
+scripts/r6000_stage6_r5c3b_gateup_value_materialization_smoke.sh
 ```
 
 Local GPU-free check:
@@ -192,6 +238,8 @@ python3 scripts/test_stage6_r5c2_moe_shape_census_tools.py
 python3 scripts/test_stage6_r5c2_selected_expert_gateup_smoke_tools.py
 python3 scripts/test_stage6_r5c2b_slot_bridge_contract_static.py
 python3 scripts/test_stage6_r5c2c_real_d_row_slot_scatter_smoke_tools.py
+python3 scripts/test_stage6_r5c3b_gateup_value_materialization_contract_static.py
+python3 scripts/test_stage6_r5c3b_gateup_value_materialization_smoke_tools.py
 ```
 
 ## Explicit Non-Claims
@@ -216,3 +264,9 @@ python3 scripts/test_stage6_r5c2c_real_d_row_slot_scatter_smoke_tools.py
   into `[T, top_k, N_gateup]` selected slots.
 - R5-C2C does not prove an in-epilogue selected-output CUDA kernel, SwiGLU,
   down projection, full grouped-MoE FP4-MMA speed, or runtime defaults.
+- R5-C3A records only a gate/up prefill timing trace, not full MoE speed or
+  decode TPS.
+- R5-C3B proves only gate/up value materialization and host-SwiGLU checksum
+  smoke.
+- R5-C3B does not prove down projection, weighted top-k reduction, full
+  grouped-MoE FP4-MMA speed, server/RC behavior, or runtime defaults.
