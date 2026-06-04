@@ -545,6 +545,19 @@ def collect_gates() -> list[Gate]:
             ],
             "Run on Spark; compare current tile_inter=8 vs candidate tile_inter=2 on the full P4C active-reuse symbol.",
         ),
+        _result_or_ready_gate(
+            "p4c_tile2_server_smoke",
+            "P4C tile2 OpenAI server smoke",
+            ["p4c_tile2_server_smoke_"],
+            [
+                "scripts/run_spark_stage6_p4c_tile2_server_smoke.sh",
+                "scripts/spark_stage6_p4c_tile2_server_smoke.py",
+                "scripts/summarize_stage6_p4c_tile2_server_smoke.py",
+                "scripts/test_stage6_p4c_tile2_server_smoke_tools.py",
+                "server/openai_http.py",
+            ],
+            "Run on Spark; bank opt-in server evidence for tile_inter=2 P4C decode after prefill releases shadows.",
+        ),
         _p4c_active_reuse_decision_gate(),
     ]
     return gates

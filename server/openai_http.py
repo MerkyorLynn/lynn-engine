@@ -172,6 +172,62 @@ def finish_reason_from_result(result: dict[str, Any], *, has_stop: bool, tool_ca
     return "length"
 
 
+def _jsonable_counter_value(value: Any) -> Any:
+    if isinstance(value, tuple):
+        return [_jsonable_counter_value(item) for item in value]
+    if isinstance(value, list):
+        return [_jsonable_counter_value(item) for item in value]
+    if isinstance(value, dict):
+        return {str(key): _jsonable_counter_value(item) for key, item in value.items()}
+    return value
+
+
+def _native_moe_counter_summary(runner: Any) -> dict[str, Any]:
+    layer_weights = getattr(runner, "layer_weights", None) or []
+    specs = {
+        "p4_zero_shadow_out_contract": (
+            "_p4_fused_zero_shadow_out_contract_call_count",
+            "_p4_fused_zero_shadow_out_contract_last_shapes",
+        ),
+        "p4b_single_kernel_contract": (
+            "_p4b_fused_zero_shadow_single_kernel_contract_call_count",
+            "_p4b_fused_zero_shadow_single_kernel_contract_last_shapes",
+        ),
+        "p4c_active_reuse_contract": (
+            "_p4c_fused_zero_shadow_active_reuse_contract_call_count",
+            "_p4c_fused_zero_shadow_active_reuse_contract_last_shapes",
+        ),
+    }
+    summary: dict[str, Any] = {}
+    for name, (count_key, shapes_key) in specs.items():
+        total = 0
+        layers = []
+        last_shapes = None
+        for layer_idx, weights in enumerate(layer_weights):
+            if not isinstance(weights, dict):
+                continue
+            count = int(weights.get(count_key, 0) or 0)
+            if count <= 0:
+                continue
+            shapes = _jsonable_counter_value(weights.get(shapes_key))
+            total += count
+            last_shapes = shapes
+            layers.append({
+                "layer": layer_idx,
+                "count": count,
+                "last_shapes": shapes,
+            })
+        summary[name] = {
+            "count_key": count_key,
+            "last_shapes_key": shapes_key,
+            "total_calls": total,
+            "layers_with_calls": len(layers),
+            "layers": layers,
+            "last_shapes": last_shapes,
+        }
+    return summary
+
+
 @dataclass
 class EngineConfig:
     model_dir: str
@@ -412,6 +468,10 @@ def make_app(handle: LynnEngineHandle):
                 "mtp_shadow_verify_enabled": getattr(handle.runner, "mtp_shadow_verify_enabled", None),
                 "mtp_sidecar_path": getattr(handle.runner, "mtp_sidecar_path", None),
                 "mtp_load_seconds": getattr(handle.runner, "mtp_load_seconds", None),
+                "native_active_moe_backend": os.environ.get("LYNN_NATIVE_ACTIVE_MOE_BACKEND"),
+                "native_active_moe_layers": os.environ.get("LYNN_NATIVE_ACTIVE_MOE_LAYERS"),
+                "native_gateup_tile_inter": os.environ.get("LYNN_NATIVE_GATEUP_TILE_INTER"),
+                "native_moe_counters": _native_moe_counter_summary(handle.runner),
                 "runtime_warnings": getattr(handle.runner, "runtime_warnings", []),
             }
         return {
