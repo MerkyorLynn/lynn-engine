@@ -1,0 +1,159 @@
+{
+  "schema_version": "lynn-engine-p85-sm120a-blockscaled-fp4-mma-contract-v1",
+  "torch": "2.8.0+cu128",
+  "cuda_capability": [
+    12,
+    0
+  ],
+  "include_paths": [
+    "/root/autodl-tmp/src/cutlass/include"
+  ],
+  "cuda_cflags": [
+    "-O3",
+    "-arch=sm_120a",
+    "--use_fast_math",
+    "-DLYNN_ENABLE_SM120A_FP4_MMA=1"
+  ],
+  "build_seconds": 52.198641300201416,
+  "blocks": 256,
+  "repeats": 3,
+  "warmup": 1,
+  "scale_bytes": [
+    126,
+    127,
+    128
+  ],
+  "rows": [
+    {
+      "scale_a": 126,
+      "scale_b": 126,
+      "times_ms": [
+        0.09251199662685394,
+        0.02486399933695793,
+        0.019936000928282738
+      ],
+      "mean_ms": 0.045770665630698204,
+      "median_ms": 0.02486399933695793,
+      "min_ms": 0.019936000928282738,
+      "max_ms": 0.09251199662685394,
+      "finite": true,
+      "smoke_passthrough_max_abs_err": 0.0,
+      "smoke_sample_lane0": [
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "positive_min": 0.5,
+      "positive_max": 0.5,
+      "positive_mean": 0.5,
+      "positive_nonzero_count": 32768,
+      "negative_min": 2.5,
+      "negative_max": 2.5,
+      "negative_mean": 2.5,
+      "negative_nonzero_count": 32768,
+      "sample_lane0": {
+        "positive": [
+          0.5,
+          0.5,
+          0.5,
+          0.5
+        ],
+        "negative": [
+          2.5,
+          2.5,
+          2.5,
+          2.5
+        ]
+      }
+    },
+    {
+      "scale_a": 127,
+      "scale_b": 127,
+      "times_ms": [
+        0.04227200150489807,
+        0.025599999353289604,
+        0.023520000278949738
+      ],
+      "mean_ms": 0.030464000379045803,
+      "median_ms": 0.025599999353289604,
+      "min_ms": 0.023520000278949738,
+      "max_ms": 0.04227200150489807,
+      "finite": true,
+      "smoke_passthrough_max_abs_err": 0.0,
+      "smoke_sample_lane0": [
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "positive_min": 2.0,
+      "positive_max": 2.0,
+      "positive_mean": 2.0,
+      "positive_nonzero_count": 32768,
+      "negative_min": 10.0,
+      "negative_max": 10.0,
+      "negative_mean": 10.0,
+      "negative_nonzero_count": 32768,
+      "sample_lane0": {
+        "positive": [
+          2.0,
+          2.0,
+          2.0,
+          2.0
+        ],
+        "negative": [
+          10.0,
+          10.0,
+          10.0,
+          10.0
+        ]
+      }
+    },
+    {
+      "scale_a": 128,
+      "scale_b": 128,
+      "times_ms": [
+        0.03049599938094616,
+        0.023135999217629433,
+        0.021568000316619873
+      ],
+      "mean_ms": 0.025066666305065155,
+      "median_ms": 0.023135999217629433,
+      "min_ms": 0.021568000316619873,
+      "max_ms": 0.03049599938094616,
+      "finite": true,
+      "smoke_passthrough_max_abs_err": 0.0,
+      "smoke_sample_lane0": [
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "positive_min": 8.0,
+      "positive_max": 8.0,
+      "positive_mean": 8.0,
+      "positive_nonzero_count": 32768,
+      "negative_min": 40.0,
+      "negative_max": 40.0,
+      "negative_mean": 40.0,
+      "negative_nonzero_count": 32768,
+      "sample_lane0": {
+        "positive": [
+          8.0,
+          8.0,
+          8.0,
+          8.0
+        ],
+        "negative": [
+          40.0,
+          40.0,
+          40.0,
+          40.0
+        ]
+      }
+    }
+  ],
+  "zero_operand_smoke_ok": true,
+  "decision": "BLOCKSCALED FP4 MMA compile/runtime smoke PASS. Inspect all-ones contract rows to decide whether manual register layout is usable."
+}

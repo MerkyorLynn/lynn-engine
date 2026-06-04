@@ -1,0 +1,69 @@
+{
+  "schema_version": "lynn-engine-p87-sm120a-fp4-layout-tile-contract-v1",
+  "torch": "2.8.0+cu128",
+  "cuda_capability": [
+    12,
+    0
+  ],
+  "include_paths": [
+    "/root/autodl-tmp/src/cutlass/include"
+  ],
+  "cuda_cflags": [
+    "-O3",
+    "-arch=sm_120a",
+    "--use_fast_math",
+    "-DLYNN_ENABLE_SM120A_FP4_MMA=1"
+  ],
+  "build_seconds": 51.50368690490723,
+  "blocks": 256,
+  "scale_byte": 127,
+  "repeats": 3,
+  "warmup": 1,
+  "times_ms": [
+    0.07315199822187424,
+    0.015904000028967857,
+    0.01369599997997284
+  ],
+  "mean_ms": 0.03425066607693831,
+  "median_ms": 0.015904000028967857,
+  "max_abs_err": 0.0,
+  "mean_abs_err": 0.0,
+  "all_exact": true,
+  "observed_min": -2.0,
+  "observed_max": 4.0,
+  "expected_min": -2.0,
+  "expected_max": 4.0,
+  "worst": {
+    "observed": 4.0,
+    "expected": 4.0,
+    "m": 0,
+    "n": 0
+  },
+  "sample_block0_lane0": [
+    {
+      "observed": 4.0,
+      "expected": 4.0,
+      "m": 0,
+      "n": 0
+    },
+    {
+      "observed": -2.0,
+      "expected": -2.0,
+      "m": 0,
+      "n": 1
+    },
+    {
+      "observed": 0.0,
+      "expected": 0.0,
+      "m": 8,
+      "n": 0
+    },
+    {
+      "observed": 2.0,
+      "expected": 2.0,
+      "m": 8,
+      "n": 1
+    }
+  ],
+  "decision": "SM120 blockscaled FP4 layout contract PASS: shifted register packing matches scalar logical tile."
+}

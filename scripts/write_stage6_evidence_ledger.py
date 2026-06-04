@@ -897,6 +897,30 @@ def collect_gates() -> list[Gate]:
     return gates
 
 
+def _derive_current_status(gates: list[Gate]) -> tuple[str, str]:
+    by_gate = {gate.gate: gate for gate in gates}
+    r6000 = by_gate.get("r6000_fp4_mma_census")
+    decode_idle = by_gate.get("decode_gpu_idle_probe")
+    if r6000 and r6000.status == "BANKED":
+        note = (
+            "Stage 6 lanes are split and active: Spark owns 35B serving/memory/MTP/compiled-loop ROI "
+            "and RC regressions; R6000 owns FP4-MMA/CUTLASS/CuTe/vLLM Marlin-Machete census plus the "
+            "next native grouped-MoE FP4-MMA POC. No kernel/default/speed promotion is implied."
+        )
+        if decode_idle and decode_idle.status == "DIAGNOSTIC_BANKED":
+            note += f" Spark decode ROI probe remains {decode_idle.decision or decode_idle.status}."
+        return "R6000_FP4_MMA_CENSUS_BANKED", note
+    if r6000 and r6000.status == "READY_WAITING_R6000":
+        return (
+            "R6000_FP4_MMA_CENSUS_TOOLING_READY",
+            "Stage 6 lanes are split; R6000 tooling exists but still needs a PASS artifact before FP4-MMA kernel work.",
+        )
+    return (
+        "STAGE6_EVIDENCE_LEDGER_UPDATED",
+        "Stage 6 gates are recorded; inspect individual gate rows before promoting any runtime/default.",
+    )
+
+
 def to_json(gates: list[Gate], spark_status: str, spark_note: str) -> dict[str, Any]:
     counts: dict[str, int] = {}
     for gate in gates:
@@ -904,6 +928,9 @@ def to_json(gates: list[Gate], spark_status: str, spark_note: str) -> dict[str, 
     return {
         "schema": "lynn-stage6-evidence-ledger-v1",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "stage6_status": spark_status,
+        "stage6_note": spark_note,
+        # Compatibility keys kept for older scripts that still read spark_*.
         "spark_status": spark_status,
         "spark_note": spark_note,
         "counts": counts,
@@ -925,9 +952,9 @@ def to_markdown(data: dict[str, Any]) -> str:
         "Verdict: **evidence ledger only; this document does not bank new GPU results.**",
         "",
         "This ledger separates banked positive evidence, intentional negative closures,",
-        "and gates that are wired but still waiting for Spark PASS/FAIL artifacts.",
+        "and gates that are wired but still waiting for lane-specific PASS/FAIL artifacts.",
         "",
-        "## Current Spark Status",
+        "## Current Stage 6 Status",
         "",
         "| Field | Value |",
         "|---|---|",
@@ -985,7 +1012,11 @@ def main() -> int:
     args = ap.parse_args()
 
     gates = collect_gates()
-    data = to_json(gates, args.spark_status, args.spark_note)
+    status = args.spark_status
+    note = args.spark_note
+    if status == "UNVERIFIED_THIS_RUN" and not note:
+        status, note = _derive_current_status(gates)
+    data = to_json(gates, status, note)
     md = to_markdown(data)
 
     md_path = ROOT / args.markdown_out

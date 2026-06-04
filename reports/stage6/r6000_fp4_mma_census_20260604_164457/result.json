@@ -1,0 +1,1622 @@
+{
+  "schema": "lynn-stage6-r6000-fp4-mma-census-v1",
+  "created": "2026-06-04T16:48:46",
+  "workspace": "/root/autodl-tmp/src/lynn-engine",
+  "min_disk_gib": 500.0,
+  "system": {
+    "nvidia_smi_query": {
+      "cmd": [
+        "nvidia-smi",
+        "--query-gpu=name,driver_version,memory.total,memory.free",
+        "--format=csv,noheader,nounits"
+      ],
+      "ok": true,
+      "returncode": 0,
+      "seconds": 0.08876180648803711,
+      "stdout_tail": "NVIDIA RTX PRO 6000 Blackwell Server Edition, 590.44.01, 97887, 97253",
+      "stderr_tail": ""
+    },
+    "nvidia_smi_full": {
+      "cmd": [
+        "nvidia-smi"
+      ],
+      "ok": true,
+      "returncode": 0,
+      "seconds": 0.062072038650512695,
+      "stdout_tail": "Thu Jun  4 16:44:57 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 590.44.01              Driver Version: 590.44.01      CUDA Version: 13.1     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA RTX PRO 6000 Blac...    On  |   00000000:C8:00.0 Off |                  Off |\n| N/A   30C    P8             36W /  600W |       0MiB /  97887MiB |      0%      Default |\n|                                         |                        |             Disabled |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|  No running processes found                                                             |\n+-----------------------------------------------------------------------------------------+",
+      "stderr_tail": ""
+    },
+    "nvcc_version": {
+      "cmd": [
+        "bash",
+        "-lc",
+        "command -v nvcc && nvcc --version"
+      ],
+      "ok": true,
+      "returncode": 0,
+      "seconds": 0.0073850154876708984,
+      "stdout_tail": "/usr/local/cuda-12.8/bin/nvcc\nnvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Fri_Feb_21_20:23:50_PST_2025\nCuda compilation tools, release 12.8, V12.8.93\nBuild cuda_12.8.r12.8/compiler.35583870_0",
+      "stderr_tail": ""
+    },
+    "disk_workspace": {
+      "cmd": [
+        "df",
+        "-BG",
+        "/root/autodl-tmp/src/lynn-engine"
+      ],
+      "ok": true,
+      "returncode": 0,
+      "seconds": 0.0012655258178710938,
+      "stdout_tail": "Filesystem     1G-blocks  Used Available Use% Mounted on\n/dev/md0            880G    1G      880G   1% /root/autodl-tmp",
+      "stderr_tail": ""
+    },
+    "python": {
+      "cmd": [
+        "/root/miniconda3/bin/python",
+        "--version"
+      ],
+      "ok": true,
+      "returncode": 0,
+      "seconds": 0.001712799072265625,
+      "stdout_tail": "Python 3.12.3",
+      "stderr_tail": ""
+    },
+    "git_head": {
+      "cmd": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "ok": true,
+      "returncode": 0,
+      "seconds": 0.0013484954833984375,
+      "stdout_tail": "dcc654b36871b66a383358f5936b128c61304dd5",
+      "stderr_tail": ""
+    },
+    "git_status": {
+      "cmd": [
+        "git",
+        "status",
+        "--short"
+      ],
+      "ok": true,
+      "returncode": 0,
+      "seconds": 0.011024236679077148,
+      "stdout_tail": " M benchmarks/p85_sm120a_blockscaled_fp4_mma_contract.py\n M benchmarks/p87_sm120a_fp4_layout_tile_contract.py\n M scripts/r6000_stage6_fp4_mma_census.py\n M scripts/summarize_stage6_r6000_fp4_mma_census.py\n?? reports/stage6/r6000_fp4_mma_census_20260604_161453/\n?? reports/stage6/r6000_fp4_mma_census_20260604_162512/\n?? reports/stage6/r6000_fp4_mma_census_20260604_163209/\n?? scripts/r6000_stage6_autodl_bootstrap.sh\n?? tmp_stage6_sync/",
+      "stderr_tail": ""
+    }
+  },
+  "torch": {
+    "process": {
+      "cmd": [
+        "/root/miniconda3/bin/python",
+        "-c",
+        "\nimport json\ntry:\n    import torch\n    if torch.cuda.is_available():\n        props = torch.cuda.get_device_properties(0)\n        payload = {\n            \"torch\": torch.__version__,\n            \"torch_cuda\": torch.version.cuda,\n            \"cuda_available\": True,\n            \"device_name\": torch.cuda.get_device_name(0),\n            \"capability\": list(torch.cuda.get_device_capability(0)),\n            \"total_memory_gib\": props.total_memory / (1024**3),\n        }\n    else:\n        payload = {\"cuda_available\": False}\nexcept Exception as exc:\n    payload = {\"error\": repr(exc)}\nprint(json.dumps(payload))\n"
+      ],
+      "ok": true,
+      "returncode": 0,
+      "seconds": 1.641115427017212,
+      "stdout_tail": "{\"torch\": \"2.8.0+cu128\", \"torch_cuda\": \"12.8\", \"cuda_available\": true, \"device_name\": \"NVIDIA RTX PRO 6000 Blackwell Server Edition\", \"capability\": [12, 0], \"total_memory_gib\": 94.97296142578125}",
+      "stderr_tail": ""
+    },
+    "json": {
+      "torch": "2.8.0+cu128",
+      "torch_cuda": "12.8",
+      "cuda_available": true,
+      "device_name": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+      "capability": [
+        12,
+        0
+      ],
+      "total_memory_gib": 94.97296142578125
+    }
+  },
+  "public_kernel_census": {
+    "process": {
+      "cmd": [
+        "/root/miniconda3/bin/python",
+        "-c",
+        "\nimport importlib\nimport importlib.util\nimport json\nimport os\nfrom pathlib import Path\nimport pkgutil\n\npayload = {\n    \"packages\": {},\n    \"module_candidates\": {},\n    \"source_candidates\": {},\n}\nfor name in [\"vllm\", \"cutlass\", \"triton\", \"flashinfer\", \"tensorrt_llm\"]:\n    spec = importlib.util.find_spec(name)\n    row = {\"importable\": spec is not None, \"origin\": getattr(spec, \"origin\", None)}\n    if spec is not None:\n        try:\n            mod = importlib.import_module(name)\n            row[\"version\"] = getattr(mod, \"__version__\", None)\n            row[\"path\"] = getattr(mod, \"__path__\", None) and [str(p) for p in mod.__path__]\n        except Exception as exc:\n            row[\"import_error\"] = repr(exc)\n    payload[\"packages\"][name] = row\n\nvllm_spec = importlib.util.find_spec(\"vllm\")\nif vllm_spec is not None:\n    try:\n        import vllm\n        names = []\n        for mod in pkgutil.walk_packages(vllm.__path__, prefix=\"vllm.\"):\n            low = mod.name.lower()\n            if any(k in low for k in [\"nvfp4\", \"machete\", \"marlin\", \"cutlass\"]):\n                names.append(mod.name)\n            if len(names) >= 200:\n                break\n        payload[\"module_candidates\"][\"vllm\"] = names\n    except Exception as exc:\n        payload[\"module_candidates\"][\"vllm_error\"] = repr(exc)\n\nexplicit = [\n    \"vllm.model_executor.kernels.linear.nvfp4.marlin\",\n    \"vllm.model_executor.kernels.linear.nvfp4.machete\",\n    \"vllm.model_executor.layers.quantization.nvfp4\",\n    \"vllm.model_executor.layers.fused_moe.cutlass_moe\",\n]\npayload[\"explicit_imports\"] = {}\nfor name in explicit:\n    try:\n        spec = importlib.util.find_spec(name)\n        error = None\n    except ModuleNotFoundError as exc:\n        spec = None\n        error = repr(exc)\n    payload[\"explicit_imports\"][name] = {\n        \"importable\": spec is not None,\n        \"origin\": getattr(spec, \"origin\", None),\n    }\n    if error is not None:\n        payload[\"explicit_imports\"][name][\"error\"] = error\n\nsource_dirs = []\nfor raw in [\n    os.environ.get(\"LYNN_VLLM_SOURCE_DIR\", \"\"),\n    \"/root/autodl-tmp/src/vllm\",\n]:\n    if raw:\n        path = Path(raw).expanduser()\n        if path.exists() and path.is_dir():\n            source_dirs.append(path)\n\nfor source_dir in source_dirs:\n    matches = []\n    for path in source_dir.rglob(\"*\"):\n        if not path.is_file():\n            continue\n        low = str(path.relative_to(source_dir)).lower()\n        if any(k in low for k in [\"nvfp4\", \"machete\", \"marlin\", \"cutlass\"]):\n            matches.append(str(path.relative_to(source_dir)))\n        if len(matches) >= 200:\n            break\n    payload[\"source_candidates\"][str(source_dir)] = matches\nprint(json.dumps(payload))\n"
+      ],
+      "ok": true,
+      "returncode": 0,
+      "seconds": 0.5087666511535645,
+      "stdout_tail": "{\"packages\": {\"vllm\": {\"importable\": false, \"origin\": null}, \"cutlass\": {\"importable\": false, \"origin\": null}, \"triton\": {\"importable\": true, \"origin\": \"/root/miniconda3/lib/python3.12/site-packages/triton/__init__.py\", \"version\": \"3.4.0\", \"path\": [\"/root/miniconda3/lib/python3.12/site-packages/triton\"]}, \"flashinfer\": {\"importable\": false, \"origin\": null}, \"tensorrt_llm\": {\"importable\": false, \"origin\": null}}, \"module_candidates\": {}, \"source_candidates\": {\"/root/autodl-tmp/src/vllm\": [\"benchmarks/cutlass_benchmarks/utils.py\", \"benchmarks/cutlass_benchmarks/w8a8_benchmarks.py\", \"benchmarks/cutlass_benchmarks/weight_shapes.py\", \"benchmarks/kernels/benchmark_cutlass_moe_fp8.py\", \"benchmarks/kernels/benchmark_cutlass_moe_nvfp4.py\", \"benchmarks/kernels/benchmark_grouped_gemm_cutlass.py\", \"benchmarks/kernels/benchmark_machete.py\", \"benchmarks/kernels/benchmark_marlin.py\", \"benchmarks/kernels/benchmark_nvfp4_gemm.py\", \"benchmarks/kernels/benchmark_nvfp4_quant.py\", \"benchmarks/kernels/benchmark_nvfp4_qutlass.py\", \"benchmarks/kernels/graph_machete_bench.py\", \"csrc/cutlass_extensions/common.cpp\", \"csrc/cutlass_extensions/common.hpp\", \"csrc/cutlass_extensions/cute_utils.cuh\", \"csrc/cutlass_extensions/torch_utils.hpp\", \"csrc/cutlass_extensions/vllm_collective_builder.cuh\", \"csrc/cutlass_extensions/vllm_custom_types.cuh\", \"csrc/cutlass_extensions/vllm_cutlass_library_extension.py\", \"csrc/cutlass_extensions/vllm_numeric_conversion.cuh\", \"csrc/cutlass_extensions/vllm_type_utils.cuh\", \"csrc/libtorch_stable/nvfp4_kv_cache_kernels.cu\", \"csrc/cutlass_extensions/epilogue/broadcast_load_epilogue_array_c3x.hpp\", \"csrc/cutlass_extensions/epilogue/broadcast_load_epilogue_c3x.hpp\", \"csrc/cutlass_extensions/epilogue/scaled_mm_epilogues_c3x.hpp\", \"csrc/libtorch_stable/attention/mla/sm100_cutlass_mla_kernel.cu\", \"csrc/libtorch_stable/attention/mla/cutlass_sm100_mla/device/sm100_mla.hpp\", \"csrc/libtorch_stable/attention/mla/cutlass_sm100_mla/kernel/sm100_fmha_mla_reduction.hpp\", \"csrc/libtorch_stable/attention/mla/cutlass_sm100_mla/kernel/sm100_fmha_mla_tma_warpspecialized.hpp\", \"csrc/libtorch_stable/attention/mla/cutlass_sm100_mla/kernel/sm100_mla_tile_scheduler.hpp\", \"csrc/libtorch_stable/cutlass_extensions/epilogue/broadcast_load_epilogue_c2x.hpp\", \"csrc/libtorch_stable/cutlass_extensions/epilogue/scaled_mm_epilogues_c2x.hpp\", \"csrc/libtorch_stable/moe/mxfp8_moe/cutlass_mxfp8_grouped_mm.cu\", \"csrc/libtorch_stable/moe/mxfp8_moe/cutlass_mxfp8_grouped_mm_functor.cuh\", \"csrc/libtorch_stable/moe/mxfp8_moe/cutlass_mxfp8_grouped_mm_launcher.cuh\", \"csrc/libtorch_stable/moe/mxfp8_moe/cutlass_mxfp8_grouped_mm_traits.cuh\", \"csrc/libtorch_stable/quantization/cutlass_w4a8/get_group_starts.cuh\", \"csrc/libtorch_stable/quantization/cutlass_w4a8/w4a8_grouped_mm_entry.cu\", \"csrc/libtorch_stable/quantization/cutlass_w4a8/w4a8_mm_entry.cu\", \"csrc/libtorch_stable/quantization/cutlass_w4a8/w4a8_utils.cu\", \"csrc/libtorch_stable/quantization/cutlass_w4a8/w4a8_utils.cuh\", \"csrc/libtorch_stable/quantization/fp4/activation_nvfp4_quant_fusion_kernels.cu\", \"csrc/libtorch_stable/quantization/fp4/nvfp4_blockwise_moe_kernel.cu\", \"csrc/libtorch_stable/quantization/fp4/nvfp4_experts_quant.cu\", \"csrc/libtorch_stable/quantization/fp4/nvfp4_quant_entry.cu\", \"csrc/libtorch_stable/quantization/fp4/nvfp4_quant_kernels.cu\", \"csrc/libtorch_stable/quantization/fp4/nvfp4_scaled_mm_entry.cu\", \"csrc/libtorch_stable/quantization/fp4/nvfp4_scaled_mm_kernels.cu\", \"csrc/libtorch_stable/quantization/fp4/nvfp4_scaled_mm_sm120_kernels.cu\", \"csrc/libtorch_stable/quantization/fp4/nvfp4_utils.cuh\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/scaled_mm_c2x.cu\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/scaled_mm_c2x.cuh\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/scaled_mm_c2x_sm75_dispatch.cuh\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/scaled_mm_c2x_sm80_dispatch.cuh\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/scaled_mm_c2x_sm89_fp8_dispatch.cuh\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/scaled_mm_c2x_sm89_int8_dispatch.cuh\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/scaled_mm_c3x_sm100.cu\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/scaled_mm_c3x_sm120.cu\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/scaled_mm_c3x_sm90.cu\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/scaled_mm_entry.cu\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/cutlass_gemm_caller.cuh\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm.cuh\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_azp_sm90_int8.cu\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_blockwise_sm100_fp8.cu\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_blockwise_sm100_fp8_dispatch.cuh\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_blockwise_sm120_fp8.cu\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_blockwise_sm120_fp8_dispatch.cuh\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_blockwise_sm90_fp8.cu\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_blockwise_sm90_fp8_dispatch.cuh\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_helper.hpp\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_kernels.hpp\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_sm100_fp8.cu\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_sm100_fp8_dispatch.cuh\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_sm120_fp8.cu\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_sm120_fp8_dispatch.cuh\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_sm90_fp8.cu\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_sm90_fp8_dispatch.cuh\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_sm90_int8.cu\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_sm90_int8_dispatch.cuh\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/moe/get_group_starts.cuh\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/moe/grouped_mm_c3x.cuh\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/moe/grouped_mm_c3x_sm100.cu\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/moe/grouped_mm_c3x_sm90.cu\", \"csrc/libtorch_stable/quantization/w8a8/cutlass/moe/moe_data.cu\", \"csrc/moe/marlin_moe_wna16/.gitignore\", \"csrc/moe/marlin_moe_wna16/generate_kernels.py\", \"csrc/moe/marlin_moe_wna16/kernel.h\", \"csrc/moe/marlin_moe_wna16/marlin_template.h\", \"csrc/moe/marlin_moe_wna16/ops.cu\", \"csrc/quantization/machete/Readme.md\", \"csrc/quantization/machete/generate.py\", \"csrc/quantization/machete/machete_collective_builder.cuh\", \"csrc/quantization/machete/machete_interleaving_utils.cuh\", \"csrc/quantization/machete/machete_mainloop.cuh\", \"csrc/quantization/machete/machete_mm_kernel.cuh\", \"csrc/quantization/machete/machete_mm_launcher.cuh\", \"csrc/quantization/machete/machete_prepack_kernel.cuh\", \"csrc/quantization/machete/machete_prepack_launcher.cuh\", \"csrc/quantization/machete/machete_prepacked_layout.cuh\", \"csrc/quantization/machete/machete_pytorch.cu\", \"csrc/quantization/marlin/.gitignore\", \"csrc/quantization/marlin/awq_marlin_repack.cu\", \"csrc/quantization/marlin/dequant.h\", \"csrc/quantization/marlin/generate_kernels.py\", \"csrc/quantization/marlin/gptq_marlin_repack.cu\", \"csrc/quantization/marlin/kernel.h\", \"csrc/quantization/marlin/marlin.cu\", \"csrc/quantization/marlin/marlin.cuh\", \"csrc/quantization/marlin/marlin_dtypes.cuh\", \"csrc/quantization/marlin/marlin_int4_fp8_preprocess.cu\", \"csrc/quantization/marlin/marlin_mma.h\", \"csrc/quantization/marlin/marlin_template.h\", \"csrc/quantization/w8a8/cutlass/Epilogues.md\", \"tests/distributed/test_eplb_fused_moe_layer_dep_nvfp4.py\", \"tests/quantization/test_cutlass_w4a16.py\", \"tests/quantization/test_trtllm_nvfp4_hidden_dim_padding.py\", \"tests/evals/gpt_oss/configs/gpt-oss-20b-flashinfer-mxfp4-mxfp8-cutlass.yaml\", \"tests/evals/gpt_oss/configs/gpt-oss-20b-marlin.yaml\", \"tests/evals/gsm8k/configs/Nemotron-3-Super-120B-A12B-NVFP4.yaml\", \"tests/evals/gsm8k/configs/Qwen3-30B-A3B-NVFP4.yaml\", \"tests/evals/gsm8k/configs/Qwen3-Next-80B-A3B-NVFP4-EP2.yaml\", \"tests/evals/gsm8k/configs/Qwen3.5-397B-A17B-NVFP4-DEP2.yaml\", \"tests/evals/gsm8k/configs/moe-refactor-dp-ep/Qwen3-30B-A3B-NvFp4-CT-fi-cutedsl-deepep-ll.yaml\", \"tests/evals/gsm8k/configs/moe-refactor-dp-ep/Qwen3-30B-A3B-NvFp4-CT-fi-cutlass.yaml\", \"tests/evals/gsm8k/configs/moe-refactor-dp-ep/Qwen3-30B-A3B-NvFp4-ModelOpt-fi-cutedsl-deepep-ll.yaml\", \"tests/evals/gsm8k/configs/moe-refactor-dp-ep/Qwen3-30B-A3B-NvFp4-ModelOpt-fi-cutlass.yaml\", \"tests/evals/gsm8k/configs/moe-refactor-dp-ep/Qwen3-30B-A3B-NvFp4-ModelOpt-fi-trtllm.yaml\", \"tests/evals/gsm8k/configs/moe-refactor/Llama-4-Scout-BF16-fi-cutlass.yaml\", \"tests/evals/gsm8k/configs/moe-refactor/Llama-4-Scout-Fp8-CT-vllm-cutlass.yaml\", \"tests/evals/gsm8k/configs/moe-refactor/Llama-4-Scout-Fp8-ModelOpt-fi-cutlass.yaml\", \"tests/evals/gsm8k/configs/moe-refactor/Llama-4-Scout-Fp8-ModelOpt-marlin.yaml\", \"tests/evals/gsm8k/configs/moe-refactor/Mixtral-8x7B-BF16-fi-cutlass.yaml\", \"tests/evals/gsm8k/configs/moe-refactor/Mixtral-8x7B-Fp8-AutoFp8-fi-cutlass.yaml\", \"tests/evals/gsm8k/configs/moe-refactor/Nemotron-Nano-30B-NvFp4-ModelOpt-fi-cutlass.yaml\", \"tests/evals/gsm8k/configs/moe-refactor/Nemotron-Nano-30B-NvFp4-ModelOpt-vllm-cutlass.yaml\", \"tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-BF16-fi-cutlass.yaml\", \"tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-Fp8-AutoFp8-fi-cutlass.yaml\", \"tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-Fp8-AutoFp8-marlin.yaml\", \"tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-Fp8-CT-Block-fi-cutlass.yaml\", \"tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-Fp8-CT-Block-marlin.yaml\", \"tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-Fp8-CT-Channel-marlin.yaml\", \"tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-Fp8-CT-Channel-vllm-cutlass.yaml\", \"tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-NvFp4-CT-fi-cutlass.yaml\", \"tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-NvFp4-CT-fi-trtllm.yaml\", \"tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-NvFp4-CT-marlin.yaml\", \"tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-NvFp4-CT-vllm-cutlass.yaml\", \"tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-NvFp4-ModelOpt-fi-cutlass.yaml\", \"tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-NvFp4-ModelOpt-fi-trtllm.yaml\", \"tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-NvFp4-ModelOpt-marlin.yaml\", \"tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-NvFp4-ModelOpt-vllm-cutlass.yaml\", \"tests/kernels/attention/test_cutlass_mla_decode.py\", \"tests/kernels/moe/test_cutlass_moe.py\", \"tests/kernels/moe/test_cutlass_mxfp8_grouped_mm.py\", \"tests/kernels/moe/test_marlin_vs_trtllm_mxint4.py\", \"tests/kernels/moe/test_nvfp4_moe.py\", \"tests/kernels/moe/test_trtllm_nvfp4_moe.py\", \"tests/kernels/quantization/nvfp4_utils.py\", \"tests/kernels/quantization/test_cutlass_scaled_mm.py\", \"tests/kernels/quantization/test_cutlass_w4a8.py\", \"tests/kernels/quantization/test_cutlass_w4a8_moe.py\", \"tests/kernels/quantization/test_flashinfer_nvfp4_scaled_mm.py\", \"tests/kernels/quantization/test_machete_mm.py\", \"tests/kernels/quantization/test_marlin_gemm.py\", \"tests/kernels/quantization/test_nvfp4_emulation.py\", \"tests/kernels/quantization/test_nvfp4_quant.py\", \"tests/kernels/quantization/test_nvfp4_qutlass.py\", \"tests/kernels/quantization/test_nvfp4_scaled_mm.py\", \"tests/kernels/quantization/test_silu_mul_nvfp4_quant.py\", \"tests/models/quantization/test_gptq_marlin.py\", \"tests/models/quantization/test_nvfp4.py\", \"tests/v1/determinism/test_cutlass_batch_invariance.py\", \"tests/v1/determinism/test_nvfp4_batch_invariant.py\", \"tests/v1/determinism/test_nvfp4_batch_invariant_scaled_mm.py\", \"vllm/model_executor/kernels/linear/mixed_precision/cutlass.py\", \"vllm/model_executor/kernels/linear/mixed_precision/machete.py\", \"vllm/model_executor/kernels/linear/mixed_precision/marlin.py\", \"vllm/model_executor/kernels/linear/mxfp4/marlin.py\", \"vllm/model_executor/kernels/linear/mxfp8/marlin.py\", \"vllm/model_executor/kernels/linear/nvfp4/__init__.py\", \"vllm/model_executor/kernels/linear/nvfp4/base.py\", \"vllm/model_executor/kernels/linear/nvfp4/cutlass.py\", \"vllm/model_executor/kernels/linear/nvfp4/emulation.py\", \"vllm/model_executor/kernels/linear/nvfp4/fbgemm.py\", \"vllm/model_executor/kernels/linear/nvfp4/flashinfer.py\", \"vllm/model_executor/kernels/linear/nvfp4/marlin.py\", \"vllm/model_executor/kernels/linear/scaled_mm/cutlass.py\", \"vllm/model_executor/kernels/linear/scaled_mm/marlin.py\", \"vllm/model_executor/layers/quantization/awq_marlin.py\", \"vllm/model_executor/layers/fused_moe/experts/cutlass_moe.py\", \"vllm/model_executor/layers/fused_moe/experts/flashinfer_cutlass_moe.py\", \"vllm/model_executor/layers/fused_moe/experts/marlin_moe.py\", \"vllm/model_executor/layers/fused_moe/experts/nvfp4_emulation_moe.py\", \"vllm/model_executor/layers/fused_moe/experts/triton_cutlass_moe.py\", \"vllm/model_executor/layers/fused_moe/experts/trtllm_nvfp4_moe.py\", \"vllm/model_executor/layers/fused_moe/oracle/nvfp4.py\", \"vllm/model_executor/layers/quantization/utils/machete_utils.py\", \"vllm/model_executor/layers/quantization/utils/marlin_utils.py\", \"vllm/model_executor/layers/quantization/utils/marlin_utils_fp4.py\", \"vllm/model_executor/layers/quantization/utils/marlin_utils_fp8.py\", \"vllm/model_executor/layers/quantization/utils/marlin_utils_test.py\"]}, \"explicit_imports\": {\"vllm.model_executor.kernels.linear.nvfp4.marlin\": {\"importable\": false, \"origin\": null, \"error\": \"ModuleNotFoundError(\\\"No module named 'vllm'\\\")\"}, \"vllm.model_executor.kernels.linear.nvfp4.machete\": {\"importable\": false, \"origin\": null, \"error\": \"ModuleNotFoundError(\\\"No module named 'vllm'\\\")\"}, \"vllm.model_executor.layers.quantization.nvfp4\": {\"importable\": false, \"origin\": null, \"error\": \"ModuleNotFoundError(\\\"No module named 'vllm'\\\")\"}, \"vllm.model_executor.layers.fused_moe.cutlass_moe\": {\"importable\": false, \"origin\": null, \"error\": \"ModuleNotFoundError(\\\"No module named 'vllm'\\\")\"}}}",
+      "stderr_tail": ""
+    },
+    "json": {
+      "packages": {
+        "vllm": {
+          "importable": false,
+          "origin": null
+        },
+        "cutlass": {
+          "importable": false,
+          "origin": null
+        },
+        "triton": {
+          "importable": true,
+          "origin": "/root/miniconda3/lib/python3.12/site-packages/triton/__init__.py",
+          "version": "3.4.0",
+          "path": [
+            "/root/miniconda3/lib/python3.12/site-packages/triton"
+          ]
+        },
+        "flashinfer": {
+          "importable": false,
+          "origin": null
+        },
+        "tensorrt_llm": {
+          "importable": false,
+          "origin": null
+        }
+      },
+      "module_candidates": {},
+      "source_candidates": {
+        "/root/autodl-tmp/src/vllm": [
+          "benchmarks/cutlass_benchmarks/utils.py",
+          "benchmarks/cutlass_benchmarks/w8a8_benchmarks.py",
+          "benchmarks/cutlass_benchmarks/weight_shapes.py",
+          "benchmarks/kernels/benchmark_cutlass_moe_fp8.py",
+          "benchmarks/kernels/benchmark_cutlass_moe_nvfp4.py",
+          "benchmarks/kernels/benchmark_grouped_gemm_cutlass.py",
+          "benchmarks/kernels/benchmark_machete.py",
+          "benchmarks/kernels/benchmark_marlin.py",
+          "benchmarks/kernels/benchmark_nvfp4_gemm.py",
+          "benchmarks/kernels/benchmark_nvfp4_quant.py",
+          "benchmarks/kernels/benchmark_nvfp4_qutlass.py",
+          "benchmarks/kernels/graph_machete_bench.py",
+          "csrc/cutlass_extensions/common.cpp",
+          "csrc/cutlass_extensions/common.hpp",
+          "csrc/cutlass_extensions/cute_utils.cuh",
+          "csrc/cutlass_extensions/torch_utils.hpp",
+          "csrc/cutlass_extensions/vllm_collective_builder.cuh",
+          "csrc/cutlass_extensions/vllm_custom_types.cuh",
+          "csrc/cutlass_extensions/vllm_cutlass_library_extension.py",
+          "csrc/cutlass_extensions/vllm_numeric_conversion.cuh",
+          "csrc/cutlass_extensions/vllm_type_utils.cuh",
+          "csrc/libtorch_stable/nvfp4_kv_cache_kernels.cu",
+          "csrc/cutlass_extensions/epilogue/broadcast_load_epilogue_array_c3x.hpp",
+          "csrc/cutlass_extensions/epilogue/broadcast_load_epilogue_c3x.hpp",
+          "csrc/cutlass_extensions/epilogue/scaled_mm_epilogues_c3x.hpp",
+          "csrc/libtorch_stable/attention/mla/sm100_cutlass_mla_kernel.cu",
+          "csrc/libtorch_stable/attention/mla/cutlass_sm100_mla/device/sm100_mla.hpp",
+          "csrc/libtorch_stable/attention/mla/cutlass_sm100_mla/kernel/sm100_fmha_mla_reduction.hpp",
+          "csrc/libtorch_stable/attention/mla/cutlass_sm100_mla/kernel/sm100_fmha_mla_tma_warpspecialized.hpp",
+          "csrc/libtorch_stable/attention/mla/cutlass_sm100_mla/kernel/sm100_mla_tile_scheduler.hpp",
+          "csrc/libtorch_stable/cutlass_extensions/epilogue/broadcast_load_epilogue_c2x.hpp",
+          "csrc/libtorch_stable/cutlass_extensions/epilogue/scaled_mm_epilogues_c2x.hpp",
+          "csrc/libtorch_stable/moe/mxfp8_moe/cutlass_mxfp8_grouped_mm.cu",
+          "csrc/libtorch_stable/moe/mxfp8_moe/cutlass_mxfp8_grouped_mm_functor.cuh",
+          "csrc/libtorch_stable/moe/mxfp8_moe/cutlass_mxfp8_grouped_mm_launcher.cuh",
+          "csrc/libtorch_stable/moe/mxfp8_moe/cutlass_mxfp8_grouped_mm_traits.cuh",
+          "csrc/libtorch_stable/quantization/cutlass_w4a8/get_group_starts.cuh",
+          "csrc/libtorch_stable/quantization/cutlass_w4a8/w4a8_grouped_mm_entry.cu",
+          "csrc/libtorch_stable/quantization/cutlass_w4a8/w4a8_mm_entry.cu",
+          "csrc/libtorch_stable/quantization/cutlass_w4a8/w4a8_utils.cu",
+          "csrc/libtorch_stable/quantization/cutlass_w4a8/w4a8_utils.cuh",
+          "csrc/libtorch_stable/quantization/fp4/activation_nvfp4_quant_fusion_kernels.cu",
+          "csrc/libtorch_stable/quantization/fp4/nvfp4_blockwise_moe_kernel.cu",
+          "csrc/libtorch_stable/quantization/fp4/nvfp4_experts_quant.cu",
+          "csrc/libtorch_stable/quantization/fp4/nvfp4_quant_entry.cu",
+          "csrc/libtorch_stable/quantization/fp4/nvfp4_quant_kernels.cu",
+          "csrc/libtorch_stable/quantization/fp4/nvfp4_scaled_mm_entry.cu",
+          "csrc/libtorch_stable/quantization/fp4/nvfp4_scaled_mm_kernels.cu",
+          "csrc/libtorch_stable/quantization/fp4/nvfp4_scaled_mm_sm120_kernels.cu",
+          "csrc/libtorch_stable/quantization/fp4/nvfp4_utils.cuh",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/scaled_mm_c2x.cu",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/scaled_mm_c2x.cuh",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/scaled_mm_c2x_sm75_dispatch.cuh",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/scaled_mm_c2x_sm80_dispatch.cuh",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/scaled_mm_c2x_sm89_fp8_dispatch.cuh",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/scaled_mm_c2x_sm89_int8_dispatch.cuh",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/scaled_mm_c3x_sm100.cu",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/scaled_mm_c3x_sm120.cu",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/scaled_mm_c3x_sm90.cu",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/scaled_mm_entry.cu",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/cutlass_gemm_caller.cuh",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm.cuh",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_azp_sm90_int8.cu",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_blockwise_sm100_fp8.cu",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_blockwise_sm100_fp8_dispatch.cuh",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_blockwise_sm120_fp8.cu",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_blockwise_sm120_fp8_dispatch.cuh",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_blockwise_sm90_fp8.cu",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_blockwise_sm90_fp8_dispatch.cuh",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_helper.hpp",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_kernels.hpp",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_sm100_fp8.cu",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_sm100_fp8_dispatch.cuh",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_sm120_fp8.cu",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_sm120_fp8_dispatch.cuh",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_sm90_fp8.cu",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_sm90_fp8_dispatch.cuh",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_sm90_int8.cu",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/c3x/scaled_mm_sm90_int8_dispatch.cuh",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/moe/get_group_starts.cuh",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/moe/grouped_mm_c3x.cuh",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/moe/grouped_mm_c3x_sm100.cu",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/moe/grouped_mm_c3x_sm90.cu",
+          "csrc/libtorch_stable/quantization/w8a8/cutlass/moe/moe_data.cu",
+          "csrc/moe/marlin_moe_wna16/.gitignore",
+          "csrc/moe/marlin_moe_wna16/generate_kernels.py",
+          "csrc/moe/marlin_moe_wna16/kernel.h",
+          "csrc/moe/marlin_moe_wna16/marlin_template.h",
+          "csrc/moe/marlin_moe_wna16/ops.cu",
+          "csrc/quantization/machete/Readme.md",
+          "csrc/quantization/machete/generate.py",
+          "csrc/quantization/machete/machete_collective_builder.cuh",
+          "csrc/quantization/machete/machete_interleaving_utils.cuh",
+          "csrc/quantization/machete/machete_mainloop.cuh",
+          "csrc/quantization/machete/machete_mm_kernel.cuh",
+          "csrc/quantization/machete/machete_mm_launcher.cuh",
+          "csrc/quantization/machete/machete_prepack_kernel.cuh",
+          "csrc/quantization/machete/machete_prepack_launcher.cuh",
+          "csrc/quantization/machete/machete_prepacked_layout.cuh",
+          "csrc/quantization/machete/machete_pytorch.cu",
+          "csrc/quantization/marlin/.gitignore",
+          "csrc/quantization/marlin/awq_marlin_repack.cu",
+          "csrc/quantization/marlin/dequant.h",
+          "csrc/quantization/marlin/generate_kernels.py",
+          "csrc/quantization/marlin/gptq_marlin_repack.cu",
+          "csrc/quantization/marlin/kernel.h",
+          "csrc/quantization/marlin/marlin.cu",
+          "csrc/quantization/marlin/marlin.cuh",
+          "csrc/quantization/marlin/marlin_dtypes.cuh",
+          "csrc/quantization/marlin/marlin_int4_fp8_preprocess.cu",
+          "csrc/quantization/marlin/marlin_mma.h",
+          "csrc/quantization/marlin/marlin_template.h",
+          "csrc/quantization/w8a8/cutlass/Epilogues.md",
+          "tests/distributed/test_eplb_fused_moe_layer_dep_nvfp4.py",
+          "tests/quantization/test_cutlass_w4a16.py",
+          "tests/quantization/test_trtllm_nvfp4_hidden_dim_padding.py",
+          "tests/evals/gpt_oss/configs/gpt-oss-20b-flashinfer-mxfp4-mxfp8-cutlass.yaml",
+          "tests/evals/gpt_oss/configs/gpt-oss-20b-marlin.yaml",
+          "tests/evals/gsm8k/configs/Nemotron-3-Super-120B-A12B-NVFP4.yaml",
+          "tests/evals/gsm8k/configs/Qwen3-30B-A3B-NVFP4.yaml",
+          "tests/evals/gsm8k/configs/Qwen3-Next-80B-A3B-NVFP4-EP2.yaml",
+          "tests/evals/gsm8k/configs/Qwen3.5-397B-A17B-NVFP4-DEP2.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor-dp-ep/Qwen3-30B-A3B-NvFp4-CT-fi-cutedsl-deepep-ll.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor-dp-ep/Qwen3-30B-A3B-NvFp4-CT-fi-cutlass.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor-dp-ep/Qwen3-30B-A3B-NvFp4-ModelOpt-fi-cutedsl-deepep-ll.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor-dp-ep/Qwen3-30B-A3B-NvFp4-ModelOpt-fi-cutlass.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor-dp-ep/Qwen3-30B-A3B-NvFp4-ModelOpt-fi-trtllm.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor/Llama-4-Scout-BF16-fi-cutlass.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor/Llama-4-Scout-Fp8-CT-vllm-cutlass.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor/Llama-4-Scout-Fp8-ModelOpt-fi-cutlass.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor/Llama-4-Scout-Fp8-ModelOpt-marlin.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor/Mixtral-8x7B-BF16-fi-cutlass.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor/Mixtral-8x7B-Fp8-AutoFp8-fi-cutlass.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor/Nemotron-Nano-30B-NvFp4-ModelOpt-fi-cutlass.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor/Nemotron-Nano-30B-NvFp4-ModelOpt-vllm-cutlass.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-BF16-fi-cutlass.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-Fp8-AutoFp8-fi-cutlass.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-Fp8-AutoFp8-marlin.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-Fp8-CT-Block-fi-cutlass.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-Fp8-CT-Block-marlin.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-Fp8-CT-Channel-marlin.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-Fp8-CT-Channel-vllm-cutlass.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-NvFp4-CT-fi-cutlass.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-NvFp4-CT-fi-trtllm.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-NvFp4-CT-marlin.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-NvFp4-CT-vllm-cutlass.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-NvFp4-ModelOpt-fi-cutlass.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-NvFp4-ModelOpt-fi-trtllm.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-NvFp4-ModelOpt-marlin.yaml",
+          "tests/evals/gsm8k/configs/moe-refactor/Qwen3-30B-A3B-NvFp4-ModelOpt-vllm-cutlass.yaml",
+          "tests/kernels/attention/test_cutlass_mla_decode.py",
+          "tests/kernels/moe/test_cutlass_moe.py",
+          "tests/kernels/moe/test_cutlass_mxfp8_grouped_mm.py",
+          "tests/kernels/moe/test_marlin_vs_trtllm_mxint4.py",
+          "tests/kernels/moe/test_nvfp4_moe.py",
+          "tests/kernels/moe/test_trtllm_nvfp4_moe.py",
+          "tests/kernels/quantization/nvfp4_utils.py",
+          "tests/kernels/quantization/test_cutlass_scaled_mm.py",
+          "tests/kernels/quantization/test_cutlass_w4a8.py",
+          "tests/kernels/quantization/test_cutlass_w4a8_moe.py",
+          "tests/kernels/quantization/test_flashinfer_nvfp4_scaled_mm.py",
+          "tests/kernels/quantization/test_machete_mm.py",
+          "tests/kernels/quantization/test_marlin_gemm.py",
+          "tests/kernels/quantization/test_nvfp4_emulation.py",
+          "tests/kernels/quantization/test_nvfp4_quant.py",
+          "tests/kernels/quantization/test_nvfp4_qutlass.py",
+          "tests/kernels/quantization/test_nvfp4_scaled_mm.py",
+          "tests/kernels/quantization/test_silu_mul_nvfp4_quant.py",
+          "tests/models/quantization/test_gptq_marlin.py",
+          "tests/models/quantization/test_nvfp4.py",
+          "tests/v1/determinism/test_cutlass_batch_invariance.py",
+          "tests/v1/determinism/test_nvfp4_batch_invariant.py",
+          "tests/v1/determinism/test_nvfp4_batch_invariant_scaled_mm.py",
+          "vllm/model_executor/kernels/linear/mixed_precision/cutlass.py",
+          "vllm/model_executor/kernels/linear/mixed_precision/machete.py",
+          "vllm/model_executor/kernels/linear/mixed_precision/marlin.py",
+          "vllm/model_executor/kernels/linear/mxfp4/marlin.py",
+          "vllm/model_executor/kernels/linear/mxfp8/marlin.py",
+          "vllm/model_executor/kernels/linear/nvfp4/__init__.py",
+          "vllm/model_executor/kernels/linear/nvfp4/base.py",
+          "vllm/model_executor/kernels/linear/nvfp4/cutlass.py",
+          "vllm/model_executor/kernels/linear/nvfp4/emulation.py",
+          "vllm/model_executor/kernels/linear/nvfp4/fbgemm.py",
+          "vllm/model_executor/kernels/linear/nvfp4/flashinfer.py",
+          "vllm/model_executor/kernels/linear/nvfp4/marlin.py",
+          "vllm/model_executor/kernels/linear/scaled_mm/cutlass.py",
+          "vllm/model_executor/kernels/linear/scaled_mm/marlin.py",
+          "vllm/model_executor/layers/quantization/awq_marlin.py",
+          "vllm/model_executor/layers/fused_moe/experts/cutlass_moe.py",
+          "vllm/model_executor/layers/fused_moe/experts/flashinfer_cutlass_moe.py",
+          "vllm/model_executor/layers/fused_moe/experts/marlin_moe.py",
+          "vllm/model_executor/layers/fused_moe/experts/nvfp4_emulation_moe.py",
+          "vllm/model_executor/layers/fused_moe/experts/triton_cutlass_moe.py",
+          "vllm/model_executor/layers/fused_moe/experts/trtllm_nvfp4_moe.py",
+          "vllm/model_executor/layers/fused_moe/oracle/nvfp4.py",
+          "vllm/model_executor/layers/quantization/utils/machete_utils.py",
+          "vllm/model_executor/layers/quantization/utils/marlin_utils.py",
+          "vllm/model_executor/layers/quantization/utils/marlin_utils_fp4.py",
+          "vllm/model_executor/layers/quantization/utils/marlin_utils_fp8.py",
+          "vllm/model_executor/layers/quantization/utils/marlin_utils_test.py"
+        ]
+      },
+      "explicit_imports": {
+        "vllm.model_executor.kernels.linear.nvfp4.marlin": {
+          "importable": false,
+          "origin": null,
+          "error": "ModuleNotFoundError(\"No module named 'vllm'\")"
+        },
+        "vllm.model_executor.kernels.linear.nvfp4.machete": {
+          "importable": false,
+          "origin": null,
+          "error": "ModuleNotFoundError(\"No module named 'vllm'\")"
+        },
+        "vllm.model_executor.layers.quantization.nvfp4": {
+          "importable": false,
+          "origin": null,
+          "error": "ModuleNotFoundError(\"No module named 'vllm'\")"
+        },
+        "vllm.model_executor.layers.fused_moe.cutlass_moe": {
+          "importable": false,
+          "origin": null,
+          "error": "ModuleNotFoundError(\"No module named 'vllm'\")"
+        }
+      }
+    }
+  },
+  "contracts": {
+    "p76_cutlass_cute_toolchain": {
+      "cmd": [
+        "/root/miniconda3/bin/python",
+        "benchmarks/p76_cutlass_cute_toolchain_probe.py",
+        "--out",
+        "/root/autodl-tmp/src/lynn-engine/reports/stage6/r6000_fp4_mma_census_20260604_164457/contract_outputs/p76_cutlass_cute_toolchain.json"
+      ],
+      "ok": true,
+      "returncode": 0,
+      "seconds": 40.59873366355896,
+      "stdout_tail": "    0\n  ],\n  \"include_paths\": [\n    \"/root/autodl-tmp/src/cutlass/include\"\n  ],\n  \"required_headers\": {\n    \"cutlass/float_subbyte.h\": true,\n    \"cutlass/float8.h\": true,\n    \"cute/arch/mma_sm120.hpp\": true,\n    \"cute/numeric/numeric_types.hpp\": true\n  },\n  \"missing_headers\": [],\n  \"compile_attempted\": true,\n  \"compile_ok\": true,\n  \"build_seconds\": 38.435609579086304,\n  \"smoke_values\": [\n    4.0,\n    8.0,\n    1.0,\n    120.0\n  ],\n  \"error\": null,\n  \"decision\": \"CUTLASS/CuTe headers and sm_120 FP4 type smoke compile are available.\"\n}",
+      "stderr_tail": "",
+      "result": {
+        "schema_version": "lynn-engine-p76-cutlass-cute-toolchain-probe-v1",
+        "torch": "2.8.0+cu128",
+        "cuda_capability": [
+          12,
+          0
+        ],
+        "include_paths": [
+          "/root/autodl-tmp/src/cutlass/include"
+        ],
+        "required_headers": {
+          "cutlass/float_subbyte.h": true,
+          "cutlass/float8.h": true,
+          "cute/arch/mma_sm120.hpp": true,
+          "cute/numeric/numeric_types.hpp": true
+        },
+        "missing_headers": [],
+        "compile_attempted": true,
+        "compile_ok": true,
+        "build_seconds": 38.435609579086304,
+        "smoke_values": [
+          4.0,
+          8.0,
+          1.0,
+          120.0
+        ],
+        "error": null,
+        "decision": "CUTLASS/CuTe headers and sm_120 FP4 type smoke compile are available."
+      }
+    },
+    "p79_nvcc_fp4_mma_target_matrix": {
+      "cmd": [
+        "/root/miniconda3/bin/python",
+        "benchmarks/p79_nvcc_fp4_mma_target_matrix.py",
+        "--out",
+        "/root/autodl-tmp/src/lynn-engine/reports/stage6/r6000_fp4_mma_census_20260604_164457/contract_outputs/p79_nvcc_fp4_mma_target_matrix.json"
+      ],
+      "ok": true,
+      "returncode": 0,
+      "seconds": 39.11648917198181,
+      "stdout_tail": "      \"returncode\": 1,\n      \"seconds\": 0.003712177276611328,\n      \"stdout_tail\": \"\",\n      \"stderr_tail\": \"nvcc fatal   : Unsupported gpu architecture 'compute_101f'\",\n      \"target\": \"compute_101f\",\n      \"cmd\": [\n        \"/usr/local/cuda/bin/nvcc\",\n        \"-std=c++17\",\n        \"-O3\",\n        \"--use_fast_math\",\n        \"-I\",\n        \"/root/autodl-tmp/src/cutlass/include\",\n        \"-arch\",\n        \"compute_101f\",\n        \"-c\",\n        \"/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_fp4_mma_target_matrix.cu\",\n        \"-o\",\n        \"/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_compute_101f.o\"\n      ]\n    }\n  ],\n  \"any_fp4_mma_target_ok\": true,\n  \"decision\": \"At least one tested target compiles the CuTe E2M1 MMA source.\"\n}",
+      "stderr_tail": "",
+      "result": {
+        "schema_version": "lynn-engine-p79-nvcc-fp4-mma-target-matrix-v1",
+        "nvcc": "/usr/local/cuda/bin/nvcc",
+        "include_paths": [
+          "/root/autodl-tmp/src/cutlass/include"
+        ],
+        "nvcc_list_gpu_arch": {
+          "ok": true,
+          "returncode": 0,
+          "seconds": 0.00164794921875,
+          "stdout_tail": "compute_52\ncompute_53\ncompute_60\ncompute_61\ncompute_62\ncompute_70\ncompute_72\ncompute_75\ncompute_80\ncompute_86\ncompute_87\ncompute_89\ncompute_90\ncompute_100\ncompute_101\ncompute_120",
+          "stderr_tail": ""
+        },
+        "nvcc_list_gpu_code": {
+          "ok": true,
+          "returncode": 0,
+          "seconds": 0.0018410682678222656,
+          "stdout_tail": "sm_52\nsm_53\nsm_60\nsm_61\nsm_62\nsm_70\nsm_72\nsm_75\nsm_80\nsm_86\nsm_87\nsm_89\nsm_90\nsm_100\nsm_101\nsm_120",
+          "stderr_tail": ""
+        },
+        "targets": [
+          {
+            "ok": false,
+            "returncode": 255,
+            "seconds": 2.0308632850646973,
+            "stdout_tail": "",
+            "stderr_tail": "ptxas /root/autodl-tmp/.tmp/tmpxft_00001924_00000000-6_p79_fp4_mma_target_matrix.ptx, line 45; error   : Instruction 'mma with with FP6/FP4 floating point type' not supported on .target 'sm_120'\nptxas /root/autodl-tmp/.tmp/tmpxft_00001924_00000000-6_p79_fp4_mma_target_matrix.ptx, line 45; error   : Feature '.kind::f8f6f4' not supported on .target 'sm_120'\nptxas fatal   : Ptx assembly aborted due to errors",
+            "target": "sm_120",
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "sm_120",
+              "-c",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_fp4_mma_target_matrix.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_sm_120.o"
+            ]
+          },
+          {
+            "ok": true,
+            "returncode": 0,
+            "seconds": 2.7077245712280273,
+            "stdout_tail": "",
+            "stderr_tail": "",
+            "target": "compute_120",
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "compute_120",
+              "-c",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_fp4_mma_target_matrix.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_compute_120.o"
+            ]
+          },
+          {
+            "ok": true,
+            "returncode": 0,
+            "seconds": 3.6050398349761963,
+            "stdout_tail": "",
+            "stderr_tail": "",
+            "target": "sm_120a",
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "sm_120a",
+              "-c",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_fp4_mma_target_matrix.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_sm_120a.o"
+            ]
+          },
+          {
+            "ok": true,
+            "returncode": 0,
+            "seconds": 3.5737833976745605,
+            "stdout_tail": "",
+            "stderr_tail": "",
+            "target": "compute_120a",
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "compute_120a",
+              "-c",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_fp4_mma_target_matrix.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_compute_120a.o"
+            ]
+          },
+          {
+            "ok": false,
+            "returncode": 1,
+            "seconds": 0.0040438175201416016,
+            "stdout_tail": "",
+            "stderr_tail": "nvcc fatal   : Unsupported gpu architecture 'sm_120f'",
+            "target": "sm_120f",
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "sm_120f",
+              "-c",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_fp4_mma_target_matrix.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_sm_120f.o"
+            ]
+          },
+          {
+            "ok": false,
+            "returncode": 1,
+            "seconds": 0.0036733150482177734,
+            "stdout_tail": "",
+            "stderr_tail": "nvcc fatal   : Unsupported gpu architecture 'compute_120f'",
+            "target": "compute_120f",
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "compute_120f",
+              "-c",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_fp4_mma_target_matrix.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_compute_120f.o"
+            ]
+          },
+          {
+            "ok": false,
+            "returncode": 1,
+            "seconds": 0.0023508071899414062,
+            "stdout_tail": "",
+            "stderr_tail": "nvcc fatal   : Unsupported gpu architecture 'sm_121'",
+            "target": "sm_121",
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "sm_121",
+              "-c",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_fp4_mma_target_matrix.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_sm_121.o"
+            ]
+          },
+          {
+            "ok": false,
+            "returncode": 1,
+            "seconds": 0.0024378299713134766,
+            "stdout_tail": "",
+            "stderr_tail": "nvcc fatal   : Unsupported gpu architecture 'compute_121'",
+            "target": "compute_121",
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "compute_121",
+              "-c",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_fp4_mma_target_matrix.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_compute_121.o"
+            ]
+          },
+          {
+            "ok": false,
+            "returncode": 1,
+            "seconds": 0.002307891845703125,
+            "stdout_tail": "",
+            "stderr_tail": "nvcc fatal   : Unsupported gpu architecture 'sm_121a'",
+            "target": "sm_121a",
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "sm_121a",
+              "-c",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_fp4_mma_target_matrix.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_sm_121a.o"
+            ]
+          },
+          {
+            "ok": false,
+            "returncode": 1,
+            "seconds": 0.003990888595581055,
+            "stdout_tail": "",
+            "stderr_tail": "nvcc fatal   : Unsupported gpu architecture 'compute_121a'",
+            "target": "compute_121a",
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "compute_121a",
+              "-c",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_fp4_mma_target_matrix.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_compute_121a.o"
+            ]
+          },
+          {
+            "ok": false,
+            "returncode": 1,
+            "seconds": 0.0022735595703125,
+            "stdout_tail": "",
+            "stderr_tail": "nvcc fatal   : Unsupported gpu architecture 'sm_121f'",
+            "target": "sm_121f",
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "sm_121f",
+              "-c",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_fp4_mma_target_matrix.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_sm_121f.o"
+            ]
+          },
+          {
+            "ok": false,
+            "returncode": 1,
+            "seconds": 0.0013339519500732422,
+            "stdout_tail": "",
+            "stderr_tail": "nvcc fatal   : Unsupported gpu architecture 'compute_121f'",
+            "target": "compute_121f",
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "compute_121f",
+              "-c",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_fp4_mma_target_matrix.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_compute_121f.o"
+            ]
+          },
+          {
+            "ok": true,
+            "returncode": 0,
+            "seconds": 2.690032958984375,
+            "stdout_tail": "",
+            "stderr_tail": "",
+            "target": "sm_100",
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "sm_100",
+              "-c",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_fp4_mma_target_matrix.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_sm_100.o"
+            ]
+          },
+          {
+            "ok": true,
+            "returncode": 0,
+            "seconds": 2.6886186599731445,
+            "stdout_tail": "",
+            "stderr_tail": "",
+            "target": "compute_100",
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "compute_100",
+              "-c",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_fp4_mma_target_matrix.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_compute_100.o"
+            ]
+          },
+          {
+            "ok": true,
+            "returncode": 0,
+            "seconds": 3.620112657546997,
+            "stdout_tail": "",
+            "stderr_tail": "",
+            "target": "sm_100a",
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "sm_100a",
+              "-c",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_fp4_mma_target_matrix.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_sm_100a.o"
+            ]
+          },
+          {
+            "ok": true,
+            "returncode": 0,
+            "seconds": 3.6033217906951904,
+            "stdout_tail": "",
+            "stderr_tail": "",
+            "target": "compute_100a",
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "compute_100a",
+              "-c",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_fp4_mma_target_matrix.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_compute_100a.o"
+            ]
+          },
+          {
+            "ok": false,
+            "returncode": 1,
+            "seconds": 0.002814769744873047,
+            "stdout_tail": "",
+            "stderr_tail": "nvcc fatal   : Unsupported gpu architecture 'sm_100f'",
+            "target": "sm_100f",
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "sm_100f",
+              "-c",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_fp4_mma_target_matrix.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_sm_100f.o"
+            ]
+          },
+          {
+            "ok": false,
+            "returncode": 1,
+            "seconds": 0.0036618709564208984,
+            "stdout_tail": "",
+            "stderr_tail": "nvcc fatal   : Unsupported gpu architecture 'compute_100f'",
+            "target": "compute_100f",
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "compute_100f",
+              "-c",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_fp4_mma_target_matrix.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_compute_100f.o"
+            ]
+          },
+          {
+            "ok": true,
+            "returncode": 0,
+            "seconds": 2.695363998413086,
+            "stdout_tail": "",
+            "stderr_tail": "",
+            "target": "sm_101",
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "sm_101",
+              "-c",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_fp4_mma_target_matrix.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_sm_101.o"
+            ]
+          },
+          {
+            "ok": true,
+            "returncode": 0,
+            "seconds": 2.692505121231079,
+            "stdout_tail": "",
+            "stderr_tail": "",
+            "target": "compute_101",
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "compute_101",
+              "-c",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_fp4_mma_target_matrix.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_compute_101.o"
+            ]
+          },
+          {
+            "ok": true,
+            "returncode": 0,
+            "seconds": 3.6176257133483887,
+            "stdout_tail": "",
+            "stderr_tail": "",
+            "target": "sm_101a",
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "sm_101a",
+              "-c",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_fp4_mma_target_matrix.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_sm_101a.o"
+            ]
+          },
+          {
+            "ok": true,
+            "returncode": 0,
+            "seconds": 3.619539260864258,
+            "stdout_tail": "",
+            "stderr_tail": "",
+            "target": "compute_101a",
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "compute_101a",
+              "-c",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_fp4_mma_target_matrix.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_compute_101a.o"
+            ]
+          },
+          {
+            "ok": false,
+            "returncode": 1,
+            "seconds": 0.0026607513427734375,
+            "stdout_tail": "",
+            "stderr_tail": "nvcc fatal   : Unsupported gpu architecture 'sm_101f'",
+            "target": "sm_101f",
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "sm_101f",
+              "-c",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_fp4_mma_target_matrix.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_sm_101f.o"
+            ]
+          },
+          {
+            "ok": false,
+            "returncode": 1,
+            "seconds": 0.003712177276611328,
+            "stdout_tail": "",
+            "stderr_tail": "nvcc fatal   : Unsupported gpu architecture 'compute_101f'",
+            "target": "compute_101f",
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "compute_101f",
+              "-c",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_fp4_mma_target_matrix.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p79_nvcc_fp4_mma_target_matrix/p79_compute_101f.o"
+            ]
+          }
+        ],
+        "any_fp4_mma_target_ok": true,
+        "decision": "At least one tested target compiles the CuTe E2M1 MMA source."
+      }
+    },
+    "p85_blockscaled_fp4_mma_contract": {
+      "cmd": [
+        "/root/miniconda3/bin/python",
+        "benchmarks/p85_sm120a_blockscaled_fp4_mma_contract.py",
+        "--out",
+        "/root/autodl-tmp/src/lynn-engine/reports/stage6/r6000_fp4_mma_census_20260604_164457/contract_outputs/p85_blockscaled_fp4_mma_contract.json",
+        "--blocks",
+        "256",
+        "--repeats",
+        "3",
+        "--warmup",
+        "1"
+      ],
+      "ok": true,
+      "returncode": 0,
+      "seconds": 54.48856496810913,
+      "stdout_tail": "      \"positive_nonzero_count\": 32768,\n      \"negative_min\": 40.0,\n      \"negative_max\": 40.0,\n      \"negative_mean\": 40.0,\n      \"negative_nonzero_count\": 32768,\n      \"sample_lane0\": {\n        \"positive\": [\n          8.0,\n          8.0,\n          8.0,\n          8.0\n        ],\n        \"negative\": [\n          40.0,\n          40.0,\n          40.0,\n          40.0\n        ]\n      }\n    }\n  ],\n  \"zero_operand_smoke_ok\": true,\n  \"decision\": \"BLOCKSCALED FP4 MMA compile/runtime smoke PASS. Inspect all-ones contract rows to decide whether manual register layout is usable.\"\n}",
+      "stderr_tail": "",
+      "result": {
+        "schema_version": "lynn-engine-p85-sm120a-blockscaled-fp4-mma-contract-v1",
+        "torch": "2.8.0+cu128",
+        "cuda_capability": [
+          12,
+          0
+        ],
+        "include_paths": [
+          "/root/autodl-tmp/src/cutlass/include"
+        ],
+        "cuda_cflags": [
+          "-O3",
+          "-arch=sm_120a",
+          "--use_fast_math",
+          "-DLYNN_ENABLE_SM120A_FP4_MMA=1"
+        ],
+        "build_seconds": 52.198641300201416,
+        "blocks": 256,
+        "repeats": 3,
+        "warmup": 1,
+        "scale_bytes": [
+          126,
+          127,
+          128
+        ],
+        "rows": [
+          {
+            "scale_a": 126,
+            "scale_b": 126,
+            "times_ms": [
+              0.09251199662685394,
+              0.02486399933695793,
+              0.019936000928282738
+            ],
+            "mean_ms": 0.045770665630698204,
+            "median_ms": 0.02486399933695793,
+            "min_ms": 0.019936000928282738,
+            "max_ms": 0.09251199662685394,
+            "finite": true,
+            "smoke_passthrough_max_abs_err": 0.0,
+            "smoke_sample_lane0": [
+              1.0,
+              2.0,
+              3.0,
+              4.0
+            ],
+            "positive_min": 0.5,
+            "positive_max": 0.5,
+            "positive_mean": 0.5,
+            "positive_nonzero_count": 32768,
+            "negative_min": 2.5,
+            "negative_max": 2.5,
+            "negative_mean": 2.5,
+            "negative_nonzero_count": 32768,
+            "sample_lane0": {
+              "positive": [
+                0.5,
+                0.5,
+                0.5,
+                0.5
+              ],
+              "negative": [
+                2.5,
+                2.5,
+                2.5,
+                2.5
+              ]
+            }
+          },
+          {
+            "scale_a": 127,
+            "scale_b": 127,
+            "times_ms": [
+              0.04227200150489807,
+              0.025599999353289604,
+              0.023520000278949738
+            ],
+            "mean_ms": 0.030464000379045803,
+            "median_ms": 0.025599999353289604,
+            "min_ms": 0.023520000278949738,
+            "max_ms": 0.04227200150489807,
+            "finite": true,
+            "smoke_passthrough_max_abs_err": 0.0,
+            "smoke_sample_lane0": [
+              1.0,
+              2.0,
+              3.0,
+              4.0
+            ],
+            "positive_min": 2.0,
+            "positive_max": 2.0,
+            "positive_mean": 2.0,
+            "positive_nonzero_count": 32768,
+            "negative_min": 10.0,
+            "negative_max": 10.0,
+            "negative_mean": 10.0,
+            "negative_nonzero_count": 32768,
+            "sample_lane0": {
+              "positive": [
+                2.0,
+                2.0,
+                2.0,
+                2.0
+              ],
+              "negative": [
+                10.0,
+                10.0,
+                10.0,
+                10.0
+              ]
+            }
+          },
+          {
+            "scale_a": 128,
+            "scale_b": 128,
+            "times_ms": [
+              0.03049599938094616,
+              0.023135999217629433,
+              0.021568000316619873
+            ],
+            "mean_ms": 0.025066666305065155,
+            "median_ms": 0.023135999217629433,
+            "min_ms": 0.021568000316619873,
+            "max_ms": 0.03049599938094616,
+            "finite": true,
+            "smoke_passthrough_max_abs_err": 0.0,
+            "smoke_sample_lane0": [
+              1.0,
+              2.0,
+              3.0,
+              4.0
+            ],
+            "positive_min": 8.0,
+            "positive_max": 8.0,
+            "positive_mean": 8.0,
+            "positive_nonzero_count": 32768,
+            "negative_min": 40.0,
+            "negative_max": 40.0,
+            "negative_mean": 40.0,
+            "negative_nonzero_count": 32768,
+            "sample_lane0": {
+              "positive": [
+                8.0,
+                8.0,
+                8.0,
+                8.0
+              ],
+              "negative": [
+                40.0,
+                40.0,
+                40.0,
+                40.0
+              ]
+            }
+          }
+        ],
+        "zero_operand_smoke_ok": true,
+        "decision": "BLOCKSCALED FP4 MMA compile/runtime smoke PASS. Inspect all-ones contract rows to decide whether manual register layout is usable."
+      }
+    },
+    "p87_layout_tile_contract": {
+      "cmd": [
+        "/root/miniconda3/bin/python",
+        "benchmarks/p87_sm120a_fp4_layout_tile_contract.py",
+        "--out",
+        "/root/autodl-tmp/src/lynn-engine/reports/stage6/r6000_fp4_mma_census_20260604_164457/contract_outputs/p87_layout_tile_contract.json",
+        "--blocks",
+        "256",
+        "--repeats",
+        "3",
+        "--warmup",
+        "1"
+      ],
+      "ok": true,
+      "returncode": 0,
+      "seconds": 53.69453954696655,
+      "stdout_tail": "      \"m\": 0,\n      \"n\": 0\n    },\n    {\n      \"observed\": -2.0,\n      \"expected\": -2.0,\n      \"m\": 0,\n      \"n\": 1\n    },\n    {\n      \"observed\": 0.0,\n      \"expected\": 0.0,\n      \"m\": 8,\n      \"n\": 0\n    },\n    {\n      \"observed\": 2.0,\n      \"expected\": 2.0,\n      \"m\": 8,\n      \"n\": 1\n    }\n  ],\n  \"decision\": \"SM120 blockscaled FP4 layout contract PASS: shifted register packing matches scalar logical tile.\"\n}",
+      "stderr_tail": "",
+      "result": {
+        "schema_version": "lynn-engine-p87-sm120a-fp4-layout-tile-contract-v1",
+        "torch": "2.8.0+cu128",
+        "cuda_capability": [
+          12,
+          0
+        ],
+        "include_paths": [
+          "/root/autodl-tmp/src/cutlass/include"
+        ],
+        "cuda_cflags": [
+          "-O3",
+          "-arch=sm_120a",
+          "--use_fast_math",
+          "-DLYNN_ENABLE_SM120A_FP4_MMA=1"
+        ],
+        "build_seconds": 51.50368690490723,
+        "blocks": 256,
+        "scale_byte": 127,
+        "repeats": 3,
+        "warmup": 1,
+        "times_ms": [
+          0.07315199822187424,
+          0.015904000028967857,
+          0.01369599997997284
+        ],
+        "mean_ms": 0.03425066607693831,
+        "median_ms": 0.015904000028967857,
+        "max_abs_err": 0.0,
+        "mean_abs_err": 0.0,
+        "all_exact": true,
+        "observed_min": -2.0,
+        "observed_max": 4.0,
+        "expected_min": -2.0,
+        "expected_max": 4.0,
+        "worst": {
+          "observed": 4.0,
+          "expected": 4.0,
+          "m": 0,
+          "n": 0
+        },
+        "sample_block0_lane0": [
+          {
+            "observed": 4.0,
+            "expected": 4.0,
+            "m": 0,
+            "n": 0
+          },
+          {
+            "observed": -2.0,
+            "expected": -2.0,
+            "m": 0,
+            "n": 1
+          },
+          {
+            "observed": 0.0,
+            "expected": 0.0,
+            "m": 8,
+            "n": 0
+          },
+          {
+            "observed": 2.0,
+            "expected": 2.0,
+            "m": 8,
+            "n": 1
+          }
+        ],
+        "decision": "SM120 blockscaled FP4 layout contract PASS: shifted register packing matches scalar logical tile."
+      }
+    },
+    "p103_fp8_activation_fp4_weight_mma": {
+      "cmd": [
+        "/root/miniconda3/bin/python",
+        "benchmarks/p103_sm120a_fp8_activation_fp4_weight_mma_probe.py",
+        "--out",
+        "/root/autodl-tmp/src/lynn-engine/reports/stage6/r6000_fp4_mma_census_20260604_164457/contract_outputs/p103_fp8_activation_fp4_weight_mma.json",
+        "--timeout-s",
+        "45"
+      ],
+      "ok": true,
+      "returncode": 0,
+      "seconds": 38.231531381607056,
+      "stdout_tail": "        \"/root/autodl-tmp/src/cutlass/include\",\n        \"-arch\",\n        \"sm_120a\",\n        \"-c\",\n        \"/tmp/lynn_engine_native_build/p103_fp8_activation_fp4_weight/block_e2m1_e5m2_f32_ue8m0_reverse.cu\",\n        \"-o\",\n        \"/tmp/lynn_engine_native_build/p103_fp8_activation_fp4_weight/block_e2m1_e5m2_f32_ue8m0_reverse.o\"\n      ]\n    }\n  ],\n  \"controls_ok\": true,\n  \"fp8_activation_fp4_weight_supported\": true,\n  \"supported_w4a8_variants\": [\n    \"raw_e4m3_e2m1_f32\",\n    \"raw_e5m2_e2m1_f32\",\n    \"raw_e2m1_e4m3_f32_reverse\",\n    \"raw_e2m1_e5m2_f32_reverse\",\n    \"block_e4m3_e2m1_f32_ue8m0\",\n    \"block_e5m2_e2m1_f32_ue8m0\",\n    \"block_e2m1_e4m3_f32_ue8m0_reverse\",\n    \"block_e2m1_e5m2_f32_ue8m0_reverse\"\n  ],\n  \"decision\": \"FP8 activation x E2M1 weight SM120a MMA is exposed; W4A8 is a viable hardware route.\"\n}",
+      "stderr_tail": "",
+      "result": {
+        "schema_version": "lynn-engine-p103-sm120a-fp8-activation-fp4-weight-mma-probe-v1",
+        "nvcc": "/usr/local/cuda/bin/nvcc",
+        "arch": "sm_120a",
+        "include_paths": [
+          "/root/autodl-tmp/src/cutlass/include"
+        ],
+        "variants": [
+          {
+            "ok": true,
+            "returncode": 0,
+            "seconds": 3.7228522300720215,
+            "stdout_tail": "",
+            "stderr_tail": "",
+            "name": "raw_e2m1_e2m1_f32_control",
+            "family": "raw",
+            "a": "e2m1",
+            "b": "e2m1",
+            "c": "f32",
+            "sf": null,
+            "vs": null,
+            "control": true,
+            "w4a8_candidate": false,
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "sm_120a",
+              "-c",
+              "/tmp/lynn_engine_native_build/p103_fp8_activation_fp4_weight/raw_e2m1_e2m1_f32_control.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p103_fp8_activation_fp4_weight/raw_e2m1_e2m1_f32_control.o"
+            ]
+          },
+          {
+            "ok": true,
+            "returncode": 0,
+            "seconds": 3.630305767059326,
+            "stdout_tail": "",
+            "stderr_tail": "",
+            "name": "block_e2m1_e2m1_f32_ue8m0_control",
+            "family": "blockscaled",
+            "a": "e2m1",
+            "b": "e2m1",
+            "c": "f32",
+            "sf": "ue8m0",
+            "vs": 32,
+            "control": true,
+            "w4a8_candidate": false,
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "sm_120a",
+              "-c",
+              "/tmp/lynn_engine_native_build/p103_fp8_activation_fp4_weight/block_e2m1_e2m1_f32_ue8m0_control.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p103_fp8_activation_fp4_weight/block_e2m1_e2m1_f32_ue8m0_control.o"
+            ]
+          },
+          {
+            "ok": true,
+            "returncode": 0,
+            "seconds": 3.570671796798706,
+            "stdout_tail": "",
+            "stderr_tail": "",
+            "name": "raw_e4m3_e2m1_f32",
+            "family": "raw",
+            "a": "e4m3",
+            "b": "e2m1",
+            "c": "f32",
+            "sf": null,
+            "vs": null,
+            "control": false,
+            "w4a8_candidate": true,
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "sm_120a",
+              "-c",
+              "/tmp/lynn_engine_native_build/p103_fp8_activation_fp4_weight/raw_e4m3_e2m1_f32.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p103_fp8_activation_fp4_weight/raw_e4m3_e2m1_f32.o"
+            ]
+          },
+          {
+            "ok": true,
+            "returncode": 0,
+            "seconds": 3.6526620388031006,
+            "stdout_tail": "",
+            "stderr_tail": "",
+            "name": "raw_e5m2_e2m1_f32",
+            "family": "raw",
+            "a": "e5m2",
+            "b": "e2m1",
+            "c": "f32",
+            "sf": null,
+            "vs": null,
+            "control": false,
+            "w4a8_candidate": true,
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "sm_120a",
+              "-c",
+              "/tmp/lynn_engine_native_build/p103_fp8_activation_fp4_weight/raw_e5m2_e2m1_f32.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p103_fp8_activation_fp4_weight/raw_e5m2_e2m1_f32.o"
+            ]
+          },
+          {
+            "ok": true,
+            "returncode": 0,
+            "seconds": 3.625426769256592,
+            "stdout_tail": "",
+            "stderr_tail": "",
+            "name": "raw_e2m1_e4m3_f32_reverse",
+            "family": "raw",
+            "a": "e2m1",
+            "b": "e4m3",
+            "c": "f32",
+            "sf": null,
+            "vs": null,
+            "control": false,
+            "w4a8_candidate": true,
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "sm_120a",
+              "-c",
+              "/tmp/lynn_engine_native_build/p103_fp8_activation_fp4_weight/raw_e2m1_e4m3_f32_reverse.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p103_fp8_activation_fp4_weight/raw_e2m1_e4m3_f32_reverse.o"
+            ]
+          },
+          {
+            "ok": true,
+            "returncode": 0,
+            "seconds": 3.6152563095092773,
+            "stdout_tail": "",
+            "stderr_tail": "",
+            "name": "raw_e2m1_e5m2_f32_reverse",
+            "family": "raw",
+            "a": "e2m1",
+            "b": "e5m2",
+            "c": "f32",
+            "sf": null,
+            "vs": null,
+            "control": false,
+            "w4a8_candidate": true,
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "sm_120a",
+              "-c",
+              "/tmp/lynn_engine_native_build/p103_fp8_activation_fp4_weight/raw_e2m1_e5m2_f32_reverse.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p103_fp8_activation_fp4_weight/raw_e2m1_e5m2_f32_reverse.o"
+            ]
+          },
+          {
+            "ok": true,
+            "returncode": 0,
+            "seconds": 3.6277575492858887,
+            "stdout_tail": "",
+            "stderr_tail": "",
+            "name": "block_e4m3_e2m1_f32_ue8m0",
+            "family": "blockscaled",
+            "a": "e4m3",
+            "b": "e2m1",
+            "c": "f32",
+            "sf": "ue8m0",
+            "vs": 32,
+            "control": false,
+            "w4a8_candidate": true,
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "sm_120a",
+              "-c",
+              "/tmp/lynn_engine_native_build/p103_fp8_activation_fp4_weight/block_e4m3_e2m1_f32_ue8m0.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p103_fp8_activation_fp4_weight/block_e4m3_e2m1_f32_ue8m0.o"
+            ]
+          },
+          {
+            "ok": true,
+            "returncode": 0,
+            "seconds": 3.5818557739257812,
+            "stdout_tail": "",
+            "stderr_tail": "",
+            "name": "block_e5m2_e2m1_f32_ue8m0",
+            "family": "blockscaled",
+            "a": "e5m2",
+            "b": "e2m1",
+            "c": "f32",
+            "sf": "ue8m0",
+            "vs": 32,
+            "control": false,
+            "w4a8_candidate": true,
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "sm_120a",
+              "-c",
+              "/tmp/lynn_engine_native_build/p103_fp8_activation_fp4_weight/block_e5m2_e2m1_f32_ue8m0.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p103_fp8_activation_fp4_weight/block_e5m2_e2m1_f32_ue8m0.o"
+            ]
+          },
+          {
+            "ok": true,
+            "returncode": 0,
+            "seconds": 3.584113836288452,
+            "stdout_tail": "",
+            "stderr_tail": "",
+            "name": "block_e2m1_e4m3_f32_ue8m0_reverse",
+            "family": "blockscaled",
+            "a": "e2m1",
+            "b": "e4m3",
+            "c": "f32",
+            "sf": "ue8m0",
+            "vs": 32,
+            "control": false,
+            "w4a8_candidate": true,
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "sm_120a",
+              "-c",
+              "/tmp/lynn_engine_native_build/p103_fp8_activation_fp4_weight/block_e2m1_e4m3_f32_ue8m0_reverse.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p103_fp8_activation_fp4_weight/block_e2m1_e4m3_f32_ue8m0_reverse.o"
+            ]
+          },
+          {
+            "ok": true,
+            "returncode": 0,
+            "seconds": 3.6806933879852295,
+            "stdout_tail": "",
+            "stderr_tail": "",
+            "name": "block_e2m1_e5m2_f32_ue8m0_reverse",
+            "family": "blockscaled",
+            "a": "e2m1",
+            "b": "e5m2",
+            "c": "f32",
+            "sf": "ue8m0",
+            "vs": 32,
+            "control": false,
+            "w4a8_candidate": true,
+            "cmd": [
+              "/usr/local/cuda/bin/nvcc",
+              "-std=c++17",
+              "-O3",
+              "--use_fast_math",
+              "-I",
+              "/root/autodl-tmp/src/cutlass/include",
+              "-arch",
+              "sm_120a",
+              "-c",
+              "/tmp/lynn_engine_native_build/p103_fp8_activation_fp4_weight/block_e2m1_e5m2_f32_ue8m0_reverse.cu",
+              "-o",
+              "/tmp/lynn_engine_native_build/p103_fp8_activation_fp4_weight/block_e2m1_e5m2_f32_ue8m0_reverse.o"
+            ]
+          }
+        ],
+        "controls_ok": true,
+        "fp8_activation_fp4_weight_supported": true,
+        "supported_w4a8_variants": [
+          "raw_e4m3_e2m1_f32",
+          "raw_e5m2_e2m1_f32",
+          "raw_e2m1_e4m3_f32_reverse",
+          "raw_e2m1_e5m2_f32_reverse",
+          "block_e4m3_e2m1_f32_ue8m0",
+          "block_e5m2_e2m1_f32_ue8m0",
+          "block_e2m1_e4m3_f32_ue8m0_reverse",
+          "block_e2m1_e5m2_f32_ue8m0_reverse"
+        ],
+        "decision": "FP8 activation x E2M1 weight SM120a MMA is exposed; W4A8 is a viable hardware route."
+      }
+    }
+  },
+  "contract_passes": {
+    "p76_cutlass_cute_toolchain": true,
+    "p79_nvcc_fp4_mma_target_matrix": true,
+    "p85_blockscaled_fp4_mma_contract": true,
+    "p87_layout_tile_contract": true,
+    "p103_fp8_activation_fp4_weight_mma": true
+  },
+  "passes": {
+    "torch_cuda_recorded": true,
+    "blackwell_capability": true,
+    "r6000_class_memory": true,
+    "disk_headroom": true,
+    "public_kernel_census_recorded": true,
+    "vllm_nvfp4_or_marlin_seen": true,
+    "contract_suite_recorded": true,
+    "contract_suite_all_pass": true,
+    "all": true
+  },
+  "decision": "PASS_R6000_FP4_MMA_BRINGUP",
+  "promotion_boundary": {
+    "kernel_promoted": false,
+    "default_runtime_changed": false,
+    "speed_claim": false
+  },
+  "next_step": "If PASS, start Lynn NVFP4 grouped-MoE FP4-MMA kernel POC from CUTLASS/CuTe and public Marlin/Machete census. If FAIL, fix machine/toolchain before writing kernels."
+}

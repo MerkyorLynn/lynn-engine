@@ -15,10 +15,12 @@
 | **native zero-shadow MoE** | P4B 数值参考 exact,但 single-CTA 与 active recompute 被 microbench 反证;P4C active-reuse bridge/profile/tile2 basic server smoke 已 bank,但 **rc-mini agreement 已拒绝**:completion exact **3/6**,chat exact **2/2**,不进 RC/default。 |
 | **当前瓶颈** | P4C profile 锁定 gate/up **151.67us(63.8%)**;shape sweep 与 full-path microbench 有局部正信号,但 server wider quality 不等价。shadow-cycle first-divergence:算术 prompt 8 步 top-1 不分叉,但 step0/layer13 起 hidden/logits drift,step1 candidate margin 压到 **0.046875**。 |
 | **decode hot-loop ROI** | GPU-idle probe 已 bank:N/2N delta 估计 GPU busy **0.753**,host-gap **0.247**,CUDA launches/token **1969.0**,runner TPS **41.36/42.19**;ROI=`BORDERLINE_REMEASURE_OR_NSIGHT`,所以 compiled-loop 可小样验证,但不够直接开月级 runtime。 |
-| **R6000 / FP4-MMA** | bring-up/census tooling 已 ready,等待可租到的 **RTX PRO 6000 96GB** 跑 PASS artifact;硬件选择不绑定 AutoDL 机号,磁盘 gate 为 **>=500GB free**,优先 **800GB-1TB 可扩容**。gate 会检查 CUDA/PyTorch/磁盘/vLLM Marlin-Machete/CUTLASS 可见性 + P76/P79/P85/P87/P103 native FP4 contracts。 |
+| **R6000 / FP4-MMA** | census 已 bank:**AutoDL 727 机 / RTX PRO 6000 96GB / 880GiB data workspace** PASS,CUDA capability `[12,0]`,vLLM source candidates **200**,P76/P79/P85/P87/P103 native FP4 contracts 全过。路线仍不绑定固定机号;后续任意 R6000 复跑同 gate 后再开 grouped-MoE FP4-MMA POC。 |
 | **runtime opt-in** | `LYNN_NATIVE_GATEUP_TILE_INTER=2` 仅保留 opt-in diagnostic/basic-smoke: P4C call delta **240**,40 层调用,completion text-exact **2/2**,release/reload healthy。下一步是 **P4C hard go/no-go**,不是继续扩大 RC。 |
 
 **诚实边界:** Spark sm_121 当前 deliverable decode 仍是 **~44-45 TPS**;60 GiB shadow-drop 是**服务显存/产品化赢**,不是速度杠杆;P4C 只 bank route/numeric/profile/basic-smoke,**不 bank fused speed/default promotion**。speed 火力转向两件事:**MTP eager-runtime 去开销 / token-exact batched verify**,以及把 decode hot loop 从 Python 搬到 compiled/C++ 服务循环以降低 **per-launch host dispatch**;但首轮 GPU-idle probe 是 **borderline**(host-gap 24.7%),所以先做 Nsight/小样,不直接押月级重写。reusable decode CUDA graph 已实测 **0.75× 净负**并关闭,不是当前路线。Python 只做控制面和验证;追赶 llama.cpp 靠 native runtime + kernels,在 FP4-MMA 硅上才完整兑现。
+
+**机器分工:** Spark 负责当前 35B 服务链、60 GiB 显存生命周期、MTP runtime、compiled hot-loop ROI 与 RC/quality 回归;R6000 负责 Spark 做不了的 FP4-MMA/CUTLASS/CuTe/vLLM Marlin-Machete census 与 grouped-MoE native kernel POC。两条 evidence lane 不混用:Spark 不能 claim FP4-MMA payoff,R6000 也不替 Spark 的 decode TPS 背书。
 
 **后续路线不是两条,而是分线推进:**
 
@@ -28,7 +30,7 @@
 | **B. no-reload prefill** | 把 28 GiB 扩到多请求 server,消掉 per-request reload | P2-O basic + rc-mini non-long shard PASS;full rc-mini long-context 仍需 slow-mode 加速/chunking 后重跑 |
 | **C. MTP runtime** | 利用 76-97% accept,削 eager speculative runtime 开销 | 最高 ROI 的 TPS 近线;重点是 snapshot/restore、batched verify、dispatch/sync |
 | **D. compiled/C++ hot loop** | 降低每个 launch 的 host/Python dispatch,不是 CUDA graph | GPU-idle first probe:host-gap **24.7%**,ROI borderline;先 Nsight/小样再决定深投 |
-| **E. native kernels / FP4-MMA** | grouped CUDA C++/CUTLASS kernels + FP4-MMA 硅兑现 | R6000 census gate 已 ready;先跑可租到的 RTX PRO 6000 96GB + 足够磁盘,再开 grouped MoE FP4-MMA POC |
+| **E. native kernels / FP4-MMA** | grouped CUDA C++/CUTLASS kernels + FP4-MMA 硅兑现 | R6000 census gate 已 banked(727 机 PASS);下一步是 CUTLASS/CuTe + public Marlin/Machete census 起步的 grouped-MoE FP4-MMA POC |
 
 > **🆕 2026-06-03 Decode 内核启动开销战役 — Spark NVFP4 35B-A3B 单流 38.96 → ~45 TPS,质量 RC 等价。**
 > 实测 decode 是 launch-bound(census:**~1527 CUDA launch/token**,~40% 时间耗在 CPU 端 dispatch)。逐簇融合 launch + 消拷贝:**fused RMSNorm(最大头)/ shared-expert / linear-attn g/beta-fold / full-attn(token-exact)/ NVFP4 `_scaled_mm` bf16-out copy-elision**,**5 个 RC-validated launch-cut**——在 structured/V9/GPQA/tool-call/long-form 上 **40/40 greedy 输出与 baseline 逐字一致**,继承 **MMLU 84.40 / GPQA-Diamond 49.49**。全部 gated、默认安全、可回滚。
@@ -66,7 +68,7 @@
 ---
 
 > **为 NVIDIA Blackwell 写的 Lynn 27B-A3B NVFP4 单模型推理引擎。**
-> 从零写,锁定 Lynn 自家的 variable-pruned MoE + NVFP4 格式,目标很窄也很硬:在 R6000 / Spark 这类 Blackwell 机器上,把 Lynn 27B A3B MoE 基座跑成可生产、可优化、可长期接管的推理内核。
+> 从零写,锁定 Lynn 自家的 variable-pruned MoE + NVFP4 格式,目标很窄也很硬:Spark 负责 35B 服务/内存/runtime 证据,R6000-class FP4-MMA 硬件负责 native FP4/CUTLASS 证据,把 Lynn MoE 基座跑成可生产、可优化、可长期接管的推理内核。
 
 ## 快速入口
 
@@ -74,7 +76,7 @@
 - [6/3 Restart Notes](RELEASE_NOTES_20260603.md) · [5/20 历史 Release Notes](RELEASE_NOTES_20260520.md)
 - [Stage 6 evidence ledger](reports/stage6/STAGE6_EVIDENCE_LEDGER_20260604.md) · [Stage 6 GPU gate suite](reports/stage6/STAGE6_GPU_GATE_SUITE_RUNBOOK_20260604.md)
 - [P2-O basic packed-prefill smoke](reports/stage6/P2O_PACKED_PREFILL_RC_SMOKE_BASIC_20260604.md) · [P2-O rc-mini non-long shard](reports/stage6/P2O_PACKED_PREFILL_RC_SMOKE_RCMINI_NONLONG_20260604.md) · [P3-A grouped-MoE contract probe](reports/stage6/P3A_GROUPED_MOE_CONTRACT_PROBE_20260604.md) · [P3-A batched-down diagnostic](reports/stage6/P3A_BATCHED_DOWN_CONTRACT_PROBE_20260604.md) · [P3-B selected-prefill gate](reports/stage6/p3b_layers0-3_selected_prefill_gate_20260604_144842/report.md) · [P3-C resident-prompt basic](reports/stage6/p3c_basic_resident_prompt_gate_20260604_145940/report.md) · [P2-O runbook](reports/stage6/P2O_PACKED_PREFILL_RC_GATE_RUNBOOK_20260604.md) · [P3/P4 runbook family starts here](reports/stage6/P3_GROUPED_MOE_ZERO_SHADOW_CONTRACT_20260604.md)
-- [P4C active-reuse decision](reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md) · [P4C tile2 basic server smoke](reports/stage6/p4c_tile2_server_smoke_20260604_122443/summary.md) · [Decode GPU-idle ROI probe](reports/stage6/decode_gpu_idle_probe_20260604_154648/summary.md) · [R6000 FP4-MMA bring-up](reports/stage6/R6000_FP4_MMA_BRINGUP_RUNBOOK_20260604.md)
+- [P4C active-reuse decision](reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md) · [P4C tile2 basic server smoke](reports/stage6/p4c_tile2_server_smoke_20260604_122443/summary.md) · [Decode GPU-idle ROI probe](reports/stage6/decode_gpu_idle_probe_20260604_154648/summary.md) · [R6000 FP4-MMA PASS census](reports/stage6/r6000_fp4_mma_census_20260604_164457/summary.md)
 
 [![commits](https://img.shields.io/github/commit-activity/m/MerkyorLynn/lynn-engine)](https://github.com/MerkyorLynn/lynn-engine/commits/main)
 [![license](https://img.shields.io/badge/license-TBD-orange)](.)
@@ -417,7 +419,7 @@ Recovery v1.1 targeted longctx/chem/sql 已试过,但未取代 step5000:它没�
 
 - **W4A8 FP8 vectorized expert dispatch + CUTLASS grouped GEMM**:绕开 Python decode overhead(Wave 2 retry #4 暴露的架构信号)
 - **C++ service loop**:host gap > GPU compute gap 时再触发(memory `LYNN_ENGINE_CPP_RUST_REWRITE_ROI_20260517` 已分级 3 tier)
-- **R6000-class FP4 MMA 硬件**:消费 Blackwell 32GB 卡上市后,Lynn engine native FP4 路径(5/15 R6000 107-108 TPS strict default)有竞争力
+- **R6000/RTX PRO 6000 96GB-class FP4-MMA lane**:PASS census artifact 后再恢复 native FP4 grouped-MoE POC;不要用 32GB 消费卡/Spark 结果替代 R6000 证据
 - **MTP K=1 sequential 6/6 @ 26.4 TPS** correctness-clean baseline 持续磨,等 W4A8 base 稳后叠加
 - **长 ctx 6.77× SGLang at 16K** 数据点保留,作 NVIDIA Pro "高级模式"卖点
 
@@ -447,44 +449,17 @@ Recovery v1.1 targeted longctx/chem/sql 已试过,但未取代 step5000:它没�
 
 [`tutorials/posts/zhihu_qwen36_engine_postmortem.md`](tutorials/posts/zhihu_qwen36_engine_postmortem.md) 是知乎博客风格的合集长文。
 
-## 快速上手(R6000 / Blackwell)
+## R6000 / FP4-MMA bring-up
+
+当前不绑定 AutoDL 机号;本次已在 **AutoDL 727 机 / RTX PRO 6000 96GB / 880GiB data workspace**
+bank PASS artifact:
+[R6000 FP4-MMA PASS census](reports/stage6/r6000_fp4_mma_census_20260604_164457/summary.md)。
+后续换机时仍先按
+[R6000 FP4-MMA bring-up runbook](reports/stage6/R6000_FP4_MMA_BRINGUP_RUNBOOK_20260604.md)
+跑 census gate;PASS 前不启动新的 FP4-MMA kernel POC。AutoDL 主机上可用:
 
 ```bash
-# 1. 准备 Lynn-native NVFP4 artifact
-MODEL=/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final
-
-# 2. 启用当前 R6000 best env
-export PYTHONPATH=/root/autodl-tmp/lynn-engine
-export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export LYNN_PREFILL_WARMUP=1
-export LYNN_LINEAR_ATTN_RECURRENT_BACKEND=triton_fused_prepare
-export LYNN_LINEAR_ATTN_RECURRENT_INPLACE=1
-export LYNN_MOE_IMPL=packed_nvfp4
-export LYNN_QK_NORM_ROPE_BACKEND=triton_pair
-export LYNN_RMSNORM_GATED_BACKEND=triton
-export LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1
-export LYNN_NATIVE_FP4_LM_HEAD=1
-export LYNN_LINEAR_STATE_UPDATE=inplace
-export LYNN_LINEAR_BLOCK_GRAPH=1
-export LYNN_LINEAR_BLOCK_GRAPH_REUSE=1
-export LYNN_LINEAR_BLOCK_GRAPH_PREWARM=1
-export LYNN_PACKED_DECODE=0
-export LYNN_PACKED_DECODE_PREPARE_NATIVE=0
-export LYNN_PACKED_SHARED_EXPERT=0
-
-# 3. 运行 resident smoke
-python benchmarks/resident_cli.py \
-  --model "$MODEL" \
-  --prompts-jsonl /root/autodl-tmp/reports/lynn-engine-p5/p7i_6prompt.jsonl \
-  --max-new 32 \
-  --chat-template \
-  --out /tmp/lynn_27b_nvfp4_smoke.json
-
-# 4. 可选:OpenAI-compatible server
-python -m server.openai_http \
-  --model "$MODEL" \
-  --host 0.0.0.0 \
-  --port 18099
+scripts/r6000_stage6_autodl_bootstrap.sh --install-basics --cutlass-dir /root/autodl-tmp/src/cutlass
 ```
 
 ## 仓库结构
@@ -546,7 +521,7 @@ tutorials/
 
 ## 为什么写这个
 
-Lynn brain 用 Qwen 3.6 35B-A3B 当主链,每天处理几千个 agent 请求。vLLM(目前生产)能吃掉 Spark 内存带宽 ~80%,Lynn engine 的目标是**单模型锁定 + Blackwell sm_12x 特化** + agent prompt 缓存(99% 命中)拿到剩下 20% + 更低 tail latency。
+Lynn brain 用 Qwen 3.6 35B-A3B 当主链,每天处理几千个 agent 请求。6/3 后的 Spark 口径已经校正:当前 decode 主要是 launch/host-dispatch bound,不是继续押“内存带宽/零 shadow 速度杠杆”。Spark lane 先 bank 服务显存生命周期、MTP runtime、compiled hot-loop ROI 与质量回归;R6000 lane 再兑现 native FP4-MMA/CUTLASS 内核护城河。
 
 但更重要的产出是**通过自己写引擎获得的理解** — 上面的 tutorials 就是这个理解的固化。
 
