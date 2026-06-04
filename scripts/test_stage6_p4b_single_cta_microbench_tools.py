@@ -112,6 +112,7 @@ def main() -> int:
         assert "spark_stage6_p4b_single_cta_microbench.py" in wrapper_text
         assert "summarize_stage6_p4b_single_cta_microbench.py" in wrapper_text
         assert "--candidate-mode \"$CANDIDATE_MODE\"" in wrapper_text
+        assert "p4b_multi_cta_microbench_" in wrapper_text
 
         pass_summary = run([
             sys.executable,
