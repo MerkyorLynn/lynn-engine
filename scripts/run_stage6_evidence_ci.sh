@@ -25,4 +25,5 @@ python3 scripts/test_stage6_p4c_active_reuse_decision_static.py
 python3 scripts/test_stage6_p4c_runtime_bridge_tools.py
 python3 scripts/test_stage6_p4c_active_reuse_microbench_tools.py
 python3 scripts/test_stage6_p4c_component_profile_tools.py
+python3 scripts/test_stage6_p4c_gateup_shape_sweep_tools.py
 python3 scripts/test_stage6_evidence_ledger.py
