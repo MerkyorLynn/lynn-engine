@@ -1,0 +1,410 @@
+{
+  "schema": "lynn-stage6-decode-gpu-idle-probe-v1",
+  "created": "2026-06-04T07:52:40",
+  "model": "/home/merkyor/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-from-bf16-20260526",
+  "prompt": "If a train travels 60 mph for 2.5 hours, how far does it go? Explain step by step.",
+  "env_summary": {
+    "LYNN_FULL_ATTN_FUSED": "1",
+    "LYNN_FULL_ATTN_ROPE_CACHE": "1",
+    "LYNN_LINEAR_ATTN_FUSE_GBETA": "1",
+    "LYNN_LINEAR_ATTN_GQA_RECURRENT": "1",
+    "LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4": "1",
+    "LYNN_LINEAR_ATTN_RECURRENT_BACKEND": "triton_fused_prepare",
+    "LYNN_LINEAR_ATTN_RECURRENT_FROM_OUTCONV": "1",
+    "LYNN_LINEAR_ATTN_RECURRENT_INPLACE": "1",
+    "LYNN_LINEAR_STATE_UPDATE": "inplace",
+    "LYNN_MOE_DOWN_BLOCK_HIDDEN": "4",
+    "LYNN_MOE_FAST_FIXED": "1",
+    "LYNN_MOE_IMPL": "packed_nvfp4",
+    "LYNN_NATIVE_ACTIVE_MOE_BACKEND": "triton",
+    "LYNN_NATIVE_DOWN_BACKEND": "triton",
+    "LYNN_NATIVE_FP4_LM_HEAD": "1",
+    "LYNN_NATIVE_GATEUP_BACKEND": "triton_fast_decode",
+    "LYNN_PACKED_DECODE": "0",
+    "LYNN_PACKED_DECODE_BACKEND": "native_fast_2d",
+    "LYNN_PACKED_SHARED_EXPERT": "0",
+    "LYNN_QK_NORM_ROPE_BACKEND": "triton_pair",
+    "LYNN_RMSNORM_FUSED": "1",
+    "LYNN_RMSNORM_GATED_BACKEND": "triton",
+    "LYNN_ROUTER_TOPK_SORTED": "0",
+    "LYNN_SHARED_EXPERT_FUSED": "1",
+    "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"
+  },
+  "runs": {
+    "short": {
+      "requested_max_new": 48,
+      "tokens": 48,
+      "wall_ms": 4387.173971976154,
+      "decode_tps_runner": 41.36341534090062,
+      "decode_tps_wall": 10.940983946980095,
+      "cuda_launch_count": 219034,
+      "cuda_self_time_us": 1709940.6090000325,
+      "cpu_cuda_api_count": 115813,
+      "cpu_cuda_api_time_us": 406625.9839999784,
+      "top_cuda_events": [
+        {
+          "name": "aten::mm",
+          "count": 9983,
+          "self_cuda_time_us": 374089.62800000387
+        },
+        {
+          "name": "std::enable_if<!(false), void>::type internal::gemvx::kernel<int, int, __nv_bfloat16, __nv_bfloat16, __nv_bfloat16, float, false, true, true, false, 6, false, cublasGemvParamsEx<int, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16>, float> >(cublasGemvParamsEx<int, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16>, float>)",
+          "count": 3135,
+          "self_cuda_time_us": 270294.2999999962
+        },
+        {
+          "name": "_grouped_gate_up_silu_fast_decode_kernel",
+          "count": 1623,
+          "self_cuda_time_us": 177967.6740000035
+        },
+        {
+          "name": "aten::_scaled_mm",
+          "count": 1259,
+          "self_cuda_time_us": 142739.8170000011
+        },
+        {
+          "name": "cutlass3x_sm120_bstensorop_s16864gemm_block_scaled_ue4m3xe2m1_ue4m3xe2m1_f32_f16_f16_128x128x256_1x1x1_0_tnn_align32_o_vs16_bias_f16_relu",
+          "count": 1218,
+          "self_cuda_time_us": 93998.49000000174
+        },
+        {
+          "name": "_shared_gate_up_silu_kernel",
+          "count": 1623,
+          "self_cuda_time_us": 87451.95999999705
+        },
+        {
+          "name": "_grouped_down_weighted_sum_kernel",
+          "count": 1623,
+          "self_cuda_time_us": 80801.53800000227
+        },
+        {
+          "name": "void cutlass::Kernel2<cutlass_80_wmma_tensorop_bf16_s161616gemm_bf16_16x16_128x2_tn_align8>(cutlass_80_wmma_tensorop_bf16_s161616gemm_bf16_16x16_128x2_tn_align8::Params)",
+          "count": 2782,
+          "self_cuda_time_us": 53571.02700000348
+        },
+        {
+          "name": "cutlass3x_sm120_bstensorop_s16864gemm_block_scaled_ue4m3xe2m1_ue4m3xe2m1_f32_f16_f16_128x128x256_1x1x1_0_tnn_align32_o_vs16_bias_f16_relu_stream_k",
+          "count": 41,
+          "self_cuda_time_us": 48741.32699999935
+        },
+        {
+          "name": "std::enable_if<!(false), void>::type internal::gemvx::kernel<int, int, __nv_bfloat16, __nv_bfloat16, __nv_bfloat16, float, false, true, true, false, 7, false, cublasGemvParamsEx<int, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16>, float> >(cublasGemvParamsEx<int, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16>, float>)",
+          "count": 3580,
+          "self_cuda_time_us": 31933.345000004483
+        },
+        {
+          "name": "_shared_down_gate_add_kernel",
+          "count": 1623,
+          "self_cuda_time_us": 23918.580000002054
+        },
+        {
+          "name": "aten::copy_",
+          "count": 16007,
+          "self_cuda_time_us": 20797.33700000645
+        },
+        {
+          "name": "aten::any",
+          "count": 10240,
+          "self_cuda_time_us": 17274.544000000606
+        },
+        {
+          "name": "void at::native::reduce_kernel<512, 1, at::native::ReduceOp<bool, at::native::func_wrapper_t<bool, at::native::or_kernel_cuda(at::TensorIterator&)::{lambda()#1}::operator()() const::{lambda()#12}::operator()() const::{lambda(bool, bool)#1}>, unsigned int, bool, 4, 4> >(at::native::ReduceOp<bool, at::native::func_wrapper_t<bool, at::native::or_kernel_cuda(at::TensorIterator&)::{lambda()#1}::operator()() const::{lambda()#12}::operator()() const::{lambda(bool, bool)#1}>, unsigned int, bool, 4, 4>)",
+          "count": 10240,
+          "self_cuda_time_us": 17274.544000000606
+        },
+        {
+          "name": "aten::nonzero",
+          "count": 2564,
+          "self_cuda_time_us": 16043.499000000898
+        },
+        {
+          "name": "_recurrent_fused_prepare_from_outconv_gqa_gbeta_kernel",
+          "count": 1218,
+          "self_cuda_time_us": 13762.540000001318
+        },
+        {
+          "name": "aten::mul",
+          "count": 7648,
+          "self_cuda_time_us": 12135.550000001262
+        },
+        {
+          "name": "aten::eq",
+          "count": 10240,
+          "self_cuda_time_us": 10485.037999993301
+        },
+        {
+          "name": "void at::native::vectorized_elementwise_kernel<4, at::native::AUnaryFunctor<long, long, bool, at::native::(anonymous namespace)::CompareEqFunctor<long> >, std::array<char*, 2ul> >(int, at::native::AUnaryFunctor<long, long, bool, at::native::(anonymous namespace)::CompareEqFunctor<long> >, std::array<char*, 2ul>)",
+          "count": 10240,
+          "self_cuda_time_us": 10485.037999993301
+        },
+        {
+          "name": "aten::index",
+          "count": 5128,
+          "self_cuda_time_us": 10096.223999999316
+        }
+      ],
+      "top_cpu_cuda_api_events": [
+        {
+          "name": "cudaLaunchKernel",
+          "count": 88569,
+          "self_cpu_time_us": 251271.73699997435
+        },
+        {
+          "name": "cudaStreamSynchronize",
+          "count": 12847,
+          "self_cpu_time_us": 115675.47500000312
+        },
+        {
+          "name": "cudaMemcpyAsync",
+          "count": 14145,
+          "self_cpu_time_us": 38531.31300000154
+        },
+        {
+          "name": "cudaMemsetAsync",
+          "count": 111,
+          "self_cpu_time_us": 660.1689999987134
+        },
+        {
+          "name": "cudaLaunchKernelExC",
+          "count": 100,
+          "self_cpu_time_us": 362.40100000024495
+        },
+        {
+          "name": "cudaDeviceSynchronize",
+          "count": 41,
+          "self_cpu_time_us": 124.88900000043213
+        }
+      ],
+      "new_ids_prefix": [
+        271,
+        1206,
+        1423,
+        279,
+        5821,
+        279,
+        5257,
+        33060,
+        11,
+        567,
+        958,
+        279,
+        14377,
+        25,
+        1088,
+        58,
+        1088,
+        1272,
+        90,
+        14349,
+        92,
+        283,
+        1088,
+        1272
+      ],
+      "text_prefix": "If a train travels 60 mph for 2.5 hours, how far does it go? Explain step by step.\n\nTo find the distance the train travels, we use the formula: \\[ \\text{Distance} = \\text{Speed} \\times \\text{Time} \\]. Here, the speed is 60 miles per hour ("
+    },
+    "long": {
+      "requested_max_new": 96,
+      "tokens": 96,
+      "wall_ms": 6634.749407065101,
+      "decode_tps_runner": 42.1881353026832,
+      "decode_tps_wall": 14.469272931057972,
+      "cuda_launch_count": 313547,
+      "cuda_self_time_us": 3402270.7879997496,
+      "cpu_cuda_api_count": 152219,
+      "cpu_cuda_api_time_us": 596709.6379999907,
+      "top_cuda_events": [
+        {
+          "name": "aten::mm",
+          "count": 15968,
+          "self_cuda_time_us": 720069.8919999814
+        },
+        {
+          "name": "std::enable_if<!(false), void>::type internal::gemvx::kernel<int, int, __nv_bfloat16, __nv_bfloat16, __nv_bfloat16, float, false, true, true, false, 6, false, cublasGemvParamsEx<int, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16>, float> >(cublasGemvParamsEx<int, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16>, float>)",
+          "count": 5855,
+          "self_cuda_time_us": 592772.256999989
+        },
+        {
+          "name": "_grouped_gate_up_silu_fast_decode_kernel",
+          "count": 3800,
+          "self_cuda_time_us": 415422.1409999932
+        },
+        {
+          "name": "aten::_scaled_mm",
+          "count": 2946,
+          "self_cuda_time_us": 333867.94299999974
+        },
+        {
+          "name": "cutlass3x_sm120_bstensorop_s16864gemm_block_scaled_ue4m3xe2m1_ue4m3xe2m1_f32_f16_f16_128x128x256_1x1x1_0_tnn_align32_o_vs16_bias_f16_relu",
+          "count": 2850,
+          "self_cuda_time_us": 220086.67699999816
+        },
+        {
+          "name": "_shared_gate_up_silu_kernel",
+          "count": 3800,
+          "self_cuda_time_us": 201542.80500000308
+        },
+        {
+          "name": "_grouped_down_weighted_sum_kernel",
+          "count": 3800,
+          "self_cuda_time_us": 187489.629999983
+        },
+        {
+          "name": "cutlass3x_sm120_bstensorop_s16864gemm_block_scaled_ue4m3xe2m1_ue4m3xe2m1_f32_f16_f16_128x128x256_1x1x1_0_tnn_align32_o_vs16_bias_f16_relu_stream_k",
+          "count": 96,
+          "self_cuda_time_us": 113781.26600000157
+        },
+        {
+          "name": "std::enable_if<!(false), void>::type internal::gemvx::kernel<int, int, __nv_bfloat16, __nv_bfloat16, __nv_bfloat16, float, false, true, true, false, 7, false, cublasGemvParamsEx<int, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16>, float> >(cublasGemvParamsEx<int, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16>, float>)",
+          "count": 6845,
+          "self_cuda_time_us": 55786.81399999237
+        },
+        {
+          "name": "_shared_down_gate_add_kernel",
+          "count": 3800,
+          "self_cuda_time_us": 55783.012999981176
+        },
+        {
+          "name": "void cutlass::Kernel2<cutlass_80_wmma_tensorop_bf16_s161616gemm_bf16_16x16_128x2_tn_align8>(cutlass_80_wmma_tensorop_bf16_s161616gemm_bf16_16x16_128x2_tn_align8::Params)",
+          "count": 2782,
+          "self_cuda_time_us": 53195.48399999969
+        },
+        {
+          "name": "aten::copy_",
+          "count": 28522,
+          "self_cuda_time_us": 37211.235999929726
+        },
+        {
+          "name": "_recurrent_fused_prepare_from_outconv_gqa_gbeta_kernel",
+          "count": 2850,
+          "self_cuda_time_us": 32073.908999999287
+        },
+        {
+          "name": "void at::native::reduce_kernel<512, 1, at::native::ReduceOp<bool, at::native::func_wrapper_t<bool, at::native::or_kernel_cuda(at::TensorIterator&)::{lambda()#1}::operator()() const::{lambda()#12}::operator()() const::{lambda(bool, bool)#1}>, unsigned int, bool, 4, 4> >(at::native::ReduceOp<bool, at::native::func_wrapper_t<bool, at::native::or_kernel_cuda(at::TensorIterator&)::{lambda()#1}::operator()() const::{lambda()#12}::operator()() const::{lambda(bool, bool)#1}>, unsigned int, bool, 4, 4>)",
+          "count": 10240,
+          "self_cuda_time_us": 17209.098999997987
+        },
+        {
+          "name": "aten::any",
+          "count": 10239,
+          "self_cuda_time_us": 17207.530999997958
+        },
+        {
+          "name": "aten::topk",
+          "count": 3840,
+          "self_cuda_time_us": 16516.59300000013
+        },
+        {
+          "name": "void at::native::sbtopk::gatherTopK<c10::BFloat16, unsigned int, 1, false>(at::cuda::detail::TensorInfo<c10::BFloat16 const, unsigned int>, unsigned int, unsigned int, bool, unsigned int, unsigned int, at::cuda::detail::TensorInfo<c10::BFloat16, unsigned int>, unsigned int, at::cuda::detail::TensorInfo<long, unsigned int>, unsigned int, c10::BFloat16*)",
+          "count": 3800,
+          "self_cuda_time_us": 16197.34300000011
+        },
+        {
+          "name": "aten::nonzero",
+          "count": 2564,
+          "self_cuda_time_us": 15889.850999997081
+        },
+        {
+          "name": "aten::mul",
+          "count": 7648,
+          "self_cuda_time_us": 12136.812000000242
+        },
+        {
+          "name": "_rmsnorm_kernel",
+          "count": 7776,
+          "self_cuda_time_us": 12131.87799999898
+        }
+      ],
+      "top_cpu_cuda_api_events": [
+        {
+          "name": "cudaLaunchKernel",
+          "count": 123119,
+          "self_cpu_time_us": 366667.0969999904
+        },
+        {
+          "name": "cudaStreamSynchronize",
+          "count": 12903,
+          "self_cpu_time_us": 179251.06899999402
+        },
+        {
+          "name": "cudaMemcpyAsync",
+          "count": 15833,
+          "self_cpu_time_us": 48909.06600000738
+        },
+        {
+          "name": "cudaMemsetAsync",
+          "count": 166,
+          "self_cpu_time_us": 1212.5129999985488
+        },
+        {
+          "name": "cudaLaunchKernelExC",
+          "count": 100,
+          "self_cpu_time_us": 379.3430000001317
+        },
+        {
+          "name": "cudaDeviceSynchronize",
+          "count": 98,
+          "self_cpu_time_us": 290.5500000002794
+        }
+      ],
+      "new_ids_prefix": [
+        271,
+        1206,
+        1423,
+        279,
+        5821,
+        279,
+        5257,
+        33060,
+        11,
+        567,
+        958,
+        279,
+        14377,
+        25,
+        1088,
+        58,
+        1088,
+        1272,
+        90,
+        14349,
+        92,
+        283,
+        1088,
+        1272
+      ],
+      "text_prefix": "If a train travels 60 mph for 2.5 hours, how far does it go? Explain step by step.\n\nTo find the distance the train travels, we use the formula: \\[ \\text{Distance} = \\text{Speed} \\times \\text{Time} \\]. Here, the speed is 60 miles per hour (m"
+    }
+  },
+  "delta": {
+    "tokens_delta": 48,
+    "wall_ms_delta": 2247.5754350889474,
+    "wall_ms_per_token": 46.824488231019735,
+    "cuda_kernel_busy_ms_delta": 1692.3301789997172,
+    "cuda_kernel_busy_ms_per_token": 35.256878729160775,
+    "host_gap_or_idle_ms_per_token_est": 11.56760950185896,
+    "gpu_busy_ratio_est": 0.7529581221520797,
+    "host_gap_fraction_est": 0.2470418778479203,
+    "cuda_launches_delta": 94513,
+    "cuda_launches_per_token": 1969.0208333333333,
+    "cpu_cuda_api_ms_delta": 190.08365400001233,
+    "cpu_cuda_api_ms_per_token": 3.9600761250002567,
+    "cpu_cuda_api_calls_delta": 36406,
+    "cpu_cuda_api_calls_per_token": 758.4583333333334,
+    "compiled_loop_roi_signal": "BORDERLINE_REMEASURE_OR_NSIGHT"
+  },
+  "passes": {
+    "token_delta_positive": true,
+    "launches_recorded": true,
+    "timing_recorded": true,
+    "idle_estimate_recorded": true,
+    "all": true
+  },
+  "decision": "PASS_DECODE_GPU_IDLE_PROBE_RECORDED",
+  "promotion_boundary": {
+    "speed_promotion": false,
+    "compiled_loop_default": false,
+    "cuda_graph_route": false
+  },
+  "caveat": "GPU busy is estimated from PyTorch profiler self CUDA time using N/2N delta; treat as a go/no-go ROI probe and confirm deep investments with Nsight if borderline."
+}
