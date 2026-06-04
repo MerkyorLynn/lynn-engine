@@ -130,6 +130,16 @@ def main() -> int:
         if gates["r5c3b_gateup_value_materialization_smoke"]["status"] == "BANKED":
             assert gates["r5c3b_gateup_value_materialization_smoke"]["decision"] == "PASS_R5C3B_GATEUP_VALUE_MATERIALIZATION_SMOKE"
             assert "down projection" in gates["r5c3b_gateup_value_materialization_smoke"]["next_step"]
+        assert gates["r5c3c_down_weighted_parity_smoke"]["status"] in {
+            "BANKED",
+            "READY_WAITING_ARTIFACT",
+            "FAILED_ARTIFACT",
+            "MISSING_TOOLING",
+        }
+        assert "weighted" in gates["r5c3c_down_weighted_parity_smoke"]["title"].lower()
+        if gates["r5c3c_down_weighted_parity_smoke"]["status"] == "BANKED":
+            assert gates["r5c3c_down_weighted_parity_smoke"]["decision"] == "PASS_R5C3C_DOWN_WEIGHTED_PARITY_SMOKE"
+            assert "speed" in gates["r5c3c_down_weighted_parity_smoke"]["next_step"].lower()
         assert "P4 fused kernel banked | `false`" in text
         assert "TEST_BLOCKED_BY_SSH" in text
 

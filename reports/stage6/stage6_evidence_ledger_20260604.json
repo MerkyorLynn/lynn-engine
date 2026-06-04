@@ -1,12 +1,12 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T12:57:45+00:00",
-  "stage6_status": "R5C3B_GATEUP_VALUE_MATERIALIZATION_BANKED",
-  "stage6_note": "R5-C3B gate/up value materialization smoke is banked: full real CUTLASS D/ref row values were captured, exact value-bit digests matched the row hashes, and values scattered through the R5-C2B inverse-order contract into [T, top_k, N_gateup] with host-SwiGLU checksum recorded. This does not bank down projection, weighted top-k reduction, full grouped-MoE speed, decode TPS, server behavior, RC quality, or default promotion. Next gate is R5-C3C down projection + weighted top-k numeric parity. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT.",
-  "spark_status": "R5C3B_GATEUP_VALUE_MATERIALIZATION_BANKED",
-  "spark_note": "R5-C3B gate/up value materialization smoke is banked: full real CUTLASS D/ref row values were captured, exact value-bit digests matched the row hashes, and values scattered through the R5-C2B inverse-order contract into [T, top_k, N_gateup] with host-SwiGLU checksum recorded. This does not bank down projection, weighted top-k reduction, full grouped-MoE speed, decode TPS, server behavior, RC quality, or default promotion. Next gate is R5-C3C down projection + weighted top-k numeric parity. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT.",
+  "generated_at_utc": "2026-06-04T13:10:46+00:00",
+  "stage6_status": "R5C3C_DOWN_WEIGHTED_PARITY_BANKED",
+  "stage6_note": "R5-C3C down + weighted top-k parity smoke is banked: real R5-C3B CUTLASS gate/up D/ref values were composed through host SwiGLU, deterministic down projection, and route-weighted top-k reduction with D/ref parity. This does not bank full active-MoE FP4-MMA speed, decode TPS, server behavior, RC quality, or default promotion. Next gate is full active-MoE prefill speed A/B against W4A16/P2-N/P3 paths. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT.",
+  "spark_status": "R5C3C_DOWN_WEIGHTED_PARITY_BANKED",
+  "spark_note": "R5-C3C down + weighted top-k parity smoke is banked: real R5-C3B CUTLASS gate/up D/ref values were composed through host SwiGLU, deterministic down projection, and route-weighted top-k reduction with D/ref parity. This does not bank full active-MoE FP4-MMA speed, decode TPS, server behavior, RC quality, or default promotion. Next gate is full active-MoE prefill speed A/B against W4A16/P2-N/P3 paths. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT.",
   "counts": {
-    "BANKED": 32,
+    "BANKED": 33,
     "CLOSED_NEGATIVE": 5,
     "TIMEOUT_NOT_CLEAN": 1,
     "DIAGNOSTIC_BANKED": 4,
@@ -471,6 +471,15 @@
       "artifact": "reports/stage6/r5c3b_gateup_value_materialization_smoke_20260604_204920",
       "next_step": "Proceed to R5-C3C down projection + weighted top-k numeric parity; do not claim full MoE speed/default from R5-C3B.",
       "decision": "PASS_R5C3B_GATEUP_VALUE_MATERIALIZATION_SMOKE"
+    },
+    {
+      "gate": "r5c3c_down_weighted_parity_smoke",
+      "title": "R5-C3C down + weighted top-k parity smoke",
+      "status": "BANKED",
+      "evidence": "real R5-C3B CUTLASS D/ref gate-up values were composed through host SwiGLU, deterministic down projection, and weighted top-k reduction with D/ref parity; tokens/top_k/hidden/out=128/2/64/48; schedules=['cooperative', 'pingpong']; weighted_max_abs=[0.0]",
+      "artifact": "reports/stage6/r5c3c_down_weighted_parity_smoke_20260604_130243",
+      "next_step": "Proceed to full active-MoE prefill speed A/B; do not claim speed/default from R5-C3C.",
+      "decision": "PASS_R5C3C_DOWN_WEIGHTED_PARITY_SMOKE"
     }
   ]
 }

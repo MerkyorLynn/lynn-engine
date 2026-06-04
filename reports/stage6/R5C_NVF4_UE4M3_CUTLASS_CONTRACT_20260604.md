@@ -216,6 +216,26 @@ R5-C3B does **not** bank down projection, weighted top-k reduction, full
 grouped-MoE speed, decode TPS, server/RC behavior, or runtime default promotion.
 The next gate is R5-C3C down projection + weighted top-k numeric parity.
 
+## R5-C3C Down + Weighted Top-K Parity Smoke Gate
+
+R5-C3C consumes the banked R5-C3B value artifact and composes the real CUTLASS
+D/ref gate-up values through host SwiGLU, deterministic expert-specific down
+projection, and deterministic route-weighted top-k reduction. A PASS requires:
+
+```text
+PASS_R5C3C_DOWN_WEIGHTED_PARITY_SMOKE
+banked_down_projection_numeric_parity=true
+banked_weighted_topk_numeric_parity=true
+banked_grouped_moe_fp4_mma_poc=false
+banked_kernel_speed=false
+banked_default_promotion=false
+```
+
+R5-C3C proves numeric composition parity only. It does **not** bank a CUDA down
+kernel, full active-MoE FP4-MMA speed, decode TPS, server/RC behavior, or
+runtime default promotion. The next gate is full active-MoE prefill speed A/B
+against W4A16/P2-N/P3 paths.
+
 ## Commands
 
 On the R6000 lane:
@@ -240,6 +260,8 @@ python3 scripts/test_stage6_r5c2b_slot_bridge_contract_static.py
 python3 scripts/test_stage6_r5c2c_real_d_row_slot_scatter_smoke_tools.py
 python3 scripts/test_stage6_r5c3b_gateup_value_materialization_contract_static.py
 python3 scripts/test_stage6_r5c3b_gateup_value_materialization_smoke_tools.py
+python3 scripts/test_stage6_r5c3c_down_weighted_parity_contract_static.py
+python3 scripts/test_stage6_r5c3c_down_weighted_parity_smoke_tools.py
 ```
 
 ## Explicit Non-Claims
@@ -270,3 +292,7 @@ python3 scripts/test_stage6_r5c3b_gateup_value_materialization_smoke_tools.py
   smoke.
 - R5-C3B does not prove down projection, weighted top-k reduction, full
   grouped-MoE FP4-MMA speed, server/RC behavior, or runtime defaults.
+- R5-C3C proves only host composition parity through down projection and
+  weighted top-k reduction.
+- R5-C3C does not prove a CUDA down kernel, full active-MoE FP4-MMA speed,
+  decode TPS, server/RC behavior, or runtime defaults.
