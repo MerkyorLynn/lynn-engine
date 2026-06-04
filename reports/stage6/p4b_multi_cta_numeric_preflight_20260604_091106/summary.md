@@ -6,11 +6,11 @@
 | Decision | `PASS_P4B_SINGLE_CTA_NUMERIC_REFERENCE` |
 | Symbol | `active_moe_fused_zero_shadow_single_kernel_contract` |
 | Reference symbol | `active_moe_fused_zero_shadow_out_contract` |
-| Candidate mode | `single_cta` |
+| Candidate mode | `multi_cta` |
 | Device | `NVIDIA GB10` |
 | Capability | `[12, 1]` |
 | Torch/CUDA | `2.9.1+cu130` / `13.0` |
-| Build dir | `/tmp/lynn_engine_native_build/p4b_single_cta_numeric_20260604_004456` |
+| Build dir | `/tmp/lynn_engine_native_build/p4b_single_cta_numeric_20260604_011110` |
 | Banked single-CTA numeric preflight | `True` |
 | Banked fused kernel speed | `False` |
 | Banked default promotion | `False` |
@@ -25,4 +25,4 @@
 | Packed byte budget | `True` |
 | No inter_scratch candidate ABI | `True` |
 | Packed/BF16 ratio | `0.3750001589457194` |
-| Elapsed seconds | `25.818` |
+| Elapsed seconds | `25.514` |

@@ -261,7 +261,7 @@ def main() -> int:
         [
             "PASS_P4B_SINGLE_CTA_NUMERIC_REFERENCE",
             "fused-kernel speed boundary violated",
-            "P4B single-CTA output matches P4A two-stage reference",
+            "P4B candidate output matches P4A two-stage reference",
             "No inter_scratch candidate ABI",
         ],
         failures,
@@ -296,7 +296,7 @@ def main() -> int:
             "PASS_P4B_SINGLE_CTA_MICROBENCH_RECORDED",
             "measurement recorded; speed/default promotion still closed",
             "fused-kernel speed boundary violated",
-            "P4B/P4A speedup",
+            "P4B candidate median",
         ],
         failures,
     )
