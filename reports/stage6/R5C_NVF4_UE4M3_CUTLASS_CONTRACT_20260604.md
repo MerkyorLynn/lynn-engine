@@ -53,6 +53,7 @@ banked_default_promotion=false
 | R5-C3A | Gate/up prefill timing trace | Trace-only speed signal; no full-MoE speed/default claim |
 | R5-C3B | Gate/up value materialization | Materialize full D-row values, scatter to `[T, top_k, N_gateup]`, and record host SwiGLU checksum |
 | R5-C3C | Down + weighted-sum numeric parity | Only then may full active-MoE prefill speed be measured against W4A16/P2-N/P3 paths |
+| R5-C4 | Full active-MoE prefill speed A/B | Measure gate/up + SwiGLU + down + weighted top-k candidate; no decode/default claim |
 
 ## R5-C1 Minimal Numeric GEMM Smoke Gate
 
@@ -262,6 +263,7 @@ python3 scripts/test_stage6_r5c3b_gateup_value_materialization_contract_static.p
 python3 scripts/test_stage6_r5c3b_gateup_value_materialization_smoke_tools.py
 python3 scripts/test_stage6_r5c3c_down_weighted_parity_contract_static.py
 python3 scripts/test_stage6_r5c3c_down_weighted_parity_smoke_tools.py
+python3 scripts/test_stage6_r5c4_full_active_moe_speed_contract_static.py
 ```
 
 ## Explicit Non-Claims
@@ -296,3 +298,8 @@ python3 scripts/test_stage6_r5c3c_down_weighted_parity_smoke_tools.py
   weighted top-k reduction.
 - R5-C3C does not prove a CUDA down kernel, full active-MoE FP4-MMA speed,
   decode TPS, server/RC behavior, or runtime defaults.
+- R5-C4 may bank full active-MoE prefill speed only if the candidate covers
+  gate/up, SwiGLU, down projection, and weighted top-k with numeric parity and
+  real timing.
+- R5-C4 still does not prove Spark decode TPS, server/RC behavior, or runtime
+  defaults.

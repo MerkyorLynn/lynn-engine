@@ -42,6 +42,7 @@
 - R5-C3A gate/up timing trace: [Stage 6 R5-C3A gate/up timing trace](reports/stage6/R5C3A_GATEUP_PREFILL_TIMING_TRACE_20260604.md)
 - R5-C3B gate/up value materialization PASS: [Stage 6 R5-C3B gate/up value materialization PASS](reports/stage6/r5c3b_gateup_value_materialization_smoke_20260604_204920/summary.md)
 - R5-C3C down/weighted parity PASS: [Stage 6 R5-C3C down/weighted parity PASS](reports/stage6/r5c3c_down_weighted_parity_smoke_20260604_130243/summary.md)
+- R5-C4 full active-MoE speed A/B contract: [Stage 6 R5-C4 full active-MoE speed A/B contract](reports/stage6/R5C4_FULL_ACTIVE_MOE_PREFILL_SPEED_AB_CONTRACT_20260604.md)
 
 ## Banked Results
 

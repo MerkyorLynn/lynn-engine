@@ -140,6 +140,15 @@ def main() -> int:
         if gates["r5c3c_down_weighted_parity_smoke"]["status"] == "BANKED":
             assert gates["r5c3c_down_weighted_parity_smoke"]["decision"] == "PASS_R5C3C_DOWN_WEIGHTED_PARITY_SMOKE"
             assert "speed" in gates["r5c3c_down_weighted_parity_smoke"]["next_step"].lower()
+        assert gates["r5c4_full_active_moe_prefill_speed_contract"]["status"] in {
+            "CONTRACT_READY_UNIMPLEMENTED",
+            "FAILED_CONTRACT",
+            "MISSING_TOOLING",
+        }
+        assert "speed" in gates["r5c4_full_active_moe_prefill_speed_contract"]["title"].lower()
+        if gates["r5c4_full_active_moe_prefill_speed_contract"]["status"] == "CONTRACT_READY_UNIMPLEMENTED":
+            assert gates["r5c4_full_active_moe_prefill_speed_contract"]["decision"] == "PASS_R5C4_FULL_ACTIVE_MOE_SPEED_CONTRACT_STATIC"
+            assert "R6000" in gates["r5c4_full_active_moe_prefill_speed_contract"]["next_step"]
         assert "P4 fused kernel banked | `false`" in text
         assert "TEST_BLOCKED_BY_SSH" in text
 
