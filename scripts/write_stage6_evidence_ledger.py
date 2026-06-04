@@ -315,6 +315,66 @@ def _decode_gpu_idle_probe_gate() -> Gate:
     )
 
 
+def _r6000_fp4_mma_census_gate() -> Gate:
+    required = [
+        "reports/stage6/R6000_FP4_MMA_BRINGUP_RUNBOOK_20260604.md",
+        "scripts/r6000_stage6_fp4_mma_census.py",
+        "scripts/summarize_stage6_r6000_fp4_mma_census.py",
+        "scripts/test_stage6_r6000_fp4_mma_census_tools.py",
+    ]
+    run_dir, data = _latest_result(["r6000_fp4_mma_census_"])
+    if data is None:
+        missing = [rel for rel in required if not (ROOT / rel).exists()]
+        if missing:
+            return Gate(
+                "r6000_fp4_mma_census",
+                "R6000 FP4-MMA bring-up and public-kernel census",
+                "MISSING_TOOLING",
+                f"missing: {', '.join(missing)}",
+                "",
+                "Add the R6000 bring-up tooling before renting/using the FP4-MMA host.",
+            )
+        return Gate(
+            "r6000_fp4_mma_census",
+            "R6000 FP4-MMA bring-up and public-kernel census",
+            "READY_WAITING_R6000",
+            "tooling/runbook exists, but no R6000 PASS artifact is banked",
+            ", ".join(required),
+            "Run on the RTX PRO 6000 96GB host with --run-contracts before starting a new FP4-MMA kernel.",
+        )
+    if data.get("_json_error"):
+        return Gate(
+            "r6000_fp4_mma_census",
+            "R6000 FP4-MMA bring-up and public-kernel census",
+            "FAILED_ARTIFACT",
+            "latest result.json is not valid JSON",
+            _artifact(run_dir),
+            "Fix artifact JSON before interpreting R6000 readiness.",
+        )
+    if _passes_all(data) and data.get("decision") == "PASS_R6000_FP4_MMA_BRINGUP":
+        torch_info = ((data.get("torch") or {}).get("json") or {})
+        device = torch_info.get("device_name", "unknown")
+        cap = torch_info.get("capability", "unknown")
+        return Gate(
+            "r6000_fp4_mma_census",
+            "R6000 FP4-MMA bring-up and public-kernel census",
+            "BANKED",
+            f"R6000 FP4-MMA census passed on {device}, capability {cap}",
+            _artifact(run_dir),
+            "Start Lynn NVFP4 grouped-MoE FP4-MMA POC from CUTLASS/CuTe plus public Marlin/Machete census.",
+            _decision(data),
+        )
+    return Gate(
+        "r6000_fp4_mma_census",
+        "R6000 FP4-MMA bring-up and public-kernel census",
+        "FAILED_ARTIFACT",
+        "latest R6000 census did not pass all machine/toolchain/public-kernel gates",
+        _artifact(run_dir),
+        "Fix machine/toolchain/public-kernel readiness before writing kernels.",
+        _decision(data),
+    )
+
+
 def _p4b_contract_gate() -> Gate:
     required = [
         "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md",
@@ -832,6 +892,7 @@ def collect_gates() -> list[Gate]:
         _p4c_shadow_cycle_first_divergence_gate(),
         _p4c_active_reuse_decision_gate(),
         _decode_gpu_idle_probe_gate(),
+        _r6000_fp4_mma_census_gate(),
     ]
     return gates
 

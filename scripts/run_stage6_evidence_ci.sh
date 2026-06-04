@@ -29,4 +29,5 @@ python3 scripts/test_stage6_p4c_gateup_shape_sweep_tools.py
 python3 scripts/test_stage6_p4c_gateup_shape_candidate_tools.py
 python3 scripts/test_stage6_p4c_tile2_server_smoke_tools.py
 python3 scripts/test_stage6_decode_gpu_idle_probe_tools.py
+python3 scripts/test_stage6_r6000_fp4_mma_census_tools.py
 python3 scripts/test_stage6_evidence_ledger.py

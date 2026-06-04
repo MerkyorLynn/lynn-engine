@@ -96,6 +96,10 @@ def main() -> int:
         assert gates["p4c_active_reuse_decision"]["status"] == "DECISION_BANKED"
         assert "active reuse" in gates["p4c_active_reuse_decision"]["evidence"]
         assert "P4C active-reuse" in gates["p4c_active_reuse_decision"]["next_step"]
+        assert gates["decode_gpu_idle_probe"]["status"] in {"DIAGNOSTIC_BANKED", "READY_WAITING_SPARK"}
+        assert gates["r6000_fp4_mma_census"]["status"] in {"BANKED", "READY_WAITING_R6000", "FAILED_ARTIFACT"}
+        if gates["r6000_fp4_mma_census"]["status"] == "READY_WAITING_R6000":
+            assert "RTX PRO 6000" in gates["r6000_fp4_mma_census"]["next_step"]
         assert "P4 fused kernel banked | `false`" in text
         assert "TEST_BLOCKED_BY_SSH" in text
 

@@ -1,8 +1,8 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T07:53:21+00:00",
-  "spark_status": "DECODE_GPU_IDLE_PROBE_BORDERLINE_BANKED",
-  "spark_note": "Decode GPU-idle probe PASS: N/2N delta estimates GPU busy 0.753, host-gap 0.247, CUDA launches/token 1969.021, short/long runner TPS 41.36/42.19. ROI signal is BORDERLINE_REMEASURE_OR_NSIGHT, so compiled-loop is plausible but not enough for month-scale runtime work without Nsight or a smaller prototype.",
+  "generated_at_utc": "2026-06-04T08:02:07+00:00",
+  "spark_status": "R6000_FP4_MMA_CENSUS_TOOLING_READY",
+  "spark_note": "R6000 FP4-MMA bring-up/census tooling added. The selected host class is RTX PRO 6000 96GB with >=500GiB disk free (943GiB preferred). Next R6000 run must pass machine/toolchain/public-kernel gates before starting a new FP4-MMA kernel.",
   "counts": {
     "BANKED": 25,
     "CLOSED_NEGATIVE": 4,
@@ -10,7 +10,8 @@
     "DIAGNOSTIC_BANKED": 3,
     "READY_WAITING_SPARK": 4,
     "REFERENCE_IMPL_BANKED_SPEED_CLOSED": 1,
-    "DECISION_BANKED": 1
+    "DECISION_BANKED": 1,
+    "READY_WAITING_R6000": 1
   },
   "promotion_boundaries": {
     "p3_default_promotion": false,
@@ -368,6 +369,15 @@
       "artifact": "reports/stage6/decode_gpu_idle_probe_20260604_154648",
       "next_step": "Use this ROI signal to choose MTP-light/compiled-loop prototype scope; do not treat it as speed promotion.",
       "decision": "BORDERLINE_REMEASURE_OR_NSIGHT"
+    },
+    {
+      "gate": "r6000_fp4_mma_census",
+      "title": "R6000 FP4-MMA bring-up and public-kernel census",
+      "status": "READY_WAITING_R6000",
+      "evidence": "tooling/runbook exists, but no R6000 PASS artifact is banked",
+      "artifact": "reports/stage6/R6000_FP4_MMA_BRINGUP_RUNBOOK_20260604.md, scripts/r6000_stage6_fp4_mma_census.py, scripts/summarize_stage6_r6000_fp4_mma_census.py, scripts/test_stage6_r6000_fp4_mma_census_tools.py",
+      "next_step": "Run on the RTX PRO 6000 96GB host with --run-contracts before starting a new FP4-MMA kernel.",
+      "decision": ""
     }
   ]
 }
