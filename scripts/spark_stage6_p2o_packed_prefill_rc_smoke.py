@@ -99,6 +99,36 @@ def _prompt_preset(name: str) -> list[str]:
     raise ValueError(f"unknown prompt preset: {name}")
 
 
+def _parse_indices(spec: str, n: int) -> list[int]:
+    if not spec:
+        return list(range(n))
+    indices: list[int] = []
+    for part in spec.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        if "-" in part:
+            start_s, end_s = part.split("-", 1)
+            start = int(start_s)
+            end = int(end_s)
+            step = 1 if end >= start else -1
+            indices.extend(range(start, end + step, step))
+        else:
+            indices.append(int(part))
+    if not indices:
+        raise ValueError("--prompt-indices selected no prompts")
+    bad = [idx for idx in indices if idx < 0 or idx >= n]
+    if bad:
+        raise ValueError(f"--prompt-indices out of range for {n} prompts: {bad}")
+    seen: set[int] = set()
+    deduped: list[int] = []
+    for idx in indices:
+        if idx not in seen:
+            deduped.append(idx)
+            seen.add(idx)
+    return deduped
+
+
 def _norm(text: str) -> str:
     return re.sub(r"\s+", " ", (text or "").strip().lower())
 
@@ -185,14 +215,25 @@ def main() -> None:
     ap.add_argument("--json-out", default="")
     ap.add_argument("--prompts-json", default="")
     ap.add_argument("--preset", choices=("basic", "rc-mini"), default="basic")
+    ap.add_argument(
+        "--prompt-indices",
+        default="",
+        help="Optional comma/range shard over the selected preset, for example 0-4 or 0,2,5.",
+    )
     ap.add_argument("--min-release-gib", type=float, default=30.0)
     args = ap.parse_args()
 
     if args.max_new <= 0:
         raise ValueError("--max-new must be positive")
-    prompts = _prompt_preset(args.preset)
+    source_prompts = _prompt_preset(args.preset)
     if args.prompts_json:
-        prompts = json.loads(Path(args.prompts_json).read_text())
+        source_prompts = json.loads(Path(args.prompts_json).read_text())
+    if not isinstance(source_prompts, list) or not source_prompts:
+        raise ValueError("prompt list must be non-empty")
+    if any(not isinstance(prompt, str) or not prompt.strip() for prompt in source_prompts):
+        raise ValueError("all prompts must be non-empty strings")
+    prompt_indices = _parse_indices(args.prompt_indices, len(source_prompts))
+    prompts = [source_prompts[idx] for idx in prompt_indices]
     if not isinstance(prompts, list) or not prompts:
         raise ValueError("prompt list must be non-empty")
     if any(not isinstance(prompt, str) or not prompt.strip() for prompt in prompts):
@@ -206,7 +247,9 @@ def main() -> None:
 
     print("=============== STAGE 6 PHASE 2-O PACKED-PREFILL RC SMOKE ===============", flush=True)
     print(f"model       : {args.model}", flush=True)
-    print(f"prompts     : {len(prompts)}", flush=True)
+    print(f"preset      : {args.preset}", flush=True)
+    print(f"prompts     : {len(prompts)} / {len(source_prompts)}", flush=True)
+    print(f"indices     : {prompt_indices}", flush=True)
     print(f"max_new     : {args.max_new}", flush=True)
 
     runner = LynnIncrementalRunner(
@@ -279,6 +322,9 @@ def main() -> None:
         "schema": "lynn-stage6-p2o-packed-prefill-rc-smoke-v1",
         "model": args.model,
         "preset": args.preset,
+        "source_prompt_count": len(source_prompts),
+        "prompt_indices": prompt_indices,
+        "partial_preset": prompt_indices != list(range(len(source_prompts))),
         "max_new": args.max_new,
         "min_release_gib": args.min_release_gib,
         "env": {

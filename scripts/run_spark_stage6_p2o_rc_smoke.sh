@@ -12,6 +12,7 @@ Usage: run_spark_stage6_p2o_rc_smoke.sh [options]
 
 Options:
   --preset basic|rc-mini       Prompt preset to run. Default: basic.
+  --prompt-indices SPEC        Optional prompt shard over the preset, e.g. 0-4 or 0,2,5.
   --host HOST                  SSH host alias. Default: $LYNN_SPARK_HOST or dgx-spark.
   --model PATH                 Model path on Spark.
   --max-new N                  Generated tokens per prompt. Default: 8.
@@ -68,6 +69,7 @@ PROVENANCE_FILES=(
 )
 
 PRESET="basic"
+PROMPT_INDICES=""
 HOST="${LYNN_SPARK_HOST:-dgx-spark}"
 MODEL="${LYNN_STAGE6_MODEL:-/home/merkyor/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-from-bf16-20260526}"
 MAX_NEW="8"
@@ -84,6 +86,10 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --preset)
       PRESET="$2"
+      shift 2
+      ;;
+    --prompt-indices)
+      PROMPT_INDICES="$2"
       shift 2
       ;;
     --host)
@@ -148,18 +154,23 @@ if [[ "$PRESET" != "basic" && "$PRESET" != "rc-mini" ]]; then
 fi
 
 STAMP="$(date +%Y%m%d_%H%M%S)"
-RUN_NAME="p2o_${PRESET}_packed_prefill_rc_smoke_${STAMP}"
+INDEX_SUFFIX=""
+if [[ -n "$PROMPT_INDICES" ]]; then
+  INDEX_SUFFIX="_idx${PROMPT_INDICES//[^0-9A-Za-z_-]/_}"
+fi
+RUN_NAME="p2o_${PRESET}${INDEX_SUFFIX}_packed_prefill_rc_smoke_${STAMP}"
 REMOTE_RUN_DIR="${REMOTE_REPO}/reports/stage6/${RUN_NAME}"
 LOCAL_RUN_DIR="${LOCAL_ROOT}/${RUN_NAME}"
 
 echo "[p2o] host=${HOST}"
 echo "[p2o] preset=${PRESET}"
+echo "[p2o] prompt_indices=${PROMPT_INDICES:-all}"
 echo "[p2o] expect_head=${EXPECTED_HEAD:-none}"
 echo "[p2o] remote_run_dir=${REMOTE_RUN_DIR}"
 
 set +e
 ssh "$HOST" \
-  "REMOTE_REPO=$(shell_quote "$REMOTE_REPO") REMOTE_RUN_DIR=$(shell_quote "$REMOTE_RUN_DIR") IMAGE=$(shell_quote "$IMAGE") MODEL=$(shell_quote "$MODEL") PRESET=$(shell_quote "$PRESET") MAX_NEW=$(shell_quote "$MAX_NEW") MAX_SEQ_LEN=$(shell_quote "$MAX_SEQ_LEN") EXPECTED_HEAD=$(shell_quote "$EXPECTED_HEAD") EXPECTED_MANIFEST=$(shell_quote "$EXPECTED_MANIFEST") REQUIRE_PROVENANCE=$(shell_quote "$REQUIRE_PROVENANCE") bash -s" <<'REMOTE'
+  "REMOTE_REPO=$(shell_quote "$REMOTE_REPO") REMOTE_RUN_DIR=$(shell_quote "$REMOTE_RUN_DIR") IMAGE=$(shell_quote "$IMAGE") MODEL=$(shell_quote "$MODEL") PRESET=$(shell_quote "$PRESET") PROMPT_INDICES=$(shell_quote "$PROMPT_INDICES") MAX_NEW=$(shell_quote "$MAX_NEW") MAX_SEQ_LEN=$(shell_quote "$MAX_SEQ_LEN") EXPECTED_HEAD=$(shell_quote "$EXPECTED_HEAD") EXPECTED_MANIFEST=$(shell_quote "$EXPECTED_MANIFEST") REQUIRE_PROVENANCE=$(shell_quote "$REQUIRE_PROVENANCE") bash -s" <<'REMOTE'
 set -euo pipefail
 file_sha256() {
   if command -v sha256sum >/dev/null 2>&1; then
@@ -227,6 +238,11 @@ else
   } > "$REMOTE_RUN_DIR/head_check.txt"
 fi
 
+PROMPT_INDEX_ARG=()
+if [[ -n "${PROMPT_INDICES:-}" ]]; then
+  PROMPT_INDEX_ARG=(--prompt-indices "$PROMPT_INDICES")
+fi
+
 set +e
 docker run --rm --gpus all --ipc=host \
   -e PYTHONNOUSERSITE=1 \
@@ -237,6 +253,7 @@ docker run --rm --gpus all --ipc=host \
   python3 scripts/spark_stage6_p2o_packed_prefill_rc_smoke.py \
     --model "$MODEL" \
     --preset "$PRESET" \
+    "${PROMPT_INDEX_ARG[@]}" \
     --max-new "$MAX_NEW" \
     --max-seq-len "$MAX_SEQ_LEN" \
     --json-out "$REMOTE_RUN_DIR/result.json" \

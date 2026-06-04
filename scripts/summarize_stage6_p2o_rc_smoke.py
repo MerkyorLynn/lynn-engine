@@ -88,6 +88,8 @@ def summarize(data: dict[str, Any]) -> str:
         f"|---|---|",
         f"| Verdict | **{verdict}** ({reason}) |",
         f"| Preset | `{data.get('preset', 'unknown')}` |",
+        f"| Prompt indices | `{data.get('prompt_indices', 'all')}` |",
+        f"| Partial preset | `{data.get('partial_preset', False)}` |",
         f"| Model | `{data.get('model', 'unknown')}` |",
         f"| Max new tokens | `{data.get('max_new', 'unknown')}` |",
         f"| Functional non-degenerate | `{passes.get('functional_non_degenerate')}` |",
