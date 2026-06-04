@@ -50,15 +50,16 @@ EXPECTED_BACKEND = "fused_zero_shadow_active_reuse_contract"
 COUNTER_NAME = "p4c_active_reuse_contract"
 PASS_DECISION = "PASS_P4C_TILE2_SERVER_SMOKE"
 FAIL_DECISION = "FAIL_P4C_TILE2_SERVER_SMOKE"
+DEFAULT_NATIVE_ACTIVE_MOE_LAYERS = ",".join(str(i) for i in range(40))
 
 
-def _p4c_updates(*, candidate: bool, gateup_tile_inter: int) -> dict[str, str]:
+def _p4c_updates(*, candidate: bool, gateup_tile_inter: int, native_active_moe_layers: str) -> dict[str, str]:
     return {
         "LYNN_MOE_IMPL": "packed_nvfp4",
         "LYNN_MOE_FAST_FIXED": "0",
         "LYNN_MOE_ACTIVE_SCRATCH": "1",
         "LYNN_NATIVE_ACTIVE_MOE_BACKEND": EXPECTED_BACKEND if candidate else "triton",
-        "LYNN_NATIVE_ACTIVE_MOE_LAYERS": "all",
+        "LYNN_NATIVE_ACTIVE_MOE_LAYERS": native_active_moe_layers,
         "LYNN_NATIVE_GATEUP_BACKEND": "triton_fast_decode",
         "LYNN_NATIVE_DOWN_BACKEND": "triton",
         "LYNN_NATIVE_GATEUP_TILE_INTER": str(gateup_tile_inter),
@@ -70,10 +71,21 @@ def _p4c_updates(*, candidate: bool, gateup_tile_inter: int) -> dict[str, str]:
     }
 
 
-def _server_env(*, label: str, candidate: bool, gateup_tile_inter: int, work_dir: Path) -> dict[str, str]:
+def _server_env(
+    *,
+    label: str,
+    candidate: bool,
+    gateup_tile_inter: int,
+    native_active_moe_layers: str,
+    work_dir: Path,
+) -> dict[str, str]:
     env = dict(os.environ)
     env.update(CANONICAL_ENV)
-    env.update(_p4c_updates(candidate=candidate, gateup_tile_inter=gateup_tile_inter))
+    env.update(_p4c_updates(
+        candidate=candidate,
+        gateup_tile_inter=gateup_tile_inter,
+        native_active_moe_layers=native_active_moe_layers,
+    ))
     env.setdefault("PYTHONUNBUFFERED", "1")
     env.setdefault("PYTHONNOUSERSITE", "1")
     env.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
@@ -96,11 +108,11 @@ def _last_shapes(health: dict[str, Any]) -> dict[str, Any]:
     return shapes if isinstance(shapes, dict) else {}
 
 
-def _runtime_env_ok(health: dict[str, Any], *, gateup_tile_inter: int) -> bool:
+def _runtime_env_ok(health: dict[str, Any], *, gateup_tile_inter: int, native_active_moe_layers: str) -> bool:
     runtime = health.get("runtime") or {}
     return (
         runtime.get("native_active_moe_backend") == EXPECTED_BACKEND
-        and runtime.get("native_active_moe_layers") == "all"
+        and runtime.get("native_active_moe_layers") == native_active_moe_layers
         and str(runtime.get("native_gateup_tile_inter")) == str(gateup_tile_inter)
     )
 
@@ -119,6 +131,7 @@ def _serve_once(
     startup_timeout: float,
     candidate: bool,
     gateup_tile_inter: int,
+    native_active_moe_layers: str,
     work_dir: Path,
 ) -> dict[str, Any]:
     proc: subprocess.Popen[bytes] | None = None
@@ -136,6 +149,7 @@ def _serve_once(
                 label=label,
                 candidate=candidate,
                 gateup_tile_inter=gateup_tile_inter,
+                native_active_moe_layers=native_active_moe_layers,
                 work_dir=work_dir,
             ),
             work_dir=work_dir,
@@ -182,6 +196,7 @@ def main() -> None:
     ap.add_argument("--min-release-gib", type=float, default=30.0)
     ap.add_argument("--min-p4c-call-delta", type=int, default=1)
     ap.add_argument("--gateup-tile-inter", type=int, default=2)
+    ap.add_argument("--native-active-moe-layers", default=DEFAULT_NATIVE_ACTIVE_MOE_LAYERS)
     ap.add_argument("--json-out", default="")
     ap.add_argument("--work-dir", default="")
     ap.add_argument("--prompts-json", default="")
@@ -196,6 +211,8 @@ def main() -> None:
         raise ValueError("--chat-prompts must be non-negative")
     if args.gateup_tile_inter <= 0:
         raise ValueError("--gateup-tile-inter must be positive")
+    if not args.native_active_moe_layers.strip():
+        raise ValueError("--native-active-moe-layers must be non-empty")
 
     prompts = _prompt_preset(args.preset)
     if args.prompts_json:
@@ -209,7 +226,11 @@ def main() -> None:
     work_dir = Path(args.work_dir or ".").resolve()
     work_dir.mkdir(parents=True, exist_ok=True)
 
-    env_keys = set(CANONICAL_ENV) | set(_p4c_updates(candidate=True, gateup_tile_inter=args.gateup_tile_inter))
+    env_keys = set(CANONICAL_ENV) | set(_p4c_updates(
+        candidate=True,
+        gateup_tile_inter=args.gateup_tile_inter,
+        native_active_moe_layers=args.native_active_moe_layers,
+    ))
     old_env = {key: os.environ.get(key) for key in env_keys}
     try:
         baseline = _serve_once(
@@ -225,6 +246,7 @@ def main() -> None:
             startup_timeout=args.startup_timeout,
             candidate=False,
             gateup_tile_inter=args.gateup_tile_inter,
+            native_active_moe_layers=args.native_active_moe_layers,
             work_dir=work_dir,
         )
         candidate = _serve_once(
@@ -240,6 +262,7 @@ def main() -> None:
             startup_timeout=args.startup_timeout,
             candidate=True,
             gateup_tile_inter=args.gateup_tile_inter,
+            native_active_moe_layers=args.native_active_moe_layers,
             work_dir=work_dir,
         )
     finally:
@@ -270,7 +293,11 @@ def main() -> None:
     functional_non_degenerate = all(not row["degenerate"] for row in all_baseline_rows + all_candidate_rows)
     text_exact = prompt_count and all(row["text_exact"] for row in all_cmp)
     server_surface = bool(baseline.get("models_ok") and candidate.get("models_ok"))
-    runtime_env_ok = _runtime_env_ok(candidate_health_after, gateup_tile_inter=args.gateup_tile_inter)
+    runtime_env_ok = _runtime_env_ok(
+        candidate_health_after,
+        gateup_tile_inter=args.gateup_tile_inter,
+        native_active_moe_layers=args.native_active_moe_layers,
+    )
     p4c_called = p4c_delta >= args.min_p4c_call_delta
     tile_recorded = int(shapes.get("gateup_tile_inter") or -1) == args.gateup_tile_inter
     active_reuse_shapes = all(key in shapes for key in ("inter_scratch", "out", "expert_ids"))
@@ -316,11 +343,20 @@ def main() -> None:
         "max_new": args.max_new,
         "max_seq_len": args.max_seq_len,
         "gateup_tile_inter": args.gateup_tile_inter,
+        "native_active_moe_layers": args.native_active_moe_layers,
         "min_release_gib": args.min_release_gib,
         "min_p4c_call_delta": args.min_p4c_call_delta,
         "env": {
-            "baseline": _p4c_updates(candidate=False, gateup_tile_inter=args.gateup_tile_inter),
-            "candidate": _p4c_updates(candidate=True, gateup_tile_inter=args.gateup_tile_inter),
+            "baseline": _p4c_updates(
+                candidate=False,
+                gateup_tile_inter=args.gateup_tile_inter,
+                native_active_moe_layers=args.native_active_moe_layers,
+            ),
+            "candidate": _p4c_updates(
+                candidate=True,
+                gateup_tile_inter=args.gateup_tile_inter,
+                native_active_moe_layers=args.native_active_moe_layers,
+            ),
         },
         "baseline": baseline,
         "candidate": candidate,
