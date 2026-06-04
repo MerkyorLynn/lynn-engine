@@ -154,6 +154,26 @@ It must keep `banked_fused_kernel=false` and `banked_default_promotion=false`.
 When the real fused implementation lands, this fail-loud gate must be replaced
 by an output-returning numeric/speed/RC gate.
 
+## Spark Results
+
+Latest banked fail-loud artifacts:
+
+| Gate | Artifact | Decision | Boundary |
+|---|---|---|---|
+| Synthetic single-kernel ABI | `reports/stage6/p4b_single_kernel_preflight_20260604_081151/` | `PASS_SINGLE_KERNEL_FAILLOUD_CONTRACT` | Banks contract preflight only; fused kernel remains unbanked |
+| Real runtime bridge | `reports/stage6/p4b_runtime_bridge_preflight_20260604_081234/` | `PASS_P4B_RUNTIME_BRIDGE_FAILLOUD` | Banks resident-runner route integrity only; fused kernel remains unbanked |
+
+The runtime artifact proves P4B route selection on the real model at layer 0:
+native call delta `1`, last shapes `hidden=[1,2048]`,
+`expert_ids=[1,8]`, `out=[1,2048]`, no `inter_scratch`, active BF16 expert
+shadows removed, and packed tensors present. The expected fail-loud error is
+preserved:
+
+```text
+P4B single-kernel fused zero-shadow contract is not implemented yet; do not
+bank fused-kernel speed or promote this backend
+```
+
 ## Promotion Gate
 
 P4B may become banked only when all of these are true:

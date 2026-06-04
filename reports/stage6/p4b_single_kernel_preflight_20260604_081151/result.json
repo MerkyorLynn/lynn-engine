@@ -1,0 +1,164 @@
+{
+  "schema": "lynn-stage6-p4b-single-kernel-preflight-v1",
+  "symbol": "active_moe_fused_zero_shadow_single_kernel_contract",
+  "expected_behavior": "fail-loud single-kernel contract; no fused implementation is banked",
+  "tokens": 1,
+  "experts": 8,
+  "top_k": 8,
+  "tile_tokens": 1,
+  "tile_experts": 1,
+  "tile_hidden": 8,
+  "banked_single_kernel_contract_preflight": true,
+  "banked_fused_kernel": false,
+  "banked_default_promotion": false,
+  "torch_version": "2.9.1+cu130",
+  "torch_cuda": "13.0",
+  "cuda_available": true,
+  "lynn_native_cuda_arch": null,
+  "lynn_native_cuda_arch_auto": null,
+  "lynn_native_cuda_build_dir": null,
+  "device_name": "NVIDIA GB10",
+  "capability": [
+    12,
+    1
+  ],
+  "build_dir": "/tmp/lynn_engine_native_build/p4b_single_kernel_20260604_001154",
+  "extension_loaded": true,
+  "symbol_present": true,
+  "tensor_manifest": {
+    "hidden": {
+      "shape": [
+        1,
+        2048
+      ],
+      "dtype": "torch.bfloat16",
+      "bytes": 4096,
+      "contiguous": true
+    },
+    "expert_ids": {
+      "shape": [
+        1,
+        8
+      ],
+      "dtype": "torch.int32",
+      "bytes": 32,
+      "contiguous": true
+    },
+    "routing_weights": {
+      "shape": [
+        1,
+        8
+      ],
+      "dtype": "torch.float32",
+      "bytes": 32,
+      "contiguous": true
+    },
+    "gate_up_packed": {
+      "shape": [
+        8,
+        1024,
+        1024
+      ],
+      "dtype": "torch.uint8",
+      "bytes": 8388608,
+      "contiguous": true
+    },
+    "gate_up_scale": {
+      "shape": [
+        8,
+        1024,
+        128
+      ],
+      "dtype": "torch.float32",
+      "bytes": 4194304,
+      "contiguous": true
+    },
+    "gate_up_global_scale": {
+      "shape": [
+        1
+      ],
+      "dtype": "torch.float32",
+      "bytes": 4,
+      "contiguous": true
+    },
+    "down_packed": {
+      "shape": [
+        8,
+        2048,
+        256
+      ],
+      "dtype": "torch.uint8",
+      "bytes": 4194304,
+      "contiguous": true
+    },
+    "down_scale": {
+      "shape": [
+        8,
+        2048,
+        32
+      ],
+      "dtype": "torch.float32",
+      "bytes": 2097152,
+      "contiguous": true
+    },
+    "down_global_scale": {
+      "shape": [
+        1
+      ],
+      "dtype": "torch.float32",
+      "bytes": 4,
+      "contiguous": true
+    },
+    "out": {
+      "shape": [
+        1,
+        2048
+      ],
+      "dtype": "torch.bfloat16",
+      "bytes": 4096,
+      "contiguous": true
+    }
+  },
+  "byte_budget": {
+    "packed_weight_names": [
+      "gate_up_packed",
+      "gate_up_scale",
+      "gate_up_global_scale",
+      "down_packed",
+      "down_scale",
+      "down_global_scale"
+    ],
+    "activation_io_names": [
+      "hidden",
+      "expert_ids",
+      "routing_weights",
+      "out"
+    ],
+    "packed_weight_bytes": 18874376,
+    "activation_io_bytes": 8256,
+    "bf16_shadow_equivalent_bytes": 50331648,
+    "packed_vs_bf16_shadow_ratio": 0.3750001589457194,
+    "forbidden_shadow_tensor_names": [],
+    "zero_shadow_abi": true,
+    "packed_byte_budget": true,
+    "no_inter_scratch_abi": true
+  },
+  "call_returned": false,
+  "call_error_tail": "P4B single-kernel fused zero-shadow contract is not implemented yet; do not bank fused-kernel speed or promote this backend",
+  "fail_loud_needles": [
+    "P4B single-kernel fused zero-shadow contract is not implemented yet",
+    "do not bank fused-kernel speed or promote this backend"
+  ],
+  "decision": "PASS_SINGLE_KERNEL_FAILLOUD_CONTRACT",
+  "passes": {
+    "all": true,
+    "extension_loaded": true,
+    "symbol_present": true,
+    "call_returned_false": true,
+    "fail_loud_not_implemented": true,
+    "zero_shadow_abi": true,
+    "packed_byte_budget": true,
+    "no_inter_scratch_abi": true
+  },
+  "elapsed_s": 25.386
+}
