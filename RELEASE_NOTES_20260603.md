@@ -78,6 +78,7 @@
 | P3-C resident-prompt basic | PASS:3/3 generated-ID exact,text-prefix 3/3,88.161->28.178 GiB,released 60.000 GiB,reload not called;candidate prefill avg 151.861s vs baseline 1.228s(0.008x),so this banks real-prompt correctness/memory only,not throughput/server/RC/default |
 | Decode GPU-idle ROI probe | PASS but borderline:N/2N delta estimates GPU busy 0.753,host-gap 0.247,CUDA launches/token 1969.0,runner TPS 41.36/42.19;ROI=`BORDERLINE_REMEASURE_OR_NSIGHT`,so compiled-loop is plausible but not enough for month-scale runtime without Nsight/prototype |
 | R6000 FP4-MMA bring-up | PASS banked on RTX PRO 6000 96GB / 880GiB data workspace:CUDA capability `[12,0]`,vLLM source candidates 200,and P76/P79/P85/P87/P103 native FP4 contracts all pass;route is not tied to a rental host ID |
+| R5-C CUTLASS UE4M3 ABI | PASS banked:`PASS_R5C_NVF4_UE4M3_CUTLASS_ABI`;CUTLASS/CuTe exposes sm120 `mxf4nvf4` block16 E2M1 + UE4M3 scale path;this banks ABI evidence only,not grouped-MoE kernel/speed/default |
 
 ## Corrected Engineering Read
 
@@ -130,7 +131,8 @@
 31. **R6000 FP4-MMA bring-up gate:已 bank。** RTX PRO 6000 96GB / 880GiB data workspace 跑出 `PASS_R6000_FP4_MMA_BRINGUP`:CUDA capability `[12,0]`,vLLM source candidates 200,P76/P79/P85/P87/P103 native FP4 contracts 全过。路线不绑定租赁主机编号;换机时先复跑 census,PASS 后再写 grouped-MoE FP4-MMA kernel POC。
 32. **R5-A layout bridge:已 bank,但要求 repack/custom scale。** R6000 上 `PASS_R5A_LAYOUT_BRIDGE_E8M0_REPACK_REQUIRED`:per-16 grouping 通过 padded group32 可保真(power2 rel_l2≈1e-7/cos≈1),但 fold-pair group32 失败,当前 Lynn E4M3-like scales 不能 zero-copy。边界:只 bank layout evidence,不 bank grouped-MoE FP4-MMA kernel/speed/default;下一步是 R5-B e8m0 repack 或 custom scale path。
 33. **R5-B e8m0 repack:closed negative。** R6000 上 simple e8m0 repack 未过 numeric gate(best rel_l2≈0.166 / cosine≈0.986,阈值 0.08/0.995),所以不追“把现有 E4M3-like scales 简单转 e8m0”的路线。下一刀转 custom scale / NVFP4-native CUTLASS/CuTe handling,仍不 bank grouped-MoE FP4-MMA kernel/speed/default。
-34. **Speed next:** 不是 P4C 扩 RC,而是两条速度线:MTP draft/accept 信号好,真正 blocker 是 eager speculative runtime;下一轮优先削 snapshot/restore、per-event dispatch/sync 与 token-exact batched verify。另一条是把 decode hot loop 搬出 Python、用 compiled/C++ 服务循环降低 per-launch host dispatch;reusable decode graph 已实测 0.75x 净负,不作为当前默认路线。
+34. **R5-C CUTLASS UE4M3 ABI:已 bank。** R6000 上 `PASS_R5C_NVF4_UE4M3_CUTLASS_ABI`:CUTLASS/CuTe 暴露 sm120 `mxf4nvf4` block16 E2M1 + UE4M3 scale 路径。边界:只 bank ABI,不 bank grouped-MoE FP4-MMA kernel/speed/default;下一步是 R5-C1 minimal numeric GEMM smoke。
+35. **Speed next:** 不是 P4C 扩 RC,而是两条速度线:MTP draft/accept 信号好,真正 blocker 是 eager speculative runtime;下一轮优先削 snapshot/restore、per-event dispatch/sync 与 token-exact batched verify。另一条是把 decode hot loop 搬出 Python、用 compiled/C++ 服务循环降低 per-launch host dispatch;reusable decode graph 已实测 0.75x 净负,不作为当前默认路线。
 
 ## Relation To 2026-05-20 Notes
 

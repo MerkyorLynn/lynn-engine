@@ -1139,8 +1139,19 @@ def collect_gates() -> list[Gate]:
 
 def _derive_current_status(gates: list[Gate]) -> tuple[str, str]:
     by_gate = {gate.gate: gate for gate in gates}
+    r5c = by_gate.get("r5c_cutlass_ue4m3_census")
     r6000 = by_gate.get("r6000_fp4_mma_census")
     decode_idle = by_gate.get("decode_gpu_idle_probe")
+    if r5c and r5c.status == "BANKED":
+        note = (
+            "R5-C0 is banked on the R6000 lane: CUTLASS/CuTe exposes an sm120 "
+            "mxf4nvf4 block16 E2M1 + UE4M3 scale path. This is ABI evidence only; "
+            "grouped-MoE FP4-MMA POC, kernel speed, and default promotion remain false. "
+            "Next gate is R5-C1 minimal numeric GEMM smoke."
+        )
+        if decode_idle and decode_idle.status == "DIAGNOSTIC_BANKED":
+            note += f" Spark decode ROI probe remains {decode_idle.decision or decode_idle.status}."
+        return "R5C_CUTLASS_UE4M3_ABI_BANKED", note
     if r6000 and r6000.status == "BANKED":
         note = (
             "Stage 6 lanes are split and active: Spark owns 35B serving/memory/MTP/compiled-loop ROI "

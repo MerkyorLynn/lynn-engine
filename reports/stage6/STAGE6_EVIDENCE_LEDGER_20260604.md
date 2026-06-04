@@ -11,8 +11,8 @@ and gates that are wired but still waiting for lane-specific PASS/FAIL artifacts
 
 | Field | Value |
 |---|---|
-| Status | `R6000_R5B_E8M0_REPACK_CLOSED_NEGATIVE` |
-| Note | R5-B failed on RTX PRO 6000: simple e8m0 repack best rel_l2 ~0.166 / cosine ~0.986, so the next route is custom scale or NVFP4-native CUTLASS/CuTe handling. |
+| Status | `R5C_CUTLASS_UE4M3_ABI_BANKED` |
+| Note | R5-C0 is banked on the R6000 lane: CUTLASS/CuTe exposes an sm120 mxf4nvf4 block16 E2M1 + UE4M3 scale path. This is ABI evidence only; grouped-MoE FP4-MMA POC, kernel speed, and default promotion remain false. Next gate is R5-C1 minimal numeric GEMM smoke. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT. |
 
 ## Promotion Boundaries
 
@@ -69,12 +69,13 @@ and gates that are wired but still waiting for lane-specific PASS/FAIL artifacts
 | `r6000_grouped_moe_fp4_mma_poc_contract` | **CONTRACT_READY_UNIMPLEMENTED** | fail-loud ABI/static gate exists, but no fused implementation or GPU result is banked | `reports/stage6/R6000_GROUPED_MOE_FP4_MMA_POC_CONTRACT_20260604.md, scripts/test_stage6_r6000_grouped_moe_poc_contract_static.py` | Implement R5-A layout bridge first; do not start with a full fused MoE kernel. |
 | `r5a_layout_bridge` | **DIAGNOSTIC_BANKED** `PASS_R5A_LAYOUT_BRIDGE_E8M0_REPACK_REQUIRED` | R5-A layout bridge banked; no kernel speed/default/grouped-MoE POC promotion; current Lynn E4M3-like scales require e8m0 repack/custom scale handling | `reports/stage6/r5a_layout_bridge_20260604_172706` | Use the bridge verdict to choose R5-B: e8m0 repack/custom scale path first, then CUTLASS/CuTe grouped-MoE POC. |
 | `r5b_e8m0_repack` | **CLOSED_NEGATIVE** `FAIL_R5B_E8M0_REPACK_NUMERIC` | best rel_l2=0.165278, cosine=0.986248; e8m0 repack is not accurate enough | `reports/stage6/r5b_e8m0_repack_20260604_173435` | Do not pursue simple e8m0 repack; next route is custom scale/NVFP4-native CUTLASS/CuTe handling. |
+| `r5c_cutlass_ue4m3_census` | **BANKED** `PASS_R5C_NVF4_UE4M3_CUTLASS_ABI` | CUTLASS/CuTe exposes sm120 mxf4nvf4 block16 E2M1 + UE4M3 scale path; no kernel speed/default/grouped-MoE POC promotion | `reports/stage6/r5c_cutlass_ue4m3_census_20260604_175216` | Proceed to R5-C1 minimal numeric GEMM smoke; do not jump directly to grouped-MoE speed claims. |
 
 ## Counts
 
 | Status | Count |
 |---|---:|
-| `BANKED` | 26 |
+| `BANKED` | 27 |
 | `CLOSED_NEGATIVE` | 5 |
 | `CONTRACT_READY_UNIMPLEMENTED` | 1 |
 | `DECISION_BANKED` | 1 |
