@@ -1,12 +1,12 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T02:29:02+00:00",
+  "generated_at_utc": "2026-06-04T02:42:02+00:00",
   "spark_status": "REACHABLE_VIA_DGX_VIA_SSH",
-  "spark_note": "Spark SSH recovered via dgx-via-ssh on 2026-06-04; dgx-spark direct alias may report local forward ports 18007/18008 already in use. P4B fail-loud route gates, opt-in single-CTA numeric reference, single-CTA microbench anti-proof, multi-CTA recompute numeric/negative microbench, and P4C active-reuse runtime bridge were run on /home/merkyor/lynn-engine-codex-stage6 through 0fc2532.",
+  "spark_note": "Spark SSH recovered via dgx-via-ssh on 2026-06-04; dgx-spark direct alias may report local forward ports 18007/18008 already in use. P4B fail-loud route gates, opt-in single-CTA numeric reference, single-CTA microbench anti-proof, multi-CTA recompute numeric/negative microbench, P4C active-reuse runtime bridge, and P4C speed-baseline tooling were run/prepared on /home/merkyor/lynn-engine-codex-stage6 through 2fccfc6 or later.",
   "counts": {
     "BANKED": 15,
     "CLOSED_NEGATIVE": 3,
-    "READY_WAITING_SPARK": 7,
+    "READY_WAITING_SPARK": 8,
     "REFERENCE_IMPL_BANKED_SPEED_CLOSED": 1,
     "DECISION_BANKED": 1
   },
@@ -249,6 +249,15 @@
       "artifact": "reports/stage6/p4c_runtime_bridge_preflight_20260604_094008",
       "next_step": "Run on Spark; banks P4C active-reuse route/numeric evidence only, not fused speed or default promotion.",
       "decision": "PASS_P4C_ACTIVE_REUSE_RUNTIME_BRIDGE"
+    },
+    {
+      "gate": "p4c_active_reuse_microbench",
+      "title": "P4C active-reuse speed-baseline microbench",
+      "status": "READY_WAITING_SPARK",
+      "evidence": "tooling/runbook exists, but no Spark PASS artifact is banked",
+      "artifact": "reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md, scripts/run_spark_stage6_p4c_active_reuse_microbench.sh, scripts/spark_stage6_p4c_active_reuse_microbench.py, scripts/summarize_stage6_p4c_active_reuse_microbench.py, scripts/test_stage6_p4c_active_reuse_microbench_tools.py",
+      "next_step": "Run on Spark; banks the current P4C symbol speed baseline before replacing it with a real active-reuse speed candidate.",
+      "decision": ""
     },
     {
       "gate": "p4c_active_reuse_decision",
