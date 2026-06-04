@@ -1,0 +1,17 @@
+{
+  "schema": "r5c3a-bf16-bmm-baseline-v1",
+  "groups": 8,
+  "m": 256,
+  "n": 1024,
+  "k": 2048,
+  "warmup": 20,
+  "iters": 100,
+  "median_ms": 0.043455999344587326,
+  "min_ms": 0.04198399931192398,
+  "max_ms": 0.048928000032901764,
+  "tflops_median": 197.66970548497864,
+  "torch": "2.8.0+cu128",
+  "cuda": "12.8",
+  "device": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+  "boundary": "trace-only BF16 active-shadow shape baseline; not a Lynn runtime or decode TPS baseline"
+}
