@@ -24,6 +24,7 @@ active reuse.
 | P4A two-stage active scratch | `inter_scratch[top_k,512]`, caller-owned, packed NVFP4, fastest current native reference: **~0.28 ms** synthetic | Keep as lower bound and product fallback. Not P4B because it exposes `inter_scratch`. |
 | P4B single-CTA reference | `rel_l2=0.0`, `max_abs=0.0`, **39.54 ms**, **0.007x** vs P4A | Correctness reference only. Closed as speed path. |
 | P4B multi-CTA recompute | `rel_l2=0.0`, `max_abs=0.0`, **48.34 ms**, **0.0058x** vs P4A | Closed negative. Recomputing active per output tile is forbidden for the next speed candidate. |
+| P4C runtime bridge | Spark real-runner path `PASS_P4C_ACTIVE_REUSE_RUNTIME_BRIDGE`; call delta=1, active shadows removed, candidate vs Triton `rel_l2=0.0/max_abs=0.0` | Banks route/numeric evidence only. Fused speed/default promotion remain closed. |
 
 ## Constraint
 
