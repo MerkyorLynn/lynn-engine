@@ -1,14 +1,14 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T07:36:38+00:00",
-  "spark_status": "P3A_BATCHED_DOWN_DIAGNOSTIC_BANKED",
-  "spark_note": "P3-A batched-down diagnostic PASS: numeric/shadow gates pass, argmax 3/3, min cosine 0.999981, average speed 0.760x vs BF16 active (old P3-A 0.744x). Single down-launch batching is a small diagnostic improvement but speed gate remains closed; do not promote. Next speed cuts: route materialization / true gate-up+down batching, plus decode GPU-idle probe for compiled hot-loop ROI.",
+  "generated_at_utc": "2026-06-04T07:44:33+00:00",
+  "spark_status": "DECODE_GPU_IDLE_PROBE_TOOLING_READY",
+  "spark_note": "Decode GPU-idle / host-gap probe tooling added. Next Spark run will measure N/2N delta wall vs profiler CUDA busy to decide compiled-loop ROI before month-scale runtime work.",
   "counts": {
     "BANKED": 25,
     "CLOSED_NEGATIVE": 4,
     "TIMEOUT_NOT_CLEAN": 1,
     "DIAGNOSTIC_BANKED": 2,
-    "READY_WAITING_SPARK": 4,
+    "READY_WAITING_SPARK": 5,
     "REFERENCE_IMPL_BANKED_SPEED_CLOSED": 1,
     "DECISION_BANKED": 1
   },
@@ -358,6 +358,15 @@
       "evidence": "single-CTA and multi-CTA recompute anti-proofs are captured; next candidate must preserve active reuse",
       "artifact": "reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md, scripts/test_stage6_p4c_active_reuse_decision_static.py",
       "next_step": "Implement P4C active-reuse two-phase/CUTLASS-style candidate; do not report it as P4B out-only fused speed.",
+      "decision": ""
+    },
+    {
+      "gate": "decode_gpu_idle_probe",
+      "title": "Decode GPU-idle / compiled-loop ROI probe",
+      "status": "READY_WAITING_SPARK",
+      "evidence": "tooling/runbook exists, but no Spark PASS artifact is banked",
+      "artifact": "scripts/run_spark_stage6_decode_gpu_idle_probe.sh, scripts/spark_stage6_decode_gpu_idle_probe.py, scripts/summarize_stage6_decode_gpu_idle_probe.py",
+      "next_step": "Run before month-scale C++/compiled runtime work; this decides whether host dispatch is recoverable.",
       "decision": ""
     }
   ]

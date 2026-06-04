@@ -264,6 +264,57 @@ def _p3a_batched_down_candidate_gate() -> Gate:
     )
 
 
+def _decode_gpu_idle_probe_gate() -> Gate:
+    required = [
+        "scripts/run_spark_stage6_decode_gpu_idle_probe.sh",
+        "scripts/spark_stage6_decode_gpu_idle_probe.py",
+        "scripts/summarize_stage6_decode_gpu_idle_probe.py",
+    ]
+    run_dir, data = _latest_result(["decode_gpu_idle_probe_"])
+    if data is None:
+        return _ready_gate(
+            "decode_gpu_idle_probe",
+            "Decode GPU-idle / compiled-loop ROI probe",
+            required,
+            "Run before month-scale C++/compiled runtime work; this decides whether host dispatch is recoverable.",
+        )
+    if data.get("_json_error"):
+        return Gate(
+            "decode_gpu_idle_probe",
+            "Decode GPU-idle / compiled-loop ROI probe",
+            "FAILED_ARTIFACT",
+            "latest result.json is not valid JSON",
+            _artifact(run_dir),
+            "Fix artifact JSON before interpreting compiled-loop ROI.",
+        )
+    if not _passes_all(data):
+        return Gate(
+            "decode_gpu_idle_probe",
+            "Decode GPU-idle / compiled-loop ROI probe",
+            "FAILED_ARTIFACT",
+            "latest Spark result.json did not pass timing/launch gates",
+            _artifact(run_dir),
+            "Rerun before investing in runtime work.",
+            _decision(data),
+        )
+    delta = data.get("delta") or {}
+    signal = str(delta.get("compiled_loop_roi_signal") or _decision(data))
+    gap = delta.get("host_gap_fraction_est")
+    launches = delta.get("cuda_launches_per_token")
+    evidence = "latest Spark result.json records decode GPU busy/host-gap estimate"
+    if isinstance(gap, (int, float)) and isinstance(launches, (int, float)):
+        evidence = f"host-gap fraction {gap:.3f}, CUDA launches/token {launches:.1f}"
+    return Gate(
+        "decode_gpu_idle_probe",
+        "Decode GPU-idle / compiled-loop ROI probe",
+        "DIAGNOSTIC_BANKED",
+        evidence,
+        _artifact(run_dir),
+        "Use this ROI signal to choose MTP-light/compiled-loop prototype scope; do not treat it as speed promotion.",
+        signal,
+    )
+
+
 def _p4b_contract_gate() -> Gate:
     required = [
         "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md",
@@ -780,6 +831,7 @@ def collect_gates() -> list[Gate]:
         ),
         _p4c_shadow_cycle_first_divergence_gate(),
         _p4c_active_reuse_decision_gate(),
+        _decode_gpu_idle_probe_gate(),
     ]
     return gates
 

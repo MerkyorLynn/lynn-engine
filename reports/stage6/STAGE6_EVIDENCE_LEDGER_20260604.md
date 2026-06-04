@@ -11,8 +11,8 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 
 | Field | Value |
 |---|---|
-| Status | `P3A_BATCHED_DOWN_DIAGNOSTIC_BANKED` |
-| Note | P3-A batched-down diagnostic PASS: numeric/shadow gates pass, argmax 3/3, min cosine 0.999981, average speed 0.760x vs BF16 active (old P3-A 0.744x). Single down-launch batching is a small diagnostic improvement but speed gate remains closed; do not promote. Next speed cuts: route materialization / true gate-up+down batching, plus decode GPU-idle probe for compiled hot-loop ROI. |
+| Status | `DECODE_GPU_IDLE_PROBE_TOOLING_READY` |
+| Note | Decode GPU-idle / host-gap probe tooling added. Next Spark run will measure N/2N delta wall vs profiler CUDA busy to decide compiled-loop ROI before month-scale runtime work. |
 
 ## Promotion Boundaries
 
@@ -64,6 +64,7 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 | `p4c_tile2_rcmini_agreement` | **CLOSED_NEGATIVE** `FAIL_P4C_TILE2_SERVER_SMOKE` | latest result.json failed as an intentional negative gate | `reports/stage6/p4c_tile2_rcmini_agreement_20260604_124019` | Run first-divergence diagnostics before widening P4C tile2 server prompts or considering promotion. |
 | `p4c_tile2_shadow_cycle_first_divergence` | **DIAGNOSTIC_BANKED** `pass=true; first_top1_divergence=null` | server-like shadow cycle kept top-1 stable on the arithmetic prompt, but first hidden drift appears at step 0/layer 13 | `reports/stage6/p4c_tile2_shadow_cycle_first_divergence_20260604_130839` | Use as a go/no-go diagnostic only; do not promote P4C tile2 without wider RC exactness and e2e speed. |
 | `p4c_active_reuse_decision` | **DECISION_BANKED** | single-CTA and multi-CTA recompute anti-proofs are captured; next candidate must preserve active reuse | `reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md, scripts/test_stage6_p4c_active_reuse_decision_static.py` | Implement P4C active-reuse two-phase/CUTLASS-style candidate; do not report it as P4B out-only fused speed. |
+| `decode_gpu_idle_probe` | **READY_WAITING_SPARK** | tooling/runbook exists, but no Spark PASS artifact is banked | `scripts/run_spark_stage6_decode_gpu_idle_probe.sh, scripts/spark_stage6_decode_gpu_idle_probe.py, scripts/summarize_stage6_decode_gpu_idle_probe.py` | Run before month-scale C++/compiled runtime work; this decides whether host dispatch is recoverable. |
 
 ## Counts
 
@@ -73,7 +74,7 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 | `CLOSED_NEGATIVE` | 4 |
 | `DECISION_BANKED` | 1 |
 | `DIAGNOSTIC_BANKED` | 2 |
-| `READY_WAITING_SPARK` | 4 |
+| `READY_WAITING_SPARK` | 5 |
 | `REFERENCE_IMPL_BANKED_SPEED_CLOSED` | 1 |
 | `TIMEOUT_NOT_CLEAN` | 1 |
 
