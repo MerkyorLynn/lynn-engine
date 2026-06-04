@@ -120,6 +120,16 @@ def main() -> int:
             "MISSING_TOOLING",
         }
         assert "d-row" in gates["r5c2c_real_d_row_slot_scatter_smoke"]["title"].lower()
+        assert gates["r5c3b_gateup_value_materialization_smoke"]["status"] in {
+            "BANKED",
+            "READY_WAITING_R6000",
+            "FAILED_ARTIFACT",
+            "MISSING_TOOLING",
+        }
+        assert "value materialization" in gates["r5c3b_gateup_value_materialization_smoke"]["title"].lower()
+        if gates["r5c3b_gateup_value_materialization_smoke"]["status"] == "BANKED":
+            assert gates["r5c3b_gateup_value_materialization_smoke"]["decision"] == "PASS_R5C3B_GATEUP_VALUE_MATERIALIZATION_SMOKE"
+            assert "down projection" in gates["r5c3b_gateup_value_materialization_smoke"]["next_step"]
         assert "P4 fused kernel banked | `false`" in text
         assert "TEST_BLOCKED_BY_SSH" in text
 

@@ -40,6 +40,7 @@
 - R5-C2 selected-expert gate/up PASS: [Stage 6 R5-C2 selected-expert gate/up PASS](reports/stage6/r5c2_selected_expert_gateup_smoke_20260604_192904/summary.md)
 - R5-C2C real D-row scatter PASS: [Stage 6 R5-C2C real D-row scatter PASS](reports/stage6/r5c2c_real_d_row_slot_scatter_smoke_20260604_201440/summary.md)
 - R5-C3A gate/up timing trace: [Stage 6 R5-C3A gate/up timing trace](reports/stage6/R5C3A_GATEUP_PREFILL_TIMING_TRACE_20260604.md)
+- R5-C3B gate/up value materialization PASS: [Stage 6 R5-C3B gate/up value materialization PASS](reports/stage6/r5c3b_gateup_value_materialization_smoke_20260604_204920/summary.md)
 
 ## Banked Results
 
@@ -87,6 +88,7 @@
 | R5-C2 selected-expert gate/up | PASS banked:`PASS_R5C2_SELECTED_EXPERT_GATEUP_NUMERIC_SMOKE`;maps selected-expert `tokens_per_expert=[32,64,64,96]` to CUTLASS 79d per-group M shapes;both Cooperative/Pingpong schedules pass host-reference;gate/up smoke only,not grouped-MoE speed/default |
 | R5-C2C real D-row scatter | PASS banked:`PASS_R5C2C_REAL_D_ROW_SLOT_SCATTER_SMOKE`;captures real CUTLASS D/ref row digests and scatters through R5-C2B inverse-order into `[T,top_k,N_gateup]`;Cooperative/Pingpong each cover 256 rows;not epilogue kernel/SwiGLU/down/speed/default |
 | R5-C3A gate/up timing trace | TRACE only:`8x256x1024x2048` prefill-shaped gate/up FP4-MMA is 0.0206ms/416 TFLOPS(Cooperative) and 0.0238ms/362 TFLOPS(Pingpong);same-shape BF16 `bmm` baseline is 0.0435ms/198 TFLOPS;about 2.11x best-schedule signal,but not full MoE speed,decode TPS,server,RC,or default |
+| R5-C3B gate/up value materialization | PASS banked:`PASS_R5C3B_GATEUP_VALUE_MATERIALIZATION_SMOKE`;captures full real CUTLASS D/ref row values plus exact bits,scatter max_abs=0,host-SwiGLU checksum recorded and equal across Cooperative/Pingpong;not down projection,weighted top-k,full MoE speed,decode TPS,server,RC,or default |
 
 ## Corrected Engineering Read
 
@@ -145,7 +147,8 @@
 37. **R5-C2 selected-expert gate/up smoke:已 bank。** R6000 上 `PASS_R5C2_SELECTED_EXPERT_GATEUP_NUMERIC_SMOKE`:把 deterministic top-k route 的 `tokens_per_expert=[32,64,64,96]` 映射到 CUTLASS 79d per-group M shapes,Cooperative/Pingpong 双 schedule 均 host-reference PASS。边界:只 bank selected-expert gate/up numeric smoke,不 bank Lynn slot-preserving gather/scatter、down projection、grouped-MoE speed 或 default。
 38. **R5-C2C real D-row scatter:已 bank。** R6000 上 `PASS_R5C2C_REAL_D_ROW_SLOT_SCATTER_SMOKE`:临时 patch CUTLASS 79d example 输出真实 D/ref row digests,再按 R5-C2B inverse-order scatter 到 `[T,top_k,N_gateup]`;Cooperative/Pingpong 各 **256 rows**,row counts `[32,64,64,96]`,D/ref row digest match、scatter match、fault injection 全过。边界:只 bank real D-row slot scatter smoke,不 bank epilogue selected-output kernel、SwiGLU/down projection、grouped-MoE speed 或 default。
 39. **R5-C3A gate/up timing trace:有正速度信号但未 bank full speed。** R6000 上同形状 gate/up prefill trace:`8 active experts × M256×N1024×K2048`,FP4-MMA Cooperative **0.0206ms/416 TFLOPS**,Pingpong **0.0238ms/362 TFLOPS**;同形状 BF16 `bmm` baseline **0.0435ms/198 TFLOPS**,best schedule 约 **2.11x**。边界:只说明 gate/up prefill/batch compute 路线有戏,不 bank SwiGLU/down、full grouped-MoE speed、decode TPS、server、RC 或 default。下一步 R5-C3B 补 down/weighted-sum numeric parity。
-40. **Speed next:** 不是 P4C 扩 RC,而是两条速度线:MTP draft/accept 信号好,真正 blocker 是 eager speculative runtime;下一轮优先削 snapshot/restore、per-event dispatch/sync 与 token-exact batched verify。另一条是把 decode hot loop 搬出 Python、用 compiled/C++ 服务循环降低 per-launch host dispatch;reusable decode graph 已实测 0.75x 净负,不作为当前默认路线。
+40. **R5-C3B gate/up value materialization:已 bank。** R6000 上 `PASS_R5C3B_GATEUP_VALUE_MATERIALIZATION_SMOKE`:完整 D/ref row values + exact bits captured,按 R5-C2B inverse-order scatter 到 `[T,top_k,N_gateup]`;Cooperative/Pingpong 各 **256 rows**,scatter max_abs **0.0**,host-SwiGLU checksum **-2572.67956982228** 双 schedule 一致,fault injection 全过。边界:只 bank gate/up value materialization + host-SwiGLU checksum smoke,不 bank down projection、weighted top-k、full MoE speed、decode TPS、server、RC 或 default。下一步 R5-C3C 补 down/weighted-sum numeric parity。
+41. **Speed next:** 不是 P4C 扩 RC,而是两条速度线:MTP draft/accept 信号好,真正 blocker 是 eager speculative runtime;下一轮优先削 snapshot/restore、per-event dispatch/sync 与 token-exact batched verify。另一条是把 decode hot loop 搬出 Python、用 compiled/C++ 服务循环降低 per-launch host dispatch;reusable decode graph 已实测 0.75x 净负,不作为当前默认路线。
 
 ## Relation To 2026-05-20 Notes
 

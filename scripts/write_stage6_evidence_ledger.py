@@ -953,6 +953,92 @@ def _r5c2c_real_d_row_slot_scatter_smoke_gate() -> Gate:
     )
 
 
+def _r5c3b_gateup_value_materialization_smoke_gate() -> Gate:
+    required = [
+        "reports/stage6/R5C3B_GATEUP_VALUE_MATERIALIZATION_CONTRACT_20260604.md",
+        "scripts/r6000_stage6_r5c3b_gateup_value_materialization_smoke.py",
+        "scripts/r6000_stage6_r5c3b_gateup_value_materialization_smoke.sh",
+        "scripts/summarize_stage6_r5c3b_gateup_value_materialization_smoke.py",
+        "scripts/test_stage6_r5c3b_gateup_value_materialization_contract_static.py",
+        "scripts/test_stage6_r5c3b_gateup_value_materialization_smoke_tools.py",
+    ]
+    run_dir, data = _latest_result(["r5c3b_gateup_value_materialization_smoke_"])
+    if data is None:
+        missing = [rel for rel in required if not (ROOT / rel).exists()]
+        if missing:
+            return Gate(
+                "r5c3b_gateup_value_materialization_smoke",
+                "R5-C3B gate/up value materialization smoke",
+                "MISSING_TOOLING",
+                f"missing: {', '.join(missing)}",
+                "",
+                "Restore R5-C3B value-materialization tooling before running the R6000 gate.",
+            )
+        return Gate(
+            "r5c3b_gateup_value_materialization_smoke",
+            "R5-C3B gate/up value materialization smoke",
+            "READY_WAITING_R6000",
+            "tooling exists, but no R6000 result.json artifact is banked",
+            ", ".join(required),
+            "Run scripts/r6000_stage6_r5c3b_gateup_value_materialization_smoke.sh; bank only value materialization and host-SwiGLU checksum smoke.",
+        )
+    if data.get("_json_error"):
+        return Gate(
+            "r5c3b_gateup_value_materialization_smoke",
+            "R5-C3B gate/up value materialization smoke",
+            "FAILED_ARTIFACT",
+            "latest R5-C3B result.json is not valid JSON",
+            _artifact(run_dir),
+            "Fix artifact JSON before interpreting R5-C3B.",
+        )
+    passes = data.get("passes") if isinstance(data.get("passes"), dict) else {}
+    decision = _decision(data)
+    if (
+        passes.get("banked_gateup_value_materialization") is True
+        and passes.get("banked_host_swiglu_checksum_smoke") is True
+        and passes.get("banked_down_projection_numeric_parity") is False
+        and passes.get("banked_grouped_moe_fp4_mma_poc") is False
+        and passes.get("banked_kernel_speed") is False
+        and passes.get("banked_default_promotion") is False
+        and decision == "PASS_R5C3B_GATEUP_VALUE_MATERIALIZATION_SMOKE"
+    ):
+        shape = data.get("selected_expert_shape") if isinstance(data.get("selected_expert_shape"), dict) else {}
+        schedules = data.get("value_schedules") if isinstance(data.get("value_schedules"), dict) else {}
+        evidence = (
+            "full real CUTLASS D/ref row values were captured, exact value-bit digests matched, "
+            "and values scattered through the R5-C2B inverse-order contract"
+        )
+        if shape:
+            evidence += f"; tokens/top_k/N={shape.get('tokens')}/{shape.get('top_k')}/{shape.get('n_gate_up')}"
+        if schedules:
+            max_abs = sorted(
+                {
+                    schedule.get("scatter_values_max_abs")
+                    for schedule in schedules.values()
+                    if isinstance(schedule, dict)
+                }
+            )
+            evidence += f"; schedules={sorted(schedules)}; scatter_max_abs={max_abs}"
+        return Gate(
+            "r5c3b_gateup_value_materialization_smoke",
+            "R5-C3B gate/up value materialization smoke",
+            "BANKED",
+            evidence,
+            _artifact(run_dir),
+            "Proceed to R5-C3C down projection + weighted top-k numeric parity; do not claim full MoE speed/default from R5-C3B.",
+            decision,
+        )
+    return Gate(
+        "r5c3b_gateup_value_materialization_smoke",
+        "R5-C3B gate/up value materialization smoke",
+        "FAILED_ARTIFACT",
+        "latest R5-C3B artifact did not satisfy the value-materialization-only boundary",
+        _artifact(run_dir),
+        "Inspect value capture, digest-bit matching, scatter max_abs, host-SwiGLU checksum, and promotion flags.",
+        decision,
+    )
+
+
 def _p4b_contract_gate() -> Gate:
     required = [
         "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md",
@@ -1488,12 +1574,14 @@ def collect_gates() -> list[Gate]:
         _r5c2_selected_expert_gateup_smoke_gate(),
         _r5c2b_slot_bridge_contract_gate(),
         _r5c2c_real_d_row_slot_scatter_smoke_gate(),
+        _r5c3b_gateup_value_materialization_smoke_gate(),
     ]
     return gates
 
 
 def _derive_current_status(gates: list[Gate]) -> tuple[str, str]:
     by_gate = {gate.gate: gate for gate in gates}
+    r5c3b = by_gate.get("r5c3b_gateup_value_materialization_smoke")
     r5c2c = by_gate.get("r5c2c_real_d_row_slot_scatter_smoke")
     r5c2b = by_gate.get("r5c2b_slot_bridge_contract")
     r5c2_selected = by_gate.get("r5c2_selected_expert_gateup_smoke")
@@ -1502,6 +1590,18 @@ def _derive_current_status(gates: list[Gate]) -> tuple[str, str]:
     r5c = by_gate.get("r5c_cutlass_ue4m3_census")
     r6000 = by_gate.get("r6000_fp4_mma_census")
     decode_idle = by_gate.get("decode_gpu_idle_probe")
+    if r5c3b and r5c3b.status == "BANKED":
+        note = (
+            "R5-C3B gate/up value materialization smoke is banked: full real CUTLASS D/ref "
+            "row values were captured, exact value-bit digests matched the row hashes, and "
+            "values scattered through the R5-C2B inverse-order contract into [T, top_k, N_gateup] "
+            "with host-SwiGLU checksum recorded. This does not bank down projection, weighted top-k "
+            "reduction, full grouped-MoE speed, decode TPS, server behavior, RC quality, or default promotion. "
+            "Next gate is R5-C3C down projection + weighted top-k numeric parity."
+        )
+        if decode_idle and decode_idle.status == "DIAGNOSTIC_BANKED":
+            note += f" Spark decode ROI probe remains {decode_idle.decision or decode_idle.status}."
+        return "R5C3B_GATEUP_VALUE_MATERIALIZATION_BANKED", note
     if r5c2c and r5c2c.status == "BANKED":
         note = (
             "R5-C2C real D-row slot scatter smoke is banked: real CUTLASS D/ref row "
