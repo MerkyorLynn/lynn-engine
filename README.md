@@ -1,8 +1,18 @@
 # Lynn Engine
 
-> **🚀 战略校正(2026-06-03):Lynn engine 重启为并行主线,目标「对标 llama.cpp」,不再是"降级为 R&D / 只用 llama.cpp"。** 客户端短期仍以 llama.cpp/GGUF 为**务实默认后端**;引擎并行推进——同模型同硬件**对标 llama.cpp**,终局 = 自己啃下**融合 4-bit / 零-shadow 内核**(单投影 PoC → 全 dense + 删 shadow → MoE grouped 专家 → 融合减 launch,每阶段 gate + RC),在 FP4-MMA 卡(R6000 一代)上**逼近乃至超过**。**做引擎,要做就自己把内核啃下来。**
->
-> **✅ 自有核心已 bank 的最新突破:** 35B NVFP4 服务已把 decode 阶段 BF16 dequant-shadow 从常驻内存中释放,**resident 88→28 GiB(省 ~60 GiB)**,token-exact,TPS 0.998× 无回归;`server/openai_http.py` 已接入 `reload→prefill→release→decode` 服务循环。**P0.1/P0.2 packed-prefill gates 已过:**释放 60GiB shadow 后不调用 reload,`stream_bf16` 证明 token-exact no-reload prefill(peak **40.28 GiB**,proof prefill **20.75s**);P0.2 resident inventory 显示 after-release BF16 只剩 **4.72 GiB**。**P1 dense PoC 已过, P1-A batched bridges 已反证。P2 grouped MoE 已推进到 P2-N:**P2-F 接入 `LYNN_PACKED_PREFILL_SLOW_MODE=p2e_hybrid`;P2-H/P2-I selected full prefill numeric/no-shadow/speed 通过;P2-J 锁定 linear-attn prefill 墙;P2-KB/P2-L 接通 block linear-attn;P2-M layers 0-3 通过;**P2-N wider coverage 通过:**layers 0-7 同时打开 P2E MoE + block linear-attn,T16 **74.98ms vs BF16 115.56ms=1.541x**,T64 **162.25ms vs BF16 185.03ms=1.140x**,numeric/no-shadow pass。**P4B native zero-shadow 已从 fail-loud contract 推进到 opt-in single-CTA 数值参考:**Spark 上 P4B vs P4A `rel_l2=0.0/max_abs=0.0`,但 microbench 反证 single-CTA 不是速度路(**39.54ms vs P4A 0.283ms=0.007x**),multi-CTA 重算 active 也被反证(**48.34ms=0.0058x**);**P4C active-reuse 已 bank runtime bridge + speed baseline + component profile:**`fused_zero_shadow_active_reuse_contract` 在 Spark real-runner 路径 PASS;baseline P4A **271.10us**、P4C **271.06us=1.00013x**,output/scratch exact;component profile 显示 full **233.39us**,gate/up **151.67us(63.8%)**,down **86.21us(36.2%)**。仍只 bank route/numeric/baseline/diagnostic,不 bank fused speed/default promotion。下一刀明确先攻 gate/up。** Python 只做控制面和验证,追赶 llama.cpp 靠 CUDA C++/CUTLASS/native kernel。
+## 🚀 2026-06-04 Restart Snapshot
+
+**Lynn engine 已重启为并行主线:** 客户端短期仍可用 llama.cpp/GGUF 作务实默认后端,但引擎继续同模型同硬件对标 llama.cpp。终局不是“换个框架”,而是自己啃下 **CUDA C++/CUTLASS/native fused 4-bit / zero-shadow kernels**。
+
+| 方向 | 已 bank 证据 |
+|---|---|
+| **服务显存** | 35B NVFP4 decode 阶段释放 BF16 dequant-shadow:**resident 88→28 GiB(省 ~60 GiB)**,token-exact,TPS **0.998×** 无回归;`server/openai_http.py` 已接入 `reload→prefill→release→decode`。 |
+| **packed prefill** | P0.1/P0.2 已过:no-reload `stream_bf16` token-exact,peak **40.28 GiB**,proof prefill **20.75s**;after-release BF16 resident **4.72 GiB**。 |
+| **dense / prefill 路线** | P1 dense PoC 通过;P1-A batched bridges 反证;P2 grouped MoE 推到 P2-N:layers 0-7 + block linear-attn,T16 **1.541×**,T64 **1.140×** vs BF16,numeric/no-shadow pass。 |
+| **native zero-shadow MoE** | P4B 数值参考 exact,但 single-CTA 与 active recompute 被 microbench 反证;P4C active-reuse runtime bridge + speed baseline + component profile 已 bank。 |
+| **当前瓶颈** | P4C profile:gate/up **151.67us(63.8%)**,down **86.21us(36.2%)**。下一刀先攻 gate/up。 |
+
+**诚实边界:** Spark sm_121 当前 deliverable decode 仍是 **~44-45 TPS**;P4C 目前只 bank route/numeric/baseline/diagnostic,**不 bank fused speed/default promotion**。Python 只做控制面和验证;追赶 llama.cpp 靠 native kernel,在 FP4-MMA 硅上才完整兑现。
 
 > **🆕 2026-06-03 Decode 内核启动开销战役 — Spark NVFP4 35B-A3B 单流 38.96 → ~45 TPS,质量 RC 等价。**
 > 实测 decode 是 launch-bound(census:**~1527 CUDA launch/token**,~40% 时间耗在 CPU 端 dispatch)。逐簇融合 launch + 消拷贝:**fused RMSNorm(最大头)/ shared-expert / linear-attn g/beta-fold / full-attn(token-exact)/ NVFP4 `_scaled_mm` bf16-out copy-elision**,**5 个 RC-validated launch-cut**——在 structured/V9/GPQA/tool-call/long-form 上 **40/40 greedy 输出与 baseline 逐字一致**,继承 **MMLU 84.40 / GPQA-Diamond 49.49**。全部 gated、默认安全、可回滚。
