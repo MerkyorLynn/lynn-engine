@@ -1,12 +1,12 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T03:17:09+00:00",
+  "generated_at_utc": "2026-06-04T03:25:43+00:00",
   "spark_status": "REACHABLE_VIA_DGX_VIA_SSH",
-  "spark_note": "Spark reachable via dgx-via-ssh; P4C gate/up shape sweep banked tile_inter=2 threads=128 as actionable diagnostic. Fused speed/default promotion still closed.",
+  "spark_note": "Spark reachable via dgx-via-ssh; P4C gate/up shape candidate tooling wired and waiting for Spark artifact.",
   "counts": {
     "BANKED": 18,
     "CLOSED_NEGATIVE": 3,
-    "READY_WAITING_SPARK": 7,
+    "READY_WAITING_SPARK": 8,
     "REFERENCE_IMPL_BANKED_SPEED_CLOSED": 1,
     "DECISION_BANKED": 1
   },
@@ -276,6 +276,15 @@
       "artifact": "reports/stage6/p4c_gateup_shape_sweep_20260604_111603",
       "next_step": "Run on Spark; bank only launch-shape diagnostic evidence before writing a real gate/up CUDA/CUTLASS candidate.",
       "decision": "PASS_P4C_GATEUP_SHAPE_SWEEP_RECORDED"
+    },
+    {
+      "gate": "p4c_gateup_shape_candidate",
+      "title": "P4C gate/up launch-shape speed candidate",
+      "status": "READY_WAITING_SPARK",
+      "evidence": "tooling/runbook exists, but no Spark PASS artifact is banked",
+      "artifact": "reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md, scripts/run_spark_stage6_p4c_gateup_shape_candidate_microbench.sh, scripts/spark_stage6_p4c_gateup_shape_candidate_microbench.py, scripts/summarize_stage6_p4c_gateup_shape_candidate_microbench.py, scripts/test_stage6_p4c_gateup_shape_candidate_tools.py",
+      "next_step": "Run on Spark; compare current tile_inter=8 vs candidate tile_inter=2 on the full P4C active-reuse symbol.",
+      "decision": ""
     },
     {
       "gate": "p4c_active_reuse_decision",

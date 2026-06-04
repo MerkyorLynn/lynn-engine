@@ -82,6 +82,7 @@ def main() -> int:
         assert gates["p4c_component_profile"]["status"] in {"BANKED", "READY_WAITING_SPARK"}
         assert gates["p4c_gateup_shape_sweep"]["status"] in {"BANKED", "READY_WAITING_SPARK"}
         assert "launch-shape" in gates["p4c_gateup_shape_sweep"]["title"]
+        assert gates["p4c_gateup_shape_candidate"]["status"] in {"BANKED", "READY_WAITING_SPARK"}
         assert gates["p4c_active_reuse_decision"]["status"] == "DECISION_BANKED"
         assert "active reuse" in gates["p4c_active_reuse_decision"]["evidence"]
         assert "P4C active-reuse" in gates["p4c_active_reuse_decision"]["next_step"]
