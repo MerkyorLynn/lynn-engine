@@ -113,6 +113,13 @@ def main() -> int:
             "FAILED_ARTIFACT",
         }
         assert "repack" in gates["r5b_e8m0_repack"]["title"].lower()
+        assert gates["r5c2c_real_d_row_slot_scatter_smoke"]["status"] in {
+            "BANKED",
+            "READY_WAITING_R6000",
+            "FAILED_ARTIFACT",
+            "MISSING_TOOLING",
+        }
+        assert "d-row" in gates["r5c2c_real_d_row_slot_scatter_smoke"]["title"].lower()
         assert "P4 fused kernel banked | `false`" in text
         assert "TEST_BLOCKED_BY_SSH" in text
 

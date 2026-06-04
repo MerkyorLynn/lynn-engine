@@ -873,6 +873,86 @@ def _r5c2b_slot_bridge_contract_gate() -> Gate:
     )
 
 
+def _r5c2c_real_d_row_slot_scatter_smoke_gate() -> Gate:
+    required = [
+        "scripts/r6000_stage6_r5c2c_real_d_row_slot_scatter_smoke.py",
+        "scripts/r6000_stage6_r5c2c_real_d_row_slot_scatter_smoke.sh",
+        "scripts/summarize_stage6_r5c2c_real_d_row_slot_scatter_smoke.py",
+        "scripts/test_stage6_r5c2c_real_d_row_slot_scatter_smoke_tools.py",
+    ]
+    run_dir, data = _latest_result(["r5c2c_real_d_row_slot_scatter_smoke_"])
+    if data is None:
+        missing = [rel for rel in required if not (ROOT / rel).exists()]
+        if missing:
+            return Gate(
+                "r5c2c_real_d_row_slot_scatter_smoke",
+                "R5-C2C real D-row slot scatter smoke",
+                "MISSING_TOOLING",
+                f"missing: {', '.join(missing)}",
+                "",
+                "Restore R5-C2C real D-row scatter tooling before running the R6000 gate.",
+            )
+        return Gate(
+            "r5c2c_real_d_row_slot_scatter_smoke",
+            "R5-C2C real D-row slot scatter smoke",
+            "READY_WAITING_R6000",
+            "tooling exists, but no R6000 result.json artifact is banked",
+            ", ".join(required),
+            "Run scripts/r6000_stage6_r5c2c_real_d_row_slot_scatter_smoke.sh; bank only real D-row slot scatter smoke.",
+        )
+    if data.get("_json_error"):
+        return Gate(
+            "r5c2c_real_d_row_slot_scatter_smoke",
+            "R5-C2C real D-row slot scatter smoke",
+            "FAILED_ARTIFACT",
+            "latest R5-C2C result.json is not valid JSON",
+            _artifact(run_dir),
+            "Fix artifact JSON before interpreting R5-C2C.",
+        )
+    passes = data.get("passes") if isinstance(data.get("passes"), dict) else {}
+    decision = _decision(data)
+    if (
+        passes.get("banked_real_d_row_slot_scatter") is True
+        and passes.get("banked_selected_output_kernel_epilogue") is False
+        and passes.get("banked_swiglu_or_down_projection") is False
+        and passes.get("banked_grouped_moe_fp4_mma_poc") is False
+        and passes.get("banked_kernel_speed") is False
+        and passes.get("banked_default_promotion") is False
+        and decision == "PASS_R5C2C_REAL_D_ROW_SLOT_SCATTER_SMOKE"
+    ):
+        shape = data.get("selected_expert_shape") if isinstance(data.get("selected_expert_shape"), dict) else {}
+        schedules = data.get("scatter_schedules") if isinstance(data.get("scatter_schedules"), dict) else {}
+        evidence = (
+            "real CUTLASS D/ref row digests were captured after host-reference verification "
+            "and scattered through the R5-C2B inverse-order contract"
+        )
+        counts = shape.get("tokens_per_expert")
+        if shape:
+            evidence += f"; tokens/top_k/N={shape.get('tokens')}/{shape.get('top_k')}/{shape.get('n_gate_up')}"
+        if counts:
+            evidence += f"; tokens_per_expert={counts}"
+        if schedules:
+            evidence += f"; schedules={sorted(schedules)}"
+        return Gate(
+            "r5c2c_real_d_row_slot_scatter_smoke",
+            "R5-C2C real D-row slot scatter smoke",
+            "BANKED",
+            evidence,
+            _artifact(run_dir),
+            "Proceed to R5-C3 grouped active-MoE prefill POC or first implement an in-epilogue selected-output scatter; do not claim speed/default from R5-C2C.",
+            decision,
+        )
+    return Gate(
+        "r5c2c_real_d_row_slot_scatter_smoke",
+        "R5-C2C real D-row slot scatter smoke",
+        "FAILED_ARTIFACT",
+        "latest R5-C2C artifact did not satisfy the real-D-row-scatter-only boundary",
+        _artifact(run_dir),
+        "Inspect D-row digest capture, schedule scatter checks, and promotion flags.",
+        decision,
+    )
+
+
 def _p4b_contract_gate() -> Gate:
     required = [
         "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md",
@@ -1407,12 +1487,14 @@ def collect_gates() -> list[Gate]:
         _r5c2_moe_shape_census_gate(),
         _r5c2_selected_expert_gateup_smoke_gate(),
         _r5c2b_slot_bridge_contract_gate(),
+        _r5c2c_real_d_row_slot_scatter_smoke_gate(),
     ]
     return gates
 
 
 def _derive_current_status(gates: list[Gate]) -> tuple[str, str]:
     by_gate = {gate.gate: gate for gate in gates}
+    r5c2c = by_gate.get("r5c2c_real_d_row_slot_scatter_smoke")
     r5c2b = by_gate.get("r5c2b_slot_bridge_contract")
     r5c2_selected = by_gate.get("r5c2_selected_expert_gateup_smoke")
     r5c2 = by_gate.get("r5c2_moe_shape_census")
@@ -1420,6 +1502,18 @@ def _derive_current_status(gates: list[Gate]) -> tuple[str, str]:
     r5c = by_gate.get("r5c_cutlass_ue4m3_census")
     r6000 = by_gate.get("r6000_fp4_mma_census")
     decode_idle = by_gate.get("decode_gpu_idle_probe")
+    if r5c2c and r5c2c.status == "BANKED":
+        note = (
+            "R5-C2C real D-row slot scatter smoke is banked: real CUTLASS D/ref row "
+            "digests were captured after host-reference verification and scattered through "
+            "the R5-C2B inverse-order contract into [T, top_k, N_gateup]. This does not bank "
+            "an in-epilogue selected-output CUDA kernel, SwiGLU/down projection, grouped-MoE "
+            "speed, server behavior, RC quality, or default promotion. Next gate is R5-C3 "
+            "grouped active-MoE prefill POC or an in-epilogue selected-output scatter."
+        )
+        if decode_idle and decode_idle.status == "DIAGNOSTIC_BANKED":
+            note += f" Spark decode ROI probe remains {decode_idle.decision or decode_idle.status}."
+        return "R5C2C_REAL_D_ROW_SLOT_SCATTER_SMOKE_BANKED", note
     if r5c2b and r5c2b.status == "STATIC_CONTRACT_BANKED":
         note = (
             "R5-C2B slot-preserving selected-output contract is banked: the route/order/scatter "
@@ -1427,7 +1521,7 @@ def _derive_current_status(gates: list[Gate]) -> tuple[str, str]:
             "and inverse scatter is frozen with a GPU-free static guard and fault-injection checks. "
             "This does not bank a CUTLASS "
             "selected-output kernel, speed, server behavior, RC quality, or default promotion. "
-            "Next gate is the R5-C2B CUTLASS selected-output harness."
+            "Next gate is R5-C2C real D-row slot scatter smoke."
         )
         if decode_idle and decode_idle.status == "DIAGNOSTIC_BANKED":
             note += f" Spark decode ROI probe remains {decode_idle.decision or decode_idle.status}."
