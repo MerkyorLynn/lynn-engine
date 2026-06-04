@@ -1,71 +1,115 @@
-# R6000 NVFP4 FP4-MMA — Upstream-vs-Lynn diff + GO/NO-GO gate (2026-06-04)
+# R6000 NVFP4 FP4-MMA — Upstream Diff And GO/NO-GO Gate
 
-> **Audience: codex (R6000/Stage-6 line).** Lead/owner evidence-based verdict. Read before the next R5 gate.
-> Bottom line: **NVFP4 is commoditizing INTO upstream llama.cpp. Stop building it as a private Lynn moat.
-> The ONLY defensible R6000 investment is the grouped-MoE FP4-MMA gap — under a hard "bank real speed or stop" gate.**
+Date: 2026-06-04
 
----
+Verdict: **do not build dense/private NVFP4 as a Lynn moat.** Upstream
+llama.cpp is already making NVFP4 a first-class ggml type and has merged
+Blackwell native FP4 CUDA plumbing. Lynn's only still-defensible R6000 kernel
+investment is **grouped-MoE FP4-MMA**, and only under a hard speed gate.
 
-## TL;DR
-- Upstream llama.cpp has **merged the NVFP4 format/CPU/convert** and has an **open dense Blackwell FP4-MMA PoC (#23572, +40% PP)**. NVFP4 is becoming a first-class llama.cpp quant type, community-staffed (74 nvfp4 PRs).
-- Lynn R6000 has banked **ZERO speed** so far: `banked_kernel_speed=false`, grouped-MoE POC `UNIMPLEMENTED`, and the first speed candidate **R5-C4 was just rejected (trace-derived)**.
-- **VERDICT: NO-GO on "own the NVFP4 kernel/engine."** The single remaining unique angle = **grouped-MoE FP4-MMA** (upstream #23572 is dense-only). Pursue ONLY under the hard gate in §5; design it to be **upstreamable**, not private.
+## ⏰ TONIGHT (tightened owner directive — supersedes the 2-3 window in Hard Gate)
 
----
+**R6000 tonight keeps exactly ONE value point: `grouped-MoE FP4-MMA REAL SPEED`. Stop everything else now.**
 
-## 1. Upstream llama.cpp NVFP4 state (verified 2026-06-04, ggml-org/llama.cpp)
-- **Format MERGED**: `GGML_TYPE_NVFP4 = 40`, `GGML_FTYPE_MOSTLY_NVFP4 = 26`, `block_nvfp4 { uint8_t d[4] (UE4M3 per-16 sub-scales); uint8_t qs[32] (E2M1) }` (block=64, per-16 sub-scale — this **IS** Lynn's NVFP4 layout). CPU quantize/dequantize/vec_dot implemented (12 hits in `ggml-quants.c`). gguf-py + `llama-quantize` mapping landing (#22897).
-- **Gemma4 MERGED**: #23682 (`convert: Gemma4ForCausalLM`), #22804 (`Gemma4 NvFp4 convert→gguf fixes`), #21971 (`model: NVFP4 tensors for Gemma4`). → text-Gemma4 + its NVFP4 already convertible/runnable upstream. (Correction to an earlier Lynn note that "llama.cpp has no gemma4": the **unified-multimodal** `Gemma4Unified…` variant is the remaining gap, not text Gemma4.)
-- **CUDA Blackwell FP4-MMA = NOT settled, DENSE-only**: #23572 `CUDA: native 4-bit float quant (Blackwell PP +40%)` — **OPEN PoC** (small, "starting point… encourage iteration"), **+40% PP (prefill) dense** on **RTX 5090 (sm_120)**, decode (TG) ≈ flat, quant quality mediocre (`N4_0` KLD ~between Q3_K and Q4_0). Earlier #21896 (`ggml-cuda: Blackwell native NVFP4`) is **CLOSED**. **No MoE FP4-MMA CUDA exists upstream.**
-- Other active: AVX dot #23961, Metal #20456, RISC-V #23402, MSE-quality #23692.
+- **Only this**: a grouped-MoE active-prefill FP4-MMA kernel + a **real measured R6000 e2e A/B** that beats the current best Lynn path, RC-exact. Nothing else is in scope tonight.
+- **Stop now**: any further census / shape / ABI / contract / numeric-smoke gate. They are DONE and do **not** count as progress. The "many gates, zero speed" pattern ends here.
+- **Tight time-box**: the next **1–2 real speed candidates**. If they fail parity or get rejected like the trace-derived R5-C4 → **NO-GO, stop immediately** (do not open more sub-gates).
+- **Fork is pre-decided** (做出来就贡献,做不出来就直接抄):
+  - ✅ **Banked a real grouped-MoE FP4-MMA speed win** → write it up as an upstream contribution to llama.cpp `#23572` and stop there.
+  - ❌ **No speed win in the box** → **STOP the private kernel and directly adopt upstream NVFP4** (use llama.cpp's merged path; redirect R6000 hours to product / Qwen-specific wins).
+- **GO evidence = a real e2e A/B speed number only.** No exceptions.
 
-## 2. Lynn R6000 FP4-MMA state (from `stage6_evidence_ledger`, 2026-06-04 ~21:42)
-| gate | status |
-|---|---|
-| `r6000_fp4_mma_census` | BANKED (bring-up + public-kernel census) |
-| `r6000_grouped_moe_fp4_mma_poc_contract` | **CONTRACT_READY_UNIMPLEMENTED** |
-| `r5a_layout_bridge` (per-16 NVFP4 → block-scaled FP4) | DIAGNOSTIC_BANKED |
-| `r5b_e8m0_repack` | **CLOSED_NEGATIVE** |
-| `r5c_cutlass_ue4m3_census` / `r5c1` numeric / `r5c2*` shape+slot | BANKED (census / numeric-smoke / contract) |
-| `R5-C4` full-active-MoE prefill speed A/B | **first speed candidate REJECTED (trace-derived, 21:32)** |
+This memo is strategy evidence, not a kernel result. It does not bank R5-C4
+speed, decode TPS, server behavior, RC quality, or default promotion.
 
-Lynn's own verdict (R5-C4 report): *"trace-only speed evidence; no grouped-MoE FP4-MMA POC, decode TPS, server behavior, RC quality, or default promotion is banked. `banked_kernel_speed=false`."*
+## Verified Upstream State
 
-## 3. Head-to-head
-| Axis | Upstream llama.cpp | Lynn R6000 |
+| Area | Current state | Source |
 |---|---|---|
-| NVFP4 format / CPU / convert | ✅ MERGED (commoditized) | private format — now **redundant** w/ upstream |
-| Dense FP4-MMA CUDA | 🔵 #23572 PoC, **+40% PP** measured (RTX 5090) | not the focus |
-| **Grouped-MoE FP4-MMA** | ❌ **gap** (upstream dense-only) | 🔴 UNIMPLEMENTED; first speed candidate rejected |
-| **Banked speed win** | +40% PP (real, even if PoC) | **ZERO** (`banked_kernel_speed=false`) |
-| Quant quality | N4_0 mediocre (~Q3_K-Q4_0 KLD) | NVFP4 E4M3-per-16 higher (MMLU 84.40 / GPQA 49.49) |
-| Hardware | sm_120 (5090) | sm_120 (RTX PRO 6000) — same family |
+| NVFP4 ggml type | `GGML_TYPE_NVFP4 = 40`, `GGML_FTYPE_MOSTLY_NVFP4 = 26` are present on master. | `ggml/include/ggml.h` |
+| NVFP4 block layout | `block_nvfp4` uses four UE4M3 per-16 sub-block scales plus packed E2M1 values. | `ggml/src/ggml-common.h` |
+| Blackwell native NVFP4 CUDA | PR `#22196` was merged on 2026-04-28 as a repost of `#21896`; it includes a Blackwell native NVFP4 CUDA path. | `ggml-org/llama.cpp#22196` |
+| N4_0/native FP4 prompt-processing work | PR `#23572` is open. It explicitly reports +40% PP for dense prompt processing, but also says it is a starting point and not yet fully spec-compatible NVFP4 checkpoint support. | `ggml-org/llama.cpp#23572` |
+| Quantizer scale/default mapping | PR `#22897` is open; it adds NVFP4 default mapping and emits `.scale` / `.input_scale` tensors required by the CUDA MMA dequant path. | `ggml-org/llama.cpp#22897` |
+| Gemma4 text NVFP4 support | PRs `#21971`, `#22804`, and `#23682` are merged for Gemma4 NVFP4 tensors / conversion. | `ggml-org/llama.cpp#21971`, `#22804`, `#23682` |
 
-## 4. Strategic finding
-1. **NVFP4 format + dense kernel = upstream's now.** Re-deriving them on R6000 = waste.
-2. **Lynn's only unique angle = grouped-MoE FP4-MMA + higher-quality E4M3-per-16** — but it's **undelivered** (zero banked speed after a dozen R5 gates; R5-C4 rejected).
-3. Even if delivered, the leverage move is to **contribute it upstream** (#23572's author explicitly invites iteration) — private = no model zoo, maintenance burden, and likely subsumed by the community.
+Important correction: `#23572` is **not** proof that upstream has completed every
+NVFP4 checkpoint-compatible path. It is enough to show that dense NVFP4/FP4-MMA
+is being actively commoditized upstream; it is not a reason to claim upstream
+already solved Lynn's grouped-MoE gap.
 
-## 5. GO / NO-GO GATE (hard — apply at the next R5 checkpoint)
-**GO (keep investing R6000) ⟺ ALL of the following are banked in the next focused push:**
-1. A **grouped-MoE** FP4-MMA prefill kernel that is **RC-exact** (cos≈1 / token-coherent vs the dequant→bf16 reference), AND
-2. a **real measured e2e prefill A/B** (NOT trace-derived) showing it **beats the current path on R6000 by a meaningful margin**, AND
-3. the win is in the **MoE regime that upstream #23572 does NOT cover** (dense is upstream's; don't compete there).
+## Lynn R6000 State
 
-**NO-GO (stop R6000) if any of:**
-- the next **2–3 speed candidates** get rejected like R5-C4 (the "many gates, zero speed" pattern persists), OR
-- the kernel can't reach RC-exact, OR
-- upstream lands a MoE FP4-MMA path first.
+From the Stage 6 evidence ledger as of this memo:
 
-**On NO-GO:**
-- (a) Package the R5-A layout-bridge + R5-C CUTLASS-UE4M3-ABI learnings as a **contribution proposal to upstream #23572** (clean-room, MIT).
-- (b) **Stop the private R6000 grind**; use upstream llama.cpp NVFP4 once the CUDA path matures.
-- (c) Redirect R6000 hours + attention to the durable moat: the **product (desktop agent)** and short-term Qwen-specific optimization.
+| Gate | Status |
+|---|---|
+| `r6000_fp4_mma_census` | Banked bring-up / census only |
+| `r5a_layout_bridge` | Diagnostic banked |
+| `r5b_e8m0_repack` | Closed negative |
+| `r5c*` | ABI / numeric-smoke / value-materialization / parity banked |
+| `r5c4_full_active_moe_prefill_speed_ab` | `READY_WAITING_R6000`; no speed artifact banked |
+| `r5c4_trace_candidate_rejection` | Closed negative; trace-derived candidate rejected |
 
-## 6. Hard rules
-- **Census / contract / ABI / numeric-smoke ≠ a speed result.** Only a real e2e A/B prefill speedup counts as GO evidence. (You already enforce this — keep it; it's why R5-C4 was correctly rejected.)
-- **Baseline = the right thing**: compare vs the current dense/best path AND vs upstream #23572's +40% PP — not vs an unoptimized starting point.
-- **Build to upstream, not to own**: any MoE FP4-MMA kernel must be clean-room + contributable to llama.cpp's NVFP4 effort.
+Lynn has banked important layout and numeric evidence, but **no R6000 grouped-MoE
+FP4-MMA speed win**. `banked_kernel_speed=false` remains the honest state.
 
-## 7. Sources
-Upstream: PRs #23572 (open, dense Blackwell FP4-MMA +40% PP), #21896 (closed, earlier Blackwell NVFP4 CUDA), #23682/#22804/#21971 (merged, Gemma4 + NVFP4 convert/load), #22897/#23961/#20456/#23402/#23692; `ggml/include/ggml.h` (GGML_TYPE_NVFP4=40), `ggml/src/ggml-common.h` (block_nvfp4). Lynn: `reports/stage6/stage6_evidence_ledger_20260604.json`, `R5C4_FULL_ACTIVE_MOE_PREFILL_SPEED_AB_CONTRACT_20260604.md`, `R5C_NVF4_UE4M3_CUTLASS_CONTRACT_20260604.md`.
+## Strategic Diff
+
+| Axis | Upstream llama.cpp | Lynn |
+|---|---|---|
+| Dense NVFP4 format/runtime | Actively upstreamed and maintained by the ggml community | Redundant if treated as private Lynn IP |
+| Dense Blackwell FP4-MMA | Already merged or under active open PR work | Do not compete here unless contributing upstream |
+| Grouped-MoE FP4-MMA | No confirmed upstream speed path from the checked PRs | Lynn's only unique R6000 kernel opening |
+| Product leverage | broad model zoo, runtime distribution, MIT ecosystem | Lynn product/agent integration and Qwen-specific evidence discipline |
+
+## Hard Gate
+
+Keep investing R6000 only if the next focused push targets **grouped-MoE
+FP4-MMA** and produces real speed evidence.
+
+GO requires all of:
+
+- A same-scope grouped-MoE active prefill candidate, not dense-only FP4-MMA.
+- Numeric parity against the current W4A16/P3 reference: max error, relative L2,
+  cosine, route order, and fault injections all reported.
+- Real measured R6000 A/B over the full active-MoE boundary:
+  `route/order -> gate/up -> SwiGLU -> down -> top-k weighted sum`.
+- A speed win against the current best Lynn path; trace-derived or
+  gate/up-only timing does not count.
+- Non-claims remain false: no Spark decode TPS, no server/RC behavior,
+  no default promotion, no full-transformer prefill.
+
+NO-GO triggers:
+
+- The next 2-3 real speed candidates fail numeric parity or are rejected like the
+  trace-derived R5-C4 artifact.
+- The candidate only reproduces upstream dense NVFP4 / N4_0 work.
+- Upstream lands a grouped-MoE FP4-MMA path first.
+
+On NO-GO:
+
+- Stop private R6000 kernel grinding.
+- Package Lynn's R5-A/R5-C layout and UE4M3/CUTLASS learnings as an upstreamable
+  contribution note for llama.cpp's NVFP4 work.
+- Redirect effort to the durable Lynn moat: product integration, desktop agent
+  behavior, and short-term Qwen-specific serving wins.
+
+## Working Rule
+
+**Census / ABI / contract / numeric smoke is not speed.** R6000 remains valuable
+only if it produces a same-scope grouped-MoE FP4-MMA prefill A/B that can later
+be contributed upstream or used as a Lynn product accelerator.
+
+## References
+
+- https://github.com/ggml-org/llama.cpp/blob/master/ggml/include/ggml.h
+- https://github.com/ggml-org/llama.cpp/blob/master/ggml/src/ggml-common.h
+- https://github.com/ggml-org/llama.cpp/pull/22196
+- https://github.com/ggml-org/llama.cpp/pull/23572
+- https://github.com/ggml-org/llama.cpp/pull/22897
+- https://github.com/ggml-org/llama.cpp/pull/21971
+- https://github.com/ggml-org/llama.cpp/pull/22804
+- https://github.com/ggml-org/llama.cpp/pull/23682
+- `reports/stage6/stage6_evidence_ledger_20260604.json`
+- `reports/stage6/R5C4_FULL_ACTIVE_MOE_PREFILL_SPEED_AB_CONTRACT_20260604.md`
