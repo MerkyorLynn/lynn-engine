@@ -22,4 +22,5 @@ python3 scripts/test_stage6_p4b_runtime_bridge_tools.py
 python3 scripts/test_stage6_p4b_single_cta_numeric_tools.py
 python3 scripts/test_stage6_p4b_single_cta_microbench_tools.py
 python3 scripts/test_stage6_p4c_active_reuse_decision_static.py
+python3 scripts/test_stage6_p4c_runtime_bridge_tools.py
 python3 scripts/test_stage6_evidence_ledger.py
