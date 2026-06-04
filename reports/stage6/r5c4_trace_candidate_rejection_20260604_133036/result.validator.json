@@ -1,0 +1,245 @@
+{
+  "schema": "lynn-stage6-r5c4-full-active-moe-prefill-speed-ab-v1",
+  "created_at_utc": "2026-06-04T13:30:36+00:00",
+  "decision": "FAIL_R5C4_FULL_ACTIVE_MOE_PREFILL_SPEED_AB",
+  "kernel_speed_scope": "active_moe_prefill_only",
+  "input_r5c3c": "/Users/lynn/Downloads/Lynn/lynn-engine/reports/stage6/r5c3c_down_weighted_parity_smoke_20260604_130243/result.json",
+  "candidate_json": "/Users/lynn/Downloads/Lynn/lynn-engine/reports/stage6/r5c4_trace_candidate_rejection_20260604_133036/result.candidate.json",
+  "candidate_schema": "lynn-stage6-r5c4-trace-derived-bad-candidate-v1",
+  "lanes": {
+    "production_shape": {
+      "lane": "production_shape",
+      "shape": {
+        "tokens": 256,
+        "top_k": 8,
+        "experts": 8,
+        "tokens_per_expert": [
+          256,
+          256,
+          256,
+          256,
+          256,
+          256,
+          256,
+          256
+        ],
+        "n_gate_up": 1024,
+        "k_hidden": 2048,
+        "alignment": 32,
+        "benchmark_shapes": [
+          {
+            "expert": 0,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 1,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 2,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 3,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 4,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 5,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 6,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 7,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          }
+        ]
+      },
+      "candidate_ms": 0.0206432,
+      "baseline_w4a16_ms": 0.0412864,
+      "baseline_packed_p3_ms": 0.0309648,
+      "best_reference_ms": 0.0309648,
+      "speedup_vs_w4a16": 2.0,
+      "speedup_vs_packed_p3": 1.5,
+      "median_speedup_vs_best_reference": 1.5,
+      "numeric_max_abs": 0.0,
+      "numeric_rel_l2": 0.0,
+      "numeric_cosine": 1.0,
+      "passes": {
+        "candidate_ms_positive": true,
+        "w4a16_baseline_ms_positive": true,
+        "best_reference_ms_positive": true,
+        "numeric_thresholds_passed": true,
+        "route_order_preserved": true,
+        "repack_cost_reported": false,
+        "fault_injections_detected": true,
+        "speedup_vs_w4a16_ge_1p10": true,
+        "speedup_vs_packed_p3_ge_1p00_or_unavailable": true,
+        "median_speedup_vs_best_reference_ge_1p05": true,
+        "no_shape_regression": true,
+        "numeric_parity_passed": false,
+        "speed_gate_passed": true
+      }
+    },
+    "smoke": {
+      "lane": "smoke",
+      "shape": {
+        "tokens": 256,
+        "top_k": 8,
+        "experts": 8,
+        "tokens_per_expert": [
+          256,
+          256,
+          256,
+          256,
+          256,
+          256,
+          256,
+          256
+        ],
+        "n_gate_up": 1024,
+        "k_hidden": 2048,
+        "alignment": 32,
+        "benchmark_shapes": [
+          {
+            "expert": 0,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 1,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 2,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 3,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 4,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 5,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 6,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 7,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          }
+        ]
+      },
+      "candidate_ms": 0.0206432,
+      "baseline_w4a16_ms": 0.0412864,
+      "baseline_packed_p3_ms": 0.0309648,
+      "best_reference_ms": 0.0309648,
+      "speedup_vs_w4a16": 2.0,
+      "speedup_vs_packed_p3": 1.5,
+      "median_speedup_vs_best_reference": 1.5,
+      "numeric_max_abs": 0.0,
+      "numeric_rel_l2": 0.0,
+      "numeric_cosine": 1.0,
+      "passes": {
+        "candidate_ms_positive": true,
+        "w4a16_baseline_ms_positive": true,
+        "best_reference_ms_positive": true,
+        "numeric_thresholds_passed": true,
+        "route_order_preserved": true,
+        "repack_cost_reported": false,
+        "fault_injections_detected": true,
+        "speedup_vs_w4a16_ge_1p10": true,
+        "speedup_vs_packed_p3_ge_1p00_or_unavailable": true,
+        "median_speedup_vs_best_reference_ge_1p05": true,
+        "no_shape_regression": true,
+        "numeric_parity_passed": false,
+        "speed_gate_passed": true
+      }
+    }
+  },
+  "passes": {
+    "input_r5c3c_passed": true,
+    "same_scope_ab": false,
+    "real_model_weights": false,
+    "real_router_outputs": false,
+    "candidate_no_active_bf16_shadow": true,
+    "candidate_no_reload": true,
+    "candidate_no_bf16_weight_materialization": true,
+    "candidate_full_active_moe_boundary_timed": false,
+    "timing_includes_gateup_swiglu_down_weighted_scatter": false,
+    "numeric_vs_w4a16_or_p3_reference": false,
+    "candidate_median_speedup_vs_best_reference_ge_1p05": true,
+    "required_lanes_present": true,
+    "banked_full_active_moe_prefill_speed": false,
+    "banked_grouped_moe_fp4_mma_poc": false,
+    "banked_kernel_speed": false,
+    "banked_decode_tps": false,
+    "banked_server_rc": false,
+    "banked_default_promotion": false,
+    "banked_full_transformer_prefill": false,
+    "all": false
+  },
+  "promotion_boundary": {
+    "full_active_moe_prefill_speed": false,
+    "grouped_moe_fp4_mma_poc": false,
+    "kernel_speed": false,
+    "decode_tps": false,
+    "server_rc": false,
+    "default_runtime": false,
+    "full_transformer_prefill": false
+  },
+  "thresholds": {
+    "max_abs": 0.01,
+    "rel_l2": 0.01,
+    "cosine": 0.999,
+    "speedup_vs_w4a16": 1.1,
+    "speedup_vs_best_reference": 1.05
+  },
+  "caveats": [
+    "This validates a candidate-provided R5-C4 speed A/B artifact; it does not implement the kernel.",
+    "A PASS is active-MoE prefill only, not Spark decode TPS, server/RC behavior, or default promotion."
+  ]
+}

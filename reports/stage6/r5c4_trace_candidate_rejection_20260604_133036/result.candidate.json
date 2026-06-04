@@ -1,0 +1,269 @@
+{
+  "schema": "lynn-stage6-r5c4-trace-derived-bad-candidate-v1",
+  "created_at_utc": "2026-06-04T13:30:36+00:00",
+  "source": {
+    "r5c3a_decision": "PASS_R5C2C_REAL_D_ROW_SLOT_SCATTER_SMOKE",
+    "r5c3c_decision": "PASS_R5C3C_DOWN_WEIGHTED_PARITY_SMOKE",
+    "r5c3a_shape": {
+      "tokens": 256,
+      "top_k": 8,
+      "experts": 8,
+      "tokens_per_expert": [
+        256,
+        256,
+        256,
+        256,
+        256,
+        256,
+        256,
+        256
+      ],
+      "n_gate_up": 1024,
+      "k_hidden": 2048,
+      "alignment": 32,
+      "benchmark_shapes": [
+        {
+          "expert": 0,
+          "m": 256,
+          "n": 1024,
+          "k": 2048
+        },
+        {
+          "expert": 1,
+          "m": 256,
+          "n": 1024,
+          "k": 2048
+        },
+        {
+          "expert": 2,
+          "m": 256,
+          "n": 1024,
+          "k": 2048
+        },
+        {
+          "expert": 3,
+          "m": 256,
+          "n": 1024,
+          "k": 2048
+        },
+        {
+          "expert": 4,
+          "m": 256,
+          "n": 1024,
+          "k": 2048
+        },
+        {
+          "expert": 5,
+          "m": 256,
+          "n": 1024,
+          "k": 2048
+        },
+        {
+          "expert": 6,
+          "m": 256,
+          "n": 1024,
+          "k": 2048
+        },
+        {
+          "expert": 7,
+          "m": 256,
+          "n": 1024,
+          "k": 2048
+        }
+      ]
+    },
+    "r5c3c_shape": {
+      "tokens": 128,
+      "top_k": 2,
+      "experts": 4,
+      "tokens_per_expert": [
+        32,
+        64,
+        64,
+        96
+      ],
+      "n_gate_up": 128,
+      "swiglu_hidden": 64,
+      "down_out_dim": 48
+    }
+  },
+  "passes": {
+    "same_scope_ab": false,
+    "real_model_weights": false,
+    "real_router_outputs": false,
+    "candidate_no_active_bf16_shadow": true,
+    "candidate_no_reload": true,
+    "candidate_no_bf16_weight_materialization": true,
+    "candidate_full_active_moe_boundary_timed": false,
+    "timing_includes_gateup_swiglu_down_weighted_scatter": false
+  },
+  "lanes": {
+    "smoke": {
+      "candidate_ms": 0.0206432,
+      "baseline_w4a16_ms": 0.0412864,
+      "baseline_packed_p3_ms": 0.0309648,
+      "numeric_max_abs": 0.0,
+      "numeric_rel_l2": 0.0,
+      "numeric_cosine": 1.0,
+      "route_order_preserved": true,
+      "repack_cost_reported": false,
+      "fault_injections_detected": true,
+      "shape_regression": false,
+      "shape": {
+        "tokens": 256,
+        "top_k": 8,
+        "experts": 8,
+        "tokens_per_expert": [
+          256,
+          256,
+          256,
+          256,
+          256,
+          256,
+          256,
+          256
+        ],
+        "n_gate_up": 1024,
+        "k_hidden": 2048,
+        "alignment": 32,
+        "benchmark_shapes": [
+          {
+            "expert": 0,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 1,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 2,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 3,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 4,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 5,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 6,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 7,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          }
+        ]
+      }
+    },
+    "production_shape": {
+      "candidate_ms": 0.0206432,
+      "baseline_w4a16_ms": 0.0412864,
+      "baseline_packed_p3_ms": 0.0309648,
+      "numeric_max_abs": 0.0,
+      "numeric_rel_l2": 0.0,
+      "numeric_cosine": 1.0,
+      "route_order_preserved": true,
+      "repack_cost_reported": false,
+      "fault_injections_detected": true,
+      "shape_regression": false,
+      "shape": {
+        "tokens": 256,
+        "top_k": 8,
+        "experts": 8,
+        "tokens_per_expert": [
+          256,
+          256,
+          256,
+          256,
+          256,
+          256,
+          256,
+          256
+        ],
+        "n_gate_up": 1024,
+        "k_hidden": 2048,
+        "alignment": 32,
+        "benchmark_shapes": [
+          {
+            "expert": 0,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 1,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 2,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 3,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 4,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 5,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 6,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          },
+          {
+            "expert": 7,
+            "m": 256,
+            "n": 1024,
+            "k": 2048
+          }
+        ]
+      }
+    }
+  },
+  "expected_validator_decision": "FAIL_R5C4_FULL_ACTIVE_MOE_PREFILL_SPEED_AB",
+  "why_bad": [
+    "Derived from R5-C3A gate/up-only timing, not full active-MoE timing.",
+    "R5-C3C is host composition parity, not a timed R6000 full active-MoE kernel.",
+    "No real model weights or real router outputs are used.",
+    "No down/scatter timing is included."
+  ]
+}

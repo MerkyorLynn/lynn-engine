@@ -160,6 +160,16 @@ def main() -> int:
         if gates["r5c4_full_active_moe_prefill_speed_ab"]["status"] == "BANKED":
             assert gates["r5c4_full_active_moe_prefill_speed_ab"]["decision"] == "PASS_R5C4_FULL_ACTIVE_MOE_PREFILL_SPEED_AB"
             assert "decode" in gates["r5c4_full_active_moe_prefill_speed_ab"]["next_step"].lower()
+        assert gates["r5c4_trace_candidate_rejection"]["status"] in {
+            "CLOSED_NEGATIVE",
+            "READY_WAITING_ARTIFACT",
+            "FAILED_ARTIFACT",
+            "MISSING_TOOLING",
+        }
+        assert "rejection" in gates["r5c4_trace_candidate_rejection"]["title"].lower()
+        if gates["r5c4_trace_candidate_rejection"]["status"] == "CLOSED_NEGATIVE":
+            assert gates["r5c4_trace_candidate_rejection"]["decision"] == "PASS_R5C4_TRACE_DERIVED_CANDIDATE_REJECTED"
+            assert "real same-scope" in gates["r5c4_trace_candidate_rejection"]["next_step"]
         assert "P4 fused kernel banked | `false`" in text
         assert "TEST_BLOCKED_BY_SSH" in text
 

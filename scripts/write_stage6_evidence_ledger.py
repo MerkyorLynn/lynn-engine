@@ -1290,6 +1290,73 @@ def _r5c4_full_active_moe_speed_ab_gate() -> Gate:
     )
 
 
+def _r5c4_trace_candidate_rejection_gate() -> Gate:
+    required = [
+        "scripts/stage6_r5c4_trace_candidate_rejection.py",
+        "scripts/summarize_stage6_r5c4_trace_candidate_rejection.py",
+        "scripts/test_stage6_r5c4_trace_candidate_rejection_tools.py",
+    ]
+    run_dir, data = _latest_result(["r5c4_trace_candidate_rejection_"])
+    if data is None:
+        missing = [rel for rel in required if not (ROOT / rel).exists()]
+        if missing:
+            return Gate(
+                "r5c4_trace_candidate_rejection",
+                "R5-C4 trace-derived candidate rejection",
+                "MISSING_TOOLING",
+                f"missing: {', '.join(missing)}",
+                "",
+                "Restore R5-C4 trace-candidate rejection tooling.",
+            )
+        return Gate(
+            "r5c4_trace_candidate_rejection",
+            "R5-C4 trace-derived candidate rejection",
+            "READY_WAITING_ARTIFACT",
+            "tooling exists, but no trace-derived rejection artifact is banked",
+            ", ".join(required),
+            "Run scripts/stage6_r5c4_trace_candidate_rejection.py to prove R5-C3 traces cannot pass R5-C4.",
+        )
+    if data.get("_json_error"):
+        return Gate(
+            "r5c4_trace_candidate_rejection",
+            "R5-C4 trace-derived candidate rejection",
+            "FAILED_ARTIFACT",
+            "latest trace rejection result.json is not valid JSON",
+            _artifact(run_dir),
+            "Fix artifact JSON before interpreting R5-C4 trace-candidate rejection.",
+        )
+    passes = data.get("passes") if isinstance(data.get("passes"), dict) else {}
+    decision = _decision(data)
+    if (
+        decision == "PASS_R5C4_TRACE_DERIVED_CANDIDATE_REJECTED"
+        and data.get("validator_decision") == "FAIL_R5C4_FULL_ACTIVE_MOE_PREFILL_SPEED_AB"
+        and passes.get("validator_rejected_trace_candidate") is True
+        and passes.get("same_scope_false") is True
+        and passes.get("real_model_weights_false") is True
+        and passes.get("full_boundary_timed_false") is True
+        and passes.get("decode_tps_not_banked") is True
+        and passes.get("default_not_banked") is True
+    ):
+        return Gate(
+            "r5c4_trace_candidate_rejection",
+            "R5-C4 trace-derived candidate rejection",
+            "CLOSED_NEGATIVE",
+            "R5-C3A gate/up timing plus R5-C3C host composition was rejected by the R5-C4 validator and cannot be promoted as full active-MoE speed",
+            _artifact(run_dir),
+            "Proceed only with a real same-scope R5-C4 candidate using real model weights/router outputs.",
+            decision,
+        )
+    return Gate(
+        "r5c4_trace_candidate_rejection",
+        "R5-C4 trace-derived candidate rejection",
+        "FAILED_ARTIFACT",
+        "latest trace-candidate artifact did not prove validator rejection",
+        _artifact(run_dir),
+        "Inspect validator decision and forbidden promotion booleans.",
+        decision,
+    )
+
+
 def _p4b_contract_gate() -> Gate:
     required = [
         "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md",
@@ -1829,6 +1896,7 @@ def collect_gates() -> list[Gate]:
         _r5c3c_down_weighted_parity_smoke_gate(),
         _r5c4_full_active_moe_speed_contract_gate(),
         _r5c4_full_active_moe_speed_ab_gate(),
+        _r5c4_trace_candidate_rejection_gate(),
     ]
     return gates
 
