@@ -79,13 +79,14 @@ and gates that are wired but still waiting for lane-specific PASS/FAIL artifacts
 | `r5c3c_down_weighted_parity_smoke` | **BANKED** `PASS_R5C3C_DOWN_WEIGHTED_PARITY_SMOKE` | real R5-C3B CUTLASS D/ref gate-up values were composed through host SwiGLU, deterministic down projection, and weighted top-k reduction with D/ref parity; tokens/top_k/hidden/out=128/2/64/48; schedules=['cooperative', 'pingpong']; weighted_max_abs=[0.0] | `reports/stage6/r5c3c_down_weighted_parity_smoke_20260604_130243` | Proceed to full active-MoE prefill speed A/B; do not claim speed/default from R5-C3C. |
 | `r5c4_full_active_moe_prefill_speed_contract` | **CONTRACT_READY_UNIMPLEMENTED** `PASS_R5C4_FULL_ACTIVE_MOE_SPEED_CONTRACT_STATIC` | static contract exists for full active-MoE prefill speed A/B; no R5-C4 speed artifact is banked | `reports/stage6/R5C4_FULL_ACTIVE_MOE_PREFILL_SPEED_AB_CONTRACT_20260604.md, scripts/test_stage6_r5c4_full_active_moe_speed_contract_static.py` | Implement the R5-C4 harness on R6000; do not claim speed until numeric parity and timing gates pass. |
 | `r5c4_full_active_moe_prefill_speed_ab` | **READY_WAITING_R6000** | summary tooling exists, but no R5-C4 speed result.json artifact is banked | `scripts/r6000_stage6_r5c4_full_active_moe_speed_ab.py, scripts/r6000_stage6_r5c4_full_active_moe_speed_ab.sh, scripts/summarize_stage6_r5c4_full_active_moe_speed_ab.py, scripts/test_stage6_r5c4_full_active_moe_speed_ab_tools.py, scripts/test_stage6_r5c4_full_active_moe_speed_ab_validator.py` | Run the R5-C4 R6000 speed A/B harness; bank only active-MoE prefill speed, not decode/server/default. |
+| `r5c4_trace_candidate_rejection` | **CLOSED_NEGATIVE** `PASS_R5C4_TRACE_DERIVED_CANDIDATE_REJECTED` | R5-C3A gate/up timing plus R5-C3C host composition was rejected by the R5-C4 validator and cannot be promoted as full active-MoE speed | `reports/stage6/r5c4_trace_candidate_rejection_20260604_133036` | Proceed only with a real same-scope R5-C4 candidate using real model weights/router outputs. |
 
 ## Counts
 
 | Status | Count |
 |---|---:|
 | `BANKED` | 33 |
-| `CLOSED_NEGATIVE` | 5 |
+| `CLOSED_NEGATIVE` | 6 |
 | `CONTRACT_READY_UNIMPLEMENTED` | 2 |
 | `DECISION_BANKED` | 1 |
 | `DIAGNOSTIC_BANKED` | 4 |

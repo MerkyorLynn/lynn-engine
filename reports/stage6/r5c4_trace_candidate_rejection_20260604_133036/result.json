@@ -1,0 +1,38 @@
+{
+  "schema": "lynn-stage6-r5c4-trace-candidate-rejection-v1",
+  "created_at_utc": "2026-06-04T13:30:36+00:00",
+  "decision": "PASS_R5C4_TRACE_DERIVED_CANDIDATE_REJECTED",
+  "r5c3a": "/Users/lynn/Downloads/Lynn/lynn-engine/reports/stage6/r5c3a_gateup_prefill_timing_smoke_20260604_203052/result.json",
+  "r5c3c": "/Users/lynn/Downloads/Lynn/lynn-engine/reports/stage6/r5c3c_down_weighted_parity_smoke_20260604_130243/result.json",
+  "candidate_json": "/Users/lynn/Downloads/Lynn/lynn-engine/reports/stage6/r5c4_trace_candidate_rejection_20260604_133036/result.candidate.json",
+  "validator_json": "/Users/lynn/Downloads/Lynn/lynn-engine/reports/stage6/r5c4_trace_candidate_rejection_20260604_133036/result.validator.json",
+  "validator_stdout": "{\n  \"decision\": \"FAIL_R5C4_FULL_ACTIVE_MOE_PREFILL_SPEED_AB\",\n  \"passes\": {\n    \"input_r5c3c_passed\": true,\n    \"same_scope_ab\": false,\n    \"real_model_weights\": false,\n    \"real_router_outputs\": false,\n    \"candidate_no_active_bf16_shadow\": true,\n    \"candidate_no_reload\": true,\n    \"candidate_no_bf16_weight_materialization\": true,\n    \"candidate_full_active_moe_boundary_timed\": false,\n    \"timing_includes_gateup_swiglu_down_weighted_scatter\": false,\n    \"numeric_vs_w4a16_or_p3_reference\": false,\n    \"candidate_median_speedup_vs_best_reference_ge_1p05\": true,\n    \"required_lanes_present\": true,\n    \"banked_full_active_moe_prefill_speed\": false,\n    \"banked_grouped_moe_fp4_mma_poc\": false,\n    \"banked_kernel_speed\": false,\n    \"banked_decode_tps\": false,\n    \"banked_server_rc\": false,\n    \"banked_default_promotion\": false,\n    \"banked_full_transformer_prefill\": false,\n    \"all\": false\n  }\n}\n",
+  "validator_stderr": "",
+  "validator_returncode": 2,
+  "validator_decision": "FAIL_R5C4_FULL_ACTIVE_MOE_PREFILL_SPEED_AB",
+  "passes": {
+    "candidate_written": true,
+    "validator_result_written": true,
+    "validator_rejected_trace_candidate": true,
+    "validator_returned_failure": true,
+    "same_scope_false": true,
+    "real_model_weights_false": true,
+    "full_boundary_timed_false": true,
+    "decode_tps_not_banked": true,
+    "default_not_banked": true,
+    "all": true
+  },
+  "promotion_boundary": {
+    "full_active_moe_prefill_speed": false,
+    "grouped_moe_fp4_mma_poc": false,
+    "kernel_speed": false,
+    "decode_tps": false,
+    "server_rc": false,
+    "default_runtime": false,
+    "full_transformer_prefill": false
+  },
+  "caveats": [
+    "This banks only validator rejection behavior for a trace-derived bad candidate.",
+    "It does not measure or bank R5-C4 full active-MoE speed."
+  ]
+}

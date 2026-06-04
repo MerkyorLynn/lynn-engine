@@ -1,13 +1,13 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T13:27:23+00:00",
+  "generated_at_utc": "2026-06-04T13:32:05+00:00",
   "stage6_status": "R5C3C_DOWN_WEIGHTED_PARITY_BANKED",
   "stage6_note": "R5-C3C down + weighted top-k parity smoke is banked: real R5-C3B CUTLASS gate/up D/ref values were composed through host SwiGLU, deterministic down projection, and route-weighted top-k reduction with D/ref parity. This does not bank full active-MoE FP4-MMA speed, decode TPS, server behavior, RC quality, or default promotion. Next gate is full active-MoE prefill speed A/B against W4A16/P2-N/P3 paths. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT.",
   "spark_status": "R5C3C_DOWN_WEIGHTED_PARITY_BANKED",
   "spark_note": "R5-C3C down + weighted top-k parity smoke is banked: real R5-C3B CUTLASS gate/up D/ref values were composed through host SwiGLU, deterministic down projection, and route-weighted top-k reduction with D/ref parity. This does not bank full active-MoE FP4-MMA speed, decode TPS, server behavior, RC quality, or default promotion. Next gate is full active-MoE prefill speed A/B against W4A16/P2-N/P3 paths. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT.",
   "counts": {
     "BANKED": 33,
-    "CLOSED_NEGATIVE": 5,
+    "CLOSED_NEGATIVE": 6,
     "TIMEOUT_NOT_CLEAN": 1,
     "DIAGNOSTIC_BANKED": 4,
     "READY_WAITING_SPARK": 4,
@@ -499,6 +499,15 @@
       "artifact": "scripts/r6000_stage6_r5c4_full_active_moe_speed_ab.py, scripts/r6000_stage6_r5c4_full_active_moe_speed_ab.sh, scripts/summarize_stage6_r5c4_full_active_moe_speed_ab.py, scripts/test_stage6_r5c4_full_active_moe_speed_ab_tools.py, scripts/test_stage6_r5c4_full_active_moe_speed_ab_validator.py",
       "next_step": "Run the R5-C4 R6000 speed A/B harness; bank only active-MoE prefill speed, not decode/server/default.",
       "decision": ""
+    },
+    {
+      "gate": "r5c4_trace_candidate_rejection",
+      "title": "R5-C4 trace-derived candidate rejection",
+      "status": "CLOSED_NEGATIVE",
+      "evidence": "R5-C3A gate/up timing plus R5-C3C host composition was rejected by the R5-C4 validator and cannot be promoted as full active-MoE speed",
+      "artifact": "reports/stage6/r5c4_trace_candidate_rejection_20260604_133036",
+      "next_step": "Proceed only with a real same-scope R5-C4 candidate using real model weights/router outputs.",
+      "decision": "PASS_R5C4_TRACE_DERIVED_CANDIDATE_REJECTED"
     }
   ]
 }
