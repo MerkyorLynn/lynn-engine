@@ -1,12 +1,12 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T02:55:47+00:00",
+  "generated_at_utc": "2026-06-04T02:57:32+00:00",
   "spark_status": "REACHABLE_VIA_DGX_VIA_SSH",
-  "spark_note": "Spark SSH recovered via dgx-via-ssh on 2026-06-04; dgx-spark direct alias may report local forward ports 18007/18008 already in use. P4B fail-loud route gates, opt-in single-CTA numeric reference, single-CTA microbench anti-proof, multi-CTA recompute numeric/negative microbench, P4C active-reuse runtime bridge, P4C active-reuse speed baseline, and P4C component-profile tooling were run/prepared on /home/merkyor/lynn-engine-codex-stage6 through ba00d90 or later.",
+  "spark_note": "Spark SSH recovered via dgx-via-ssh on 2026-06-04; dgx-spark direct alias may report local forward ports 18007/18008 already in use. P4B fail-loud route gates, opt-in single-CTA numeric reference, single-CTA microbench anti-proof, multi-CTA recompute numeric/negative microbench, P4C active-reuse runtime bridge, P4C active-reuse speed baseline, and P4C component profile were run on /home/merkyor/lynn-engine-codex-stage6 through 4d53548.",
   "counts": {
-    "BANKED": 16,
+    "BANKED": 17,
     "CLOSED_NEGATIVE": 3,
-    "READY_WAITING_SPARK": 8,
+    "READY_WAITING_SPARK": 7,
     "REFERENCE_IMPL_BANKED_SPEED_CLOSED": 1,
     "DECISION_BANKED": 1
   },
@@ -262,11 +262,11 @@
     {
       "gate": "p4c_component_profile",
       "title": "P4C gate/up vs down component profile",
-      "status": "READY_WAITING_SPARK",
-      "evidence": "tooling/runbook exists, but no Spark PASS artifact is banked",
-      "artifact": "reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md, scripts/run_spark_stage6_p4c_component_profile.sh, scripts/spark_stage6_p4c_component_profile.py, scripts/summarize_stage6_p4c_component_profile.py, scripts/test_stage6_p4c_component_profile_tools.py",
+      "status": "BANKED",
+      "evidence": "latest Spark result.json has passes.all=true",
+      "artifact": "reports/stage6/p4c_component_profile_20260604_105640",
       "next_step": "Run on Spark; use the larger component to choose the first active-reuse speed candidate.",
-      "decision": ""
+      "decision": "PASS_P4C_COMPONENT_PROFILE_RECORDED"
     },
     {
       "gate": "p4c_active_reuse_decision",

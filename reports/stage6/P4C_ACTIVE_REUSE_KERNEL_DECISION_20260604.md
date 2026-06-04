@@ -26,6 +26,7 @@ active reuse.
 | P4B multi-CTA recompute | `rel_l2=0.0`, `max_abs=0.0`, **48.34 ms**, **0.0058x** vs P4A | Closed negative. Recomputing active per output tile is forbidden for the next speed candidate. |
 | P4C runtime bridge | Spark real-runner path `PASS_P4C_ACTIVE_REUSE_RUNTIME_BRIDGE`; call delta=1, active shadows removed, candidate vs Triton `rel_l2=0.0/max_abs=0.0` | Banks route/numeric evidence only. Fused speed/default promotion remain closed. |
 | P4C active-reuse speed baseline | Spark microbench `PASS_P4C_ACTIVE_REUSE_SPEED_BASELINE_RECORDED`; P4A **271.10 us**, P4C **271.06 us**, **1.00013x**, output/scratch exact | Banks baseline only. Confirms the P4C ABI adds no measurable overhead before replacing the symbol body. |
+| P4C component profile | Spark diagnostic `PASS_P4C_COMPONENT_PROFILE_RECORDED`; full **233.39 us**, gate/up **151.67 us** (**63.8%**), down **86.21 us** (**36.2%**), all exact | Banks diagnostic only. First speed candidate should target gate/up. |
 
 ## Constraint
 
@@ -91,6 +92,7 @@ The following are not bankable fused-kernel speed evidence:
 python3 scripts/test_stage6_p4c_active_reuse_decision_static.py
 python3 scripts/test_stage6_p4c_runtime_bridge_tools.py
 python3 scripts/test_stage6_p4c_active_reuse_microbench_tools.py
+python3 scripts/test_stage6_p4c_component_profile_tools.py
 ```
 
 This static gate does not prove speed. It prevents the repo from forgetting the
@@ -143,3 +145,29 @@ This confirms the P4C boundary itself is not the bottleneck. It still banks only
 `banked_p4c_active_reuse_speed_baseline=true`; fused-kernel speed and default
 promotion remain closed until a real active-reuse CUDA/CUTLASS candidate replaces
 the P4C symbol body and passes e2e/RC gates.
+
+## Runnable Component-Profile Gate
+
+After syncing the branch to Spark, run:
+
+```bash
+scripts/run_spark_stage6_p4c_component_profile.sh --host dgx-via-ssh
+```
+
+Banked Spark artifact:
+
+```text
+reports/stage6/p4c_component_profile_20260604_105640
+PASS_P4C_COMPONENT_PROFILE_RECORDED
+```
+
+Measured result: full P4C **233.3920 us**, gate/up component **151.6704 us**,
+down component **86.2144 us**. Component sum is **237.8848 us**, within
+**1.01925x** of the full P4C timing despite component symbols allocating output
+tensors. Gate/up is **63.76%** of the component sum; down is **36.24%**. Gate,
+down, and composed output all report `rel_l2=0.0/max_abs=0.0`.
+
+This makes the next speed candidate concrete: first replace or optimize the
+gate/up half of the P4C active-reuse path. Down is still worth optimizing later,
+but attacking it first can only address roughly one third of the current P4C
+time.
