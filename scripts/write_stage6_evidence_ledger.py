@@ -196,6 +196,62 @@ def _p4b_contract_gate() -> Gate:
     )
 
 
+def _p4b_multi_cta_microbench_gate() -> Gate:
+    required = [
+        "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md",
+        "scripts/run_spark_stage6_p4b_single_cta_microbench.sh",
+        "scripts/spark_stage6_p4b_single_cta_microbench.py",
+        "scripts/summarize_stage6_p4b_single_cta_microbench.py",
+    ]
+    run_dir, data = _latest_result(["p4b_multi_cta_microbench_"])
+    if data is None:
+        return _ready_gate(
+            "p4b_multi_cta_recompute_microbench",
+            "P4B multi-CTA recompute microbench",
+            required,
+            "Run with --candidate-mode multi_cta after the multi-CTA candidate is present.",
+        )
+    if data.get("_json_error"):
+        return Gate(
+            "p4b_multi_cta_recompute_microbench",
+            "P4B multi-CTA recompute microbench",
+            "FAILED_ARTIFACT",
+            "latest result.json is not valid JSON",
+            _artifact(run_dir),
+            "Fix artifact JSON before using this gate.",
+        )
+    if not _passes_all(data):
+        return Gate(
+            "p4b_multi_cta_recompute_microbench",
+            "P4B multi-CTA recompute microbench",
+            "FAILED_ARTIFACT",
+            "latest Spark result.json did not pass numeric/timing checks",
+            _artifact(run_dir),
+            "Fix numeric correctness before interpreting speed.",
+            _decision(data),
+        )
+    speedup = ((data.get("bench") or {}).get("candidate_vs_reference_speedup"))
+    if isinstance(speedup, (float, int)) and speedup < 1.0:
+        return Gate(
+            "p4b_multi_cta_recompute_microbench",
+            "P4B multi-CTA recompute microbench",
+            "CLOSED_NEGATIVE",
+            f"numeric exact but slower than P4A two-stage; speedup={speedup:.6f}x",
+            _artifact(run_dir),
+            "Reject per-output-tile active recompute; next candidate must preserve active reuse.",
+            _decision(data),
+        )
+    return Gate(
+        "p4b_multi_cta_recompute_microbench",
+        "P4B multi-CTA recompute microbench",
+        "BANKED",
+        "numeric/timing passed and candidate is not slower than P4A two-stage",
+        _artifact(run_dir),
+        "Escalate to real layer/e2e speed and RC quality gates before promotion.",
+        _decision(data),
+    )
+
+
 def collect_gates() -> list[Gate]:
     gates: list[Gate] = [
         _report_gate(
@@ -366,6 +422,19 @@ def collect_gates() -> list[Gate]:
             ],
             "Treat as an intentional speed anti-proof for single-CTA; next implementation must be multi-CTA/CUTLASS-style.",
         ),
+        _result_or_ready_gate(
+            "p4b_multi_cta_numeric_preflight",
+            "P4B multi-CTA recompute numeric preflight",
+            ["p4b_multi_cta_numeric_preflight_"],
+            [
+                "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md",
+                "scripts/run_spark_stage6_p4b_single_cta_numeric_preflight.sh",
+                "scripts/spark_stage6_p4b_single_cta_numeric_preflight.py",
+                "scripts/summarize_stage6_p4b_single_cta_numeric_preflight.py",
+            ],
+            "If numeric passes, use microbench to accept or reject this recompute strategy.",
+        ),
+        _p4b_multi_cta_microbench_gate(),
         _p4b_contract_gate(),
     ]
     return gates

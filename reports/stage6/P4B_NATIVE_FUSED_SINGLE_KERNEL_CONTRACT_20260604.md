@@ -260,11 +260,32 @@ P4A reference `rel_l2=0.0`, `max_abs=0.0`, `candidate_out=[1,2048]` BF16,
 `no_inter_scratch_candidate_abi=true`, packed/BF16 byte ratio
 `0.3750001589457194`, elapsed `25.818s`.
 
-The microbench artifact records the speed anti-proof: P4A two-stage median
+The single-CTA microbench artifact records the speed anti-proof: P4A two-stage median
 `282.515us`, P4B single-CTA median `39539.166us`, P4B/P4A speedup
 `0.007145x`, with numeric `rel_l2=0.0` and `max_abs=0.0`. This makes the next
 implementation target explicit: split the work across many CTAs or a
 CUTLASS-style grouped kernel; do not try to promote the single-CTA reference.
+
+## Multi-CTA Recompute Probe
+
+`LYNN_NATIVE_P4B_MULTI_CTA_REFERENCE=1` adds a first parallel candidate: each
+CTA owns a hidden-output tile, recomputes `active[slot, inter]` in shared
+memory, and writes only its own BF16 output rows. This preserves the P4B
+out-only ABI and avoids `inter_scratch`, but deliberately tests whether
+per-output-tile active recompute is viable.
+
+Spark result:
+
+| Gate | Artifact | Decision | Boundary |
+|---|---|---|---|
+| Multi-CTA recompute numeric | `reports/stage6/p4b_multi_cta_numeric_preflight_20260604_091106/` | `PASS_P4B_SINGLE_CTA_NUMERIC_REFERENCE` | Numeric exact only; speed/default remain unbanked |
+| Multi-CTA recompute microbench | `reports/stage6/p4b_multi_cta_microbench_20260604_091150/` | `PASS_P4B_SINGLE_CTA_MICROBENCH_RECORDED` | **Closed negative:** recompute strategy is slower |
+
+The numeric gate is exact (`rel_l2=0.0`, `max_abs=0.0`). The microbench rejects
+the strategy: P4A two-stage median `279.283us`, multi-CTA recompute median
+`48339.203us`, P4B/P4A speedup `0.005778x`. Recomputing active per output tile
+is worse than the single-CTA reference and must not be promoted. The next
+candidate must preserve active reuse rather than merely splitting output rows.
 
 ## Promotion Gate
 

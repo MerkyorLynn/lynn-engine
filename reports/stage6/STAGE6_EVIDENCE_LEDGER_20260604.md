@@ -12,7 +12,7 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 | Field | Value |
 |---|---|
 | Status | `REACHABLE_VIA_DGX_VIA_SSH` |
-| Note | Spark SSH recovered via dgx-via-ssh on 2026-06-04; dgx-spark direct alias may report local forward ports 18007/18008 already in use. P4B fail-loud route gates, opt-in single-CTA numeric reference, and single-CTA microbench anti-proof were run on /home/merkyor/lynn-engine-codex-stage6 through 71e72da. |
+| Note | Spark SSH recovered via dgx-via-ssh on 2026-06-04; dgx-spark direct alias may report local forward ports 18007/18008 already in use. P4B fail-loud route gates, opt-in single-CTA numeric reference, single-CTA microbench anti-proof, and multi-CTA recompute numeric/negative microbench were run on /home/merkyor/lynn-engine-codex-stage6 through 33d049a. |
 
 ## Promotion Boundaries
 
@@ -48,14 +48,16 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 | `p4b_runtime_bridge_preflight` | **BANKED** `PASS_P4B_RUNTIME_BRIDGE_FAILLOUD` | latest Spark result.json has passes.all=true | `reports/stage6/p4b_runtime_bridge_preflight_20260604_083152` | Run on Spark; proves resident-runner routing reaches P4B fail-loud symbol after active BF16 shadows are removed. |
 | `p4b_single_cta_numeric_preflight` | **BANKED** `PASS_P4B_SINGLE_CTA_NUMERIC_REFERENCE` | latest Spark result.json has passes.all=true | `reports/stage6/p4b_single_cta_numeric_preflight_20260604_084451` | Use as correctness reference only; next gate needs byte-count profiler plus speed/RC evidence. |
 | `p4b_single_cta_microbench` | **BANKED** `PASS_P4B_SINGLE_CTA_MICROBENCH_RECORDED` | latest Spark result.json has passes.all=true | `reports/stage6/p4b_single_cta_microbench_20260604_085842` | Treat as an intentional speed anti-proof for single-CTA; next implementation must be multi-CTA/CUTLASS-style. |
+| `p4b_multi_cta_numeric_preflight` | **BANKED** `PASS_P4B_SINGLE_CTA_NUMERIC_REFERENCE` | latest Spark result.json has passes.all=true | `reports/stage6/p4b_multi_cta_numeric_preflight_20260604_091106` | If numeric passes, use microbench to accept or reject this recompute strategy. |
+| `p4b_multi_cta_recompute_microbench` | **CLOSED_NEGATIVE** `PASS_P4B_SINGLE_CTA_MICROBENCH_RECORDED` | numeric exact but slower than P4A two-stage; speedup=0.005778x | `reports/stage6/p4b_multi_cta_microbench_20260604_091150` | Reject per-output-tile active recompute; next candidate must preserve active reuse. |
 | `p4b_single_kernel_contract` | **REFERENCE_IMPL_BANKED_SPEED_CLOSED** | opt-in single-CTA output-returning numeric reference is banked; speed/default promotion remain closed | `reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md, scripts/test_stage6_p4b_single_kernel_static.py, scripts/run_spark_stage6_p4b_single_cta_numeric_preflight.sh` | Scale beyond T=1/top_k=8, add byte-count profiler and speed gate before any promotion. |
 
 ## Counts
 
 | Status | Count |
 |---|---:|
-| `BANKED` | 13 |
-| `CLOSED_NEGATIVE` | 2 |
+| `BANKED` | 14 |
+| `CLOSED_NEGATIVE` | 3 |
 | `READY_WAITING_SPARK` | 7 |
 | `REFERENCE_IMPL_BANKED_SPEED_CLOSED` | 1 |
 

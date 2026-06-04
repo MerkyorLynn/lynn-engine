@@ -1,11 +1,11 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T01:01:59+00:00",
+  "generated_at_utc": "2026-06-04T01:16:40+00:00",
   "spark_status": "REACHABLE_VIA_DGX_VIA_SSH",
-  "spark_note": "Spark SSH recovered via dgx-via-ssh on 2026-06-04; dgx-spark direct alias may report local forward ports 18007/18008 already in use. P4B fail-loud route gates, opt-in single-CTA numeric reference, and single-CTA microbench anti-proof were run on /home/merkyor/lynn-engine-codex-stage6 through 71e72da.",
+  "spark_note": "Spark SSH recovered via dgx-via-ssh on 2026-06-04; dgx-spark direct alias may report local forward ports 18007/18008 already in use. P4B fail-loud route gates, opt-in single-CTA numeric reference, single-CTA microbench anti-proof, and multi-CTA recompute numeric/negative microbench were run on /home/merkyor/lynn-engine-codex-stage6 through 33d049a.",
   "counts": {
-    "BANKED": 13,
-    "CLOSED_NEGATIVE": 2,
+    "BANKED": 14,
+    "CLOSED_NEGATIVE": 3,
     "READY_WAITING_SPARK": 7,
     "REFERENCE_IMPL_BANKED_SPEED_CLOSED": 1
   },
@@ -211,6 +211,24 @@
       "evidence": "latest Spark result.json has passes.all=true",
       "artifact": "reports/stage6/p4b_single_cta_microbench_20260604_085842",
       "next_step": "Treat as an intentional speed anti-proof for single-CTA; next implementation must be multi-CTA/CUTLASS-style.",
+      "decision": "PASS_P4B_SINGLE_CTA_MICROBENCH_RECORDED"
+    },
+    {
+      "gate": "p4b_multi_cta_numeric_preflight",
+      "title": "P4B multi-CTA recompute numeric preflight",
+      "status": "BANKED",
+      "evidence": "latest Spark result.json has passes.all=true",
+      "artifact": "reports/stage6/p4b_multi_cta_numeric_preflight_20260604_091106",
+      "next_step": "If numeric passes, use microbench to accept or reject this recompute strategy.",
+      "decision": "PASS_P4B_SINGLE_CTA_NUMERIC_REFERENCE"
+    },
+    {
+      "gate": "p4b_multi_cta_recompute_microbench",
+      "title": "P4B multi-CTA recompute microbench",
+      "status": "CLOSED_NEGATIVE",
+      "evidence": "numeric exact but slower than P4A two-stage; speedup=0.005778x",
+      "artifact": "reports/stage6/p4b_multi_cta_microbench_20260604_091150",
+      "next_step": "Reject per-output-tile active recompute; next candidate must preserve active reuse.",
       "decision": "PASS_P4B_SINGLE_CTA_MICROBENCH_RECORDED"
     },
     {

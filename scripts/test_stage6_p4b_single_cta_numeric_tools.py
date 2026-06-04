@@ -145,6 +145,7 @@ def main() -> int:
             "--strict-exit",
         ])
         assert "Verdict | **PASS**" in pass_summary.stdout
+        assert "Candidate mode | `single_cta`" in pass_summary.stdout
         assert "Banked fused kernel speed | `False`" in pass_summary.stdout
         assert "No inter_scratch candidate ABI | `True`" in pass_summary.stdout
 

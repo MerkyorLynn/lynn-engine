@@ -46,7 +46,7 @@ def _verdict(data: dict[str, Any]) -> tuple[str, str]:
         return "FAIL", "candidate ABI admits inter_scratch"
     if candidate.get("shape") != [1, 2048] or candidate.get("dtype") != "torch.bfloat16":
         return "FAIL", "candidate shape/dtype mismatch"
-    return "PASS", "P4B single-CTA output matches P4A two-stage reference; speed still unbanked"
+    return "PASS", "P4B candidate output matches P4A two-stage reference; speed still unbanked"
 
 
 def summarize(data: dict[str, Any]) -> str:
@@ -56,7 +56,7 @@ def summarize(data: dict[str, Any]) -> str:
     cand = data.get("candidate_output") or {}
     byte_budget = data.get("byte_budget") or {}
     lines = [
-        "# Stage 6 P4B Single-CTA Numeric Preflight Summary",
+        "# Stage 6 P4B Candidate Numeric Preflight Summary",
         "",
         "| Field | Value |",
         "|---|---|",
@@ -64,6 +64,7 @@ def summarize(data: dict[str, Any]) -> str:
         f"| Decision | `{data.get('decision')}` |",
         f"| Symbol | `{data.get('symbol')}` |",
         f"| Reference symbol | `{data.get('reference_symbol')}` |",
+        f"| Candidate mode | `{data.get('candidate_mode', 'single_cta')}` |",
         f"| Device | `{data.get('device_name', 'unknown')}` |",
         f"| Capability | `{data.get('capability', 'unknown')}` |",
         f"| Torch/CUDA | `{data.get('torch_version')}` / `{data.get('torch_cuda')}` |",

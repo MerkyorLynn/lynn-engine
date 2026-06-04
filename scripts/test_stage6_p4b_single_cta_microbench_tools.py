@@ -121,6 +121,7 @@ def main() -> int:
             "--strict-exit",
         ])
         assert "Verdict | **PASS**" in pass_summary.stdout
+        assert "Candidate mode | `single_cta`" in pass_summary.stdout
         assert "Banked fused kernel speed | `False`" in pass_summary.stdout
         assert "P4B/P4A speedup | `0.2`" in pass_summary.stdout
 

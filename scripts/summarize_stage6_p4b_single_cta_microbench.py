@@ -43,12 +43,13 @@ def summarize(data: dict[str, Any]) -> str:
     diff = data.get("numeric_vs_reference") or {}
     byte_budget = data.get("byte_budget") or {}
     lines = [
-        "# Stage 6 P4B Single-CTA Microbench Summary",
+        "# Stage 6 P4B Candidate Microbench Summary",
         "",
         "| Field | Value |",
         "|---|---|",
         f"| Verdict | **{verdict}** ({reason}) |",
         f"| Decision | `{data.get('decision')}` |",
+        f"| Candidate mode | `{data.get('candidate_mode', 'single_cta')}` |",
         f"| Device | `{data.get('device_name', 'unknown')}` |",
         f"| Capability | `{data.get('capability', 'unknown')}` |",
         f"| Torch/CUDA | `{data.get('torch_version')}` / `{data.get('torch_cuda')}` |",
@@ -56,7 +57,7 @@ def summarize(data: dict[str, Any]) -> str:
         f"| Banked fused kernel speed | `{data.get('banked_fused_kernel')}` |",
         f"| Banked default promotion | `{data.get('banked_default_promotion')}` |",
         f"| P4A two-stage median | `{ref.get('median_us')}` us |",
-        f"| P4B single-CTA median | `{cand.get('median_us')}` us |",
+        f"| P4B candidate median | `{cand.get('median_us')}` us |",
         f"| P4B/P4A speedup | `{bench.get('candidate_vs_reference_speedup')}` |",
         f"| P4B minus P4A | `{bench.get('candidate_minus_reference_us')}` us |",
         f"| Numeric rel L2 | `{diff.get('rel_l2')}` |",
