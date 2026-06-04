@@ -101,6 +101,8 @@ def _packed_manifest(w: dict[str, Any]) -> dict[str, Any]:
 
 
 def _shape_matches(actual: list[int], expected: tuple[int | None, ...]) -> bool:
+    if expected == (1,) and actual in ([], [1]):
+        return True
     return len(actual) == len(expected) and all(exp is None or got == exp for got, exp in zip(actual, expected))
 
 

@@ -75,10 +75,10 @@ def pass_fixture() -> dict:
         "packed_manifest_before_candidate": {
             "mlp.experts._gate_up_packed": {"shape": [256, 1024, 1024], "dtype": "torch.uint8", "bytes": 268435456, "contiguous": True},
             "mlp.experts._gate_up_scale": {"shape": [256, 1024, 128], "dtype": "torch.float32", "bytes": 134217728, "contiguous": True},
-            "mlp.experts._gate_up_global_scale": {"shape": [1], "dtype": "torch.float32", "bytes": 4, "contiguous": True},
+            "mlp.experts._gate_up_global_scale": {"shape": [], "dtype": "torch.float32", "bytes": 4, "contiguous": True},
             "mlp.experts._down_packed": {"shape": [256, 2048, 256], "dtype": "torch.uint8", "bytes": 134217728, "contiguous": True},
             "mlp.experts._down_scale": {"shape": [256, 2048, 32], "dtype": "torch.float32", "bytes": 67108864, "contiguous": True},
-            "mlp.experts._down_global_scale": {"shape": [1], "dtype": "torch.float32", "bytes": 4, "contiguous": True},
+            "mlp.experts._down_global_scale": {"shape": [], "dtype": "torch.float32", "bytes": 4, "contiguous": True},
         },
         "candidate_returned": False,
         "candidate_error": {"type": "RuntimeError", "message": FAIL_LOUD_TEXT},
