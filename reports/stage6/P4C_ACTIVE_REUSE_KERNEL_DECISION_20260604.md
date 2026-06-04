@@ -25,6 +25,7 @@ active reuse.
 | P4B single-CTA reference | `rel_l2=0.0`, `max_abs=0.0`, **39.54 ms**, **0.007x** vs P4A | Correctness reference only. Closed as speed path. |
 | P4B multi-CTA recompute | `rel_l2=0.0`, `max_abs=0.0`, **48.34 ms**, **0.0058x** vs P4A | Closed negative. Recomputing active per output tile is forbidden for the next speed candidate. |
 | P4C runtime bridge | Spark real-runner path `PASS_P4C_ACTIVE_REUSE_RUNTIME_BRIDGE`; call delta=1, active shadows removed, candidate vs Triton `rel_l2=0.0/max_abs=0.0` | Banks route/numeric evidence only. Fused speed/default promotion remain closed. |
+| P4C active-reuse speed baseline | Spark microbench `PASS_P4C_ACTIVE_REUSE_SPEED_BASELINE_RECORDED`; P4A **271.10 us**, P4C **271.06 us**, **1.00013x**, output/scratch exact | Banks baseline only. Confirms the P4C ABI adds no measurable overhead before replacing the symbol body. |
 
 ## Constraint
 
@@ -89,6 +90,7 @@ The following are not bankable fused-kernel speed evidence:
 ```bash
 python3 scripts/test_stage6_p4c_active_reuse_decision_static.py
 python3 scripts/test_stage6_p4c_runtime_bridge_tools.py
+python3 scripts/test_stage6_p4c_active_reuse_microbench_tools.py
 ```
 
 This static gate does not prove speed. It prevents the repo from forgetting the
@@ -116,3 +118,28 @@ caller-owned active-reuse two-phase output numerically close to the current
 Triton packed path. It may bank only
 `banked_p4c_active_reuse_runtime_bridge=true`; it must keep
 `banked_fused_kernel=false` and `banked_default_promotion=false`.
+
+## Runnable Speed-Baseline Gate
+
+After syncing the branch to Spark, run:
+
+```bash
+scripts/run_spark_stage6_p4c_active_reuse_microbench.sh --host dgx-via-ssh
+```
+
+Banked Spark artifact:
+
+```text
+reports/stage6/p4c_active_reuse_microbench_20260604_104254
+PASS_P4C_ACTIVE_REUSE_SPEED_BASELINE_RECORDED
+```
+
+Measured result: P4A two-stage **271.0976 us**, P4C active-reuse contract
+**271.0624 us**, speedup **1.00013x**, output `rel_l2=0.0/max_abs=0.0`,
+scratch `rel_l2=0.0/max_abs=0.0`, active scratch **8192 bytes**, packed/BF16
+shadow ratio **0.37500016**.
+
+This confirms the P4C boundary itself is not the bottleneck. It still banks only
+`banked_p4c_active_reuse_speed_baseline=true`; fused-kernel speed and default
+promotion remain closed until a real active-reuse CUDA/CUTLASS candidate replaces
+the P4C symbol body and passes e2e/RC gates.
