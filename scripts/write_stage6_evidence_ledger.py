@@ -375,6 +375,78 @@ def _r6000_fp4_mma_census_gate() -> Gate:
     )
 
 
+def _r5a_layout_bridge_gate() -> Gate:
+    required = [
+        "reports/stage6/R6000_GROUPED_MOE_FP4_MMA_POC_CONTRACT_20260604.md",
+        "benchmarks/r5a_stage6_per16_layout_bridge.py",
+        "scripts/r6000_stage6_r5a_layout_bridge.sh",
+        "scripts/summarize_stage6_r5a_layout_bridge.py",
+        "scripts/test_stage6_r5a_layout_bridge_tools.py",
+    ]
+    run_dir, data = _latest_result(["r5a_layout_bridge_"])
+    if data is None:
+        missing = [rel for rel in required if not (ROOT / rel).exists()]
+        if missing:
+            return Gate(
+                "r5a_layout_bridge",
+                "R5-A Lynn per-16 NVFP4 -> block-scaled FP4 layout bridge",
+                "MISSING_TOOLING",
+                f"missing: {', '.join(missing)}",
+                "",
+                "Restore R5-A tooling before attempting grouped-MoE FP4-MMA kernel work.",
+            )
+        return Gate(
+            "r5a_layout_bridge",
+            "R5-A Lynn per-16 NVFP4 -> block-scaled FP4 layout bridge",
+            "READY_WAITING_R6000",
+            "tooling exists, but no R6000 result.json artifact is banked",
+            ", ".join(required),
+            "Run scripts/r6000_stage6_r5a_layout_bridge.sh on the RTX PRO 6000 host; bank only layout evidence.",
+        )
+    if data.get("_json_error"):
+        return Gate(
+            "r5a_layout_bridge",
+            "R5-A Lynn per-16 NVFP4 -> block-scaled FP4 layout bridge",
+            "FAILED_ARTIFACT",
+            "latest result.json is not valid JSON",
+            _artifact(run_dir),
+            "Fix artifact JSON before interpreting layout-bridge evidence.",
+        )
+    passes = data.get("passes") if isinstance(data.get("passes"), dict) else {}
+    decision = _decision(data)
+    if (
+        passes.get("banked_layout_bridge") is True
+        and passes.get("banked_grouped_moe_fp4_mma_poc") is False
+        and passes.get("banked_kernel_speed") is False
+        and passes.get("banked_default_promotion") is False
+        and decision.startswith("PASS_R5A_LAYOUT_BRIDGE")
+    ):
+        zero_copy = passes.get("current_lynn_e4m3_scales_zero_copy_supported")
+        evidence = "R5-A layout bridge banked; no kernel speed/default/grouped-MoE POC promotion"
+        if zero_copy is False:
+            evidence += "; current Lynn E4M3-like scales require e8m0 repack/custom scale handling"
+        elif zero_copy is True:
+            evidence += "; current scales appear zero-copy compatible in this synthetic gate"
+        return Gate(
+            "r5a_layout_bridge",
+            "R5-A Lynn per-16 NVFP4 -> block-scaled FP4 layout bridge",
+            "DIAGNOSTIC_BANKED",
+            evidence,
+            _artifact(run_dir),
+            "Use the bridge verdict to choose R5-B: e8m0 repack/custom scale path first, then CUTLASS/CuTe grouped-MoE POC.",
+            decision,
+        )
+    return Gate(
+        "r5a_layout_bridge",
+        "R5-A Lynn per-16 NVFP4 -> block-scaled FP4 layout bridge",
+        "FAILED_ARTIFACT",
+        "latest R5-A artifact did not satisfy the layout-only promotion boundary",
+        _artifact(run_dir),
+        "Fix numeric/layout boundary before writing grouped-MoE FP4-MMA kernels.",
+        decision,
+    )
+
+
 def _p4b_contract_gate() -> Gate:
     required = [
         "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md",
@@ -902,6 +974,7 @@ def collect_gates() -> list[Gate]:
             ],
             "Implement R5-A layout bridge first; do not start with a full fused MoE kernel.",
         ),
+        _r5a_layout_bridge_gate(),
     ]
     return gates
 
