@@ -397,6 +397,40 @@ void lynn_native_active_moe_fused_zero_shadow_out_contract(
       tile_hidden);
 }
 
+void lynn_native_active_moe_fused_zero_shadow_active_reuse_contract(
+    torch::Tensor hidden,
+    torch::Tensor expert_ids,
+    torch::Tensor routing_weights,
+    torch::Tensor gate_up_packed,
+    torch::Tensor gate_up_scale,
+    torch::Tensor gate_up_global_scale,
+    torch::Tensor down_packed,
+    torch::Tensor down_scale,
+    torch::Tensor down_global_scale,
+    torch::Tensor inter_scratch,
+    torch::Tensor out,
+    int64_t tile_tokens,
+    int64_t tile_inter,
+    int64_t tile_hidden) {
+  // P4C intentionally names the two-phase active-reuse candidate separately
+  // from P4B's harder out-only single-kernel objective.
+  lynn_native_active_moe_fused_zero_shadow_out_contract(
+      hidden,
+      expert_ids,
+      routing_weights,
+      gate_up_packed,
+      gate_up_scale,
+      gate_up_global_scale,
+      down_packed,
+      down_scale,
+      down_global_scale,
+      inter_scratch,
+      out,
+      tile_tokens,
+      tile_inter,
+      tile_hidden);
+}
+
 void lynn_native_active_moe_fused_zero_shadow_single_kernel_contract(
     torch::Tensor hidden,
     torch::Tensor expert_ids,

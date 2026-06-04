@@ -480,6 +480,19 @@ def collect_gates() -> list[Gate]:
         ),
         _p4b_multi_cta_microbench_gate(),
         _p4b_contract_gate(),
+        _result_or_ready_gate(
+            "p4c_active_reuse_runtime_bridge",
+            "P4C active-reuse runtime bridge preflight",
+            ["p4c_runtime_bridge_preflight_"],
+            [
+                "reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md",
+                "scripts/run_spark_stage6_p4c_runtime_bridge_preflight.sh",
+                "scripts/spark_stage6_p4c_runtime_bridge_preflight.py",
+                "scripts/summarize_stage6_p4c_runtime_bridge_preflight.py",
+                "scripts/test_stage6_p4c_runtime_bridge_tools.py",
+            ],
+            "Run on Spark; banks P4C active-reuse route/numeric evidence only, not fused speed or default promotion.",
+        ),
         _p4c_active_reuse_decision_gate(),
     ]
     return gates

@@ -9,6 +9,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DOC = ROOT / "reports" / "stage6" / "P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md"
 P4B_DOC = ROOT / "reports" / "stage6" / "P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md"
 CU = ROOT / "csrc" / "lynn_native" / "moe_fused_zero_shadow_contract.cu"
+BINDINGS = ROOT / "csrc" / "lynn_native" / "bindings.cpp"
+PY_BACKEND = ROOT / "engine" / "moe_packed_nvfp4.py"
 SINGLE_SUMMARY = ROOT / "reports" / "stage6" / "p4b_single_cta_microbench_20260604_085842" / "summary.md"
 MULTI_SUMMARY = ROOT / "reports" / "stage6" / "p4b_multi_cta_microbench_20260604_091150" / "summary.md"
 
@@ -30,6 +32,8 @@ def main() -> int:
     doc = _read(DOC)
     p4b_doc = _read(P4B_DOC)
     cu = _read(CU)
+    bindings = _read(BINDINGS)
+    py_backend = _read(PY_BACKEND)
     single_summary = _read(SINGLE_SUMMARY)
     multi_summary = _read(MULTI_SUMMARY)
 
@@ -51,6 +55,9 @@ def main() -> int:
             "reports speed against P4A synthetic reference and current `~44-45 TPS` RC",
             "banked_default_promotion=false",
             "Forbidden False Positives",
+            "scripts/run_spark_stage6_p4c_runtime_bridge_preflight.sh",
+            "PASS_P4C_ACTIVE_REUSE_RUNTIME_BRIDGE",
+            "banked_p4c_active_reuse_runtime_bridge=true",
         ],
         failures,
     )
@@ -66,7 +73,7 @@ def main() -> int:
         failures,
     )
     _check_contains(
-        "P4B C++ anti-proof structure",
+        "P4B/P4C C++ structure",
         cu,
         [
             "__shared__ __nv_bfloat16 active[kP4BTopK * kIntermediate]",
@@ -74,6 +81,21 @@ def main() -> int:
             "p4b_multi_cta_reference_kernel",
             "It recomputes active[slot, inter] per tile",
             "LYNN_NATIVE_P4B_MULTI_CTA_REFERENCE",
+            "lynn_native_active_moe_fused_zero_shadow_active_reuse_contract",
+        ],
+        failures,
+    )
+    _check_contains(
+        "P4C pybind/backend",
+        bindings + "\n" + py_backend,
+        [
+            "active_moe_fused_zero_shadow_active_reuse_contract",
+            "P4C active-reuse two-phase packed-NVFP4 zero-shadow active MoE contract",
+            "_active_moe_native_fused_zero_shadow_active_reuse_contract",
+            "fused_zero_shadow_active_reuse_contract",
+            "_p4c_fused_zero_shadow_active_reuse_contract_call_count",
+            "refusing to ",
+            "fall back to the generic Triton two-stage path",
         ],
         failures,
     )

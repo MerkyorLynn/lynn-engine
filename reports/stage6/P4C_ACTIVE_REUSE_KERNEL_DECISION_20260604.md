@@ -87,8 +87,31 @@ The following are not bankable fused-kernel speed evidence:
 
 ```bash
 python3 scripts/test_stage6_p4c_active_reuse_decision_static.py
+python3 scripts/test_stage6_p4c_runtime_bridge_tools.py
 ```
 
 This static gate does not prove speed. It prevents the repo from forgetting the
 two measured anti-proofs and the active-reuse boundary before the next CUDA
 candidate is written.
+
+## Runnable Runtime Bridge Gate
+
+After syncing the branch to Spark, run:
+
+```bash
+scripts/run_spark_stage6_p4c_runtime_bridge_preflight.sh --host dgx-via-ssh
+```
+
+Expected bankable decision:
+
+```text
+PASS_P4C_ACTIVE_REUSE_RUNTIME_BRIDGE
+```
+
+This gate proves the real resident-runner path can select
+`LYNN_NATIVE_ACTIVE_MOE_BACKEND=fused_zero_shadow_active_reuse_contract`, remove
+active-expert BF16 shadows, call the P4C native symbol exactly once, and return a
+caller-owned active-reuse two-phase output numerically close to the current
+Triton packed path. It may bank only
+`banked_p4c_active_reuse_runtime_bridge=true`; it must keep
+`banked_fused_kernel=false` and `banked_default_promotion=false`.
