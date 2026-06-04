@@ -149,6 +149,17 @@ def main() -> int:
         if gates["r5c4_full_active_moe_prefill_speed_contract"]["status"] == "CONTRACT_READY_UNIMPLEMENTED":
             assert gates["r5c4_full_active_moe_prefill_speed_contract"]["decision"] == "PASS_R5C4_FULL_ACTIVE_MOE_SPEED_CONTRACT_STATIC"
             assert "R6000" in gates["r5c4_full_active_moe_prefill_speed_contract"]["next_step"]
+        assert gates["r5c4_full_active_moe_prefill_speed_ab"]["status"] in {
+            "BANKED",
+            "DIAGNOSTIC_BANKED_SPEED_CLOSED",
+            "READY_WAITING_R6000",
+            "FAILED_ARTIFACT",
+            "MISSING_TOOLING",
+        }
+        assert "A/B" in gates["r5c4_full_active_moe_prefill_speed_ab"]["title"]
+        if gates["r5c4_full_active_moe_prefill_speed_ab"]["status"] == "BANKED":
+            assert gates["r5c4_full_active_moe_prefill_speed_ab"]["decision"] == "PASS_R5C4_FULL_ACTIVE_MOE_PREFILL_SPEED_AB"
+            assert "decode" in gates["r5c4_full_active_moe_prefill_speed_ab"]["next_step"].lower()
         assert "P4 fused kernel banked | `false`" in text
         assert "TEST_BLOCKED_BY_SSH" in text
 

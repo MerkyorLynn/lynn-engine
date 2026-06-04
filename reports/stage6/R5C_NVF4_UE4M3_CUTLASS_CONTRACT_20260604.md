@@ -264,6 +264,7 @@ python3 scripts/test_stage6_r5c3b_gateup_value_materialization_smoke_tools.py
 python3 scripts/test_stage6_r5c3c_down_weighted_parity_contract_static.py
 python3 scripts/test_stage6_r5c3c_down_weighted_parity_smoke_tools.py
 python3 scripts/test_stage6_r5c4_full_active_moe_speed_contract_static.py
+python3 scripts/test_stage6_r5c4_full_active_moe_speed_ab_tools.py
 ```
 
 ## Explicit Non-Claims
