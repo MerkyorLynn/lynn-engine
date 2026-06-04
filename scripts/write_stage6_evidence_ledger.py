@@ -537,6 +537,72 @@ def _r5b_e8m0_repack_gate() -> Gate:
     )
 
 
+def _r5c_cutlass_ue4m3_census_gate() -> Gate:
+    required = [
+        "reports/stage6/R5C_NVF4_UE4M3_CUTLASS_CONTRACT_20260604.md",
+        "scripts/r6000_stage6_r5c_cutlass_ue4m3_census.py",
+        "scripts/r6000_stage6_r5c_cutlass_ue4m3_census.sh",
+        "scripts/summarize_stage6_r5c_cutlass_ue4m3_census.py",
+        "scripts/test_stage6_r5c_cutlass_ue4m3_census_tools.py",
+    ]
+    run_dir, data = _latest_result(["r5c_cutlass_ue4m3_census_"])
+    if data is None:
+        missing = [rel for rel in required if not (ROOT / rel).exists()]
+        if missing:
+            return Gate(
+                "r5c_cutlass_ue4m3_census",
+                "R5-C CUTLASS native NVF4+UE4M3 ABI census",
+                "MISSING_TOOLING",
+                f"missing: {', '.join(missing)}",
+                "",
+                "Restore R5-C tooling before starting the native CUTLASS/CuTe route.",
+            )
+        return Gate(
+            "r5c_cutlass_ue4m3_census",
+            "R5-C CUTLASS native NVF4+UE4M3 ABI census",
+            "READY_WAITING_R6000",
+            "tooling exists, but no R6000 result.json artifact is banked",
+            ", ".join(required),
+            "Run scripts/r6000_stage6_r5c_cutlass_ue4m3_census.sh; bank ABI evidence only.",
+        )
+    if data.get("_json_error"):
+        return Gate(
+            "r5c_cutlass_ue4m3_census",
+            "R5-C CUTLASS native NVF4+UE4M3 ABI census",
+            "FAILED_ARTIFACT",
+            "latest result.json is not valid JSON",
+            _artifact(run_dir),
+            "Fix artifact JSON before interpreting R5-C.",
+        )
+    passes = data.get("passes") if isinstance(data.get("passes"), dict) else {}
+    decision = _decision(data)
+    if (
+        passes.get("banked_cutlass_abi") is True
+        and passes.get("banked_grouped_moe_fp4_mma_poc") is False
+        and passes.get("banked_kernel_speed") is False
+        and passes.get("banked_default_promotion") is False
+        and decision == "PASS_R5C_NVF4_UE4M3_CUTLASS_ABI"
+    ):
+        return Gate(
+            "r5c_cutlass_ue4m3_census",
+            "R5-C CUTLASS native NVF4+UE4M3 ABI census",
+            "BANKED",
+            "CUTLASS/CuTe exposes sm120 mxf4nvf4 block16 E2M1 + UE4M3 scale path; no kernel speed/default/grouped-MoE POC promotion",
+            _artifact(run_dir),
+            "Proceed to R5-C1 minimal numeric GEMM smoke; do not jump directly to grouped-MoE speed claims.",
+            decision,
+        )
+    return Gate(
+        "r5c_cutlass_ue4m3_census",
+        "R5-C CUTLASS native NVF4+UE4M3 ABI census",
+        "FAILED_ARTIFACT",
+        "latest R5-C artifact did not satisfy the ABI-only promotion boundary",
+        _artifact(run_dir),
+        "Inspect the CUTLASS/CuTe ABI result before writing native GEMM code.",
+        decision,
+    )
+
+
 def _p4b_contract_gate() -> Gate:
     required = [
         "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md",
@@ -1066,6 +1132,7 @@ def collect_gates() -> list[Gate]:
         ),
         _r5a_layout_bridge_gate(),
         _r5b_e8m0_repack_gate(),
+        _r5c_cutlass_ue4m3_census_gate(),
     ]
     return gates
 
