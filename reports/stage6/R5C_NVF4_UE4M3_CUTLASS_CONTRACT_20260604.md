@@ -45,9 +45,33 @@ banked_default_promotion=false
 | Rung | Goal | Promotion boundary |
 |---|---|---|
 | R5-C0 | CUTLASS/CuTe native NVF4 + UE4M3 ABI census | ABI only; no compile/kernel/speed claim |
-| R5-C1 | Minimal numeric GEMM smoke, M=16/64, N/K aligned to Lynn MoE tiles | Compare native result to dequant->bf16 reference; no grouped-MoE speed claim |
+| R5-C1 | Minimal numeric GEMM smoke with CUTLASS 79d native NVF4 + UE4M3 grouped GEMM | CUTLASS host-reference numeric smoke only; no Lynn grouped-MoE speed claim |
 | R5-C2 | Selected expert gate/up native GEMM smoke | Preserve expert IDs/top-k and scale semantics |
 | R5-C3 | Grouped active-MoE prefill POC | Only then may speed be measured against W4A16/P2-N/P3 paths |
+
+## R5-C1 Minimal Numeric GEMM Smoke Gate
+
+R5-C1 must run a real CUTLASS kernel, not only scan source. The allowed anchor
+is a minimal numeric GEMM smoke built from:
+
+```text
+examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm.cu
+```
+
+A PASS requires:
+
+```text
+PASS_R5C1_CUTLASS_NVF4_UE4M3_NUMERIC_SMOKE
+banked_numeric_smoke=true
+banked_grouped_moe_fp4_mma_poc=false
+banked_kernel_speed=false
+banked_default_promotion=false
+```
+
+The run must show both Cooperative and Pingpong schedules, host-side reference
+verification, at least two `Disposition: Passed` lines, and no device-gate
+no-op. Runtime/TFLOPS may be recorded for traceability, but R5-C1 does **not**
+bank speed.
 
 ## Commands
 
@@ -55,12 +79,14 @@ On the R6000 lane:
 
 ```bash
 scripts/r6000_stage6_r5c_cutlass_ue4m3_census.sh
+scripts/r6000_stage6_r5c1_cutlass_numeric_smoke.sh
 ```
 
 Local GPU-free check:
 
 ```bash
 python3 scripts/test_stage6_r5c_cutlass_ue4m3_census_tools.py
+python3 scripts/test_stage6_r5c1_cutlass_numeric_smoke_tools.py
 ```
 
 ## Explicit Non-Claims
@@ -70,3 +96,7 @@ python3 scripts/test_stage6_r5c_cutlass_ue4m3_census_tools.py
 - R5-C0 does not change runtime defaults.
 - R5-C0 exists only to prevent the next implementation from starting from the
   already-closed simple e8m0 repack route.
+- R5-C1 proves only a CUTLASS native NVF4 + UE4M3 numeric smoke with host
+  reference verification.
+- R5-C1 does not prove a Lynn selected-expert gate/up kernel exists.
+- R5-C1 does not bank grouped-MoE FP4-MMA speed or runtime defaults.
