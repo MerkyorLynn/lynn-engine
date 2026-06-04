@@ -172,6 +172,8 @@ def _dequant_codes(codes: torch.Tensor, scale16: torch.Tensor) -> torch.Tensor:
     sign = torch.where((codes & 0x08) != 0, -1.0, 1.0).to(torch.float32)
     values = table[mag] * sign
     groups = codes.shape[-1] // 16
+    if scale16.shape[-1] != groups:
+        raise ValueError(f"scale16 last dimension {scale16.shape[-1]} does not match expected per-16 groups {groups}")
     scale = scale16.float().reshape(*scale16.shape[:-1], groups, 1).expand(*scale16.shape[:-1], groups, 16)
     return values.reshape(*values.shape[:-1], groups, 16).float().mul(scale).reshape_as(values.float())
 
