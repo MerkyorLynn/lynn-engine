@@ -15,6 +15,7 @@ Options:
   --tokens N                   Fixture token count. Default: 1.
   --experts N                  Fixture expert count. Default: 8.
   --top-k N                    Fixture top-k. Default: 8.
+  --candidate-mode MODE        Candidate path: single_cta or multi_cta. Default: single_cta.
   --rel-l2-threshold F         Numeric relative-L2 threshold. Default: 0.05.
   --max-abs-threshold F        Numeric max-absolute threshold. Default: 0.5.
   --allow-provenance-mismatch  Do not fail when both HEAD and manifest differ.
@@ -76,6 +77,7 @@ EXPECTED_MANIFEST="${LYNN_STAGE6_EXPECT_MANIFEST:-$(manifest_for_files "${PROVEN
 TOKENS="1"
 EXPERTS="8"
 TOP_K="8"
+CANDIDATE_MODE="single_cta"
 REL_L2_THRESHOLD="0.05"
 MAX_ABS_THRESHOLD="0.5"
 REQUIRE_PROVENANCE="1"
@@ -91,6 +93,7 @@ while [[ $# -gt 0 ]]; do
     --tokens) TOKENS="$2"; shift 2 ;;
     --experts) EXPERTS="$2"; shift 2 ;;
     --top-k) TOP_K="$2"; shift 2 ;;
+    --candidate-mode) CANDIDATE_MODE="$2"; shift 2 ;;
     --rel-l2-threshold) REL_L2_THRESHOLD="$2"; shift 2 ;;
     --max-abs-threshold) MAX_ABS_THRESHOLD="$2"; shift 2 ;;
     --allow-provenance-mismatch) REQUIRE_PROVENANCE="0"; shift ;;
@@ -111,7 +114,7 @@ echo "[p4b-single-cta] remote_run_dir=${REMOTE_RUN_DIR}"
 
 set +e
 ssh "$HOST" \
-  "REMOTE_REPO=$(shell_quote "$REMOTE_REPO") REMOTE_RUN_DIR=$(shell_quote "$REMOTE_RUN_DIR") IMAGE=$(shell_quote "$IMAGE") TOKENS=$(shell_quote "$TOKENS") EXPERTS=$(shell_quote "$EXPERTS") TOP_K=$(shell_quote "$TOP_K") REL_L2_THRESHOLD=$(shell_quote "$REL_L2_THRESHOLD") MAX_ABS_THRESHOLD=$(shell_quote "$MAX_ABS_THRESHOLD") EXPECTED_HEAD=$(shell_quote "$EXPECTED_HEAD") EXPECTED_MANIFEST=$(shell_quote "$EXPECTED_MANIFEST") REQUIRE_PROVENANCE=$(shell_quote "$REQUIRE_PROVENANCE") STRICT=$(shell_quote "$STRICT") bash -s" <<'REMOTE'
+  "REMOTE_REPO=$(shell_quote "$REMOTE_REPO") REMOTE_RUN_DIR=$(shell_quote "$REMOTE_RUN_DIR") IMAGE=$(shell_quote "$IMAGE") TOKENS=$(shell_quote "$TOKENS") EXPERTS=$(shell_quote "$EXPERTS") TOP_K=$(shell_quote "$TOP_K") CANDIDATE_MODE=$(shell_quote "$CANDIDATE_MODE") REL_L2_THRESHOLD=$(shell_quote "$REL_L2_THRESHOLD") MAX_ABS_THRESHOLD=$(shell_quote "$MAX_ABS_THRESHOLD") EXPECTED_HEAD=$(shell_quote "$EXPECTED_HEAD") EXPECTED_MANIFEST=$(shell_quote "$EXPECTED_MANIFEST") REQUIRE_PROVENANCE=$(shell_quote "$REQUIRE_PROVENANCE") STRICT=$(shell_quote "$STRICT") bash -s" <<'REMOTE'
 set -euo pipefail
 file_sha256() {
   if command -v sha256sum >/dev/null 2>&1; then
@@ -200,6 +203,7 @@ docker run --rm --gpus all --ipc=host \
     --tokens "$TOKENS" \
     --experts "$EXPERTS" \
     --top-k "$TOP_K" \
+    --candidate-mode "$CANDIDATE_MODE" \
     --rel-l2-threshold "$REL_L2_THRESHOLD" \
     --max-abs-threshold "$MAX_ABS_THRESHOLD" \
     $STRICT_FLAG \

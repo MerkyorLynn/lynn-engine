@@ -15,6 +15,7 @@ Options:
   --warmup N                   Warmup iterations per repeat. Default: 2.
   --iters N                    Timed iterations per repeat. Default: 10.
   --repeats N                  Timing repeats. Default: 5.
+  --candidate-mode MODE        Candidate path: single_cta or multi_cta. Default: single_cta.
   --allow-provenance-mismatch  Do not fail when both HEAD and manifest differ.
   --no-strict                  Pull artifacts but do not fail on result passes.all=false.
   -h, --help                   Show this help.
@@ -74,6 +75,7 @@ EXPECTED_MANIFEST="${LYNN_STAGE6_EXPECT_MANIFEST:-$(manifest_for_files "${PROVEN
 WARMUP="2"
 ITERS="10"
 REPEATS="5"
+CANDIDATE_MODE="single_cta"
 REQUIRE_PROVENANCE="1"
 STRICT="1"
 
@@ -87,6 +89,7 @@ while [[ $# -gt 0 ]]; do
     --warmup) WARMUP="$2"; shift 2 ;;
     --iters) ITERS="$2"; shift 2 ;;
     --repeats) REPEATS="$2"; shift 2 ;;
+    --candidate-mode) CANDIDATE_MODE="$2"; shift 2 ;;
     --allow-provenance-mismatch) REQUIRE_PROVENANCE="0"; shift ;;
     --no-strict) STRICT="0"; shift ;;
     -h|--help) usage; exit 0 ;;
@@ -105,7 +108,7 @@ echo "[p4b-single-cta-microbench] remote_run_dir=${REMOTE_RUN_DIR}"
 
 set +e
 ssh "$HOST" \
-  "REMOTE_REPO=$(shell_quote "$REMOTE_REPO") REMOTE_RUN_DIR=$(shell_quote "$REMOTE_RUN_DIR") IMAGE=$(shell_quote "$IMAGE") WARMUP=$(shell_quote "$WARMUP") ITERS=$(shell_quote "$ITERS") REPEATS=$(shell_quote "$REPEATS") EXPECTED_HEAD=$(shell_quote "$EXPECTED_HEAD") EXPECTED_MANIFEST=$(shell_quote "$EXPECTED_MANIFEST") REQUIRE_PROVENANCE=$(shell_quote "$REQUIRE_PROVENANCE") STRICT=$(shell_quote "$STRICT") bash -s" <<'REMOTE'
+  "REMOTE_REPO=$(shell_quote "$REMOTE_REPO") REMOTE_RUN_DIR=$(shell_quote "$REMOTE_RUN_DIR") IMAGE=$(shell_quote "$IMAGE") WARMUP=$(shell_quote "$WARMUP") ITERS=$(shell_quote "$ITERS") REPEATS=$(shell_quote "$REPEATS") CANDIDATE_MODE=$(shell_quote "$CANDIDATE_MODE") EXPECTED_HEAD=$(shell_quote "$EXPECTED_HEAD") EXPECTED_MANIFEST=$(shell_quote "$EXPECTED_MANIFEST") REQUIRE_PROVENANCE=$(shell_quote "$REQUIRE_PROVENANCE") STRICT=$(shell_quote "$STRICT") bash -s" <<'REMOTE'
 set -euo pipefail
 file_sha256() {
   if command -v sha256sum >/dev/null 2>&1; then
@@ -190,6 +193,7 @@ docker run --rm --gpus all --ipc=host \
     --warmup "$WARMUP" \
     --iters "$ITERS" \
     --repeats "$REPEATS" \
+    --candidate-mode "$CANDIDATE_MODE" \
     $STRICT_FLAG \
   > "$REMOTE_RUN_DIR/run.log" 2>&1
 DOCKER_STATUS=$?

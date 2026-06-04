@@ -150,8 +150,13 @@ def _call_reference(ext: Any, inputs: dict[str, torch.Tensor], args: argparse.Na
 
 
 def _call_candidate(ext: Any, inputs: dict[str, torch.Tensor], args: argparse.Namespace) -> None:
-    old = os.environ.get("LYNN_NATIVE_P4B_SINGLE_CTA_REFERENCE")
-    os.environ["LYNN_NATIVE_P4B_SINGLE_CTA_REFERENCE"] = "1"
+    env_name = (
+        "LYNN_NATIVE_P4B_MULTI_CTA_REFERENCE"
+        if getattr(args, "candidate_mode", "single_cta") == "multi_cta"
+        else "LYNN_NATIVE_P4B_SINGLE_CTA_REFERENCE"
+    )
+    old = os.environ.get(env_name)
+    os.environ[env_name] = "1"
     try:
         getattr(ext, SYMBOL)(
             inputs["hidden"],
@@ -170,9 +175,9 @@ def _call_candidate(ext: Any, inputs: dict[str, torch.Tensor], args: argparse.Na
         )
     finally:
         if old is None:
-            os.environ.pop("LYNN_NATIVE_P4B_SINGLE_CTA_REFERENCE", None)
+            os.environ.pop(env_name, None)
         else:
-            os.environ["LYNN_NATIVE_P4B_SINGLE_CTA_REFERENCE"] = old
+            os.environ[env_name] = old
 
 
 def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
@@ -187,6 +192,7 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
         "tile_inter": args.tile_inter,
         "tile_experts": args.tile_experts,
         "tile_hidden": args.tile_hidden,
+        "candidate_mode": args.candidate_mode,
         "seed": args.seed,
         "banked_single_cta_numeric_preflight": False,
         "banked_fused_kernel": False,
@@ -313,6 +319,7 @@ def main() -> int:
     ap.add_argument("--tile-inter", type=int, default=8)
     ap.add_argument("--tile-experts", type=int, default=1)
     ap.add_argument("--tile-hidden", type=int, default=8)
+    ap.add_argument("--candidate-mode", choices=["single_cta", "multi_cta"], default="single_cta")
     ap.add_argument("--seed", type=int, default=20260604)
     ap.add_argument("--rel-l2-threshold", type=float, default=0.05)
     ap.add_argument("--max-abs-threshold", type=float, default=0.5)

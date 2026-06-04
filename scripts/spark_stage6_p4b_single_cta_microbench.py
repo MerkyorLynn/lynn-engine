@@ -99,6 +99,7 @@ def run_microbench(args: argparse.Namespace) -> dict[str, Any]:
         "tokens": args.tokens,
         "experts": args.experts,
         "top_k": args.top_k,
+        "candidate_mode": args.candidate_mode,
         "warmup": args.warmup,
         "iters": args.iters,
         "repeats": args.repeats,
@@ -202,6 +203,7 @@ def main() -> int:
     ap.add_argument("--tile-inter", type=int, default=8)
     ap.add_argument("--tile-experts", type=int, default=1)
     ap.add_argument("--tile-hidden", type=int, default=8)
+    ap.add_argument("--candidate-mode", choices=["single_cta", "multi_cta"], default="single_cta")
     ap.add_argument("--seed", type=int, default=20260604)
     ap.add_argument("--warmup", type=int, default=2)
     ap.add_argument("--iters", type=int, default=10)

@@ -133,7 +133,9 @@ def main() -> int:
         wrapper_text = wrapper.read_text(encoding="utf-8")
         assert "p4b_single_cta_numeric_preflight_" in wrapper_text
         assert "LYNN_STAGE6_EXPECT_MANIFEST" in wrapper_help.stdout
+        assert "--candidate-mode MODE" in wrapper_help.stdout
         assert "spark_stage6_p4b_single_cta_numeric_preflight.py" in wrapper_text
+        assert "--candidate-mode \"$CANDIDATE_MODE\"" in wrapper_text
 
         pass_summary = run([
             sys.executable,
