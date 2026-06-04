@@ -1,13 +1,13 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T06:55:30+00:00",
-  "spark_status": "P3B_SELECTED_PREFILL_BANKED",
-  "spark_note": "P2-O basic/non-long and P3-A are banked. P3-B layers 0-3 selected-prefill PASS: final-stack cosine min 0.999949, argmax true, active BF16 shadow absent, reload trap installed and not called, active-shadow drop 5.991 GiB, average speed 1.020x vs P2-N reference. Banks selected-layer composition only; P3-C server, RC, and default promotion remain separate gates.",
+  "generated_at_utc": "2026-06-04T07:15:43+00:00",
+  "spark_status": "P3C_BASIC_RESIDENT_PROMPT_BANKED",
+  "spark_note": "P3-C basic resident-prompt PASS: 3/3 generated-ID exact, 88.161->28.178 GiB, released 60.000 GiB, reload not called. Candidate prefill remains slow at 151.861s avg (0.008x), so this banks real-prompt correctness/memory only; P3-D server, RC, default promotion, and throughput remain separate gates.",
   "counts": {
-    "BANKED": 24,
+    "BANKED": 25,
     "CLOSED_NEGATIVE": 4,
     "TIMEOUT_NOT_CLEAN": 1,
-    "READY_WAITING_SPARK": 5,
+    "READY_WAITING_SPARK": 4,
     "REFERENCE_IMPL_BANKED_SPEED_CLOSED": 1,
     "DIAGNOSTIC_BANKED": 1,
     "DECISION_BANKED": 1
@@ -165,11 +165,11 @@
     {
       "gate": "p3c_resident_prompt",
       "title": "P3-C resident-prompt gate",
-      "status": "READY_WAITING_SPARK",
-      "evidence": "tooling/runbook exists, but no Spark PASS artifact is banked",
-      "artifact": "reports/stage6/P3C_RESIDENT_PROMPT_GATE_RUNBOOK_20260604.md, scripts/run_spark_stage6_p3c_resident_prompt_gate.sh",
-      "next_step": "Run after P3-B PASS.",
-      "decision": ""
+      "status": "BANKED",
+      "evidence": "latest Spark result.json has passes.all=true",
+      "artifact": "reports/stage6/p3c_basic_resident_prompt_gate_20260604_145940",
+      "next_step": "Banks resident-prompt basic smoke only; P3-D server behavior and RC quality remain separate gates.",
+      "decision": "PASS"
     },
     {
       "gate": "p3d_server_rc",

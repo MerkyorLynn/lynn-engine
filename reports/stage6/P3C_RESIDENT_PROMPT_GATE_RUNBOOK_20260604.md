@@ -2,11 +2,35 @@
 
 Date: 2026-06-04
 
-Verdict: **RUNBOOK/TOOLING ONLY; no P3-C result is banked yet.**
+Verdict: **PASS artifact banked for `basic`; runbook remains the gate contract.**
 
 P3-C is the first real-prompt resident-runner gate after P3-B selected-prefill
 composition. It tests whether the P3-A grouped active-MoE contract can survive
 tokenized resident generation after active BF16 expert shadows are released.
+
+Tooling status: Spark artifact
+`reports/stage6/p3c_basic_resident_prompt_gate_20260604_145940`
+banked the basic resident-prompt no-reload gate. This does not bank server
+default, RC quality, full `rc-mini`, or long-context behavior.
+
+## Banked Basic Artifact
+
+- Preset: `basic`
+- Prompts: `3`
+- Generated-ID exact prompts: `3/3`
+- Text-prefix prompts: `3/3`
+- Loaded memory: `88.161 GiB`
+- After release memory: `28.178 GiB`
+- Released memory: `60.000 GiB`
+- Reload not called: `true`
+- Baseline prefill average: `1.228 s`
+- Candidate prefill average: `151.861 s`
+- Prefill speed ratio: `0.008x`
+
+Use [the artifact report](p3c_basic_resident_prompt_gate_20260604_145940/report.md)
+as the authoritative P3-C `basic` result. The slow candidate prefill is a
+shipping blocker for high-throughput multi-request serving; this gate banks
+correctness/memory only.
 
 ## Required Predecessors
 
