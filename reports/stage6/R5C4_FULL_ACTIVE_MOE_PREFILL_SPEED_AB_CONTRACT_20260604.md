@@ -118,8 +118,15 @@ The artifact must include:
 ## Local Static Gate
 
 ```bash
+python3 scripts/test_stage6_r5c4_candidate_from_metrics.py
 python3 scripts/test_stage6_r5c4_full_active_moe_speed_contract_static.py
 ```
 
 This static gate prevents gate/up-only timing traces or host composition parity
 artifacts from being promoted as full active-MoE prefill speed evidence.
+
+R6000 harnesses may either emit the canonical `CANDIDATE_JSON` directly or emit
+raw same-scope metrics as `CANDIDATE_METRICS_JSON`; the wrapper normalizes the
+latter through `scripts/stage6_r5c4_candidate_from_metrics.py` before running
+the validator. `scripts/stage6_r5c4_candidate_metrics_template.json` is the
+expected raw metrics shape for new kernel harnesses.

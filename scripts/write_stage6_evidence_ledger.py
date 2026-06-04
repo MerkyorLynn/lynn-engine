@@ -1184,9 +1184,12 @@ def _r5c4_full_active_moe_speed_contract_gate() -> Gate:
 
 def _r5c4_full_active_moe_speed_ab_gate() -> Gate:
     required = [
+        "scripts/stage6_r5c4_candidate_metrics_template.json",
+        "scripts/stage6_r5c4_candidate_from_metrics.py",
         "scripts/r6000_stage6_r5c4_full_active_moe_speed_ab.py",
         "scripts/r6000_stage6_r5c4_full_active_moe_speed_ab.sh",
         "scripts/summarize_stage6_r5c4_full_active_moe_speed_ab.py",
+        "scripts/test_stage6_r5c4_candidate_from_metrics.py",
         "scripts/test_stage6_r5c4_full_active_moe_speed_ab_tools.py",
         "scripts/test_stage6_r5c4_full_active_moe_speed_ab_validator.py",
     ]
