@@ -11,8 +11,8 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 
 | Field | Value |
 |---|---|
-| Status | `DECODE_GPU_IDLE_PROBE_BORDERLINE_BANKED` |
-| Note | Decode GPU-idle probe PASS: N/2N delta estimates GPU busy 0.753, host-gap 0.247, CUDA launches/token 1969.021, short/long runner TPS 41.36/42.19. ROI signal is BORDERLINE_REMEASURE_OR_NSIGHT, so compiled-loop is plausible but not enough for month-scale runtime work without Nsight or a smaller prototype. |
+| Status | `R6000_FP4_MMA_CENSUS_TOOLING_READY` |
+| Note | R6000 FP4-MMA bring-up/census tooling added. The selected host class is RTX PRO 6000 96GB with >=500GiB disk free (943GiB preferred). Next R6000 run must pass machine/toolchain/public-kernel gates before starting a new FP4-MMA kernel. |
 
 ## Promotion Boundaries
 
@@ -65,6 +65,7 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 | `p4c_tile2_shadow_cycle_first_divergence` | **DIAGNOSTIC_BANKED** `pass=true; first_top1_divergence=null` | server-like shadow cycle kept top-1 stable on the arithmetic prompt, but first hidden drift appears at step 0/layer 13 | `reports/stage6/p4c_tile2_shadow_cycle_first_divergence_20260604_130839` | Use as a go/no-go diagnostic only; do not promote P4C tile2 without wider RC exactness and e2e speed. |
 | `p4c_active_reuse_decision` | **DECISION_BANKED** | single-CTA and multi-CTA recompute anti-proofs are captured; next candidate must preserve active reuse | `reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md, scripts/test_stage6_p4c_active_reuse_decision_static.py` | Implement P4C active-reuse two-phase/CUTLASS-style candidate; do not report it as P4B out-only fused speed. |
 | `decode_gpu_idle_probe` | **DIAGNOSTIC_BANKED** `BORDERLINE_REMEASURE_OR_NSIGHT` | host-gap fraction 0.247, CUDA launches/token 1969.0 | `reports/stage6/decode_gpu_idle_probe_20260604_154648` | Use this ROI signal to choose MTP-light/compiled-loop prototype scope; do not treat it as speed promotion. |
+| `r6000_fp4_mma_census` | **READY_WAITING_R6000** | tooling/runbook exists, but no R6000 PASS artifact is banked | `reports/stage6/R6000_FP4_MMA_BRINGUP_RUNBOOK_20260604.md, scripts/r6000_stage6_fp4_mma_census.py, scripts/summarize_stage6_r6000_fp4_mma_census.py, scripts/test_stage6_r6000_fp4_mma_census_tools.py` | Run on the RTX PRO 6000 96GB host with --run-contracts before starting a new FP4-MMA kernel. |
 
 ## Counts
 
@@ -74,6 +75,7 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 | `CLOSED_NEGATIVE` | 4 |
 | `DECISION_BANKED` | 1 |
 | `DIAGNOSTIC_BANKED` | 3 |
+| `READY_WAITING_R6000` | 1 |
 | `READY_WAITING_SPARK` | 4 |
 | `REFERENCE_IMPL_BANKED_SPEED_CLOSED` | 1 |
 | `TIMEOUT_NOT_CLEAN` | 1 |

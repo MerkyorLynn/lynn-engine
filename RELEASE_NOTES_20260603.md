@@ -35,6 +35,7 @@
 - P3-B selected-prefill composition gate: [Stage 6 Phase 3-B selected-prefill gate](reports/stage6/p3b_layers0-3_selected_prefill_gate_20260604_144842/report.md)
 - P3-C resident-prompt basic gate: [Stage 6 Phase 3-C resident-prompt basic gate](reports/stage6/p3c_basic_resident_prompt_gate_20260604_145940/report.md)
 - Decode GPU-idle ROI probe: [Stage 6 decode GPU-idle ROI probe](reports/stage6/decode_gpu_idle_probe_20260604_154648/summary.md)
+- R6000 FP4-MMA bring-up: [Stage 6 R6000 FP4-MMA bring-up runbook](reports/stage6/R6000_FP4_MMA_BRINGUP_RUNBOOK_20260604.md)
 
 ## Banked Results
 
@@ -75,6 +76,7 @@
 | P3-B selected-prefill composition | layers 0-3 PASS:final-stack cosine min 0.999949,argmax true,active BF16 shadow absent,reload trap installed and not called;active-shadow drop 5.991 GiB;avg 61.28ms vs P2-N 62.45ms=1.020x,so this banks selected-layer composition only,not server/RC/default |
 | P3-C resident-prompt basic | PASS:3/3 generated-ID exact,text-prefix 3/3,88.161->28.178 GiB,released 60.000 GiB,reload not called;candidate prefill avg 151.861s vs baseline 1.228s(0.008x),so this banks real-prompt correctness/memory only,not throughput/server/RC/default |
 | Decode GPU-idle ROI probe | PASS but borderline:N/2N delta estimates GPU busy 0.753,host-gap 0.247,CUDA launches/token 1969.0,runner TPS 41.36/42.19;ROI=`BORDERLINE_REMEASURE_OR_NSIGHT`,so compiled-loop is plausible but not enough for month-scale runtime without Nsight/prototype |
+| R6000 FP4-MMA bring-up | tooling ready,not banked yet:preferred host is RTX PRO 6000 96GB 723机 with 943GB disk expansion;gate checks CUDA/PyTorch/disk,public Marlin/Machete/CUTLASS visibility,and P76/P79/P85/P87/P103 native FP4 contracts |
 
 ## Corrected Engineering Read
 
@@ -124,7 +126,8 @@
 28. **P3 server promotion:** `LYNN_PACKED_PREFILL=1` 后多请求服务常驻 27-28 GiB,无 reload,decode TPS 不回退;未过前不做 server 默认。
 29. **P4C native zero-shadow go/no-go:** P4B single-CTA 和 active recompute 已由 microbench 反证;P4C basic server smoke 已过,但 rc-mini wider agreement 已拒绝(completion exact 3/6,chat 2/2)。P4C 仅保留 opt-in diagnostic/basic smoke;没有 RC-exact 且 e2e A/B 真快过 ~45 的候选,不做 promotion。
 30. **Decode GPU-idle ROI probe:已过,但 verdict 是 borderline。** N/2N delta 估计 GPU busy 75.3%、host-gap 24.7%、CUDA launches/token 1969.0;compiled-loop 有回收空间,但证据不足以直接开月级 C++ runtime,下一步是 Nsight 复测或小样 prototype。
-31. **Speed next:** 不是 P4C 扩 RC,而是两条速度线:MTP draft/accept 信号好,真正 blocker 是 eager speculative runtime;下一轮优先削 snapshot/restore、per-event dispatch/sync 与 token-exact batched verify。另一条是把 decode hot loop 搬出 Python、用 compiled/C++ 服务循环降低 per-launch host dispatch;reusable decode graph 已实测 0.75x 净负,不作为当前默认路线。
+31. **R6000 FP4-MMA bring-up gate:已 ready,等待机器实跑。** 选 723机 RTX PRO 6000 96GB + 943GB 扩容;第一条命令是 `scripts/r6000_stage6_fp4_mma_census.py --run-contracts`,PASS 前不写新 FP4-MMA kernel。
+32. **Speed next:** 不是 P4C 扩 RC,而是两条速度线:MTP draft/accept 信号好,真正 blocker 是 eager speculative runtime;下一轮优先削 snapshot/restore、per-event dispatch/sync 与 token-exact batched verify。另一条是把 decode hot loop 搬出 Python、用 compiled/C++ 服务循环降低 per-launch host dispatch;reusable decode graph 已实测 0.75x 净负,不作为当前默认路线。
 
 ## Relation To 2026-05-20 Notes
 
