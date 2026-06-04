@@ -1,0 +1,155 @@
+{
+  "schema": "lynn-stage6-p4c-component-profile-v1",
+  "baseline_schema_reference": "lynn-stage6-p4c-active-reuse-microbench-v1",
+  "symbol": "active_moe_fused_zero_shadow_active_reuse_contract",
+  "reference_symbol": "active_moe_fused_zero_shadow_out_contract",
+  "gate_symbol": "gate_up_silu_tile_inter_scalar",
+  "down_symbol": "down_weighted_sum_tile_scalar",
+  "tokens": 1,
+  "experts": 8,
+  "top_k": 8,
+  "tile_tokens": 1,
+  "tile_inter": 8,
+  "tile_hidden": 8,
+  "warmup": 2,
+  "iters": 10,
+  "repeats": 5,
+  "seed": 20260604,
+  "banked_p4c_component_profile": true,
+  "banked_fused_kernel": false,
+  "banked_default_promotion": false,
+  "promotion_policy": "diagnostic_component_profile_only",
+  "component_timing_caveat": "component symbols allocate output tensors; use split for bottleneck direction only",
+  "torch_version": "2.9.1+cu130",
+  "torch_cuda": "13.0",
+  "cuda_available": true,
+  "lynn_native_cuda_arch": null,
+  "lynn_native_cuda_arch_auto": null,
+  "lynn_native_cuda_build_dir": null,
+  "device_name": "NVIDIA GB10",
+  "capability": [
+    12,
+    1
+  ],
+  "build_dir": "/tmp/lynn_engine_native_build/p4c_component_profile_20260604_025643",
+  "extension_loaded": true,
+  "active_moe_fused_zero_shadow_active_reuse_contract_present": true,
+  "active_moe_fused_zero_shadow_out_contract_present": true,
+  "gate_up_silu_tile_inter_scalar_present": true,
+  "down_weighted_sum_tile_scalar_present": true,
+  "byte_budget": {
+    "candidate_abi_names": [
+      "hidden",
+      "expert_ids",
+      "routing_weights",
+      "gate_up_packed",
+      "gate_up_scale",
+      "gate_up_global_scale",
+      "down_packed",
+      "down_scale",
+      "down_global_scale",
+      "candidate_inter_scratch",
+      "candidate_out"
+    ],
+    "packed_weight_names": [
+      "gate_up_packed",
+      "gate_up_scale",
+      "gate_up_global_scale",
+      "down_packed",
+      "down_scale",
+      "down_global_scale"
+    ],
+    "packed_weight_bytes": 18874376,
+    "active_scratch_bytes": 8192,
+    "bf16_shadow_equivalent_bytes": 50331648,
+    "packed_vs_bf16_shadow_ratio": 0.3750001589457194,
+    "forbidden_shadow_tensor_names": [],
+    "zero_bf16_shadow_weight_abi": true,
+    "active_scratch_reuse_abi": true,
+    "packed_byte_budget": true
+  },
+  "numeric_vs_reference": {
+    "gate_inter_scratch": {
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "rel_l2": 0.0,
+      "finite_candidate": true,
+      "finite_reference": true
+    },
+    "down_on_ref_scratch": {
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "rel_l2": 0.0,
+      "finite_candidate": true,
+      "finite_reference": true
+    },
+    "gate_plus_down_composed": {
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "rel_l2": 0.0,
+      "finite_candidate": true,
+      "finite_reference": true
+    }
+  },
+  "bench": {
+    "full_p4c_active_reuse_contract": {
+      "warmup": 2,
+      "iters": 10,
+      "repeats": 5,
+      "median_us": 233.39200019836426,
+      "min_us": 233.31520557403564,
+      "max_us": 233.84320735931396,
+      "all_us": [
+        233.8304042816162,
+        233.84320735931396,
+        233.31520557403564,
+        233.39200019836426,
+        233.32159519195557
+      ]
+    },
+    "component_gate_up_allocating": {
+      "warmup": 2,
+      "iters": 10,
+      "repeats": 5,
+      "median_us": 151.6703963279724,
+      "min_us": 151.38239860534668,
+      "max_us": 152.1023988723755,
+      "all_us": [
+        151.88159942626953,
+        152.1023988723755,
+        151.6703963279724,
+        151.4623999595642,
+        151.38239860534668
+      ]
+    },
+    "component_down_allocating": {
+      "warmup": 2,
+      "iters": 10,
+      "repeats": 5,
+      "median_us": 86.21439933776855,
+      "min_us": 82.47680068016052,
+      "max_us": 91.04959964752197,
+      "all_us": [
+        82.54719972610474,
+        82.47680068016052,
+        86.21439933776855,
+        87.52319812774658,
+        91.04959964752197
+      ]
+    },
+    "component_sum_us": 237.88479566574097,
+    "gate_share_of_component_sum": 0.6375791941788874,
+    "down_share_of_component_sum": 0.3624208058211126,
+    "component_sum_vs_full_ratio": 1.0192499977015417
+  },
+  "passes": {
+    "all": true,
+    "extension_loaded": true,
+    "symbols_present": true,
+    "numeric_vs_reference": true,
+    "timing_recorded": true,
+    "promotion_boundary_closed": true
+  },
+  "decision": "PASS_P4C_COMPONENT_PROFILE_RECORDED",
+  "elapsed_s": 26.973
+}
