@@ -1,12 +1,12 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T09:54:07+00:00",
-  "stage6_status": "R5C_CUTLASS_UE4M3_ABI_BANKED",
-  "stage6_note": "R5-C0 is banked on the R6000 lane: CUTLASS/CuTe exposes an sm120 mxf4nvf4 block16 E2M1 + UE4M3 scale path. This is ABI evidence only; grouped-MoE FP4-MMA POC, kernel speed, and default promotion remain false. Next gate is R5-C1 minimal numeric GEMM smoke. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT.",
-  "spark_status": "R5C_CUTLASS_UE4M3_ABI_BANKED",
-  "spark_note": "R5-C0 is banked on the R6000 lane: CUTLASS/CuTe exposes an sm120 mxf4nvf4 block16 E2M1 + UE4M3 scale path. This is ABI evidence only; grouped-MoE FP4-MMA POC, kernel speed, and default promotion remain false. Next gate is R5-C1 minimal numeric GEMM smoke. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT.",
+  "generated_at_utc": "2026-06-04T10:21:42+00:00",
+  "stage6_status": "R5C1_CUTLASS_NUMERIC_SMOKE_BANKED",
+  "stage6_note": "R5-C1 is banked on the R6000 lane: CUTLASS 79d native NVF4+UE4M3 grouped GEMM runs with host-side reference verification. This is numeric-smoke evidence only; Lynn grouped-MoE FP4-MMA POC, kernel speed, and default promotion remain false. Next gate is R5-C2 selected expert gate/up numeric smoke. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT.",
+  "spark_status": "R5C1_CUTLASS_NUMERIC_SMOKE_BANKED",
+  "spark_note": "R5-C1 is banked on the R6000 lane: CUTLASS 79d native NVF4+UE4M3 grouped GEMM runs with host-side reference verification. This is numeric-smoke evidence only; Lynn grouped-MoE FP4-MMA POC, kernel speed, and default promotion remain false. Next gate is R5-C2 selected expert gate/up numeric smoke. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT.",
   "counts": {
-    "BANKED": 27,
+    "BANKED": 28,
     "CLOSED_NEGATIVE": 5,
     "TIMEOUT_NOT_CLEAN": 1,
     "DIAGNOSTIC_BANKED": 4,
@@ -416,6 +416,15 @@
       "artifact": "reports/stage6/r5c_cutlass_ue4m3_census_20260604_175216",
       "next_step": "Proceed to R5-C1 minimal numeric GEMM smoke; do not jump directly to grouped-MoE speed claims.",
       "decision": "PASS_R5C_NVF4_UE4M3_CUTLASS_ABI"
+    },
+    {
+      "gate": "r5c1_cutlass_numeric_smoke",
+      "title": "R5-C1 CUTLASS native NVF4+UE4M3 numeric smoke",
+      "status": "BANKED",
+      "evidence": "CUTLASS 79d native NVF4+UE4M3 grouped GEMM ran Cooperative and Pingpong schedules with host-side verification and >=2 Disposition: Passed lines; no Lynn grouped-MoE kernel/speed/default promotion; recorded avg_runtime_ms=[0.021184, 0.01808]",
+      "artifact": "reports/stage6/r5c1_cutlass_numeric_smoke_20260604_181947",
+      "next_step": "Proceed to R5-C2 selected expert gate/up numeric smoke; do not jump directly to grouped-MoE speed claims.",
+      "decision": "PASS_R5C1_CUTLASS_NVF4_UE4M3_NUMERIC_SMOKE"
     }
   ]
 }
