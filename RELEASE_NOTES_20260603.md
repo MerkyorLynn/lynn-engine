@@ -128,7 +128,8 @@
 29. **P4C native zero-shadow go/no-go:** P4B single-CTA 和 active recompute 已由 microbench 反证;P4C basic server smoke 已过,但 rc-mini wider agreement 已拒绝(completion exact 3/6,chat 2/2)。P4C 仅保留 opt-in diagnostic/basic smoke;没有 RC-exact 且 e2e A/B 真快过 ~45 的候选,不做 promotion。
 30. **Decode GPU-idle ROI probe:已过,但 verdict 是 borderline。** N/2N delta 估计 GPU busy 75.3%、host-gap 24.7%、CUDA launches/token 1969.0;compiled-loop 有回收空间,但证据不足以直接开月级 C++ runtime,下一步是 Nsight 复测或小样 prototype。
 31. **R6000 FP4-MMA bring-up gate:已 bank。** AutoDL 727 机 / RTX PRO 6000 96GB / 880GiB data workspace 跑出 `PASS_R6000_FP4_MMA_BRINGUP`:CUDA capability `[12,0]`,vLLM source candidates 200,P76/P79/P85/P87/P103 native FP4 contracts 全过。路线仍不绑定固定机号;换机时先复跑 census,PASS 后再写 grouped-MoE FP4-MMA kernel POC。
-32. **Speed next:** 不是 P4C 扩 RC,而是两条速度线:MTP draft/accept 信号好,真正 blocker 是 eager speculative runtime;下一轮优先削 snapshot/restore、per-event dispatch/sync 与 token-exact batched verify。另一条是把 decode hot loop 搬出 Python、用 compiled/C++ 服务循环降低 per-launch host dispatch;reusable decode graph 已实测 0.75x 净负,不作为当前默认路线。
+32. **R5-A layout bridge:已 bank,但要求 repack/custom scale。** R6000 上 `PASS_R5A_LAYOUT_BRIDGE_E8M0_REPACK_REQUIRED`:per-16 grouping 通过 padded group32 可保真(power2 rel_l2≈1e-7/cos≈1),但 fold-pair group32 失败,当前 Lynn E4M3-like scales 不能 zero-copy。边界:只 bank layout evidence,不 bank grouped-MoE FP4-MMA kernel/speed/default;下一步是 R5-B e8m0 repack 或 custom scale path。
+33. **Speed next:** 不是 P4C 扩 RC,而是两条速度线:MTP draft/accept 信号好,真正 blocker 是 eager speculative runtime;下一轮优先削 snapshot/restore、per-event dispatch/sync 与 token-exact batched verify。另一条是把 decode hot loop 搬出 Python、用 compiled/C++ 服务循环降低 per-launch host dispatch;reusable decode graph 已实测 0.75x 净负,不作为当前默认路线。
 
 ## Relation To 2026-05-20 Notes
 

@@ -1,15 +1,15 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T09:00:43+00:00",
-  "stage6_status": "R6000_FP4_MMA_CENSUS_BANKED",
-  "stage6_note": "Stage 6 lanes are split and active: Spark owns 35B serving/memory/MTP/compiled-loop ROI and RC regressions; R6000 owns FP4-MMA/CUTLASS/CuTe/vLLM Marlin-Machete census plus the next native grouped-MoE FP4-MMA POC. No kernel/default/speed promotion is implied. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT.",
-  "spark_status": "R6000_FP4_MMA_CENSUS_BANKED",
-  "spark_note": "Stage 6 lanes are split and active: Spark owns 35B serving/memory/MTP/compiled-loop ROI and RC regressions; R6000 owns FP4-MMA/CUTLASS/CuTe/vLLM Marlin-Machete census plus the next native grouped-MoE FP4-MMA POC. No kernel/default/speed promotion is implied. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT.",
+  "generated_at_utc": "2026-06-04T09:27:52+00:00",
+  "stage6_status": "R6000_R5A_LAYOUT_BRIDGE_BANKED",
+  "stage6_note": "R5-A PASS on RTX PRO 6000: padded per-16 group32 preserves layout for integer e8m0 scales; current E4M3-like Lynn scales require repack/custom scale handling.",
+  "spark_status": "R6000_R5A_LAYOUT_BRIDGE_BANKED",
+  "spark_note": "R5-A PASS on RTX PRO 6000: padded per-16 group32 preserves layout for integer e8m0 scales; current E4M3-like Lynn scales require repack/custom scale handling.",
   "counts": {
     "BANKED": 26,
     "CLOSED_NEGATIVE": 4,
     "TIMEOUT_NOT_CLEAN": 1,
-    "DIAGNOSTIC_BANKED": 3,
+    "DIAGNOSTIC_BANKED": 4,
     "READY_WAITING_SPARK": 4,
     "REFERENCE_IMPL_BANKED_SPEED_CLOSED": 1,
     "DECISION_BANKED": 1,
@@ -389,6 +389,15 @@
       "artifact": "reports/stage6/R6000_GROUPED_MOE_FP4_MMA_POC_CONTRACT_20260604.md, scripts/test_stage6_r6000_grouped_moe_poc_contract_static.py",
       "next_step": "Implement R5-A layout bridge first; do not start with a full fused MoE kernel.",
       "decision": ""
+    },
+    {
+      "gate": "r5a_layout_bridge",
+      "title": "R5-A Lynn per-16 NVFP4 -> block-scaled FP4 layout bridge",
+      "status": "DIAGNOSTIC_BANKED",
+      "evidence": "R5-A layout bridge banked; no kernel speed/default/grouped-MoE POC promotion; current Lynn E4M3-like scales require e8m0 repack/custom scale handling",
+      "artifact": "reports/stage6/r5a_layout_bridge_20260604_172706",
+      "next_step": "Use the bridge verdict to choose R5-B: e8m0 repack/custom scale path first, then CUTLASS/CuTe grouped-MoE POC.",
+      "decision": "PASS_R5A_LAYOUT_BRIDGE_E8M0_REPACK_REQUIRED"
     }
   ]
 }

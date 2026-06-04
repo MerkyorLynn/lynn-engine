@@ -1,0 +1,753 @@
+{
+  "schema": "lynn-stage6-r5a-per16-layout-bridge-v1",
+  "created": "2026-06-04T17:27:09+0800",
+  "inventory": {
+    "git_head": {
+      "cmd": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "ok": true,
+      "returncode": 0,
+      "stdout_tail": "daad47518b8389b1d9bae2a1f8e00fafaa2b015c\n",
+      "stderr_tail": ""
+    },
+    "git_status": {
+      "cmd": [
+        "git",
+        "status",
+        "--short"
+      ],
+      "ok": true,
+      "returncode": 0,
+      "stdout_tail": "?? reports/stage6/r5a_layout_bridge_20260604_172706/\n",
+      "stderr_tail": ""
+    },
+    "nvidia_smi": {
+      "cmd": [
+        "nvidia-smi"
+      ],
+      "ok": true,
+      "returncode": 0,
+      "stdout_tail": "Thu Jun  4 17:27:09 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 590.44.01              Driver Version: 590.44.01      CUDA Version: 13.1     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA RTX PRO 6000 Blac...    On  |   00000000:C8:00.0 Off |                  Off |\n| N/A   32C    P0             66W /  600W |     765MiB /  97887MiB |     10%      Default |\n|                                         |                        |             Disabled |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            9141      C   /root/miniconda3/bin/python             756MiB |\n+-----------------------------------------------------------------------------------------+\n",
+      "stderr_tail": ""
+    },
+    "torch": {
+      "torch": "2.8.0+cu128",
+      "torch_cuda": "12.8",
+      "device_name": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+      "capability": [
+        12,
+        0
+      ],
+      "memory_gib": 94.97296142578125
+    }
+  },
+  "elapsed_seconds": 0.9048275947570801,
+  "dimensions": {
+    "H": 2048,
+    "I": 512,
+    "gate_up_rows": 1024,
+    "m_values": [
+      1,
+      16,
+      64
+    ]
+  },
+  "thresholds": {
+    "power2_rel_l2_max": 0.0001,
+    "e4m3_rel_l2_max_for_zero_copy": 0.02
+  },
+  "cases": [
+    {
+      "scale_case": "power2",
+      "shape": {
+        "M": 1,
+        "N": 1024,
+        "K": 2048,
+        "groups16": 128
+      },
+      "reference_timing_ms": {
+        "median_ms": 0.017904000356793404,
+        "mean_ms": 0.020211999770253897,
+        "min_ms": 0.01679999940097332,
+        "max_ms": 0.03209599852561951
+      },
+      "candidates": [
+        {
+          "candidate": "fold_pair_group32_max",
+          "metrics": {
+            "max_abs": 91600.796875,
+            "mean_abs": 11129.60546875,
+            "rel_l2": 1.2472694714650223,
+            "cosine": 0.7261055707931519
+          },
+          "timing_ms": {
+            "median_ms": 0.04686400108039379,
+            "mean_ms": 0.04869600012898445,
+            "min_ms": 0.04556800052523613,
+            "max_ms": 0.0570559985935688
+          },
+          "bytes": {
+            "packed_bytes": 1049600,
+            "scale_bytes": 65600,
+            "original_packed_bytes": 1049600,
+            "original_scale_bytes": 524800,
+            "packed_ratio_vs_original": 1.0,
+            "scale_ratio_vs_original": 0.125
+          }
+        },
+        {
+          "candidate": "fold_pair_group32_mean",
+          "metrics": {
+            "max_abs": 62245.4609375,
+            "mean_abs": 6519.3828125,
+            "rel_l2": 0.7812679847994298,
+            "cosine": 0.7557063698768616
+          },
+          "timing_ms": {
+            "median_ms": 0.046192001551389694,
+            "mean_ms": 0.04753600060939789,
+            "min_ms": 0.045184001326560974,
+            "max_ms": 0.05596800148487091
+          },
+          "bytes": {
+            "packed_bytes": 1049600,
+            "scale_bytes": 65600,
+            "original_packed_bytes": 1049600,
+            "original_scale_bytes": 524800,
+            "packed_ratio_vs_original": 1.0,
+            "scale_ratio_vs_original": 0.125
+          }
+        },
+        {
+          "candidate": "fold_pair_group32_geom",
+          "metrics": {
+            "max_abs": 69862.90625,
+            "mean_abs": 6540.4404296875,
+            "rel_l2": 0.8096104661717485,
+            "cosine": 0.6327605843544006
+          },
+          "timing_ms": {
+            "median_ms": 0.045951999723911285,
+            "mean_ms": 0.04696399997919798,
+            "min_ms": 0.04320000112056732,
+            "max_ms": 0.0517439991235733
+          },
+          "bytes": {
+            "packed_bytes": 1049600,
+            "scale_bytes": 65600,
+            "original_packed_bytes": 1049600,
+            "original_scale_bytes": 524800,
+            "packed_ratio_vs_original": 1.0,
+            "scale_ratio_vs_original": 0.125
+          }
+        },
+        {
+          "candidate": "padded_per16_group32",
+          "metrics": {
+            "max_abs": 0.0078125,
+            "mean_abs": 0.0002155303955078125,
+            "rel_l2": 6.697517884862631e-08,
+            "cosine": 1.0000001192092896
+          },
+          "timing_ms": {
+            "median_ms": 0.060784000903367996,
+            "mean_ms": 0.06250400049611926,
+            "min_ms": 0.05897599831223488,
+            "max_ms": 0.07264000177383423
+          },
+          "bytes": {
+            "packed_bytes": 2099200,
+            "scale_bytes": 131200,
+            "original_packed_bytes": 1049600,
+            "original_scale_bytes": 524800,
+            "packed_ratio_vs_original": 2.0,
+            "scale_ratio_vs_original": 0.25
+          }
+        }
+      ],
+      "best_candidate": "padded_per16_group32",
+      "best_rel_l2": 6.697517884862631e-08,
+      "best_cosine": 1.0000001192092896
+    },
+    {
+      "scale_case": "power2",
+      "shape": {
+        "M": 16,
+        "N": 1024,
+        "K": 2048,
+        "groups16": 128
+      },
+      "reference_timing_ms": {
+        "median_ms": 0.027104000560939312,
+        "mean_ms": 0.02771200006827712,
+        "min_ms": 0.026655999943614006,
+        "max_ms": 0.03062400035560131
+      },
+      "candidates": [
+        {
+          "candidate": "fold_pair_group32_max",
+          "metrics": {
+            "max_abs": 98789.8046875,
+            "mean_abs": 11865.818359375,
+            "rel_l2": 1.230799216439651,
+            "cosine": 0.7367258667945862
+          },
+          "timing_ms": {
+            "median_ms": 0.04636799916625023,
+            "mean_ms": 0.046908000484108925,
+            "min_ms": 0.04473600164055824,
+            "max_ms": 0.05142400041222572
+          },
+          "bytes": {
+            "packed_bytes": 1064960,
+            "scale_bytes": 66560,
+            "original_packed_bytes": 1064960,
+            "original_scale_bytes": 532480,
+            "packed_ratio_vs_original": 1.0,
+            "scale_ratio_vs_original": 0.125
+          }
+        },
+        {
+          "candidate": "fold_pair_group32_mean",
+          "metrics": {
+            "max_abs": 95335.8828125,
+            "mean_abs": 7124.6611328125,
+            "rel_l2": 0.7957729290962429,
+            "cosine": 0.7562583684921265
+          },
+          "timing_ms": {
+            "median_ms": 0.04483200050890446,
+            "mean_ms": 0.04466400062665343,
+            "min_ms": 0.043168000876903534,
+            "max_ms": 0.046271998435258865
+          },
+          "bytes": {
+            "packed_bytes": 1064960,
+            "scale_bytes": 66560,
+            "original_packed_bytes": 1064960,
+            "original_scale_bytes": 532480,
+            "packed_ratio_vs_original": 1.0,
+            "scale_ratio_vs_original": 0.125
+          }
+        },
+        {
+          "candidate": "fold_pair_group32_geom",
+          "metrics": {
+            "max_abs": 102267.1171875,
+            "mean_abs": 6814.912109375,
+            "rel_l2": 0.8044812658324199,
+            "cosine": 0.6402121782302856
+          },
+          "timing_ms": {
+            "median_ms": 0.044384000822901726,
+            "mean_ms": 0.0448560006916523,
+            "min_ms": 0.0435199998319149,
+            "max_ms": 0.048608001321554184
+          },
+          "bytes": {
+            "packed_bytes": 1064960,
+            "scale_bytes": 66560,
+            "original_packed_bytes": 1064960,
+            "original_scale_bytes": 532480,
+            "packed_ratio_vs_original": 1.0,
+            "scale_ratio_vs_original": 0.125
+          }
+        },
+        {
+          "candidate": "padded_per16_group32",
+          "metrics": {
+            "max_abs": 0.0234375,
+            "mean_abs": 0.0003381967544555664,
+            "rel_l2": 9.535637402459612e-08,
+            "cosine": 1.0
+          },
+          "timing_ms": {
+            "median_ms": 0.06332799792289734,
+            "mean_ms": 0.06374399922788143,
+            "min_ms": 0.06095999851822853,
+            "max_ms": 0.06886400282382965
+          },
+          "bytes": {
+            "packed_bytes": 2129920,
+            "scale_bytes": 133120,
+            "original_packed_bytes": 1064960,
+            "original_scale_bytes": 532480,
+            "packed_ratio_vs_original": 2.0,
+            "scale_ratio_vs_original": 0.25
+          }
+        }
+      ],
+      "best_candidate": "padded_per16_group32",
+      "best_rel_l2": 9.535637402459612e-08,
+      "best_cosine": 1.0
+    },
+    {
+      "scale_case": "power2",
+      "shape": {
+        "M": 64,
+        "N": 1024,
+        "K": 2048,
+        "groups16": 128
+      },
+      "reference_timing_ms": {
+        "median_ms": 0.02516800072044134,
+        "mean_ms": 0.025712000438943505,
+        "min_ms": 0.02380800060927868,
+        "max_ms": 0.029664000496268272
+      },
+      "candidates": [
+        {
+          "candidate": "fold_pair_group32_max",
+          "metrics": {
+            "max_abs": 144118.5,
+            "mean_abs": 11873.6669921875,
+            "rel_l2": 1.218758278038084,
+            "cosine": 0.7372402548789978
+          },
+          "timing_ms": {
+            "median_ms": 0.04758399911224842,
+            "mean_ms": 0.04777999920770526,
+            "min_ms": 0.04428799822926521,
+            "max_ms": 0.05238400027155876
+          },
+          "bytes": {
+            "packed_bytes": 1114112,
+            "scale_bytes": 69632,
+            "original_packed_bytes": 1114112,
+            "original_scale_bytes": 557056,
+            "packed_ratio_vs_original": 1.0,
+            "scale_ratio_vs_original": 0.125
+          }
+        },
+        {
+          "candidate": "fold_pair_group32_mean",
+          "metrics": {
+            "max_abs": 96318.28125,
+            "mean_abs": 7159.3974609375,
+            "rel_l2": 0.7899520253494833,
+            "cosine": 0.7506946325302124
+          },
+          "timing_ms": {
+            "median_ms": 0.045584000647068024,
+            "mean_ms": 0.04588000103831291,
+            "min_ms": 0.04419200122356415,
+            "max_ms": 0.048128001391887665
+          },
+          "bytes": {
+            "packed_bytes": 1114112,
+            "scale_bytes": 69632,
+            "original_packed_bytes": 1114112,
+            "original_scale_bytes": 557056,
+            "packed_ratio_vs_original": 1.0,
+            "scale_ratio_vs_original": 0.125
+          }
+        },
+        {
+          "candidate": "fold_pair_group32_geom",
+          "metrics": {
+            "max_abs": 132844.453125,
+            "mean_abs": 6938.638671875,
+            "rel_l2": 0.8132413590381352,
+            "cosine": 0.624957799911499
+          },
+          "timing_ms": {
+            "median_ms": 0.04496000148355961,
+            "mean_ms": 0.04535200074315071,
+            "min_ms": 0.044415999203920364,
+            "max_ms": 0.047648001462221146
+          },
+          "bytes": {
+            "packed_bytes": 1114112,
+            "scale_bytes": 69632,
+            "original_packed_bytes": 1114112,
+            "original_scale_bytes": 557056,
+            "packed_ratio_vs_original": 1.0,
+            "scale_ratio_vs_original": 0.125
+          }
+        },
+        {
+          "candidate": "padded_per16_group32",
+          "metrics": {
+            "max_abs": 0.03125,
+            "mean_abs": 0.0002911090850830078,
+            "rel_l2": 8.914367969265237e-08,
+            "cosine": 0.9999999403953552
+          },
+          "timing_ms": {
+            "median_ms": 0.06268800050020218,
+            "mean_ms": 0.06353599997237325,
+            "min_ms": 0.05974400043487549,
+            "max_ms": 0.0689919963479042
+          },
+          "bytes": {
+            "packed_bytes": 2228224,
+            "scale_bytes": 139264,
+            "original_packed_bytes": 1114112,
+            "original_scale_bytes": 557056,
+            "packed_ratio_vs_original": 2.0,
+            "scale_ratio_vs_original": 0.25
+          }
+        }
+      ],
+      "best_candidate": "padded_per16_group32",
+      "best_rel_l2": 8.914367969265237e-08,
+      "best_cosine": 0.9999999403953552
+    },
+    {
+      "scale_case": "e4m3_like",
+      "shape": {
+        "M": 1,
+        "N": 1024,
+        "K": 2048,
+        "groups16": 128
+      },
+      "reference_timing_ms": {
+        "median_ms": 0.017295999452471733,
+        "mean_ms": 0.017871999880298972,
+        "min_ms": 0.016736000776290894,
+        "max_ms": 0.022304000332951546
+      },
+      "candidates": [
+        {
+          "candidate": "fold_pair_group32_max",
+          "metrics": {
+            "max_abs": 16687.17578125,
+            "mean_abs": 2224.62353515625,
+            "rel_l2": 1.2584507268023737,
+            "cosine": 0.7607945799827576
+          },
+          "timing_ms": {
+            "median_ms": 0.04556800052523613,
+            "mean_ms": 0.046140000224113464,
+            "min_ms": 0.04467200115323067,
+            "max_ms": 0.05023999884724617
+          },
+          "bytes": {
+            "packed_bytes": 1049600,
+            "scale_bytes": 65600,
+            "original_packed_bytes": 1049600,
+            "original_scale_bytes": 524800,
+            "packed_ratio_vs_original": 1.0,
+            "scale_ratio_vs_original": 0.125
+          }
+        },
+        {
+          "candidate": "fold_pair_group32_mean",
+          "metrics": {
+            "max_abs": 6975.99658203125,
+            "mean_abs": 1009.5943603515625,
+            "rel_l2": 0.5719842818659869,
+            "cosine": 0.8203004598617554
+          },
+          "timing_ms": {
+            "median_ms": 0.04443199932575226,
+            "mean_ms": 0.045907999854534864,
+            "min_ms": 0.04310400038957596,
+            "max_ms": 0.05507199838757515
+          },
+          "bytes": {
+            "packed_bytes": 1049600,
+            "scale_bytes": 65600,
+            "original_packed_bytes": 1049600,
+            "original_scale_bytes": 524800,
+            "packed_ratio_vs_original": 1.0,
+            "scale_ratio_vs_original": 0.125
+          }
+        },
+        {
+          "candidate": "fold_pair_group32_geom",
+          "metrics": {
+            "max_abs": 7268.470703125,
+            "mean_abs": 1101.219482421875,
+            "rel_l2": 0.6322659686492236,
+            "cosine": 0.7923101186752319
+          },
+          "timing_ms": {
+            "median_ms": 0.04408000037074089,
+            "mean_ms": 0.044231999665498734,
+            "min_ms": 0.04339199885725975,
+            "max_ms": 0.045471999794244766
+          },
+          "bytes": {
+            "packed_bytes": 1049600,
+            "scale_bytes": 65600,
+            "original_packed_bytes": 1049600,
+            "original_scale_bytes": 524800,
+            "packed_ratio_vs_original": 1.0,
+            "scale_ratio_vs_original": 0.125
+          }
+        },
+        {
+          "candidate": "padded_per16_group32",
+          "metrics": {
+            "max_abs": 5841.8486328125,
+            "mean_abs": 546.3760986328125,
+            "rel_l2": 0.3268899307270983,
+            "cosine": 0.9633148312568665
+          },
+          "timing_ms": {
+            "median_ms": 0.05998400039970875,
+            "mean_ms": 0.060452000703662634,
+            "min_ms": 0.05862399935722351,
+            "max_ms": 0.06387200206518173
+          },
+          "bytes": {
+            "packed_bytes": 2099200,
+            "scale_bytes": 131200,
+            "original_packed_bytes": 1049600,
+            "original_scale_bytes": 524800,
+            "packed_ratio_vs_original": 2.0,
+            "scale_ratio_vs_original": 0.25
+          }
+        }
+      ],
+      "best_candidate": "padded_per16_group32",
+      "best_rel_l2": 0.3268899307270983,
+      "best_cosine": 0.9633148312568665
+    },
+    {
+      "scale_case": "e4m3_like",
+      "shape": {
+        "M": 16,
+        "N": 1024,
+        "K": 2048,
+        "groups16": 128
+      },
+      "reference_timing_ms": {
+        "median_ms": 0.02672000043094158,
+        "mean_ms": 0.027147999964654446,
+        "min_ms": 0.0261439997702837,
+        "max_ms": 0.029983999207615852
+      },
+      "candidates": [
+        {
+          "candidate": "fold_pair_group32_max",
+          "metrics": {
+            "max_abs": 17343.17578125,
+            "mean_abs": 2145.34716796875,
+            "rel_l2": 1.1509396066109774,
+            "cosine": 0.7908867597579956
+          },
+          "timing_ms": {
+            "median_ms": 0.044864000752568245,
+            "mean_ms": 0.04645200027152896,
+            "min_ms": 0.04339199885725975,
+            "max_ms": 0.05455999821424484
+          },
+          "bytes": {
+            "packed_bytes": 1064960,
+            "scale_bytes": 66560,
+            "original_packed_bytes": 1064960,
+            "original_scale_bytes": 532480,
+            "packed_ratio_vs_original": 1.0,
+            "scale_ratio_vs_original": 0.125
+          }
+        },
+        {
+          "candidate": "fold_pair_group32_mean",
+          "metrics": {
+            "max_abs": 8788.408203125,
+            "mean_abs": 1046.4931640625,
+            "rel_l2": 0.5684027660250761,
+            "cosine": 0.8227647542953491
+          },
+          "timing_ms": {
+            "median_ms": 0.044544000178575516,
+            "mean_ms": 0.044488000217825174,
+            "min_ms": 0.0432640016078949,
+            "max_ms": 0.04553600028157234
+          },
+          "bytes": {
+            "packed_bytes": 1064960,
+            "scale_bytes": 66560,
+            "original_packed_bytes": 1064960,
+            "original_scale_bytes": 532480,
+            "packed_ratio_vs_original": 1.0,
+            "scale_ratio_vs_original": 0.125
+          }
+        },
+        {
+          "candidate": "fold_pair_group32_geom",
+          "metrics": {
+            "max_abs": 9960.353515625,
+            "mean_abs": 1127.7073974609375,
+            "rel_l2": 0.620504956365542,
+            "cosine": 0.7976042628288269
+          },
+          "timing_ms": {
+            "median_ms": 0.044175999239087105,
+            "mean_ms": 0.0444239997304976,
+            "min_ms": 0.04291199892759323,
+            "max_ms": 0.04684799909591675
+          },
+          "bytes": {
+            "packed_bytes": 1064960,
+            "scale_bytes": 66560,
+            "original_packed_bytes": 1064960,
+            "original_scale_bytes": 532480,
+            "packed_ratio_vs_original": 1.0,
+            "scale_ratio_vs_original": 0.125
+          }
+        },
+        {
+          "candidate": "padded_per16_group32",
+          "metrics": {
+            "max_abs": 6525.1015625,
+            "mean_abs": 566.043212890625,
+            "rel_l2": 0.32147841562040064,
+            "cosine": 0.965438961982727
+          },
+          "timing_ms": {
+            "median_ms": 0.06131199933588505,
+            "mean_ms": 0.06145199993625283,
+            "min_ms": 0.06028800085186958,
+            "max_ms": 0.06307200342416763
+          },
+          "bytes": {
+            "packed_bytes": 2129920,
+            "scale_bytes": 133120,
+            "original_packed_bytes": 1064960,
+            "original_scale_bytes": 532480,
+            "packed_ratio_vs_original": 2.0,
+            "scale_ratio_vs_original": 0.25
+          }
+        }
+      ],
+      "best_candidate": "padded_per16_group32",
+      "best_rel_l2": 0.32147841562040064,
+      "best_cosine": 0.965438961982727
+    },
+    {
+      "scale_case": "e4m3_like",
+      "shape": {
+        "M": 64,
+        "N": 1024,
+        "K": 2048,
+        "groups16": 128
+      },
+      "reference_timing_ms": {
+        "median_ms": 0.024575999937951565,
+        "mean_ms": 0.024835999822244048,
+        "min_ms": 0.023744000121951103,
+        "max_ms": 0.026688000187277794
+      },
+      "candidates": [
+        {
+          "candidate": "fold_pair_group32_max",
+          "metrics": {
+            "max_abs": 21663.337890625,
+            "mean_abs": 2153.98486328125,
+            "rel_l2": 1.143321052056937,
+            "cosine": 0.7915657162666321
+          },
+          "timing_ms": {
+            "median_ms": 0.04481600038707256,
+            "mean_ms": 0.04539999971166253,
+            "min_ms": 0.042527999728918076,
+            "max_ms": 0.050783999264240265
+          },
+          "bytes": {
+            "packed_bytes": 1114112,
+            "scale_bytes": 69632,
+            "original_packed_bytes": 1114112,
+            "original_scale_bytes": 557056,
+            "packed_ratio_vs_original": 1.0,
+            "scale_ratio_vs_original": 0.125
+          }
+        },
+        {
+          "candidate": "fold_pair_group32_mean",
+          "metrics": {
+            "max_abs": 12461.5283203125,
+            "mean_abs": 1042.6004638671875,
+            "rel_l2": 0.5679914983380024,
+            "cosine": 0.823035717010498
+          },
+          "timing_ms": {
+            "median_ms": 0.04507200047373772,
+            "mean_ms": 0.045151999685913324,
+            "min_ms": 0.04310400038957596,
+            "max_ms": 0.04726399853825569
+          },
+          "bytes": {
+            "packed_bytes": 1114112,
+            "scale_bytes": 69632,
+            "original_packed_bytes": 1114112,
+            "original_scale_bytes": 557056,
+            "packed_ratio_vs_original": 1.0,
+            "scale_ratio_vs_original": 0.125
+          }
+        },
+        {
+          "candidate": "fold_pair_group32_geom",
+          "metrics": {
+            "max_abs": 13287.2314453125,
+            "mean_abs": 1139.69921875,
+            "rel_l2": 0.6293938114263632,
+            "cosine": 0.7909514904022217
+          },
+          "timing_ms": {
+            "median_ms": 0.045584000647068024,
+            "mean_ms": 0.04578800033777952,
+            "min_ms": 0.043296001851558685,
+            "max_ms": 0.05104000121355057
+          },
+          "bytes": {
+            "packed_bytes": 1114112,
+            "scale_bytes": 69632,
+            "original_packed_bytes": 1114112,
+            "original_scale_bytes": 557056,
+            "packed_ratio_vs_original": 1.0,
+            "scale_ratio_vs_original": 0.125
+          }
+        },
+        {
+          "candidate": "padded_per16_group32",
+          "metrics": {
+            "max_abs": 8246.5732421875,
+            "mean_abs": 560.4051513671875,
+            "rel_l2": 0.3173238123166758,
+            "cosine": 0.9664154052734375
+          },
+          "timing_ms": {
+            "median_ms": 0.061184000223875046,
+            "mean_ms": 0.06142000015825033,
+            "min_ms": 0.06047999858856201,
+            "max_ms": 0.06259199976921082
+          },
+          "bytes": {
+            "packed_bytes": 2228224,
+            "scale_bytes": 139264,
+            "original_packed_bytes": 1114112,
+            "original_scale_bytes": 557056,
+            "packed_ratio_vs_original": 2.0,
+            "scale_ratio_vs_original": 0.25
+          }
+        }
+      ],
+      "best_candidate": "padded_per16_group32",
+      "best_rel_l2": 0.3173238123166758,
+      "best_cosine": 0.9664154052734375
+    }
+  ],
+  "passes": {
+    "power2_padded_per16_layout_ok": true,
+    "fold_pair_group32_supported": false,
+    "current_lynn_e4m3_scales_zero_copy_supported": false,
+    "banked_layout_bridge": true,
+    "banked_grouped_moe_fp4_mma_poc": false,
+    "banked_kernel_speed": false,
+    "banked_default_promotion": false,
+    "all": true
+  },
+  "decision": "PASS_R5A_LAYOUT_BRIDGE_E8M0_REPACK_REQUIRED",
+  "notes": [
+    "R5-A banks only layout-bridge evidence.",
+    "fold_pair_group32 tests the cheap zero-copy idea that collapses two Lynn per-16 groups into one group32 scale.",
+    "padded_per16_group32 tests preserving per-16 grouping by padding each group to group32; it doubles packed K bytes.",
+    "If current_lynn_e4m3_scales_zero_copy_supported is false, R5-B must use explicit repack or a custom scale path before claiming native FP4-MMA speed."
+  ]
+}
