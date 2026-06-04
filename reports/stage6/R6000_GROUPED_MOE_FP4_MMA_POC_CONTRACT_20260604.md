@@ -7,9 +7,9 @@ promoted by this document.**
 
 The R6000 census is now banked:
 [r6000_fp4_mma_census_20260604_164457](r6000_fp4_mma_census_20260604_164457/summary.md)
-reports `PASS_R6000_FP4_MMA_BRINGUP` on AutoDL host 727 / RTX PRO 6000 96GB,
+reports `PASS_R6000_FP4_MMA_BRINGUP` on RTX PRO 6000 96GB,
 CUDA capability `[12, 0]`, 880 GiB data workspace, vLLM source candidates 200,
-and P76/P79/P85/P87/P103 all passing.
+and P76/P79/P85/P87/P103 all passing. Public docs intentionally omit rental host IDs.
 
 This POC starts **after** that census. It is not another Spark decode-speed
 experiment. Spark owns 35B serving/memory/MTP/compiled-loop ROI and RC quality;
