@@ -506,6 +506,19 @@ def collect_gates() -> list[Gate]:
             ],
             "Run on Spark; banks the current P4C symbol speed baseline before replacing it with a real active-reuse speed candidate.",
         ),
+        _result_or_ready_gate(
+            "p4c_component_profile",
+            "P4C gate/up vs down component profile",
+            ["p4c_component_profile_"],
+            [
+                "reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md",
+                "scripts/run_spark_stage6_p4c_component_profile.sh",
+                "scripts/spark_stage6_p4c_component_profile.py",
+                "scripts/summarize_stage6_p4c_component_profile.py",
+                "scripts/test_stage6_p4c_component_profile_tools.py",
+            ],
+            "Run on Spark; use the larger component to choose the first active-reuse speed candidate.",
+        ),
         _p4c_active_reuse_decision_gate(),
     ]
     return gates

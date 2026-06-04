@@ -77,6 +77,9 @@ def main() -> int:
         assert gates["p4b_single_kernel_contract"]["status"] == "REFERENCE_IMPL_BANKED_SPEED_CLOSED"
         assert gates["p4c_active_reuse_runtime_bridge"]["status"] == "BANKED"
         assert gates["p4c_active_reuse_runtime_bridge"]["decision"] == "PASS_P4C_ACTIVE_REUSE_RUNTIME_BRIDGE"
+        assert gates["p4c_active_reuse_microbench"]["status"] == "BANKED"
+        assert gates["p4c_active_reuse_microbench"]["decision"] == "PASS_P4C_ACTIVE_REUSE_SPEED_BASELINE_RECORDED"
+        assert gates["p4c_component_profile"]["status"] in {"BANKED", "READY_WAITING_SPARK"}
         assert gates["p4c_active_reuse_decision"]["status"] == "DECISION_BANKED"
         assert "active reuse" in gates["p4c_active_reuse_decision"]["evidence"]
         assert "P4C active-reuse" in gates["p4c_active_reuse_decision"]["next_step"]
