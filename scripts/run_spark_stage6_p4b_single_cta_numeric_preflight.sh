@@ -104,7 +104,11 @@ while [[ $# -gt 0 ]]; do
 done
 
 STAMP="$(date +%Y%m%d_%H%M%S)"
-RUN_NAME="p4b_single_cta_numeric_preflight_${STAMP}"
+if [[ "$CANDIDATE_MODE" == "multi_cta" ]]; then
+  RUN_NAME="p4b_multi_cta_numeric_preflight_${STAMP}"
+else
+  RUN_NAME="p4b_single_cta_numeric_preflight_${STAMP}"
+fi
 REMOTE_RUN_DIR="${REMOTE_REPO}/reports/stage6/${RUN_NAME}"
 LOCAL_RUN_DIR="${LOCAL_ROOT}/${RUN_NAME}"
 
