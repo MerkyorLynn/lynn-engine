@@ -534,11 +534,18 @@ def collect_gates() -> list[Gate]:
             ],
             "Banks selected-layer composition only; P3-C server behavior and full rc-mini long-context remain separate gates.",
         ),
-        _ready_gate(
+        _result_or_ready_gate(
             "p3c_resident_prompt",
             "P3-C resident-prompt gate",
-            ["reports/stage6/P3C_RESIDENT_PROMPT_GATE_RUNBOOK_20260604.md", "scripts/run_spark_stage6_p3c_resident_prompt_gate.sh"],
-            "Run after P3-B PASS.",
+            ["p3c_basic_resident_prompt_gate_", "p3c_rc-mini_resident_prompt_gate_"],
+            [
+                "reports/stage6/P3C_RESIDENT_PROMPT_GATE_RUNBOOK_20260604.md",
+                "scripts/run_spark_stage6_p3c_resident_prompt_gate.sh",
+                "scripts/spark_stage6_p3c_resident_prompt_gate.py",
+                "scripts/summarize_stage6_p3c_resident_prompt_gate.py",
+                "scripts/write_stage6_p3c_report.py",
+            ],
+            "Banks resident-prompt basic smoke only; P3-D server behavior and RC quality remain separate gates.",
         ),
         _ready_gate(
             "p3d_server_rc",

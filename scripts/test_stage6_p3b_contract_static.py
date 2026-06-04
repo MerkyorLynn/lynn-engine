@@ -100,7 +100,9 @@ CHECKS = [
     (
         "reports/stage6/P3C_RESIDENT_PROMPT_GATE_RUNBOOK_20260604.md",
         [
-            "RUNBOOK/TOOLING ONLY; no P3-C result is banked yet",
+            "PASS artifact banked for `basic`",
+            "p3c_basic_resident_prompt_gate_20260604_145940",
+            "Candidate prefill average: `151.861 s`",
             "P3-B selected-prefill report",
             "LYNN_PACKED_PREFILL_SLOW_MODE=p3a_grouped",
             "reload_decode_bf16_shadows()",
