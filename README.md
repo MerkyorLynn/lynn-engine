@@ -15,7 +15,7 @@
 | **native zero-shadow MoE** | P4B 数值参考 exact,但 single-CTA 与 active recompute 被 microbench 反证;P4C active-reuse bridge/profile/tile2 basic server smoke 已 bank,但 **rc-mini agreement 已拒绝**:completion exact **3/6**,chat exact **2/2**,不进 RC/default。 |
 | **当前瓶颈** | P4C profile 锁定 gate/up **151.67us(63.8%)**;shape sweep 与 full-path microbench 有局部正信号,但 server wider quality 不等价。shadow-cycle first-divergence:算术 prompt 8 步 top-1 不分叉,但 step0/layer13 起 hidden/logits drift,step1 candidate margin 压到 **0.046875**。 |
 | **decode hot-loop ROI** | GPU-idle probe 已 bank:N/2N delta 估计 GPU busy **0.753**,host-gap **0.247**,CUDA launches/token **1969.0**,runner TPS **41.36/42.19**;ROI=`BORDERLINE_REMEASURE_OR_NSIGHT`,所以 compiled-loop 可小样验证,但不够直接开月级 runtime。 |
-| **R6000 / FP4-MMA** | bring-up/census tooling 已 ready,等待 RTX PRO 6000 96GB 跑 PASS artifact;硬件选择锁定 **723机/943GB 扩容** 优先。gate 会检查 CUDA/PyTorch/磁盘/vLLM Marlin-Machete/CUTLASS 可见性 + P76/P79/P85/P87/P103 native FP4 contracts。 |
+| **R6000 / FP4-MMA** | bring-up/census tooling 已 ready,等待可租到的 **RTX PRO 6000 96GB** 跑 PASS artifact;硬件选择不绑定 AutoDL 机号,磁盘 gate 为 **>=500GB free**,优先 **800GB-1TB 可扩容**。gate 会检查 CUDA/PyTorch/磁盘/vLLM Marlin-Machete/CUTLASS 可见性 + P76/P79/P85/P87/P103 native FP4 contracts。 |
 | **runtime opt-in** | `LYNN_NATIVE_GATEUP_TILE_INTER=2` 仅保留 opt-in diagnostic/basic-smoke: P4C call delta **240**,40 层调用,completion text-exact **2/2**,release/reload healthy。下一步是 **P4C hard go/no-go**,不是继续扩大 RC。 |
 
 **诚实边界:** Spark sm_121 当前 deliverable decode 仍是 **~44-45 TPS**;60 GiB shadow-drop 是**服务显存/产品化赢**,不是速度杠杆;P4C 只 bank route/numeric/profile/basic-smoke,**不 bank fused speed/default promotion**。speed 火力转向两件事:**MTP eager-runtime 去开销 / token-exact batched verify**,以及把 decode hot loop 从 Python 搬到 compiled/C++ 服务循环以降低 **per-launch host dispatch**;但首轮 GPU-idle probe 是 **borderline**(host-gap 24.7%),所以先做 Nsight/小样,不直接押月级重写。reusable decode CUDA graph 已实测 **0.75× 净负**并关闭,不是当前路线。Python 只做控制面和验证;追赶 llama.cpp 靠 native runtime + kernels,在 FP4-MMA 硅上才完整兑现。
@@ -28,7 +28,7 @@
 | **B. no-reload prefill** | 把 28 GiB 扩到多请求 server,消掉 per-request reload | P2-O basic + rc-mini non-long shard PASS;full rc-mini long-context 仍需 slow-mode 加速/chunking 后重跑 |
 | **C. MTP runtime** | 利用 76-97% accept,削 eager speculative runtime 开销 | 最高 ROI 的 TPS 近线;重点是 snapshot/restore、batched verify、dispatch/sync |
 | **D. compiled/C++ hot loop** | 降低每个 launch 的 host/Python dispatch,不是 CUDA graph | GPU-idle first probe:host-gap **24.7%**,ROI borderline;先 Nsight/小样再决定深投 |
-| **E. native kernels / FP4-MMA** | grouped CUDA C++/CUTLASS kernels + FP4-MMA 硅兑现 | R6000 census gate 已 ready;先跑 723机 RTX PRO 6000 96GB,再开 grouped MoE FP4-MMA POC |
+| **E. native kernels / FP4-MMA** | grouped CUDA C++/CUTLASS kernels + FP4-MMA 硅兑现 | R6000 census gate 已 ready;先跑可租到的 RTX PRO 6000 96GB + 足够磁盘,再开 grouped MoE FP4-MMA POC |
 
 > **🆕 2026-06-03 Decode 内核启动开销战役 — Spark NVFP4 35B-A3B 单流 38.96 → ~45 TPS,质量 RC 等价。**
 > 实测 decode 是 launch-bound(census:**~1527 CUDA launch/token**,~40% 时间耗在 CPU 端 dispatch)。逐簇融合 launch + 消拷贝:**fused RMSNorm(最大头)/ shared-expert / linear-attn g/beta-fold / full-attn(token-exact)/ NVFP4 `_scaled_mm` bf16-out copy-elision**,**5 个 RC-validated launch-cut**——在 structured/V9/GPQA/tool-call/long-form 上 **40/40 greedy 输出与 baseline 逐字一致**,继承 **MMLU 84.40 / GPQA-Diamond 49.49**。全部 gated、默认安全、可回滚。

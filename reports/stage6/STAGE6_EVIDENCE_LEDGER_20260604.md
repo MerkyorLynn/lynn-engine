@@ -12,7 +12,7 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 | Field | Value |
 |---|---|
 | Status | `R6000_FP4_MMA_CENSUS_TOOLING_READY` |
-| Note | R6000 FP4-MMA bring-up/census tooling added. The selected host class is RTX PRO 6000 96GB with >=500GiB disk free (943GiB preferred). Next R6000 run must pass machine/toolchain/public-kernel gates before starting a new FP4-MMA kernel. |
+| Note | R6000 FP4-MMA bring-up/census tooling added. The selected host class is RTX PRO 6000 96GB with >=500GiB disk free, 800GiB-1TiB preferred; do not bind the route to a fixed AutoDL host ID. Next R6000 run must pass machine/toolchain/public-kernel gates before starting a new FP4-MMA kernel. |
 
 ## Promotion Boundaries
 
