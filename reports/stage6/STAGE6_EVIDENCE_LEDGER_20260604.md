@@ -12,7 +12,7 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 | Field | Value |
 |---|---|
 | Status | `REACHABLE_VIA_DGX_VIA_SSH` |
-| Note | Spark SSH recovered via dgx-via-ssh on 2026-06-04; dgx-spark direct alias may report local forward ports 18007/18008 already in use. P4B fail-loud route gates, opt-in single-CTA numeric reference, single-CTA microbench anti-proof, multi-CTA recompute numeric/negative microbench, and P4C active-reuse runtime bridge were run on /home/merkyor/lynn-engine-codex-stage6 through 0fc2532. |
+| Note | Spark SSH recovered via dgx-via-ssh on 2026-06-04; dgx-spark direct alias may report local forward ports 18007/18008 already in use. P4B fail-loud route gates, opt-in single-CTA numeric reference, single-CTA microbench anti-proof, multi-CTA recompute numeric/negative microbench, P4C active-reuse runtime bridge, and P4C speed-baseline tooling were run/prepared on /home/merkyor/lynn-engine-codex-stage6 through 2fccfc6 or later. |
 
 ## Promotion Boundaries
 
@@ -52,6 +52,7 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 | `p4b_multi_cta_recompute_microbench` | **CLOSED_NEGATIVE** `PASS_P4B_SINGLE_CTA_MICROBENCH_RECORDED` | numeric exact but slower than P4A two-stage; speedup=0.005778x | `reports/stage6/p4b_multi_cta_microbench_20260604_091150` | Reject per-output-tile active recompute; next candidate must preserve active reuse. |
 | `p4b_single_kernel_contract` | **REFERENCE_IMPL_BANKED_SPEED_CLOSED** | opt-in single-CTA output-returning numeric reference is banked; speed/default promotion remain closed | `reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md, scripts/test_stage6_p4b_single_kernel_static.py, scripts/run_spark_stage6_p4b_single_cta_numeric_preflight.sh` | Scale beyond T=1/top_k=8, add byte-count profiler and speed gate before any promotion. |
 | `p4c_active_reuse_runtime_bridge` | **BANKED** `PASS_P4C_ACTIVE_REUSE_RUNTIME_BRIDGE` | latest Spark result.json has passes.all=true | `reports/stage6/p4c_runtime_bridge_preflight_20260604_094008` | Run on Spark; banks P4C active-reuse route/numeric evidence only, not fused speed or default promotion. |
+| `p4c_active_reuse_microbench` | **READY_WAITING_SPARK** | tooling/runbook exists, but no Spark PASS artifact is banked | `reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md, scripts/run_spark_stage6_p4c_active_reuse_microbench.sh, scripts/spark_stage6_p4c_active_reuse_microbench.py, scripts/summarize_stage6_p4c_active_reuse_microbench.py, scripts/test_stage6_p4c_active_reuse_microbench_tools.py` | Run on Spark; banks the current P4C symbol speed baseline before replacing it with a real active-reuse speed candidate. |
 | `p4c_active_reuse_decision` | **DECISION_BANKED** | single-CTA and multi-CTA recompute anti-proofs are captured; next candidate must preserve active reuse | `reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md, scripts/test_stage6_p4c_active_reuse_decision_static.py` | Implement P4C active-reuse two-phase/CUTLASS-style candidate; do not report it as P4B out-only fused speed. |
 
 ## Counts
@@ -61,7 +62,7 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 | `BANKED` | 15 |
 | `CLOSED_NEGATIVE` | 3 |
 | `DECISION_BANKED` | 1 |
-| `READY_WAITING_SPARK` | 7 |
+| `READY_WAITING_SPARK` | 8 |
 | `REFERENCE_IMPL_BANKED_SPEED_CLOSED` | 1 |
 
 ## Local Check

@@ -493,6 +493,19 @@ def collect_gates() -> list[Gate]:
             ],
             "Run on Spark; banks P4C active-reuse route/numeric evidence only, not fused speed or default promotion.",
         ),
+        _result_or_ready_gate(
+            "p4c_active_reuse_microbench",
+            "P4C active-reuse speed-baseline microbench",
+            ["p4c_active_reuse_microbench_"],
+            [
+                "reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md",
+                "scripts/run_spark_stage6_p4c_active_reuse_microbench.sh",
+                "scripts/spark_stage6_p4c_active_reuse_microbench.py",
+                "scripts/summarize_stage6_p4c_active_reuse_microbench.py",
+                "scripts/test_stage6_p4c_active_reuse_microbench_tools.py",
+            ],
+            "Run on Spark; banks the current P4C symbol speed baseline before replacing it with a real active-reuse speed candidate.",
+        ),
         _p4c_active_reuse_decision_gate(),
     ]
     return gates
