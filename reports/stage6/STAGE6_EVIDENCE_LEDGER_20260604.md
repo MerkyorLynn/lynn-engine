@@ -11,8 +11,8 @@ and gates that are wired but still waiting for lane-specific PASS/FAIL artifacts
 
 | Field | Value |
 |---|---|
-| Status | `R6000_R5A_LAYOUT_BRIDGE_BANKED` |
-| Note | R5-A PASS on RTX PRO 6000: padded per-16 group32 preserves layout for integer e8m0 scales; current E4M3-like Lynn scales require repack/custom scale handling. |
+| Status | `R6000_R5B_E8M0_REPACK_CLOSED_NEGATIVE` |
+| Note | R5-B failed on RTX PRO 6000: simple e8m0 repack best rel_l2 ~0.166 / cosine ~0.986, so the next route is custom scale or NVFP4-native CUTLASS/CuTe handling. |
 
 ## Promotion Boundaries
 
@@ -68,13 +68,14 @@ and gates that are wired but still waiting for lane-specific PASS/FAIL artifacts
 | `r6000_fp4_mma_census` | **BANKED** `PASS_R6000_FP4_MMA_BRINGUP` | R6000 FP4-MMA census passed on NVIDIA RTX PRO 6000 Blackwell Server Edition, capability [12, 0] | `reports/stage6/r6000_fp4_mma_census_20260604_164457` | Start Lynn NVFP4 grouped-MoE FP4-MMA POC from CUTLASS/CuTe plus public Marlin/Machete census. |
 | `r6000_grouped_moe_fp4_mma_poc_contract` | **CONTRACT_READY_UNIMPLEMENTED** | fail-loud ABI/static gate exists, but no fused implementation or GPU result is banked | `reports/stage6/R6000_GROUPED_MOE_FP4_MMA_POC_CONTRACT_20260604.md, scripts/test_stage6_r6000_grouped_moe_poc_contract_static.py` | Implement R5-A layout bridge first; do not start with a full fused MoE kernel. |
 | `r5a_layout_bridge` | **DIAGNOSTIC_BANKED** `PASS_R5A_LAYOUT_BRIDGE_E8M0_REPACK_REQUIRED` | R5-A layout bridge banked; no kernel speed/default/grouped-MoE POC promotion; current Lynn E4M3-like scales require e8m0 repack/custom scale handling | `reports/stage6/r5a_layout_bridge_20260604_172706` | Use the bridge verdict to choose R5-B: e8m0 repack/custom scale path first, then CUTLASS/CuTe grouped-MoE POC. |
+| `r5b_e8m0_repack` | **CLOSED_NEGATIVE** `FAIL_R5B_E8M0_REPACK_NUMERIC` | best rel_l2=0.165278, cosine=0.986248; e8m0 repack is not accurate enough | `reports/stage6/r5b_e8m0_repack_20260604_173435` | Do not pursue simple e8m0 repack; next route is custom scale/NVFP4-native CUTLASS/CuTe handling. |
 
 ## Counts
 
 | Status | Count |
 |---|---:|
 | `BANKED` | 26 |
-| `CLOSED_NEGATIVE` | 4 |
+| `CLOSED_NEGATIVE` | 5 |
 | `CONTRACT_READY_UNIMPLEMENTED` | 1 |
 | `DECISION_BANKED` | 1 |
 | `DIAGNOSTIC_BANKED` | 4 |

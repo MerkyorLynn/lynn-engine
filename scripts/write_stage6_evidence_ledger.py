@@ -447,6 +447,96 @@ def _r5a_layout_bridge_gate() -> Gate:
     )
 
 
+def _r5b_e8m0_repack_gate() -> Gate:
+    required = [
+        "benchmarks/r5b_stage6_e8m0_repack_bridge.py",
+        "scripts/r6000_stage6_r5b_e8m0_repack.sh",
+        "scripts/summarize_stage6_r5b_e8m0_repack.py",
+        "scripts/test_stage6_r5b_e8m0_repack_tools.py",
+    ]
+    run_dir, data = _latest_result(["r5b_e8m0_repack_"])
+    if data is None:
+        missing = [rel for rel in required if not (ROOT / rel).exists()]
+        if missing:
+            return Gate(
+                "r5b_e8m0_repack",
+                "R5-B e8m0 repack numeric bridge",
+                "MISSING_TOOLING",
+                f"missing: {', '.join(missing)}",
+                "",
+                "Restore R5-B tooling before deciding the post-R5-A scale path.",
+            )
+        return Gate(
+            "r5b_e8m0_repack",
+            "R5-B e8m0 repack numeric bridge",
+            "READY_WAITING_R6000",
+            "tooling exists, but no R6000 result.json artifact is banked",
+            ", ".join(required),
+            "Run scripts/r6000_stage6_r5b_e8m0_repack.sh; bank numeric feasibility only.",
+        )
+    if data.get("_json_error"):
+        return Gate(
+            "r5b_e8m0_repack",
+            "R5-B e8m0 repack numeric bridge",
+            "FAILED_ARTIFACT",
+            "latest result.json is not valid JSON",
+            _artifact(run_dir),
+            "Fix artifact JSON before interpreting R5-B.",
+        )
+    passes = data.get("passes") if isinstance(data.get("passes"), dict) else {}
+    decision = _decision(data)
+    if (
+        passes.get("banked_repack_numeric") is True
+        and passes.get("banked_grouped_moe_fp4_mma_poc") is False
+        and passes.get("banked_kernel_speed") is False
+        and passes.get("banked_default_promotion") is False
+        and decision.startswith("PASS_R5B_E8M0_REPACK")
+    ):
+        return Gate(
+            "r5b_e8m0_repack",
+            "R5-B e8m0 repack numeric bridge",
+            "DIAGNOSTIC_BANKED",
+            "e8m0 repack numeric feasibility passed; no kernel speed/default/grouped-MoE POC promotion",
+            _artifact(run_dir),
+            "Proceed to R5-C selected/grouped-MoE FP4-MMA POC using the repacked artifact contract.",
+            decision,
+        )
+    if decision == "FAIL_R5B_E8M0_REPACK_NUMERIC":
+        best = min(
+            (
+                row
+                for case in data.get("cases", [])
+                for row in case.get("candidates", [])
+            ),
+            key=lambda row: float(((row.get("metrics") or {}).get("rel_l2") or 1e9)),
+            default={},
+        )
+        metrics = best.get("metrics") or {}
+        evidence = "e8m0 repack numeric gate failed"
+        rel_l2 = metrics.get("rel_l2")
+        cosine = metrics.get("cosine")
+        if isinstance(rel_l2, (int, float)) and isinstance(cosine, (int, float)):
+            evidence = f"best rel_l2={rel_l2:.6g}, cosine={cosine:.6g}; e8m0 repack is not accurate enough"
+        return Gate(
+            "r5b_e8m0_repack",
+            "R5-B e8m0 repack numeric bridge",
+            "CLOSED_NEGATIVE",
+            evidence,
+            _artifact(run_dir),
+            "Do not pursue simple e8m0 repack; next route is custom scale/NVFP4-native CUTLASS/CuTe handling.",
+            decision,
+        )
+    return Gate(
+        "r5b_e8m0_repack",
+        "R5-B e8m0 repack numeric bridge",
+        "FAILED_ARTIFACT",
+        "latest R5-B artifact did not satisfy the numeric-only boundary",
+        _artifact(run_dir),
+        "Inspect R5-B artifact before choosing the next scale path.",
+        decision,
+    )
+
+
 def _p4b_contract_gate() -> Gate:
     required = [
         "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md",
@@ -975,6 +1065,7 @@ def collect_gates() -> list[Gate]:
             "Implement R5-A layout bridge first; do not start with a full fused MoE kernel.",
         ),
         _r5a_layout_bridge_gate(),
+        _r5b_e8m0_repack_gate(),
     ]
     return gates
 

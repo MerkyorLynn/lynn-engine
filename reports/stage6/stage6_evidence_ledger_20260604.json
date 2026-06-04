@@ -1,13 +1,13 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T09:27:52+00:00",
-  "stage6_status": "R6000_R5A_LAYOUT_BRIDGE_BANKED",
-  "stage6_note": "R5-A PASS on RTX PRO 6000: padded per-16 group32 preserves layout for integer e8m0 scales; current E4M3-like Lynn scales require repack/custom scale handling.",
-  "spark_status": "R6000_R5A_LAYOUT_BRIDGE_BANKED",
-  "spark_note": "R5-A PASS on RTX PRO 6000: padded per-16 group32 preserves layout for integer e8m0 scales; current E4M3-like Lynn scales require repack/custom scale handling.",
+  "generated_at_utc": "2026-06-04T09:36:00+00:00",
+  "stage6_status": "R6000_R5B_E8M0_REPACK_CLOSED_NEGATIVE",
+  "stage6_note": "R5-B failed on RTX PRO 6000: simple e8m0 repack best rel_l2 ~0.166 / cosine ~0.986, so the next route is custom scale or NVFP4-native CUTLASS/CuTe handling.",
+  "spark_status": "R6000_R5B_E8M0_REPACK_CLOSED_NEGATIVE",
+  "spark_note": "R5-B failed on RTX PRO 6000: simple e8m0 repack best rel_l2 ~0.166 / cosine ~0.986, so the next route is custom scale or NVFP4-native CUTLASS/CuTe handling.",
   "counts": {
     "BANKED": 26,
-    "CLOSED_NEGATIVE": 4,
+    "CLOSED_NEGATIVE": 5,
     "TIMEOUT_NOT_CLEAN": 1,
     "DIAGNOSTIC_BANKED": 4,
     "READY_WAITING_SPARK": 4,
@@ -398,6 +398,15 @@
       "artifact": "reports/stage6/r5a_layout_bridge_20260604_172706",
       "next_step": "Use the bridge verdict to choose R5-B: e8m0 repack/custom scale path first, then CUTLASS/CuTe grouped-MoE POC.",
       "decision": "PASS_R5A_LAYOUT_BRIDGE_E8M0_REPACK_REQUIRED"
+    },
+    {
+      "gate": "r5b_e8m0_repack",
+      "title": "R5-B e8m0 repack numeric bridge",
+      "status": "CLOSED_NEGATIVE",
+      "evidence": "best rel_l2=0.165278, cosine=0.986248; e8m0 repack is not accurate enough",
+      "artifact": "reports/stage6/r5b_e8m0_repack_20260604_173435",
+      "next_step": "Do not pursue simple e8m0 repack; next route is custom scale/NVFP4-native CUTLASS/CuTe handling.",
+      "decision": "FAIL_R5B_E8M0_REPACK_NUMERIC"
     }
   ]
 }
