@@ -11,8 +11,8 @@ and gates that are wired but still waiting for lane-specific PASS/FAIL artifacts
 
 | Field | Value |
 |---|---|
-| Status | `R5C3B_GATEUP_VALUE_MATERIALIZATION_BANKED` |
-| Note | R5-C3B gate/up value materialization smoke is banked: full real CUTLASS D/ref row values were captured, exact value-bit digests matched the row hashes, and values scattered through the R5-C2B inverse-order contract into [T, top_k, N_gateup] with host-SwiGLU checksum recorded. This does not bank down projection, weighted top-k reduction, full grouped-MoE speed, decode TPS, server behavior, RC quality, or default promotion. Next gate is R5-C3C down projection + weighted top-k numeric parity. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT. |
+| Status | `R5C3C_DOWN_WEIGHTED_PARITY_BANKED` |
+| Note | R5-C3C down + weighted top-k parity smoke is banked: real R5-C3B CUTLASS gate/up D/ref values were composed through host SwiGLU, deterministic down projection, and route-weighted top-k reduction with D/ref parity. This does not bank full active-MoE FP4-MMA speed, decode TPS, server behavior, RC quality, or default promotion. Next gate is full active-MoE prefill speed A/B against W4A16/P2-N/P3 paths. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT. |
 
 ## Promotion Boundaries
 
@@ -76,12 +76,13 @@ and gates that are wired but still waiting for lane-specific PASS/FAIL artifacts
 | `r5c2b_slot_bridge_contract` | **STATIC_CONTRACT_BANKED** `PASS_R5C2B_SLOT_PRESERVING_SELECTED_OUTPUT_CONTRACT` | route/order/scatter contract is banked as a GPU-free static guard for preserving (token_idx, top_k_slot, expert_id) through expert grouping and inverse scatter | `reports/stage6/R5C2B_SLOT_PRESERVING_SELECTED_OUTPUT_CONTRACT_20260604.md, scripts/test_stage6_r5c2b_slot_bridge_contract_static.py` | Implement the R5-C2B CUTLASS selected-output harness; do not claim speed/default from the static contract. |
 | `r5c2c_real_d_row_slot_scatter_smoke` | **BANKED** `PASS_R5C2C_REAL_D_ROW_SLOT_SCATTER_SMOKE` | real CUTLASS D/ref row digests were captured after host-reference verification and scattered through the R5-C2B inverse-order contract; tokens/top_k/N=128/2/128; tokens_per_expert=[32, 64, 64, 96]; schedules=['cooperative', 'pingpong'] | `reports/stage6/r5c2c_real_d_row_slot_scatter_smoke_20260604_201440` | Proceed to R5-C3 grouped active-MoE prefill POC or first implement an in-epilogue selected-output scatter; do not claim speed/default from R5-C2C. |
 | `r5c3b_gateup_value_materialization_smoke` | **BANKED** `PASS_R5C3B_GATEUP_VALUE_MATERIALIZATION_SMOKE` | full real CUTLASS D/ref row values were captured, exact value-bit digests matched, and values scattered through the R5-C2B inverse-order contract; tokens/top_k/N=128/2/128; schedules=['cooperative', 'pingpong']; scatter_max_abs=[0.0] | `reports/stage6/r5c3b_gateup_value_materialization_smoke_20260604_204920` | Proceed to R5-C3C down projection + weighted top-k numeric parity; do not claim full MoE speed/default from R5-C3B. |
+| `r5c3c_down_weighted_parity_smoke` | **BANKED** `PASS_R5C3C_DOWN_WEIGHTED_PARITY_SMOKE` | real R5-C3B CUTLASS D/ref gate-up values were composed through host SwiGLU, deterministic down projection, and weighted top-k reduction with D/ref parity; tokens/top_k/hidden/out=128/2/64/48; schedules=['cooperative', 'pingpong']; weighted_max_abs=[0.0] | `reports/stage6/r5c3c_down_weighted_parity_smoke_20260604_130243` | Proceed to full active-MoE prefill speed A/B; do not claim speed/default from R5-C3C. |
 
 ## Counts
 
 | Status | Count |
 |---|---:|
-| `BANKED` | 32 |
+| `BANKED` | 33 |
 | `CLOSED_NEGATIVE` | 5 |
 | `CONTRACT_READY_UNIMPLEMENTED` | 1 |
 | `DECISION_BANKED` | 1 |

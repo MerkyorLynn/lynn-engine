@@ -1039,6 +1039,93 @@ def _r5c3b_gateup_value_materialization_smoke_gate() -> Gate:
     )
 
 
+def _r5c3c_down_weighted_parity_smoke_gate() -> Gate:
+    required = [
+        "reports/stage6/R5C3C_DOWN_WEIGHTED_PARITY_CONTRACT_20260604.md",
+        "scripts/stage6_r5c3c_down_weighted_parity_smoke.py",
+        "scripts/summarize_stage6_r5c3c_down_weighted_parity_smoke.py",
+        "scripts/test_stage6_r5c3c_down_weighted_parity_contract_static.py",
+        "scripts/test_stage6_r5c3c_down_weighted_parity_smoke_tools.py",
+    ]
+    run_dir, data = _latest_result(["r5c3c_down_weighted_parity_smoke_"])
+    if data is None:
+        missing = [rel for rel in required if not (ROOT / rel).exists()]
+        if missing:
+            return Gate(
+                "r5c3c_down_weighted_parity_smoke",
+                "R5-C3C down + weighted top-k parity smoke",
+                "MISSING_TOOLING",
+                f"missing: {', '.join(missing)}",
+                "",
+                "Restore R5-C3C parity tooling before running the host composition gate.",
+            )
+        return Gate(
+            "r5c3c_down_weighted_parity_smoke",
+            "R5-C3C down + weighted top-k parity smoke",
+            "READY_WAITING_ARTIFACT",
+            "tooling exists, but no R5-C3C result.json artifact is banked",
+            ", ".join(required),
+            "Run scripts/stage6_r5c3c_down_weighted_parity_smoke.py against a banked R5-C3B artifact.",
+        )
+    if data.get("_json_error"):
+        return Gate(
+            "r5c3c_down_weighted_parity_smoke",
+            "R5-C3C down + weighted top-k parity smoke",
+            "FAILED_ARTIFACT",
+            "latest R5-C3C result.json is not valid JSON",
+            _artifact(run_dir),
+            "Fix artifact JSON before interpreting R5-C3C.",
+        )
+    passes = data.get("passes") if isinstance(data.get("passes"), dict) else {}
+    decision = _decision(data)
+    if (
+        passes.get("banked_down_projection_numeric_parity") is True
+        and passes.get("banked_weighted_topk_numeric_parity") is True
+        and passes.get("banked_grouped_moe_fp4_mma_poc") is False
+        and passes.get("banked_kernel_speed") is False
+        and passes.get("banked_default_promotion") is False
+        and decision == "PASS_R5C3C_DOWN_WEIGHTED_PARITY_SMOKE"
+    ):
+        shape = data.get("selected_expert_shape") if isinstance(data.get("selected_expert_shape"), dict) else {}
+        schedules = data.get("schedule_parity") if isinstance(data.get("schedule_parity"), dict) else {}
+        evidence = (
+            "real R5-C3B CUTLASS D/ref gate-up values were composed through host SwiGLU, "
+            "deterministic down projection, and weighted top-k reduction with D/ref parity"
+        )
+        if shape:
+            evidence += (
+                f"; tokens/top_k/hidden/out={shape.get('tokens')}/{shape.get('top_k')}/"
+                f"{shape.get('swiglu_hidden')}/{shape.get('down_out_dim')}"
+            )
+        if schedules:
+            max_abs = sorted(
+                {
+                    schedule.get("weighted_topk_d_ref_max_abs")
+                    for schedule in schedules.values()
+                    if isinstance(schedule, dict)
+                }
+            )
+            evidence += f"; schedules={sorted(schedules)}; weighted_max_abs={max_abs}"
+        return Gate(
+            "r5c3c_down_weighted_parity_smoke",
+            "R5-C3C down + weighted top-k parity smoke",
+            "BANKED",
+            evidence,
+            _artifact(run_dir),
+            "Proceed to full active-MoE prefill speed A/B; do not claim speed/default from R5-C3C.",
+            decision,
+        )
+    return Gate(
+        "r5c3c_down_weighted_parity_smoke",
+        "R5-C3C down + weighted top-k parity smoke",
+        "FAILED_ARTIFACT",
+        "latest R5-C3C artifact did not satisfy the numeric-parity-only boundary",
+        _artifact(run_dir),
+        "Inspect down/weighted parity, fault checks, and promotion flags.",
+        decision,
+    )
+
+
 def _p4b_contract_gate() -> Gate:
     required = [
         "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md",
@@ -1575,12 +1662,14 @@ def collect_gates() -> list[Gate]:
         _r5c2b_slot_bridge_contract_gate(),
         _r5c2c_real_d_row_slot_scatter_smoke_gate(),
         _r5c3b_gateup_value_materialization_smoke_gate(),
+        _r5c3c_down_weighted_parity_smoke_gate(),
     ]
     return gates
 
 
 def _derive_current_status(gates: list[Gate]) -> tuple[str, str]:
     by_gate = {gate.gate: gate for gate in gates}
+    r5c3c = by_gate.get("r5c3c_down_weighted_parity_smoke")
     r5c3b = by_gate.get("r5c3b_gateup_value_materialization_smoke")
     r5c2c = by_gate.get("r5c2c_real_d_row_slot_scatter_smoke")
     r5c2b = by_gate.get("r5c2b_slot_bridge_contract")
@@ -1590,6 +1679,17 @@ def _derive_current_status(gates: list[Gate]) -> tuple[str, str]:
     r5c = by_gate.get("r5c_cutlass_ue4m3_census")
     r6000 = by_gate.get("r6000_fp4_mma_census")
     decode_idle = by_gate.get("decode_gpu_idle_probe")
+    if r5c3c and r5c3c.status == "BANKED":
+        note = (
+            "R5-C3C down + weighted top-k parity smoke is banked: real R5-C3B CUTLASS "
+            "gate/up D/ref values were composed through host SwiGLU, deterministic down projection, "
+            "and route-weighted top-k reduction with D/ref parity. This does not bank full active-MoE "
+            "FP4-MMA speed, decode TPS, server behavior, RC quality, or default promotion. Next gate "
+            "is full active-MoE prefill speed A/B against W4A16/P2-N/P3 paths."
+        )
+        if decode_idle and decode_idle.status == "DIAGNOSTIC_BANKED":
+            note += f" Spark decode ROI probe remains {decode_idle.decision or decode_idle.status}."
+        return "R5C3C_DOWN_WEIGHTED_PARITY_BANKED", note
     if r5c3b and r5c3b.status == "BANKED":
         note = (
             "R5-C3B gate/up value materialization smoke is banked: full real CUTLASS D/ref "
