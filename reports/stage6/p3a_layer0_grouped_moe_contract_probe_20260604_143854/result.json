@@ -1,0 +1,199 @@
+{
+  "schema": "lynn-stage6-p3a-grouped-moe-contract-probe-v1",
+  "verdict": "PASS",
+  "banked_fused_kernel": false,
+  "model": "/home/merkyor/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-from-bf16-20260526",
+  "layer": 0,
+  "seed": 20260604,
+  "batches": [
+    1,
+    16,
+    64
+  ],
+  "shape": {
+    "hidden": 2048,
+    "intermediate": 512,
+    "num_experts": 256,
+    "top_k": 8
+  },
+  "tiles": {
+    "block_t": 32,
+    "block_inter": 8,
+    "block_hidden": 128,
+    "num_warps": 4,
+    "down_block_hidden": 8,
+    "down_block_inter": 512,
+    "down_num_warps": 8
+  },
+  "bytes": {
+    "bf16_layer_active_experts": 1610612736,
+    "packed_layer_active_experts": 603979784,
+    "max_inter_scratch_estimate": 524288,
+    "mem_after_deleting_bf16_active_gib": 0.640723705291748
+  },
+  "numeric": {
+    "1": {
+      "cosine": 0.9999812115565759,
+      "rel_l2": 0.0061729936723510775,
+      "max_abs": 1.52587890625e-05,
+      "mean_abs": 2.384549588896334e-06,
+      "argmax_a": 1088,
+      "argmax_b": 1088,
+      "argmax_match": true
+    },
+    "16": {
+      "cosine": 0.9999811676691885,
+      "rel_l2": 0.0061384063520639985,
+      "max_abs": 3.0517578125e-05,
+      "mean_abs": 2.8640769969001667e-06,
+      "argmax_a": 27920,
+      "argmax_b": 27920,
+      "argmax_match": true
+    },
+    "64": {
+      "cosine": 0.999981083937787,
+      "rel_l2": 0.006150851623836819,
+      "max_abs": 3.0517578125e-05,
+      "mean_abs": 2.8865766292796025e-06,
+      "argmax_a": 105645,
+      "argmax_b": 105645,
+      "argmax_match": true
+    }
+  },
+  "bench": {
+    "rows": [
+      {
+        "batch": 1,
+        "unique_experts": 8,
+        "bf16_active_us": 614.2399907112122,
+        "p3a_contract_us": 749.455988407135,
+        "p3a_vs_bf16": 0.8195811364676587,
+        "cosine": 0.9999812115565759,
+        "argmax_match": true
+      },
+      {
+        "batch": 16,
+        "unique_experts": 99,
+        "bf16_active_us": 6447.055816650391,
+        "p3a_contract_us": 8823.415756225586,
+        "p3a_vs_bf16": 0.7306757376927984,
+        "cosine": 0.9999811676691885,
+        "argmax_match": true
+      },
+      {
+        "batch": 64,
+        "unique_experts": 210,
+        "bf16_active_us": 13835.160255432129,
+        "p3a_contract_us": 20288.07258605957,
+        "p3a_vs_bf16": 0.6819356642551943,
+        "cosine": 0.999981083937787,
+        "argmax_match": true
+      }
+    ],
+    "bf16_active": {
+      "1": {
+        "warmup": 1,
+        "iters": 2,
+        "repeats": 2,
+        "median_us": 614.2399907112122,
+        "min_us": 531.3760042190552,
+        "max_us": 697.1039772033691,
+        "all_us": [
+          697.1039772033691,
+          531.3760042190552
+        ]
+      },
+      "16": {
+        "warmup": 1,
+        "iters": 2,
+        "repeats": 2,
+        "median_us": 6447.055816650391,
+        "min_us": 6446.047782897949,
+        "max_us": 6448.063850402832,
+        "all_us": [
+          6448.063850402832,
+          6446.047782897949
+        ]
+      },
+      "64": {
+        "warmup": 1,
+        "iters": 2,
+        "repeats": 2,
+        "median_us": 13835.160255432129,
+        "min_us": 13623.392105102539,
+        "max_us": 14046.928405761719,
+        "all_us": [
+          14046.928405761719,
+          13623.392105102539
+        ]
+      }
+    },
+    "p3a_contract": {
+      "1": {
+        "warmup": 1,
+        "iters": 2,
+        "repeats": 2,
+        "median_us": 749.455988407135,
+        "min_us": 744.0639734268188,
+        "max_us": 754.8480033874512,
+        "all_us": [
+          754.8480033874512,
+          744.0639734268188
+        ]
+      },
+      "16": {
+        "warmup": 1,
+        "iters": 2,
+        "repeats": 2,
+        "median_us": 8823.415756225586,
+        "min_us": 8808.719635009766,
+        "max_us": 8838.111877441406,
+        "all_us": [
+          8838.111877441406,
+          8808.719635009766
+        ]
+      },
+      "64": {
+        "warmup": 1,
+        "iters": 2,
+        "repeats": 2,
+        "median_us": 20288.07258605957,
+        "min_us": 20263.61656188965,
+        "max_us": 20312.528610229492,
+        "all_us": [
+          20263.61656188965,
+          20312.528610229492
+        ]
+      }
+    }
+  },
+  "memory": {
+    "p3a_candidate_peak": {
+      "1": {
+        "before_gib": 0.6407275199890137,
+        "after_gib": 0.6407313346862793,
+        "peak_gib": 0.640744686126709
+      },
+      "16": {
+        "before_gib": 0.640784740447998,
+        "after_gib": 0.640845775604248,
+        "peak_gib": 0.6409769058227539
+      },
+      "64": {
+        "before_gib": 0.640967845916748,
+        "after_gib": 0.641211986541748,
+        "peak_gib": 0.6417365074157715
+      }
+    }
+  },
+  "passes": {
+    "numeric": true,
+    "shadow_absent_at_candidate_start": true,
+    "all": true
+  },
+  "notes": [
+    "Active MoE only: shared expert and router are excluded from the P3-A contract.",
+    "The candidate consumes packed active weights after BF16 active shadows are deleted.",
+    "Speed is reported, but this probe does not bank a fused P3 kernel."
+  ]
+}

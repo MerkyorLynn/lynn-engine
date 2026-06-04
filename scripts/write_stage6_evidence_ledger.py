@@ -510,11 +510,22 @@ def collect_gates() -> list[Gate]:
             ],
             "Rerun only after slow-mode prefill is accelerated or the rc-mini prompt set is split/chunked; the 2048 run was max_seq_len-invalid and the 8192 run timed out.",
         ),
+        _result_or_ready_gate(
+            "p3a_grouped_moe_contract_probe",
+            "P3-A grouped active-MoE contract probe",
+            ["p3a_layer"],
+            [
+                "reports/stage6/P3_GROUPED_MOE_ZERO_SHADOW_CONTRACT_20260604.md",
+                "scripts/run_spark_stage6_p3a_contract_probe.sh",
+                "scripts/spark_stage6_p3a_grouped_moe_contract_probe.py",
+            ],
+            "Banks only the P3-A active-MoE contract probe; speed/default/fused-kernel promotion remain closed.",
+        ),
         _ready_gate(
             "p3b_selected_prefill",
             "P3-B selected-prefill composition gate",
             ["reports/stage6/P3B_SELECTED_PREFILL_GATE_RUNBOOK_20260604.md", "scripts/run_spark_stage6_p3b_selected_prefill_gate.sh"],
-            "Run after P2-O basic PASS plus P3-A predecessor evidence; keep rc-mini as a separate slow-mode scale gate.",
+            "Run after P2-O basic + rc-mini non-long shard + P3-A predecessor evidence; keep full rc-mini long-context as a separate slow-mode scale gate.",
         ),
         _ready_gate(
             "p3c_resident_prompt",

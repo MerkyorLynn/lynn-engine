@@ -30,6 +30,7 @@
 - P2-N wider-layer block-linear smoke: [Stage 6 Phase 2-N wider-layer block-linear smoke](reports/stage6/P2N_WIDER_LAYER_BLOCK_LINEAR_SMOKE_20260604.md)
 - P2-O basic packed-prefill RC smoke: [Stage 6 Phase 2-O packed-prefill RC smoke](reports/stage6/P2O_PACKED_PREFILL_RC_SMOKE_BASIC_20260604.md)
 - P2-O rc-mini non-long shard: [Stage 6 Phase 2-O rc-mini non-long shard](reports/stage6/P2O_PACKED_PREFILL_RC_SMOKE_RCMINI_NONLONG_20260604.md)
+- P3-A grouped active-MoE contract probe: [Stage 6 Phase 3-A grouped active-MoE contract probe](reports/stage6/P3A_GROUPED_MOE_CONTRACT_PROBE_20260604.md)
 
 ## Banked Results
 
@@ -65,6 +66,7 @@
 | P2-O basic packed-prefill RC smoke | active-MoE no-reload packed-prefill real-prompt smoke PASS:3/3 generated-token exact,loaded 88.16 GiB -> after-release 28.18 GiB,reload calls 0;opt-in prefill avg 149.62s vs baseline 1.23s(0.008x),so this banks correctness/memory only,not speed |
 | P2-O rc-mini non-long shard | `idx0-4` PASS:5/5 generated-token exact,loaded 88.16 GiB -> after-release 28.18 GiB,reload calls 0;opt-in prefill avg 108.56s vs baseline 0.86s(0.008x),so this banks non-long correctness/memory only,not full rc-mini or speed |
 | P2-O full rc-mini long-context scale gate | not clean:2048 run had max_seq_len config failure;8192 full run timed out in slow-mode without result.json. Rerun only after slow-mode acceleration/chunking;do not count as numeric failure or pass |
+| P3-A grouped active-MoE contract probe | layer0 PASS:numeric true,shadow absent at candidate start,argmax 3/3,packed active 0.563 GiB vs BF16 active 1.500 GiB;speed 0.744x vs BF16 active,so this banks only the contract probe,not fused kernel/default/speed |
 
 ## Corrected Engineering Read
 
@@ -107,9 +109,10 @@
 21. **P2-O basic:已过,但只 bank correctness/memory。** real-prompt active-MoE no-reload packed-prefill 3/3 generated-token exact,88.16->28.18 GiB,reload 0;slow-mode prefill 149.62s avg(0.008x),所以不是多请求吞吐方案。
 22. **P2-O rc-mini non-long shard:已过,但仍只 bank correctness/memory。** `idx0-4` 5/5 generated-token exact,同样释放 60 GiB,reload 0;slow-mode prefill 108.56s avg(0.008x),所以不是速度方案。
 23. **P2-O full rc-mini long-context:未 clean。** 2048 run 是 max_seq_len 配置失败;8192 full run 因 slow-mode 长 prompt 超时无 result。下一刀是 slow-mode 加速 / chunked packed-prefill,不是把 timeout 包装成失败或胜利。
-24. **P3 server promotion:** `LYNN_PACKED_PREFILL=1` 后多请求服务常驻 27-28 GiB,无 reload,decode TPS 不回退;未过前不做 server 默认。
-25. **P4C native zero-shadow go/no-go:** P4B single-CTA 和 active recompute 已由 microbench 反证;P4C basic server smoke 已过,但 rc-mini wider agreement 已拒绝(completion exact 3/6,chat 2/2)。P4C 仅保留 opt-in diagnostic/basic smoke;没有 RC-exact 且 e2e A/B 真快过 ~45 的候选,不做 promotion。
-26. **Speed next:** 不是 P4C 扩 RC,而是两条速度线:MTP draft/accept 信号好,真正 blocker 是 eager speculative runtime;下一轮优先削 snapshot/restore、per-event dispatch/sync 与 token-exact batched verify。另一条是把 decode hot loop 搬出 Python、用 compiled/C++ 服务循环降低 per-launch host dispatch;reusable decode graph 已实测 0.75x 净负,不作为当前默认路线。
+24. **P3-A grouped active-MoE contract probe:已过,但只 bank contract。** layer0 numeric/argmax/shadow-absent 全过,packed active 0.563 GiB vs BF16 active 1.500 GiB;speed 0.744x,所以不 bank fused kernel/default/speed。
+25. **P3 server promotion:** `LYNN_PACKED_PREFILL=1` 后多请求服务常驻 27-28 GiB,无 reload,decode TPS 不回退;未过前不做 server 默认。
+26. **P4C native zero-shadow go/no-go:** P4B single-CTA 和 active recompute 已由 microbench 反证;P4C basic server smoke 已过,但 rc-mini wider agreement 已拒绝(completion exact 3/6,chat 2/2)。P4C 仅保留 opt-in diagnostic/basic smoke;没有 RC-exact 且 e2e A/B 真快过 ~45 的候选,不做 promotion。
+27. **Speed next:** 不是 P4C 扩 RC,而是两条速度线:MTP draft/accept 信号好,真正 blocker 是 eager speculative runtime;下一轮优先削 snapshot/restore、per-event dispatch/sync 与 token-exact batched verify。另一条是把 decode hot loop 搬出 Python、用 compiled/C++ 服务循环降低 per-launch host dispatch;reusable decode graph 已实测 0.75x 净负,不作为当前默认路线。
 
 ## Relation To 2026-05-20 Notes
 

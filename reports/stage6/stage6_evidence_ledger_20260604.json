@@ -1,10 +1,10 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T06:30:58+00:00",
-  "spark_status": "P2O_BASIC_AND_RCMINI_NONLONG_BANKED",
-  "spark_note": "P2-O basic PASS and rc-mini non-long shard idx0-4 PASS: generated-token exact, 88.16->28.18 GiB, reload calls 0. Full rc-mini long-context remains not clean: 2048 max_seq_len invalid and 8192 full run timed out in slow-mode; long-context must rerun after slow-mode acceleration/chunking. P4C remains opt-in diagnostic only after rc-mini rejection and hidden/logit drift evidence.",
+  "generated_at_utc": "2026-06-04T06:41:03+00:00",
+  "spark_status": "P3A_CONTRACT_BANKED",
+  "spark_note": "P2-O basic and rc-mini non-long shard are banked as correctness/memory evidence. P3-A layer0 grouped active-MoE contract probe PASS: numeric true, shadow_absent_at_candidate_start true, argmax 3/3, banked_fused_kernel=false, average speed 0.744x vs BF16 active. Full P2-O rc-mini long-context remains a separate slow-mode scale gate.",
   "counts": {
-    "BANKED": 22,
+    "BANKED": 23,
     "CLOSED_NEGATIVE": 4,
     "TIMEOUT_NOT_CLEAN": 1,
     "READY_WAITING_SPARK": 6,
@@ -145,12 +145,21 @@
       "decision": "terminated_by_codex_timeout_after_17m_no_result"
     },
     {
+      "gate": "p3a_grouped_moe_contract_probe",
+      "title": "P3-A grouped active-MoE contract probe",
+      "status": "BANKED",
+      "evidence": "latest Spark result.json has passes.all=true",
+      "artifact": "reports/stage6/p3a_layer0_grouped_moe_contract_probe_20260604_143854",
+      "next_step": "Banks only the P3-A active-MoE contract probe; speed/default/fused-kernel promotion remain closed.",
+      "decision": "PASS"
+    },
+    {
       "gate": "p3b_selected_prefill",
       "title": "P3-B selected-prefill composition gate",
       "status": "READY_WAITING_SPARK",
       "evidence": "tooling/runbook exists, but no Spark PASS artifact is banked",
       "artifact": "reports/stage6/P3B_SELECTED_PREFILL_GATE_RUNBOOK_20260604.md, scripts/run_spark_stage6_p3b_selected_prefill_gate.sh",
-      "next_step": "Run after P2-O basic PASS plus P3-A predecessor evidence; keep rc-mini as a separate slow-mode scale gate.",
+      "next_step": "Run after P2-O basic + rc-mini non-long shard + P3-A predecessor evidence; keep full rc-mini long-context as a separate slow-mode scale gate.",
       "decision": ""
     },
     {
