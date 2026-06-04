@@ -1,13 +1,14 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T01:16:40+00:00",
+  "generated_at_utc": "2026-06-04T01:27:51+00:00",
   "spark_status": "REACHABLE_VIA_DGX_VIA_SSH",
-  "spark_note": "Spark SSH recovered via dgx-via-ssh on 2026-06-04; dgx-spark direct alias may report local forward ports 18007/18008 already in use. P4B fail-loud route gates, opt-in single-CTA numeric reference, single-CTA microbench anti-proof, and multi-CTA recompute numeric/negative microbench were run on /home/merkyor/lynn-engine-codex-stage6 through 33d049a.",
+  "spark_note": "Spark SSH recovered via dgx-via-ssh on 2026-06-04; dgx-spark direct alias may report local forward ports 18007/18008 already in use. P4B fail-loud route gates, opt-in single-CTA numeric reference, single-CTA microbench anti-proof, and multi-CTA recompute numeric/negative microbench were run on /home/merkyor/lynn-engine-codex-stage6 through 33d049a. P4C active-reuse decision is a local decision/static-gate update; no new Spark result is banked by it.",
   "counts": {
     "BANKED": 14,
     "CLOSED_NEGATIVE": 3,
     "READY_WAITING_SPARK": 7,
-    "REFERENCE_IMPL_BANKED_SPEED_CLOSED": 1
+    "REFERENCE_IMPL_BANKED_SPEED_CLOSED": 1,
+    "DECISION_BANKED": 1
   },
   "promotion_boundaries": {
     "p3_default_promotion": false,
@@ -238,6 +239,15 @@
       "evidence": "opt-in single-CTA output-returning numeric reference is banked; speed/default promotion remain closed",
       "artifact": "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md, scripts/test_stage6_p4b_single_kernel_static.py, scripts/run_spark_stage6_p4b_single_cta_numeric_preflight.sh",
       "next_step": "Scale beyond T=1/top_k=8, add byte-count profiler and speed gate before any promotion.",
+      "decision": ""
+    },
+    {
+      "gate": "p4c_active_reuse_decision",
+      "title": "P4C active-reuse kernel decision",
+      "status": "DECISION_BANKED",
+      "evidence": "single-CTA and multi-CTA recompute anti-proofs are captured; next candidate must preserve active reuse",
+      "artifact": "reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md, scripts/test_stage6_p4c_active_reuse_decision_static.py",
+      "next_step": "Implement P4C active-reuse two-phase/CUTLASS-style candidate; do not report it as P4B out-only fused speed.",
       "decision": ""
     }
   ]

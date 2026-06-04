@@ -75,6 +75,9 @@ def main() -> int:
         assert gates["p4b_multi_cta_recompute_microbench"]["status"] == "CLOSED_NEGATIVE"
         assert gates["p4b_multi_cta_recompute_microbench"]["decision"] == "PASS_P4B_SINGLE_CTA_MICROBENCH_RECORDED"
         assert gates["p4b_single_kernel_contract"]["status"] == "REFERENCE_IMPL_BANKED_SPEED_CLOSED"
+        assert gates["p4c_active_reuse_decision"]["status"] == "DECISION_BANKED"
+        assert "active reuse" in gates["p4c_active_reuse_decision"]["evidence"]
+        assert "P4C active-reuse" in gates["p4c_active_reuse_decision"]["next_step"]
         assert "P4 fused kernel banked | `false`" in text
         assert "TEST_BLOCKED_BY_SSH" in text
 

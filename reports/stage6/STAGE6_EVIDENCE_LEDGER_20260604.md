@@ -12,7 +12,7 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 | Field | Value |
 |---|---|
 | Status | `REACHABLE_VIA_DGX_VIA_SSH` |
-| Note | Spark SSH recovered via dgx-via-ssh on 2026-06-04; dgx-spark direct alias may report local forward ports 18007/18008 already in use. P4B fail-loud route gates, opt-in single-CTA numeric reference, single-CTA microbench anti-proof, and multi-CTA recompute numeric/negative microbench were run on /home/merkyor/lynn-engine-codex-stage6 through 33d049a. |
+| Note | Spark SSH recovered via dgx-via-ssh on 2026-06-04; dgx-spark direct alias may report local forward ports 18007/18008 already in use. P4B fail-loud route gates, opt-in single-CTA numeric reference, single-CTA microbench anti-proof, and multi-CTA recompute numeric/negative microbench were run on /home/merkyor/lynn-engine-codex-stage6 through 33d049a. P4C active-reuse decision is a local decision/static-gate update; no new Spark result is banked by it. |
 
 ## Promotion Boundaries
 
@@ -51,6 +51,7 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 | `p4b_multi_cta_numeric_preflight` | **BANKED** `PASS_P4B_SINGLE_CTA_NUMERIC_REFERENCE` | latest Spark result.json has passes.all=true | `reports/stage6/p4b_multi_cta_numeric_preflight_20260604_091106` | If numeric passes, use microbench to accept or reject this recompute strategy. |
 | `p4b_multi_cta_recompute_microbench` | **CLOSED_NEGATIVE** `PASS_P4B_SINGLE_CTA_MICROBENCH_RECORDED` | numeric exact but slower than P4A two-stage; speedup=0.005778x | `reports/stage6/p4b_multi_cta_microbench_20260604_091150` | Reject per-output-tile active recompute; next candidate must preserve active reuse. |
 | `p4b_single_kernel_contract` | **REFERENCE_IMPL_BANKED_SPEED_CLOSED** | opt-in single-CTA output-returning numeric reference is banked; speed/default promotion remain closed | `reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md, scripts/test_stage6_p4b_single_kernel_static.py, scripts/run_spark_stage6_p4b_single_cta_numeric_preflight.sh` | Scale beyond T=1/top_k=8, add byte-count profiler and speed gate before any promotion. |
+| `p4c_active_reuse_decision` | **DECISION_BANKED** | single-CTA and multi-CTA recompute anti-proofs are captured; next candidate must preserve active reuse | `reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md, scripts/test_stage6_p4c_active_reuse_decision_static.py` | Implement P4C active-reuse two-phase/CUTLASS-style candidate; do not report it as P4B out-only fused speed. |
 
 ## Counts
 
@@ -58,6 +59,7 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 |---|---:|
 | `BANKED` | 14 |
 | `CLOSED_NEGATIVE` | 3 |
+| `DECISION_BANKED` | 1 |
 | `READY_WAITING_SPARK` | 7 |
 | `REFERENCE_IMPL_BANKED_SPEED_CLOSED` | 1 |
 
