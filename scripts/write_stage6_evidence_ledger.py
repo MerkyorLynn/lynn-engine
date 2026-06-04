@@ -154,6 +154,48 @@ def _contract_gate(gate: str, title: str, required: list[str], next_step: str) -
     )
 
 
+def _p4b_contract_gate() -> Gate:
+    required = [
+        "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md",
+        "scripts/test_stage6_p4b_single_kernel_static.py",
+        "scripts/run_spark_stage6_p4b_single_cta_numeric_preflight.sh",
+    ]
+    missing = [rel for rel in required if not (ROOT / rel).exists()]
+    if missing:
+        return Gate(
+            "p4b_single_kernel_contract",
+            "P4B true fused single-kernel ABI",
+            "MISSING_TOOLING",
+            f"missing: {', '.join(missing)}",
+            "",
+            "Restore contract/static/numeric tooling before implementation work continues.",
+        )
+    if _contains(
+        "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md",
+        [
+            "LYNN_NATIVE_P4B_SINGLE_CTA_REFERENCE=1",
+            "PASS_P4B_SINGLE_CTA_NUMERIC_REFERENCE",
+            "banked_fused_kernel=false",
+        ],
+    ):
+        return Gate(
+            "p4b_single_kernel_contract",
+            "P4B true fused single-kernel ABI",
+            "REFERENCE_IMPL_BANKED_SPEED_CLOSED",
+            "opt-in single-CTA output-returning numeric reference is banked; speed/default promotion remain closed",
+            ", ".join(required),
+            "Scale beyond T=1/top_k=8, add byte-count profiler and speed gate before any promotion.",
+        )
+    return Gate(
+        "p4b_single_kernel_contract",
+        "P4B true fused single-kernel ABI",
+        "CONTRACT_READY_UNIMPLEMENTED",
+        "fail-loud ABI/static gate exists, but no output-returning implementation evidence is recorded",
+        ", ".join(required),
+        "Replace fail-loud-only contract with an opt-in numeric reference, then run Spark.",
+    )
+
+
 def collect_gates() -> list[Gate]:
     gates: list[Gate] = [
         _report_gate(
@@ -300,12 +342,19 @@ def collect_gates() -> list[Gate]:
             ],
             "Run on Spark; proves resident-runner routing reaches P4B fail-loud symbol after active BF16 shadows are removed.",
         ),
-        _contract_gate(
-            "p4b_single_kernel_contract",
-            "P4B true fused single-kernel ABI",
-            ["reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md", "scripts/test_stage6_p4b_single_kernel_static.py"],
-            "Replace fail-loud contract with a real fused CUDA/CUTLASS kernel, then run byte-count/numeric/speed/RC gates.",
+        _result_or_ready_gate(
+            "p4b_single_cta_numeric_preflight",
+            "P4B single-CTA output-returning numeric preflight",
+            ["p4b_single_cta_numeric_preflight_"],
+            [
+                "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md",
+                "scripts/run_spark_stage6_p4b_single_cta_numeric_preflight.sh",
+                "scripts/spark_stage6_p4b_single_cta_numeric_preflight.py",
+                "scripts/summarize_stage6_p4b_single_cta_numeric_preflight.py",
+            ],
+            "Use as correctness reference only; next gate needs byte-count profiler plus speed/RC evidence.",
         ),
+        _p4b_contract_gate(),
     ]
     return gates
 

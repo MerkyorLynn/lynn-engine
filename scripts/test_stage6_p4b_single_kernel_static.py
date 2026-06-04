@@ -17,6 +17,9 @@ WRAPPER = ROOT / "scripts" / "run_spark_stage6_p4b_single_kernel_preflight.sh"
 RUNTIME_PREFLIGHT = ROOT / "scripts" / "spark_stage6_p4b_runtime_bridge_preflight.py"
 RUNTIME_SUMMARIZER = ROOT / "scripts" / "summarize_stage6_p4b_runtime_bridge_preflight.py"
 RUNTIME_WRAPPER = ROOT / "scripts" / "run_spark_stage6_p4b_runtime_bridge_preflight.sh"
+SINGLE_CTA_PREFLIGHT = ROOT / "scripts" / "spark_stage6_p4b_single_cta_numeric_preflight.py"
+SINGLE_CTA_SUMMARIZER = ROOT / "scripts" / "summarize_stage6_p4b_single_cta_numeric_preflight.py"
+SINGLE_CTA_WRAPPER = ROOT / "scripts" / "run_spark_stage6_p4b_single_cta_numeric_preflight.sh"
 
 
 def _extract_cu_function(text: str, name: str) -> str:
@@ -68,6 +71,9 @@ def main() -> int:
     runtime_preflight_text = RUNTIME_PREFLIGHT.read_text(encoding="utf-8") if RUNTIME_PREFLIGHT.exists() else ""
     runtime_summarizer_text = RUNTIME_SUMMARIZER.read_text(encoding="utf-8") if RUNTIME_SUMMARIZER.exists() else ""
     runtime_wrapper_text = RUNTIME_WRAPPER.read_text(encoding="utf-8") if RUNTIME_WRAPPER.exists() else ""
+    single_cta_preflight_text = SINGLE_CTA_PREFLIGHT.read_text(encoding="utf-8") if SINGLE_CTA_PREFLIGHT.exists() else ""
+    single_cta_summarizer_text = SINGLE_CTA_SUMMARIZER.read_text(encoding="utf-8") if SINGLE_CTA_SUMMARIZER.exists() else ""
+    single_cta_wrapper_text = SINGLE_CTA_WRAPPER.read_text(encoding="utf-8") if SINGLE_CTA_WRAPPER.exists() else ""
     cu_fn = _extract_cu_function(cu_text, "lynn_native_active_moe_fused_zero_shadow_single_kernel_contract")
     py_fn = _extract_py_function(py_text, "_active_moe_native_fused_zero_shadow_single_kernel_contract")
     fallback_set = _extract_active_moe_backend_fallback_set(py_text)
@@ -80,6 +86,8 @@ def main() -> int:
             "P4B gate_up_packed must be [E, 1024, 1024]",
             "P4B down_packed must be [E, 2048, 256]",
             "P4B single-kernel fused zero-shadow contract is not implemented yet",
+            "LYNN_NATIVE_P4B_SINGLE_CTA_REFERENCE",
+            "p4b_single_cta_reference_kernel",
             "do not bank fused-kernel speed or promote this backend",
         ],
         failures,
@@ -143,8 +151,11 @@ def main() -> int:
             "fused_zero_shadow_single_kernel_contract",
             "run_spark_stage6_p4b_single_kernel_preflight.sh",
             "run_spark_stage6_p4b_runtime_bridge_preflight.sh",
+            "run_spark_stage6_p4b_single_cta_numeric_preflight.sh",
             "PASS_SINGLE_KERNEL_FAILLOUD_CONTRACT",
             "PASS_P4B_RUNTIME_BRIDGE_FAILLOUD",
+            "PASS_P4B_SINGLE_CTA_NUMERIC_REFERENCE",
+            "LYNN_NATIVE_P4B_SINGLE_CTA_REFERENCE=1",
             "must not reuse the historical `active_moe_fused_atomic_scalar_kernel`",
             "No output scratch",
         ],
@@ -216,6 +227,41 @@ def main() -> int:
             "p4b_runtime_bridge_preflight_",
             "spark_stage6_p4b_runtime_bridge_preflight.py",
             "summarize_stage6_p4b_runtime_bridge_preflight.py",
+        ],
+        failures,
+    )
+    _check_contains(
+        "P4B single-CTA numeric preflight",
+        single_cta_preflight_text,
+        [
+            "PASS_P4B_SINGLE_CTA_NUMERIC_REFERENCE",
+            "LYNN_NATIVE_P4B_SINGLE_CTA_REFERENCE",
+            "banked_single_cta_numeric_preflight",
+            "banked_fused_kernel",
+            "no_inter_scratch_candidate_abi",
+            "rel_l2_vs_reference",
+        ],
+        failures,
+    )
+    _check_contains(
+        "P4B single-CTA numeric summarizer",
+        single_cta_summarizer_text,
+        [
+            "PASS_P4B_SINGLE_CTA_NUMERIC_REFERENCE",
+            "fused-kernel speed boundary violated",
+            "P4B single-CTA output matches P4A two-stage reference",
+            "No inter_scratch candidate ABI",
+        ],
+        failures,
+    )
+    _check_contains(
+        "P4B single-CTA Spark wrapper",
+        single_cta_wrapper_text,
+        [
+            "LYNN_STAGE6_EXPECT_MANIFEST",
+            "p4b_single_cta_numeric_preflight_",
+            "spark_stage6_p4b_single_cta_numeric_preflight.py",
+            "summarize_stage6_p4b_single_cta_numeric_preflight.py",
         ],
         failures,
     )
