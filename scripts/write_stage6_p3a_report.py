@@ -63,6 +63,7 @@ def write_report(artifact_dir: Path, *, report_date: str) -> str:
 
     verdict, reason = _verdict(data)
     passes = data.get("passes") or {}
+    candidate = data.get("candidate") or {}
     shape = data.get("shape") or {}
     bytes_ = data.get("bytes") or {}
     git_head = _read(artifact_dir / "git_head.txt", "unknown")
@@ -116,6 +117,7 @@ def write_report(artifact_dir: Path, *, report_date: str) -> str:
         f"| Model | `{data.get('model', 'unknown')}` |",
         f"| Layer | `{data.get('layer', 'unknown')}` |",
         f"| Batches | `{data.get('batches', 'unknown')}` |",
+        f"| Candidate | `{candidate or 'default'}` |",
         f"| Shape | `H={shape.get('hidden')} I={shape.get('intermediate')} E={shape.get('num_experts')} top_k={shape.get('top_k')}` |",
         "",
         "GPU before:",

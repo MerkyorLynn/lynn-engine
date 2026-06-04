@@ -205,6 +205,65 @@ def _contract_gate(gate: str, title: str, required: list[str], next_step: str) -
     )
 
 
+def _p3a_batched_down_candidate_gate() -> Gate:
+    required = [
+        "reports/stage6/P3A_BATCHED_DOWN_CONTRACT_PROBE_20260604.md",
+        "scripts/run_spark_stage6_p3a_contract_probe.sh",
+        "scripts/spark_stage6_p3a_grouped_moe_contract_probe.py",
+        "engine/moe_packed_nvfp4.py",
+        "triton_kernels/nvfp4_moe.py",
+    ]
+    run_dir, data = _latest_result(["p3a_batched_down_"])
+    if data is None:
+        return _ready_gate(
+            "p3a_batched_down_candidate",
+            "P3-A batched-down speed candidate",
+            required,
+            "Run after the opt-in batched-down path exists; do not promote without numeric and speed gates.",
+        )
+    if data.get("_json_error"):
+        return Gate(
+            "p3a_batched_down_candidate",
+            "P3-A batched-down speed candidate",
+            "FAILED_ARTIFACT",
+            "latest result.json is not valid JSON",
+            _artifact(run_dir),
+            "Fix artifact JSON before interpreting the candidate.",
+        )
+    rows = ((data.get("bench") or {}).get("rows") or [])
+    speeds = [row.get("p3a_vs_bf16") for row in rows if isinstance(row.get("p3a_vs_bf16"), (int, float))]
+    avg_speed = sum(speeds) / len(speeds) if speeds else None
+    if not _passes_all(data):
+        return Gate(
+            "p3a_batched_down_candidate",
+            "P3-A batched-down speed candidate",
+            "FAILED_ARTIFACT",
+            "latest Spark result.json did not pass numeric/shadow gates",
+            _artifact(run_dir),
+            "Fix correctness before interpreting speed.",
+            _decision(data),
+        )
+    if avg_speed is not None and avg_speed < 1.0:
+        return Gate(
+            "p3a_batched_down_candidate",
+            "P3-A batched-down speed candidate",
+            "DIAGNOSTIC_BANKED",
+            f"numeric/shadow gates pass, but average speed is {avg_speed:.3f}x vs BF16 active",
+            _artifact(run_dir),
+            "Do not promote; continue with route/materialization or true batched gate-up/down fusion.",
+            "PASS_BUT_SPEED_GATE_CLOSED",
+        )
+    return Gate(
+        "p3a_batched_down_candidate",
+        "P3-A batched-down speed candidate",
+        "BANKED",
+        "numeric/shadow gates pass and candidate is not slower than BF16 active",
+        _artifact(run_dir),
+        "Escalate to P3-B/P3-C selected/resident gates before promotion.",
+        _decision(data),
+    )
+
+
 def _p4b_contract_gate() -> Gate:
     required = [
         "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md",
@@ -521,6 +580,7 @@ def collect_gates() -> list[Gate]:
             ],
             "Banks only the P3-A active-MoE contract probe; speed/default/fused-kernel promotion remain closed.",
         ),
+        _p3a_batched_down_candidate_gate(),
         _result_or_ready_gate(
             "p3b_selected_prefill",
             "P3-B selected-prefill composition gate",
