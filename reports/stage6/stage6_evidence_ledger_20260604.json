@@ -1,8 +1,8 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T03:27:32+00:00",
+  "generated_at_utc": "2026-06-04T03:40:24+00:00",
   "spark_status": "REACHABLE_VIA_DGX_VIA_SSH",
-  "spark_note": "Spark reachable via dgx-via-ssh; P4C gate/up tile_inter=2 full-path candidate banked at 185.09us vs 267.32us current (1.444x). Default promotion still closed.",
+  "spark_note": "Spark reachable via dgx-via-ssh; P4C gate/up tile_inter=2 resident-runner preflight PASS (native call delta=1, rel_l2=0, max_abs=0). Default promotion still closed.",
   "counts": {
     "BANKED": 19,
     "CLOSED_NEGATIVE": 3,
@@ -246,7 +246,7 @@
       "title": "P4C active-reuse runtime bridge preflight",
       "status": "BANKED",
       "evidence": "latest Spark result.json has passes.all=true",
-      "artifact": "reports/stage6/p4c_runtime_bridge_preflight_20260604_094008",
+      "artifact": "reports/stage6/p4c_runtime_bridge_preflight_20260604_113325",
       "next_step": "Run on Spark; banks P4C active-reuse route/numeric evidence only, not fused speed or default promotion.",
       "decision": "PASS_P4C_ACTIVE_REUSE_RUNTIME_BRIDGE"
     },
