@@ -35,7 +35,7 @@
 |---|---|
 | Decode TPS | Spark NVFP4 35B-A3B `38.96 -> ~45 TPS`,5 个 launch-cut 已 RC 验证 |
 | 质量 | 40/40 greedy 输出与 baseline token-identical,继承 MMLU 84.40 / GPQA-Diamond 49.49 |
-| MTP | correctness / accept 成立,但 eager speculative runtime 净亏;不是当前 45->70 捷径 |
+| MTP | correctness / accept 成立,但 eager speculative runtime 净亏;下一步是去掉 runtime overhead / token-exact batched verify,不是重训 head |
 | Reusable graph | A/B 为 `44.60 -> 33.46 TPS`,净负 0.75x,不进入默认 |
 | 60GiB memory win | decode 阶段释放 BF16 dequant-shadow,常驻 `88 -> 28 GiB`,token-exact,TPS 0.998x |
 | 服务集成 | `server/openai_http.py` 已接 `reload -> prefill -> release -> decode` cycle 与 health metrics |
@@ -75,7 +75,7 @@
 
 ## Restart Target
 
-**目标:** Lynn engine = Python 控制面 + C++/CUDA/Triton native kernel 核心。
+**目标:** Lynn engine = Python 控制面 + MTP runtime + compiled/C++ decode hot loop + C++/CUDA/Triton native kernel 核心。这里的 hot-loop 降 dispatch 指 **降低每个 launch 的 host/Python 调度成本**,不是继续押已净负的 reusable CUDA graph。
 
 短期 gate:
 
@@ -101,7 +101,8 @@
 20. **P2-N wider coverage:已过。** layers 0-7 同时打开 block linear-attn + P2-E MoE opt-in;T16/T64 numeric/no-shadow/speed 全过,且比 P2E-only 继续加速。
 21. **下一关:** RC/server-promotion smoke;未过前不做 server 默认。
 22. **P3 server promotion:** `LYNN_PACKED_PREFILL=1` 后多请求服务常驻 27-28 GiB,无 reload,decode TPS 不回退。
-23. **P4 native-kernel chase:** 继续向 llama.cpp 的低 dispatch / fused ggml CUDA 路线追赶;有 FP4-MMA 硅时兑现 NVFP4 native moat。
+23. **P4C native zero-shadow go/no-go:** P4B single-CTA 和 active recompute 已由 microbench 反证;P4C basic server smoke 已过,但 rc-mini wider agreement 已拒绝(completion exact 3/6,chat 2/2)。P4C 仅保留 opt-in diagnostic/basic smoke;没有 RC-exact 且 e2e A/B 真快过 ~45 的候选,不做 promotion。
+24. **Speed next:** MTP draft/accept 信号好,真正 blocker 是 eager speculative runtime;下一轮优先削 snapshot/restore、per-event dispatch/sync 与 token-exact batched verify。另一条是把 decode hot loop 搬出 Python、用 compiled/C++ 服务循环降低 per-launch host dispatch;reusable decode graph 已实测 0.75x 净负,不作为当前默认路线。
 
 ## Relation To 2026-05-20 Notes
 

@@ -1,13 +1,14 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T04:58:15+00:00",
-  "spark_status": "SPARK_RC_MINI_NEGATIVE_CAPTURED",
-  "spark_note": "P4C tile2 basic server smoke banked; rc-mini agreement failed 3/6 completion exact, 2/2 chat exact; run first-divergence before widening.",
+  "generated_at_utc": "2026-06-04T05:24:27+00:00",
+  "spark_status": "SPARK_P4C_GO_NOGO_DIAGNOSTIC_CAPTURED",
+  "spark_note": "P4C tile2 basic server smoke banked; rc-mini agreement rejected; shadow-cycle first-divergence kept arithmetic top-1 for 8 steps but showed hidden/logit drift, so P4C remains opt-in diagnostic only.",
   "counts": {
     "BANKED": 20,
     "CLOSED_NEGATIVE": 4,
     "READY_WAITING_SPARK": 7,
     "REFERENCE_IMPL_BANKED_SPEED_CLOSED": 1,
+    "DIAGNOSTIC_BANKED": 1,
     "DECISION_BANKED": 1
   },
   "promotion_boundaries": {
@@ -303,6 +304,15 @@
       "artifact": "reports/stage6/p4c_tile2_rcmini_agreement_20260604_124019",
       "next_step": "Run first-divergence diagnostics before widening P4C tile2 server prompts or considering promotion.",
       "decision": "FAIL_P4C_TILE2_SERVER_SMOKE"
+    },
+    {
+      "gate": "p4c_tile2_shadow_cycle_first_divergence",
+      "title": "P4C tile2 shadow-cycle first-divergence diagnostic",
+      "status": "DIAGNOSTIC_BANKED",
+      "evidence": "server-like shadow cycle kept top-1 stable on the arithmetic prompt, but first hidden drift appears at step 0/layer 13",
+      "artifact": "reports/stage6/p4c_tile2_shadow_cycle_first_divergence_20260604_130839",
+      "next_step": "Use as a go/no-go diagnostic only; do not promote P4C tile2 without wider RC exactness and e2e speed.",
+      "decision": "pass=true; first_top1_divergence=null"
     },
     {
       "gate": "p4c_active_reuse_decision",

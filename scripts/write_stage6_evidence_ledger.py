@@ -296,6 +296,56 @@ def _p4c_active_reuse_decision_gate() -> Gate:
     )
 
 
+def _p4c_shadow_cycle_first_divergence_gate() -> Gate:
+    run_dir, data = _latest_result(["p4c_tile2_shadow_cycle_first_divergence_"])
+    if data is None:
+        return Gate(
+            "p4c_tile2_shadow_cycle_first_divergence",
+            "P4C tile2 shadow-cycle first-divergence diagnostic",
+            "NOT_RUN",
+            "no result.json artifact found",
+            "",
+            "Run after rc-mini rejection to explain whether P4C fails immediately or drifts under server-like shadow release.",
+        )
+    if data.get("_json_error"):
+        return Gate(
+            "p4c_tile2_shadow_cycle_first_divergence",
+            "P4C tile2 shadow-cycle first-divergence diagnostic",
+            "FAILED_ARTIFACT",
+            "latest result.json is not valid JSON",
+            _artifact(run_dir),
+            "Fix artifact JSON before using this diagnostic.",
+        )
+    if (
+        data.get("candidate_release_shadows_before_decode") is True
+        and data.get("pass") is True
+        and data.get("first_top1_divergence") is None
+        and data.get("first_layer_divergence")
+    ):
+        first_layer = data.get("first_layer_divergence") or {}
+        return Gate(
+            "p4c_tile2_shadow_cycle_first_divergence",
+            "P4C tile2 shadow-cycle first-divergence diagnostic",
+            "DIAGNOSTIC_BANKED",
+            (
+                "server-like shadow cycle kept top-1 stable on the arithmetic prompt, "
+                f"but first hidden drift appears at step {first_layer.get('step')}/layer {first_layer.get('layer')}"
+            ),
+            _artifact(run_dir),
+            "Use as a go/no-go diagnostic only; do not promote P4C tile2 without wider RC exactness and e2e speed.",
+            "pass=true; first_top1_divergence=null",
+        )
+    return Gate(
+        "p4c_tile2_shadow_cycle_first_divergence",
+        "P4C tile2 shadow-cycle first-divergence diagnostic",
+        "FAILED_ARTIFACT",
+        "latest diagnostic result did not satisfy the shadow-cycle evidence contract",
+        _artifact(run_dir),
+        "Inspect the diagnostic before making P4C promotion decisions.",
+        _decision(data),
+    )
+
+
 def collect_gates() -> list[Gate]:
     gates: list[Gate] = [
         _report_gate(
@@ -565,6 +615,7 @@ def collect_gates() -> list[Gate]:
             "Run first-divergence diagnostics before widening P4C tile2 server prompts or considering promotion.",
             negative_if_fail=True,
         ),
+        _p4c_shadow_cycle_first_divergence_gate(),
         _p4c_active_reuse_decision_gate(),
     ]
     return gates

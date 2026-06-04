@@ -2,23 +2,23 @@
 
 ## 🚀 2026-06-04 Restart Snapshot
 
-**Lynn engine 已重启为并行主线:** 客户端短期仍可用 llama.cpp/GGUF 作务实默认后端,但引擎继续同模型同硬件对标 llama.cpp。终局不是“换个框架”,而是自己啃下 **CUDA C++/CUTLASS/native fused 4-bit / zero-shadow kernels**。
+**Lynn engine 已重启为并行主线:** 客户端短期仍可用 llama.cpp/GGUF 作务实默认后端,但引擎继续同模型同硬件对标 llama.cpp。终局不是“换个框架”,而是把 Lynn 自己的 **服务显存生命周期、MTP runtime、C++/compiled decode hot loop、CUDA C++/CUTLASS/native kernels** 一层层啃下来;其中 4-bit / zero-shadow 是显存与跨设备内核资产,不再被当成 Spark 上 45→70 TPS 的单点速度杠杆。
 
 | 方向 | 已 bank 证据 |
 |---|---|
 | **服务显存** | 35B NVFP4 decode 阶段释放 BF16 dequant-shadow:**resident 88→28 GiB(省 ~60 GiB)**,token-exact,TPS **0.998×** 无回归;`server/openai_http.py` 已接入 `reload→prefill→release→decode`。 |
 | **packed prefill** | P0.1/P0.2 已过:no-reload `stream_bf16` token-exact,peak **40.28 GiB**,proof prefill **20.75s**;after-release BF16 resident **4.72 GiB**。 |
 | **dense / prefill 路线** | P1 dense PoC 通过;P1-A batched bridges 反证;P2 grouped MoE 推到 P2-N:layers 0-7 + block linear-attn,T16 **1.541×**,T64 **1.140×** vs BF16,numeric/no-shadow pass。 |
-| **native zero-shadow MoE** | P4B 数值参考 exact,但 single-CTA 与 active recompute 被 microbench 反证;P4C active-reuse runtime bridge + speed baseline + component profile + tile2 server smoke 已 bank。 |
-| **当前瓶颈** | P4C profile 锁定 gate/up **151.67us(63.8%)**;shape sweep 找到 `tile_inter=2,threads=128`:**91.41us=1.659×**;full-path P4C candidate 已过:**267.32→185.09us=1.444×**,output/scratch exact。 |
-| **runtime opt-in** | `LYNN_NATIVE_GATEUP_TILE_INTER=2` 已过真实 resident-runner preflight + OpenAI server smoke: P4C native call delta **240**,40 层调用,completion text-exact **2/2**,release/reload healthy,recorded tile=2。 |
+| **native zero-shadow MoE** | P4B 数值参考 exact,但 single-CTA 与 active recompute 被 microbench 反证;P4C active-reuse bridge/profile/tile2 basic server smoke 已 bank,但 **rc-mini agreement 已拒绝**:completion exact **3/6**,chat exact **2/2**,不进 RC/default。 |
+| **当前瓶颈** | P4C profile 锁定 gate/up **151.67us(63.8%)**;shape sweep 与 full-path microbench 有局部正信号,但 server wider quality 不等价。shadow-cycle first-divergence:算术 prompt 8 步 top-1 不分叉,但 step0/layer13 起 hidden/logits drift,step1 candidate margin 压到 **0.046875**。 |
+| **runtime opt-in** | `LYNN_NATIVE_GATEUP_TILE_INTER=2` 仅保留 opt-in diagnostic/basic-smoke: P4C call delta **240**,40 层调用,completion text-exact **2/2**,release/reload healthy。下一步是 **P4C hard go/no-go**,不是继续扩大 RC。 |
 
-**诚实边界:** Spark sm_121 当前 deliverable decode 仍是 **~44-45 TPS**;P4C 目前只 bank route/numeric/baseline/diagnostic、opt-in shape candidate 和 server smoke,**不 bank fused speed/default promotion**。下一 gate 是 tile2 RC quality + sustained server TPS。Python 只做控制面和验证;追赶 llama.cpp 靠 native kernel,在 FP4-MMA 硅上才完整兑现。
+**诚实边界:** Spark sm_121 当前 deliverable decode 仍是 **~44-45 TPS**;60 GiB shadow-drop 是**服务显存/产品化赢**,不是速度杠杆;P4C 只 bank route/numeric/profile/basic-smoke,**不 bank fused speed/default promotion**。speed 火力转向两件事:**MTP eager-runtime 去开销 / token-exact batched verify**,以及把 decode hot loop 从 Python 搬到 compiled/C++ 服务循环以降低 **per-launch host dispatch**;reusable decode CUDA graph 已实测 **0.75× 净负**并关闭,不是当前路线。Python 只做控制面和验证;追赶 llama.cpp 靠 native runtime + kernels,在 FP4-MMA 硅上才完整兑现。
 
 > **🆕 2026-06-03 Decode 内核启动开销战役 — Spark NVFP4 35B-A3B 单流 38.96 → ~45 TPS,质量 RC 等价。**
 > 实测 decode 是 launch-bound(census:**~1527 CUDA launch/token**,~40% 时间耗在 CPU 端 dispatch)。逐簇融合 launch + 消拷贝:**fused RMSNorm(最大头)/ shared-expert / linear-attn g/beta-fold / full-attn(token-exact)/ NVFP4 `_scaled_mm` bf16-out copy-elision**,**5 个 RC-validated launch-cut**——在 structured/V9/GPQA/tool-call/long-form 上 **40/40 greedy 输出与 baseline 逐字一致**,继承 **MMLU 84.40 / GPQA-Diamond 49.49**。全部 gated、默认安全、可回滚。
 >
-> **🎯 关于对标 llama.cpp(口径已据 6/3 evidence-lock 校正)。** 同硬件 Q4_K_M **69.77** 领先 ~1.5×。**起初以为根因是 BF16 dequant-shadow 的 ~2× 带宽墙、写个零-shadow 内核就能把墙从 ~40 推到 ~140;6/3 实测(2 个无头 CLI 代码 trace + 4 个 Spark 探针)把这个前提证伪了**:read-4bit 其实已做(MoE 专家走「packed-4bit→寄存器反量化→bf16 GEMV」Triton 核)、那 60 GiB BF16 是 **prefill 专用**(decode 整块删掉照跑、TPS 不降 42.4→43.7)、把 attn 改读 FP4 **无收益甚至更慢**(full-attn 0.999× / linear out_proj 0.775×)、reusable decode CUDA graph **净负 0.75×**。→ **decode 是 launch-bound,且 Spark sm_121(无 FP4 MMA)结构性卡 ~45。** 与 69.77 的差距是 llama.cpp 手写、低-dispatch、成熟度极高的 ggml CUDA —— 需 ground-up 内核重写 + 最终 FP4-MMA 硅(R6000 已退租),**不是 Spark 的交付目标**。本轮 bankable 红利:**decode-only 删 shadow → 常驻 87→27 GiB**(腾 60 GiB 给 KV/长上下文/batch)。跨设备内核 moat(同套 NVFP4 权重挪 FP4-MMA 卡变 native)逻辑仍在,有那张卡时才兑现。详见 [decode launch-overhead campaign](reports/qwen36_35b/DECODE_LAUNCH_OVERHEAD_CAMPAIGN_20260603.md)。
+> **🎯 关于对标 llama.cpp(口径已据 6/3 evidence-lock 校正)。** 同硬件 Q4_K_M **69.77** 领先 ~1.5×。**起初以为根因是 BF16 dequant-shadow 的 ~2× 带宽墙、写个零-shadow 内核就能把墙从 ~40 推到 ~140;6/3 实测(2 个无头 CLI 代码 trace + 4 个 Spark 探针)把这个前提证伪了**:read-4bit 其实已做(MoE 专家走「packed-4bit→寄存器反量化→bf16 GEMV」Triton 核)、那 60 GiB BF16 是 **prefill 专用**(decode 整块删掉照跑、TPS 不降 42.4→43.7)、把 attn 改读 FP4 **无收益甚至更慢**(full-attn 0.999× / linear out_proj 0.775×)、reusable decode CUDA graph **净负 0.75×**。→ **decode 是 launch-bound,且 Spark sm_121(无 FP4 MMA)结构性卡 ~45。** 与 69.77 的差距是 llama.cpp 手写、低 host-dispatch、成熟度极高的 ggml CUDA/C++ runtime —— 需 ground-up hot-loop/kernel 重写 + 最终 FP4-MMA 硅(R6000 已退租),**不是 Spark 的交付目标**。本轮 bankable 红利:**decode-only 删 shadow → 常驻 87→27 GiB**(腾 60 GiB 给 KV/长上下文/batch)。跨设备内核 moat(同套 NVFP4 权重挪 FP4-MMA 卡变 native)逻辑仍在,有那张卡时才兑现。详见 [decode launch-overhead campaign](reports/qwen36_35b/DECODE_LAUNCH_OVERHEAD_CAMPAIGN_20260603.md)。
 
 > **🆕 2026-05-28 Qwen3.6-35B-A3B update — Spark 已切到最快 APEX-MTP I-Balanced 单流路线。**
 > 当前 `lynn-apex-mtp-llamacpp.service` 使用
@@ -60,7 +60,7 @@
 
 ## 当前状态(2026-06-04)
 
-**6/3 战略校正(取代 5/20 pivot)**:Lynn engine **重启为并行主线,目标对标 llama.cpp** —— 不再是"降级为 R&D / 客户端投奔 llama.cpp"。客户端短期仍以 llama.cpp/GGUF 作**务实默认后端**,但引擎同步推进:同模型同硬件对标 llama.cpp,终局是自己啃下融合 4-bit / 零-shadow 内核,在 FP4-MMA 卡(R6000 一代)上逼近乃至超过。6/3 实测口径(Spark sm_121 无 FP4 MMA,decode 结构性卡 ~45,parity 是 ggml 重写 / FP4-MMA 硅目标)见顶部 6/3 战役与 [6/3 Restart Notes](RELEASE_NOTES_20260603.md);5/20 决策背景仅作历史记录。
+**6/3 战略校正(取代 5/20 pivot)**:Lynn engine **重启为并行主线,目标对标 llama.cpp** —— 不再是"降级为 R&D / 客户端投奔 llama.cpp"。客户端短期仍以 llama.cpp/GGUF 作**务实默认后端**,但引擎同步推进:同模型同硬件对标 llama.cpp。6/3 实测口径(Spark sm_121 无 FP4 MMA,decode 结构性卡 ~45,parity 是降低 per-launch host dispatch 的 compiled/C++ hot loop + native kernel + FP4-MMA 硅目标,不是 reusable graph)见顶部 6/3 战役与 [6/3 Restart Notes](RELEASE_NOTES_20260603.md);5/20 决策背景仅作历史记录。
 
 ### 5/16-5/20 Spark sm_121 W4A8 FP8 Phase 2 实测信号
 
@@ -102,7 +102,7 @@
 - **P1-A 反证完成:** naive 与 tiled scalar batched bridge 都 numeric/no-shadow 过,但 M>1 都输 BF16 tensor-core GEMM;不进入 serving。
 - **P2 census 已过:** 单层 MoE 证实 `stream_bf16` 是 20s no-reload proof 的主耗时,small-M verifier 内存干净但慢。
 - **P2-A..P2-N 证据:** 单 expert gate/up 输 BF16;routed active path M64=23.83ms/layer;P2-F engine opt-in mode M64=20.23ms/layer;P2-H/P2-I selected full prefill 继续 numeric/no-shadow/speed 通过;P2-J trace 显示 `chunk_gated_delta_with_state` 占 linear-attn prefill traced wall 71-76%;P2-KA 反证逐 token 复用 decode recurrent kernel;P2-KB/P2-L 接通 block linear-attn;P2-M/P2-N selected full prefill 继续过关。
-- **下一关:** P2-O/P3-B/P3-C/P3-D/P3-E Spark artifacts;P3-D 只 bank opt-in server smoke,P3-E 只 bank RC quality smoke,默认 promotion 与完整 leaderboard 仍需后续 release battery。P4B native zero-shadow 已 bank fail-loud route + single-CTA output-returning numeric reference + 两个 microbench anti-proof(single-CTA 串行慢、multi-CTA 重算 active 更慢)。**P4C active-reuse runtime bridge + speed baseline + component profile + gate/up shape sweep + full-path candidate + tile=2 resident-runner preflight + OpenAI server smoke 已 bank:**`fused_zero_shadow_active_reuse_contract` 在 Spark real-runner 路径 PASS;speed baseline 证明 P4C ABI 对 P4A 是 **1.00013×**、output/scratch exact;component profile 显示 gate/up 是 **63.8%** 主耗时,down 是 **36.2%**;shape sweep 找到 `tile_inter=2,threads=128` **91.41us=1.659×**;full-path candidate 证明 P4C **267.32→185.09us=1.444×**;真实 runner `LYNN_NATIVE_GATEUP_TILE_INTER=2` 路由/numeric PASS;server smoke 记录 P4C call delta **240**、**40** 层调用、text-exact **2/2**、release/reload healthy。fused speed kernel 与默认 promotion 仍关闭;下一刀是 tile2 RC quality + sustained server TPS。dense/MoE M>1 若要追平并超过 BF16,最终要 native FP4-MMA/CUTLASS-style bridge。
+- **下一关:** P2-O/P3-B/P3-C/P3-D/P3-E Spark artifacts;P3-D 只 bank opt-in server smoke,P3-E 只 bank RC quality smoke,默认 promotion 与完整 leaderboard 仍需后续 release battery。P4B native zero-shadow 已 bank fail-loud route + single-CTA output-returning numeric reference + 两个 microbench anti-proof(single-CTA 串行慢、multi-CTA 重算 active 更慢)。**P4C active-reuse bridge/profile/basic smoke 已 bank,但 RC-mini 已拒绝:**`fused_zero_shadow_active_reuse_contract` 在 Spark real-runner 路径 PASS;component profile 显示 gate/up 是 **63.8%** 主耗时;tile2 basic server smoke 记录 P4C call delta **240**、**40** 层调用、text-exact **2/2**、release/reload healthy;但 wider rc-mini completion exact **3/6**(chat **2/2**),shadow-cycle first-divergence 只证明算术 prompt 8 步 top-1 不分叉、但 logits drift 已出现。P4C fused speed/default promotion 保持关闭;下一刀是 hard go/no-go 和 MTP runtime 去开销,不是继续扩大 P4C RC。
 - **Spark sm_121 诚实口径:** decode 结构性卡 ~45,追 69.77 需要 native runtime + fused kernels + 最终 FP4-MMA 硅。
 - **Wave 2 全部 commit 留在 main 分支不 revert** — 5 CLI 并行 + 7 bug fix trail + 178s repack + autotune sweep 2160 config 全是真实工程财产。
 

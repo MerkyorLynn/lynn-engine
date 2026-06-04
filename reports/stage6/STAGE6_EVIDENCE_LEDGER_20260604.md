@@ -11,8 +11,8 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 
 | Field | Value |
 |---|---|
-| Status | `SPARK_RC_MINI_NEGATIVE_CAPTURED` |
-| Note | P4C tile2 basic server smoke banked; rc-mini agreement failed 3/6 completion exact, 2/2 chat exact; run first-divergence before widening. |
+| Status | `SPARK_P4C_GO_NOGO_DIAGNOSTIC_CAPTURED` |
+| Note | P4C tile2 basic server smoke banked; rc-mini agreement rejected; shadow-cycle first-divergence kept arithmetic top-1 for 8 steps but showed hidden/logit drift, so P4C remains opt-in diagnostic only. |
 
 ## Promotion Boundaries
 
@@ -58,6 +58,7 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 | `p4c_gateup_shape_candidate` | **BANKED** `PASS_P4C_GATEUP_SHAPE_CANDIDATE_RECORDED` | latest Spark result.json has passes.all=true | `reports/stage6/p4c_gateup_shape_candidate_20260604_112635` | Run on Spark; compare current tile_inter=8 vs candidate tile_inter=2 on the full P4C active-reuse symbol. |
 | `p4c_tile2_server_smoke` | **BANKED** `PASS_P4C_TILE2_SERVER_SMOKE` | latest Spark result.json has passes.all=true | `reports/stage6/p4c_tile2_server_smoke_20260604_122443` | Run on Spark; bank opt-in server evidence for tile_inter=2 P4C decode after prefill releases shadows. |
 | `p4c_tile2_rcmini_agreement` | **CLOSED_NEGATIVE** `FAIL_P4C_TILE2_SERVER_SMOKE` | latest result.json failed as an intentional negative gate | `reports/stage6/p4c_tile2_rcmini_agreement_20260604_124019` | Run first-divergence diagnostics before widening P4C tile2 server prompts or considering promotion. |
+| `p4c_tile2_shadow_cycle_first_divergence` | **DIAGNOSTIC_BANKED** `pass=true; first_top1_divergence=null` | server-like shadow cycle kept top-1 stable on the arithmetic prompt, but first hidden drift appears at step 0/layer 13 | `reports/stage6/p4c_tile2_shadow_cycle_first_divergence_20260604_130839` | Use as a go/no-go diagnostic only; do not promote P4C tile2 without wider RC exactness and e2e speed. |
 | `p4c_active_reuse_decision` | **DECISION_BANKED** | single-CTA and multi-CTA recompute anti-proofs are captured; next candidate must preserve active reuse | `reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md, scripts/test_stage6_p4c_active_reuse_decision_static.py` | Implement P4C active-reuse two-phase/CUTLASS-style candidate; do not report it as P4B out-only fused speed. |
 
 ## Counts
@@ -67,6 +68,7 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 | `BANKED` | 20 |
 | `CLOSED_NEGATIVE` | 4 |
 | `DECISION_BANKED` | 1 |
+| `DIAGNOSTIC_BANKED` | 1 |
 | `READY_WAITING_SPARK` | 7 |
 | `REFERENCE_IMPL_BANKED_SPEED_CLOSED` | 1 |
 
