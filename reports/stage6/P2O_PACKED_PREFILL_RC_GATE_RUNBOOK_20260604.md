@@ -49,6 +49,21 @@ If `basic` passes, run the wider prompt smoke:
 scripts/run_spark_stage6_p2o_rc_smoke.sh --preset rc-mini
 ```
 
+If full `rc-mini` is dominated by the long-context prompt in slow-mode, split it
+without changing the verdict language:
+
+```bash
+scripts/run_spark_stage6_p2o_rc_smoke.sh \
+  --preset rc-mini \
+  --prompt-indices 0-4 \
+  --max-seq-len 8192
+```
+
+The `0-4` shard excludes only the long-context retrieval prompt. It may bank a
+non-long rc-mini shard, but it must not be reported as full rc-mini or
+long-context proof. The long-context prompt remains a separate slow-mode scale
+gate until packed-prefill is accelerated or chunked.
+
 The runner creates and pulls an artifact directory under:
 
 ```text
@@ -92,6 +107,9 @@ treat the artifact as a non-canonical diagnostic run.
 - meaningful active-MoE shadow release and memory drop
 - no `reload_decode_bf16_shadows()` call during the opt-in no-reload phase
 - artifact notes still match the intended scope
+
+For shard runs, the result must also record `prompt_indices` and
+`partial_preset=true`; reports must name the shard explicitly.
 
 `WARN` means functional/text-prefix survived but generated-token exactness did
 not. This must not be promoted as RC-equivalent.

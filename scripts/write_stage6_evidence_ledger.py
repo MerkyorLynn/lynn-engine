@@ -488,6 +488,17 @@ def collect_gates() -> list[Gate]:
             ],
             "Basic smoke is banked only as active-MoE no-reload correctness/memory evidence; do not treat the slow-mode prefill as a speed win.",
         ),
+        _result_or_ready_gate(
+            "p2o_rcmini_nonlong_packed_prefill_rc",
+            "P2-O rc-mini non-long shard packed-prefill smoke",
+            ["p2o_rc-mini_idx0-4_packed_prefill_rc_smoke_"],
+            [
+                "reports/stage6/P2O_PACKED_PREFILL_RC_GATE_RUNBOOK_20260604.md",
+                "scripts/run_spark_stage6_p2o_rc_smoke.sh",
+                "scripts/spark_stage6_p2o_packed_prefill_rc_smoke.py",
+            ],
+            "Banks only the rc-mini 0-4 shard; long-context remains a separate slow-mode scale gate.",
+        ),
         _result_timeout_or_ready_gate(
             "p2o_rcmini_packed_prefill_rc",
             "P2-O rc-mini packed-prefill RC smoke",
