@@ -42,6 +42,7 @@ def pass_fixture() -> dict:
         "prompt": "fixture",
         "expected_backend": "fused_zero_shadow_active_reuse_contract",
         "expected_reference": "P4C caller-owned active-reuse two-phase packed-NVFP4 active-MoE contract",
+        "candidate_tile_config": {"gateup_tile_inter": 2},
         "native_layer_selected_for_candidate": True,
         "native_backend_call_count": {
             "key": "_p4c_fused_zero_shadow_active_reuse_contract_call_count",
@@ -53,6 +54,7 @@ def pass_fixture() -> dict:
                 "expert_ids": [1, 8],
                 "inter_scratch": [1, 8, 512],
                 "out": [1, 2048],
+                "gateup_tile_inter": 2,
             },
         },
         "banked_runtime_bridge_preflight": True,
@@ -157,6 +159,7 @@ def main() -> int:
         run(["bash", "-n", "scripts/run_spark_stage6_p4c_runtime_bridge_preflight.sh"])
         help_proc = run(["scripts/run_spark_stage6_p4c_runtime_bridge_preflight.sh", "--help"])
         assert "LYNN_STAGE6_P4_MODEL" in help_proc.stdout
+        assert "--gateup-tile-inter" in help_proc.stdout
         assert "--allow-provenance-mismatch" in help_proc.stdout
         assert "spark_stage6_p4c_runtime_bridge_preflight.py" not in help_proc.stderr
 
@@ -170,6 +173,7 @@ def main() -> int:
         assert "PASS_P4C_ACTIVE_REUSE_RUNTIME_BRIDGE" in pass_summary.stdout
         assert "fused_zero_shadow_active_reuse_contract" in pass_summary.stdout
         assert "P4C Boundary" in pass_summary.stdout
+        assert "Candidate gate/up tile_inter: `2`" in pass_summary.stdout
         assert "banked_p4c_active_reuse_runtime_bridge=true" in pass_summary.stdout
 
         for name in ("no_active_reuse", "promotion_fail", "backend_fail"):

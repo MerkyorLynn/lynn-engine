@@ -14,6 +14,7 @@ Options:
   --local-root PATH            Local artifact root. Default: reports/stage6.
   --expect-head COMMIT         Expected Spark repo HEAD. Default: local HEAD.
   --layer N                    Layer index. Default: 0.
+  --gateup-tile-inter N        LYNN_NATIVE_GATEUP_TILE_INTER for candidate. Default: 8.
   --rel-l2-threshold X         Candidate-vs-Triton rel-L2 threshold. Default: 0.02.
   --max-abs-threshold X        Candidate-vs-Triton max-abs threshold. Default: 1.0.
   --allow-provenance-mismatch  Do not fail when both HEAD and manifest differ.
@@ -76,6 +77,7 @@ LOCAL_ROOT="${LYNN_STAGE6_LOCAL_OUT:-reports/stage6}"
 EXPECTED_HEAD="${LYNN_STAGE6_EXPECT_HEAD:-$(git rev-parse HEAD 2>/dev/null || true)}"
 EXPECTED_MANIFEST="${LYNN_STAGE6_EXPECT_MANIFEST:-$(manifest_for_files "${PROVENANCE_FILES[@]}")}"
 LAYER="0"
+GATEUP_TILE_INTER="8"
 REL_L2_THRESHOLD="0.02"
 MAX_ABS_THRESHOLD="1.0"
 REQUIRE_PROVENANCE="1"
@@ -90,6 +92,7 @@ while [[ $# -gt 0 ]]; do
     --local-root) LOCAL_ROOT="$2"; shift 2 ;;
     --expect-head) EXPECTED_HEAD="$2"; shift 2 ;;
     --layer) LAYER="$2"; shift 2 ;;
+    --gateup-tile-inter) GATEUP_TILE_INTER="$2"; shift 2 ;;
     --rel-l2-threshold) REL_L2_THRESHOLD="$2"; shift 2 ;;
     --max-abs-threshold) MAX_ABS_THRESHOLD="$2"; shift 2 ;;
     --allow-provenance-mismatch) REQUIRE_PROVENANCE="0"; shift ;;
@@ -110,7 +113,7 @@ echo "[p4c-runtime] remote_run_dir=${REMOTE_RUN_DIR}"
 
 set +e
 ssh "$HOST" \
-  "REMOTE_REPO=$(shell_quote "$REMOTE_REPO") REMOTE_RUN_DIR=$(shell_quote "$REMOTE_RUN_DIR") IMAGE=$(shell_quote "$IMAGE") MODEL=$(shell_quote "$MODEL") LAYER=$(shell_quote "$LAYER") REL_L2_THRESHOLD=$(shell_quote "$REL_L2_THRESHOLD") MAX_ABS_THRESHOLD=$(shell_quote "$MAX_ABS_THRESHOLD") EXPECTED_HEAD=$(shell_quote "$EXPECTED_HEAD") EXPECTED_MANIFEST=$(shell_quote "$EXPECTED_MANIFEST") REQUIRE_PROVENANCE=$(shell_quote "$REQUIRE_PROVENANCE") STRICT=$(shell_quote "$STRICT") bash -s" <<'REMOTE'
+  "REMOTE_REPO=$(shell_quote "$REMOTE_REPO") REMOTE_RUN_DIR=$(shell_quote "$REMOTE_RUN_DIR") IMAGE=$(shell_quote "$IMAGE") MODEL=$(shell_quote "$MODEL") LAYER=$(shell_quote "$LAYER") GATEUP_TILE_INTER=$(shell_quote "$GATEUP_TILE_INTER") REL_L2_THRESHOLD=$(shell_quote "$REL_L2_THRESHOLD") MAX_ABS_THRESHOLD=$(shell_quote "$MAX_ABS_THRESHOLD") EXPECTED_HEAD=$(shell_quote "$EXPECTED_HEAD") EXPECTED_MANIFEST=$(shell_quote "$EXPECTED_MANIFEST") REQUIRE_PROVENANCE=$(shell_quote "$REQUIRE_PROVENANCE") STRICT=$(shell_quote "$STRICT") bash -s" <<'REMOTE'
 set -euo pipefail
 file_sha256() {
   if command -v sha256sum >/dev/null 2>&1; then
@@ -195,6 +198,7 @@ docker run --rm --gpus all --ipc=host \
     --model "$MODEL" \
     --out "$REMOTE_RUN_DIR/result.json" \
     --layer "$LAYER" \
+    --gateup-tile-inter "$GATEUP_TILE_INTER" \
     --rel-l2-threshold "$REL_L2_THRESHOLD" \
     --max-abs-threshold "$MAX_ABS_THRESHOLD" \
     $STRICT_FLAG \

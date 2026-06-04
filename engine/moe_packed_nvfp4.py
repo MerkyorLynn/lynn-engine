@@ -759,6 +759,9 @@ def _active_moe_native_fused_zero_shadow_active_reuse_contract(
         )
     inter = inter_scratch.view(1, top_k, 512)
     out = out_scratch.view(1, -1)
+    tile_tokens = _env_int("LYNN_NATIVE_FUSED_ZERO_SHADOW_TILE_TOKENS", 1)
+    gateup_tile_inter = _env_int("LYNN_NATIVE_GATEUP_TILE_INTER", 8)
+    down_tile_hidden = _env_int("LYNN_NATIVE_DOWN_TILE_HIDDEN", 8)
 
     ext = load_lynn_native_extension(verbose=_env_bool("LYNN_NATIVE_CUDA_VERBOSE", False))
     ext.active_moe_fused_zero_shadow_active_reuse_contract(
@@ -773,9 +776,9 @@ def _active_moe_native_fused_zero_shadow_active_reuse_contract(
         w["mlp.experts._down_global_scale"],
         inter,
         out,
-        _env_int("LYNN_NATIVE_FUSED_ZERO_SHADOW_TILE_TOKENS", 1),
-        _env_int("LYNN_NATIVE_GATEUP_TILE_INTER", 8),
-        _env_int("LYNN_NATIVE_DOWN_TILE_HIDDEN", 8),
+        tile_tokens,
+        gateup_tile_inter,
+        down_tile_hidden,
     )
     w["_p4c_fused_zero_shadow_active_reuse_contract_call_count"] = (
         int(w.get("_p4c_fused_zero_shadow_active_reuse_contract_call_count", 0)) + 1
@@ -785,6 +788,9 @@ def _active_moe_native_fused_zero_shadow_active_reuse_contract(
         "expert_ids": tuple(expert_ids_2d.shape),
         "inter_scratch": tuple(inter.shape),
         "out": tuple(out.shape),
+        "tile_tokens": tile_tokens,
+        "gateup_tile_inter": gateup_tile_inter,
+        "down_tile_hidden": down_tile_hidden,
     }
     return out.reshape_as(hidden)
 
