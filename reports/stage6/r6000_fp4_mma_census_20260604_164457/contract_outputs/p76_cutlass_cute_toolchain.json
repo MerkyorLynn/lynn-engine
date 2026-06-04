@@ -1,0 +1,29 @@
+{
+  "schema_version": "lynn-engine-p76-cutlass-cute-toolchain-probe-v1",
+  "torch": "2.8.0+cu128",
+  "cuda_capability": [
+    12,
+    0
+  ],
+  "include_paths": [
+    "/root/autodl-tmp/src/cutlass/include"
+  ],
+  "required_headers": {
+    "cutlass/float_subbyte.h": true,
+    "cutlass/float8.h": true,
+    "cute/arch/mma_sm120.hpp": true,
+    "cute/numeric/numeric_types.hpp": true
+  },
+  "missing_headers": [],
+  "compile_attempted": true,
+  "compile_ok": true,
+  "build_seconds": 38.435609579086304,
+  "smoke_values": [
+    4.0,
+    8.0,
+    1.0,
+    120.0
+  ],
+  "error": null,
+  "decision": "CUTLASS/CuTe headers and sm_120 FP4 type smoke compile are available."
+}

@@ -15,10 +15,12 @@
 | **Native zero-shadow MoE** | P4B numeric reference is exact, but single-CTA and active recompute were rejected by microbench; P4C active-reuse bridge/profile/tile2 basic server smoke are banked, but **rc-mini agreement is rejected**: completion exact **3/6**, chat exact **2/2**, no RC/default promotion. |
 | **Current bottleneck** | P4C profile pins gate/up at **151.67us (63.8%)**; shape sweep and full-path microbench show local positive signals, but wider server quality is not equivalent. Shadow-cycle first-divergence: arithmetic prompt keeps top-1 for 8 steps, but hidden/logit drift starts at step0/layer13 and candidate step1 margin compresses to **0.046875**. |
 | **Decode hot-loop ROI** | GPU-idle probe banked: N/2N delta estimates GPU busy **0.753**, host-gap **0.247**, CUDA launches/token **1969.0**, runner TPS **41.36/42.19**; ROI=`BORDERLINE_REMEASURE_OR_NSIGHT`, so compiled-loop deserves a small prototype/Nsight pass, not immediate month-scale runtime work. |
-| **R6000 / FP4-MMA** | Bring-up/census tooling is ready, waiting for an available **RTX PRO 6000 96GB** PASS artifact; the hardware choice is no longer tied to a fixed AutoDL host ID. Disk gate is **>=500GB free**, with **800GB-1TB expandable** preferred. The gate checks CUDA/PyTorch/disk, vLLM Marlin-Machete/CUTLASS visibility, and P76/P79/P85/P87/P103 native FP4 contracts. |
+| **R6000 / FP4-MMA** | Census is banked:**AutoDL host 727 / RTX PRO 6000 96GB / 880GiB data workspace** PASS, CUDA capability `[12,0]`, vLLM source candidates **200**, and P76/P79/P85/P87/P103 native FP4 contracts all pass. The route is still not tied to a fixed host ID; rerun the same gate on any replacement R6000 before starting a grouped-MoE FP4-MMA POC. |
 | **Runtime opt-in** | `LYNN_NATIVE_GATEUP_TILE_INTER=2` remains opt-in diagnostic/basic-smoke only: P4C call delta **240**, 40 layers called, completion text-exact **2/2**, release/reload healthy. Next step is a **P4C hard go/no-go**, not wider RC. |
 
 **Honest boundary:** Spark sm_121 currently delivers **~44-45 TPS** decode; the 60 GiB shadow drop is a **serving-memory/product win**, not a speed lever; P4C only banks route/numeric/profile/basic-smoke, **not fused speed/default promotion**. Speed work now shifts to two concrete levers: **MTP eager-runtime overhead / token-exact batched verify**, and moving the decode hot loop out of Python into a compiled/C++ service loop to reduce **per-launch host dispatch**; but the first GPU-idle probe is **borderline** (24.7% host gap), so the next step is Nsight/a small prototype rather than immediate month-scale rewrite. Reusable decode CUDA graph is already measured **0.75× net-negative** and closed, not the current route. Python stays as the control/verification plane; catching llama.cpp requires native runtime + kernels, with the full payoff on FP4-MMA silicon.
+
+**Machine split:** Spark owns the current 35B serving chain, 60 GiB memory lifecycle, MTP runtime, compiled hot-loop ROI, and RC/quality regressions. R6000 owns the FP4-MMA/CUTLASS/CuTe/vLLM Marlin-Machete census and grouped-MoE native-kernel POC that Spark cannot exercise. The evidence lanes stay separate: Spark cannot claim FP4-MMA payoff, and R6000 does not rewrite Spark decode-TPS claims.
 
 **The follow-up map is split by goal, not one bucket:**
 
@@ -28,7 +30,7 @@
 | **B. no-reload prefill** | Extend 28 GiB serving to multi-request without per-request reload | P2-O basic + rc-mini non-long shard PASS; full rc-mini long-context still needs slow-mode acceleration/chunking before rerun |
 | **C. MTP runtime** | Turn the 76-97% accept signal into real TPS by removing eager overhead | Highest-ROI near-term speed line: snapshot/restore, batched verify, dispatch/sync |
 | **D. compiled/C++ hot loop** | Reduce per-launch host/Python dispatch, not CUDA graph | First GPU-idle probe: **24.7%** host gap, ROI borderline; run Nsight/prototype before deep investment |
-| **E. native kernels / FP4-MMA** | Grouped CUDA C++/CUTLASS kernels plus FP4-MMA silicon payoff | R6000 census gate is ready; run an available RTX PRO 6000 96GB host with enough disk first, then start the grouped-MoE FP4-MMA POC |
+| **E. native kernels / FP4-MMA** | Grouped CUDA C++/CUTLASS kernels plus FP4-MMA silicon payoff | R6000 census gate is banked (host 727 PASS); next is a grouped-MoE FP4-MMA POC starting from CUTLASS/CuTe plus the public Marlin/Machete census |
 
 > **🆕 2026-06-03 Decode kernel-launch campaign — Spark NVFP4 35B-A3B single-stream 38.96 → ~45 TPS, RC quality-identical.**
 > Decode is launch-bound (census: **~1527 CUDA launches/token**, ~40% of token time is CPU-side dispatch). We fused launch clusters + elided copies: **fused RMSNorm (biggest) / shared-expert / linear-attn g/beta-fold / full-attn (token-exact) / NVFP4 `_scaled_mm` bf16-out copy-elision** — **5 RC-validated launch-cuts**, with **40/40 greedy outputs bit-identical to baseline** across structured/V9/GPQA/tool-call/long-form, inheriting **MMLU 84.40 / GPQA-Diamond 49.49**. All gated, default-safe, reversible.
@@ -47,7 +49,7 @@
 ---
 
 > **Custom inference engine for Lynn 27B-A3B NVFP4 on NVIDIA Blackwell.**
-> This is a narrow, vertical engine for Lynn's own variable-pruned MoE + NVFP4 artifact. The goal is not to become another general serving framework; the goal is to make one model family fast, understandable, and production-ownable on R6000 / Spark-class Blackwell hardware.
+> This is a narrow, vertical engine for Lynn's own variable-pruned MoE + NVFP4 artifact. Spark is the 35B serving/memory/runtime lane; R6000-class FP4-MMA hardware is the native FP4/CUTLASS evidence lane. The goal is not to become another general serving framework; the goal is to make one model family fast, understandable, and production-ownable.
 
 ## Quick Links
 
@@ -55,7 +57,7 @@
 - [6/3 Restart Notes](RELEASE_NOTES_20260603.md) · [5/20 historical notes](RELEASE_NOTES_20260520.md)
 - [Stage 6 evidence ledger](reports/stage6/STAGE6_EVIDENCE_LEDGER_20260604.md) · [Stage 6 GPU gate suite](reports/stage6/STAGE6_GPU_GATE_SUITE_RUNBOOK_20260604.md)
 - [P2-O basic packed-prefill smoke](reports/stage6/P2O_PACKED_PREFILL_RC_SMOKE_BASIC_20260604.md) · [P2-O rc-mini non-long shard](reports/stage6/P2O_PACKED_PREFILL_RC_SMOKE_RCMINI_NONLONG_20260604.md) · [P3-A grouped-MoE contract probe](reports/stage6/P3A_GROUPED_MOE_CONTRACT_PROBE_20260604.md) · [P3-A batched-down diagnostic](reports/stage6/P3A_BATCHED_DOWN_CONTRACT_PROBE_20260604.md) · [P3-B selected-prefill gate](reports/stage6/p3b_layers0-3_selected_prefill_gate_20260604_144842/report.md) · [P3-C resident-prompt basic](reports/stage6/p3c_basic_resident_prompt_gate_20260604_145940/report.md) · [P2-O runbook](reports/stage6/P2O_PACKED_PREFILL_RC_GATE_RUNBOOK_20260604.md) · [P3/P4 runbook family starts here](reports/stage6/P3_GROUPED_MOE_ZERO_SHADOW_CONTRACT_20260604.md)
-- [P4C active-reuse decision](reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md) · [P4C tile2 basic server smoke](reports/stage6/p4c_tile2_server_smoke_20260604_122443/summary.md) · [Decode GPU-idle ROI probe](reports/stage6/decode_gpu_idle_probe_20260604_154648/summary.md) · [R6000 FP4-MMA bring-up](reports/stage6/R6000_FP4_MMA_BRINGUP_RUNBOOK_20260604.md)
+- [P4C active-reuse decision](reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md) · [P4C tile2 basic server smoke](reports/stage6/p4c_tile2_server_smoke_20260604_122443/summary.md) · [Decode GPU-idle ROI probe](reports/stage6/decode_gpu_idle_probe_20260604_154648/summary.md) · [R6000 FP4-MMA PASS census](reports/stage6/r6000_fp4_mma_census_20260604_164457/summary.md)
 
 [![commits](https://img.shields.io/github/commit-activity/m/MerkyorLynn/lynn-engine)](https://github.com/MerkyorLynn/lynn-engine/commits/main)
 [![license](https://img.shields.io/badge/license-TBD-orange)](.)
@@ -722,7 +724,7 @@ Current restart framing is in [`RELEASE_NOTES_20260603.md`](RELEASE_NOTES_202606
 
 - **W4A8 FP8 vectorised expert dispatch + CUTLASS grouped GEMM** to bypass the Python decode overhead (the architectural signal Wave 2 retry #4 exposed)
 - **C++ service loop** when host gap clearly exceeds GPU compute gap (memory `LYNN_ENGINE_CPP_RUST_REWRITE_ROI_20260517` enumerates a 3-tier rewrite ROI plan)
-- **Consumer Blackwell 32GB cards with FP4 MMA** widely available → Lynn engine native FP4 path (5/15 R6000 107-108 TPS strict default) becomes competitive again
+- **R6000/RTX PRO 6000 96GB-class FP4-MMA lane**: resume the native FP4 grouped-MoE POC only after a PASS census artifact; do not substitute 32GB consumer-card or Spark evidence for R6000 evidence
 - **MTP K=1 sequential 6/6 @ 26.4 TPS** correctness-clean baseline preserved; overlay on top of W4A8 base when that stabilises
 - **Long-context 6.77× SGLang at 16K** retained as "advanced mode" selling point for NVIDIA Pro
 
@@ -751,44 +753,17 @@ In writing Lynn engine we collected the parts of Qwen 3.6 35B-A3B that **diverge
 
 [`tutorials/posts/zhihu_qwen36_engine_postmortem.md`](tutorials/posts/zhihu_qwen36_engine_postmortem.md) is a single Zhihu-blog-style writeup of the highlights.
 
-## Quick start (R6000 / Blackwell)
+## R6000 / FP4-MMA Bring-Up
+
+The current route is not tied to a fixed AutoDL host ID. This run has banked a
+PASS artifact on **AutoDL host 727 / RTX PRO 6000 96GB / 880GiB data workspace**:
+[R6000 FP4-MMA PASS census](reports/stage6/r6000_fp4_mma_census_20260604_164457/summary.md).
+For any replacement host, first rerun the census gate in the
+[R6000 FP4-MMA bring-up runbook](reports/stage6/R6000_FP4_MMA_BRINGUP_RUNBOOK_20260604.md);
+do not start a new FP4-MMA kernel POC before PASS. On an AutoDL host:
 
 ```bash
-# 1. Prepare the Lynn-native NVFP4 artifact
-MODEL=/root/autodl-tmp/models/lynn-27b-variable-recovery-step5000-nvfp4-final
-
-# 2. Enable the current R6000 best env
-export PYTHONPATH=/root/autodl-tmp/lynn-engine
-export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export LYNN_PREFILL_WARMUP=1
-export LYNN_LINEAR_ATTN_RECURRENT_BACKEND=triton_fused_prepare
-export LYNN_LINEAR_ATTN_RECURRENT_INPLACE=1
-export LYNN_MOE_IMPL=packed_nvfp4
-export LYNN_QK_NORM_ROPE_BACKEND=triton_pair
-export LYNN_RMSNORM_GATED_BACKEND=triton
-export LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4=1
-export LYNN_NATIVE_FP4_LM_HEAD=1
-export LYNN_LINEAR_STATE_UPDATE=inplace
-export LYNN_LINEAR_BLOCK_GRAPH=1
-export LYNN_LINEAR_BLOCK_GRAPH_REUSE=1
-export LYNN_LINEAR_BLOCK_GRAPH_PREWARM=1
-export LYNN_PACKED_DECODE=0
-export LYNN_PACKED_DECODE_PREPARE_NATIVE=0
-export LYNN_PACKED_SHARED_EXPERT=0
-
-# 3. Run resident smoke
-python benchmarks/resident_cli.py \
-  --model "$MODEL" \
-  --prompts-jsonl /root/autodl-tmp/reports/lynn-engine-p5/p7i_6prompt.jsonl \
-  --max-new 32 \
-  --chat-template \
-  --out /tmp/lynn_27b_nvfp4_smoke.json
-
-# 4. Optional: OpenAI-compatible server
-python -m server.openai_http \
-  --model "$MODEL" \
-  --host 0.0.0.0 \
-  --port 18099
+scripts/r6000_stage6_autodl_bootstrap.sh --install-basics --cutlass-dir /root/autodl-tmp/src/cutlass
 ```
 
 ## Repository layout
@@ -819,7 +794,7 @@ tutorials/
 
 ## Why this exists
 
-Lynn brain serves Qwen 3.6 35B-A3B as the primary route for thousands of agent requests/day. vLLM (production today) realizes ~80% of Spark's memory-bandwidth ceiling. **Single-model lock-in + Blackwell sm_12x specialization should give the remaining 20% + better tail latency**.
+Lynn brain serves Qwen 3.6 35B-A3B as the primary route for thousands of agent requests/day. The 6/3 Spark read is corrected: current decode is mostly launch/host-dispatch bound, not a continuing memory-bandwidth/zero-shadow speed lane. The Spark lane banks serving memory lifecycle, MTP runtime, compiled hot-loop ROI, and quality regressions; the R6000 lane realizes the native FP4-MMA/CUTLASS kernel moat.
 
 But the more important deliverable is the **understanding** that comes from writing your own engine — the tutorials above are the artifact.
 

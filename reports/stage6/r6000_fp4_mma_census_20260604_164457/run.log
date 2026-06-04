@@ -1,0 +1,21 @@
+{
+  "decision": "PASS_R6000_FP4_MMA_BRINGUP",
+  "passes": {
+    "torch_cuda_recorded": true,
+    "blackwell_capability": true,
+    "r6000_class_memory": true,
+    "disk_headroom": true,
+    "public_kernel_census_recorded": true,
+    "vllm_nvfp4_or_marlin_seen": true,
+    "contract_suite_recorded": true,
+    "contract_suite_all_pass": true,
+    "all": true
+  },
+  "capability": [
+    12,
+    0
+  ],
+  "memory_gib": 94.97296142578125,
+  "disk_free_gib": 880.0,
+  "out": "/root/autodl-tmp/src/lynn-engine/reports/stage6/r6000_fp4_mma_census_20260604_164457/result.json"
+}

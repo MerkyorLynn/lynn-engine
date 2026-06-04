@@ -38,16 +38,22 @@ def _disk_free(data: dict[str, Any]) -> str:
     return text.splitlines()[-1] if text else "unknown"
 
 
-def _public_summary(data: dict[str, Any]) -> tuple[str, str]:
+def _public_summary(data: dict[str, Any]) -> tuple[str, str, str]:
     public = ((data.get("public_kernel_census") or {}).get("json") or {})
     packages = public.get("packages") or {}
     explicit = public.get("explicit_imports") or {}
+    source = public.get("source_candidates") or {}
     package_line = ", ".join(
         f"{name}:{'yes' if (row or {}).get('importable') else 'no'}"
         for name, row in packages.items()
     )
     explicit_yes = [name for name, row in explicit.items() if isinstance(row, dict) and row.get("importable")]
-    return package_line or "unknown", ", ".join(explicit_yes) or "none"
+    source_yes = [
+        f"{root}:{len(items)}"
+        for root, items in source.items()
+        if isinstance(items, list) and items
+    ]
+    return package_line or "unknown", ", ".join(explicit_yes) or "none", ", ".join(source_yes) or "none"
 
 
 def summarize(data: dict[str, Any]) -> str:
@@ -55,7 +61,7 @@ def summarize(data: dict[str, Any]) -> str:
     torch_info = _torch(data)
     passes = data.get("passes") or {}
     contract_passes = data.get("contract_passes") or {}
-    package_line, explicit_line = _public_summary(data)
+    package_line, explicit_line, source_line = _public_summary(data)
     lines = [
         "# Stage 6 R6000 FP4-MMA Bring-Up Census",
         "",
@@ -69,6 +75,7 @@ def summarize(data: dict[str, Any]) -> str:
         f"| Disk workspace | `{_disk_free(data)}` |",
         f"| Public packages | `{package_line}` |",
         f"| Explicit NVFP4 imports | `{explicit_line}` |",
+        f"| Public source candidates | `{source_line}` |",
         f"| Contract passes | `{contract_passes}` |",
         f"| Promotion boundary | `{data.get('promotion_boundary')}` |",
         "",

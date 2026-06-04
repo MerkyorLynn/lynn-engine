@@ -250,6 +250,7 @@ def main() -> int:
         raise RuntimeError("P87 requires CUDA")
 
     os.environ.setdefault("LYNN_NATIVE_CUDA_ARCH", "sm_120a")
+    os.environ.setdefault("TORCH_CUDA_ARCH_LIST", "12.0a")
     _prepare_path()
     t0 = time.time()
     module = _build_module(Path(args.build_dir), args.verbose)

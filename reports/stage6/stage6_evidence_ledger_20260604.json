@@ -1,17 +1,18 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T08:08:26+00:00",
-  "spark_status": "R6000_FP4_MMA_CENSUS_TOOLING_READY",
-  "spark_note": "R6000 FP4-MMA bring-up/census tooling added. The selected host class is RTX PRO 6000 96GB with >=500GiB disk free, 800GiB-1TiB preferred; do not bind the route to a fixed AutoDL host ID. Next R6000 run must pass machine/toolchain/public-kernel gates before starting a new FP4-MMA kernel.",
+  "generated_at_utc": "2026-06-04T08:50:41+00:00",
+  "stage6_status": "R6000_FP4_MMA_CENSUS_BANKED",
+  "stage6_note": "Stage 6 lanes are split and active: Spark owns 35B serving/memory/MTP/compiled-loop ROI and RC regressions; R6000 owns FP4-MMA/CUTLASS/CuTe/vLLM Marlin-Machete census plus the next native grouped-MoE FP4-MMA POC. No kernel/default/speed promotion is implied. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT.",
+  "spark_status": "R6000_FP4_MMA_CENSUS_BANKED",
+  "spark_note": "Stage 6 lanes are split and active: Spark owns 35B serving/memory/MTP/compiled-loop ROI and RC regressions; R6000 owns FP4-MMA/CUTLASS/CuTe/vLLM Marlin-Machete census plus the next native grouped-MoE FP4-MMA POC. No kernel/default/speed promotion is implied. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT.",
   "counts": {
-    "BANKED": 25,
+    "BANKED": 26,
     "CLOSED_NEGATIVE": 4,
     "TIMEOUT_NOT_CLEAN": 1,
     "DIAGNOSTIC_BANKED": 3,
     "READY_WAITING_SPARK": 4,
     "REFERENCE_IMPL_BANKED_SPEED_CLOSED": 1,
-    "DECISION_BANKED": 1,
-    "READY_WAITING_R6000": 1
+    "DECISION_BANKED": 1
   },
   "promotion_boundaries": {
     "p3_default_promotion": false,
@@ -373,11 +374,11 @@
     {
       "gate": "r6000_fp4_mma_census",
       "title": "R6000 FP4-MMA bring-up and public-kernel census",
-      "status": "READY_WAITING_R6000",
-      "evidence": "tooling/runbook exists, but no R6000 PASS artifact is banked",
-      "artifact": "reports/stage6/R6000_FP4_MMA_BRINGUP_RUNBOOK_20260604.md, scripts/r6000_stage6_fp4_mma_census.py, scripts/summarize_stage6_r6000_fp4_mma_census.py, scripts/test_stage6_r6000_fp4_mma_census_tools.py",
-      "next_step": "Run on the RTX PRO 6000 96GB host with --run-contracts before starting a new FP4-MMA kernel.",
-      "decision": ""
+      "status": "BANKED",
+      "evidence": "R6000 FP4-MMA census passed on NVIDIA RTX PRO 6000 Blackwell Server Edition, capability [12, 0]",
+      "artifact": "reports/stage6/r6000_fp4_mma_census_20260604_164457",
+      "next_step": "Start Lynn NVFP4 grouped-MoE FP4-MMA POC from CUTLASS/CuTe plus public Marlin/Machete census.",
+      "decision": "PASS_R6000_FP4_MMA_BRINGUP"
     }
   ]
 }

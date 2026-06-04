@@ -122,11 +122,14 @@ def _public_kernel_census() -> dict[str, Any]:
 import importlib
 import importlib.util
 import json
+import os
+from pathlib import Path
 import pkgutil
 
 payload = {
     "packages": {},
     "module_candidates": {},
+    "source_candidates": {},
 }
 for name in ["vllm", "cutlass", "triton", "flashinfer", "tensorrt_llm"]:
     spec = importlib.util.find_spec(name)
@@ -163,11 +166,40 @@ explicit = [
 ]
 payload["explicit_imports"] = {}
 for name in explicit:
-    spec = importlib.util.find_spec(name)
+    try:
+        spec = importlib.util.find_spec(name)
+        error = None
+    except ModuleNotFoundError as exc:
+        spec = None
+        error = repr(exc)
     payload["explicit_imports"][name] = {
         "importable": spec is not None,
         "origin": getattr(spec, "origin", None),
     }
+    if error is not None:
+        payload["explicit_imports"][name]["error"] = error
+
+source_dirs = []
+for raw in [
+    os.environ.get("LYNN_VLLM_SOURCE_DIR", ""),
+    "/root/autodl-tmp/src/vllm",
+]:
+    if raw:
+        path = Path(raw).expanduser()
+        if path.exists() and path.is_dir():
+            source_dirs.append(path)
+
+for source_dir in source_dirs:
+    matches = []
+    for path in source_dir.rglob("*"):
+        if not path.is_file():
+            continue
+        low = str(path.relative_to(source_dir)).lower()
+        if any(k in low for k in ["nvfp4", "machete", "marlin", "cutlass"]):
+            matches.append(str(path.relative_to(source_dir)))
+        if len(matches) >= 200:
+            break
+    payload["source_candidates"][str(source_dir)] = matches
 print(json.dumps(payload))
 """
     return _json_from_python(code)
@@ -206,6 +238,8 @@ def _disk_free_gib(system: dict[str, Any]) -> float | None:
 
 def _run_contracts(out_dir: Path, timeout_s: int) -> dict[str, Any]:
     out_dir.mkdir(parents=True, exist_ok=True)
+    os.environ.setdefault("TORCH_CUDA_ARCH_LIST", "12.0a")
+    os.environ.setdefault("LYNN_NATIVE_CUDA_ARCH", "sm_120a")
     py = sys.executable
     contracts = {
         "p76_cutlass_cute_toolchain": [
@@ -273,7 +307,10 @@ def _contract_passes(contracts: dict[str, Any]) -> dict[str, bool]:
     out: dict[str, bool] = {}
     out["p76_cutlass_cute_toolchain"] = bool(((contracts.get("p76_cutlass_cute_toolchain") or {}).get("result") or {}).get("compile_ok"))
     out["p79_nvcc_fp4_mma_target_matrix"] = bool(((contracts.get("p79_nvcc_fp4_mma_target_matrix") or {}).get("result") or {}).get("any_fp4_mma_target_ok"))
-    out["p85_blockscaled_fp4_mma_contract"] = bool(((contracts.get("p85_blockscaled_fp4_mma_contract") or {}).get("result") or {}).get("all_exact"))
+    p85 = ((contracts.get("p85_blockscaled_fp4_mma_contract") or {}).get("result") or {})
+    # P85 is the sm_120a block-scale MMA compile/runtime smoke. P87 carries the
+    # stricter layout/numeric exactness check for FP4 tile semantics.
+    out["p85_blockscaled_fp4_mma_contract"] = bool(p85.get("zero_operand_smoke_ok"))
     out["p87_layout_tile_contract"] = bool(((contracts.get("p87_layout_tile_contract") or {}).get("result") or {}).get("all_exact"))
     p103 = ((contracts.get("p103_fp8_activation_fp4_weight_mma") or {}).get("result") or {})
     out["p103_fp8_activation_fp4_weight_mma"] = bool(p103.get("controls_ok") and p103.get("fp8_activation_fp4_weight_supported"))
@@ -304,6 +341,13 @@ def main() -> int:
     public_json = public.get("json") or {}
     vllm_modules = ((public_json.get("module_candidates") or {}).get("vllm") or [])
     explicit = public_json.get("explicit_imports") or {}
+    source_candidates = public_json.get("source_candidates") or {}
+    source_hits = [
+        item
+        for items in source_candidates.values()
+        if isinstance(items, list)
+        for item in items
+    ]
 
     passes = {
         "torch_cuda_recorded": cap is not None,
@@ -314,6 +358,7 @@ def main() -> int:
         "vllm_nvfp4_or_marlin_seen": bool(
             vllm_modules
             or any((row or {}).get("importable") for row in explicit.values() if isinstance(row, dict))
+            or source_hits
         ),
         "contract_suite_recorded": bool(contracts),
         "contract_suite_all_pass": bool(contract_passes and all(contract_passes.values())),

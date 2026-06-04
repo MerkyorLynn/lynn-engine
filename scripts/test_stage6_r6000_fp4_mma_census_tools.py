@@ -10,6 +10,9 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from scripts.r6000_stage6_fp4_mma_census import _public_kernel_census  # noqa: E402
 
 
 def run(cmd: list[str]) -> subprocess.CompletedProcess[str]:
@@ -82,6 +85,14 @@ def fixture() -> dict:
 
 
 def main() -> int:
+    public = _public_kernel_census()
+    assert public["process"]["ok"], public
+    public_json = public["json"]
+    assert "packages" in public_json
+    assert "vllm" in public_json["packages"]
+    assert "explicit_imports" in public_json
+    assert "vllm.model_executor.kernels.linear.nvfp4.marlin" in public_json["explicit_imports"]
+
     with tempfile.TemporaryDirectory() as tmp_s:
         tmp = Path(tmp_s)
         result = tmp / "result.json"
