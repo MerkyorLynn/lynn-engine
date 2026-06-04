@@ -893,6 +893,15 @@ def collect_gates() -> list[Gate]:
         _p4c_active_reuse_decision_gate(),
         _decode_gpu_idle_probe_gate(),
         _r6000_fp4_mma_census_gate(),
+        _contract_gate(
+            "r6000_grouped_moe_fp4_mma_poc_contract",
+            "R6000 grouped-MoE FP4-MMA POC contract",
+            [
+                "reports/stage6/R6000_GROUPED_MOE_FP4_MMA_POC_CONTRACT_20260604.md",
+                "scripts/test_stage6_r6000_grouped_moe_poc_contract_static.py",
+            ],
+            "Implement R5-A layout bridge first; do not start with a full fused MoE kernel.",
+        ),
     ]
     return gates
 

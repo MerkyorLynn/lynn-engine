@@ -36,6 +36,7 @@
 - P3-C resident-prompt basic gate: [Stage 6 Phase 3-C resident-prompt basic gate](reports/stage6/p3c_basic_resident_prompt_gate_20260604_145940/report.md)
 - Decode GPU-idle ROI probe: [Stage 6 decode GPU-idle ROI probe](reports/stage6/decode_gpu_idle_probe_20260604_154648/summary.md)
 - R6000 FP4-MMA PASS census: [Stage 6 R6000 FP4-MMA PASS census](reports/stage6/r6000_fp4_mma_census_20260604_164457/summary.md)
+- R6000 grouped-MoE FP4-MMA POC contract: [Stage 6 R6000 grouped-MoE FP4-MMA POC contract](reports/stage6/R6000_GROUPED_MOE_FP4_MMA_POC_CONTRACT_20260604.md)
 
 ## Banked Results
 

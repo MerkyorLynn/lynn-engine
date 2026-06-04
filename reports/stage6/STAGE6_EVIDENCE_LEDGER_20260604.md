@@ -66,6 +66,7 @@ and gates that are wired but still waiting for lane-specific PASS/FAIL artifacts
 | `p4c_active_reuse_decision` | **DECISION_BANKED** | single-CTA and multi-CTA recompute anti-proofs are captured; next candidate must preserve active reuse | `reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md, scripts/test_stage6_p4c_active_reuse_decision_static.py` | Implement P4C active-reuse two-phase/CUTLASS-style candidate; do not report it as P4B out-only fused speed. |
 | `decode_gpu_idle_probe` | **DIAGNOSTIC_BANKED** `BORDERLINE_REMEASURE_OR_NSIGHT` | host-gap fraction 0.247, CUDA launches/token 1969.0 | `reports/stage6/decode_gpu_idle_probe_20260604_154648` | Use this ROI signal to choose MTP-light/compiled-loop prototype scope; do not treat it as speed promotion. |
 | `r6000_fp4_mma_census` | **BANKED** `PASS_R6000_FP4_MMA_BRINGUP` | R6000 FP4-MMA census passed on NVIDIA RTX PRO 6000 Blackwell Server Edition, capability [12, 0] | `reports/stage6/r6000_fp4_mma_census_20260604_164457` | Start Lynn NVFP4 grouped-MoE FP4-MMA POC from CUTLASS/CuTe plus public Marlin/Machete census. |
+| `r6000_grouped_moe_fp4_mma_poc_contract` | **CONTRACT_READY_UNIMPLEMENTED** | fail-loud ABI/static gate exists, but no fused implementation or GPU result is banked | `reports/stage6/R6000_GROUPED_MOE_FP4_MMA_POC_CONTRACT_20260604.md, scripts/test_stage6_r6000_grouped_moe_poc_contract_static.py` | Implement R5-A layout bridge first; do not start with a full fused MoE kernel. |
 
 ## Counts
 
@@ -73,6 +74,7 @@ and gates that are wired but still waiting for lane-specific PASS/FAIL artifacts
 |---|---:|
 | `BANKED` | 26 |
 | `CLOSED_NEGATIVE` | 4 |
+| `CONTRACT_READY_UNIMPLEMENTED` | 1 |
 | `DECISION_BANKED` | 1 |
 | `DIAGNOSTIC_BANKED` | 3 |
 | `READY_WAITING_SPARK` | 4 |
