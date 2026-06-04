@@ -1,6 +1,6 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T13:21:56+00:00",
+  "generated_at_utc": "2026-06-04T13:26:34+00:00",
   "stage6_status": "R5C3C_DOWN_WEIGHTED_PARITY_BANKED",
   "stage6_note": "R5-C3C down + weighted top-k parity smoke is banked: real R5-C3B CUTLASS gate/up D/ref values were composed through host SwiGLU, deterministic down projection, and route-weighted top-k reduction with D/ref parity. This does not bank full active-MoE FP4-MMA speed, decode TPS, server behavior, RC quality, or default promotion. Next gate is full active-MoE prefill speed A/B against W4A16/P2-N/P3 paths. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT.",
   "spark_status": "R5C3C_DOWN_WEIGHTED_PARITY_BANKED",
@@ -496,7 +496,7 @@
       "title": "R5-C4 full active-MoE prefill speed A/B",
       "status": "READY_WAITING_R6000",
       "evidence": "summary tooling exists, but no R5-C4 speed result.json artifact is banked",
-      "artifact": "scripts/summarize_stage6_r5c4_full_active_moe_speed_ab.py, scripts/test_stage6_r5c4_full_active_moe_speed_ab_tools.py",
+      "artifact": "scripts/r6000_stage6_r5c4_full_active_moe_speed_ab.py, scripts/r6000_stage6_r5c4_full_active_moe_speed_ab.sh, scripts/summarize_stage6_r5c4_full_active_moe_speed_ab.py, scripts/test_stage6_r5c4_full_active_moe_speed_ab_tools.py, scripts/test_stage6_r5c4_full_active_moe_speed_ab_validator.py",
       "next_step": "Run the R5-C4 R6000 speed A/B harness; bank only active-MoE prefill speed, not decode/server/default.",
       "decision": ""
     }
