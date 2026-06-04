@@ -821,6 +821,58 @@ def _r5c2_selected_expert_gateup_smoke_gate() -> Gate:
     )
 
 
+def _r5c2b_slot_bridge_contract_gate() -> Gate:
+    required = [
+        "reports/stage6/R5C2B_SLOT_PRESERVING_SELECTED_OUTPUT_CONTRACT_20260604.md",
+        "scripts/test_stage6_r5c2b_slot_bridge_contract_static.py",
+    ]
+    missing = [rel for rel in required if not (ROOT / rel).exists()]
+    if missing:
+        return Gate(
+            "r5c2b_slot_bridge_contract",
+            "R5-C2B slot-preserving selected-output contract",
+            "MISSING_TOOLING",
+            f"missing: {', '.join(missing)}",
+            "",
+            "Restore R5-C2B contract/static test before writing the selected-output harness.",
+        )
+    if _contains(
+        "reports/stage6/R5C2B_SLOT_PRESERVING_SELECTED_OUTPUT_CONTRACT_20260604.md",
+        [
+            "PASS_R5C2B_SLOT_PRESERVING_SELECTED_OUTPUT_CONTRACT",
+            "banked_slot_bridge_contract=true",
+            "banked_selected_output_kernel=false",
+            "banked_grouped_moe_fp4_mma_poc=false",
+            "banked_kernel_speed=false",
+            "banked_default_promotion=false",
+            "token_idx",
+            "top_k_slot",
+            "expert_id",
+            "pair_order",
+            "grouped_order",
+            "inverse_order",
+            "[T, top_k, inter]",
+        ],
+    ):
+        return Gate(
+            "r5c2b_slot_bridge_contract",
+            "R5-C2B slot-preserving selected-output contract",
+            "STATIC_CONTRACT_BANKED",
+            "route/order/scatter contract is banked as a GPU-free static guard for preserving (token_idx, top_k_slot, expert_id) through expert grouping and inverse scatter",
+            ", ".join(required),
+            "Implement the R5-C2B CUTLASS selected-output harness; do not claim speed/default from the static contract.",
+            "PASS_R5C2B_SLOT_PRESERVING_SELECTED_OUTPUT_CONTRACT",
+        )
+    return Gate(
+        "r5c2b_slot_bridge_contract",
+        "R5-C2B slot-preserving selected-output contract",
+        "FAILED_STATIC_CONTRACT",
+        "contract exists but is missing required non-claim or route/scatter tokens",
+        ", ".join(required),
+        "Fix R5-C2B contract before writing the CUDA/CUTLASS harness.",
+    )
+
+
 def _p4b_contract_gate() -> Gate:
     required = [
         "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md",
@@ -1354,18 +1406,32 @@ def collect_gates() -> list[Gate]:
         _r5c1_cutlass_numeric_smoke_gate(),
         _r5c2_moe_shape_census_gate(),
         _r5c2_selected_expert_gateup_smoke_gate(),
+        _r5c2b_slot_bridge_contract_gate(),
     ]
     return gates
 
 
 def _derive_current_status(gates: list[Gate]) -> tuple[str, str]:
     by_gate = {gate.gate: gate for gate in gates}
+    r5c2b = by_gate.get("r5c2b_slot_bridge_contract")
     r5c2_selected = by_gate.get("r5c2_selected_expert_gateup_smoke")
     r5c2 = by_gate.get("r5c2_moe_shape_census")
     r5c1 = by_gate.get("r5c1_cutlass_numeric_smoke")
     r5c = by_gate.get("r5c_cutlass_ue4m3_census")
     r6000 = by_gate.get("r6000_fp4_mma_census")
     decode_idle = by_gate.get("decode_gpu_idle_probe")
+    if r5c2b and r5c2b.status == "STATIC_CONTRACT_BANKED":
+        note = (
+            "R5-C2B slot-preserving selected-output contract is banked: the route/order/scatter "
+            "metadata required to preserve (token_idx, top_k_slot, expert_id) through expert grouping "
+            "and inverse scatter is frozen with a GPU-free static guard and fault-injection checks. "
+            "This does not bank a CUTLASS "
+            "selected-output kernel, speed, server behavior, RC quality, or default promotion. "
+            "Next gate is the R5-C2B CUTLASS selected-output harness."
+        )
+        if decode_idle and decode_idle.status == "DIAGNOSTIC_BANKED":
+            note += f" Spark decode ROI probe remains {decode_idle.decision or decode_idle.status}."
+        return "R5C2B_SLOT_BRIDGE_CONTRACT_BANKED", note
     if r5c2_selected and r5c2_selected.status == "BANKED":
         note = (
             "R5-C2 selected-expert gate/up numeric smoke is banked on the R6000 lane: "
