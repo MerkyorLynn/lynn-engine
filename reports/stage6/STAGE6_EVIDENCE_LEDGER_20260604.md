@@ -11,8 +11,8 @@ and gates that are wired but still waiting for lane-specific PASS/FAIL artifacts
 
 | Field | Value |
 |---|---|
-| Status | `R6000_FP4_MMA_CENSUS_BANKED` |
-| Note | Stage 6 lanes are split and active: Spark owns 35B serving/memory/MTP/compiled-loop ROI and RC regressions; R6000 owns FP4-MMA/CUTLASS/CuTe/vLLM Marlin-Machete census plus the next native grouped-MoE FP4-MMA POC. No kernel/default/speed promotion is implied. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT. |
+| Status | `R6000_R5A_LAYOUT_BRIDGE_BANKED` |
+| Note | R5-A PASS on RTX PRO 6000: padded per-16 group32 preserves layout for integer e8m0 scales; current E4M3-like Lynn scales require repack/custom scale handling. |
 
 ## Promotion Boundaries
 
@@ -67,6 +67,7 @@ and gates that are wired but still waiting for lane-specific PASS/FAIL artifacts
 | `decode_gpu_idle_probe` | **DIAGNOSTIC_BANKED** `BORDERLINE_REMEASURE_OR_NSIGHT` | host-gap fraction 0.247, CUDA launches/token 1969.0 | `reports/stage6/decode_gpu_idle_probe_20260604_154648` | Use this ROI signal to choose MTP-light/compiled-loop prototype scope; do not treat it as speed promotion. |
 | `r6000_fp4_mma_census` | **BANKED** `PASS_R6000_FP4_MMA_BRINGUP` | R6000 FP4-MMA census passed on NVIDIA RTX PRO 6000 Blackwell Server Edition, capability [12, 0] | `reports/stage6/r6000_fp4_mma_census_20260604_164457` | Start Lynn NVFP4 grouped-MoE FP4-MMA POC from CUTLASS/CuTe plus public Marlin/Machete census. |
 | `r6000_grouped_moe_fp4_mma_poc_contract` | **CONTRACT_READY_UNIMPLEMENTED** | fail-loud ABI/static gate exists, but no fused implementation or GPU result is banked | `reports/stage6/R6000_GROUPED_MOE_FP4_MMA_POC_CONTRACT_20260604.md, scripts/test_stage6_r6000_grouped_moe_poc_contract_static.py` | Implement R5-A layout bridge first; do not start with a full fused MoE kernel. |
+| `r5a_layout_bridge` | **DIAGNOSTIC_BANKED** `PASS_R5A_LAYOUT_BRIDGE_E8M0_REPACK_REQUIRED` | R5-A layout bridge banked; no kernel speed/default/grouped-MoE POC promotion; current Lynn E4M3-like scales require e8m0 repack/custom scale handling | `reports/stage6/r5a_layout_bridge_20260604_172706` | Use the bridge verdict to choose R5-B: e8m0 repack/custom scale path first, then CUTLASS/CuTe grouped-MoE POC. |
 
 ## Counts
 
@@ -76,7 +77,7 @@ and gates that are wired but still waiting for lane-specific PASS/FAIL artifacts
 | `CLOSED_NEGATIVE` | 4 |
 | `CONTRACT_READY_UNIMPLEMENTED` | 1 |
 | `DECISION_BANKED` | 1 |
-| `DIAGNOSTIC_BANKED` | 3 |
+| `DIAGNOSTIC_BANKED` | 4 |
 | `READY_WAITING_SPARK` | 4 |
 | `REFERENCE_IMPL_BANKED_SPEED_CLOSED` | 1 |
 | `TIMEOUT_NOT_CLEAN` | 1 |

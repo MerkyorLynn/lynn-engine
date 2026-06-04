@@ -57,7 +57,7 @@
 - [6/3 Restart Notes](RELEASE_NOTES_20260603.md) · [5/20 historical notes](RELEASE_NOTES_20260520.md)
 - [Stage 6 evidence ledger](reports/stage6/STAGE6_EVIDENCE_LEDGER_20260604.md) · [Stage 6 GPU gate suite](reports/stage6/STAGE6_GPU_GATE_SUITE_RUNBOOK_20260604.md)
 - [P2-O basic packed-prefill smoke](reports/stage6/P2O_PACKED_PREFILL_RC_SMOKE_BASIC_20260604.md) · [P2-O rc-mini non-long shard](reports/stage6/P2O_PACKED_PREFILL_RC_SMOKE_RCMINI_NONLONG_20260604.md) · [P3-A grouped-MoE contract probe](reports/stage6/P3A_GROUPED_MOE_CONTRACT_PROBE_20260604.md) · [P3-A batched-down diagnostic](reports/stage6/P3A_BATCHED_DOWN_CONTRACT_PROBE_20260604.md) · [P3-B selected-prefill gate](reports/stage6/p3b_layers0-3_selected_prefill_gate_20260604_144842/report.md) · [P3-C resident-prompt basic](reports/stage6/p3c_basic_resident_prompt_gate_20260604_145940/report.md) · [P2-O runbook](reports/stage6/P2O_PACKED_PREFILL_RC_GATE_RUNBOOK_20260604.md) · [P3/P4 runbook family starts here](reports/stage6/P3_GROUPED_MOE_ZERO_SHADOW_CONTRACT_20260604.md)
-- [P4C active-reuse decision](reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md) · [P4C tile2 basic server smoke](reports/stage6/p4c_tile2_server_smoke_20260604_122443/summary.md) · [Decode GPU-idle ROI probe](reports/stage6/decode_gpu_idle_probe_20260604_154648/summary.md) · [R6000 FP4-MMA PASS census](reports/stage6/r6000_fp4_mma_census_20260604_164457/summary.md) · [R6000 grouped-MoE FP4-MMA POC contract](reports/stage6/R6000_GROUPED_MOE_FP4_MMA_POC_CONTRACT_20260604.md)
+- [P4C active-reuse decision](reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md) · [P4C tile2 basic server smoke](reports/stage6/p4c_tile2_server_smoke_20260604_122443/summary.md) · [Decode GPU-idle ROI probe](reports/stage6/decode_gpu_idle_probe_20260604_154648/summary.md) · [R6000 FP4-MMA PASS census](reports/stage6/r6000_fp4_mma_census_20260604_164457/summary.md) · [R5-A layout bridge PASS](reports/stage6/r5a_layout_bridge_20260604_172706/summary.md) · [R6000 grouped-MoE FP4-MMA POC contract](reports/stage6/R6000_GROUPED_MOE_FP4_MMA_POC_CONTRACT_20260604.md)
 
 [![commits](https://img.shields.io/github/commit-activity/m/MerkyorLynn/lynn-engine)](https://github.com/MerkyorLynn/lynn-engine/commits/main)
 [![license](https://img.shields.io/badge/license-TBD-orange)](.)
@@ -758,6 +758,13 @@ In writing Lynn engine we collected the parts of Qwen 3.6 35B-A3B that **diverge
 The current route is not tied to a fixed AutoDL host ID. This run has banked a
 PASS artifact on **AutoDL host 727 / RTX PRO 6000 96GB / 880GiB data workspace**:
 [R6000 FP4-MMA PASS census](reports/stage6/r6000_fp4_mma_census_20260604_164457/summary.md).
+The R5-A layout bridge is also banked on the R6000 lane:
+[R5-A layout bridge PASS](reports/stage6/r5a_layout_bridge_20260604_172706/summary.md).
+Verdict: **per-16 grouping can be preserved by padded group32, but current Lynn
+E4M3-like scales are not zero-copy compatible**
+(`PASS_R5A_LAYOUT_BRIDGE_E8M0_REPACK_REQUIRED`). The next step is R5-B e8m0
+repack/custom scale handling, not a grouped-MoE FP4-MMA kernel or default speed
+promotion claim.
 For any replacement host, first rerun the census gate in the
 [R6000 FP4-MMA bring-up runbook](reports/stage6/R6000_FP4_MMA_BRINGUP_RUNBOOK_20260604.md);
 do not start a new FP4-MMA kernel POC before PASS. On an AutoDL host:
