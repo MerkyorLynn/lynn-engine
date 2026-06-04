@@ -11,8 +11,8 @@ and gates that are wired but still waiting for lane-specific PASS/FAIL artifacts
 
 | Field | Value |
 |---|---|
-| Status | `R5C2_MOE_SHAPE_CENSUS_BANKED` |
-| Note | R5-C2A is banked on the R6000 lane: CUTLASS 79d supplies SM120 native NVF4+UE4M3 grouped GEMM, while CUTLASS 92 supplies MoEProblemShape/tokens_per_expert semantics but uses Sm100 schedules. This is source-shape census only; selected expert gate/up numeric smoke, grouped-MoE speed, and default promotion remain false. Next gate is the new minimal R5-C2 selected expert gate/up harness. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT. |
+| Status | `R5C2_SELECTED_EXPERT_GATEUP_SMOKE_BANKED` |
+| Note | R5-C2 selected-expert gate/up numeric smoke is banked on the R6000 lane: tokens_per_expert is mapped to CUTLASS 79d SM120 native NVF4+UE4M3 per-group M shapes and both schedules pass host-reference verification. This is gate/up numeric-smoke evidence only; Lynn slot-preserving gather/scatter, down projection, grouped-MoE speed, and default promotion remain false. Next gate is R5-C2B slot-preserving selected-output bridge. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT. |
 
 ## Promotion Boundaries
 
@@ -72,12 +72,13 @@ and gates that are wired but still waiting for lane-specific PASS/FAIL artifacts
 | `r5c_cutlass_ue4m3_census` | **BANKED** `PASS_R5C_NVF4_UE4M3_CUTLASS_ABI` | CUTLASS/CuTe exposes sm120 mxf4nvf4 block16 E2M1 + UE4M3 scale path; no kernel speed/default/grouped-MoE POC promotion | `reports/stage6/r5c_cutlass_ue4m3_census_20260604_175216` | Proceed to R5-C1 minimal numeric GEMM smoke; do not jump directly to grouped-MoE speed claims. |
 | `r5c1_cutlass_numeric_smoke` | **BANKED** `PASS_R5C1_CUTLASS_NVF4_UE4M3_NUMERIC_SMOKE` | CUTLASS 79d native NVF4+UE4M3 grouped GEMM ran Cooperative and Pingpong schedules with host-side verification and >=2 Disposition: Passed lines; no Lynn grouped-MoE kernel/speed/default promotion; recorded avg_runtime_ms=[0.021184, 0.01808] | `reports/stage6/r5c1_cutlass_numeric_smoke_20260604_181947` | Proceed to R5-C2 selected expert gate/up numeric smoke; do not jump directly to grouped-MoE speed claims. |
 | `r5c2_moe_shape_census` | **BANKED** `PASS_R5C2_MOE_SHAPE_CENSUS_NEW_HARNESS_REQUIRED` | CUTLASS 79d has SM120 NVF4+UE4M3 generic grouped GEMM but lacks MoEProblemShape/tokens_per_expert; CUTLASS 92 has MoEProblemShape/tokens_per_expert but uses Sm100 schedules; new minimal harness is required | `reports/stage6/r5c2_moe_shape_census_20260604_183226` | Build R5-C2 selected expert gate/up numeric smoke by combining 92-style MoE shape semantics with 79d-style SM120 execution. |
+| `r5c2_selected_expert_gateup_smoke` | **BANKED** `PASS_R5C2_SELECTED_EXPERT_GATEUP_NUMERIC_SMOKE` | CUTLASS 79d SM120 native NVF4+UE4M3 grouped GEMM ran a deterministic selected-expert gate/up shape with host-side reference verification; tokens_per_expert mapped to per-group M shapes; tokens_per_expert=[32, 64, 64, 96] | `reports/stage6/r5c2_selected_expert_gateup_smoke_20260604_192904` | Proceed to R5-C2B slot-preserving selected-output bridge; do not claim speed/default promotion from R5-C2. |
 
 ## Counts
 
 | Status | Count |
 |---|---:|
-| `BANKED` | 29 |
+| `BANKED` | 30 |
 | `CLOSED_NEGATIVE` | 5 |
 | `CONTRACT_READY_UNIMPLEMENTED` | 1 |
 | `DECISION_BANKED` | 1 |

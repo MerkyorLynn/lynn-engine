@@ -48,6 +48,7 @@ banked_default_promotion=false
 | R5-C1 | Minimal numeric GEMM smoke with CUTLASS 79d native NVF4 + UE4M3 grouped GEMM | CUTLASS host-reference numeric smoke only; no Lynn grouped-MoE speed claim |
 | R5-C2A | MoE shape/source census | Decide whether 79d/92 can be used directly or a new minimal harness is required |
 | R5-C2 | Selected expert gate/up native GEMM smoke | Preserve expert IDs/top-k and scale semantics |
+| R5-C2B | Slot-preserving selected-output bridge | Preserve `(token, top_k slot, expert)` through grouping and scatter-back |
 | R5-C3 | Grouped active-MoE prefill POC | Only then may speed be measured against W4A16/P2-N/P3 paths |
 
 ## R5-C1 Minimal Numeric GEMM Smoke Gate
@@ -99,6 +100,43 @@ Expected source split:
   79d-style SM120 NVF4 + UE4M3 execution. R5-C2A does **not** bank selected
   expert gate/up numeric smoke.
 
+## R5-C2 Selected-Expert Gate/Up Numeric Smoke Gate
+
+R5-C2 is the first selected-expert bridge. It maps a deterministic top-k route
+to `tokens_per_expert`, then encodes each expert as one CUTLASS 79d grouped-GEMM
+problem:
+
+```text
+M = tokens_per_expert[e]
+N = gate/up output width
+K = hidden input width
+```
+
+A PASS requires:
+
+```text
+PASS_R5C2_SELECTED_EXPERT_GATEUP_NUMERIC_SMOKE
+banked_selected_expert_gate_up_smoke=true
+banked_grouped_moe_fp4_mma_poc=false
+banked_kernel_speed=false
+banked_default_promotion=false
+```
+
+The gate must prove route/count consistency (`tokens * top_k ==
+sum(tokens_per_expert)`, unique experts per token, benchmark groups matching
+experts), 32-element alignment so 79d does not silently round the smoke shape,
+both Cooperative and Pingpong schedules passing host-reference verification,
+and no no-op device gate.
+
+R5-C2 still does **not** bank a full Lynn MoE kernel: it does not implement
+slot-preserving gather/scatter, down projection, router logits, or end-to-end
+decode. It only proves that the selected-expert gate/up shape can be represented
+on the SM120 native NVF4 + UE4M3 CUTLASS path with numeric verification.
+
+The next gate is R5-C2B, not R5-C3: R5-C2B must preserve `token_idx`,
+`top_k_slot`, `expert_id`, per-expert prefix offsets, and inverse scatter order,
+then compare a slot-preserving `[T, top_k, inter]` host reference.
+
 ## Commands
 
 On the R6000 lane:
@@ -107,6 +145,7 @@ On the R6000 lane:
 scripts/r6000_stage6_r5c_cutlass_ue4m3_census.sh
 scripts/r6000_stage6_r5c1_cutlass_numeric_smoke.sh
 scripts/r6000_stage6_r5c2_moe_shape_census.sh
+scripts/r6000_stage6_r5c2_selected_expert_gateup_smoke.sh
 ```
 
 Local GPU-free check:
@@ -115,6 +154,7 @@ Local GPU-free check:
 python3 scripts/test_stage6_r5c_cutlass_ue4m3_census_tools.py
 python3 scripts/test_stage6_r5c1_cutlass_numeric_smoke_tools.py
 python3 scripts/test_stage6_r5c2_moe_shape_census_tools.py
+python3 scripts/test_stage6_r5c2_selected_expert_gateup_smoke_tools.py
 ```
 
 ## Explicit Non-Claims
@@ -131,3 +171,7 @@ python3 scripts/test_stage6_r5c2_moe_shape_census_tools.py
 - R5-C2A proves only the source-shape reason for a new minimal harness.
 - R5-C2A does not prove selected expert gate/up numeric smoke, grouped-MoE
   FP4-MMA speed, or runtime defaults.
+- R5-C2 proves only selected-expert gate/up numeric smoke via per-group
+  `tokens_per_expert` shapes and CUTLASS host-reference verification.
+- R5-C2 does not prove Lynn slot-preserving gather/scatter, down projection,
+  full grouped-MoE FP4-MMA speed, or runtime defaults.

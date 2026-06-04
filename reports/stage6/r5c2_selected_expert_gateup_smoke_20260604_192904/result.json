@@ -1,0 +1,229 @@
+{
+  "schema": "lynn-stage6-r5c2-selected-expert-gateup-smoke-v1",
+  "created_at_utc": "2026-06-04T11:29:05+00:00",
+  "cutlass_dir": "/root/autodl-tmp/src/cutlass",
+  "build_dir": "/root/autodl-tmp/src/cutlass/build-r5c1-sm120a-tools-on",
+  "binary": "/root/autodl-tmp/src/cutlass/build-r5c1-sm120a-tools-on/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm",
+  "example": "/root/autodl-tmp/src/cutlass/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm.cu",
+  "benchmark_file": "/root/autodl-tmp/src/lynn-engine-r5c2-codex/reports/stage6/r5c2_selected_expert_gateup_smoke_20260604_192904/result.benchmark.txt",
+  "git": {
+    "head": {
+      "cmd": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/root/autodl-tmp/src/cutlass",
+      "ok": true,
+      "returncode": 0,
+      "stdout_tail": "2599f2975b06a67d5ee25e4a7292afeda1475c9b",
+      "stderr_tail": ""
+    },
+    "branch": {
+      "cmd": [
+        "git",
+        "branch",
+        "--show-current"
+      ],
+      "cwd": "/root/autodl-tmp/src/cutlass",
+      "ok": true,
+      "returncode": 0,
+      "stdout_tail": "main",
+      "stderr_tail": ""
+    },
+    "status": {
+      "cmd": [
+        "git",
+        "status",
+        "--short"
+      ],
+      "cwd": "/root/autodl-tmp/src/cutlass",
+      "ok": true,
+      "returncode": 0,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    }
+  },
+  "selected_expert_shape": {
+    "tokens": 128,
+    "top_k": 2,
+    "experts": 4,
+    "tokens_per_expert": [
+      32,
+      64,
+      64,
+      96
+    ],
+    "n_gate_up": 128,
+    "k_hidden": 256,
+    "alignment": 32,
+    "benchmark_shapes": [
+      {
+        "expert": 0,
+        "m": 32,
+        "n": 128,
+        "k": 256
+      },
+      {
+        "expert": 1,
+        "m": 64,
+        "n": 128,
+        "k": 256
+      },
+      {
+        "expert": 2,
+        "m": 64,
+        "n": 128,
+        "k": 256
+      },
+      {
+        "expert": 3,
+        "m": 96,
+        "n": 128,
+        "k": 256
+      }
+    ]
+  },
+  "route_sample": [
+    [
+      3,
+      1
+    ],
+    [
+      3,
+      2
+    ],
+    [
+      3,
+      1
+    ],
+    [
+      3,
+      2
+    ],
+    [
+      3,
+      1
+    ],
+    [
+      3,
+      2
+    ],
+    [
+      3,
+      1
+    ],
+    [
+      3,
+      2
+    ],
+    [
+      3,
+      1
+    ],
+    [
+      3,
+      2
+    ],
+    [
+      3,
+      1
+    ],
+    [
+      3,
+      2
+    ],
+    [
+      3,
+      1
+    ],
+    [
+      3,
+      2
+    ],
+    [
+      3,
+      1
+    ],
+    [
+      3,
+      2
+    ]
+  ],
+  "route_counts_observed": [
+    32,
+    64,
+    64,
+    96
+  ],
+  "build_result": {
+    "skipped": true
+  },
+  "run_result": {
+    "cmd": [
+      "/root/autodl-tmp/src/cutlass/build-r5c1-sm120a-tools-on/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm",
+      "--benchmark=/root/autodl-tmp/src/lynn-engine-r5c2-codex/reports/stage6/r5c2_selected_expert_gateup_smoke_20260604_192904/result.benchmark.txt",
+      "--iterations=1",
+      "--alpha=1",
+      "--beta=0",
+      "--norm_constant=1.0"
+    ],
+    "cwd": "/root/autodl-tmp/src/cutlass/build-r5c1-sm120a-tools-on",
+    "ok": true,
+    "returncode": 0,
+    "stdout_tail": "Running kernel with Cooperative kernel schedule:\n  Problem Sizes, Alpha, Beta \n    (32,128,256), 1, 0\n    (64,128,256), 1, 0\n    (64,128,256), 1, 0\n    (96,128,256), 1, 0\n  Groups      : 4\n  Host-side verification is now running - may be very slow for large cases.\n  Disposition: Passed\n  Avg runtime : 0.02 ms\n  TFLOPS      : 0.838861\nRunning kernel with Pingpong kernel schedule:\n  Problem Sizes, Alpha, Beta \n    (32,128,256), 1, 0\n    (64,128,256), 1, 0\n    (64,128,256), 1, 0\n    (96,128,256), 1, 0\n  Groups      : 4\n  Host-side verification is now running - may be very slow for large cases.\n  Disposition: Passed\n  Avg runtime : 0.018016 ms\n  TFLOPS      : 0.93124",
+    "stderr_tail": ""
+  },
+  "run_parse": {
+    "cooperative_seen": true,
+    "pingpong_seen": true,
+    "host_reference_seen": true,
+    "disposition_passed_count": 2,
+    "no_noop_device_gate": true,
+    "avg_runtime_ms": [
+      0.02,
+      0.018016
+    ],
+    "tflops": [
+      0.838861,
+      0.93124
+    ]
+  },
+  "groups_seen": 4,
+  "passes": {
+    "cutlass_dir_exists": true,
+    "example_79d_exists": true,
+    "binary_exists": true,
+    "build_invoked": false,
+    "build_succeeded": true,
+    "route_tokens_match": true,
+    "route_topk_unique": true,
+    "tokens_per_expert_match": true,
+    "benchmark_groups_match_experts": true,
+    "benchmark_shapes_aligned_32": true,
+    "groups_seen_match_experts": true,
+    "run_succeeded": true,
+    "no_noop_device_gate": true,
+    "cooperative_passed": true,
+    "pingpong_passed": true,
+    "host_reference_seen": true,
+    "dispositions_passed_count_ge_2": true,
+    "banked_selected_expert_gate_up_smoke": true,
+    "banked_grouped_moe_fp4_mma_poc": false,
+    "banked_kernel_speed": false,
+    "banked_default_promotion": false,
+    "all": true
+  },
+  "decision": "PASS_R5C2_SELECTED_EXPERT_GATEUP_NUMERIC_SMOKE",
+  "promotion_boundary": {
+    "selected_expert_gate_up_numeric_smoke": true,
+    "grouped_moe_fp4_mma_poc": false,
+    "kernel_speed": false,
+    "default_runtime": false
+  },
+  "caveats": [
+    "This maps tokens_per_expert to CUTLASS 79d per-group M shapes; it does not implement Lynn gather/scatter.",
+    "This covers selected-expert gate/up numeric smoke only, not down projection or full MoE.",
+    "Avg runtime is recorded for traceability only; R5-C2 does not bank speed."
+  ]
+}
