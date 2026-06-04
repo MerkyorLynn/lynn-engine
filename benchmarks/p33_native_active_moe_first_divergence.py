@@ -135,6 +135,20 @@ def _decode_step(
             os.environ["LYNN_NATIVE_ACTIVE_MOE_BACKEND"] = old
 
 
+def _maybe_reload_decode_shadows(runner: LynnIncrementalRunner) -> dict[str, Any] | None:
+    reload_fn = getattr(runner, "reload_decode_bf16_shadows", None)
+    if not callable(reload_fn):
+        return None
+    return reload_fn()
+
+
+def _maybe_release_decode_shadows(runner: LynnIncrementalRunner) -> dict[str, Any] | None:
+    release_fn = getattr(runner, "release_decode_bf16_shadows", None)
+    if not callable(release_fn):
+        return None
+    return release_fn()
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", required=True)
@@ -148,6 +162,15 @@ def main() -> int:
         "--native-active-moe-layers",
         default="",
         help="Optional candidate layer allowlist, e.g. linear_attention, full_attention, or comma-separated layer ids.",
+    )
+    ap.add_argument(
+        "--candidate-release-shadows-before-decode",
+        action="store_true",
+        help=(
+            "Diagnostic mode for server-like zero-shadow decode: before each "
+            "reference step reload BF16 decode shadows, then release them before "
+            "the candidate step. Both states are restored from the same snapshot."
+        ),
     )
     args = ap.parse_args()
 
@@ -179,14 +202,29 @@ def main() -> int:
         next_id = int(logits0[0].argmax().item())
         snap = runner._snapshot_state(state0)
 
-        state_triton = _restore_to_new_state(runner, snap)
-        state_cuda = _restore_to_new_state(runner, snap)
         rows: list[dict[str, Any]] = []
         first_top1_divergence: dict[str, Any] | None = None
         first_layer_divergence: dict[str, Any] | None = None
+        shadow_cycle_reports: list[dict[str, Any]] = []
 
         for step in range(args.steps):
+            if args.candidate_release_shadows_before_decode:
+                reload_report = _maybe_reload_decode_shadows(runner)
+                shadow_cycle_reports.append({
+                    "step": step,
+                    "phase": "before_reference_reload",
+                    "report": reload_report,
+                })
+            state_triton = _restore_to_new_state(runner, snap)
             h_t, logits_t, layers_t = _decode_step(runner, state_triton, next_id, "triton")
+            if args.candidate_release_shadows_before_decode:
+                release_report = _maybe_release_decode_shadows(runner)
+                shadow_cycle_reports.append({
+                    "step": step,
+                    "phase": "before_candidate_release",
+                    "report": release_report,
+                })
+            state_cuda = _restore_to_new_state(runner, snap)
             h_c, logits_c, layers_c = _decode_step(runner, state_cuda, next_id, args.candidate_backend)
             logits_diff = _diff(logits_t, logits_c)
             top_t = _topk(logits_t, args.topk)
@@ -230,6 +268,7 @@ def main() -> int:
             # Follow the Triton/reference greedy trajectory so both backends see
             # the same input token stream until a later analyzer chooses otherwise.
             next_id = int(top_t["ids"][0])
+            snap = runner._snapshot_state(state_triton)
 
         result = {
             "schema_version": "lynn-engine-p33-native-active-moe-first-divergence-v1",
@@ -238,6 +277,8 @@ def main() -> int:
             "steps": args.steps,
             "candidate_backend": args.candidate_backend,
             "native_active_moe_layers": args.native_active_moe_layers,
+            "candidate_release_shadows_before_decode": args.candidate_release_shadows_before_decode,
+            "shadow_cycle_reports": shadow_cycle_reports,
             "initial_topk": _topk(logits0, args.topk),
             "first_top1_divergence": first_top1_divergence,
             "first_layer_divergence": first_layer_divergence,

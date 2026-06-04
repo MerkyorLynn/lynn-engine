@@ -558,6 +558,13 @@ def collect_gates() -> list[Gate]:
             ],
             "Run on Spark; bank opt-in server evidence for tile_inter=2 P4C decode after prefill releases shadows.",
         ),
+        _result_gate(
+            "p4c_tile2_rcmini_agreement",
+            "P4C tile2 RC-mini server agreement rejection",
+            ["p4c_tile2_rcmini_agreement_"],
+            "Run first-divergence diagnostics before widening P4C tile2 server prompts or considering promotion.",
+            negative_if_fail=True,
+        ),
         _p4c_active_reuse_decision_gate(),
     ]
     return gates
