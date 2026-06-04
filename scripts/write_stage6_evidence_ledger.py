@@ -532,6 +532,19 @@ def collect_gates() -> list[Gate]:
             ],
             "Run on Spark; bank only launch-shape diagnostic evidence before writing a real gate/up CUDA/CUTLASS candidate.",
         ),
+        _result_or_ready_gate(
+            "p4c_gateup_shape_candidate",
+            "P4C gate/up launch-shape speed candidate",
+            ["p4c_gateup_shape_candidate_"],
+            [
+                "reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md",
+                "scripts/run_spark_stage6_p4c_gateup_shape_candidate_microbench.sh",
+                "scripts/spark_stage6_p4c_gateup_shape_candidate_microbench.py",
+                "scripts/summarize_stage6_p4c_gateup_shape_candidate_microbench.py",
+                "scripts/test_stage6_p4c_gateup_shape_candidate_tools.py",
+            ],
+            "Run on Spark; compare current tile_inter=8 vs candidate tile_inter=2 on the full P4C active-reuse symbol.",
+        ),
         _p4c_active_reuse_decision_gate(),
     ]
     return gates
