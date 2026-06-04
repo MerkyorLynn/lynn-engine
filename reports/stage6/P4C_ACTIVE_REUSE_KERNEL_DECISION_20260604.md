@@ -28,6 +28,7 @@ active reuse.
 | P4C active-reuse speed baseline | Spark microbench `PASS_P4C_ACTIVE_REUSE_SPEED_BASELINE_RECORDED`; P4A **271.10 us**, P4C **271.06 us**, **1.00013x**, output/scratch exact | Banks baseline only. Confirms the P4C ABI adds no measurable overhead before replacing the symbol body. |
 | P4C component profile | Spark diagnostic `PASS_P4C_COMPONENT_PROFILE_RECORDED`; full **233.39 us**, gate/up **151.67 us** (**63.8%**), down **86.21 us** (**36.2%**), all exact | Banks diagnostic only. First speed candidate should target gate/up. |
 | P4C gate/up launch-shape sweep | Spark diagnostic `PASS_P4C_GATEUP_SHAPE_SWEEP_RECORDED`; baseline gate/up **151.69 us**, best shape `tile_inter=2, threads=128` **91.41 us**, **1.659x**, numeric ok | Banks actionable diagnostic only. Next low-risk candidate is replacing the P4C gate/up half with this launch shape, then rerunning P4C speed baseline. |
+| P4C gate/up shape full-path candidate | Spark microbench `PASS_P4C_GATEUP_SHAPE_CANDIDATE_RECORDED`; current P4C `tile_inter=8` **267.32 us**, candidate `tile_inter=2` **185.09 us**, **1.444x**, output/scratch exact | Banks opt-in speed candidate only. Next gate is resident-runner/server/RC with `LYNN_NATIVE_GATEUP_TILE_INTER=2`; default promotion remains closed. |
 
 ## Constraint
 
@@ -95,6 +96,7 @@ python3 scripts/test_stage6_p4c_runtime_bridge_tools.py
 python3 scripts/test_stage6_p4c_active_reuse_microbench_tools.py
 python3 scripts/test_stage6_p4c_component_profile_tools.py
 python3 scripts/test_stage6_p4c_gateup_shape_sweep_tools.py
+python3 scripts/test_stage6_p4c_gateup_shape_candidate_tools.py
 ```
 
 This static gate does not prove speed. It prevents the repo from forgetting the
@@ -202,3 +204,30 @@ The next low-risk speed candidate should wire the P4C gate/up half to
 `tile_inter=2, threads=128`, then rerun the P4C active-reuse speed baseline. If
 that fails to improve full P4C timing, move directly to a real CUDA/CUTLASS
 gate/up kernel instead of more scalar launch-shape tuning.
+
+## Runnable Gate/Up Shape-Candidate Microbench
+
+After syncing the branch to Spark, run:
+
+```bash
+scripts/run_spark_stage6_p4c_gateup_shape_candidate_microbench.sh --host dgx-via-ssh
+```
+
+Banked Spark artifact:
+
+```text
+reports/stage6/p4c_gateup_shape_candidate_20260604_112635
+PASS_P4C_GATEUP_SHAPE_CANDIDATE_RECORDED
+```
+
+Measured result: full P4C current `tile_inter=8` **267.3184 us**; full P4C
+candidate `tile_inter=2` **185.0912 us**, **1.444x** vs current. P4A reference
+shows the same direction (**267.4208 us** → **185.0432 us**, **1.445x**).
+Candidate output and active scratch are exact against the P4A candidate-tile
+reference (`rel_l2=0.0/max_abs=0.0`).
+
+This banks `banked_p4c_gateup_shape_candidate=true`, not fused-kernel speed or
+default promotion. The next gate should run the resident-runner/server path with
+`LYNN_NATIVE_GATEUP_TILE_INTER=2` and the existing
+`LYNN_NATIVE_ACTIVE_MOE_BACKEND=fused_zero_shadow_active_reuse_contract`, then
+rerun RC quality before any default decision.
