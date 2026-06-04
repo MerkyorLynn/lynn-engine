@@ -11,8 +11,8 @@ and gates that are wired but still waiting for lane-specific PASS/FAIL artifacts
 
 | Field | Value |
 |---|---|
-| Status | `R5C2B_SLOT_BRIDGE_CONTRACT_BANKED` |
-| Note | R5-C2B slot-preserving selected-output contract is banked: the route/order/scatter metadata required to preserve (token_idx, top_k_slot, expert_id) through expert grouping and inverse scatter is frozen with a GPU-free static guard and fault-injection checks. This does not bank a CUTLASS selected-output kernel, speed, server behavior, RC quality, or default promotion. Next gate is the R5-C2B CUTLASS selected-output harness. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT. |
+| Status | `R5C2C_REAL_D_ROW_SLOT_SCATTER_SMOKE_BANKED` |
+| Note | R5-C2C real D-row slot scatter smoke is banked: real CUTLASS D/ref row digests were captured after host-reference verification and scattered through the R5-C2B inverse-order contract into [T, top_k, N_gateup]. This does not bank an in-epilogue selected-output CUDA kernel, SwiGLU/down projection, grouped-MoE speed, server behavior, RC quality, or default promotion. Next gate is R5-C3 grouped active-MoE prefill POC or an in-epilogue selected-output scatter. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT. |
 
 ## Promotion Boundaries
 
@@ -74,12 +74,13 @@ and gates that are wired but still waiting for lane-specific PASS/FAIL artifacts
 | `r5c2_moe_shape_census` | **BANKED** `PASS_R5C2_MOE_SHAPE_CENSUS_NEW_HARNESS_REQUIRED` | CUTLASS 79d has SM120 NVF4+UE4M3 generic grouped GEMM but lacks MoEProblemShape/tokens_per_expert; CUTLASS 92 has MoEProblemShape/tokens_per_expert but uses Sm100 schedules; new minimal harness is required | `reports/stage6/r5c2_moe_shape_census_20260604_183226` | Build R5-C2 selected expert gate/up numeric smoke by combining 92-style MoE shape semantics with 79d-style SM120 execution. |
 | `r5c2_selected_expert_gateup_smoke` | **BANKED** `PASS_R5C2_SELECTED_EXPERT_GATEUP_NUMERIC_SMOKE` | CUTLASS 79d SM120 native NVF4+UE4M3 grouped GEMM ran a deterministic selected-expert gate/up shape with host-side reference verification; tokens_per_expert mapped to per-group M shapes; tokens_per_expert=[32, 64, 64, 96] | `reports/stage6/r5c2_selected_expert_gateup_smoke_20260604_192904` | Proceed to R5-C2B slot-preserving selected-output bridge; do not claim speed/default promotion from R5-C2. |
 | `r5c2b_slot_bridge_contract` | **STATIC_CONTRACT_BANKED** `PASS_R5C2B_SLOT_PRESERVING_SELECTED_OUTPUT_CONTRACT` | route/order/scatter contract is banked as a GPU-free static guard for preserving (token_idx, top_k_slot, expert_id) through expert grouping and inverse scatter | `reports/stage6/R5C2B_SLOT_PRESERVING_SELECTED_OUTPUT_CONTRACT_20260604.md, scripts/test_stage6_r5c2b_slot_bridge_contract_static.py` | Implement the R5-C2B CUTLASS selected-output harness; do not claim speed/default from the static contract. |
+| `r5c2c_real_d_row_slot_scatter_smoke` | **BANKED** `PASS_R5C2C_REAL_D_ROW_SLOT_SCATTER_SMOKE` | real CUTLASS D/ref row digests were captured after host-reference verification and scattered through the R5-C2B inverse-order contract; tokens/top_k/N=128/2/128; tokens_per_expert=[32, 64, 64, 96]; schedules=['cooperative', 'pingpong'] | `reports/stage6/r5c2c_real_d_row_slot_scatter_smoke_20260604_201440` | Proceed to R5-C3 grouped active-MoE prefill POC or first implement an in-epilogue selected-output scatter; do not claim speed/default from R5-C2C. |
 
 ## Counts
 
 | Status | Count |
 |---|---:|
-| `BANKED` | 30 |
+| `BANKED` | 31 |
 | `CLOSED_NEGATIVE` | 5 |
 | `CONTRACT_READY_UNIMPLEMENTED` | 1 |
 | `DECISION_BANKED` | 1 |

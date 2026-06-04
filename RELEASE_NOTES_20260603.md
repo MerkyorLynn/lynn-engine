@@ -38,6 +38,7 @@
 - R6000 FP4-MMA PASS census: [Stage 6 R6000 FP4-MMA PASS census](reports/stage6/r6000_fp4_mma_census_20260604_164457/summary.md)
 - R6000 grouped-MoE FP4-MMA POC contract: [Stage 6 R6000 grouped-MoE FP4-MMA POC contract](reports/stage6/R6000_GROUPED_MOE_FP4_MMA_POC_CONTRACT_20260604.md)
 - R5-C2 selected-expert gate/up PASS: [Stage 6 R5-C2 selected-expert gate/up PASS](reports/stage6/r5c2_selected_expert_gateup_smoke_20260604_192904/summary.md)
+- R5-C2C real D-row scatter PASS: [Stage 6 R5-C2C real D-row scatter PASS](reports/stage6/r5c2c_real_d_row_slot_scatter_smoke_20260604_201440/summary.md)
 
 ## Banked Results
 
@@ -83,6 +84,7 @@
 | R5-C1 CUTLASS numeric smoke | PASS banked:`PASS_R5C1_CUTLASS_NVF4_UE4M3_NUMERIC_SMOKE`;CUTLASS 79d native NVF4+UE4M3 grouped GEMM builds/runs and both Cooperative/Pingpong schedules pass host-reference verification;numeric smoke only,not Lynn kernel speed/default |
 | R5-C2A MoE shape census | PASS banked:`PASS_R5C2_MOE_SHAPE_CENSUS_NEW_HARNESS_REQUIRED`;79d has SM120 native NVF4+UE4M3 generic grouped GEMM but lacks MoE shape semantics;92 has `MoEProblemShape/tokens_per_expert` but Sm100 schedules;source-census only,not selected-expert kernel/speed/default |
 | R5-C2 selected-expert gate/up | PASS banked:`PASS_R5C2_SELECTED_EXPERT_GATEUP_NUMERIC_SMOKE`;maps selected-expert `tokens_per_expert=[32,64,64,96]` to CUTLASS 79d per-group M shapes;both Cooperative/Pingpong schedules pass host-reference;gate/up smoke only,not grouped-MoE speed/default |
+| R5-C2C real D-row scatter | PASS banked:`PASS_R5C2C_REAL_D_ROW_SLOT_SCATTER_SMOKE`;captures real CUTLASS D/ref row digests and scatters through R5-C2B inverse-order into `[T,top_k,N_gateup]`;Cooperative/Pingpong each cover 256 rows;not epilogue kernel/SwiGLU/down/speed/default |
 
 ## Corrected Engineering Read
 
@@ -138,8 +140,9 @@
 34. **R5-C CUTLASS UE4M3 ABI:已 bank。** R6000 上 `PASS_R5C_NVF4_UE4M3_CUTLASS_ABI`:CUTLASS/CuTe 暴露 sm120 `mxf4nvf4` block16 E2M1 + UE4M3 scale 路径。边界:只 bank ABI,不 bank grouped-MoE FP4-MMA kernel/speed/default。
 35. **R5-C1 CUTLASS numeric smoke:已 bank。** R6000 上 `PASS_R5C1_CUTLASS_NVF4_UE4M3_NUMERIC_SMOKE`:CUTLASS 79d native NVF4+UE4M3 grouped GEMM 构建/运行通过,Cooperative 与 Pingpong 两种 schedule 均 host-reference `Disposition: Passed`;边界:只 bank numeric smoke,不 bank Lynn grouped-MoE kernel/speed/default。下一步是 R5-C2 selected expert gate/up numeric smoke。
 36. **R5-C2A MoE shape census:已 bank。** R6000 上 `PASS_R5C2_MOE_SHAPE_CENSUS_NEW_HARNESS_REQUIRED`:79d 有 SM120 native NVF4+UE4M3 generic grouped GEMM 但缺 `MoEProblemShape/tokens_per_expert`;92 有 MoE shape 语义但走 Sm100 schedule。边界:只 bank source-census/new-harness-required,不 bank selected expert gate/up numeric smoke、speed 或 default。
-37. **R5-C2 selected-expert gate/up smoke:已 bank。** R6000 上 `PASS_R5C2_SELECTED_EXPERT_GATEUP_NUMERIC_SMOKE`:把 deterministic top-k route 的 `tokens_per_expert=[32,64,64,96]` 映射到 CUTLASS 79d per-group M shapes,Cooperative/Pingpong 双 schedule 均 host-reference PASS。边界:只 bank selected-expert gate/up numeric smoke,不 bank Lynn slot-preserving gather/scatter、down projection、grouped-MoE speed 或 default。下一步是 R5-C2B slot-preserving selected-output bridge。
-38. **Speed next:** 不是 P4C 扩 RC,而是两条速度线:MTP draft/accept 信号好,真正 blocker 是 eager speculative runtime;下一轮优先削 snapshot/restore、per-event dispatch/sync 与 token-exact batched verify。另一条是把 decode hot loop 搬出 Python、用 compiled/C++ 服务循环降低 per-launch host dispatch;reusable decode graph 已实测 0.75x 净负,不作为当前默认路线。
+37. **R5-C2 selected-expert gate/up smoke:已 bank。** R6000 上 `PASS_R5C2_SELECTED_EXPERT_GATEUP_NUMERIC_SMOKE`:把 deterministic top-k route 的 `tokens_per_expert=[32,64,64,96]` 映射到 CUTLASS 79d per-group M shapes,Cooperative/Pingpong 双 schedule 均 host-reference PASS。边界:只 bank selected-expert gate/up numeric smoke,不 bank Lynn slot-preserving gather/scatter、down projection、grouped-MoE speed 或 default。
+38. **R5-C2C real D-row scatter:已 bank。** R6000 上 `PASS_R5C2C_REAL_D_ROW_SLOT_SCATTER_SMOKE`:临时 patch CUTLASS 79d example 输出真实 D/ref row digests,再按 R5-C2B inverse-order scatter 到 `[T,top_k,N_gateup]`;Cooperative/Pingpong 各 **256 rows**,row counts `[32,64,64,96]`,D/ref row digest match、scatter match、fault injection 全过。边界:只 bank real D-row slot scatter smoke,不 bank epilogue selected-output kernel、SwiGLU/down projection、grouped-MoE speed 或 default。
+39. **Speed next:** 不是 P4C 扩 RC,而是两条速度线:MTP draft/accept 信号好,真正 blocker 是 eager speculative runtime;下一轮优先削 snapshot/restore、per-event dispatch/sync 与 token-exact batched verify。另一条是把 decode hot loop 搬出 Python、用 compiled/C++ 服务循环降低 per-launch host dispatch;reusable decode graph 已实测 0.75x 净负,不作为当前默认路线。
 
 ## Relation To 2026-05-20 Notes
 

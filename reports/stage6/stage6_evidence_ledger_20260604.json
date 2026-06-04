@@ -1,12 +1,12 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T11:48:14+00:00",
-  "stage6_status": "R5C2B_SLOT_BRIDGE_CONTRACT_BANKED",
-  "stage6_note": "R5-C2B slot-preserving selected-output contract is banked: the route/order/scatter metadata required to preserve (token_idx, top_k_slot, expert_id) through expert grouping and inverse scatter is frozen with a GPU-free static guard and fault-injection checks. This does not bank a CUTLASS selected-output kernel, speed, server behavior, RC quality, or default promotion. Next gate is the R5-C2B CUTLASS selected-output harness. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT.",
-  "spark_status": "R5C2B_SLOT_BRIDGE_CONTRACT_BANKED",
-  "spark_note": "R5-C2B slot-preserving selected-output contract is banked: the route/order/scatter metadata required to preserve (token_idx, top_k_slot, expert_id) through expert grouping and inverse scatter is frozen with a GPU-free static guard and fault-injection checks. This does not bank a CUTLASS selected-output kernel, speed, server behavior, RC quality, or default promotion. Next gate is the R5-C2B CUTLASS selected-output harness. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT.",
+  "generated_at_utc": "2026-06-04T12:24:37+00:00",
+  "stage6_status": "R5C2C_REAL_D_ROW_SLOT_SCATTER_SMOKE_BANKED",
+  "stage6_note": "R5-C2C real D-row slot scatter smoke is banked: real CUTLASS D/ref row digests were captured after host-reference verification and scattered through the R5-C2B inverse-order contract into [T, top_k, N_gateup]. This does not bank an in-epilogue selected-output CUDA kernel, SwiGLU/down projection, grouped-MoE speed, server behavior, RC quality, or default promotion. Next gate is R5-C3 grouped active-MoE prefill POC or an in-epilogue selected-output scatter. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT.",
+  "spark_status": "R5C2C_REAL_D_ROW_SLOT_SCATTER_SMOKE_BANKED",
+  "spark_note": "R5-C2C real D-row slot scatter smoke is banked: real CUTLASS D/ref row digests were captured after host-reference verification and scattered through the R5-C2B inverse-order contract into [T, top_k, N_gateup]. This does not bank an in-epilogue selected-output CUDA kernel, SwiGLU/down projection, grouped-MoE speed, server behavior, RC quality, or default promotion. Next gate is R5-C3 grouped active-MoE prefill POC or an in-epilogue selected-output scatter. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT.",
   "counts": {
-    "BANKED": 30,
+    "BANKED": 31,
     "CLOSED_NEGATIVE": 5,
     "TIMEOUT_NOT_CLEAN": 1,
     "DIAGNOSTIC_BANKED": 4,
@@ -453,6 +453,15 @@
       "artifact": "reports/stage6/R5C2B_SLOT_PRESERVING_SELECTED_OUTPUT_CONTRACT_20260604.md, scripts/test_stage6_r5c2b_slot_bridge_contract_static.py",
       "next_step": "Implement the R5-C2B CUTLASS selected-output harness; do not claim speed/default from the static contract.",
       "decision": "PASS_R5C2B_SLOT_PRESERVING_SELECTED_OUTPUT_CONTRACT"
+    },
+    {
+      "gate": "r5c2c_real_d_row_slot_scatter_smoke",
+      "title": "R5-C2C real D-row slot scatter smoke",
+      "status": "BANKED",
+      "evidence": "real CUTLASS D/ref row digests were captured after host-reference verification and scattered through the R5-C2B inverse-order contract; tokens/top_k/N=128/2/128; tokens_per_expert=[32, 64, 64, 96]; schedules=['cooperative', 'pingpong']",
+      "artifact": "reports/stage6/r5c2c_real_d_row_slot_scatter_smoke_20260604_201440",
+      "next_step": "Proceed to R5-C3 grouped active-MoE prefill POC or first implement an in-epilogue selected-output scatter; do not claim speed/default from R5-C2C.",
+      "decision": "PASS_R5C2C_REAL_D_ROW_SLOT_SCATTER_SMOKE"
     }
   ]
 }

@@ -48,7 +48,8 @@ banked_default_promotion=false
 | R5-C1 | Minimal numeric GEMM smoke with CUTLASS 79d native NVF4 + UE4M3 grouped GEMM | CUTLASS host-reference numeric smoke only; no Lynn grouped-MoE speed claim |
 | R5-C2A | MoE shape/source census | Decide whether 79d/92 can be used directly or a new minimal harness is required |
 | R5-C2 | Selected expert gate/up native GEMM smoke | Preserve expert IDs/top-k and scale semantics |
-| R5-C2B | Slot-preserving selected-output bridge | Preserve `(token, top_k slot, expert)` through grouping and scatter-back |
+| R5-C2B-static | Slot-preserving selected-output contract | Preserve `(token, top_k slot, expert)` through grouping and scatter-back |
+| R5-C2C | Real D-row slot scatter smoke | Copy real CUTLASS D row digests through the slot bridge into `[T, top_k, N_gateup]` |
 | R5-C3 | Grouped active-MoE prefill POC | Only then may speed be measured against W4A16/P2-N/P3 paths |
 
 ## R5-C1 Minimal Numeric GEMM Smoke Gate
@@ -137,6 +138,39 @@ The next gate is R5-C2B, not R5-C3: R5-C2B must preserve `token_idx`,
 `top_k_slot`, `expert_id`, per-expert prefix offsets, and inverse scatter order,
 then compare a slot-preserving `[T, top_k, inter]` host reference.
 
+## R5-C2C Real D-Row Slot Scatter Smoke Gate
+
+R5-C2C is the first gate that must touch real CUTLASS output rows. It does not
+need an in-epilogue scatter kernel yet: a temporary 79d example patch may emit
+real D-row digests after host-reference verification, and the harness may scatter
+those rows on the host via the R5-C2B `inverse_order`.
+
+A PASS requires:
+
+```text
+PASS_R5C2C_REAL_D_ROW_SLOT_SCATTER_SMOKE
+banked_real_d_row_slot_scatter=true
+banked_selected_output_kernel_epilogue=false
+banked_swiglu_or_down_projection=false
+banked_grouped_moe_fp4_mma_poc=false
+banked_kernel_speed=false
+banked_default_promotion=false
+```
+
+The smoke must prove that:
+
+- the nested R5-C2 CUTLASS grouped-GEMM host-reference verification passed;
+- real D-row digests were captured for both Cooperative and Pingpong schedules;
+- each captured row corresponds to a grouped expert row and scatters through
+  `inverse_order` into `[T, top_k, N_gateup]`;
+- D/ref row digests match after scatter;
+- fault injection rejects swapped rows, duplicate slots, missing inverse entries,
+  and missing D rows.
+
+R5-C2C output width is `N_gateup`, not post-SwiGLU `inter`. R5-C2C therefore
+does **not** perform SwiGLU activation, down projection, router validation,
+server/RC validation, speed promotion, or runtime default promotion.
+
 ## Commands
 
 On the R6000 lane:
@@ -146,6 +180,7 @@ scripts/r6000_stage6_r5c_cutlass_ue4m3_census.sh
 scripts/r6000_stage6_r5c1_cutlass_numeric_smoke.sh
 scripts/r6000_stage6_r5c2_moe_shape_census.sh
 scripts/r6000_stage6_r5c2_selected_expert_gateup_smoke.sh
+scripts/r6000_stage6_r5c2c_real_d_row_slot_scatter_smoke.sh
 ```
 
 Local GPU-free check:
@@ -155,6 +190,8 @@ python3 scripts/test_stage6_r5c_cutlass_ue4m3_census_tools.py
 python3 scripts/test_stage6_r5c1_cutlass_numeric_smoke_tools.py
 python3 scripts/test_stage6_r5c2_moe_shape_census_tools.py
 python3 scripts/test_stage6_r5c2_selected_expert_gateup_smoke_tools.py
+python3 scripts/test_stage6_r5c2b_slot_bridge_contract_static.py
+python3 scripts/test_stage6_r5c2c_real_d_row_slot_scatter_smoke_tools.py
 ```
 
 ## Explicit Non-Claims
@@ -175,3 +212,7 @@ python3 scripts/test_stage6_r5c2_selected_expert_gateup_smoke_tools.py
   `tokens_per_expert` shapes and CUTLASS host-reference verification.
 - R5-C2 does not prove Lynn slot-preserving gather/scatter, down projection,
   full grouped-MoE FP4-MMA speed, or runtime defaults.
+- R5-C2C proves only real D-row digest scatter from CUTLASS grouped output rows
+  into `[T, top_k, N_gateup]` selected slots.
+- R5-C2C does not prove an in-epilogue selected-output CUDA kernel, SwiGLU,
+  down projection, full grouped-MoE FP4-MMA speed, or runtime defaults.
