@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -144,6 +145,11 @@ def main() -> None:
     ap.add_argument("--down-block-hidden", type=int, default=8)
     ap.add_argument("--down-block-inter", type=int, default=512)
     ap.add_argument("--down-num-warps", type=int, default=8)
+    ap.add_argument(
+        "--batched-down",
+        action="store_true",
+        help="Opt into LYNN_P3A_BATCHED_DOWN=1 candidate that collapses per-token down launches.",
+    )
     ap.add_argument("--min-cosine", type=float, default=0.999)
     ap.add_argument("--json-out", default="")
     args = ap.parse_args()
@@ -154,6 +160,9 @@ def main() -> None:
     model_dir = Path(args.model)
     batches = _parse_batches(args.batches)
     torch.manual_seed(args.seed)
+    old_batched_down = os.environ.get("LYNN_P3A_BATCHED_DOWN")
+    if args.batched_down:
+        os.environ["LYNN_P3A_BATCHED_DOWN"] = "1"
 
     text_cfg = _model_cfg(model_dir)
     num_experts = int(text_cfg.get("num_experts", 256))
@@ -189,6 +198,7 @@ def main() -> None:
     print(f"model        : {model_dir}", flush=True)
     print(f"layer        : {args.layer}", flush=True)
     print(f"batches      : {batches}", flush=True)
+    print(f"batched_down : {args.batched_down}", flush=True)
     print(f"shape        : hidden={hidden_size} intermediate={intermediate} experts={num_experts} top_k={top_k}", flush=True)
     print(f"BF16 active  : {active_bf16_bytes / GIB:.3f} GiB", flush=True)
     print(f"packed active: {packed_active_bytes / GIB:.3f} GiB", flush=True)
@@ -295,6 +305,13 @@ def main() -> None:
             "down_block_hidden": args.down_block_hidden,
             "down_block_inter": args.down_block_inter,
             "down_num_warps": args.down_num_warps,
+        },
+        "candidate": {
+            "batched_down": bool(args.batched_down),
+            "env": {
+                "LYNN_P3A_BATCHED_DOWN": os.environ.get("LYNN_P3A_BATCHED_DOWN"),
+                "previous_LYNN_P3A_BATCHED_DOWN": old_batched_down,
+            },
         },
         "bytes": {
             "bf16_layer_active_experts": active_bf16_bytes,

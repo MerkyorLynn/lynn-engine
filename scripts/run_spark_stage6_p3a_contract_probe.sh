@@ -19,6 +19,7 @@ Options:
   --remote-repo PATH           Spark repo path. Default: /home/merkyor/lynn-engine.
   --local-root PATH            Local artifact root. Default: reports/stage6.
   --expect-head COMMIT         Expected Spark repo HEAD. Default: local HEAD.
+  --batched-down               Opt into LYNN_P3A_BATCHED_DOWN=1 candidate.
   --allow-provenance-mismatch  Do not fail when both HEAD and manifest differ.
   --no-strict                  Pull artifacts but do not fail on result passes.all=false.
   -h, --help                   Show this help.
@@ -78,6 +79,7 @@ EXPECTED_HEAD="${LYNN_STAGE6_EXPECT_HEAD:-$(git rev-parse HEAD 2>/dev/null || tr
 EXPECTED_MANIFEST="${LYNN_STAGE6_EXPECT_MANIFEST:-$(manifest_for_files "${PROVENANCE_FILES[@]}")}"
 REQUIRE_PROVENANCE="1"
 STRICT="1"
+BATCHED_DOWN="0"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -113,6 +115,10 @@ while [[ $# -gt 0 ]]; do
       EXPECTED_HEAD="$2"
       shift 2
       ;;
+    --batched-down)
+      BATCHED_DOWN="1"
+      shift
+      ;;
     --allow-provenance-mismatch)
       REQUIRE_PROVENANCE="0"
       shift
@@ -134,19 +140,24 @@ while [[ $# -gt 0 ]]; do
 done
 
 STAMP="$(date +%Y%m%d_%H%M%S)"
-RUN_NAME="p3a_layer${LAYER}_grouped_moe_contract_probe_${STAMP}"
+if [[ "$BATCHED_DOWN" == "1" ]]; then
+  RUN_NAME="p3a_batched_down_layer${LAYER}_grouped_moe_contract_probe_${STAMP}"
+else
+  RUN_NAME="p3a_layer${LAYER}_grouped_moe_contract_probe_${STAMP}"
+fi
 REMOTE_RUN_DIR="${REMOTE_REPO}/reports/stage6/${RUN_NAME}"
 LOCAL_RUN_DIR="${LOCAL_ROOT}/${RUN_NAME}"
 
 echo "[p3a] host=${HOST}"
 echo "[p3a] layer=${LAYER}"
 echo "[p3a] batches=${BATCHES}"
+echo "[p3a] batched_down=${BATCHED_DOWN}"
 echo "[p3a] expect_head=${EXPECTED_HEAD:-none}"
 echo "[p3a] remote_run_dir=${REMOTE_RUN_DIR}"
 
 set +e
 ssh "$HOST" \
-  "REMOTE_REPO=$(shell_quote "$REMOTE_REPO") REMOTE_RUN_DIR=$(shell_quote "$REMOTE_RUN_DIR") IMAGE=$(shell_quote "$IMAGE") MODEL=$(shell_quote "$MODEL") LAYER=$(shell_quote "$LAYER") BATCHES=$(shell_quote "$BATCHES") EXPECTED_HEAD=$(shell_quote "$EXPECTED_HEAD") EXPECTED_MANIFEST=$(shell_quote "$EXPECTED_MANIFEST") REQUIRE_PROVENANCE=$(shell_quote "$REQUIRE_PROVENANCE") bash -s" <<'REMOTE'
+  "REMOTE_REPO=$(shell_quote "$REMOTE_REPO") REMOTE_RUN_DIR=$(shell_quote "$REMOTE_RUN_DIR") IMAGE=$(shell_quote "$IMAGE") MODEL=$(shell_quote "$MODEL") LAYER=$(shell_quote "$LAYER") BATCHES=$(shell_quote "$BATCHES") BATCHED_DOWN=$(shell_quote "$BATCHED_DOWN") EXPECTED_HEAD=$(shell_quote "$EXPECTED_HEAD") EXPECTED_MANIFEST=$(shell_quote "$EXPECTED_MANIFEST") REQUIRE_PROVENANCE=$(shell_quote "$REQUIRE_PROVENANCE") bash -s" <<'REMOTE'
 set -euo pipefail
 file_sha256() {
   if command -v sha256sum >/dev/null 2>&1; then
@@ -216,6 +227,10 @@ else
 fi
 
 set +e
+BATCHED_DOWN_ARG=()
+if [[ "${BATCHED_DOWN:-0}" == "1" ]]; then
+  BATCHED_DOWN_ARG=(--batched-down)
+fi
 docker run --rm --gpus all --ipc=host \
   -e PYTHONNOUSERSITE=1 \
   -e PYTHONUNBUFFERED=1 \
@@ -226,6 +241,7 @@ docker run --rm --gpus all --ipc=host \
     --model "$MODEL" \
     --layer "$LAYER" \
     --batches "$BATCHES" \
+    "${BATCHED_DOWN_ARG[@]}" \
     --json-out "$REMOTE_RUN_DIR/result.json" \
   > "$REMOTE_RUN_DIR/run.log" 2>&1
 DOCKER_STATUS=$?

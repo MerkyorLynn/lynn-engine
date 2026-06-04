@@ -9,6 +9,7 @@ import torch.nn.functional as F
 from engine.nvfp4_runtime import _quantize_activation_to_fp4, dual_scalar_bridge
 from triton_kernels.nvfp4_moe import (
     nvfp4_grouped_down_weighted_sum,
+    nvfp4_grouped_down_weighted_sum_batched,
     nvfp4_grouped_down_weighted_sum_effective_scale,
     nvfp4_grouped_down_weighted_sum_prepared,
     nvfp4_grouped_gate_up_silu,
@@ -420,20 +421,33 @@ def active_moe_grouped_prefill_p3a(
         )
         offset = end
 
-    out = torch.empty((tokens, hidden_size), device=hidden.device, dtype=torch.bfloat16)
-    for token in range(tokens):
-        nvfp4_grouped_down_weighted_sum(
-            inter[token],
-            expert_ids_i32[token],
-            routing_weights_f32[token],
+    if _env_bool("LYNN_P3A_BATCHED_DOWN", False):
+        out = nvfp4_grouped_down_weighted_sum_batched(
+            inter,
+            expert_ids_i32,
+            routing_weights_f32,
             down_packed,
             down_scale,
             down_global_scale,
             block_hidden=down_block_hidden,
             block_inter=down_block_inter,
             num_warps=down_num_warps,
-            out=out[token],
         )
+    else:
+        out = torch.empty((tokens, hidden_size), device=hidden.device, dtype=torch.bfloat16)
+        for token in range(tokens):
+            nvfp4_grouped_down_weighted_sum(
+                inter[token],
+                expert_ids_i32[token],
+                routing_weights_f32[token],
+                down_packed,
+                down_scale,
+                down_global_scale,
+                block_hidden=down_block_hidden,
+                block_inter=down_block_inter,
+                num_warps=down_num_warps,
+                out=out[token],
+            )
     return out.to(hidden.dtype)
 
 
