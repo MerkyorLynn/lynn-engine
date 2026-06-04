@@ -1,0 +1,3 @@
+?? reports/stage6/p2o_basic_packed_prefill_rc_smoke_20260604_132946/
+?? reports/stage6/p4c_tile2_first_divergence_20260604_125903/
+?? reports/stage6/p4c_tile2_server_smoke_20260604_124019/
