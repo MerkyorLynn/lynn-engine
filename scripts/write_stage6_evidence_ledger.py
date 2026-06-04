@@ -746,6 +746,81 @@ def _r5c2_moe_shape_census_gate() -> Gate:
     )
 
 
+def _r5c2_selected_expert_gateup_smoke_gate() -> Gate:
+    required = [
+        "reports/stage6/R5C_NVF4_UE4M3_CUTLASS_CONTRACT_20260604.md",
+        "scripts/r6000_stage6_r5c2_selected_expert_gateup_smoke.py",
+        "scripts/r6000_stage6_r5c2_selected_expert_gateup_smoke.sh",
+        "scripts/summarize_stage6_r5c2_selected_expert_gateup_smoke.py",
+        "scripts/test_stage6_r5c2_selected_expert_gateup_smoke_tools.py",
+    ]
+    run_dir, data = _latest_result(["r5c2_selected_expert_gateup_smoke_"])
+    if data is None:
+        missing = [rel for rel in required if not (ROOT / rel).exists()]
+        if missing:
+            return Gate(
+                "r5c2_selected_expert_gateup_smoke",
+                "R5-C2 selected-expert gate/up numeric smoke",
+                "MISSING_TOOLING",
+                f"missing: {', '.join(missing)}",
+                "",
+                "Restore R5-C2 selected-expert tooling before claiming gate/up smoke evidence.",
+            )
+        return Gate(
+            "r5c2_selected_expert_gateup_smoke",
+            "R5-C2 selected-expert gate/up numeric smoke",
+            "READY_WAITING_R6000",
+            "tooling exists, but no R6000 result.json artifact is banked",
+            ", ".join(required),
+            "Run scripts/r6000_stage6_r5c2_selected_expert_gateup_smoke.sh; bank selected-expert numeric smoke only.",
+        )
+    if data.get("_json_error"):
+        return Gate(
+            "r5c2_selected_expert_gateup_smoke",
+            "R5-C2 selected-expert gate/up numeric smoke",
+            "FAILED_ARTIFACT",
+            "latest result.json is not valid JSON",
+            _artifact(run_dir),
+            "Fix artifact JSON before interpreting R5-C2.",
+        )
+    passes = data.get("passes") if isinstance(data.get("passes"), dict) else {}
+    decision = _decision(data)
+    if (
+        passes.get("banked_selected_expert_gate_up_smoke") is True
+        and passes.get("banked_grouped_moe_fp4_mma_poc") is False
+        and passes.get("banked_kernel_speed") is False
+        and passes.get("banked_default_promotion") is False
+        and decision == "PASS_R5C2_SELECTED_EXPERT_GATEUP_NUMERIC_SMOKE"
+    ):
+        shape = data.get("selected_expert_shape") if isinstance(data.get("selected_expert_shape"), dict) else {}
+        evidence = (
+            "CUTLASS 79d SM120 native NVF4+UE4M3 grouped GEMM ran a deterministic "
+            "selected-expert gate/up shape with host-side reference verification; "
+            "tokens_per_expert mapped to per-group M shapes"
+        )
+        counts = shape.get("tokens_per_expert")
+        if counts:
+            evidence += f"; tokens_per_expert={counts}"
+        return Gate(
+            "r5c2_selected_expert_gateup_smoke",
+            "R5-C2 selected-expert gate/up numeric smoke",
+            "BANKED",
+            evidence,
+            _artifact(run_dir),
+            "Proceed to R5-C2B slot-preserving selected-output bridge; do not claim speed/default promotion from R5-C2.",
+            decision,
+        )
+    return Gate(
+        "r5c2_selected_expert_gateup_smoke",
+        "R5-C2 selected-expert gate/up numeric smoke",
+        "FAILED_ARTIFACT",
+        "latest R5-C2 artifact did not satisfy the selected-expert numeric-smoke-only boundary",
+        _artifact(run_dir),
+        "Inspect route/count alignment, host-reference verification, and promotion flags.",
+        decision,
+    )
+
+
 def _p4b_contract_gate() -> Gate:
     required = [
         "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md",
@@ -1278,17 +1353,30 @@ def collect_gates() -> list[Gate]:
         _r5c_cutlass_ue4m3_census_gate(),
         _r5c1_cutlass_numeric_smoke_gate(),
         _r5c2_moe_shape_census_gate(),
+        _r5c2_selected_expert_gateup_smoke_gate(),
     ]
     return gates
 
 
 def _derive_current_status(gates: list[Gate]) -> tuple[str, str]:
     by_gate = {gate.gate: gate for gate in gates}
+    r5c2_selected = by_gate.get("r5c2_selected_expert_gateup_smoke")
     r5c2 = by_gate.get("r5c2_moe_shape_census")
     r5c1 = by_gate.get("r5c1_cutlass_numeric_smoke")
     r5c = by_gate.get("r5c_cutlass_ue4m3_census")
     r6000 = by_gate.get("r6000_fp4_mma_census")
     decode_idle = by_gate.get("decode_gpu_idle_probe")
+    if r5c2_selected and r5c2_selected.status == "BANKED":
+        note = (
+            "R5-C2 selected-expert gate/up numeric smoke is banked on the R6000 lane: "
+            "tokens_per_expert is mapped to CUTLASS 79d SM120 native NVF4+UE4M3 per-group M shapes "
+            "and both schedules pass host-reference verification. This is gate/up numeric-smoke evidence only; "
+            "Lynn slot-preserving gather/scatter, down projection, grouped-MoE speed, and default promotion remain false. "
+            "Next gate is R5-C2B slot-preserving selected-output bridge."
+        )
+        if decode_idle and decode_idle.status == "DIAGNOSTIC_BANKED":
+            note += f" Spark decode ROI probe remains {decode_idle.decision or decode_idle.status}."
+        return "R5C2_SELECTED_EXPERT_GATEUP_SMOKE_BANKED", note
     if r5c2 and r5c2.status == "BANKED":
         note = (
             "R5-C2A is banked on the R6000 lane: CUTLASS 79d supplies SM120 native "

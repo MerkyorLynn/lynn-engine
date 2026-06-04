@@ -1,0 +1,27 @@
+{
+  "decision": "PASS_R5C2_SELECTED_EXPERT_GATEUP_NUMERIC_SMOKE",
+  "passes": {
+    "cutlass_dir_exists": true,
+    "example_79d_exists": true,
+    "binary_exists": true,
+    "build_invoked": false,
+    "build_succeeded": true,
+    "route_tokens_match": true,
+    "route_topk_unique": true,
+    "tokens_per_expert_match": true,
+    "benchmark_groups_match_experts": true,
+    "benchmark_shapes_aligned_32": true,
+    "groups_seen_match_experts": true,
+    "run_succeeded": true,
+    "no_noop_device_gate": true,
+    "cooperative_passed": true,
+    "pingpong_passed": true,
+    "host_reference_seen": true,
+    "dispositions_passed_count_ge_2": true,
+    "banked_selected_expert_gate_up_smoke": true,
+    "banked_grouped_moe_fp4_mma_poc": false,
+    "banked_kernel_speed": false,
+    "banked_default_promotion": false,
+    "all": true
+  }
+}

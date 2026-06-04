@@ -1,12 +1,12 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T10:32:46+00:00",
-  "stage6_status": "R5C2_MOE_SHAPE_CENSUS_BANKED",
-  "stage6_note": "R5-C2A is banked on the R6000 lane: CUTLASS 79d supplies SM120 native NVF4+UE4M3 grouped GEMM, while CUTLASS 92 supplies MoEProblemShape/tokens_per_expert semantics but uses Sm100 schedules. This is source-shape census only; selected expert gate/up numeric smoke, grouped-MoE speed, and default promotion remain false. Next gate is the new minimal R5-C2 selected expert gate/up harness. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT.",
-  "spark_status": "R5C2_MOE_SHAPE_CENSUS_BANKED",
-  "spark_note": "R5-C2A is banked on the R6000 lane: CUTLASS 79d supplies SM120 native NVF4+UE4M3 grouped GEMM, while CUTLASS 92 supplies MoEProblemShape/tokens_per_expert semantics but uses Sm100 schedules. This is source-shape census only; selected expert gate/up numeric smoke, grouped-MoE speed, and default promotion remain false. Next gate is the new minimal R5-C2 selected expert gate/up harness. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT.",
+  "generated_at_utc": "2026-06-04T11:38:13+00:00",
+  "stage6_status": "R5C2_SELECTED_EXPERT_GATEUP_SMOKE_BANKED",
+  "stage6_note": "R5-C2 selected-expert gate/up numeric smoke is banked on the R6000 lane: tokens_per_expert is mapped to CUTLASS 79d SM120 native NVF4+UE4M3 per-group M shapes and both schedules pass host-reference verification. This is gate/up numeric-smoke evidence only; Lynn slot-preserving gather/scatter, down projection, grouped-MoE speed, and default promotion remain false. Next gate is R5-C2B slot-preserving selected-output bridge. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT.",
+  "spark_status": "R5C2_SELECTED_EXPERT_GATEUP_SMOKE_BANKED",
+  "spark_note": "R5-C2 selected-expert gate/up numeric smoke is banked on the R6000 lane: tokens_per_expert is mapped to CUTLASS 79d SM120 native NVF4+UE4M3 per-group M shapes and both schedules pass host-reference verification. This is gate/up numeric-smoke evidence only; Lynn slot-preserving gather/scatter, down projection, grouped-MoE speed, and default promotion remain false. Next gate is R5-C2B slot-preserving selected-output bridge. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT.",
   "counts": {
-    "BANKED": 29,
+    "BANKED": 30,
     "CLOSED_NEGATIVE": 5,
     "TIMEOUT_NOT_CLEAN": 1,
     "DIAGNOSTIC_BANKED": 4,
@@ -434,6 +434,15 @@
       "artifact": "reports/stage6/r5c2_moe_shape_census_20260604_183226",
       "next_step": "Build R5-C2 selected expert gate/up numeric smoke by combining 92-style MoE shape semantics with 79d-style SM120 execution.",
       "decision": "PASS_R5C2_MOE_SHAPE_CENSUS_NEW_HARNESS_REQUIRED"
+    },
+    {
+      "gate": "r5c2_selected_expert_gateup_smoke",
+      "title": "R5-C2 selected-expert gate/up numeric smoke",
+      "status": "BANKED",
+      "evidence": "CUTLASS 79d SM120 native NVF4+UE4M3 grouped GEMM ran a deterministic selected-expert gate/up shape with host-side reference verification; tokens_per_expert mapped to per-group M shapes; tokens_per_expert=[32, 64, 64, 96]",
+      "artifact": "reports/stage6/r5c2_selected_expert_gateup_smoke_20260604_192904",
+      "next_step": "Proceed to R5-C2B slot-preserving selected-output bridge; do not claim speed/default promotion from R5-C2.",
+      "decision": "PASS_R5C2_SELECTED_EXPERT_GATEUP_NUMERIC_SMOKE"
     }
   ]
 }
