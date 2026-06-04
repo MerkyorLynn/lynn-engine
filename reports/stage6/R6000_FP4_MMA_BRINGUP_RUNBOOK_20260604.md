@@ -6,18 +6,19 @@ Verdict: **runbook/tooling gate only; no kernel is promoted by this document.**
 
 ## Machine Choice
 
-Use the RTX PRO 6000 96GB host with the largest disk headroom:
+Use any available RTX PRO 6000 96GB host with the largest disk headroom.
+Do not bind the route to a fixed AutoDL host ID; inventory changes quickly.
 
 | Choice | Decision | Reason |
 |---|---|---|
-| `723机 RTX PRO 6000 96GB` | **Preferred** | Same weekly price, 24 CPU cores, 120GB RAM, and 943GB expandable disk. |
-| `895机 RTX PRO 6000 96GB` | Acceptable fallback | Same GPU, but less disk/CPU headroom. |
-| `718机 RTX PRO 6000 96GB` | Avoid if possible | Same price but only 171GB expandable disk. |
+| `RTX PRO 6000 96GB, 800GB-1TB expandable disk` | **Preferred** | Correct Blackwell FP4-MMA target with enough room for model artifacts, builds, Nsight traces, and result artifacts. |
+| `RTX PRO 6000 96GB, >=500GB free disk` | Acceptable | Enough for the census gate and initial FP4-MMA POC if caches/artifacts are pruned. |
+| `RTX PRO 6000 96GB, <500GB free disk` | Avoid if possible | Too tight for native builds plus model/checkpoint artifacts; use only for minimal capability smoke. |
 | `H20-NVLink 96GB` | **Do not use for FP4-MMA mainline** | More expensive and not the Blackwell FP4 Tensor Core target for this track. |
 
 Minimum disk: **500GB free**.
 
-Recommended disk: **800GB-1TB free**. The 943GB option is the safe default because
+Recommended disk: **800GB-1TB free**. This headroom is the safe default because
 model artifacts, Docker layers, CUTLASS/vLLM/TRT-LLM builds, native extension
 cache, Nsight traces, and result artifacts accumulate quickly.
 
