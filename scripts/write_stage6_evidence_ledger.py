@@ -252,6 +252,50 @@ def _p4b_multi_cta_microbench_gate() -> Gate:
     )
 
 
+def _p4c_active_reuse_decision_gate() -> Gate:
+    required = [
+        "reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md",
+        "scripts/test_stage6_p4c_active_reuse_decision_static.py",
+    ]
+    missing = [rel for rel in required if not (ROOT / rel).exists()]
+    if missing:
+        return Gate(
+            "p4c_active_reuse_decision",
+            "P4C active-reuse kernel decision",
+            "MISSING_TOOLING",
+            f"missing: {', '.join(missing)}",
+            "",
+            "Restore the active-reuse decision doc/static gate before writing another P4B/P4C CUDA candidate.",
+        )
+    if _contains(
+        "reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md",
+        [
+            "The next kernel must preserve",
+            "active reuse.",
+            "P4C, not P4B",
+            "39.54 ms vs P4A 0.283 ms = 0.007x",
+            "0.0058x",
+            "fused_zero_shadow_active_reuse_contract",
+        ],
+    ):
+        return Gate(
+            "p4c_active_reuse_decision",
+            "P4C active-reuse kernel decision",
+            "DECISION_BANKED",
+            "single-CTA and multi-CTA recompute anti-proofs are captured; next candidate must preserve active reuse",
+            ", ".join(required),
+            "Implement P4C active-reuse two-phase/CUTLASS-style candidate; do not report it as P4B out-only fused speed.",
+        )
+    return Gate(
+        "p4c_active_reuse_decision",
+        "P4C active-reuse kernel decision",
+        "MISSING_OR_WEAK",
+        "decision doc exists but does not preserve measured anti-proofs and naming boundary",
+        ", ".join(required),
+        "Strengthen the decision doc before another CUDA candidate is accepted.",
+    )
+
+
 def collect_gates() -> list[Gate]:
     gates: list[Gate] = [
         _report_gate(
@@ -436,6 +480,7 @@ def collect_gates() -> list[Gate]:
         ),
         _p4b_multi_cta_microbench_gate(),
         _p4b_contract_gate(),
+        _p4c_active_reuse_decision_gate(),
     ]
     return gates
 
