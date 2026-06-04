@@ -107,6 +107,7 @@ def inter_fail_fixture() -> dict:
 
 
 def main() -> int:
+    wrapper = ROOT / "scripts" / "run_spark_stage6_p4b_single_cta_numeric_preflight.sh"
     with tempfile.TemporaryDirectory() as tmp_s:
         tmp = Path(tmp_s)
         fixtures = {
@@ -128,6 +129,12 @@ def main() -> int:
             "scripts/spark_stage6_p4b_single_cta_numeric_preflight.py",
             "scripts/summarize_stage6_p4b_single_cta_numeric_preflight.py",
         ])
+        wrapper_help = run([str(wrapper), "--help"])
+        wrapper_text = wrapper.read_text(encoding="utf-8")
+        assert "p4b_single_cta_numeric_preflight_" in wrapper_text
+        assert "LYNN_STAGE6_EXPECT_MANIFEST" in wrapper_help.stdout
+        assert "spark_stage6_p4b_single_cta_numeric_preflight.py" in wrapper_text
+
         pass_summary = run([
             sys.executable,
             "scripts/summarize_stage6_p4b_single_cta_numeric_preflight.py",
