@@ -35,11 +35,15 @@ update, and explicit default-switch policy.
 Run P3-E only after:
 
 - P2-O `basic` PASS;
-- P2-O `rc-mini` PASS;
+- P2-O `rc-mini` non-long shard PASS;
 - P3-A PASS;
 - P3-B PASS;
 - P3-C PASS;
 - P3-D PASS.
+
+The full P2-O `rc-mini` long-context prompt remains a separate slow-mode scale
+gate. P3-E has its own long-context needle smoke, so any P3-E long-context claim
+must come from the P3-E artifact itself, not from P2-O.
 
 The wrapper requires `--p3d-pass` so a standalone run cannot accidentally bank a
 quality smoke without the server-smoke predecessor.

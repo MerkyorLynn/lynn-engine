@@ -40,6 +40,7 @@ def _parse_status(path: Path) -> list[dict[str, str]]:
 def _child_dirs(suite_dir: Path) -> list[Path]:
     prefixes = (
         "p2o_basic_packed_prefill_rc_smoke_",
+        "p2o_rc-mini_idx0-4_packed_prefill_rc_smoke_",
         "p2o_rc-mini_packed_prefill_rc_smoke_",
         "p3a_layer",
         "p3b_layers",

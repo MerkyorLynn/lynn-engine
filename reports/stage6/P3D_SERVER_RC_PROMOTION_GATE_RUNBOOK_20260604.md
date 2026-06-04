@@ -29,10 +29,14 @@ battery and an explicit default-switch decision.
 Run P3-D only after:
 
 - P2-O `basic` PASS;
-- P2-O `rc-mini` PASS;
+- P2-O `rc-mini` non-long shard PASS;
 - P3-A PASS;
 - P3-B PASS;
 - P3-C PASS.
+
+The full P2-O `rc-mini` long-context prompt remains a separate slow-mode scale
+gate. P3-D server smoke must report whether it used `basic`, `rc-mini`, or a
+long-context preset and must not inherit a full long-context claim from P2-O.
 
 The wrapper requires `--p3c-pass` so a standalone run cannot accidentally bank a
 server smoke without the resident-runner predecessor.

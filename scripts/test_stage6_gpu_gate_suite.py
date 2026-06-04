@@ -77,7 +77,7 @@ def main() -> int:
             "basic",
         ])
         assert "p2o-basic" in dry.stdout
-        assert "p2o-rc-mini" in dry.stdout
+        assert "p2o-rc-mini-nonlong" in dry.stdout
         assert "p3a-contract" in dry.stdout
         assert "p3b-selected-prefill" in dry.stdout
         assert "p3c-resident-prompt" in dry.stdout
@@ -90,13 +90,15 @@ def main() -> int:
         summary = (suite / "summary.md").read_text()
         report = (suite / "report.md").read_text()
         assert "p2o-basic\tDRY_RUN\t0" in status
-        assert "p2o-rc-mini\tDRY_RUN\t0" in status
+        assert "p2o-rc-mini-nonlong\tDRY_RUN\t0" in status
         assert "p3a-contract\tDRY_RUN\t0" in status
         assert "p3b-selected-prefill\tDRY_RUN\t0" in status
         assert "p3c-resident-prompt\tDRY_RUN\t0" in status
         assert "p3d-server-rc\tDRY_RUN\t0" in status
         assert "scripts/run_spark_stage6_p2o_rc_smoke.sh" in commands
         assert "--preset rc-mini" in commands
+        assert "--prompt-indices" in commands
+        assert "0-4" in commands
         assert "scripts/run_spark_stage6_p3a_contract_probe.sh" in commands
         assert "--batches" in commands
         assert "1,4" in commands or "1\\,4" in commands
