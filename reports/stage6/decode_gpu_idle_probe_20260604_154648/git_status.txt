@@ -1,0 +1,3 @@
+?? reports/stage6/decode_gpu_idle_probe_20260604_154648/
+?? reports/stage6/p4c_tile2_first_divergence_20260604_125903/
+?? reports/stage6/p4c_tile2_server_smoke_20260604_124019/
