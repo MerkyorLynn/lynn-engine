@@ -12,7 +12,7 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 | Field | Value |
 |---|---|
 | Status | `REACHABLE_VIA_DGX_VIA_SSH` |
-| Note | Spark reachable via dgx-via-ssh; P4C active-reuse runtime bridge, speed baseline, and component profile are banked; P4C gate/up shape sweep tooling is wired and waiting for Spark artifact. |
+| Note | Spark reachable via dgx-via-ssh; P4C gate/up shape sweep banked tile_inter=2 threads=128 as actionable diagnostic. Fused speed/default promotion still closed. |
 
 ## Promotion Boundaries
 
@@ -54,17 +54,17 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 | `p4c_active_reuse_runtime_bridge` | **BANKED** `PASS_P4C_ACTIVE_REUSE_RUNTIME_BRIDGE` | latest Spark result.json has passes.all=true | `reports/stage6/p4c_runtime_bridge_preflight_20260604_094008` | Run on Spark; banks P4C active-reuse route/numeric evidence only, not fused speed or default promotion. |
 | `p4c_active_reuse_microbench` | **BANKED** `PASS_P4C_ACTIVE_REUSE_SPEED_BASELINE_RECORDED` | latest Spark result.json has passes.all=true | `reports/stage6/p4c_active_reuse_microbench_20260604_104254` | Run on Spark; banks the current P4C symbol speed baseline before replacing it with a real active-reuse speed candidate. |
 | `p4c_component_profile` | **BANKED** `PASS_P4C_COMPONENT_PROFILE_RECORDED` | latest Spark result.json has passes.all=true | `reports/stage6/p4c_component_profile_20260604_105640` | Run on Spark; use the larger component to choose the first active-reuse speed candidate. |
-| `p4c_gateup_shape_sweep` | **READY_WAITING_SPARK** | tooling/runbook exists, but no Spark PASS artifact is banked | `reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md, scripts/run_spark_stage6_p4c_gateup_shape_sweep.sh, scripts/spark_stage6_p4c_gateup_shape_sweep.py, scripts/summarize_stage6_p4c_gateup_shape_sweep.py, scripts/test_stage6_p4c_gateup_shape_sweep_tools.py` | Run on Spark; bank only launch-shape diagnostic evidence before writing a real gate/up CUDA/CUTLASS candidate. |
+| `p4c_gateup_shape_sweep` | **BANKED** `PASS_P4C_GATEUP_SHAPE_SWEEP_RECORDED` | latest Spark result.json has passes.all=true | `reports/stage6/p4c_gateup_shape_sweep_20260604_111603` | Run on Spark; bank only launch-shape diagnostic evidence before writing a real gate/up CUDA/CUTLASS candidate. |
 | `p4c_active_reuse_decision` | **DECISION_BANKED** | single-CTA and multi-CTA recompute anti-proofs are captured; next candidate must preserve active reuse | `reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md, scripts/test_stage6_p4c_active_reuse_decision_static.py` | Implement P4C active-reuse two-phase/CUTLASS-style candidate; do not report it as P4B out-only fused speed. |
 
 ## Counts
 
 | Status | Count |
 |---|---:|
-| `BANKED` | 17 |
+| `BANKED` | 18 |
 | `CLOSED_NEGATIVE` | 3 |
 | `DECISION_BANKED` | 1 |
-| `READY_WAITING_SPARK` | 8 |
+| `READY_WAITING_SPARK` | 7 |
 | `REFERENCE_IMPL_BANKED_SPEED_CLOSED` | 1 |
 
 ## Local Check
