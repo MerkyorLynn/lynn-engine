@@ -67,7 +67,8 @@ def main() -> int:
     if WRAPPER.exists():
         text = WRAPPER.read_text(encoding="utf-8")
         for needle in [
-            "CANDIDATE_JSON is required",
+            "CANDIDATE_JSON or CANDIDATE_METRICS_JSON is required",
+            "stage6_r5c4_candidate_from_metrics.py",
             "r6000_stage6_r5c4_full_active_moe_speed_ab.py",
             "summarize_stage6_r5c4_full_active_moe_speed_ab.py",
             "nvidia_smi_before.txt",
