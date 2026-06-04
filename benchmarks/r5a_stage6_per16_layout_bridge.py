@@ -180,11 +180,14 @@ def _dequant_codes(codes: torch.Tensor, scale16: torch.Tensor) -> torch.Tensor:
 
 def _make_scale16(rows: int, groups: int, *, device: torch.device, case: str) -> torch.Tensor:
     idx = torch.arange(rows * groups, device=device, dtype=torch.float32).reshape(rows, groups)
-    exponents = ((idx.remainder(9.0)) - 4.0) / 2.0
-    base = torch.pow(torch.full_like(exponents, 2.0), exponents)
     if case == "power2":
-        return base.contiguous()
+        # e8m0 can represent only integer powers of two.  This case should pass
+        # if the layout bridge is correct; fractional exponents belong below.
+        exponents = idx.remainder(9.0) - 4.0
+        return torch.pow(torch.full_like(exponents, 2.0), exponents).contiguous()
     if case == "e4m3_like":
+        exponents = ((idx.remainder(9.0)) - 4.0) / 2.0
+        base = torch.pow(torch.full_like(exponents, 2.0), exponents)
         mantissas = torch.tensor([1.0, 1.125, 1.25, 1.5, 1.75], device=device, dtype=torch.float32)
         return (base * mantissas[(idx.long() % len(mantissas))]).contiguous()
     raise ValueError(f"unknown scale case {case!r}")
