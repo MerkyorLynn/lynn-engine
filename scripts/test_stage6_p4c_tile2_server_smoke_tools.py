@@ -10,6 +10,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+ALL_40_LAYERS = ",".join(str(i) for i in range(40))
 
 
 def run(cmd: list[str], *, expect: int | None = 0) -> subprocess.CompletedProcess[str]:
@@ -59,7 +60,7 @@ def _health(*, calls: int = 80, tile: int = 2, release: bool = True) -> dict:
         "last_release_gib": 60.0 if release else 0.0,
         "runtime": {
             "native_active_moe_backend": "fused_zero_shadow_active_reuse_contract",
-            "native_active_moe_layers": "all",
+            "native_active_moe_layers": ALL_40_LAYERS,
             "native_gateup_tile_inter": str(tile),
             "native_moe_counters": {
                 "p4c_active_reuse_contract": {
@@ -112,10 +113,12 @@ def pass_fixture() -> dict:
         "max_new": 4,
         "max_seq_len": 2048,
         "gateup_tile_inter": 2,
+        "native_active_moe_layers": ALL_40_LAYERS,
         "env": {
             "baseline": {"LYNN_NATIVE_ACTIVE_MOE_BACKEND": "triton"},
             "candidate": {
                 "LYNN_NATIVE_ACTIVE_MOE_BACKEND": "fused_zero_shadow_active_reuse_contract",
+                "LYNN_NATIVE_ACTIVE_MOE_LAYERS": ALL_40_LAYERS,
                 "LYNN_NATIVE_GATEUP_TILE_INTER": "2",
                 "LYNN_RELEASE_DECODE_SHADOWS_AFTER_PREFILL": "1",
             },
