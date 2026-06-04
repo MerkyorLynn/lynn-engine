@@ -1,12 +1,12 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T09:36:00+00:00",
-  "stage6_status": "R6000_R5B_E8M0_REPACK_CLOSED_NEGATIVE",
-  "stage6_note": "R5-B failed on RTX PRO 6000: simple e8m0 repack best rel_l2 ~0.166 / cosine ~0.986, so the next route is custom scale or NVFP4-native CUTLASS/CuTe handling.",
-  "spark_status": "R6000_R5B_E8M0_REPACK_CLOSED_NEGATIVE",
-  "spark_note": "R5-B failed on RTX PRO 6000: simple e8m0 repack best rel_l2 ~0.166 / cosine ~0.986, so the next route is custom scale or NVFP4-native CUTLASS/CuTe handling.",
+  "generated_at_utc": "2026-06-04T09:54:07+00:00",
+  "stage6_status": "R5C_CUTLASS_UE4M3_ABI_BANKED",
+  "stage6_note": "R5-C0 is banked on the R6000 lane: CUTLASS/CuTe exposes an sm120 mxf4nvf4 block16 E2M1 + UE4M3 scale path. This is ABI evidence only; grouped-MoE FP4-MMA POC, kernel speed, and default promotion remain false. Next gate is R5-C1 minimal numeric GEMM smoke. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT.",
+  "spark_status": "R5C_CUTLASS_UE4M3_ABI_BANKED",
+  "spark_note": "R5-C0 is banked on the R6000 lane: CUTLASS/CuTe exposes an sm120 mxf4nvf4 block16 E2M1 + UE4M3 scale path. This is ABI evidence only; grouped-MoE FP4-MMA POC, kernel speed, and default promotion remain false. Next gate is R5-C1 minimal numeric GEMM smoke. Spark decode ROI probe remains BORDERLINE_REMEASURE_OR_NSIGHT.",
   "counts": {
-    "BANKED": 26,
+    "BANKED": 27,
     "CLOSED_NEGATIVE": 5,
     "TIMEOUT_NOT_CLEAN": 1,
     "DIAGNOSTIC_BANKED": 4,
@@ -407,6 +407,15 @@
       "artifact": "reports/stage6/r5b_e8m0_repack_20260604_173435",
       "next_step": "Do not pursue simple e8m0 repack; next route is custom scale/NVFP4-native CUTLASS/CuTe handling.",
       "decision": "FAIL_R5B_E8M0_REPACK_NUMERIC"
+    },
+    {
+      "gate": "r5c_cutlass_ue4m3_census",
+      "title": "R5-C CUTLASS native NVF4+UE4M3 ABI census",
+      "status": "BANKED",
+      "evidence": "CUTLASS/CuTe exposes sm120 mxf4nvf4 block16 E2M1 + UE4M3 scale path; no kernel speed/default/grouped-MoE POC promotion",
+      "artifact": "reports/stage6/r5c_cutlass_ue4m3_census_20260604_175216",
+      "next_step": "Proceed to R5-C1 minimal numeric GEMM smoke; do not jump directly to grouped-MoE speed claims.",
+      "decision": "PASS_R5C_NVF4_UE4M3_CUTLASS_ABI"
     }
   ]
 }

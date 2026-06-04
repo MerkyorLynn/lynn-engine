@@ -1,0 +1,676 @@
+{
+  "schema": "lynn-stage6-r5c-cutlass-ue4m3-census-v1",
+  "created_at_utc": "2026-06-04T09:52:16+00:00",
+  "cutlass_dir": "/root/autodl-tmp/src/cutlass",
+  "git": {
+    "head": {
+      "cmd": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "returncode": 0,
+      "ok": true,
+      "stdout": "2599f2975b06a67d5ee25e4a7292afeda1475c9b",
+      "stderr": ""
+    },
+    "branch": {
+      "cmd": [
+        "git",
+        "branch",
+        "--show-current"
+      ],
+      "returncode": 0,
+      "ok": true,
+      "stdout": "main",
+      "stderr": ""
+    },
+    "status": {
+      "cmd": [
+        "git",
+        "status",
+        "--short"
+      ],
+      "returncode": 0,
+      "ok": true,
+      "stdout": "",
+      "stderr": ""
+    }
+  },
+  "file_exists": {
+    "arch_config": "/root/autodl-tmp/src/cutlass/include/cute/arch/config.hpp",
+    "sm100_desc": "/root/autodl-tmp/src/cutlass/include/cute/arch/mma_sm100_desc.hpp",
+    "sm120_mma": "/root/autodl-tmp/src/cutlass/include/cute/arch/mma_sm120.hpp",
+    "sm100_umma": "/root/autodl-tmp/src/cutlass/include/cute/arch/mma_sm100_umma.hpp"
+  },
+  "token_passes": {
+    "sm120_ue4m3_macro": true,
+    "scale_format_ue4m3": true,
+    "scale_type_ue4m3": true,
+    "mxf4_e2m1_format": true,
+    "sm120_e2m1_ue4m3_specialization": true,
+    "sm120_mxf4nvf4_ue4m3_asm": true
+  },
+  "token_hits": {
+    "config": [
+      {
+        "path": "/root/autodl-tmp/src/cutlass/include/cute/arch/config.hpp",
+        "line": 165,
+        "text": "#    define CUTE_ARCH_MXF4NVF4_4X_UE4M3_MMA_ENABLED"
+      }
+    ],
+    "scale_desc": [
+      {
+        "path": "/root/autodl-tmp/src/cutlass/include/cute/arch/mma_sm100_desc.hpp",
+        "line": 205,
+        "text": "case MXF4Format::E2M1:   return \"E2M1\";"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/include/cute/arch/mma_sm100_desc.hpp",
+        "line": 212,
+        "text": "if constexpr (is_same_v<T, float_e2m1_t>) { return MXF4Format::E2M1;  } else"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/include/cute/arch/mma_sm100_desc.hpp",
+        "line": 223,
+        "text": "case ScaleFormat::UE4M3:   return \"UE4M3\";"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/include/cute/arch/mma_sm100_desc.hpp",
+        "line": 231,
+        "text": "if constexpr (is_same_v<T, float_ue4m3_t>) { return ScaleFormat::UE4M3;  } else"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/include/cute/arch/mma_sm100_desc.hpp",
+        "line": 400,
+        "text": "if constexpr (is_same_v<T, float_e2m1_t>) { return MXF4Format::E2M1;  } else"
+      }
+    ],
+    "sm120_mma": [
+      {
+        "path": "/root/autodl-tmp/src/cutlass/include/cute/arch/mma_sm120.hpp",
+        "line": 3137,
+        "text": "\"mma.sync.aligned.m16n8k64.row.col.kind::mxf4nvf4.block_scale.scale_vec::4X.f32.e2m1.e2m1.f32.ue8m0 \""
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/include/cute/arch/mma_sm120.hpp",
+        "line": 3187,
+        "text": "struct SM120_16x8x64_TN_VS<float_e2m1_t, float_e2m1_t, float, float_ue4m3_t, VS>"
+      },
+      {
+        "path": "/root/autodl-tmp/src/cutlass/include/cute/arch/mma_sm120.hpp",
+        "line": 3216,
+        "text": "\"mma.sync.aligned.kind::mxf4nvf4.block_scale.scale_vec::4X.m16n8k64.row.col.f32.e2m1.e2m1.f32.ue4m3 \""
+      }
+    ]
+  },
+  "expected_example_paths": [
+    "examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm.cu",
+    "examples/92_blackwell_moe_gemm/92_blackwell_moe_gemm_fp4_grouped.cu"
+  ],
+  "examples": [
+    {
+      "path": "13_two_tensor_op_fusion/b2b_grouped_gemm_run.h",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "13_two_tensor_op_fusion/fused_two_gemms_grouped_f16_sm80_rf.cu",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "13_two_tensor_op_fusion/kernel/b2b_gemm_grouped_problem_visitor.h",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "13_two_tensor_op_fusion/kernel/grouped.h",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "13_two_tensor_op_fusion/threadblock/grouped_threadblock_swizzle.h",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "24_gemm_grouped/CMakeLists.txt",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "24_gemm_grouped/gemm_grouped.cu",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "38_syr2k_grouped/CMakeLists.txt",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "38_syr2k_grouped/syr2k_grouped.cu",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "40_cutlass_py/customizable/gemm_grouped.py",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "40_cutlass_py/customizable/grouped_gemm_problem_size.csv",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "40_cutlass_py/gemm_grouped.py",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "41_fused_multi_head_attention/default_fmha_grouped.h",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "41_fused_multi_head_attention/fmha_grouped.h",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "41_fused_multi_head_attention/fmha_grouped_problem_visitor.h",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "57_hopper_grouped_gemm/57_hopper_grouped_gemm.cu",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "57_hopper_grouped_gemm/CMakeLists.txt",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "64_ada_fp8_gemm_grouped/CMakeLists.txt",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "64_ada_fp8_gemm_grouped/ada_fp8_gemm_grouped.cu",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "68_hopper_fp8_warp_specialized_grouped_gemm_with_blockwise_scaling/68_hopper_fp8_warp_specialized_grouped_gemm_with_blockwise_scaling.cu",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "68_hopper_fp8_warp_specialized_grouped_gemm_with_blockwise_scaling/68_hopper_fp8_warp_specialized_grouped_gemm_with_blockwise_scaling_with_sparse_groups.cu",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "68_hopper_fp8_warp_specialized_grouped_gemm_with_blockwise_scaling/CMakeLists.txt",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "68_hopper_fp8_warp_specialized_grouped_gemm_with_blockwise_scaling/hopper_fp8_commandline.hpp",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "69_hopper_mixed_dtype_grouped_gemm/69_hopper_int4_bf16_grouped_gemm.cu",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "69_hopper_mixed_dtype_grouped_gemm/69_hopper_int4_fp8_grouped_gemm.cu",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "69_hopper_mixed_dtype_grouped_gemm/69_hopper_mixed_dtype_grouped_gemm.cu",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "69_hopper_mixed_dtype_grouped_gemm/CMakeLists.txt",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "69_hopper_mixed_dtype_grouped_gemm/README.md",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "69_hopper_mixed_dtype_grouped_gemm/grouped_mixed_dtype_utils.hpp",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "72_blackwell_narrow_precision_gemm/72a_blackwell_nvfp4_bf16_gemm.cu",
+      "matched": [
+        "nvfp4",
+        "fp4"
+      ]
+    },
+    {
+      "path": "72_blackwell_narrow_precision_gemm/72b_blackwell_nvfp4_nvfp4_gemm.cu",
+      "matched": [
+        "nvfp4",
+        "fp4"
+      ]
+    },
+    {
+      "path": "75_blackwell_grouped_gemm/75_blackwell_grouped_gemm.cu",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "75_blackwell_grouped_gemm/75_blackwell_grouped_gemm_block_scaled.cu",
+      "matched": [
+        "float_ue4m3_t",
+        "grouped"
+      ]
+    },
+    {
+      "path": "75_blackwell_grouped_gemm/CMakeLists.txt",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "79_blackwell_geforce_gemm/79a_blackwell_geforce_nvfp4_bf16_gemm.cu",
+      "matched": [
+        "nvfp4",
+        "fp4"
+      ]
+    },
+    {
+      "path": "79_blackwell_geforce_gemm/79b_blackwell_geforce_nvfp4_nvfp4_gemm.cu",
+      "matched": [
+        "nvfp4",
+        "fp4"
+      ]
+    },
+    {
+      "path": "79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm.cu",
+      "matched": [
+        "float_ue4m3_t",
+        "nvfp4",
+        "fp4",
+        "grouped"
+      ]
+    },
+    {
+      "path": "80_blackwell_geforce_sparse_gemm/80b_blackwell_geforce_nvfp4_nvfp4_sparse_gemm.cu",
+      "matched": [
+        "float_ue4m3_t",
+        "nvfp4",
+        "fp4"
+      ]
+    },
+    {
+      "path": "81_blackwell_gemm_blockwise/81_blackwell_grouped_gemm_blockwise.cu",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "81_blackwell_gemm_blockwise/81_blackwell_grouped_gemm_groupwise.cu",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "84_blackwell_narrow_precision_sparse_gemm/84a_blackwell_nvfp4_bf16_sparse_gemm.cu",
+      "matched": [
+        "nvfp4",
+        "fp4"
+      ]
+    },
+    {
+      "path": "87_blackwell_geforce_gemm_blockwise/87c_blackwell_geforce_fp8_bf16_grouped_gemm_groupwise.cu",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "89_sm103_fp4_ultra_gemm/89_sm103_fp4_ultra_gemm.cu",
+      "matched": [
+        "float_ue4m3_t",
+        "fp4"
+      ]
+    },
+    {
+      "path": "89_sm103_fp4_ultra_gemm/CMakeLists.txt",
+      "matched": [
+        "fp4"
+      ]
+    },
+    {
+      "path": "90_sm103_fp4_ultra_grouped_gemm/90_sm103_fp4_ultra_grouped_gemm.cu",
+      "matched": [
+        "float_ue4m3_t",
+        "fp4",
+        "grouped"
+      ]
+    },
+    {
+      "path": "90_sm103_fp4_ultra_grouped_gemm/CMakeLists.txt",
+      "matched": [
+        "fp4",
+        "grouped"
+      ]
+    },
+    {
+      "path": "91_fp4_gemv/91_fp4_gemv.cu",
+      "matched": [
+        "float_ue4m3_t",
+        "fp4"
+      ]
+    },
+    {
+      "path": "91_fp4_gemv/CMakeLists.txt",
+      "matched": [
+        "fp4"
+      ]
+    },
+    {
+      "path": "92_blackwell_moe_gemm/92_blackwell_moe_gemm_blockscaled_rcgrouped.cu",
+      "matched": [
+        "float_ue4m3_t",
+        "grouped",
+        "moe"
+      ]
+    },
+    {
+      "path": "92_blackwell_moe_gemm/92_blackwell_moe_gemm_fp4_grouped.cu",
+      "matched": [
+        "float_ue4m3_t",
+        "fp4",
+        "grouped",
+        "moe"
+      ]
+    },
+    {
+      "path": "92_blackwell_moe_gemm/92_blackwell_moe_gemm_fp4_regular.cu",
+      "matched": [
+        "float_ue4m3_t",
+        "fp4",
+        "grouped",
+        "moe"
+      ]
+    },
+    {
+      "path": "92_blackwell_moe_gemm/92_blackwell_moe_gemm_grouped.cu",
+      "matched": [
+        "grouped",
+        "moe"
+      ]
+    },
+    {
+      "path": "92_blackwell_moe_gemm/92_blackwell_moe_gemm_rcgrouped.cu",
+      "matched": [
+        "grouped",
+        "moe"
+      ]
+    },
+    {
+      "path": "92_blackwell_moe_gemm/92_blackwell_moe_gemm_regular.cu",
+      "matched": [
+        "moe"
+      ]
+    },
+    {
+      "path": "92_blackwell_moe_gemm/CMakeLists.txt",
+      "matched": [
+        "fp4",
+        "grouped",
+        "moe"
+      ]
+    },
+    {
+      "path": "python/CuTeDSL/cute/blackwell/kernel/blockscaled_grouped_gemm/grouped_blockscaled_gemm.py",
+      "matched": [
+        "nvfp4",
+        "fp4",
+        "grouped"
+      ]
+    },
+    {
+      "path": "python/CuTeDSL/cute/blackwell/kernel/blockwise_gemm/contiguous_grouped_gemm.py",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "python/CuTeDSL/cute/blackwell/kernel/blockwise_gemm/masked_grouped_gemm.py",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "python/CuTeDSL/cute/blackwell/kernel/grouped_gemm/grouped_gemm.py",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "python/CuTeDSL/cute/blackwell/kernel/mixed_input_gemm/grouped_mixed_input_gemm.py",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "python/CuTeDSL/cute/blackwell/kernel/mixed_input_gemm/grouped_mixed_input_gemm_acc_scale.py",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "python/CuTeDSL/cute/blackwell/kernel/moe/moe_persistent_scheduler.py",
+      "matched": [
+        "grouped",
+        "moe"
+      ]
+    },
+    {
+      "path": "python/CuTeDSL/cute/blackwell/kernel/moe/moe_sched_extension.py",
+      "matched": [
+        "grouped",
+        "moe"
+      ]
+    },
+    {
+      "path": "python/CuTeDSL/cute/blackwell/kernel/moe/moe_utils.py",
+      "matched": [
+        "grouped",
+        "moe"
+      ]
+    },
+    {
+      "path": "python/CuTeDSL/cute/blackwell/kernel/moe/torch_grouped_mm.py",
+      "matched": [
+        "grouped",
+        "moe"
+      ]
+    },
+    {
+      "path": "python/CuTeDSL/cute/blackwell/kernel/moe/torch_scaled_grouped_mm.py",
+      "matched": [
+        "nvfp4",
+        "fp4",
+        "grouped",
+        "moe"
+      ]
+    },
+    {
+      "path": "python/CuTeDSL/cute/blackwell/tutorial/tutorial_gemm/nvfp4_gemm_0.py",
+      "matched": [
+        "nvfp4",
+        "fp4"
+      ]
+    },
+    {
+      "path": "python/CuTeDSL/cute/blackwell/tutorial/tutorial_gemm/nvfp4_gemm_1.py",
+      "matched": [
+        "nvfp4",
+        "fp4"
+      ]
+    },
+    {
+      "path": "python/CuTeDSL/cute/hopper/kernel/grouped_gemm/grouped_gemm.py",
+      "matched": [
+        "grouped"
+      ]
+    },
+    {
+      "path": "python/deprecated/02_pytorch_extension_grouped_gemm.ipynb",
+      "matched": [
+        "grouped"
+      ]
+    }
+  ],
+  "sm120_tests": [
+    {
+      "path": "sm120_bs_gemm_mxf8_mxf4_f32_group_gemm_fusion.cu",
+      "matched": [
+        "float_ue4m3_t",
+        "group"
+      ]
+    },
+    {
+      "path": "sm120_bs_gemm_nvf4_nvf4_f32_bf16.cu",
+      "matched": [
+        "float_ue4m3_t",
+        "nvf4"
+      ]
+    },
+    {
+      "path": "sm120_bs_gemm_nvf4_nvf4_f32_bf16_epilogue_fusion.cu",
+      "matched": [
+        "float_ue4m3_t",
+        "nvf4"
+      ]
+    },
+    {
+      "path": "sm120_bs_gemm_nvf4_nvf4_f32_epilogue.cu",
+      "matched": [
+        "float_ue4m3_t",
+        "nvf4"
+      ]
+    },
+    {
+      "path": "sm120_bs_gemm_nvf4_nvf4_f32_f16.cu",
+      "matched": [
+        "float_ue4m3_t",
+        "nvf4"
+      ]
+    },
+    {
+      "path": "sm120_bs_gemm_nvf4_nvf4_f32_f32.cu",
+      "matched": [
+        "float_ue4m3_t",
+        "nvf4"
+      ]
+    },
+    {
+      "path": "sm120_bs_gemm_nvf4_nvf4_f32_f32_epilogue_fusion.cu",
+      "matched": [
+        "float_ue4m3_t",
+        "nvf4"
+      ]
+    },
+    {
+      "path": "sm120_bs_gemm_nvf4_nvf4_f32_f32_narrow_output.cu",
+      "matched": [
+        "float_ue4m3_t",
+        "nvf4"
+      ]
+    },
+    {
+      "path": "sm120_bs_gemm_nvf4_nvf4_f32_f32_stream_k.cu",
+      "matched": [
+        "float_ue4m3_t",
+        "nvf4"
+      ]
+    },
+    {
+      "path": "sm120_bs_gemm_nvf4_nvf4_f32_nvf4_epilogue_fusion.cu",
+      "matched": [
+        "float_ue4m3_t",
+        "nvf4"
+      ]
+    },
+    {
+      "path": "sm120_bs_gemm_nvf4_nvf4_f32_nvf4_group_gemm_fusion.cu",
+      "matched": [
+        "float_ue4m3_t",
+        "nvf4",
+        "group"
+      ]
+    }
+  ],
+  "passes": {
+    "cutlass_dir_exists": true,
+    "cutlass_git_recorded": true,
+    "key_files_present": true,
+    "sm120_ue4m3_macro_seen": true,
+    "scale_format_ue4m3_seen": true,
+    "scale_type_ue4m3_seen": true,
+    "mxf4_e2m1_format_seen": true,
+    "sm120_e2m1_ue4m3_specialization_seen": true,
+    "sm120_mxf4nvf4_ue4m3_asm_seen": true,
+    "expected_examples_seen": true,
+    "sm120_tests_seen": true,
+    "banked_cutlass_abi": true,
+    "banked_grouped_moe_fp4_mma_poc": false,
+    "banked_kernel_speed": false,
+    "banked_default_promotion": false,
+    "all": true
+  },
+  "decision": "PASS_R5C_NVF4_UE4M3_CUTLASS_ABI",
+  "promotion_boundary": {
+    "grouped_moe_fp4_mma_poc": false,
+    "kernel_speed": false,
+    "default_runtime": false
+  }
+}

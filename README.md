@@ -15,7 +15,7 @@
 | **native zero-shadow MoE** | P4B 数值参考 exact,但 single-CTA 与 active recompute 被 microbench 反证;P4C active-reuse bridge/profile/tile2 basic server smoke 已 bank,但 **rc-mini agreement 已拒绝**:completion exact **3/6**,chat exact **2/2**,不进 RC/default。 |
 | **当前瓶颈** | P4C profile 锁定 gate/up **151.67us(63.8%)**;shape sweep 与 full-path microbench 有局部正信号,但 server wider quality 不等价。shadow-cycle first-divergence:算术 prompt 8 步 top-1 不分叉,但 step0/layer13 起 hidden/logits drift,step1 candidate margin 压到 **0.046875**。 |
 | **decode hot-loop ROI** | GPU-idle probe 已 bank:N/2N delta 估计 GPU busy **0.753**,host-gap **0.247**,CUDA launches/token **1969.0**,runner TPS **41.36/42.19**;ROI=`BORDERLINE_REMEASURE_OR_NSIGHT`,所以 compiled-loop 可小样验证,但不够直接开月级 runtime。 |
-| **R6000 / FP4-MMA** | census 已 bank:**RTX PRO 6000 96GB / 880GiB data workspace** PASS,CUDA capability `[12,0]`,vLLM source candidates **200**,P76/P79/P85/P87/P103 native FP4 contracts 全过。路线不绑定租赁主机编号;后续任意 R6000 复跑同 gate 后再开 grouped-MoE FP4-MMA POC。 |
+| **R6000 / FP4-MMA** | census 已 bank:**RTX PRO 6000 96GB / 880GiB data workspace** PASS,CUDA capability `[12,0]`,vLLM source candidates **200**,P76/P79/P85/P87/P103 native FP4 contracts 全过。**R5-C0 已过:**CUTLASS/CuTe 暴露 sm120 `mxf4nvf4` block16 E2M1 + UE4M3 scale ABI;只 bank ABI,不 bank grouped-MoE kernel/speed/default。 |
 | **runtime opt-in** | `LYNN_NATIVE_GATEUP_TILE_INTER=2` 仅保留 opt-in diagnostic/basic-smoke: P4C call delta **240**,40 层调用,completion text-exact **2/2**,release/reload healthy。下一步是 **P4C hard go/no-go**,不是继续扩大 RC。 |
 
 **诚实边界:** Spark sm_121 当前 deliverable decode 仍是 **~44-45 TPS**;60 GiB shadow-drop 是**服务显存/产品化赢**,不是速度杠杆;P4C 只 bank route/numeric/profile/basic-smoke,**不 bank fused speed/default promotion**。speed 火力转向两件事:**MTP eager-runtime 去开销 / token-exact batched verify**,以及把 decode hot loop 从 Python 搬到 compiled/C++ 服务循环以降低 **per-launch host dispatch**;但首轮 GPU-idle probe 是 **borderline**(host-gap 24.7%),所以先做 Nsight/小样,不直接押月级重写。reusable decode CUDA graph 已实测 **0.75× 净负**并关闭,不是当前路线。Python 只做控制面和验证;追赶 llama.cpp 靠 native runtime + kernels,在 FP4-MMA 硅上才完整兑现。
@@ -30,7 +30,7 @@
 | **B. no-reload prefill** | 把 28 GiB 扩到多请求 server,消掉 per-request reload | P2-O basic + rc-mini non-long shard PASS;full rc-mini long-context 仍需 slow-mode 加速/chunking 后重跑 |
 | **C. MTP runtime** | 利用 76-97% accept,削 eager speculative runtime 开销 | 最高 ROI 的 TPS 近线;重点是 snapshot/restore、batched verify、dispatch/sync |
 | **D. compiled/C++ hot loop** | 降低每个 launch 的 host/Python dispatch,不是 CUDA graph | GPU-idle first probe:host-gap **24.7%**,ROI borderline;先 Nsight/小样再决定深投 |
-| **E. native kernels / FP4-MMA** | grouped CUDA C++/CUTLASS kernels + FP4-MMA 硅兑现 | R6000 census gate 已 banked;下一步是 CUTLASS/CuTe + public Marlin/Machete census 起步的 grouped-MoE FP4-MMA POC |
+| **E. native kernels / FP4-MMA** | grouped CUDA C++/CUTLASS kernels + FP4-MMA 硅兑现 | R5-C0 CUTLASS UE4M3 ABI 已 banked;下一步 R5-C1 minimal numeric GEMM smoke,仍不宣称 grouped-MoE speed/default |
 
 > **🆕 2026-06-03 Decode 内核启动开销战役 — Spark NVFP4 35B-A3B 单流 38.96 → ~45 TPS,质量 RC 等价。**
 > 实测 decode 是 launch-bound(census:**~1527 CUDA launch/token**,~40% 时间耗在 CPU 端 dispatch)。逐簇融合 launch + 消拷贝:**fused RMSNorm(最大头)/ shared-expert / linear-attn g/beta-fold / full-attn(token-exact)/ NVFP4 `_scaled_mm` bf16-out copy-elision**,**5 个 RC-validated launch-cut**——在 structured/V9/GPQA/tool-call/long-form 上 **40/40 greedy 输出与 baseline 逐字一致**,继承 **MMLU 84.40 / GPQA-Diamond 49.49**。全部 gated、默认安全、可回滚。
@@ -76,7 +76,7 @@
 - [6/3 Restart Notes](RELEASE_NOTES_20260603.md) · [5/20 历史 Release Notes](RELEASE_NOTES_20260520.md)
 - [Stage 6 evidence ledger](reports/stage6/STAGE6_EVIDENCE_LEDGER_20260604.md) · [Stage 6 GPU gate suite](reports/stage6/STAGE6_GPU_GATE_SUITE_RUNBOOK_20260604.md)
 - [P2-O basic packed-prefill smoke](reports/stage6/P2O_PACKED_PREFILL_RC_SMOKE_BASIC_20260604.md) · [P2-O rc-mini non-long shard](reports/stage6/P2O_PACKED_PREFILL_RC_SMOKE_RCMINI_NONLONG_20260604.md) · [P3-A grouped-MoE contract probe](reports/stage6/P3A_GROUPED_MOE_CONTRACT_PROBE_20260604.md) · [P3-A batched-down diagnostic](reports/stage6/P3A_BATCHED_DOWN_CONTRACT_PROBE_20260604.md) · [P3-B selected-prefill gate](reports/stage6/p3b_layers0-3_selected_prefill_gate_20260604_144842/report.md) · [P3-C resident-prompt basic](reports/stage6/p3c_basic_resident_prompt_gate_20260604_145940/report.md) · [P2-O runbook](reports/stage6/P2O_PACKED_PREFILL_RC_GATE_RUNBOOK_20260604.md) · [P3/P4 runbook family starts here](reports/stage6/P3_GROUPED_MOE_ZERO_SHADOW_CONTRACT_20260604.md)
-- [P4C active-reuse decision](reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md) · [P4C tile2 basic server smoke](reports/stage6/p4c_tile2_server_smoke_20260604_122443/summary.md) · [Decode GPU-idle ROI probe](reports/stage6/decode_gpu_idle_probe_20260604_154648/summary.md) · [R6000 FP4-MMA PASS census](reports/stage6/r6000_fp4_mma_census_20260604_164457/summary.md) · [R5-A layout bridge PASS](reports/stage6/r5a_layout_bridge_20260604_172706/summary.md) · [R5-B e8m0 repack negative](reports/stage6/r5b_e8m0_repack_20260604_173435/summary.md) · [R6000 grouped-MoE FP4-MMA POC contract](reports/stage6/R6000_GROUPED_MOE_FP4_MMA_POC_CONTRACT_20260604.md)
+- [P4C active-reuse decision](reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md) · [P4C tile2 basic server smoke](reports/stage6/p4c_tile2_server_smoke_20260604_122443/summary.md) · [Decode GPU-idle ROI probe](reports/stage6/decode_gpu_idle_probe_20260604_154648/summary.md) · [R6000 FP4-MMA PASS census](reports/stage6/r6000_fp4_mma_census_20260604_164457/summary.md) · [R5-A layout bridge PASS](reports/stage6/r5a_layout_bridge_20260604_172706/summary.md) · [R5-B e8m0 repack negative](reports/stage6/r5b_e8m0_repack_20260604_173435/summary.md) · [R5-C CUTLASS UE4M3 ABI PASS](reports/stage6/r5c_cutlass_ue4m3_census_20260604_175216/summary.md) · [R6000 grouped-MoE FP4-MMA POC contract](reports/stage6/R6000_GROUPED_MOE_FP4_MMA_POC_CONTRACT_20260604.md)
 
 [![commits](https://img.shields.io/github/commit-activity/m/MerkyorLynn/lynn-engine)](https://github.com/MerkyorLynn/lynn-engine/commits/main)
 [![license](https://img.shields.io/badge/license-TBD-orange)](.)
@@ -458,8 +458,10 @@ R5-A layout bridge 也已在同类 R6000 上 bank:
 [R5-A layout bridge PASS](reports/stage6/r5a_layout_bridge_20260604_172706/summary.md)。
 结论是 **per-16 grouping 可通过 padded group32 保真,但当前 Lynn E4M3-like scale 不能 zero-copy**
 (`PASS_R5A_LAYOUT_BRIDGE_E8M0_REPACK_REQUIRED`)。随后 R5-B simple e8m0 repack 已被 R6000
-反证(best rel_l2≈0.166 / cosine≈0.986),所以下一步改走 custom scale / NVFP4-native
-CUTLASS/CuTe 路径,不是宣称已有 grouped-MoE FP4-MMA kernel 或默认速度提升。
+反证(best rel_l2≈0.166 / cosine≈0.986)。**R5-C0 已 bank**:
+[CUTLASS UE4M3 ABI PASS](reports/stage6/r5c_cutlass_ue4m3_census_20260604_175216/summary.md)
+证明 CUTLASS/CuTe 暴露 sm120 `mxf4nvf4` block16 E2M1 + UE4M3 scale 路径。下一步是 R5-C1
+minimal numeric GEMM smoke,不是宣称已有 grouped-MoE FP4-MMA kernel 或默认速度提升。
 后续换机时仍先按
 [R6000 FP4-MMA bring-up runbook](reports/stage6/R6000_FP4_MMA_BRINGUP_RUNBOOK_20260604.md)
 跑 census gate;PASS 前不启动新的 FP4-MMA kernel POC。AutoDL 主机上可用:
