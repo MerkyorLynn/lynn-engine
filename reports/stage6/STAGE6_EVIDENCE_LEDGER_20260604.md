@@ -11,8 +11,8 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 
 | Field | Value |
 |---|---|
-| Status | `P2O_BASIC_AND_RCMINI_NONLONG_BANKED` |
-| Note | P2-O basic PASS and rc-mini non-long shard idx0-4 PASS: generated-token exact, 88.16->28.18 GiB, reload calls 0. Full rc-mini long-context remains not clean: 2048 max_seq_len invalid and 8192 full run timed out in slow-mode; long-context must rerun after slow-mode acceleration/chunking. P4C remains opt-in diagnostic only after rc-mini rejection and hidden/logit drift evidence. |
+| Status | `P3A_CONTRACT_BANKED` |
+| Note | P2-O basic and rc-mini non-long shard are banked as correctness/memory evidence. P3-A layer0 grouped active-MoE contract probe PASS: numeric true, shadow_absent_at_candidate_start true, argmax 3/3, banked_fused_kernel=false, average speed 0.744x vs BF16 active. Full P2-O rc-mini long-context remains a separate slow-mode scale gate. |
 
 ## Promotion Boundaries
 
@@ -40,7 +40,8 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 | `p2o_basic_packed_prefill_rc` | **BANKED** `passes.all=true` | latest Spark result.json has passes.all=true | `reports/stage6/p2o_basic_packed_prefill_rc_smoke_20260604_132946` | Basic smoke is banked only as active-MoE no-reload correctness/memory evidence; do not treat the slow-mode prefill as a speed win. |
 | `p2o_rcmini_nonlong_packed_prefill_rc` | **BANKED** `passes.all=true` | latest Spark result.json has passes.all=true | `reports/stage6/p2o_rc-mini_idx0-4_packed_prefill_rc_smoke_20260604_141640` | Banks only the rc-mini 0-4 shard; long-context remains a separate slow-mode scale gate. |
 | `p2o_rcmini_packed_prefill_rc` | **TIMEOUT_NOT_CLEAN** `terminated_by_codex_timeout_after_17m_no_result` | latest Spark run was terminated after slow-mode opt-in produced no result.json | `reports/stage6/p2o_rc-mini_packed_prefill_rc_smoke_20260604_134826` | Rerun only after slow-mode prefill is accelerated or the rc-mini prompt set is split/chunked; the 2048 run was max_seq_len-invalid and the 8192 run timed out. |
-| `p3b_selected_prefill` | **READY_WAITING_SPARK** | tooling/runbook exists, but no Spark PASS artifact is banked | `reports/stage6/P3B_SELECTED_PREFILL_GATE_RUNBOOK_20260604.md, scripts/run_spark_stage6_p3b_selected_prefill_gate.sh` | Run after P2-O basic PASS plus P3-A predecessor evidence; keep rc-mini as a separate slow-mode scale gate. |
+| `p3a_grouped_moe_contract_probe` | **BANKED** `PASS` | latest Spark result.json has passes.all=true | `reports/stage6/p3a_layer0_grouped_moe_contract_probe_20260604_143854` | Banks only the P3-A active-MoE contract probe; speed/default/fused-kernel promotion remain closed. |
+| `p3b_selected_prefill` | **READY_WAITING_SPARK** | tooling/runbook exists, but no Spark PASS artifact is banked | `reports/stage6/P3B_SELECTED_PREFILL_GATE_RUNBOOK_20260604.md, scripts/run_spark_stage6_p3b_selected_prefill_gate.sh` | Run after P2-O basic + rc-mini non-long shard + P3-A predecessor evidence; keep full rc-mini long-context as a separate slow-mode scale gate. |
 | `p3c_resident_prompt` | **READY_WAITING_SPARK** | tooling/runbook exists, but no Spark PASS artifact is banked | `reports/stage6/P3C_RESIDENT_PROMPT_GATE_RUNBOOK_20260604.md, scripts/run_spark_stage6_p3c_resident_prompt_gate.sh` | Run after P3-B PASS. |
 | `p3d_server_rc` | **READY_WAITING_SPARK** | tooling/runbook exists, but no Spark PASS artifact is banked | `reports/stage6/P3D_SERVER_RC_PROMOTION_GATE_RUNBOOK_20260604.md, scripts/run_spark_stage6_p3d_server_rc_gate.sh` | Run after P3-C PASS; banks opt-in server smoke only. |
 | `p3e_rc_quality_battery` | **READY_WAITING_SPARK** | tooling/runbook exists, but no Spark PASS artifact is banked | `reports/stage6/P3E_RC_QUALITY_BATTERY_RUNBOOK_20260604.md, scripts/run_spark_stage6_p3e_rc_quality_battery.sh` | Run after P3-D PASS; full leaderboard/default promotion remains closed. |
@@ -67,7 +68,7 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 
 | Status | Count |
 |---|---:|
-| `BANKED` | 22 |
+| `BANKED` | 23 |
 | `CLOSED_NEGATIVE` | 4 |
 | `DECISION_BANKED` | 1 |
 | `DIAGNOSTIC_BANKED` | 1 |
