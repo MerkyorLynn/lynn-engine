@@ -1,10 +1,10 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T00:49:32+00:00",
+  "generated_at_utc": "2026-06-04T01:01:59+00:00",
   "spark_status": "REACHABLE_VIA_DGX_VIA_SSH",
-  "spark_note": "Spark SSH recovered via dgx-via-ssh on 2026-06-04; dgx-spark direct alias may report local forward ports 18007/18008 already in use. P4B fail-loud route gates and the opt-in single-CTA numeric reference gate were run on /home/merkyor/lynn-engine-codex-stage6 at cf88b14.",
+  "spark_note": "Spark SSH recovered via dgx-via-ssh on 2026-06-04; dgx-spark direct alias may report local forward ports 18007/18008 already in use. P4B fail-loud route gates, opt-in single-CTA numeric reference, and single-CTA microbench anti-proof were run on /home/merkyor/lynn-engine-codex-stage6 through 71e72da.",
   "counts": {
-    "BANKED": 12,
+    "BANKED": 13,
     "CLOSED_NEGATIVE": 2,
     "READY_WAITING_SPARK": 7,
     "REFERENCE_IMPL_BANKED_SPEED_CLOSED": 1
@@ -203,6 +203,15 @@
       "artifact": "reports/stage6/p4b_single_cta_numeric_preflight_20260604_084451",
       "next_step": "Use as correctness reference only; next gate needs byte-count profiler plus speed/RC evidence.",
       "decision": "PASS_P4B_SINGLE_CTA_NUMERIC_REFERENCE"
+    },
+    {
+      "gate": "p4b_single_cta_microbench",
+      "title": "P4B single-CTA reference microbench",
+      "status": "BANKED",
+      "evidence": "latest Spark result.json has passes.all=true",
+      "artifact": "reports/stage6/p4b_single_cta_microbench_20260604_085842",
+      "next_step": "Treat as an intentional speed anti-proof for single-CTA; next implementation must be multi-CTA/CUTLASS-style.",
+      "decision": "PASS_P4B_SINGLE_CTA_MICROBENCH_RECORDED"
     },
     {
       "gate": "p4b_single_kernel_contract",

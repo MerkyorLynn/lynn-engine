@@ -2,7 +2,7 @@
 
 Date: 2026-06-04
 
-Verdict: **opt-in single-CTA numeric reference banked; fused-kernel speed and default promotion remain closed.**
+Verdict: **opt-in single-CTA numeric reference banked; microbench proves it is not the speed path; fused-kernel speed and default promotion remain closed.**
 
 P4A reserved and tested the real resident-runner bridge into a native
 two-stage, caller-owned scratch/output reference. P4B is the next boundary: the
@@ -32,7 +32,9 @@ single-CTA CUDA reference for `T=1`, `top_k=8`, `tile_tokens=1`,
 `tile_experts=1`, `tile_hidden=8`. This is a proof that the out-only P4B ABI can
 produce the same BF16 result as the P4A two-stage reference without exposing
 `inter_scratch` to the caller. It is **not** a speed gate and must not be used
-for default serving.
+for default serving. Spark microbench confirms why: the single-CTA reference is
+orders of magnitude slower than P4A because it serializes work that must become
+multi-CTA/CUTLASS-style.
 
 The Python wrapper records runtime evidence before invoking the native symbol:
 
@@ -110,6 +112,7 @@ python3 scripts/test_stage6_p4b_single_kernel_static.py
 python3 scripts/test_stage6_p4b_single_kernel_evidence_tools.py
 python3 scripts/test_stage6_p4b_runtime_bridge_tools.py
 python3 scripts/test_stage6_p4b_single_cta_numeric_tools.py
+python3 scripts/test_stage6_p4b_single_cta_microbench_tools.py
 ```
 
 The static gate checks:
@@ -124,7 +127,8 @@ The static gate checks:
 - C++ P4B function body does not call the two-stage
   `lynn_native_active_moe_grouped_per16_nonatomic_out_reference`;
 - fail-loud message is present;
-- single-CTA reference opt-in, Spark wrapper, and numeric summarizer are present.
+- single-CTA reference opt-in, Spark wrappers, numeric summarizer, and
+  microbench summarizer are present.
 
 ## Spark Preflight
 
@@ -203,6 +207,31 @@ packed-NVFP4 tensors, then checks:
 This banks correctness of the first output-returning native P4B path only. It
 does not bank latency, bandwidth, e2e TPS, or server/default promotion.
 
+## Single-CTA Microbench Gate
+
+```bash
+scripts/run_spark_stage6_p4b_single_cta_microbench.sh \
+  --host dgx-spark \
+  --image lynn-eval-base:cu13 \
+  --expect-head "$(git rev-parse HEAD)"
+```
+
+Expected decision:
+
+```text
+PASS_P4B_SINGLE_CTA_MICROBENCH_RECORDED
+```
+
+This gate records timing for P4A two-stage versus the P4B single-CTA reference
+on the same synthetic fixture. It is deliberately a measurement gate, not a
+promotion gate:
+
+- `banked_single_cta_microbench=true` means timing evidence exists;
+- `banked_fused_kernel=false` remains mandatory;
+- `banked_default_promotion=false` remains mandatory;
+- a slow result is still a useful PASS because it tells the next kernel what
+  shape of parallelism is required.
+
 ## Spark Results
 
 Latest banked artifacts:
@@ -212,6 +241,7 @@ Latest banked artifacts:
 | Synthetic single-kernel ABI | `reports/stage6/p4b_single_kernel_preflight_20260604_083106/` | `PASS_SINGLE_KERNEL_FAILLOUD_CONTRACT` | Banks default fail-loud contract only; fused speed remains unbanked |
 | Real runtime bridge | `reports/stage6/p4b_runtime_bridge_preflight_20260604_083152/` | `PASS_P4B_RUNTIME_BRIDGE_FAILLOUD` | Banks resident-runner route integrity only; fused speed remains unbanked |
 | Single-CTA numeric reference | `reports/stage6/p4b_single_cta_numeric_preflight_20260604_084451/` | `PASS_P4B_SINGLE_CTA_NUMERIC_REFERENCE` | Banks opt-in correctness reference only; speed/default remain unbanked |
+| Single-CTA microbench | `reports/stage6/p4b_single_cta_microbench_20260604_085842/` | `PASS_P4B_SINGLE_CTA_MICROBENCH_RECORDED` | Banks measurement only; proves single-CTA is not speed path |
 
 The runtime artifact proves P4B route selection on the real model at layer 0:
 native call delta `1`, last shapes `hidden=[1,2048]`,
@@ -229,6 +259,12 @@ Spark GB10 (`sm_121`, torch `2.9.1+cu130`, CUDA `13.0`): P4B candidate versus
 P4A reference `rel_l2=0.0`, `max_abs=0.0`, `candidate_out=[1,2048]` BF16,
 `no_inter_scratch_candidate_abi=true`, packed/BF16 byte ratio
 `0.3750001589457194`, elapsed `25.818s`.
+
+The microbench artifact records the speed anti-proof: P4A two-stage median
+`282.515us`, P4B single-CTA median `39539.166us`, P4B/P4A speedup
+`0.007145x`, with numeric `rel_l2=0.0` and `max_abs=0.0`. This makes the next
+implementation target explicit: split the work across many CTAs or a
+CUTLASS-style grouped kernel; do not try to promote the single-CTA reference.
 
 ## Promotion Gate
 
