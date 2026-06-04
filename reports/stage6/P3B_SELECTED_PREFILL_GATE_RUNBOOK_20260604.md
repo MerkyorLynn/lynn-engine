@@ -2,14 +2,33 @@
 
 Date: 2026-06-04
 
-Verdict: **RUNBOOK ONLY; no P3-B result is banked yet.**
+Verdict: **PASS artifact banked for layers 0-3 / T16,T64; runbook remains the gate contract.**
 
 P3-B is the first multi-layer gate after the P3-A grouped active-MoE contract
 probe. Its purpose is to verify that the P3-A contract can be composed into a
 selected prefill stack without rebuilding active BF16 expert shadows.
 
-Tooling status: the headless runner/reporting path now exists, but no Spark
-P3-B PASS artifact has been banked yet.
+Tooling status: the headless runner/reporting path exists, and Spark artifact
+`reports/stage6/p3b_layers0-3_selected_prefill_gate_20260604_144842`
+banked the selected-layer composition gate. This does not bank a fused P3
+kernel, server path, RC quality, default promotion, or full long-context
+behavior.
+
+## Banked Artifact
+
+- Layers: `0-3`
+- Tokens: `16,64`
+- Final stack cosine min: `0.9999491846441616`
+- Final stack argmax: `true`
+- Active BF16 shadow absent: `true`
+- Reload trap installed and reload not called: `true`
+- Average P3-B candidate: `61,278.111 us`
+- Average P2-N reference: `62,453.167 us`
+- Average P3-B vs P2-N: `1.020x`
+- Active BF16 memory drop: `5.991 GiB`
+
+Use [the artifact report](p3b_layers0-3_selected_prefill_gate_20260604_144842/report.md)
+as the authoritative P3-B result.
 
 ## Required Predecessors
 

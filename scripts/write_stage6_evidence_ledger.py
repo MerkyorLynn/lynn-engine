@@ -521,11 +521,18 @@ def collect_gates() -> list[Gate]:
             ],
             "Banks only the P3-A active-MoE contract probe; speed/default/fused-kernel promotion remain closed.",
         ),
-        _ready_gate(
+        _result_or_ready_gate(
             "p3b_selected_prefill",
             "P3-B selected-prefill composition gate",
-            ["reports/stage6/P3B_SELECTED_PREFILL_GATE_RUNBOOK_20260604.md", "scripts/run_spark_stage6_p3b_selected_prefill_gate.sh"],
-            "Run after P2-O basic + rc-mini non-long shard + P3-A predecessor evidence; keep full rc-mini long-context as a separate slow-mode scale gate.",
+            ["p3b_layers"],
+            [
+                "reports/stage6/P3B_SELECTED_PREFILL_GATE_RUNBOOK_20260604.md",
+                "scripts/run_spark_stage6_p3b_selected_prefill_gate.sh",
+                "scripts/spark_stage6_p3b_selected_prefill_gate.py",
+                "scripts/summarize_stage6_p3b_selected_prefill_gate.py",
+                "scripts/write_stage6_p3b_report.py",
+            ],
+            "Banks selected-layer composition only; P3-C server behavior and full rc-mini long-context remain separate gates.",
         ),
         _ready_gate(
             "p3c_resident_prompt",

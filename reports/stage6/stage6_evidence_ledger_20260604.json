@@ -1,13 +1,13 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T06:41:03+00:00",
-  "spark_status": "P3A_CONTRACT_BANKED",
-  "spark_note": "P2-O basic and rc-mini non-long shard are banked as correctness/memory evidence. P3-A layer0 grouped active-MoE contract probe PASS: numeric true, shadow_absent_at_candidate_start true, argmax 3/3, banked_fused_kernel=false, average speed 0.744x vs BF16 active. Full P2-O rc-mini long-context remains a separate slow-mode scale gate.",
+  "generated_at_utc": "2026-06-04T06:55:30+00:00",
+  "spark_status": "P3B_SELECTED_PREFILL_BANKED",
+  "spark_note": "P2-O basic/non-long and P3-A are banked. P3-B layers 0-3 selected-prefill PASS: final-stack cosine min 0.999949, argmax true, active BF16 shadow absent, reload trap installed and not called, active-shadow drop 5.991 GiB, average speed 1.020x vs P2-N reference. Banks selected-layer composition only; P3-C server, RC, and default promotion remain separate gates.",
   "counts": {
-    "BANKED": 23,
+    "BANKED": 24,
     "CLOSED_NEGATIVE": 4,
     "TIMEOUT_NOT_CLEAN": 1,
-    "READY_WAITING_SPARK": 6,
+    "READY_WAITING_SPARK": 5,
     "REFERENCE_IMPL_BANKED_SPEED_CLOSED": 1,
     "DIAGNOSTIC_BANKED": 1,
     "DECISION_BANKED": 1
@@ -156,11 +156,11 @@
     {
       "gate": "p3b_selected_prefill",
       "title": "P3-B selected-prefill composition gate",
-      "status": "READY_WAITING_SPARK",
-      "evidence": "tooling/runbook exists, but no Spark PASS artifact is banked",
-      "artifact": "reports/stage6/P3B_SELECTED_PREFILL_GATE_RUNBOOK_20260604.md, scripts/run_spark_stage6_p3b_selected_prefill_gate.sh",
-      "next_step": "Run after P2-O basic + rc-mini non-long shard + P3-A predecessor evidence; keep full rc-mini long-context as a separate slow-mode scale gate.",
-      "decision": ""
+      "status": "BANKED",
+      "evidence": "latest Spark result.json has passes.all=true",
+      "artifact": "reports/stage6/p3b_layers0-3_selected_prefill_gate_20260604_144842",
+      "next_step": "Banks selected-layer composition only; P3-C server behavior and full rc-mini long-context remain separate gates.",
+      "decision": "PASS"
     },
     {
       "gate": "p3c_resident_prompt",
