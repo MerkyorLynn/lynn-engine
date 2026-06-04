@@ -77,6 +77,7 @@ and gates that are wired but still waiting for lane-specific PASS/FAIL artifacts
 | `r5c2c_real_d_row_slot_scatter_smoke` | **BANKED** `PASS_R5C2C_REAL_D_ROW_SLOT_SCATTER_SMOKE` | real CUTLASS D/ref row digests were captured after host-reference verification and scattered through the R5-C2B inverse-order contract; tokens/top_k/N=128/2/128; tokens_per_expert=[32, 64, 64, 96]; schedules=['cooperative', 'pingpong'] | `reports/stage6/r5c2c_real_d_row_slot_scatter_smoke_20260604_201440` | Proceed to R5-C3 grouped active-MoE prefill POC or first implement an in-epilogue selected-output scatter; do not claim speed/default from R5-C2C. |
 | `r5c3b_gateup_value_materialization_smoke` | **BANKED** `PASS_R5C3B_GATEUP_VALUE_MATERIALIZATION_SMOKE` | full real CUTLASS D/ref row values were captured, exact value-bit digests matched, and values scattered through the R5-C2B inverse-order contract; tokens/top_k/N=128/2/128; schedules=['cooperative', 'pingpong']; scatter_max_abs=[0.0] | `reports/stage6/r5c3b_gateup_value_materialization_smoke_20260604_204920` | Proceed to R5-C3C down projection + weighted top-k numeric parity; do not claim full MoE speed/default from R5-C3B. |
 | `r5c3c_down_weighted_parity_smoke` | **BANKED** `PASS_R5C3C_DOWN_WEIGHTED_PARITY_SMOKE` | real R5-C3B CUTLASS D/ref gate-up values were composed through host SwiGLU, deterministic down projection, and weighted top-k reduction with D/ref parity; tokens/top_k/hidden/out=128/2/64/48; schedules=['cooperative', 'pingpong']; weighted_max_abs=[0.0] | `reports/stage6/r5c3c_down_weighted_parity_smoke_20260604_130243` | Proceed to full active-MoE prefill speed A/B; do not claim speed/default from R5-C3C. |
+| `r5c4_full_active_moe_prefill_speed_contract` | **CONTRACT_READY_UNIMPLEMENTED** `PASS_R5C4_FULL_ACTIVE_MOE_SPEED_CONTRACT_STATIC` | static contract exists for full active-MoE prefill speed A/B; no R5-C4 speed artifact is banked | `reports/stage6/R5C4_FULL_ACTIVE_MOE_PREFILL_SPEED_AB_CONTRACT_20260604.md, scripts/test_stage6_r5c4_full_active_moe_speed_contract_static.py` | Implement the R5-C4 harness on R6000; do not claim speed until numeric parity and timing gates pass. |
 
 ## Counts
 
@@ -84,7 +85,7 @@ and gates that are wired but still waiting for lane-specific PASS/FAIL artifacts
 |---|---:|
 | `BANKED` | 33 |
 | `CLOSED_NEGATIVE` | 5 |
-| `CONTRACT_READY_UNIMPLEMENTED` | 1 |
+| `CONTRACT_READY_UNIMPLEMENTED` | 2 |
 | `DECISION_BANKED` | 1 |
 | `DIAGNOSTIC_BANKED` | 4 |
 | `READY_WAITING_SPARK` | 4 |

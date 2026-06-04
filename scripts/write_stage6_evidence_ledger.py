@@ -1126,6 +1126,62 @@ def _r5c3c_down_weighted_parity_smoke_gate() -> Gate:
     )
 
 
+def _r5c4_full_active_moe_speed_contract_gate() -> Gate:
+    required = [
+        "reports/stage6/R5C4_FULL_ACTIVE_MOE_PREFILL_SPEED_AB_CONTRACT_20260604.md",
+        "scripts/test_stage6_r5c4_full_active_moe_speed_contract_static.py",
+    ]
+    missing = [rel for rel in required if not (ROOT / rel).exists()]
+    if missing:
+        return Gate(
+            "r5c4_full_active_moe_prefill_speed_contract",
+            "R5-C4 full active-MoE prefill speed A/B contract",
+            "MISSING_TOOLING",
+            f"missing: {', '.join(missing)}",
+            "",
+            "Restore the R5-C4 speed contract before implementing the speed A/B harness.",
+        )
+    if _contains(
+        "reports/stage6/R5C4_FULL_ACTIVE_MOE_PREFILL_SPEED_AB_CONTRACT_20260604.md",
+        [
+            "PASS_R5C4_FULL_ACTIVE_MOE_PREFILL_SPEED_AB",
+            "same_scope_ab=true",
+            "real_model_weights=true",
+            "real_router_outputs=true",
+            "candidate_no_reload=true",
+            "candidate_no_bf16_weight_materialization=true",
+            "banked_full_active_moe_prefill_speed=true",
+            "banked_grouped_moe_fp4_mma_poc=true",
+            "banked_kernel_speed=true",
+            "banked_decode_tps=false",
+            "banked_default_promotion=false",
+            "candidate_covers_gateup_swiglu_down_weighted",
+            "timing_includes_gateup_swiglu_down_weighted_scatter",
+            "speedup_vs_w4a16",
+            "speedup_vs_packed_p3",
+            "median_speedup_vs_best_reference",
+            "R5-C4 does not bank Spark decode TPS",
+        ],
+    ):
+        return Gate(
+            "r5c4_full_active_moe_prefill_speed_contract",
+            "R5-C4 full active-MoE prefill speed A/B contract",
+            "CONTRACT_READY_UNIMPLEMENTED",
+            "static contract exists for full active-MoE prefill speed A/B; no R5-C4 speed artifact is banked",
+            ", ".join(required),
+            "Implement the R5-C4 harness on R6000; do not claim speed until numeric parity and timing gates pass.",
+            "PASS_R5C4_FULL_ACTIVE_MOE_SPEED_CONTRACT_STATIC",
+        )
+    return Gate(
+        "r5c4_full_active_moe_prefill_speed_contract",
+        "R5-C4 full active-MoE prefill speed A/B contract",
+        "FAILED_CONTRACT",
+        "contract exists but is missing required promotion boundaries or speed gates",
+        ", ".join(required),
+        "Fix the R5-C4 contract before implementing speed A/B.",
+    )
+
+
 def _p4b_contract_gate() -> Gate:
     required = [
         "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md",
@@ -1663,6 +1719,7 @@ def collect_gates() -> list[Gate]:
         _r5c2c_real_d_row_slot_scatter_smoke_gate(),
         _r5c3b_gateup_value_materialization_smoke_gate(),
         _r5c3c_down_weighted_parity_smoke_gate(),
+        _r5c4_full_active_moe_speed_contract_gate(),
     ]
     return gates
 
