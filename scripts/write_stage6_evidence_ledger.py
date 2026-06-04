@@ -1182,6 +1182,111 @@ def _r5c4_full_active_moe_speed_contract_gate() -> Gate:
     )
 
 
+def _r5c4_full_active_moe_speed_ab_gate() -> Gate:
+    required = [
+        "scripts/summarize_stage6_r5c4_full_active_moe_speed_ab.py",
+        "scripts/test_stage6_r5c4_full_active_moe_speed_ab_tools.py",
+    ]
+    run_dir, data = _latest_result(["r5c4_full_active_moe_prefill_speed_ab_"])
+    if data is None:
+        missing = [rel for rel in required if not (ROOT / rel).exists()]
+        if missing:
+            return Gate(
+                "r5c4_full_active_moe_prefill_speed_ab",
+                "R5-C4 full active-MoE prefill speed A/B",
+                "MISSING_TOOLING",
+                f"missing: {', '.join(missing)}",
+                "",
+                "Restore R5-C4 speed A/B summarizer tooling before running the R6000 harness.",
+            )
+        return Gate(
+            "r5c4_full_active_moe_prefill_speed_ab",
+            "R5-C4 full active-MoE prefill speed A/B",
+            "READY_WAITING_R6000",
+            "summary tooling exists, but no R5-C4 speed result.json artifact is banked",
+            ", ".join(required),
+            "Run the R5-C4 R6000 speed A/B harness; bank only active-MoE prefill speed, not decode/server/default.",
+        )
+    if data.get("_json_error"):
+        return Gate(
+            "r5c4_full_active_moe_prefill_speed_ab",
+            "R5-C4 full active-MoE prefill speed A/B",
+            "FAILED_ARTIFACT",
+            "latest R5-C4 result.json is not valid JSON",
+            _artifact(run_dir),
+            "Fix artifact JSON before interpreting R5-C4 speed.",
+        )
+    passes = data.get("passes") if isinstance(data.get("passes"), dict) else {}
+    decision = _decision(data)
+    non_claims_false = (
+        passes.get("banked_decode_tps") is False
+        and passes.get("banked_server_rc") is False
+        and passes.get("banked_default_promotion") is False
+        and passes.get("banked_full_transformer_prefill") is False
+    )
+    if (
+        decision == "PASS_R5C4_FULL_ACTIVE_MOE_PREFILL_SPEED_AB"
+        and passes.get("input_r5c3c_passed") is True
+        and passes.get("same_scope_ab") is True
+        and passes.get("candidate_full_active_moe_boundary_timed") is True
+        and passes.get("timing_includes_gateup_swiglu_down_weighted_scatter") is True
+        and passes.get("numeric_vs_w4a16_or_p3_reference") is True
+        and passes.get("candidate_median_speedup_vs_best_reference_ge_1p05") is True
+        and passes.get("banked_full_active_moe_prefill_speed") is True
+        and passes.get("banked_grouped_moe_fp4_mma_poc") is True
+        and passes.get("banked_kernel_speed") is True
+        and non_claims_false
+    ):
+        lanes = data.get("lanes") if isinstance(data.get("lanes"), dict) else {}
+        evidence = "full active-MoE prefill same-scope speed A/B passed with numeric parity"
+        if lanes:
+            speedups = sorted(
+                {
+                    lane.get("median_speedup_vs_best_reference")
+                    for lane in lanes.values()
+                    if isinstance(lane, dict)
+                }
+            )
+            evidence += f"; lanes={sorted(lanes)}; speedup_vs_best={speedups}"
+        return Gate(
+            "r5c4_full_active_moe_prefill_speed_ab",
+            "R5-C4 full active-MoE prefill speed A/B",
+            "BANKED",
+            evidence,
+            _artifact(run_dir),
+            "Use as R6000 active-MoE prefill kernel evidence only; do not claim Spark decode TPS/default promotion.",
+            decision,
+        )
+    if (
+        decision == "DIAGNOSTIC_R5C4_FULL_ACTIVE_MOE_PREFILL_SPEED_CLOSED"
+        and passes.get("input_r5c3c_passed") is True
+        and passes.get("same_scope_ab") is True
+        and passes.get("numeric_vs_w4a16_or_p3_reference") is True
+        and passes.get("banked_full_active_moe_prefill_speed") is False
+        and passes.get("banked_grouped_moe_fp4_mma_poc") is False
+        and passes.get("banked_kernel_speed") is False
+        and non_claims_false
+    ):
+        return Gate(
+            "r5c4_full_active_moe_prefill_speed_ab",
+            "R5-C4 full active-MoE prefill speed A/B",
+            "DIAGNOSTIC_BANKED_SPEED_CLOSED",
+            "numeric parity passed, but the predeclared same-scope speed gate did not pass",
+            _artifact(run_dir),
+            "Do not promote; inspect timing components or choose a new kernel candidate.",
+            decision,
+        )
+    return Gate(
+        "r5c4_full_active_moe_prefill_speed_ab",
+        "R5-C4 full active-MoE prefill speed A/B",
+        "FAILED_ARTIFACT",
+        "latest R5-C4 artifact did not satisfy PASS or diagnostic speed-closed boundaries",
+        _artifact(run_dir),
+        "Inspect same-scope A/B fields, numeric parity, timing scope, and non-claim booleans.",
+        decision,
+    )
+
+
 def _p4b_contract_gate() -> Gate:
     required = [
         "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md",
@@ -1720,6 +1825,7 @@ def collect_gates() -> list[Gate]:
         _r5c3b_gateup_value_materialization_smoke_gate(),
         _r5c3c_down_weighted_parity_smoke_gate(),
         _r5c4_full_active_moe_speed_contract_gate(),
+        _r5c4_full_active_moe_speed_ab_gate(),
     ]
     return gates
 
