@@ -100,6 +100,9 @@ def main() -> int:
         assert gates["r6000_fp4_mma_census"]["status"] in {"BANKED", "READY_WAITING_R6000", "FAILED_ARTIFACT"}
         if gates["r6000_fp4_mma_census"]["status"] == "READY_WAITING_R6000":
             assert "RTX PRO 6000" in gates["r6000_fp4_mma_census"]["next_step"]
+        assert gates["r5a_layout_bridge"]["status"] in {"DIAGNOSTIC_BANKED", "READY_WAITING_R6000", "FAILED_ARTIFACT"}
+        assert "layout" in gates["r5a_layout_bridge"]["title"].lower()
+        assert "layout" in gates["r5a_layout_bridge"]["next_step"] or "R6000" in gates["r5a_layout_bridge"]["next_step"]
         assert "P4 fused kernel banked | `false`" in text
         assert "TEST_BLOCKED_BY_SSH" in text
 
