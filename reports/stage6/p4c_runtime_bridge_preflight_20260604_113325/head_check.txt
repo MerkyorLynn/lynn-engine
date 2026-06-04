@@ -1,0 +1,3 @@
+remote manifest ok
+expected HEAD: bda729e
+actual HEAD:   bda729e93d6773441c518adb088760b0374b77ef
