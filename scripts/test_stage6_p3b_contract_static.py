@@ -12,7 +12,10 @@ CHECKS = [
     (
         "reports/stage6/P3B_SELECTED_PREFILL_GATE_RUNBOOK_20260604.md",
         [
-            "RUNBOOK ONLY; no P3-B result is banked yet",
+            "PASS artifact banked for layers 0-3 / T16,T64",
+            "p3b_layers0-3_selected_prefill_gate_20260604_144842",
+            "Average P3-B vs P2-N: `1.020x`",
+            "does not bank a fused P3",
             "Required Predecessors",
             "P2-O `basic` report",
             "P2-O `rc-mini` non-long shard report",

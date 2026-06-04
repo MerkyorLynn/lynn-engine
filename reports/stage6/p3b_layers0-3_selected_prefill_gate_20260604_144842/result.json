@@ -1,0 +1,249 @@
+{
+  "schema": "lynn-stage6-p3b-selected-prefill-gate-v1",
+  "verdict": "PASS",
+  "banked_fused_kernel": false,
+  "banked_server_path": false,
+  "model": "/home/merkyor/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-from-bf16-20260526",
+  "layers": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "layer_types": [
+    "linear_attention",
+    "linear_attention",
+    "linear_attention",
+    "full_attention"
+  ],
+  "seed": 20260604,
+  "seq_lens": [
+    16,
+    64
+  ],
+  "env": {
+    "candidate_mode": "p3a_grouped",
+    "reference_mode": "p2e_hybrid",
+    "LYNN_LINEAR_ATTN_PREFILL_BLOCK_GQA": "1",
+    "LYNN_PACKED_PREFILL_P2E_LAYERS": "0,1,2,3"
+  },
+  "shape": {
+    "hidden": 2048,
+    "num_experts": 256,
+    "top_k": 8
+  },
+  "bytes": {
+    "bf16_active_experts": 6442450944,
+    "packed_active_experts": 2415919136,
+    "mem_after_load_gib": 8.516595363616943,
+    "mem_after_deleting_bf16_active_gib": 2.5251412391662598,
+    "mem_drop_after_deleting_bf16_active_gib": 5.991454124450684
+  },
+  "numeric": {
+    "p2n_T16_vs_bf16": {
+      "cosine": 0.9999791852074875,
+      "rel_l2": 0.006454828157456241,
+      "max_abs": 0.03515625,
+      "mean_abs": 0.0016887588426470757,
+      "argmax_a": 23797,
+      "argmax_b": 23797,
+      "argmax_match": true
+    },
+    "p3b_T16_vs_bf16": {
+      "cosine": 0.9999791852074875,
+      "rel_l2": 0.006454828157456241,
+      "max_abs": 0.03515625,
+      "mean_abs": 0.0016887588426470757,
+      "argmax_a": 23797,
+      "argmax_b": 23797,
+      "argmax_match": true
+    },
+    "p3b_T16_vs_p2n": {
+      "cosine": 1.0000000000000002,
+      "rel_l2": 0.0,
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "argmax_a": 23797,
+      "argmax_b": 23797,
+      "argmax_match": true
+    },
+    "p2n_T64_vs_bf16": {
+      "cosine": 0.9999491846441616,
+      "rel_l2": 0.010081087143216207,
+      "max_abs": 0.0703125,
+      "mean_abs": 0.0023604859015904367,
+      "argmax_a": 77045,
+      "argmax_b": 77045,
+      "argmax_match": true
+    },
+    "p3b_T64_vs_bf16": {
+      "cosine": 0.9999491846441616,
+      "rel_l2": 0.010081087143216207,
+      "max_abs": 0.0703125,
+      "mean_abs": 0.0023604859015904367,
+      "argmax_a": 77045,
+      "argmax_b": 77045,
+      "argmax_match": true
+    },
+    "p3b_T64_vs_p2n": {
+      "cosine": 1.0,
+      "rel_l2": 0.0,
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "argmax_a": 77045,
+      "argmax_b": 77045,
+      "argmax_match": true
+    }
+  },
+  "bench": {
+    "rows": [
+      {
+        "seq_len": 16,
+        "bf16_prefill_us": 57279.361724853516,
+        "p2n_reference_us": 39298.40087890625,
+        "p3b_selected_prefill_us": 38503.96728515625,
+        "p3b_vs_bf16": 1.4876223351388367,
+        "p3b_vs_p2n": 1.0206325126932119,
+        "p3b_cosine_vs_bf16": 0.9999791852074875,
+        "p3b_argmax_vs_bf16": true
+      },
+      {
+        "seq_len": 64,
+        "bf16_prefill_us": 92993.85833740234,
+        "p2n_reference_us": 85607.9330444336,
+        "p3b_selected_prefill_us": 84052.25372314453,
+        "p3b_vs_bf16": 1.1063814974397963,
+        "p3b_vs_p2n": 1.01850847838552,
+        "p3b_cosine_vs_bf16": 0.9999491846441616,
+        "p3b_argmax_vs_bf16": true
+      }
+    ],
+    "bf16_prefill": {
+      "16": {
+        "warmup": 0,
+        "iters": 1,
+        "repeats": 1,
+        "median_us": 57279.361724853516,
+        "min_us": 57279.361724853516,
+        "max_us": 57279.361724853516,
+        "all_us": [
+          57279.361724853516
+        ]
+      },
+      "64": {
+        "warmup": 0,
+        "iters": 1,
+        "repeats": 1,
+        "median_us": 92993.85833740234,
+        "min_us": 92993.85833740234,
+        "max_us": 92993.85833740234,
+        "all_us": [
+          92993.85833740234
+        ]
+      }
+    },
+    "p2n_reference": {
+      "16": {
+        "warmup": 0,
+        "iters": 1,
+        "repeats": 1,
+        "median_us": 39298.40087890625,
+        "min_us": 39298.40087890625,
+        "max_us": 39298.40087890625,
+        "all_us": [
+          39298.40087890625
+        ]
+      },
+      "64": {
+        "warmup": 0,
+        "iters": 1,
+        "repeats": 1,
+        "median_us": 85607.9330444336,
+        "min_us": 85607.9330444336,
+        "max_us": 85607.9330444336,
+        "all_us": [
+          85607.9330444336
+        ]
+      }
+    },
+    "p3b_selected_prefill": {
+      "16": {
+        "warmup": 0,
+        "iters": 1,
+        "repeats": 1,
+        "median_us": 38503.96728515625,
+        "min_us": 38503.96728515625,
+        "max_us": 38503.96728515625,
+        "all_us": [
+          38503.96728515625
+        ]
+      },
+      "64": {
+        "warmup": 0,
+        "iters": 1,
+        "repeats": 1,
+        "median_us": 84052.25372314453,
+        "min_us": 84052.25372314453,
+        "max_us": 84052.25372314453,
+        "all_us": [
+          84052.25372314453
+        ]
+      }
+    }
+  },
+  "memory": {
+    "p2n_peak": {
+      "16": {
+        "before_gib": 2.5252022743225098,
+        "after_gib": 2.5252633094787598,
+        "peak_gib": 2.5908203125
+      },
+      "64": {
+        "before_gib": 2.5254464149475098,
+        "after_gib": 2.5256905555725098,
+        "peak_gib": 2.59891414642334
+      }
+    },
+    "p3b_peak": {
+      "16": {
+        "before_gib": 2.5252633094787598,
+        "after_gib": 2.5253243446350098,
+        "peak_gib": 2.59088134765625
+      },
+      "64": {
+        "before_gib": 2.5256295204162598,
+        "after_gib": 2.5258736610412598,
+        "peak_gib": 2.59909725189209
+      }
+    }
+  },
+  "shadow_absence_checks": {
+    "after_delete": true,
+    "after_p2n_T16": true,
+    "after_p3b_T16": true,
+    "after_p2n_T64": true,
+    "after_p3b_T64": true
+  },
+  "reload_trap": {
+    "installed": true,
+    "status": "installed"
+  },
+  "passes": {
+    "predecessors_pass": true,
+    "numeric": true,
+    "final_stack_cosine_min": 0.9999491846441616,
+    "final_stack_argmax_match": true,
+    "no_active_bf16_shadow": true,
+    "reload_trap_installed": true,
+    "reload_not_called": true,
+    "speed_vs_p2n_reference": true,
+    "all": true
+  },
+  "reload_calls": [],
+  "notes": [
+    "P3-B is selected-layer composition only; it does not bank a fused P3 kernel.",
+    "Router and shared expert remain on the existing BF16 paths.",
+    "Active routed expert BF16 shadows are deleted before P2-N/P3-B candidates run.",
+    "P3-C server readiness and RC quality promotion remain separate gates."
+  ]
+}
