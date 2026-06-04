@@ -264,6 +264,7 @@ def main() -> int:
         raise SystemExit("--tile-inter-values may only contain {1, 2, 4, 8}")
     if any(value not in {64, 128, 256} for value in args.thread_values):
         raise SystemExit("--thread-values may only contain {64, 128, 256}")
+    args.tile_inter = args.baseline_tile_inter
 
     started = time.time()
     result = run_sweep(args)
