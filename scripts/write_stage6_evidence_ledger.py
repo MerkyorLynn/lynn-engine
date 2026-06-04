@@ -1184,8 +1184,11 @@ def _r5c4_full_active_moe_speed_contract_gate() -> Gate:
 
 def _r5c4_full_active_moe_speed_ab_gate() -> Gate:
     required = [
+        "scripts/r6000_stage6_r5c4_full_active_moe_speed_ab.py",
+        "scripts/r6000_stage6_r5c4_full_active_moe_speed_ab.sh",
         "scripts/summarize_stage6_r5c4_full_active_moe_speed_ab.py",
         "scripts/test_stage6_r5c4_full_active_moe_speed_ab_tools.py",
+        "scripts/test_stage6_r5c4_full_active_moe_speed_ab_validator.py",
     ]
     run_dir, data = _latest_result(["r5c4_full_active_moe_prefill_speed_ab_"])
     if data is None:
