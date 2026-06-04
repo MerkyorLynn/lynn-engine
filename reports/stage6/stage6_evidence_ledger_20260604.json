@@ -1,11 +1,11 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T04:36:00+00:00",
-  "spark_status": "REACHABLE",
-  "spark_note": "Spark reachable via dgx-via-ssh; P4C tile_inter=2 OpenAI server smoke PASS clean run (40 layers called, delta=240, text exact 2/2, release/reload healthy). Default promotion still closed.",
+  "generated_at_utc": "2026-06-04T04:58:15+00:00",
+  "spark_status": "SPARK_RC_MINI_NEGATIVE_CAPTURED",
+  "spark_note": "P4C tile2 basic server smoke banked; rc-mini agreement failed 3/6 completion exact, 2/2 chat exact; run first-divergence before widening.",
   "counts": {
     "BANKED": 20,
-    "CLOSED_NEGATIVE": 3,
+    "CLOSED_NEGATIVE": 4,
     "READY_WAITING_SPARK": 7,
     "REFERENCE_IMPL_BANKED_SPEED_CLOSED": 1,
     "DECISION_BANKED": 1
@@ -294,6 +294,15 @@
       "artifact": "reports/stage6/p4c_tile2_server_smoke_20260604_122443",
       "next_step": "Run on Spark; bank opt-in server evidence for tile_inter=2 P4C decode after prefill releases shadows.",
       "decision": "PASS_P4C_TILE2_SERVER_SMOKE"
+    },
+    {
+      "gate": "p4c_tile2_rcmini_agreement",
+      "title": "P4C tile2 RC-mini server agreement rejection",
+      "status": "CLOSED_NEGATIVE",
+      "evidence": "latest result.json failed as an intentional negative gate",
+      "artifact": "reports/stage6/p4c_tile2_rcmini_agreement_20260604_124019",
+      "next_step": "Run first-divergence diagnostics before widening P4C tile2 server prompts or considering promotion.",
+      "decision": "FAIL_P4C_TILE2_SERVER_SMOKE"
     },
     {
       "gate": "p4c_active_reuse_decision",

@@ -85,6 +85,10 @@ def main() -> int:
         assert gates["p4c_gateup_shape_candidate"]["status"] in {"BANKED", "READY_WAITING_SPARK"}
         assert gates["p4c_tile2_server_smoke"]["status"] in {"BANKED", "READY_WAITING_SPARK"}
         assert "tile_inter=2" in gates["p4c_tile2_server_smoke"]["next_step"]
+        assert gates["p4c_tile2_rcmini_agreement"]["status"] in {"CLOSED_NEGATIVE", "NOT_RUN"}
+        if gates["p4c_tile2_rcmini_agreement"]["status"] == "CLOSED_NEGATIVE":
+            assert gates["p4c_tile2_rcmini_agreement"]["decision"] == "FAIL_P4C_TILE2_SERVER_SMOKE"
+            assert "first-divergence" in gates["p4c_tile2_rcmini_agreement"]["next_step"]
         assert gates["p4c_active_reuse_decision"]["status"] == "DECISION_BANKED"
         assert "active reuse" in gates["p4c_active_reuse_decision"]["evidence"]
         assert "P4C active-reuse" in gates["p4c_active_reuse_decision"]["next_step"]

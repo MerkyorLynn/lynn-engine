@@ -285,3 +285,44 @@ second request. Baseline vs candidate completion text was exact **2/2**.
 This banks `banked_p4c_tile2_server_smoke=true` only. The prompt set is a tiny
 service smoke and produced short `<think>`-prefixed completions, so it is not a
 quality RC, not a sustained TPS gate, and not a default-promotion gate.
+
+## RC-mini Agreement Rejection
+
+Wider server agreement was then run with the same opt-in P4C tile=2 backend:
+
+```bash
+scripts/run_spark_stage6_p4c_tile2_server_smoke.sh \
+  --host dgx-via-ssh \
+  --p4c-runtime-pass \
+  --gateup-tile-inter 2 \
+  --preset rc-mini \
+  --prompt-limit 6 \
+  --chat-prompts 2 \
+  --max-new 8
+```
+
+Negative Spark artifact:
+
+```text
+reports/stage6/p4c_tile2_rcmini_agreement_20260604_124019
+FAIL_P4C_TILE2_SERVER_SMOKE
+```
+
+This is an intentional rejection gate, not a promotion failure for the already
+banked basic smoke. The candidate still reached the P4C server path:
+`delta_total_calls=2040`, **40** layers called, `gateup_tile_inter=2`, release
+and reload counters healthy. The failure is quality agreement:
+completion text exact **3/6**, chat text exact **2/2**, and
+`server_text_exact=false`.
+
+Observed non-exact examples:
+
+| Prompt class | Baseline prefix | Candidate prefix |
+|---|---|---|
+| Arithmetic | `<think></think> 42` | `<think> Here's a thinking process` |
+| V9 bullets | `<think> Here's a thinking process` | `<think></think> * The` |
+| Long-context marker | `<think> The user wants me to` | `<think></think> LYNN-Z` |
+
+Decision: keep P4C tile=2 as opt-in server-smoke evidence only. Do **not**
+promote it to RC/default, and do not widen server prompts again until a
+first-divergence trace explains the token/layer where Triton and P4C separate.

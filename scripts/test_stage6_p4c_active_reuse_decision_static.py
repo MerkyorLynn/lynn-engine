@@ -62,6 +62,11 @@ def main() -> int:
             "PASS_P4C_TILE2_SERVER_SMOKE",
             "banked_p4c_tile2_server_smoke=true",
             "P4C native call delta **240**",
+            "RC-mini Agreement Rejection",
+            "reports/stage6/p4c_tile2_rcmini_agreement_20260604_124019",
+            "FAIL_P4C_TILE2_SERVER_SMOKE",
+            "completion text exact **3/6**",
+            "first-divergence trace explains the token/layer",
         ],
         failures,
     )
