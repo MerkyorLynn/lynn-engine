@@ -17,9 +17,15 @@ Do not run or report P3-B as a bankable gate unless these artifacts exist and
 are PASS:
 
 - P2-O `basic` report from `scripts/write_stage6_p2o_report.py`;
-- P2-O `rc-mini` report from `scripts/write_stage6_p2o_report.py`;
+- P2-O `rc-mini` non-long shard report (`prompt_indices=0-4`) from
+  `scripts/write_stage6_p2o_report.py`;
 - P3-A report from `scripts/write_stage6_p3a_report.py`;
 - suite-level report from `scripts/write_stage6_gpu_gate_suite_report.py`.
+
+The full P2-O `rc-mini` long-context prompt is a separate slow-mode scale gate.
+It is not a predecessor for this selected-layer P3-B gate, because P3-B does not
+exercise resident long-context prompt behavior. P3-C/P3-D/P3-E must still state
+their prompt/long-context scope explicitly.
 
 If any predecessor is missing or failed, P3-B work may continue as local
 engineering, but README/release notes must still say P3-B is pending.
@@ -80,14 +86,15 @@ scripts/run_spark_stage6_p3b_selected_prefill_gate.sh \
   --predecessors-pass
 ```
 
-The suite runs P3-B after P2-O basic, P2-O rc-mini, and P3-A all PASS:
+The suite runs P3-B after P2-O basic, P2-O rc-mini non-long shard, and P3-A all PASS:
 
 ```bash
 scripts/run_stage6_gpu_gate_suite.sh
 ```
 
 If a predecessor fails, the suite records P3-B as skipped rather than spending
-GPU on an artifact that cannot be banked.
+GPU on an artifact that cannot be banked. Full P2-O rc-mini long-context remains
+tracked separately as a slow-mode scale gate.
 
 ## Relationship To P3-C/P3-D
 

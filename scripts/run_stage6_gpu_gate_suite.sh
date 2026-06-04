@@ -21,7 +21,7 @@ Options:
   --no-strict                  Keep running and exit 0 even if a child gate fails.
   --dry-run                    Print child commands without executing them.
   --skip-p2o-basic             Skip P2-O basic preset.
-  --skip-p2o-rc-mini           Skip P2-O rc-mini preset.
+  --skip-p2o-rc-mini           Skip P2-O rc-mini non-long shard.
   --skip-p3a                   Skip P3-A grouped-MoE contract probe.
   --skip-p3b                   Skip P3-B selected-prefill composition gate.
   --skip-p3c                   Skip P3-C resident-prompt gate.
@@ -270,17 +270,18 @@ else
 fi
 
 if [[ "$RUN_P2O_RC_MINI" == "1" ]]; then
-  run_step "p2o-rc-mini" \
+  run_step "p2o-rc-mini-nonlong" \
     scripts/run_spark_stage6_p2o_rc_smoke.sh \
       "${common_args[@]}" \
       --preset rc-mini \
+      --prompt-indices 0-4 \
       --max-new "$P2O_MAX_NEW" \
       --max-seq-len "$P2O_MAX_SEQ_LEN" && P2O_RC_MINI_STATUS="PASS" || {
         P2O_RC_MINI_STATUS="FAIL"
         failures=$((failures + 1))
       }
 else
-  printf '%s\t%s\t%s\n' "p2o-rc-mini" "SKIP" "0" >> "$STATUS_TSV"
+  printf '%s\t%s\t%s\n' "p2o-rc-mini-nonlong" "SKIP" "0" >> "$STATUS_TSV"
 fi
 
 if [[ "$RUN_P3A" == "1" ]]; then

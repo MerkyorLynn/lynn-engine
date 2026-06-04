@@ -9,7 +9,7 @@ engine Stage 6 path. It groups the next required Spark gates into one
 artifact-producing command:
 
 - P2-O packed-prefill RC smoke, `basic` preset;
-- P2-O packed-prefill RC smoke, `rc-mini` preset;
+- P2-O packed-prefill RC smoke, `rc-mini` non-long shard (`prompt_indices=0-4`);
 - P3-A grouped active-MoE contract probe;
 - P3-B selected-prefill composition gate, only after the predecessors above all
   PASS;
@@ -83,9 +83,11 @@ They remain authoritative for each gate:
 
 Default mode is strict. The suite exits non-zero if any child gate exits
 non-zero, but it still attempts prerequisite gates so failure evidence is
-preserved. P3-B is skipped if P2-O basic, P2-O rc-mini, or P3-A does not PASS,
-because it cannot be banked without those predecessors. P3-C is skipped unless
-P3-B PASS evidence exists. P3-D is skipped unless P3-C PASS evidence exists.
+preserved. P3-B is skipped if P2-O basic, P2-O rc-mini non-long shard, or P3-A
+does not PASS, because it cannot be banked without those predecessors. The full
+P2-O rc-mini long-context prompt remains a separate slow-mode scale gate, not a
+P3-B prerequisite. P3-C is skipped unless P3-B PASS evidence exists. P3-D is
+skipped unless P3-C PASS evidence exists.
 
 A suite pass does not automatically promote P2-O or P3. Promotion still requires
 reading the child summaries and updating the relevant Stage 6 report with exact

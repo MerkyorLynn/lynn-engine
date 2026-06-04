@@ -12,10 +12,15 @@ tokenized resident generation after active BF16 expert shadows are released.
 
 Do not run or report P3-C as bankable unless these artifacts exist and are PASS:
 
-- P2-O `basic` and `rc-mini` reports;
+- P2-O `basic` report;
+- P2-O `rc-mini` non-long shard report (`prompt_indices=0-4`);
 - P3-A grouped active-MoE contract report;
 - P3-B selected-prefill report;
 - suite-level report showing the predecessor chain.
+
+The full P2-O `rc-mini` long-context prompt remains a separate slow-mode scale
+gate. P3-C must state its own prompt preset and long-context scope instead of
+inheriting a full long-context claim from P2-O.
 
 If P3-B is missing or failed, P3-C may be used only as an engineering diagnostic.
 
