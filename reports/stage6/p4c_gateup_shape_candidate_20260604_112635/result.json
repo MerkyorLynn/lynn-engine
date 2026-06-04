@@ -1,0 +1,301 @@
+{
+  "schema": "lynn-stage6-p4c-gateup-shape-candidate-microbench-v1",
+  "baseline_schema_reference": "lynn-stage6-p4c-active-reuse-microbench-v1",
+  "symbol": "active_moe_fused_zero_shadow_active_reuse_contract",
+  "reference_symbol": "active_moe_fused_zero_shadow_out_contract",
+  "tokens": 1,
+  "experts": 8,
+  "top_k": 8,
+  "tile_tokens": 1,
+  "current_tile_inter": 8,
+  "candidate_tile_inter": 2,
+  "tile_hidden": 8,
+  "warmup": 2,
+  "iters": 10,
+  "repeats": 5,
+  "seed": 20260604,
+  "candidate_speedup_floor": 1.05,
+  "banked_p4c_gateup_shape_candidate": true,
+  "banked_fused_kernel": false,
+  "banked_default_promotion": false,
+  "promotion_policy": "opt_in_candidate_microbench_only",
+  "torch_version": "2.9.1+cu130",
+  "torch_cuda": "13.0",
+  "cuda_available": true,
+  "lynn_native_cuda_arch": null,
+  "lynn_native_cuda_arch_auto": null,
+  "lynn_native_cuda_build_dir": null,
+  "device_name": "NVIDIA GB10",
+  "capability": [
+    12,
+    1
+  ],
+  "build_dir": "/tmp/lynn_engine_native_build/p4c_gateup_shape_candidate_20260604_032638",
+  "extension_loaded": true,
+  "symbol_present": true,
+  "reference_symbol_present": true,
+  "tensor_manifest": {
+    "hidden": {
+      "shape": [
+        1,
+        2048
+      ],
+      "dtype": "torch.bfloat16",
+      "bytes": 4096,
+      "contiguous": true
+    },
+    "expert_ids": {
+      "shape": [
+        1,
+        8
+      ],
+      "dtype": "torch.int32",
+      "bytes": 32,
+      "contiguous": true
+    },
+    "routing_weights": {
+      "shape": [
+        1,
+        8
+      ],
+      "dtype": "torch.float32",
+      "bytes": 32,
+      "contiguous": true
+    },
+    "gate_up_packed": {
+      "shape": [
+        8,
+        1024,
+        1024
+      ],
+      "dtype": "torch.uint8",
+      "bytes": 8388608,
+      "contiguous": true
+    },
+    "gate_up_scale": {
+      "shape": [
+        8,
+        1024,
+        128
+      ],
+      "dtype": "torch.float32",
+      "bytes": 4194304,
+      "contiguous": true
+    },
+    "gate_up_global_scale": {
+      "shape": [
+        1
+      ],
+      "dtype": "torch.float32",
+      "bytes": 4,
+      "contiguous": true
+    },
+    "down_packed": {
+      "shape": [
+        8,
+        2048,
+        256
+      ],
+      "dtype": "torch.uint8",
+      "bytes": 4194304,
+      "contiguous": true
+    },
+    "down_scale": {
+      "shape": [
+        8,
+        2048,
+        32
+      ],
+      "dtype": "torch.float32",
+      "bytes": 2097152,
+      "contiguous": true
+    },
+    "down_global_scale": {
+      "shape": [
+        1
+      ],
+      "dtype": "torch.float32",
+      "bytes": 4,
+      "contiguous": true
+    },
+    "ref_out": {
+      "shape": [
+        1,
+        2048
+      ],
+      "dtype": "torch.bfloat16",
+      "bytes": 4096,
+      "contiguous": true
+    },
+    "candidate_out": {
+      "shape": [
+        1,
+        2048
+      ],
+      "dtype": "torch.bfloat16",
+      "bytes": 4096,
+      "contiguous": true
+    },
+    "ref_inter_scratch": {
+      "shape": [
+        1,
+        8,
+        512
+      ],
+      "dtype": "torch.bfloat16",
+      "bytes": 8192,
+      "contiguous": true
+    },
+    "candidate_inter_scratch": {
+      "shape": [
+        1,
+        8,
+        512
+      ],
+      "dtype": "torch.bfloat16",
+      "bytes": 8192,
+      "contiguous": true
+    }
+  },
+  "byte_budget": {
+    "candidate_abi_names": [
+      "hidden",
+      "expert_ids",
+      "routing_weights",
+      "gate_up_packed",
+      "gate_up_scale",
+      "gate_up_global_scale",
+      "down_packed",
+      "down_scale",
+      "down_global_scale",
+      "candidate_inter_scratch",
+      "candidate_out"
+    ],
+    "packed_weight_names": [
+      "gate_up_packed",
+      "gate_up_scale",
+      "gate_up_global_scale",
+      "down_packed",
+      "down_scale",
+      "down_global_scale"
+    ],
+    "packed_weight_bytes": 18874376,
+    "active_scratch_bytes": 8192,
+    "bf16_shadow_equivalent_bytes": 50331648,
+    "packed_vs_bf16_shadow_ratio": 0.3750001589457194,
+    "forbidden_shadow_tensor_names": [],
+    "zero_bf16_shadow_weight_abi": true,
+    "active_scratch_reuse_abi": true,
+    "packed_byte_budget": true
+  },
+  "numeric_vs_reference": {
+    "candidate_vs_p4a_candidate_tile_out": {
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "rel_l2": 0.0,
+      "finite_candidate": true,
+      "finite_reference": true
+    },
+    "candidate_vs_p4a_candidate_tile_inter_scratch": {
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "rel_l2": 0.0,
+      "finite_candidate": true,
+      "finite_reference": true
+    },
+    "p4a_candidate_tile_vs_current_tile_out": {
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "rel_l2": 0.0,
+      "finite_candidate": true,
+      "finite_reference": true
+    },
+    "p4a_candidate_tile_vs_current_tile_inter_scratch": {
+      "max_abs": 0.0,
+      "mean_abs": 0.0,
+      "rel_l2": 0.0,
+      "finite_candidate": true,
+      "finite_reference": true
+    }
+  },
+  "bench": {
+    "reference_p4a_current_tile": {
+      "warmup": 2,
+      "iters": 10,
+      "repeats": 5,
+      "median_us": 267.4207925796509,
+      "min_us": 265.69600105285645,
+      "max_us": 315.881609916687,
+      "all_us": [
+        265.69600105285645,
+        267.4207925796509,
+        267.4527883529663,
+        315.881609916687,
+        266.9343948364258
+      ]
+    },
+    "reference_p4a_candidate_tile": {
+      "warmup": 2,
+      "iters": 10,
+      "repeats": 5,
+      "median_us": 185.043203830719,
+      "min_us": 185.03999710083008,
+      "max_us": 185.2735996246338,
+      "all_us": [
+        185.03999710083008,
+        185.24479866027832,
+        185.03999710083008,
+        185.043203830719,
+        185.2735996246338
+      ]
+    },
+    "current_p4c_active_reuse_contract": {
+      "warmup": 2,
+      "iters": 10,
+      "repeats": 5,
+      "median_us": 267.31839179992676,
+      "min_us": 267.2895908355713,
+      "max_us": 285.38880348205566,
+      "all_us": [
+        278.8896083831787,
+        285.38880348205566,
+        267.2895908355713,
+        267.31839179992676,
+        267.2895908355713
+      ]
+    },
+    "candidate_p4c_active_reuse_contract": {
+      "warmup": 2,
+      "iters": 10,
+      "repeats": 5,
+      "median_us": 185.09119749069214,
+      "min_us": 184.80000495910645,
+      "max_us": 185.49120426177979,
+      "all_us": [
+        184.80000495910645,
+        185.27040481567383,
+        185.09119749069214,
+        184.89279747009277,
+        185.49120426177979
+      ]
+    },
+    "candidate_vs_current_speedup": 1.4442523222281798,
+    "candidate_minus_current_us": -82.22719430923462,
+    "reference_candidate_vs_current_speedup": 1.445180298673884
+  },
+  "passes": {
+    "all": true,
+    "extension_loaded": true,
+    "symbol_present": true,
+    "reference_symbol_present": true,
+    "numeric_vs_reference": true,
+    "timing_recorded": true,
+    "candidate_speed_floor": true,
+    "zero_bf16_shadow_weight_abi": true,
+    "active_scratch_reuse_abi": true,
+    "packed_byte_budget": true,
+    "promotion_boundary_closed": true
+  },
+  "decision": "PASS_P4C_GATEUP_SHAPE_CANDIDATE_RECORDED",
+  "elapsed_s": 27.678
+}
