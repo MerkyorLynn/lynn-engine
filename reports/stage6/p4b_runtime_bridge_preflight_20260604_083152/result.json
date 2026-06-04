@@ -1,0 +1,166 @@
+{
+  "schema": "lynn-stage6-p4b-runtime-bridge-preflight-v1",
+  "model": "/home/merkyor/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-from-bf16-20260526",
+  "layer": 0,
+  "prompt": "Explain MoE active parameters in one sentence.",
+  "expected_backend": "fused_zero_shadow_single_kernel_contract",
+  "expected_behavior": "real runner reaches P4B native symbol and fails loud because fused implementation is absent",
+  "banked_p4b_runtime_bridge_preflight": true,
+  "banked_fused_kernel": false,
+  "banked_default_promotion": false,
+  "passes": {
+    "cuda_available": true,
+    "native_layer_selected": true,
+    "native_backend_called": true,
+    "baseline_triton_nonzero": true,
+    "baseline_shape_dtype": true,
+    "packed_tensors_present": true,
+    "active_out_scratch_present": true,
+    "active_shadows_removed": true,
+    "candidate_returned_false": true,
+    "p4b_fail_loud_not_implemented": true,
+    "p4b_last_shapes_out_only": true,
+    "fused_kernel_unbanked": true,
+    "default_promotion_closed": true,
+    "all": true
+  },
+  "native_layer_selected_for_candidate": true,
+  "packed_manifest_before_candidate": {
+    "mlp.experts._gate_up_packed": {
+      "shape": [
+        256,
+        1024,
+        1024
+      ],
+      "dtype": "torch.uint8",
+      "bytes": 268435456,
+      "contiguous": true
+    },
+    "mlp.experts._gate_up_scale": {
+      "shape": [
+        256,
+        1024,
+        128
+      ],
+      "dtype": "torch.float32",
+      "bytes": 134217728,
+      "contiguous": true
+    },
+    "mlp.experts._gate_up_global_scale": {
+      "shape": [],
+      "dtype": "torch.float32",
+      "bytes": 4,
+      "contiguous": true
+    },
+    "mlp.experts._down_packed": {
+      "shape": [
+        256,
+        2048,
+        256
+      ],
+      "dtype": "torch.uint8",
+      "bytes": 134217728,
+      "contiguous": true
+    },
+    "mlp.experts._down_scale": {
+      "shape": [
+        256,
+        2048,
+        32
+      ],
+      "dtype": "torch.float32",
+      "bytes": 67108864,
+      "contiguous": true
+    },
+    "mlp.experts._down_global_scale": {
+      "shape": [],
+      "dtype": "torch.float32",
+      "bytes": 4,
+      "contiguous": true
+    }
+  },
+  "active_scratch_manifest": {
+    "mlp.experts._active_inter_scratch": {
+      "shape": [
+        8,
+        512
+      ],
+      "dtype": "torch.bfloat16",
+      "bytes": 8192,
+      "contiguous": true
+    },
+    "mlp.experts._active_out_scratch": {
+      "shape": [
+        2048
+      ],
+      "dtype": "torch.bfloat16",
+      "bytes": 4096,
+      "contiguous": true
+    }
+  },
+  "baseline": {
+    "backend": "triton",
+    "output_shape": [
+      1,
+      1,
+      2048
+    ],
+    "output_dtype": "torch.bfloat16",
+    "norm": 0.26544320583343506
+  },
+  "removed_active_shadows": {
+    "mlp.experts.gate_up_proj": {
+      "shape": [
+        256,
+        1024,
+        2048
+      ],
+      "dtype": "torch.bfloat16",
+      "bytes": 1073741824,
+      "contiguous": true
+    },
+    "mlp.experts.down_proj": {
+      "shape": [
+        256,
+        2048,
+        512
+      ],
+      "dtype": "torch.bfloat16",
+      "bytes": 536870912,
+      "contiguous": true
+    }
+  },
+  "active_shadow_keys_present_after_delete": [],
+  "bf16_active_shadow_aliases_after_delete": {},
+  "native_backend_call_count": {
+    "key": "_p4b_fused_zero_shadow_single_kernel_contract_call_count",
+    "before": 0,
+    "after": 1,
+    "delta": 1,
+    "last_shapes": {
+      "hidden": [
+        1,
+        2048
+      ],
+      "expert_ids": [
+        1,
+        8
+      ],
+      "out": [
+        1,
+        2048
+      ]
+    }
+  },
+  "candidate_returned": false,
+  "candidate_error": {
+    "type": "RuntimeError",
+    "message": "P4B single-kernel fused zero-shadow contract is not implemented yet; do not bank fused-kernel speed or promote this backend"
+  },
+  "fail_loud_needles": [
+    "P4B single-kernel fused zero-shadow contract is not implemented yet",
+    "do not bank fused-kernel speed or promote this backend"
+  ],
+  "decision": "PASS_P4B_RUNTIME_BRIDGE_FAILLOUD",
+  "elapsed_s": 395.224
+}

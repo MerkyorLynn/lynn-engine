@@ -1,13 +1,13 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T00:19:39+00:00",
+  "generated_at_utc": "2026-06-04T00:49:32+00:00",
   "spark_status": "REACHABLE_VIA_DGX_VIA_SSH",
-  "spark_note": "Spark SSH recovered via dgx-via-ssh on 2026-06-04; dgx-spark direct alias still reports local forward ports 18007/18008 already in use. P4B fail-loud synthetic and runtime bridge gates were run on /home/merkyor/lynn-engine-codex-stage6 at 41cdb1d.",
+  "spark_note": "Spark SSH recovered via dgx-via-ssh on 2026-06-04; dgx-spark direct alias may report local forward ports 18007/18008 already in use. P4B fail-loud route gates and the opt-in single-CTA numeric reference gate were run on /home/merkyor/lynn-engine-codex-stage6 at cf88b14.",
   "counts": {
-    "BANKED": 11,
+    "BANKED": 12,
     "CLOSED_NEGATIVE": 2,
     "READY_WAITING_SPARK": 7,
-    "CONTRACT_READY_UNIMPLEMENTED": 1
+    "REFERENCE_IMPL_BANKED_SPEED_CLOSED": 1
   },
   "promotion_boundaries": {
     "p3_default_promotion": false,
@@ -182,7 +182,7 @@
       "title": "P4B single-kernel fail-loud preflight",
       "status": "BANKED",
       "evidence": "latest Spark result.json has passes.all=true",
-      "artifact": "reports/stage6/p4b_single_kernel_preflight_20260604_081151",
+      "artifact": "reports/stage6/p4b_single_kernel_preflight_20260604_083106",
       "next_step": "Run on Spark; may bank fail-loud single-kernel contract preflight only, not fused-kernel speed.",
       "decision": "PASS_SINGLE_KERNEL_FAILLOUD_CONTRACT"
     },
@@ -191,17 +191,26 @@
       "title": "P4B real runtime bridge fail-loud preflight",
       "status": "BANKED",
       "evidence": "latest Spark result.json has passes.all=true",
-      "artifact": "reports/stage6/p4b_runtime_bridge_preflight_20260604_081234",
+      "artifact": "reports/stage6/p4b_runtime_bridge_preflight_20260604_083152",
       "next_step": "Run on Spark; proves resident-runner routing reaches P4B fail-loud symbol after active BF16 shadows are removed.",
       "decision": "PASS_P4B_RUNTIME_BRIDGE_FAILLOUD"
     },
     {
+      "gate": "p4b_single_cta_numeric_preflight",
+      "title": "P4B single-CTA output-returning numeric preflight",
+      "status": "BANKED",
+      "evidence": "latest Spark result.json has passes.all=true",
+      "artifact": "reports/stage6/p4b_single_cta_numeric_preflight_20260604_084451",
+      "next_step": "Use as correctness reference only; next gate needs byte-count profiler plus speed/RC evidence.",
+      "decision": "PASS_P4B_SINGLE_CTA_NUMERIC_REFERENCE"
+    },
+    {
       "gate": "p4b_single_kernel_contract",
       "title": "P4B true fused single-kernel ABI",
-      "status": "CONTRACT_READY_UNIMPLEMENTED",
-      "evidence": "fail-loud ABI/static gate exists, but no fused implementation or GPU result is banked",
-      "artifact": "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md, scripts/test_stage6_p4b_single_kernel_static.py",
-      "next_step": "Replace fail-loud contract with a real fused CUDA/CUTLASS kernel, then run byte-count/numeric/speed/RC gates.",
+      "status": "REFERENCE_IMPL_BANKED_SPEED_CLOSED",
+      "evidence": "opt-in single-CTA output-returning numeric reference is banked; speed/default promotion remain closed",
+      "artifact": "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md, scripts/test_stage6_p4b_single_kernel_static.py, scripts/run_spark_stage6_p4b_single_cta_numeric_preflight.sh",
+      "next_step": "Scale beyond T=1/top_k=8, add byte-count profiler and speed gate before any promotion.",
       "decision": ""
     }
   ]
