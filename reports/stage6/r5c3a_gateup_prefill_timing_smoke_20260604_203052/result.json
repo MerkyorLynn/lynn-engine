@@ -1,0 +1,573 @@
+{
+  "schema": "lynn-stage6-r5c2c-real-d-row-slot-scatter-smoke-v1",
+  "created_at_utc": "2026-06-04T12:32:10+00:00",
+  "decision": "PASS_R5C2C_REAL_D_ROW_SLOT_SCATTER_SMOKE",
+  "cutlass_dir": "/root/autodl-tmp/src/cutlass",
+  "build_dir": "/root/autodl-tmp/src/cutlass/build-r5c2c-sm120a-tools-on",
+  "binary": "/root/autodl-tmp/src/cutlass/build-r5c2c-sm120a-tools-on/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm",
+  "example": "/root/autodl-tmp/src/cutlass/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm.cu",
+  "benchmark_file": "/root/autodl-tmp/src/lynn-engine-r5c2c-codex/reports/stage6/r5c3a_gateup_prefill_timing_smoke_20260604_203052/result.benchmark.txt",
+  "d_row_digest_file": "/root/autodl-tmp/src/lynn-engine-r5c2c-codex/reports/stage6/r5c3a_gateup_prefill_timing_smoke_20260604_203052/result.d_row_digest.jsonl",
+  "git": {
+    "head": {
+      "cmd": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/root/autodl-tmp/src/cutlass",
+      "ok": true,
+      "returncode": 0,
+      "stdout_tail": "2599f2975b06a67d5ee25e4a7292afeda1475c9b",
+      "stderr_tail": ""
+    },
+    "branch": {
+      "cmd": [
+        "git",
+        "branch",
+        "--show-current"
+      ],
+      "cwd": "/root/autodl-tmp/src/cutlass",
+      "ok": true,
+      "returncode": 0,
+      "stdout_tail": "main",
+      "stderr_tail": ""
+    },
+    "status": {
+      "cmd": [
+        "git",
+        "status",
+        "--short"
+      ],
+      "cwd": "/root/autodl-tmp/src/cutlass",
+      "ok": true,
+      "returncode": 0,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    }
+  },
+  "selected_expert_shape": {
+    "tokens": 256,
+    "top_k": 8,
+    "experts": 8,
+    "tokens_per_expert": [
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256
+    ],
+    "n_gate_up": 1024,
+    "k_hidden": 2048,
+    "alignment": 32,
+    "benchmark_shapes": [
+      {
+        "expert": 0,
+        "m": 256,
+        "n": 1024,
+        "k": 2048
+      },
+      {
+        "expert": 1,
+        "m": 256,
+        "n": 1024,
+        "k": 2048
+      },
+      {
+        "expert": 2,
+        "m": 256,
+        "n": 1024,
+        "k": 2048
+      },
+      {
+        "expert": 3,
+        "m": 256,
+        "n": 1024,
+        "k": 2048
+      },
+      {
+        "expert": 4,
+        "m": 256,
+        "n": 1024,
+        "k": 2048
+      },
+      {
+        "expert": 5,
+        "m": 256,
+        "n": 1024,
+        "k": 2048
+      },
+      {
+        "expert": 6,
+        "m": 256,
+        "n": 1024,
+        "k": 2048
+      },
+      {
+        "expert": 7,
+        "m": 256,
+        "n": 1024,
+        "k": 2048
+      }
+    ]
+  },
+  "route_sample": [
+    [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  ],
+  "grouped_order_sample": [
+    {
+      "token_idx": 0,
+      "top_k_slot": 0,
+      "expert_id": 0,
+      "group_row": 0
+    },
+    {
+      "token_idx": 1,
+      "top_k_slot": 0,
+      "expert_id": 0,
+      "group_row": 1
+    },
+    {
+      "token_idx": 2,
+      "top_k_slot": 0,
+      "expert_id": 0,
+      "group_row": 2
+    },
+    {
+      "token_idx": 3,
+      "top_k_slot": 0,
+      "expert_id": 0,
+      "group_row": 3
+    },
+    {
+      "token_idx": 4,
+      "top_k_slot": 0,
+      "expert_id": 0,
+      "group_row": 4
+    },
+    {
+      "token_idx": 5,
+      "top_k_slot": 0,
+      "expert_id": 0,
+      "group_row": 5
+    },
+    {
+      "token_idx": 6,
+      "top_k_slot": 0,
+      "expert_id": 0,
+      "group_row": 6
+    },
+    {
+      "token_idx": 7,
+      "top_k_slot": 0,
+      "expert_id": 0,
+      "group_row": 7
+    },
+    {
+      "token_idx": 8,
+      "top_k_slot": 0,
+      "expert_id": 0,
+      "group_row": 8
+    },
+    {
+      "token_idx": 9,
+      "top_k_slot": 0,
+      "expert_id": 0,
+      "group_row": 9
+    },
+    {
+      "token_idx": 10,
+      "top_k_slot": 0,
+      "expert_id": 0,
+      "group_row": 10
+    },
+    {
+      "token_idx": 11,
+      "top_k_slot": 0,
+      "expert_id": 0,
+      "group_row": 11
+    },
+    {
+      "token_idx": 12,
+      "top_k_slot": 0,
+      "expert_id": 0,
+      "group_row": 12
+    },
+    {
+      "token_idx": 13,
+      "top_k_slot": 0,
+      "expert_id": 0,
+      "group_row": 13
+    },
+    {
+      "token_idx": 14,
+      "top_k_slot": 0,
+      "expert_id": 0,
+      "group_row": 14
+    },
+    {
+      "token_idx": 15,
+      "top_k_slot": 0,
+      "expert_id": 0,
+      "group_row": 15
+    }
+  ],
+  "route_counts_observed": [
+    256,
+    256,
+    256,
+    256,
+    256,
+    256,
+    256,
+    256
+  ],
+  "cutlass_run": {
+    "build_result": {
+      "configure": {
+        "cmd": [
+          "cmake",
+          "-S",
+          "/root/autodl-tmp/src/cutlass",
+          "-B",
+          "/root/autodl-tmp/src/cutlass/build-r5c2c-sm120a-tools-on",
+          "-DCMAKE_BUILD_TYPE=Release",
+          "-DCMAKE_CUDA_COMPILER=/usr/local/cuda-12.8/bin/nvcc",
+          "-DPython3_EXECUTABLE=/root/miniconda3/bin/python",
+          "-DCUTLASS_NVCC_ARCHS=120a",
+          "-DCUTLASS_ENABLE_EXAMPLES=ON",
+          "-DCUTLASS_ENABLE_TESTS=OFF",
+          "-DCUTLASS_ENABLE_TOOLS=ON",
+          "-DCMAKE_CUDA_FLAGS=-I/root/autodl-tmp/src/cutlass/tools/util/include"
+        ],
+        "cwd": "/root/autodl-tmp/src/cutlass",
+        "ok": true,
+        "returncode": 0,
+        "stdout_tail": "-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- CUTLASS: Applying -mcmodel=medium for large library support (Linux x86_64, GNU)\n-- Configuring done\n-- Generating done\n-- Build files have been written to: /root/autodl-tmp/src/cutlass/build-r5c2c-sm120a-tools-on",
+        "stderr_tail": ""
+      },
+      "build": {
+        "cmd": [
+          "cmake",
+          "--build",
+          "/root/autodl-tmp/src/cutlass/build-r5c2c-sm120a-tools-on",
+          "--target",
+          "79d_blackwell_geforce_nvfp4_grouped_gemm",
+          "-j",
+          "8"
+        ],
+        "cwd": "/root/autodl-tmp/src/cutlass",
+        "ok": true,
+        "returncode": 0,
+        "stdout_tail": "Consolidate compiler generated dependencies of target 79d_blackwell_geforce_nvfp4_grouped_gemm\nBuilding CUDA object examples/79_blackwell_geforce_gemm/CMakeFiles/79d_blackwell_geforce_nvfp4_grouped_gemm.dir/79d_blackwell_geforce_nvfp4_grouped_gemm.cu.o\nLinking CUDA executable 79d_blackwell_geforce_nvfp4_grouped_gemm\nBuilt target 79d_blackwell_geforce_nvfp4_grouped_gemm",
+        "stderr_tail": ""
+      },
+      "atomic_scope_patch": {
+        "enabled": true,
+        "header": "/root/autodl-tmp/src/cutlass/include/cutlass/subbyte_reference.h",
+        "applied": true,
+        "already_patched": false,
+        "restored": true,
+        "error": null
+      }
+    },
+    "patch": {
+      "enabled": true,
+      "source": "/root/autodl-tmp/src/cutlass/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm.cu",
+      "applied": true,
+      "restored": true,
+      "error": null
+    },
+    "run_result": {
+      "cmd": [
+        "/root/autodl-tmp/src/cutlass/build-r5c2c-sm120a-tools-on/examples/79_blackwell_geforce_gemm/79d_blackwell_geforce_nvfp4_grouped_gemm",
+        "--benchmark=/root/autodl-tmp/src/lynn-engine-r5c2c-codex/reports/stage6/r5c3a_gateup_prefill_timing_smoke_20260604_203052/result.benchmark.txt",
+        "--iterations=20",
+        "--alpha=1",
+        "--beta=0",
+        "--norm_constant=1.0",
+        "--lynn_d_row_digest=/root/autodl-tmp/src/lynn-engine-r5c2c-codex/reports/stage6/r5c3a_gateup_prefill_timing_smoke_20260604_203052/result.d_row_digest.jsonl"
+      ],
+      "cwd": "/root/autodl-tmp/src/cutlass/build-r5c2c-sm120a-tools-on",
+      "ok": true,
+      "returncode": 0,
+      "stdout_tail": "Running kernel with Cooperative kernel schedule:\n  Problem Sizes, Alpha, Beta \n    (256,1024,2048), 1, 0\n    (256,1024,2048), 1, 0\n    (256,1024,2048), 1, 0\n    (256,1024,2048), 1, 0\n    (256,1024,2048), 1, 0\n    (256,1024,2048), 1, 0\n    (256,1024,2048), 1, 0\n    (256,1024,2048), 1, 0\n  Groups      : 8\n  Host-side verification is now running - may be very slow for large cases.\n  Disposition: Passed\n  Avg runtime : 0.0206432 ms\n  TFLOPS      : 416.114\nRunning kernel with Pingpong kernel schedule:\n  Problem Sizes, Alpha, Beta \n    (256,1024,2048), 1, 0\n    (256,1024,2048), 1, 0\n    (256,1024,2048), 1, 0\n    (256,1024,2048), 1, 0\n    (256,1024,2048), 1, 0\n    (256,1024,2048), 1, 0\n    (256,1024,2048), 1, 0\n    (256,1024,2048), 1, 0\n  Groups      : 8\n  Host-side verification is now running - may be very slow for large cases.\n  Disposition: Passed\n  Avg runtime : 0.02376 ms\n  TFLOPS      : 361.529",
+      "stderr_tail": ""
+    }
+  },
+  "run_parse": {
+    "cooperative_seen": true,
+    "pingpong_seen": true,
+    "host_reference_seen": true,
+    "disposition_passed_count": 2,
+    "no_noop_device_gate": true,
+    "avg_runtime_ms": [
+      0.0206432,
+      0.02376
+    ],
+    "tflops": [
+      416.114,
+      361.529
+    ]
+  },
+  "groups_seen": 8,
+  "scatter_schedules": {
+    "cooperative": {
+      "records": 2048,
+      "row_counts": [
+        256,
+        256,
+        256,
+        256,
+        256,
+        256,
+        256,
+        256
+      ],
+      "d_ref_row_digests_match": true,
+      "scatter_d_ref_match": true,
+      "fault_checks": {
+        "swapped_d_rows_detected": true,
+        "missing_d_row_rejected": true,
+        "duplicate_slot_rejected": true
+      },
+      "passes": {
+        "row_counts_match": true,
+        "d_ref_row_digests_match": true,
+        "scatter_d_ref_match": true,
+        "fault_injections_detected": true
+      }
+    },
+    "pingpong": {
+      "records": 2048,
+      "row_counts": [
+        256,
+        256,
+        256,
+        256,
+        256,
+        256,
+        256,
+        256
+      ],
+      "d_ref_row_digests_match": true,
+      "scatter_d_ref_match": true,
+      "fault_checks": {
+        "swapped_d_rows_detected": true,
+        "missing_d_row_rejected": true,
+        "duplicate_slot_rejected": true
+      },
+      "passes": {
+        "row_counts_match": true,
+        "d_ref_row_digests_match": true,
+        "scatter_d_ref_match": true,
+        "fault_injections_detected": true
+      }
+    }
+  },
+  "passes": {
+    "cutlass_dir_exists": true,
+    "example_79d_exists": true,
+    "binary_exists": true,
+    "build_invoked": true,
+    "build_succeeded": true,
+    "d_row_digest_patch_applied": true,
+    "d_row_digest_patch_restored": true,
+    "run_succeeded": true,
+    "no_noop_device_gate": true,
+    "cooperative_passed": true,
+    "pingpong_passed": true,
+    "host_reference_seen": true,
+    "dispositions_passed_count_ge_2": true,
+    "groups_seen_match_experts": true,
+    "route_tokens_match": true,
+    "tokens_per_expert_match": true,
+    "grouped_order_complete": true,
+    "digest_file_exists": true,
+    "schedules_captured": true,
+    "schedule_scatters_passed": true,
+    "banked_real_d_row_slot_scatter": true,
+    "banked_selected_output_kernel_epilogue": false,
+    "banked_swiglu_or_down_projection": false,
+    "banked_grouped_moe_fp4_mma_poc": false,
+    "banked_kernel_speed": false,
+    "banked_default_promotion": false,
+    "all": true
+  },
+  "promotion_boundary": {
+    "real_d_row_slot_scatter": true,
+    "selected_output_kernel_epilogue": false,
+    "swiglu_or_down_projection": false,
+    "grouped_moe_fp4_mma_poc": false,
+    "kernel_speed": false,
+    "default_runtime": false
+  },
+  "caveats": [
+    "This emits and scatters real CUTLASS D/ref row digests, not full D row tensors.",
+    "Output shape is [T, top_k, N_gateup]; SwiGLU and down projection are out of scope.",
+    "The selected-output scatter is host-side smoke evidence, not an in-epilogue CUDA kernel.",
+    "Runtime/TFLOPS are recorded for traceability only; R5-C2C does not bank speed."
+  ]
+}
