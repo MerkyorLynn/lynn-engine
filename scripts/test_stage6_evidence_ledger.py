@@ -68,6 +68,8 @@ def main() -> int:
         assert gates["p4b_runtime_bridge_preflight"]["decision"] == "PASS_P4B_RUNTIME_BRIDGE_FAILLOUD"
         assert gates["p4b_single_cta_numeric_preflight"]["status"] == "BANKED"
         assert gates["p4b_single_cta_numeric_preflight"]["decision"] == "PASS_P4B_SINGLE_CTA_NUMERIC_REFERENCE"
+        assert gates["p4b_single_cta_microbench"]["status"] == "BANKED"
+        assert gates["p4b_single_cta_microbench"]["decision"] == "PASS_P4B_SINGLE_CTA_MICROBENCH_RECORDED"
         assert gates["p4b_single_kernel_contract"]["status"] == "REFERENCE_IMPL_BANKED_SPEED_CLOSED"
         assert "P4 fused kernel banked | `false`" in text
         assert "TEST_BLOCKED_BY_SSH" in text

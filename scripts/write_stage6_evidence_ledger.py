@@ -354,6 +354,18 @@ def collect_gates() -> list[Gate]:
             ],
             "Use as correctness reference only; next gate needs byte-count profiler plus speed/RC evidence.",
         ),
+        _result_or_ready_gate(
+            "p4b_single_cta_microbench",
+            "P4B single-CTA reference microbench",
+            ["p4b_single_cta_microbench_"],
+            [
+                "reports/stage6/P4B_NATIVE_FUSED_SINGLE_KERNEL_CONTRACT_20260604.md",
+                "scripts/run_spark_stage6_p4b_single_cta_microbench.sh",
+                "scripts/spark_stage6_p4b_single_cta_microbench.py",
+                "scripts/summarize_stage6_p4b_single_cta_microbench.py",
+            ],
+            "Treat as an intentional speed anti-proof for single-CTA; next implementation must be multi-CTA/CUTLASS-style.",
+        ),
         _p4b_contract_gate(),
     ]
     return gates

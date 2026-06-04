@@ -20,6 +20,9 @@ RUNTIME_WRAPPER = ROOT / "scripts" / "run_spark_stage6_p4b_runtime_bridge_prefli
 SINGLE_CTA_PREFLIGHT = ROOT / "scripts" / "spark_stage6_p4b_single_cta_numeric_preflight.py"
 SINGLE_CTA_SUMMARIZER = ROOT / "scripts" / "summarize_stage6_p4b_single_cta_numeric_preflight.py"
 SINGLE_CTA_WRAPPER = ROOT / "scripts" / "run_spark_stage6_p4b_single_cta_numeric_preflight.sh"
+SINGLE_CTA_MICROBENCH = ROOT / "scripts" / "spark_stage6_p4b_single_cta_microbench.py"
+SINGLE_CTA_MICROBENCH_SUMMARIZER = ROOT / "scripts" / "summarize_stage6_p4b_single_cta_microbench.py"
+SINGLE_CTA_MICROBENCH_WRAPPER = ROOT / "scripts" / "run_spark_stage6_p4b_single_cta_microbench.sh"
 
 
 def _extract_cu_function(text: str, name: str) -> str:
@@ -74,6 +77,9 @@ def main() -> int:
     single_cta_preflight_text = SINGLE_CTA_PREFLIGHT.read_text(encoding="utf-8") if SINGLE_CTA_PREFLIGHT.exists() else ""
     single_cta_summarizer_text = SINGLE_CTA_SUMMARIZER.read_text(encoding="utf-8") if SINGLE_CTA_SUMMARIZER.exists() else ""
     single_cta_wrapper_text = SINGLE_CTA_WRAPPER.read_text(encoding="utf-8") if SINGLE_CTA_WRAPPER.exists() else ""
+    single_cta_microbench_text = SINGLE_CTA_MICROBENCH.read_text(encoding="utf-8") if SINGLE_CTA_MICROBENCH.exists() else ""
+    single_cta_microbench_summarizer_text = SINGLE_CTA_MICROBENCH_SUMMARIZER.read_text(encoding="utf-8") if SINGLE_CTA_MICROBENCH_SUMMARIZER.exists() else ""
+    single_cta_microbench_wrapper_text = SINGLE_CTA_MICROBENCH_WRAPPER.read_text(encoding="utf-8") if SINGLE_CTA_MICROBENCH_WRAPPER.exists() else ""
     cu_fn = _extract_cu_function(cu_text, "lynn_native_active_moe_fused_zero_shadow_single_kernel_contract")
     py_fn = _extract_py_function(py_text, "_active_moe_native_fused_zero_shadow_single_kernel_contract")
     fallback_set = _extract_active_moe_backend_fallback_set(py_text)
@@ -152,10 +158,14 @@ def main() -> int:
             "run_spark_stage6_p4b_single_kernel_preflight.sh",
             "run_spark_stage6_p4b_runtime_bridge_preflight.sh",
             "run_spark_stage6_p4b_single_cta_numeric_preflight.sh",
+            "run_spark_stage6_p4b_single_cta_microbench.sh",
             "PASS_SINGLE_KERNEL_FAILLOUD_CONTRACT",
             "PASS_P4B_RUNTIME_BRIDGE_FAILLOUD",
             "PASS_P4B_SINGLE_CTA_NUMERIC_REFERENCE",
+            "PASS_P4B_SINGLE_CTA_MICROBENCH_RECORDED",
             "LYNN_NATIVE_P4B_SINGLE_CTA_REFERENCE=1",
+            "39539.166us",
+            "0.007145x",
             "must not reuse the historical `active_moe_fused_atomic_scalar_kernel`",
             "No output scratch",
         ],
@@ -262,6 +272,40 @@ def main() -> int:
             "p4b_single_cta_numeric_preflight_",
             "spark_stage6_p4b_single_cta_numeric_preflight.py",
             "summarize_stage6_p4b_single_cta_numeric_preflight.py",
+        ],
+        failures,
+    )
+    _check_contains(
+        "P4B single-CTA microbench",
+        single_cta_microbench_text,
+        [
+            "PASS_P4B_SINGLE_CTA_MICROBENCH_RECORDED",
+            "banked_single_cta_microbench",
+            "banked_fused_kernel",
+            "candidate_vs_reference_speedup",
+            "measurement_only_reference_path",
+        ],
+        failures,
+    )
+    _check_contains(
+        "P4B single-CTA microbench summarizer",
+        single_cta_microbench_summarizer_text,
+        [
+            "PASS_P4B_SINGLE_CTA_MICROBENCH_RECORDED",
+            "measurement recorded; speed/default promotion still closed",
+            "fused-kernel speed boundary violated",
+            "P4B/P4A speedup",
+        ],
+        failures,
+    )
+    _check_contains(
+        "P4B single-CTA microbench wrapper",
+        single_cta_microbench_wrapper_text,
+        [
+            "LYNN_STAGE6_EXPECT_MANIFEST",
+            "p4b_single_cta_microbench_",
+            "spark_stage6_p4b_single_cta_microbench.py",
+            "summarize_stage6_p4b_single_cta_microbench.py",
         ],
         failures,
     )
