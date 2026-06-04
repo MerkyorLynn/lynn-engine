@@ -58,6 +58,10 @@ def main() -> int:
             "scripts/run_spark_stage6_p4c_runtime_bridge_preflight.sh",
             "PASS_P4C_ACTIVE_REUSE_RUNTIME_BRIDGE",
             "banked_p4c_active_reuse_runtime_bridge=true",
+            "scripts/run_spark_stage6_p4c_tile2_server_smoke.sh",
+            "PASS_P4C_TILE2_SERVER_SMOKE",
+            "banked_p4c_tile2_server_smoke=true",
+            "P4C native call delta **240**",
         ],
         failures,
     )

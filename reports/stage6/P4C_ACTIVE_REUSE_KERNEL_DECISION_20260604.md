@@ -30,6 +30,7 @@ active reuse.
 | P4C gate/up launch-shape sweep | Spark diagnostic `PASS_P4C_GATEUP_SHAPE_SWEEP_RECORDED`; baseline gate/up **151.69 us**, best shape `tile_inter=2, threads=128` **91.41 us**, **1.659x**, numeric ok | Banks actionable diagnostic only. Next low-risk candidate is replacing the P4C gate/up half with this launch shape, then rerunning P4C speed baseline. |
 | P4C gate/up shape full-path candidate | Spark microbench `PASS_P4C_GATEUP_SHAPE_CANDIDATE_RECORDED`; current P4C `tile_inter=8` **267.32 us**, candidate `tile_inter=2` **185.09 us**, **1.444x**, output/scratch exact | Banks opt-in speed candidate only. Next gate is resident-runner/server/RC with `LYNN_NATIVE_GATEUP_TILE_INTER=2`; default promotion remains closed. |
 | P4C tile=2 resident-runner preflight | Spark real-runner path `PASS_P4C_ACTIVE_REUSE_RUNTIME_BRIDGE`; `LYNN_NATIVE_GATEUP_TILE_INTER=2`, native call delta=1, recorded tile=2, candidate vs Triton `rel_l2=0.0/max_abs=0.0` | Banks opt-in route/numeric evidence on a real model layer. Next gate is server/RC quality; default promotion remains closed. |
+| P4C tile=2 OpenAI server smoke | Spark service path `PASS_P4C_TILE2_SERVER_SMOKE`; P4C native call delta **240**, **40** layers called, completion text-exact **2/2**, released shadows stay released, reload observed **23.25s** | Banks opt-in server smoke only. RC quality, sustained server TPS, fused speed, and default promotion remain closed. |
 
 ## Constraint
 
@@ -98,6 +99,7 @@ python3 scripts/test_stage6_p4c_active_reuse_microbench_tools.py
 python3 scripts/test_stage6_p4c_component_profile_tools.py
 python3 scripts/test_stage6_p4c_gateup_shape_sweep_tools.py
 python3 scripts/test_stage6_p4c_gateup_shape_candidate_tools.py
+python3 scripts/test_stage6_p4c_tile2_server_smoke_tools.py
 ```
 
 This static gate does not prove speed. It prevents the repo from forgetting the
@@ -228,10 +230,9 @@ Candidate output and active scratch are exact against the P4A candidate-tile
 reference (`rel_l2=0.0/max_abs=0.0`).
 
 This banks `banked_p4c_gateup_shape_candidate=true`, not fused-kernel speed or
-default promotion. The next gate should run the resident-runner/server path with
-`LYNN_NATIVE_GATEUP_TILE_INTER=2` and the existing
-`LYNN_NATIVE_ACTIVE_MOE_BACKEND=fused_zero_shadow_active_reuse_contract`, then
-rerun RC quality before any default decision.
+default promotion. The follow-up resident-runner and OpenAI server smoke gates
+now pass with `LYNN_NATIVE_GATEUP_TILE_INTER=2`; the next promotion gate is RC
+quality plus sustained server TPS before any default decision.
 
 ## Runnable Tile=2 Resident-Runner Preflight
 
@@ -257,3 +258,30 @@ call trace. Candidate vs Triton baseline is exact (`rel_l2=0.0/max_abs=0.0`).
 This confirms the tile=2 candidate is not just a synthetic microbench trick. It
 still banks only route/numeric evidence for the opt-in P4C path; server/RC
 quality and default promotion remain open gates.
+
+## Runnable Tile=2 OpenAI Server Smoke
+
+After syncing the branch to Spark, run:
+
+```bash
+scripts/run_spark_stage6_p4c_tile2_server_smoke.sh --host dgx-via-ssh --p4c-runtime-pass --gateup-tile-inter 2
+```
+
+Banked Spark artifact:
+
+```text
+reports/stage6/p4c_tile2_server_smoke_20260604_122443
+PASS_P4C_TILE2_SERVER_SMOKE
+```
+
+Measured result: the candidate OpenAI server ran
+`LYNN_NATIVE_ACTIVE_MOE_BACKEND=fused_zero_shadow_active_reuse_contract` with
+`LYNN_NATIVE_GATEUP_TILE_INTER=2` after prefill released the BF16 expert
+shadows. `/health` recorded P4C native call delta **240**, **40** layers with
+calls, recorded tile **2**, `inter_scratch=[1,8,512]`, `out=[1,2048]`,
+released shadows still released, and reload observed at **23.246s** for the
+second request. Baseline vs candidate completion text was exact **2/2**.
+
+This banks `banked_p4c_tile2_server_smoke=true` only. The prompt set is a tiny
+service smoke and produced short `<think>`-prefixed completions, so it is not a
+quality RC, not a sustained TPS gate, and not a default-promotion gate.

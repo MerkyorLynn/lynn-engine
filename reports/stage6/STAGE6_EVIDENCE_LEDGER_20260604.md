@@ -11,8 +11,8 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 
 | Field | Value |
 |---|---|
-| Status | `REACHABLE_VIA_DGX_VIA_SSH` |
-| Note | Spark reachable via dgx-via-ssh; P4C gate/up tile_inter=2 resident-runner preflight PASS (native call delta=1, rel_l2=0, max_abs=0). Default promotion still closed. |
+| Status | `REACHABLE` |
+| Note | Spark reachable via dgx-via-ssh; P4C tile_inter=2 OpenAI server smoke PASS clean run (40 layers called, delta=240, text exact 2/2, release/reload healthy). Default promotion still closed. |
 
 ## Promotion Boundaries
 
@@ -56,13 +56,14 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 | `p4c_component_profile` | **BANKED** `PASS_P4C_COMPONENT_PROFILE_RECORDED` | latest Spark result.json has passes.all=true | `reports/stage6/p4c_component_profile_20260604_105640` | Run on Spark; use the larger component to choose the first active-reuse speed candidate. |
 | `p4c_gateup_shape_sweep` | **BANKED** `PASS_P4C_GATEUP_SHAPE_SWEEP_RECORDED` | latest Spark result.json has passes.all=true | `reports/stage6/p4c_gateup_shape_sweep_20260604_111603` | Run on Spark; bank only launch-shape diagnostic evidence before writing a real gate/up CUDA/CUTLASS candidate. |
 | `p4c_gateup_shape_candidate` | **BANKED** `PASS_P4C_GATEUP_SHAPE_CANDIDATE_RECORDED` | latest Spark result.json has passes.all=true | `reports/stage6/p4c_gateup_shape_candidate_20260604_112635` | Run on Spark; compare current tile_inter=8 vs candidate tile_inter=2 on the full P4C active-reuse symbol. |
+| `p4c_tile2_server_smoke` | **BANKED** `PASS_P4C_TILE2_SERVER_SMOKE` | latest Spark result.json has passes.all=true | `reports/stage6/p4c_tile2_server_smoke_20260604_122443` | Run on Spark; bank opt-in server evidence for tile_inter=2 P4C decode after prefill releases shadows. |
 | `p4c_active_reuse_decision` | **DECISION_BANKED** | single-CTA and multi-CTA recompute anti-proofs are captured; next candidate must preserve active reuse | `reports/stage6/P4C_ACTIVE_REUSE_KERNEL_DECISION_20260604.md, scripts/test_stage6_p4c_active_reuse_decision_static.py` | Implement P4C active-reuse two-phase/CUTLASS-style candidate; do not report it as P4B out-only fused speed. |
 
 ## Counts
 
 | Status | Count |
 |---|---:|
-| `BANKED` | 19 |
+| `BANKED` | 20 |
 | `CLOSED_NEGATIVE` | 3 |
 | `DECISION_BANKED` | 1 |
 | `READY_WAITING_SPARK` | 7 |

@@ -1,10 +1,10 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T03:40:24+00:00",
-  "spark_status": "REACHABLE_VIA_DGX_VIA_SSH",
-  "spark_note": "Spark reachable via dgx-via-ssh; P4C gate/up tile_inter=2 resident-runner preflight PASS (native call delta=1, rel_l2=0, max_abs=0). Default promotion still closed.",
+  "generated_at_utc": "2026-06-04T04:36:00+00:00",
+  "spark_status": "REACHABLE",
+  "spark_note": "Spark reachable via dgx-via-ssh; P4C tile_inter=2 OpenAI server smoke PASS clean run (40 layers called, delta=240, text exact 2/2, release/reload healthy). Default promotion still closed.",
   "counts": {
-    "BANKED": 19,
+    "BANKED": 20,
     "CLOSED_NEGATIVE": 3,
     "READY_WAITING_SPARK": 7,
     "REFERENCE_IMPL_BANKED_SPEED_CLOSED": 1,
@@ -285,6 +285,15 @@
       "artifact": "reports/stage6/p4c_gateup_shape_candidate_20260604_112635",
       "next_step": "Run on Spark; compare current tile_inter=8 vs candidate tile_inter=2 on the full P4C active-reuse symbol.",
       "decision": "PASS_P4C_GATEUP_SHAPE_CANDIDATE_RECORDED"
+    },
+    {
+      "gate": "p4c_tile2_server_smoke",
+      "title": "P4C tile2 OpenAI server smoke",
+      "status": "BANKED",
+      "evidence": "latest Spark result.json has passes.all=true",
+      "artifact": "reports/stage6/p4c_tile2_server_smoke_20260604_122443",
+      "next_step": "Run on Spark; bank opt-in server evidence for tile_inter=2 P4C decode after prefill releases shadows.",
+      "decision": "PASS_P4C_TILE2_SERVER_SMOKE"
     },
     {
       "gate": "p4c_active_reuse_decision",
