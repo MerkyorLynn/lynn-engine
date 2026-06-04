@@ -173,11 +173,15 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
         "LYNN_NATIVE_ACTIVE_MOE_LAYERS": str(args.layer),
         "LYNN_NATIVE_GATEUP_BACKEND": "triton_fast_decode",
         "LYNN_NATIVE_DOWN_BACKEND": "triton",
+        "LYNN_NATIVE_GATEUP_TILE_INTER": str(args.gateup_tile_inter),
         "LYNN_NATIVE_CUDA_BUILD_DIR": os.environ.get(
             "LYNN_NATIVE_CUDA_BUILD_DIR",
             f"/tmp/lynn_engine_native_build/p4_runtime_bridge_{int(time.time())}",
         ),
     })
+    result["candidate_tile_config"] = {
+        "gateup_tile_inter": args.gateup_tile_inter,
+    }
     old = _set_env(env)
     try:
         runner = LynnIncrementalRunner(
@@ -300,6 +304,7 @@ def main() -> int:
     ap.add_argument("--layer", type=int, default=0)
     ap.add_argument("--prompt", default="Explain MoE active parameters in one sentence.")
     ap.add_argument("--max-seq-len", type=int, default=4096)
+    ap.add_argument("--gateup-tile-inter", type=int, default=8)
     ap.add_argument("--rel-l2-threshold", type=float, default=0.02)
     ap.add_argument("--max-abs-threshold", type=float, default=1.0)
     ap.add_argument("--strict-exit", action="store_true")

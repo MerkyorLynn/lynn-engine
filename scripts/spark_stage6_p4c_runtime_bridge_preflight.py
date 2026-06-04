@@ -58,6 +58,7 @@ def main() -> int:
     ap.add_argument("--layer", type=int, default=0)
     ap.add_argument("--prompt", default="Explain MoE active parameters in one sentence.")
     ap.add_argument("--max-seq-len", type=int, default=4096)
+    ap.add_argument("--gateup-tile-inter", type=int, default=8)
     ap.add_argument("--rel-l2-threshold", type=float, default=0.02)
     ap.add_argument("--max-abs-threshold", type=float, default=1.0)
     ap.add_argument("--strict-exit", action="store_true")

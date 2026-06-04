@@ -52,6 +52,9 @@ def _verdict(data: dict) -> tuple[str, str]:
 def summarize(data: dict) -> str:
     verdict, reason = _verdict(data)
     compat = _compat_for_p4_verdict(data)
+    tile_config = data.get("candidate_tile_config") or {}
+    native = data.get("native_backend_call_count") or {}
+    last_shapes = native.get("last_shapes") or {}
     md = _p4_summarize(compat)
     md = md.replace("# Stage 6 P4 Runtime Bridge Preflight Summary", "# Stage 6 P4C Active-Reuse Runtime Bridge Preflight Summary", 1)
     md = md.replace("PASS_TWO_STAGE_RUNTIME_BRIDGE", str(data.get("decision")), 1)
@@ -67,6 +70,8 @@ def summarize(data: dict) -> str:
         "",
         "## P4C Boundary",
         "",
+        f"- Candidate gate/up tile_inter: `{tile_config.get('gateup_tile_inter')}`.",
+        f"- Native call recorded gate/up tile_inter: `{last_shapes.get('gateup_tile_inter')}`.",
         "- This banks only `banked_p4c_active_reuse_runtime_bridge=true`.",
         "- It keeps `banked_fused_kernel=false` and `banked_default_promotion=false`.",
         "- It is **P4C**, not P4B: caller-owned `active[top_k,512]` scratch is allowed and must be reported.",
