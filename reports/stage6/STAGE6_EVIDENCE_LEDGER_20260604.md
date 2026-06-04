@@ -11,8 +11,8 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 
 | Field | Value |
 |---|---|
-| Status | `P2O_BASIC_BANKED_RC_MINI_TIMEOUT` |
-| Note | P2-O basic active-MoE no-reload packed-prefill smoke PASS: 3/3 generated-token exact, 88.16->28.18 GiB, reload calls 0. rc-mini max_seq_len=2048 was invalid; 8192 rerun was terminated after >17 min slow-mode opt-in without result, so rc-mini is not clean and must be rerun only after slow-mode acceleration or prompt splitting. P4C remains opt-in diagnostic only after rc-mini rejection and hidden/logit drift evidence. |
+| Status | `P2O_BASIC_AND_RCMINI_NONLONG_BANKED` |
+| Note | P2-O basic PASS and rc-mini non-long shard idx0-4 PASS: generated-token exact, 88.16->28.18 GiB, reload calls 0. Full rc-mini long-context remains not clean: 2048 max_seq_len invalid and 8192 full run timed out in slow-mode; long-context must rerun after slow-mode acceleration/chunking. P4C remains opt-in diagnostic only after rc-mini rejection and hidden/logit drift evidence. |
 
 ## Promotion Boundaries
 
@@ -38,6 +38,7 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 | `p2m_selected_layer_block_linear` | **BANKED** `passes.all=true` | latest result.json has passes.all=true | `reports/stage6/p2m_selected_layer_block_linear_20260604_030005` | Expand layer coverage before server RC. |
 | `p2n_wider_layer_block_linear` | **BANKED** `passes.all=true` | latest result.json has passes.all=true | `reports/stage6/p2n_wider_layer_block_linear_20260604_030926` | Next real proof is P2-O/P3 server-shaped RC. |
 | `p2o_basic_packed_prefill_rc` | **BANKED** `passes.all=true` | latest Spark result.json has passes.all=true | `reports/stage6/p2o_basic_packed_prefill_rc_smoke_20260604_132946` | Basic smoke is banked only as active-MoE no-reload correctness/memory evidence; do not treat the slow-mode prefill as a speed win. |
+| `p2o_rcmini_nonlong_packed_prefill_rc` | **BANKED** `passes.all=true` | latest Spark result.json has passes.all=true | `reports/stage6/p2o_rc-mini_idx0-4_packed_prefill_rc_smoke_20260604_141640` | Banks only the rc-mini 0-4 shard; long-context remains a separate slow-mode scale gate. |
 | `p2o_rcmini_packed_prefill_rc` | **TIMEOUT_NOT_CLEAN** `terminated_by_codex_timeout_after_17m_no_result` | latest Spark run was terminated after slow-mode opt-in produced no result.json | `reports/stage6/p2o_rc-mini_packed_prefill_rc_smoke_20260604_134826` | Rerun only after slow-mode prefill is accelerated or the rc-mini prompt set is split/chunked; the 2048 run was max_seq_len-invalid and the 8192 run timed out. |
 | `p3b_selected_prefill` | **READY_WAITING_SPARK** | tooling/runbook exists, but no Spark PASS artifact is banked | `reports/stage6/P3B_SELECTED_PREFILL_GATE_RUNBOOK_20260604.md, scripts/run_spark_stage6_p3b_selected_prefill_gate.sh` | Run after P2-O basic PASS plus P3-A predecessor evidence; keep rc-mini as a separate slow-mode scale gate. |
 | `p3c_resident_prompt` | **READY_WAITING_SPARK** | tooling/runbook exists, but no Spark PASS artifact is banked | `reports/stage6/P3C_RESIDENT_PROMPT_GATE_RUNBOOK_20260604.md, scripts/run_spark_stage6_p3c_resident_prompt_gate.sh` | Run after P3-B PASS. |
@@ -66,7 +67,7 @@ and gates that are wired but still waiting for Spark PASS/FAIL artifacts.
 
 | Status | Count |
 |---|---:|
-| `BANKED` | 21 |
+| `BANKED` | 22 |
 | `CLOSED_NEGATIVE` | 4 |
 | `DECISION_BANKED` | 1 |
 | `DIAGNOSTIC_BANKED` | 1 |

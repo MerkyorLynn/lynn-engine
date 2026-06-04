@@ -1,10 +1,10 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T06:09:26+00:00",
-  "spark_status": "P2O_BASIC_BANKED_RC_MINI_TIMEOUT",
-  "spark_note": "P2-O basic active-MoE no-reload packed-prefill smoke PASS: 3/3 generated-token exact, 88.16->28.18 GiB, reload calls 0. rc-mini max_seq_len=2048 was invalid; 8192 rerun was terminated after >17 min slow-mode opt-in without result, so rc-mini is not clean and must be rerun only after slow-mode acceleration or prompt splitting. P4C remains opt-in diagnostic only after rc-mini rejection and hidden/logit drift evidence.",
+  "generated_at_utc": "2026-06-04T06:30:58+00:00",
+  "spark_status": "P2O_BASIC_AND_RCMINI_NONLONG_BANKED",
+  "spark_note": "P2-O basic PASS and rc-mini non-long shard idx0-4 PASS: generated-token exact, 88.16->28.18 GiB, reload calls 0. Full rc-mini long-context remains not clean: 2048 max_seq_len invalid and 8192 full run timed out in slow-mode; long-context must rerun after slow-mode acceleration/chunking. P4C remains opt-in diagnostic only after rc-mini rejection and hidden/logit drift evidence.",
   "counts": {
-    "BANKED": 21,
+    "BANKED": 22,
     "CLOSED_NEGATIVE": 4,
     "TIMEOUT_NOT_CLEAN": 1,
     "READY_WAITING_SPARK": 6,
@@ -124,6 +124,15 @@
       "evidence": "latest Spark result.json has passes.all=true",
       "artifact": "reports/stage6/p2o_basic_packed_prefill_rc_smoke_20260604_132946",
       "next_step": "Basic smoke is banked only as active-MoE no-reload correctness/memory evidence; do not treat the slow-mode prefill as a speed win.",
+      "decision": "passes.all=true"
+    },
+    {
+      "gate": "p2o_rcmini_nonlong_packed_prefill_rc",
+      "title": "P2-O rc-mini non-long shard packed-prefill smoke",
+      "status": "BANKED",
+      "evidence": "latest Spark result.json has passes.all=true",
+      "artifact": "reports/stage6/p2o_rc-mini_idx0-4_packed_prefill_rc_smoke_20260604_141640",
+      "next_step": "Banks only the rc-mini 0-4 shard; long-context remains a separate slow-mode scale gate.",
       "decision": "passes.all=true"
     },
     {

@@ -1,0 +1,747 @@
+{
+  "schema": "lynn-stage6-p2o-packed-prefill-rc-smoke-v1",
+  "model": "/home/merkyor/models/Qwen3.6-35B-A3B-lynn-native-w4a16-nvfp4-from-bf16-20260526",
+  "preset": "rc-mini",
+  "source_prompt_count": 6,
+  "prompt_indices": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "partial_preset": true,
+  "max_new": 8,
+  "min_release_gib": 30.0,
+  "env": {
+    "canonical_effective": {
+      "LYNN_DECODE_OPROJ_NOCOPY": "1",
+      "LYNN_FULL_ATTN_FUSED": "1",
+      "LYNN_FULL_ATTN_ROPE_CACHE": "1",
+      "LYNN_LINEAR_ATTN_FUSE_GBETA": "1",
+      "LYNN_LINEAR_ATTN_GQA_RECURRENT": "1",
+      "LYNN_LINEAR_ATTN_INPROJ_FUSED_NATIVE_FP4": "1",
+      "LYNN_LINEAR_ATTN_RECURRENT_BACKEND": "triton_fused_prepare",
+      "LYNN_LINEAR_ATTN_RECURRENT_FROM_OUTCONV": "1",
+      "LYNN_LINEAR_ATTN_RECURRENT_INPLACE": "1",
+      "LYNN_LINEAR_STATE_UPDATE": "inplace",
+      "LYNN_MOE_DOWN_BLOCK_HIDDEN": "4",
+      "LYNN_MOE_FAST_FIXED": "1",
+      "LYNN_MOE_IMPL": "packed_nvfp4",
+      "LYNN_MTP_SHADOW_VERIFY": "0",
+      "LYNN_MTP_VERIFY": "0",
+      "LYNN_NATIVE_ACTIVE_MOE_BACKEND": "triton",
+      "LYNN_NATIVE_DOWN_BACKEND": "triton",
+      "LYNN_NATIVE_FP4_LM_HEAD": "1",
+      "LYNN_NATIVE_GATEUP_BACKEND": "triton_fast_decode",
+      "LYNN_NVFP4_BF16_OUT": "1",
+      "LYNN_PACKED_DECODE": "0",
+      "LYNN_PACKED_DECODE_BACKEND": "native_fast_2d",
+      "LYNN_PACKED_SHARED_EXPERT": "0",
+      "LYNN_QK_NORM_ROPE_BACKEND": "triton_pair",
+      "LYNN_RMSNORM_FUSED": "1",
+      "LYNN_RMSNORM_GATED_BACKEND": "triton",
+      "LYNN_ROUTER_TOPK_SORTED": "0",
+      "LYNN_SHARED_EXPERT_FUSED": "1",
+      "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"
+    },
+    "prefill_baseline": {
+      "LYNN_PACKED_PREFILL_SLOW": "0",
+      "LYNN_PACKED_PREFILL_SLOW_MODE": "p2e_hybrid",
+      "LYNN_PACKED_PREFILL_P2E_LAYERS": "all",
+      "LYNN_PACKED_PREFILL_P2E_BLOCK_T": "32",
+      "LYNN_PACKED_PREFILL_P2E_BLOCK_INTER": "8",
+      "LYNN_PACKED_PREFILL_P2E_BLOCK_HIDDEN": "128",
+      "LYNN_PACKED_PREFILL_P2E_NUM_WARPS": "4",
+      "LYNN_PACKED_PREFILL_P2E_DOWN_BLOCK_HIDDEN": "8",
+      "LYNN_PACKED_PREFILL_P2E_DOWN_BLOCK_INTER": "512",
+      "LYNN_PACKED_PREFILL_P2E_DOWN_NUM_WARPS": "8",
+      "LYNN_LINEAR_ATTN_PREFILL_BLOCK_GQA": "0"
+    },
+    "prefill_optin": {
+      "LYNN_PACKED_PREFILL_SLOW": "1",
+      "LYNN_PACKED_PREFILL_SLOW_MODE": "p2e_hybrid",
+      "LYNN_PACKED_PREFILL_P2E_LAYERS": "all",
+      "LYNN_PACKED_PREFILL_P2E_BLOCK_T": "32",
+      "LYNN_PACKED_PREFILL_P2E_BLOCK_INTER": "8",
+      "LYNN_PACKED_PREFILL_P2E_BLOCK_HIDDEN": "128",
+      "LYNN_PACKED_PREFILL_P2E_NUM_WARPS": "4",
+      "LYNN_PACKED_PREFILL_P2E_DOWN_BLOCK_HIDDEN": "8",
+      "LYNN_PACKED_PREFILL_P2E_DOWN_BLOCK_INTER": "512",
+      "LYNN_PACKED_PREFILL_P2E_DOWN_NUM_WARPS": "8",
+      "LYNN_LINEAR_ATTN_PREFILL_BLOCK_GQA": "1"
+    }
+  },
+  "memory": {
+    "loaded_gib": 88.16064643859863,
+    "after_release_gib": 28.177988052368164,
+    "drop_gib": 59.98265838623047,
+    "release": {
+      "released_tensors": 80,
+      "released_bytes": 64424509440,
+      "released_gib": 60.0,
+      "items": [
+        {
+          "layer": 0,
+          "key": "mlp.experts.gate_up_proj",
+          "bytes": 1073741824,
+          "reason": "packed_grouped_moe_gate_up"
+        },
+        {
+          "layer": 0,
+          "key": "mlp.experts.down_proj",
+          "bytes": 536870912,
+          "reason": "packed_grouped_moe_down"
+        },
+        {
+          "layer": 1,
+          "key": "mlp.experts.gate_up_proj",
+          "bytes": 1073741824,
+          "reason": "packed_grouped_moe_gate_up"
+        },
+        {
+          "layer": 1,
+          "key": "mlp.experts.down_proj",
+          "bytes": 536870912,
+          "reason": "packed_grouped_moe_down"
+        },
+        {
+          "layer": 2,
+          "key": "mlp.experts.gate_up_proj",
+          "bytes": 1073741824,
+          "reason": "packed_grouped_moe_gate_up"
+        },
+        {
+          "layer": 2,
+          "key": "mlp.experts.down_proj",
+          "bytes": 536870912,
+          "reason": "packed_grouped_moe_down"
+        },
+        {
+          "layer": 3,
+          "key": "mlp.experts.gate_up_proj",
+          "bytes": 1073741824,
+          "reason": "packed_grouped_moe_gate_up"
+        },
+        {
+          "layer": 3,
+          "key": "mlp.experts.down_proj",
+          "bytes": 536870912,
+          "reason": "packed_grouped_moe_down"
+        },
+        {
+          "layer": 4,
+          "key": "mlp.experts.gate_up_proj",
+          "bytes": 1073741824,
+          "reason": "packed_grouped_moe_gate_up"
+        },
+        {
+          "layer": 4,
+          "key": "mlp.experts.down_proj",
+          "bytes": 536870912,
+          "reason": "packed_grouped_moe_down"
+        },
+        {
+          "layer": 5,
+          "key": "mlp.experts.gate_up_proj",
+          "bytes": 1073741824,
+          "reason": "packed_grouped_moe_gate_up"
+        },
+        {
+          "layer": 5,
+          "key": "mlp.experts.down_proj",
+          "bytes": 536870912,
+          "reason": "packed_grouped_moe_down"
+        },
+        {
+          "layer": 6,
+          "key": "mlp.experts.gate_up_proj",
+          "bytes": 1073741824,
+          "reason": "packed_grouped_moe_gate_up"
+        },
+        {
+          "layer": 6,
+          "key": "mlp.experts.down_proj",
+          "bytes": 536870912,
+          "reason": "packed_grouped_moe_down"
+        },
+        {
+          "layer": 7,
+          "key": "mlp.experts.gate_up_proj",
+          "bytes": 1073741824,
+          "reason": "packed_grouped_moe_gate_up"
+        },
+        {
+          "layer": 7,
+          "key": "mlp.experts.down_proj",
+          "bytes": 536870912,
+          "reason": "packed_grouped_moe_down"
+        },
+        {
+          "layer": 8,
+          "key": "mlp.experts.gate_up_proj",
+          "bytes": 1073741824,
+          "reason": "packed_grouped_moe_gate_up"
+        },
+        {
+          "layer": 8,
+          "key": "mlp.experts.down_proj",
+          "bytes": 536870912,
+          "reason": "packed_grouped_moe_down"
+        },
+        {
+          "layer": 9,
+          "key": "mlp.experts.gate_up_proj",
+          "bytes": 1073741824,
+          "reason": "packed_grouped_moe_gate_up"
+        },
+        {
+          "layer": 9,
+          "key": "mlp.experts.down_proj",
+          "bytes": 536870912,
+          "reason": "packed_grouped_moe_down"
+        },
+        {
+          "layer": 10,
+          "key": "mlp.experts.gate_up_proj",
+          "bytes": 1073741824,
+          "reason": "packed_grouped_moe_gate_up"
+        },
+        {
+          "layer": 10,
+          "key": "mlp.experts.down_proj",
+          "bytes": 536870912,
+          "reason": "packed_grouped_moe_down"
+        },
+        {
+          "layer": 11,
+          "key": "mlp.experts.gate_up_proj",
+          "bytes": 1073741824,
+          "reason": "packed_grouped_moe_gate_up"
+        },
+        {
+          "layer": 11,
+          "key": "mlp.experts.down_proj",
+          "bytes": 536870912,
+          "reason": "packed_grouped_moe_down"
+        },
+        {
+          "layer": 12,
+          "key": "mlp.experts.gate_up_proj",
+          "bytes": 1073741824,
+          "reason": "packed_grouped_moe_gate_up"
+        },
+        {
+          "layer": 12,
+          "key": "mlp.experts.down_proj",
+          "bytes": 536870912,
+          "reason": "packed_grouped_moe_down"
+        },
+        {
+          "layer": 13,
+          "key": "mlp.experts.gate_up_proj",
+          "bytes": 1073741824,
+          "reason": "packed_grouped_moe_gate_up"
+        },
+        {
+          "layer": 13,
+          "key": "mlp.experts.down_proj",
+          "bytes": 536870912,
+          "reason": "packed_grouped_moe_down"
+        },
+        {
+          "layer": 14,
+          "key": "mlp.experts.gate_up_proj",
+          "bytes": 1073741824,
+          "reason": "packed_grouped_moe_gate_up"
+        },
+        {
+          "layer": 14,
+          "key": "mlp.experts.down_proj",
+          "bytes": 536870912,
+          "reason": "packed_grouped_moe_down"
+        },
+        {
+          "layer": 15,
+          "key": "mlp.experts.gate_up_proj",
+          "bytes": 1073741824,
+          "reason": "packed_grouped_moe_gate_up"
+        },
+        {
+          "layer": 15,
+          "key": "mlp.experts.down_proj",
+          "bytes": 536870912,
+          "reason": "packed_grouped_moe_down"
+        },
+        {
+          "layer": 16,
+          "key": "mlp.experts.gate_up_proj",
+          "bytes": 1073741824,
+          "reason": "packed_grouped_moe_gate_up"
+        },
+        {
+          "layer": 16,
+          "key": "mlp.experts.down_proj",
+          "bytes": 536870912,
+          "reason": "packed_grouped_moe_down"
+        },
+        {
+          "layer": 17,
+          "key": "mlp.experts.gate_up_proj",
+          "bytes": 1073741824,
+          "reason": "packed_grouped_moe_gate_up"
+        },
+        {
+          "layer": 17,
+          "key": "mlp.experts.down_proj",
+          "bytes": 536870912,
+          "reason": "packed_grouped_moe_down"
+        },
+        {
+          "layer": 18,
+          "key": "mlp.experts.gate_up_proj",
+          "bytes": 1073741824,
+          "reason": "packed_grouped_moe_gate_up"
+        },
+        {
+          "layer": 18,
+          "key": "mlp.experts.down_proj",
+          "bytes": 536870912,
+          "reason": "packed_grouped_moe_down"
+        },
+        {
+          "layer": 19,
+          "key": "mlp.experts.gate_up_proj",
+          "bytes": 1073741824,
+          "reason": "packed_grouped_moe_gate_up"
+        },
+        {
+          "layer": 19,
+          "key": "mlp.experts.down_proj",
+          "bytes": 536870912,
+          "reason": "packed_grouped_moe_down"
+        },
+        {
+          "layer": 20,
+          "key": "mlp.experts.gate_up_proj",
+          "bytes": 1073741824,
+          "reason": "packed_grouped_moe_gate_up"
+        },
+        {
+          "layer": 20,
+          "key": "mlp.experts.down_proj",
+          "bytes": 536870912,
+          "reason": "packed_grouped_moe_down"
+        },
+        {
+          "layer": 21,
+          "key": "mlp.experts.gate_up_proj",
+          "bytes": 1073741824,
+          "reason": "packed_grouped_moe_gate_up"
+        },
+        {
+          "layer": 21,
+          "key": "mlp.experts.down_proj",
+          "bytes": 536870912,
+          "reason": "packed_grouped_moe_down"
+        },
+        {
+          "layer": 22,
+          "key": "mlp.experts.gate_up_proj",
+          "bytes": 1073741824,
+          "reason": "packed_grouped_moe_gate_up"
+        },
+        {
+          "layer": 22,
+          "key": "mlp.experts.down_proj",
+          "bytes": 536870912,
+          "reason": "packed_grouped_moe_down"
+        },
+        {
+          "layer": 23,
+          "key": "mlp.experts.gate_up_proj",
+          "bytes": 1073741824,
+          "reason": "packed_grouped_moe_gate_up"
+        },
+        {
+          "layer": 23,
+          "key": "mlp.experts.down_proj",
+          "bytes": 536870912,
+          "reason": "packed_grouped_moe_down"
+        },
+        {
+          "layer": 24,
+          "key": "mlp.experts.gate_up_proj",
+          "bytes": 1073741824,
+          "reason": "packed_grouped_moe_gate_up"
+        },
+        {
+          "layer": 24,
+          "key": "mlp.experts.down_proj",
+          "bytes": 536870912,
+          "reason": "packed_grouped_moe_down"
+        }
+      ],
+      "truncated_items": 30
+    }
+  },
+  "baseline": [
+    {
+      "index": 0,
+      "prompt": "Answer exactly and briefly: 17 + 25 = ?",
+      "new_ids": [
+        19,
+        17,
+        248046
+      ],
+      "completion_text": "42",
+      "completion_text_raw": "42<|im_end|>",
+      "stopped_reason": "stop_token",
+      "prefill_seconds": 2.315577983856201,
+      "decode_tps": 1.2286717933778102,
+      "elapsed_seconds": 3.9613840579986572,
+      "degenerate": false
+    },
+    {
+      "index": 1,
+      "prompt": "Return compact JSON only with keys tool and arguments for a weather lookup in Shanghai.",
+      "new_ids": [
+        90,
+        198,
+        220,
+        328,
+        13766,
+        763,
+        328,
+        14764
+      ],
+      "completion_text": "{\n  \"tool\": \"weather",
+      "completion_text_raw": "{\n  \"tool\": \"weather",
+      "stopped_reason": "max_new",
+      "prefill_seconds": 0.5021898746490479,
+      "decode_tps": 43.8143509281409,
+      "elapsed_seconds": 0.6629376411437988,
+      "degenerate": false
+    },
+    {
+      "index": 2,
+      "prompt": "Write a tiny Python function named add_one that returns x + 1.",
+      "new_ids": [
+        71093,
+        12305,
+        198,
+        727,
+        884,
+        11331,
+        2007,
+        1590
+      ],
+      "completion_text": "```python\ndef add_one(x):",
+      "completion_text_raw": "```python\ndef add_one(x):",
+      "stopped_reason": "max_new",
+      "prefill_seconds": 0.49799013137817383,
+      "decode_tps": 44.05484023437793,
+      "elapsed_seconds": 0.6576724052429199,
+      "degenerate": false
+    },
+    {
+      "index": 3,
+      "prompt": "\u7528\u4e00\u53e5\u4e2d\u6587\u89e3\u91ca\u4e3a\u4ec0\u4e48\u6c34\u4f1a\u7ed3\u51b0\u3002",
+      "new_ids": [
+        96129,
+        119348,
+        114174,
+        97260,
+        95952,
+        9616,
+        15,
+        29922
+      ],
+      "completion_text": "\u5f53\u6c34\u6e29\u964d\u81f3\u51b0\u70b9\uff080\u00b0C",
+      "completion_text_raw": "\u5f53\u6c34\u6e29\u964d\u81f3\u51b0\u70b9\uff080\u00b0C",
+      "stopped_reason": "max_new",
+      "prefill_seconds": 0.4512782096862793,
+      "decode_tps": 44.15189629763301,
+      "elapsed_seconds": 0.6105480194091797,
+      "degenerate": false
+    },
+    {
+      "index": 4,
+      "prompt": "V9 prompt-format smoke: reply with exactly two bullet points about Lynn engine.",
+      "new_ids": [
+        9,
+        256,
+        561,
+        328,
+        43,
+        56301,
+        4560,
+        1
+      ],
+      "completion_text": "*   The \"Lynn engine\"",
+      "completion_text_raw": "*   The \"Lynn engine\"",
+      "stopped_reason": "max_new",
+      "prefill_seconds": 0.5158987045288086,
+      "decode_tps": 43.96577991748965,
+      "elapsed_seconds": 0.6758570671081543,
+      "degenerate": false
+    }
+  ],
+  "optin_no_reload": [
+    {
+      "index": 0,
+      "prompt": "Answer exactly and briefly: 17 + 25 = ?",
+      "new_ids": [
+        19,
+        17,
+        248046
+      ],
+      "completion_text": "42",
+      "completion_text_raw": "42<|im_end|>",
+      "stopped_reason": "stop_token",
+      "prefill_seconds": 298.2424807548523,
+      "decode_tps": 42.932417562733185,
+      "elapsed_seconds": 298.29038286209106,
+      "degenerate": false
+    },
+    {
+      "index": 1,
+      "prompt": "Return compact JSON only with keys tool and arguments for a weather lookup in Shanghai.",
+      "new_ids": [
+        90,
+        198,
+        220,
+        328,
+        13766,
+        763,
+        328,
+        14764
+      ],
+      "completion_text": "{\n  \"tool\": \"weather",
+      "completion_text_raw": "{\n  \"tool\": \"weather",
+      "stopped_reason": "max_new",
+      "prefill_seconds": 105.7326111793518,
+      "decode_tps": 43.33188894333229,
+      "elapsed_seconds": 105.89530158042908,
+      "degenerate": false
+    },
+    {
+      "index": 2,
+      "prompt": "Write a tiny Python function named add_one that returns x + 1.",
+      "new_ids": [
+        71093,
+        12305,
+        198,
+        727,
+        884,
+        11331,
+        2007,
+        1590
+      ],
+      "completion_text": "```python\ndef add_one(x):",
+      "completion_text_raw": "```python\ndef add_one(x):",
+      "stopped_reason": "max_new",
+      "prefill_seconds": 61.042118072509766,
+      "decode_tps": 43.37606112806815,
+      "elapsed_seconds": 61.204671144485474,
+      "degenerate": false
+    },
+    {
+      "index": 3,
+      "prompt": "\u7528\u4e00\u53e5\u4e2d\u6587\u89e3\u91ca\u4e3a\u4ec0\u4e48\u6c34\u4f1a\u7ed3\u51b0\u3002",
+      "new_ids": [
+        96129,
+        119348,
+        114174,
+        97260,
+        95952,
+        9616,
+        15,
+        29922
+      ],
+      "completion_text": "\u5f53\u6c34\u6e29\u964d\u81f3\u51b0\u70b9\uff080\u00b0C",
+      "completion_text_raw": "\u5f53\u6c34\u6e29\u964d\u81f3\u51b0\u70b9\uff080\u00b0C",
+      "stopped_reason": "max_new",
+      "prefill_seconds": 36.23018527030945,
+      "decode_tps": 43.633981449694076,
+      "elapsed_seconds": 36.39166331291199,
+      "degenerate": false
+    },
+    {
+      "index": 4,
+      "prompt": "V9 prompt-format smoke: reply with exactly two bullet points about Lynn engine.",
+      "new_ids": [
+        9,
+        256,
+        561,
+        328,
+        43,
+        56301,
+        4560,
+        1
+      ],
+      "completion_text": "*   The \"Lynn engine\"",
+      "completion_text_raw": "*   The \"Lynn engine\"",
+      "stopped_reason": "max_new",
+      "prefill_seconds": 41.56142330169678,
+      "decode_tps": 43.36247980315647,
+      "elapsed_seconds": 41.72388553619385,
+      "degenerate": false
+    }
+  ],
+  "comparisons": [
+    {
+      "index": 0,
+      "token_exact": true,
+      "token_prefix_match": 3,
+      "token_prefix_n": 3,
+      "text_prefix_200_match": true,
+      "baseline_ids": [
+        19,
+        17,
+        248046
+      ],
+      "optin_ids": [
+        19,
+        17,
+        248046
+      ],
+      "baseline_text": "42",
+      "optin_text": "42"
+    },
+    {
+      "index": 1,
+      "token_exact": true,
+      "token_prefix_match": 8,
+      "token_prefix_n": 8,
+      "text_prefix_200_match": true,
+      "baseline_ids": [
+        90,
+        198,
+        220,
+        328,
+        13766,
+        763,
+        328,
+        14764
+      ],
+      "optin_ids": [
+        90,
+        198,
+        220,
+        328,
+        13766,
+        763,
+        328,
+        14764
+      ],
+      "baseline_text": "{\n  \"tool\": \"weather",
+      "optin_text": "{\n  \"tool\": \"weather"
+    },
+    {
+      "index": 2,
+      "token_exact": true,
+      "token_prefix_match": 8,
+      "token_prefix_n": 8,
+      "text_prefix_200_match": true,
+      "baseline_ids": [
+        71093,
+        12305,
+        198,
+        727,
+        884,
+        11331,
+        2007,
+        1590
+      ],
+      "optin_ids": [
+        71093,
+        12305,
+        198,
+        727,
+        884,
+        11331,
+        2007,
+        1590
+      ],
+      "baseline_text": "```python\ndef add_one(x):",
+      "optin_text": "```python\ndef add_one(x):"
+    },
+    {
+      "index": 3,
+      "token_exact": true,
+      "token_prefix_match": 8,
+      "token_prefix_n": 8,
+      "text_prefix_200_match": true,
+      "baseline_ids": [
+        96129,
+        119348,
+        114174,
+        97260,
+        95952,
+        9616,
+        15,
+        29922
+      ],
+      "optin_ids": [
+        96129,
+        119348,
+        114174,
+        97260,
+        95952,
+        9616,
+        15,
+        29922
+      ],
+      "baseline_text": "\u5f53\u6c34\u6e29\u964d\u81f3\u51b0\u70b9\uff080\u00b0C",
+      "optin_text": "\u5f53\u6c34\u6e29\u964d\u81f3\u51b0\u70b9\uff080\u00b0C"
+    },
+    {
+      "index": 4,
+      "token_exact": true,
+      "token_prefix_match": 8,
+      "token_prefix_n": 8,
+      "text_prefix_200_match": true,
+      "baseline_ids": [
+        9,
+        256,
+        561,
+        328,
+        43,
+        56301,
+        4560,
+        1
+      ],
+      "optin_ids": [
+        9,
+        256,
+        561,
+        328,
+        43,
+        56301,
+        4560,
+        1
+      ],
+      "baseline_text": "*   The \"Lynn engine\"",
+      "optin_text": "*   The \"Lynn engine\""
+    }
+  ],
+  "passes": {
+    "prompt_count": true,
+    "functional_non_degenerate": true,
+    "generated_token_exact": true,
+    "token_exact": true,
+    "text_prefix_200_match": true,
+    "release_meaningful": true,
+    "memory_drop_meaningful": true,
+    "reload_not_called": true,
+    "all": true
+  },
+  "reload_calls": [],
+  "notes": [
+    "This releases only active MoE BF16 expert shadows; projection shadows remain resident.",
+    "The gate is a real-prompt resident-runner smoke, not a full RC quality battery.",
+    "Token-exact means generated new_ids match on this smoke prompt set; it is not a logits/hidden-state/full-RC proof.",
+    "Default path remains unchanged when opt-in flags are unset."
+  ]
+}
