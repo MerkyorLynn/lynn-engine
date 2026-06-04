@@ -3,10 +3,16 @@
 from __future__ import annotations
 
 import json
+import importlib.util
 from pathlib import Path
 import subprocess
 import sys
 import tempfile
+
+try:
+    import torch
+except ModuleNotFoundError:  # GPU-free CI can run without PyTorch installed.
+    torch = None
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -51,6 +57,15 @@ def _fixture(promoted: bool = False) -> dict:
             }
         ],
     }
+
+
+def _load_bench_module():
+    spec = importlib.util.spec_from_file_location("r5a_stage6_per16_layout_bridge", BENCH)
+    if spec is None or spec.loader is None:
+        raise AssertionError("failed to load R5-A benchmark module spec")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def main() -> int:
@@ -114,6 +129,21 @@ def main() -> int:
         )
         if fail.returncode == 0:
             failures.append("summary strict bad fixture unexpectedly passed")
+
+    if torch is not None:
+        bench = _load_bench_module()
+        e8m0 = bench._to_e8m0_bytes(torch.tensor([0.0, 1.0, 2.0, 4.0], dtype=torch.float32))
+        if not torch.isfinite(e8m0.float()).all():
+            failures.append("_to_e8m0_bytes produced non-finite output for finite input")
+        packed = torch.arange(8, dtype=torch.uint8).reshape(1, 8)
+        expanded = bench._expand_packed_per16_to_group32(packed)
+        if tuple(expanded.shape) != (1, 16) or not torch.equal(expanded[:, :8], packed) or expanded[:, 8:].sum().item() != 0:
+            failures.append("_expand_packed_per16_to_group32 did not preserve one 8-byte per-16 group with zero padding")
+        try:
+            bench._dequant_codes(torch.zeros((1, 32), dtype=torch.uint8), torch.ones((1, 1), dtype=torch.float32))
+            failures.append("_dequant_codes accepted mismatched scale16 groups")
+        except ValueError:
+            pass
 
     if failures:
         print("Stage 6 R5-A layout bridge tooling self-test FAILED")
