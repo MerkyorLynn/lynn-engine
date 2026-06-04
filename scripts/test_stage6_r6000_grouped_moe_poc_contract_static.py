@@ -16,7 +16,8 @@ CHECKS = {
     DOC: [
         "contract only; no Lynn kernel, runtime default, or speed claim",
         "PASS_R6000_FP4_MMA_BRINGUP",
-        "AutoDL host 727 / RTX PRO 6000 96GB",
+        "RTX PRO 6000 96GB",
+        "omit rental host IDs",
         "Spark owns 35B serving/memory/MTP/compiled-loop ROI",
         "R6000 owns native FP4-MMA/CUTLASS/CuTe grouped-kernel evidence",
         "Lynn resident NVFP4",
@@ -52,7 +53,7 @@ CHECKS = {
     ],
     RUNBOOK: [
         "Banked Artifact",
-        "AutoDL 727",
+        "Redacted rental R6000 host",
         "P76/P79/P85/P87/P103 all pass",
         "does not promote a",
     ],
