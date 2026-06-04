@@ -15,7 +15,7 @@
 | **Native zero-shadow MoE** | P4B numeric reference is exact, but single-CTA and active recompute were rejected by microbench; P4C active-reuse bridge/profile/tile2 basic server smoke are banked, but **rc-mini agreement is rejected**: completion exact **3/6**, chat exact **2/2**, no RC/default promotion. |
 | **Current bottleneck** | P4C profile pins gate/up at **151.67us (63.8%)**; shape sweep and full-path microbench show local positive signals, but wider server quality is not equivalent. Shadow-cycle first-divergence: arithmetic prompt keeps top-1 for 8 steps, but hidden/logit drift starts at step0/layer13 and candidate step1 margin compresses to **0.046875**. |
 | **Decode hot-loop ROI** | GPU-idle probe banked: N/2N delta estimates GPU busy **0.753**, host-gap **0.247**, CUDA launches/token **1969.0**, runner TPS **41.36/42.19**; ROI=`BORDERLINE_REMEASURE_OR_NSIGHT`, so compiled-loop deserves a small prototype/Nsight pass, not immediate month-scale runtime work. |
-| **R6000 / FP4-MMA** | Census is banked:**AutoDL host 727 / RTX PRO 6000 96GB / 880GiB data workspace** PASS, CUDA capability `[12,0]`, vLLM source candidates **200**, and P76/P79/P85/P87/P103 native FP4 contracts all pass. The route is still not tied to a fixed host ID; rerun the same gate on any replacement R6000 before starting a grouped-MoE FP4-MMA POC. |
+| **R6000 / FP4-MMA** | Census is banked:**RTX PRO 6000 96GB / 880GiB data workspace** PASS, CUDA capability `[12,0]`, vLLM source candidates **200**, and P76/P79/P85/P87/P103 native FP4 contracts all pass. The route is not tied to a rental host ID; rerun the same gate on any replacement R6000 before starting a grouped-MoE FP4-MMA POC. |
 | **Runtime opt-in** | `LYNN_NATIVE_GATEUP_TILE_INTER=2` remains opt-in diagnostic/basic-smoke only: P4C call delta **240**, 40 layers called, completion text-exact **2/2**, release/reload healthy. Next step is a **P4C hard go/no-go**, not wider RC. |
 
 **Honest boundary:** Spark sm_121 currently delivers **~44-45 TPS** decode; the 60 GiB shadow drop is a **serving-memory/product win**, not a speed lever; P4C only banks route/numeric/profile/basic-smoke, **not fused speed/default promotion**. Speed work now shifts to two concrete levers: **MTP eager-runtime overhead / token-exact batched verify**, and moving the decode hot loop out of Python into a compiled/C++ service loop to reduce **per-launch host dispatch**; but the first GPU-idle probe is **borderline** (24.7% host gap), so the next step is Nsight/a small prototype rather than immediate month-scale rewrite. Reusable decode CUDA graph is already measured **0.75× net-negative** and closed, not the current route. Python stays as the control/verification plane; catching llama.cpp requires native runtime + kernels, with the full payoff on FP4-MMA silicon.
@@ -30,7 +30,7 @@
 | **B. no-reload prefill** | Extend 28 GiB serving to multi-request without per-request reload | P2-O basic + rc-mini non-long shard PASS; full rc-mini long-context still needs slow-mode acceleration/chunking before rerun |
 | **C. MTP runtime** | Turn the 76-97% accept signal into real TPS by removing eager overhead | Highest-ROI near-term speed line: snapshot/restore, batched verify, dispatch/sync |
 | **D. compiled/C++ hot loop** | Reduce per-launch host/Python dispatch, not CUDA graph | First GPU-idle probe: **24.7%** host gap, ROI borderline; run Nsight/prototype before deep investment |
-| **E. native kernels / FP4-MMA** | Grouped CUDA C++/CUTLASS kernels plus FP4-MMA silicon payoff | R6000 census gate is banked (host 727 PASS); next is a grouped-MoE FP4-MMA POC starting from CUTLASS/CuTe plus the public Marlin/Machete census |
+| **E. native kernels / FP4-MMA** | Grouped CUDA C++/CUTLASS kernels plus FP4-MMA silicon payoff | R6000 census gate is banked; next is a grouped-MoE FP4-MMA POC starting from CUTLASS/CuTe plus the public Marlin/Machete census |
 
 > **🆕 2026-06-03 Decode kernel-launch campaign — Spark NVFP4 35B-A3B single-stream 38.96 → ~45 TPS, RC quality-identical.**
 > Decode is launch-bound (census: **~1527 CUDA launches/token**, ~40% of token time is CPU-side dispatch). We fused launch clusters + elided copies: **fused RMSNorm (biggest) / shared-expert / linear-attn g/beta-fold / full-attn (token-exact) / NVFP4 `_scaled_mm` bf16-out copy-elision** — **5 RC-validated launch-cuts**, with **40/40 greedy outputs bit-identical to baseline** across structured/V9/GPQA/tool-call/long-form, inheriting **MMLU 84.40 / GPQA-Diamond 49.49**. All gated, default-safe, reversible.
@@ -755,8 +755,8 @@ In writing Lynn engine we collected the parts of Qwen 3.6 35B-A3B that **diverge
 
 ## R6000 / FP4-MMA Bring-Up
 
-The current route is not tied to a fixed AutoDL host ID. This run has banked a
-PASS artifact on **AutoDL host 727 / RTX PRO 6000 96GB / 880GiB data workspace**:
+The current route is not tied to a rental host ID. This run has banked a
+PASS artifact on **RTX PRO 6000 96GB / 880GiB data workspace**:
 [R6000 FP4-MMA PASS census](reports/stage6/r6000_fp4_mma_census_20260604_164457/summary.md).
 The R5-A layout bridge is also banked on the R6000 lane:
 [R5-A layout bridge PASS](reports/stage6/r5a_layout_bridge_20260604_172706/summary.md).

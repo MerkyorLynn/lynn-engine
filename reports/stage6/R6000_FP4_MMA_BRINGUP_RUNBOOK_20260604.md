@@ -11,7 +11,7 @@ The first clean R6000 census is banked here:
 | Field | Value |
 |---|---|
 | Artifact | [r6000_fp4_mma_census_20260604_164457](r6000_fp4_mma_census_20260604_164457/summary.md) |
-| Host | AutoDL 727 |
+| Host | Redacted rental R6000 host |
 | Device | `NVIDIA RTX PRO 6000 Blackwell Server Edition` |
 | CUDA capability | `[12, 0]` |
 | Visible memory | `94.973 GiB` |
@@ -26,7 +26,7 @@ Lynn kernel, runtime default, or speed claim.
 ## Machine Choice
 
 Use any available RTX PRO 6000 96GB host with the largest disk headroom.
-Do not bind the route to a fixed AutoDL host ID; inventory changes quickly.
+Do not bind the route to a rental host ID; inventory changes quickly.
 
 | Choice | Decision | Reason |
 |---|---|---|
