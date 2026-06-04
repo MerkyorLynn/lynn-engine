@@ -1,12 +1,13 @@
 {
   "schema": "lynn-stage6-evidence-ledger-v1",
-  "generated_at_utc": "2026-06-04T05:24:27+00:00",
-  "spark_status": "SPARK_P4C_GO_NOGO_DIAGNOSTIC_CAPTURED",
-  "spark_note": "P4C tile2 basic server smoke banked; rc-mini agreement rejected; shadow-cycle first-divergence kept arithmetic top-1 for 8 steps but showed hidden/logit drift, so P4C remains opt-in diagnostic only.",
+  "generated_at_utc": "2026-06-04T06:09:26+00:00",
+  "spark_status": "P2O_BASIC_BANKED_RC_MINI_TIMEOUT",
+  "spark_note": "P2-O basic active-MoE no-reload packed-prefill smoke PASS: 3/3 generated-token exact, 88.16->28.18 GiB, reload calls 0. rc-mini max_seq_len=2048 was invalid; 8192 rerun was terminated after >17 min slow-mode opt-in without result, so rc-mini is not clean and must be rerun only after slow-mode acceleration or prompt splitting. P4C remains opt-in diagnostic only after rc-mini rejection and hidden/logit drift evidence.",
   "counts": {
-    "BANKED": 20,
+    "BANKED": 21,
     "CLOSED_NEGATIVE": 4,
-    "READY_WAITING_SPARK": 7,
+    "TIMEOUT_NOT_CLEAN": 1,
+    "READY_WAITING_SPARK": 6,
     "REFERENCE_IMPL_BANKED_SPEED_CLOSED": 1,
     "DIAGNOSTIC_BANKED": 1,
     "DECISION_BANKED": 1
@@ -117,13 +118,22 @@
       "decision": "passes.all=true"
     },
     {
-      "gate": "p2o_packed_prefill_rc",
-      "title": "P2-O packed-prefill RC smoke",
-      "status": "READY_WAITING_SPARK",
-      "evidence": "tooling/runbook exists, but no Spark PASS artifact is banked",
-      "artifact": "reports/stage6/P2O_PACKED_PREFILL_RC_GATE_RUNBOOK_20260604.md, scripts/run_spark_stage6_p2o_rc_smoke.sh",
-      "next_step": "Run on Spark when SSH is reachable.",
-      "decision": ""
+      "gate": "p2o_basic_packed_prefill_rc",
+      "title": "P2-O basic packed-prefill RC smoke",
+      "status": "BANKED",
+      "evidence": "latest Spark result.json has passes.all=true",
+      "artifact": "reports/stage6/p2o_basic_packed_prefill_rc_smoke_20260604_132946",
+      "next_step": "Basic smoke is banked only as active-MoE no-reload correctness/memory evidence; do not treat the slow-mode prefill as a speed win.",
+      "decision": "passes.all=true"
+    },
+    {
+      "gate": "p2o_rcmini_packed_prefill_rc",
+      "title": "P2-O rc-mini packed-prefill RC smoke",
+      "status": "TIMEOUT_NOT_CLEAN",
+      "evidence": "latest Spark run was terminated after slow-mode opt-in produced no result.json",
+      "artifact": "reports/stage6/p2o_rc-mini_packed_prefill_rc_smoke_20260604_134826",
+      "next_step": "Rerun only after slow-mode prefill is accelerated or the rc-mini prompt set is split/chunked; the 2048 run was max_seq_len-invalid and the 8192 run timed out.",
+      "decision": "terminated_by_codex_timeout_after_17m_no_result"
     },
     {
       "gate": "p3b_selected_prefill",
@@ -131,7 +141,7 @@
       "status": "READY_WAITING_SPARK",
       "evidence": "tooling/runbook exists, but no Spark PASS artifact is banked",
       "artifact": "reports/stage6/P3B_SELECTED_PREFILL_GATE_RUNBOOK_20260604.md, scripts/run_spark_stage6_p3b_selected_prefill_gate.sh",
-      "next_step": "Run after P2-O basic/rc-mini plus P3-A predecessor evidence.",
+      "next_step": "Run after P2-O basic PASS plus P3-A predecessor evidence; keep rc-mini as a separate slow-mode scale gate.",
       "decision": ""
     },
     {

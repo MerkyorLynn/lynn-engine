@@ -28,6 +28,7 @@
 - P2-L linear-attn block integration: [Stage 6 Phase 2-L linear-attn block integration smoke](reports/stage6/P2L_LINEAR_ATTN_BLOCK_INTEGRATION_SMOKE_20260604.md)
 - P2-M selected-layer block-linear smoke: [Stage 6 Phase 2-M selected-layer block-linear smoke](reports/stage6/P2M_SELECTED_LAYER_BLOCK_LINEAR_SMOKE_20260604.md)
 - P2-N wider-layer block-linear smoke: [Stage 6 Phase 2-N wider-layer block-linear smoke](reports/stage6/P2N_WIDER_LAYER_BLOCK_LINEAR_SMOKE_20260604.md)
+- P2-O basic packed-prefill RC smoke: [Stage 6 Phase 2-O packed-prefill RC smoke](reports/stage6/P2O_PACKED_PREFILL_RC_SMOKE_BASIC_20260604.md)
 
 ## Banked Results
 
@@ -60,6 +61,8 @@
 | P2-L linear-attn block integration | opt-in `prefill_linear_attn` PASS:`LYNN_LINEAR_ATTN_PREFILL_BLOCK_GQA=1`;T512 2.18ms vs 5.58ms=2.56x,T16..512 output/state/conv numeric pass(min cosine 0.999983974,argmax match) |
 | P2-M selected-layer full prefill | layers 0-3 PASS:P2E MoE + block linear-attn;T16 39.12ms vs BF16 57.40ms=1.467x,T64 84.26ms vs BF16 93.59ms=1.111x,numeric/no-shadow pass |
 | P2-N wider selected-layer prefill | layers 0-7 PASS:P2E MoE + block linear-attn;T16 74.98ms vs BF16 115.56ms=1.541x,T64 162.25ms vs BF16 185.03ms=1.140x,numeric/no-shadow pass |
+| P2-O basic packed-prefill RC smoke | active-MoE no-reload packed-prefill real-prompt smoke PASS:3/3 generated-token exact,loaded 88.16 GiB -> after-release 28.18 GiB,reload calls 0;opt-in prefill avg 149.62s vs baseline 1.23s(0.008x),so this banks correctness/memory only,not speed |
+| P2-O rc-mini scale gate | not clean:2048 run had max_seq_len config failure;8192 rerun was terminated after >17min slow-mode opt-in without result.json. Rerun only after slow-mode acceleration or prompt splitting;do not count as numeric failure or pass |
 
 ## Corrected Engineering Read
 
@@ -99,10 +102,11 @@
 18. **P2-L linear-attn integration:已过。** `LYNN_LINEAR_ATTN_PREFILL_BLOCK_GQA=1` 接入 `prefill_linear_attn`;T512 2.18ms vs 5.58ms=2.56x,T16..512 output/state/conv numeric pass。
 19. **P2-M selected-layer smoke:已过。** layers 0-3 同时打开 block linear-attn + P2-E MoE opt-in;T16/T64 numeric/no-shadow/speed 全过,且比 P2E-only 继续加速。
 20. **P2-N wider coverage:已过。** layers 0-7 同时打开 block linear-attn + P2-E MoE opt-in;T16/T64 numeric/no-shadow/speed 全过,且比 P2E-only 继续加速。
-21. **下一关:** RC/server-promotion smoke;未过前不做 server 默认。
-22. **P3 server promotion:** `LYNN_PACKED_PREFILL=1` 后多请求服务常驻 27-28 GiB,无 reload,decode TPS 不回退。
-23. **P4C native zero-shadow go/no-go:** P4B single-CTA 和 active recompute 已由 microbench 反证;P4C basic server smoke 已过,但 rc-mini wider agreement 已拒绝(completion exact 3/6,chat 2/2)。P4C 仅保留 opt-in diagnostic/basic smoke;没有 RC-exact 且 e2e A/B 真快过 ~45 的候选,不做 promotion。
-24. **Speed next:** MTP draft/accept 信号好,真正 blocker 是 eager speculative runtime;下一轮优先削 snapshot/restore、per-event dispatch/sync 与 token-exact batched verify。另一条是把 decode hot loop 搬出 Python、用 compiled/C++ 服务循环降低 per-launch host dispatch;reusable decode graph 已实测 0.75x 净负,不作为当前默认路线。
+21. **P2-O basic:已过,但只 bank correctness/memory。** real-prompt active-MoE no-reload packed-prefill 3/3 generated-token exact,88.16->28.18 GiB,reload 0;slow-mode prefill 149.62s avg(0.008x),所以不是多请求吞吐方案。
+22. **P2-O rc-mini:未 clean。** 2048 run 是 max_seq_len 配置失败;8192 run 因 slow-mode 长 prompt 超时终止无 result。下一刀是 slow-mode 加速 / prompt splitting / chunked packed-prefill,不是把 timeout 包装成失败或胜利。
+23. **P3 server promotion:** `LYNN_PACKED_PREFILL=1` 后多请求服务常驻 27-28 GiB,无 reload,decode TPS 不回退;未过前不做 server 默认。
+24. **P4C native zero-shadow go/no-go:** P4B single-CTA 和 active recompute 已由 microbench 反证;P4C basic server smoke 已过,但 rc-mini wider agreement 已拒绝(completion exact 3/6,chat 2/2)。P4C 仅保留 opt-in diagnostic/basic smoke;没有 RC-exact 且 e2e A/B 真快过 ~45 的候选,不做 promotion。
+25. **Speed next:** 不是 P4C 扩 RC,而是两条速度线:MTP draft/accept 信号好,真正 blocker 是 eager speculative runtime;下一轮优先削 snapshot/restore、per-event dispatch/sync 与 token-exact batched verify。另一条是把 decode hot loop 搬出 Python、用 compiled/C++ 服务循环降低 per-launch host dispatch;reusable decode graph 已实测 0.75x 净负,不作为当前默认路线。
 
 ## Relation To 2026-05-20 Notes
 

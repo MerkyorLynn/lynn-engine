@@ -57,6 +57,15 @@ def _latest_result(prefixes: Iterable[str]) -> tuple[Path | None, dict[str, Any]
     return None, None
 
 
+def _latest_run(prefixes: Iterable[str]) -> Path | None:
+    dirs = [
+        path
+        for path in STAGE6.iterdir()
+        if path.is_dir() and any(path.name.startswith(prefix) for prefix in prefixes)
+    ]
+    return sorted(dirs, reverse=True)[0] if dirs else None
+
+
 def _passes_all(data: dict[str, Any] | None) -> bool:
     if not data:
         return False
@@ -138,6 +147,48 @@ def _result_or_ready_gate(
             return Gate(gate, title, "BANKED", "latest Spark result.json has passes.all=true", _artifact(run_dir), next_step, _decision(data))
         return Gate(gate, title, "FAILED_ARTIFACT", "latest Spark result.json did not pass", _artifact(run_dir), next_step, _decision(data))
     return _ready_gate(gate, title, required, next_step)
+
+
+def _result_timeout_or_ready_gate(
+    gate: str,
+    title: str,
+    prefixes: list[str],
+    required: list[str],
+    next_step: str,
+) -> Gate:
+    run_dir = _latest_run(prefixes)
+    if run_dir is None:
+        return _ready_gate(gate, title, required, next_step)
+    result = run_dir / "result.json"
+    if result.exists():
+        try:
+            data = json.loads(result.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            return Gate(gate, title, "FAILED_ARTIFACT", "latest result.json is not valid JSON", _artifact(run_dir), next_step)
+        if _passes_all(data):
+            return Gate(gate, title, "BANKED", "latest Spark result.json has passes.all=true", _artifact(run_dir), next_step, _decision(data))
+        return Gate(gate, title, "FAILED_ARTIFACT", "latest Spark result.json did not pass", _artifact(run_dir), next_step, _decision(data))
+    if (run_dir / "timeout.txt").exists():
+        return Gate(
+            gate,
+            title,
+            "TIMEOUT_NOT_CLEAN",
+            "latest Spark run was terminated after slow-mode opt-in produced no result.json",
+            _artifact(run_dir),
+            next_step,
+            (run_dir / "timeout.txt").read_text(encoding="utf-8").strip(),
+        )
+    if (run_dir / "docker_exit_code.txt").exists():
+        return Gate(
+            gate,
+            title,
+            "FAILED_ARTIFACT",
+            "latest Spark run exited without result.json",
+            _artifact(run_dir),
+            next_step,
+            (run_dir / "docker_exit_code.txt").read_text(encoding="utf-8").strip(),
+        )
+    return Gate(gate, title, "INCOMPLETE_ARTIFACT", "latest Spark run has no result.json yet", _artifact(run_dir), next_step)
 
 
 def _contract_gate(gate: str, title: str, required: list[str], next_step: str) -> Gate:
@@ -426,17 +477,33 @@ def collect_gates() -> list[Gate]:
             ["p2n_wider_layer_block_linear_"],
             "Next real proof is P2-O/P3 server-shaped RC.",
         ),
-        _ready_gate(
-            "p2o_packed_prefill_rc",
-            "P2-O packed-prefill RC smoke",
-            ["reports/stage6/P2O_PACKED_PREFILL_RC_GATE_RUNBOOK_20260604.md", "scripts/run_spark_stage6_p2o_rc_smoke.sh"],
-            "Run on Spark when SSH is reachable.",
+        _result_or_ready_gate(
+            "p2o_basic_packed_prefill_rc",
+            "P2-O basic packed-prefill RC smoke",
+            ["p2o_basic_packed_prefill_rc_smoke_"],
+            [
+                "reports/stage6/P2O_PACKED_PREFILL_RC_GATE_RUNBOOK_20260604.md",
+                "scripts/run_spark_stage6_p2o_rc_smoke.sh",
+                "scripts/spark_stage6_p2o_packed_prefill_rc_smoke.py",
+            ],
+            "Basic smoke is banked only as active-MoE no-reload correctness/memory evidence; do not treat the slow-mode prefill as a speed win.",
+        ),
+        _result_timeout_or_ready_gate(
+            "p2o_rcmini_packed_prefill_rc",
+            "P2-O rc-mini packed-prefill RC smoke",
+            ["p2o_rc-mini_packed_prefill_rc_smoke_"],
+            [
+                "reports/stage6/P2O_PACKED_PREFILL_RC_GATE_RUNBOOK_20260604.md",
+                "scripts/run_spark_stage6_p2o_rc_smoke.sh",
+                "scripts/spark_stage6_p2o_packed_prefill_rc_smoke.py",
+            ],
+            "Rerun only after slow-mode prefill is accelerated or the rc-mini prompt set is split/chunked; the 2048 run was max_seq_len-invalid and the 8192 run timed out.",
         ),
         _ready_gate(
             "p3b_selected_prefill",
             "P3-B selected-prefill composition gate",
             ["reports/stage6/P3B_SELECTED_PREFILL_GATE_RUNBOOK_20260604.md", "scripts/run_spark_stage6_p3b_selected_prefill_gate.sh"],
-            "Run after P2-O basic/rc-mini plus P3-A predecessor evidence.",
+            "Run after P2-O basic PASS plus P3-A predecessor evidence; keep rc-mini as a separate slow-mode scale gate.",
         ),
         _ready_gate(
             "p3c_resident_prompt",
