@@ -106,6 +106,13 @@ def main() -> int:
             token in gates["r5a_layout_bridge"]["next_step"]
             for token in ("layout", "R6000", "R5-B", "bridge")
         )
+        assert gates["r5b_e8m0_repack"]["status"] in {
+            "CLOSED_NEGATIVE",
+            "DIAGNOSTIC_BANKED",
+            "READY_WAITING_R6000",
+            "FAILED_ARTIFACT",
+        }
+        assert "repack" in gates["r5b_e8m0_repack"]["title"].lower()
         assert "P4 fused kernel banked | `false`" in text
         assert "TEST_BLOCKED_BY_SSH" in text
 

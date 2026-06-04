@@ -1,0 +1,416 @@
+{
+  "schema": "lynn-stage6-r5b-e8m0-repack-bridge-v1",
+  "created": "2026-06-04T17:34:38+0800",
+  "inventory": {
+    "git_head": {
+      "cmd": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "ok": true,
+      "returncode": 0,
+      "stdout_tail": "61d38216f7b5d042f353e7461f09c77982ad9045\n",
+      "stderr_tail": ""
+    },
+    "git_status": {
+      "cmd": [
+        "git",
+        "status",
+        "--short"
+      ],
+      "ok": true,
+      "returncode": 0,
+      "stdout_tail": "?? reports/stage6/r5b_e8m0_repack_20260604_173435/\n",
+      "stderr_tail": ""
+    },
+    "nvidia_smi": {
+      "cmd": [
+        "nvidia-smi"
+      ],
+      "ok": true,
+      "returncode": 0,
+      "stdout_tail": "Thu Jun  4 17:34:38 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 590.44.01              Driver Version: 590.44.01      CUDA Version: 13.1     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA RTX PRO 6000 Blac...    On  |   00000000:C8:00.0 Off |                  Off |\n| N/A   32C    P0             68W /  600W |     895MiB /  97887MiB |      6%      Default |\n|                                         |                        |             Disabled |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            9481      C   /root/miniconda3/bin/python             886MiB |\n+-----------------------------------------------------------------------------------------+\n",
+      "stderr_tail": ""
+    },
+    "torch": {
+      "torch": "2.8.0+cu128",
+      "torch_cuda": "12.8",
+      "device_name": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+      "capability": [
+        12,
+        0
+      ],
+      "memory_gib": 94.97296142578125
+    }
+  },
+  "elapsed_seconds": 0.8825201988220215,
+  "dimensions": {
+    "H": 2048,
+    "I": 512,
+    "gate_up_rows": 1024,
+    "m_values": [
+      1,
+      16,
+      64
+    ]
+  },
+  "thresholds": {
+    "rel_l2_max": 0.08,
+    "cosine_min": 0.995
+  },
+  "cases": [
+    {
+      "scale_case": "e4m3_like",
+      "shape": {
+        "M": 1,
+        "N": 1024,
+        "K": 2048,
+        "groups16": 128
+      },
+      "reference_timing_ms": {
+        "median_ms": 0.018496000207960606,
+        "mean_ms": 0.020699999993667006,
+        "min_ms": 0.01616000011563301,
+        "max_ms": 0.03331200033426285
+      },
+      "candidates": [
+        {
+          "candidate": "e8m0_repack_nearest",
+          "metrics": {
+            "max_abs": 2649.001953125,
+            "mean_abs": 336.2659606933594,
+            "rel_l2": 0.18911800920761565,
+            "cosine": 0.984502375125885
+          },
+          "timing_ms": {
+            "median_ms": 0.06284800171852112,
+            "mean_ms": 0.06459600012749434,
+            "min_ms": 0.06067200005054474,
+            "max_ms": 0.07308799773454666
+          },
+          "act_repack": {
+            "value_rel_l2": 0.1322148711521575,
+            "value_cosine": 0.9924344420433044,
+            "scale_exponent_min": -3.0,
+            "scale_exponent_max": 3.0
+          },
+          "weight_repack": {
+            "value_rel_l2": 0.1331020315787683,
+            "value_cosine": 0.9917045831680298,
+            "scale_exponent_min": -4.0,
+            "scale_exponent_max": 3.0
+          },
+          "bytes": {
+            "packed_ratio_vs_original": 2.0,
+            "scale_ratio_vs_original": 0.25
+          }
+        },
+        {
+          "candidate": "e8m0_repack_floor",
+          "metrics": {
+            "max_abs": 3734.720703125,
+            "mean_abs": 636.6007080078125,
+            "rel_l2": 0.3567059417933354,
+            "cosine": 0.9625684022903442
+          },
+          "timing_ms": {
+            "median_ms": 0.06168000027537346,
+            "mean_ms": 0.06216799980029464,
+            "min_ms": 0.059487998485565186,
+            "max_ms": 0.06723199784755707
+          },
+          "act_repack": {
+            "value_rel_l2": 0.21607858368004312,
+            "value_cosine": 0.9840230941772461,
+            "scale_exponent_min": -3.0,
+            "scale_exponent_max": 2.0
+          },
+          "weight_repack": {
+            "value_rel_l2": 0.23636780639372146,
+            "value_cosine": 0.9810529947280884,
+            "scale_exponent_min": -4.0,
+            "scale_exponent_max": 2.0
+          },
+          "bytes": {
+            "packed_ratio_vs_original": 2.0,
+            "scale_ratio_vs_original": 0.25
+          }
+        },
+        {
+          "candidate": "e8m0_repack_ceil",
+          "metrics": {
+            "max_abs": 1786.53515625,
+            "mean_abs": 288.262451171875,
+            "rel_l2": 0.16527750005548736,
+            "cosine": 0.9862475991249084
+          },
+          "timing_ms": {
+            "median_ms": 0.06192000024020672,
+            "mean_ms": 0.06248799944296479,
+            "min_ms": 0.060095999389886856,
+            "max_ms": 0.0663679987192154
+          },
+          "act_repack": {
+            "value_rel_l2": 0.11677106453539315,
+            "value_cosine": 0.9931950569152832,
+            "scale_exponent_min": -3.0,
+            "scale_exponent_max": 3.0
+          },
+          "weight_repack": {
+            "value_rel_l2": 0.11856903661265025,
+            "value_cosine": 0.9929457902908325,
+            "scale_exponent_min": -3.0,
+            "scale_exponent_max": 3.0
+          },
+          "bytes": {
+            "packed_ratio_vs_original": 2.0,
+            "scale_ratio_vs_original": 0.25
+          }
+        }
+      ],
+      "best_candidate": "e8m0_repack_ceil",
+      "best_rel_l2": 0.16527750005548736,
+      "best_cosine": 0.9862475991249084
+    },
+    {
+      "scale_case": "e4m3_like",
+      "shape": {
+        "M": 16,
+        "N": 1024,
+        "K": 2048,
+        "groups16": 128
+      },
+      "reference_timing_ms": {
+        "median_ms": 0.0279359994456172,
+        "mean_ms": 0.028115999652072787,
+        "min_ms": 0.02703999914228916,
+        "max_ms": 0.02985600009560585
+      },
+      "candidates": [
+        {
+          "candidate": "e8m0_repack_nearest",
+          "metrics": {
+            "max_abs": 3694.724853515625,
+            "mean_abs": 355.96258544921875,
+            "rel_l2": 0.19401810506117695,
+            "cosine": 0.9831626415252686
+          },
+          "timing_ms": {
+            "median_ms": 0.0631680004298687,
+            "mean_ms": 0.06352399988099933,
+            "min_ms": 0.05951999872922897,
+            "max_ms": 0.07043199986219406
+          },
+          "act_repack": {
+            "value_rel_l2": 0.13379611861892513,
+            "value_cosine": 0.9915368556976318,
+            "scale_exponent_min": -3.0,
+            "scale_exponent_max": 3.0
+          },
+          "weight_repack": {
+            "value_rel_l2": 0.1331020315787683,
+            "value_cosine": 0.9917045831680298,
+            "scale_exponent_min": -4.0,
+            "scale_exponent_max": 3.0
+          },
+          "bytes": {
+            "packed_ratio_vs_original": 2.0,
+            "scale_ratio_vs_original": 0.25
+          }
+        },
+        {
+          "candidate": "e8m0_repack_floor",
+          "metrics": {
+            "max_abs": 6418.150390625,
+            "mean_abs": 679.444091796875,
+            "rel_l2": 0.37029936514013173,
+            "cosine": 0.9616153240203857
+          },
+          "timing_ms": {
+            "median_ms": 0.06231999956071377,
+            "mean_ms": 0.06222000019624829,
+            "min_ms": 0.06032000109553337,
+            "max_ms": 0.06543999910354614
+          },
+          "act_repack": {
+            "value_rel_l2": 0.24145467866102333,
+            "value_cosine": 0.9805504083633423,
+            "scale_exponent_min": -3.0,
+            "scale_exponent_max": 2.0
+          },
+          "weight_repack": {
+            "value_rel_l2": 0.23636780639372146,
+            "value_cosine": 0.9810529947280884,
+            "scale_exponent_min": -4.0,
+            "scale_exponent_max": 2.0
+          },
+          "bytes": {
+            "packed_ratio_vs_original": 2.0,
+            "scale_ratio_vs_original": 0.25
+          }
+        },
+        {
+          "candidate": "e8m0_repack_ceil",
+          "metrics": {
+            "max_abs": 3350.279296875,
+            "mean_abs": 305.3055419921875,
+            "rel_l2": 0.16692871949176974,
+            "cosine": 0.9859788417816162
+          },
+          "timing_ms": {
+            "median_ms": 0.06083200126886368,
+            "mean_ms": 0.061595999635756016,
+            "min_ms": 0.06038400158286095,
+            "max_ms": 0.06409599632024765
+          },
+          "act_repack": {
+            "value_rel_l2": 0.11793258391286399,
+            "value_cosine": 0.99303138256073,
+            "scale_exponent_min": -2.0,
+            "scale_exponent_max": 3.0
+          },
+          "weight_repack": {
+            "value_rel_l2": 0.11856903661265025,
+            "value_cosine": 0.9929457902908325,
+            "scale_exponent_min": -3.0,
+            "scale_exponent_max": 3.0
+          },
+          "bytes": {
+            "packed_ratio_vs_original": 2.0,
+            "scale_ratio_vs_original": 0.25
+          }
+        }
+      ],
+      "best_candidate": "e8m0_repack_ceil",
+      "best_rel_l2": 0.16692871949176974,
+      "best_cosine": 0.9859788417816162
+    },
+    {
+      "scale_case": "e4m3_like",
+      "shape": {
+        "M": 64,
+        "N": 1024,
+        "K": 2048,
+        "groups16": 128
+      },
+      "reference_timing_ms": {
+        "median_ms": 0.024368000216782093,
+        "mean_ms": 0.02506399992853403,
+        "min_ms": 0.02396799996495247,
+        "max_ms": 0.028543999418616295
+      },
+      "candidates": [
+        {
+          "candidate": "e8m0_repack_nearest",
+          "metrics": {
+            "max_abs": 4142.80419921875,
+            "mean_abs": 355.313720703125,
+            "rel_l2": 0.19245752874600486,
+            "cosine": 0.9835010766983032
+          },
+          "timing_ms": {
+            "median_ms": 0.06345599889755249,
+            "mean_ms": 0.06480000028386712,
+            "min_ms": 0.059647999703884125,
+            "max_ms": 0.07187200337648392
+          },
+          "act_repack": {
+            "value_rel_l2": 0.13366565115790344,
+            "value_cosine": 0.9916004538536072,
+            "scale_exponent_min": -3.0,
+            "scale_exponent_max": 3.0
+          },
+          "weight_repack": {
+            "value_rel_l2": 0.1331020315787683,
+            "value_cosine": 0.9917045831680298,
+            "scale_exponent_min": -4.0,
+            "scale_exponent_max": 3.0
+          },
+          "bytes": {
+            "packed_ratio_vs_original": 2.0,
+            "scale_ratio_vs_original": 0.25
+          }
+        },
+        {
+          "candidate": "e8m0_repack_floor",
+          "metrics": {
+            "max_abs": 7623.4912109375,
+            "mean_abs": 679.2769775390625,
+            "rel_l2": 0.3680027749852575,
+            "cosine": 0.9626848101615906
+          },
+          "timing_ms": {
+            "median_ms": 0.06183999963104725,
+            "mean_ms": 0.06244800006970763,
+            "min_ms": 0.05987200140953064,
+            "max_ms": 0.06896000355482101
+          },
+          "act_repack": {
+            "value_rel_l2": 0.23848693777879865,
+            "value_cosine": 0.9808684587478638,
+            "scale_exponent_min": -3.0,
+            "scale_exponent_max": 2.0
+          },
+          "weight_repack": {
+            "value_rel_l2": 0.23636780639372146,
+            "value_cosine": 0.9810529947280884,
+            "scale_exponent_min": -4.0,
+            "scale_exponent_max": 2.0
+          },
+          "bytes": {
+            "packed_ratio_vs_original": 2.0,
+            "scale_ratio_vs_original": 0.25
+          }
+        },
+        {
+          "candidate": "e8m0_repack_ceil",
+          "metrics": {
+            "max_abs": 3827.802734375,
+            "mean_abs": 305.16912841796875,
+            "rel_l2": 0.1665533189236382,
+            "cosine": 0.9860346913337708
+          },
+          "timing_ms": {
+            "median_ms": 0.06259199976921082,
+            "mean_ms": 0.062403999734669924,
+            "min_ms": 0.05990400165319443,
+            "max_ms": 0.06435199826955795
+          },
+          "act_repack": {
+            "value_rel_l2": 0.11917117540676364,
+            "value_cosine": 0.992874026298523,
+            "scale_exponent_min": -2.0,
+            "scale_exponent_max": 3.0
+          },
+          "weight_repack": {
+            "value_rel_l2": 0.11856903661265025,
+            "value_cosine": 0.9929457902908325,
+            "scale_exponent_min": -3.0,
+            "scale_exponent_max": 3.0
+          },
+          "bytes": {
+            "packed_ratio_vs_original": 2.0,
+            "scale_ratio_vs_original": 0.25
+          }
+        }
+      ],
+      "best_candidate": "e8m0_repack_ceil",
+      "best_rel_l2": 0.1665533189236382,
+      "best_cosine": 0.9860346913337708
+    }
+  ],
+  "passes": {
+    "e4m3_like_e8m0_repack_numeric_ok": false,
+    "banked_repack_numeric": false,
+    "banked_grouped_moe_fp4_mma_poc": false,
+    "banked_kernel_speed": false,
+    "banked_default_promotion": false,
+    "all": false
+  },
+  "decision": "FAIL_R5B_E8M0_REPACK_NUMERIC",
+  "notes": [
+    "R5-B banks only synthetic e8m0 repack numeric feasibility.",
+    "The path still doubles packed K through padded group32 and does not bank grouped-MoE kernel speed."
+  ]
+}
