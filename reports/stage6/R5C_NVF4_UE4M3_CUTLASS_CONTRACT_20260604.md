@@ -46,6 +46,7 @@ banked_default_promotion=false
 |---|---|---|
 | R5-C0 | CUTLASS/CuTe native NVF4 + UE4M3 ABI census | ABI only; no compile/kernel/speed claim |
 | R5-C1 | Minimal numeric GEMM smoke with CUTLASS 79d native NVF4 + UE4M3 grouped GEMM | CUTLASS host-reference numeric smoke only; no Lynn grouped-MoE speed claim |
+| R5-C2A | MoE shape/source census | Decide whether 79d/92 can be used directly or a new minimal harness is required |
 | R5-C2 | Selected expert gate/up native GEMM smoke | Preserve expert IDs/top-k and scale semantics |
 | R5-C3 | Grouped active-MoE prefill POC | Only then may speed be measured against W4A16/P2-N/P3 paths |
 
@@ -73,6 +74,31 @@ verification, at least two `Disposition: Passed` lines, and no device-gate
 no-op. Runtime/TFLOPS may be recorded for traceability, but R5-C1 does **not**
 bank speed.
 
+## R5-C2A MoE Shape Census Gate
+
+R5-C2A is the source-census bridge between R5-C1's generic grouped GEMM and
+the actual selected-expert gate/up smoke. A PASS requires evidence that:
+
+```text
+PASS_R5C2_MOE_SHAPE_CENSUS_NEW_HARNESS_REQUIRED
+banked_moe_shape_census=true
+requires_new_minimal_harness=true
+banked_selected_expert_gate_up_smoke=false
+banked_grouped_moe_fp4_mma_poc=false
+banked_kernel_speed=false
+banked_default_promotion=false
+```
+
+Expected source split:
+
+- CUTLASS 79d has the SM120 native NVF4 + UE4M3 grouped-GEMM route, but lacks
+  `MoEProblemShape` and `tokens_per_expert`.
+- CUTLASS 92 has `MoEProblemShape` and `tokens_per_expert` semantics, but uses
+  Sm100 schedules.
+- Therefore R5-C2 implementation must combine 92-style MoE shape semantics with
+  79d-style SM120 NVF4 + UE4M3 execution. R5-C2A does **not** bank selected
+  expert gate/up numeric smoke.
+
 ## Commands
 
 On the R6000 lane:
@@ -80,6 +106,7 @@ On the R6000 lane:
 ```bash
 scripts/r6000_stage6_r5c_cutlass_ue4m3_census.sh
 scripts/r6000_stage6_r5c1_cutlass_numeric_smoke.sh
+scripts/r6000_stage6_r5c2_moe_shape_census.sh
 ```
 
 Local GPU-free check:
@@ -87,6 +114,7 @@ Local GPU-free check:
 ```bash
 python3 scripts/test_stage6_r5c_cutlass_ue4m3_census_tools.py
 python3 scripts/test_stage6_r5c1_cutlass_numeric_smoke_tools.py
+python3 scripts/test_stage6_r5c2_moe_shape_census_tools.py
 ```
 
 ## Explicit Non-Claims
@@ -100,3 +128,6 @@ python3 scripts/test_stage6_r5c1_cutlass_numeric_smoke_tools.py
   reference verification.
 - R5-C1 does not prove a Lynn selected-expert gate/up kernel exists.
 - R5-C1 does not bank grouped-MoE FP4-MMA speed or runtime defaults.
+- R5-C2A proves only the source-shape reason for a new minimal harness.
+- R5-C2A does not prove selected expert gate/up numeric smoke, grouped-MoE
+  FP4-MMA speed, or runtime defaults.

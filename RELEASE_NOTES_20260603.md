@@ -80,6 +80,7 @@
 | R6000 FP4-MMA bring-up | PASS banked on RTX PRO 6000 96GB / 880GiB data workspace:CUDA capability `[12,0]`,vLLM source candidates 200,and P76/P79/P85/P87/P103 native FP4 contracts all pass;route is not tied to a rental host ID |
 | R5-C CUTLASS UE4M3 ABI | PASS banked:`PASS_R5C_NVF4_UE4M3_CUTLASS_ABI`;CUTLASS/CuTe exposes sm120 `mxf4nvf4` block16 E2M1 + UE4M3 scale path;this banks ABI evidence only,not grouped-MoE kernel/speed/default |
 | R5-C1 CUTLASS numeric smoke | PASS banked:`PASS_R5C1_CUTLASS_NVF4_UE4M3_NUMERIC_SMOKE`;CUTLASS 79d native NVF4+UE4M3 grouped GEMM builds/runs and both Cooperative/Pingpong schedules pass host-reference verification;numeric smoke only,not Lynn kernel speed/default |
+| R5-C2A MoE shape census | PASS banked:`PASS_R5C2_MOE_SHAPE_CENSUS_NEW_HARNESS_REQUIRED`;79d has SM120 native NVF4+UE4M3 generic grouped GEMM but lacks MoE shape semantics;92 has `MoEProblemShape/tokens_per_expert` but Sm100 schedules;source-census only,not selected-expert kernel/speed/default |
 
 ## Corrected Engineering Read
 
@@ -134,7 +135,8 @@
 33. **R5-B e8m0 repack:closed negative。** R6000 上 simple e8m0 repack 未过 numeric gate(best rel_l2≈0.166 / cosine≈0.986,阈值 0.08/0.995),所以不追“把现有 E4M3-like scales 简单转 e8m0”的路线。下一刀转 custom scale / NVFP4-native CUTLASS/CuTe handling,仍不 bank grouped-MoE FP4-MMA kernel/speed/default。
 34. **R5-C CUTLASS UE4M3 ABI:已 bank。** R6000 上 `PASS_R5C_NVF4_UE4M3_CUTLASS_ABI`:CUTLASS/CuTe 暴露 sm120 `mxf4nvf4` block16 E2M1 + UE4M3 scale 路径。边界:只 bank ABI,不 bank grouped-MoE FP4-MMA kernel/speed/default。
 35. **R5-C1 CUTLASS numeric smoke:已 bank。** R6000 上 `PASS_R5C1_CUTLASS_NVF4_UE4M3_NUMERIC_SMOKE`:CUTLASS 79d native NVF4+UE4M3 grouped GEMM 构建/运行通过,Cooperative 与 Pingpong 两种 schedule 均 host-reference `Disposition: Passed`;边界:只 bank numeric smoke,不 bank Lynn grouped-MoE kernel/speed/default。下一步是 R5-C2 selected expert gate/up numeric smoke。
-36. **Speed next:** 不是 P4C 扩 RC,而是两条速度线:MTP draft/accept 信号好,真正 blocker 是 eager speculative runtime;下一轮优先削 snapshot/restore、per-event dispatch/sync 与 token-exact batched verify。另一条是把 decode hot loop 搬出 Python、用 compiled/C++ 服务循环降低 per-launch host dispatch;reusable decode graph 已实测 0.75x 净负,不作为当前默认路线。
+36. **R5-C2A MoE shape census:已 bank。** R6000 上 `PASS_R5C2_MOE_SHAPE_CENSUS_NEW_HARNESS_REQUIRED`:79d 有 SM120 native NVF4+UE4M3 generic grouped GEMM 但缺 `MoEProblemShape/tokens_per_expert`;92 有 MoE shape 语义但走 Sm100 schedule。边界:只 bank source-census/new-harness-required,不 bank selected expert gate/up numeric smoke、speed 或 default。下一步是写新最小 R5-C2 selected expert gate/up harness。
+37. **Speed next:** 不是 P4C 扩 RC,而是两条速度线:MTP draft/accept 信号好,真正 blocker 是 eager speculative runtime;下一轮优先削 snapshot/restore、per-event dispatch/sync 与 token-exact batched verify。另一条是把 decode hot loop 搬出 Python、用 compiled/C++ 服务循环降低 per-launch host dispatch;reusable decode graph 已实测 0.75x 净负,不作为当前默认路线。
 
 ## Relation To 2026-05-20 Notes
 
