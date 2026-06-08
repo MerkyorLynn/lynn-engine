@@ -1,8 +1,43 @@
 # Lynn Engine
 
-## 🚀 2026-06-04 Restart Snapshot
+## 🏁 2026-06-07 · 引擎线收口(Sunset)
 
-**Lynn engine 已重启为并行主线:** 客户端短期仍可用 llama.cpp/GGUF 作务实默认后端,但引擎继续同模型同硬件对标 llama.cpp。终局不是“换个框架”,而是把 Lynn 自己的 **服务显存生命周期、MTP runtime、C++/compiled decode hot loop、CUDA C++/CUTLASS/native kernels** 一层层啃下来;其中 4-bit / zero-shadow 是显存与跨设备内核资产,不再被当成 Spark 上 45→70 TPS 的单点速度杠杆。
+> **一句话:把整条自研 NVFP4 引擎线 profile(性能剖析)到底,得到一张「力学图」——单流(single-stream,单用户一次一个请求)的杠杆在「格式」、并发(concurrent,多请求批量)的杠杆在「服务系统」,自研引擎在这两条轴上都不是杠杆点。于是引擎线收口,主线回到产品(蒸馏编排器),前沿 NVFP4 放回它真正起作用的并发侧。不是打不过生态,是测明白了力该往哪使。**
+
+📄 完整复盘:[引擎线收口复盘](reports/articles/LYNN_ENGINE_SUNSET_RETROSPECTIVE_FINAL_20260607.md) · 全口径 benchmark 附录:[NVFP4 benchmark appendix](reports/articles/GIST_nvfp4_benchmark_appendix_20260607.md)
+
+### 现在的拓扑(与主仓 [MerkyorLynn/Lynn](https://github.com/MerkyorLynn/Lynn) README 口径一致)
+
+**① 主线 = 蒸馏任务编排器(产品的大脑,不是引擎)。**
+用 LoRA(**r=64 / α=128 / 1842 样本**)把 DeepSeek-V4-Pro 在 thinking-on 时的多步推理 + 自我验证**思维方式**蒸进 **Qwen3.6-35B-A3B**(MoE,3B 激活)。实测(同 harness,thinking-on,vs 原版):端到端编排 **26.6s**(快 2.3×)/ GPQA-Diamond **80.3%(+7.6pp)** / MMLU-500 90.2(持平)/ 编排假验证 **0/20**。蒸的是「思维方式」,红利是**更少 token 到结论**。
+📦 ModelScope `Merkyor/Qwen3.6-35B-A3B-DSV4Pro-Thinking-Distill` · HuggingFace `nerkyor/Qwen3.6-35B-A3B-DSV4Pro-Thinking-Distill`(BF16 + Q4_K_M gguf)。
+
+**② 单流推理(single-stream)= 最快的 llama.cpp。**
+单流 decode(单 token 生成)是带宽 / launch(内核启动)的游戏,自写内核打不过成熟的 llama.cpp。同模型同卡单流 tok/s:
+
+| 单流 decode | Spark sm_121 | R6000 sm_120 |
+|---|---|---|
+| llama.cpp Q4_K_M | **69.77**(+MTP 79) | **207** |
+| 自研 NVFP4(内核融合后) | ~45 | ~108 |
+
+端侧 / 桌面主推理选 **llama.cpp**(单流最快、生态成熟、全平台),并把实测改进**回馈上游**:llama.cpp [#24273](https://github.com/ggml-org/llama.cpp/pull/24273)(NVFP4 转换 / 后端 / 基准实测指南文档,review 中)。
+
+**③ 并发服务(concurrent)= vLLM + NVFP4 —— 不放弃前沿。**
+NVFP4 的真红利不在单流 decode,而在**并发吞吐**——但兑现它的瓶颈是 PagedAttention(分页注意力)+ continuous batching(连续批处理)这套**服务系统**,而 vLLM / SGLang 本质就是这套系统。同张 R6000 `VLLM_MOE_FORCE_MARLIN=1`:
+
+| 并发 | c1 | c16 | c64(release soak) |
+|---|---|---|---|
+| 输出 tok/s | 175 | 1289 | **2434**(0 failed) |
+
+**NVFP4 vs FP8(同机同 harness)每档都赢 1.14–1.34×。** 把这条 W4A16 NVFP4 Marlin 路径的回归测试 / 文档 / 正确性门禁回馈 vLLM(3 个 open PR,review 中):[#44671](https://github.com/vllm-project/vllm/pull/44671) / [#44672](https://github.com/vllm-project/vllm/pull/44672) / [#44673](https://github.com/vllm-project/vllm/pull/44673)。
+
+> **加入生态,但没放弃 NVFP4。** 自研引擎收束为研究资产 + **4 个上游 PR**;NVFP4 放回它真正起作用的并发侧持续科研。没造出护城河,但把「怎么把 NVFP4 用对」从私有内核知识变成了生态公共证据。本仓库**没白干**留下的真东西:① decode-only 删 shadow(影子权重)→ 常驻显存 **88 → 28 GiB**(腾 60 GiB 给 KV / 长上下文);② 一整套「让实测改路线」的工程纪律 + 跨设备量化知识;③ 想清楚了护城河在产品(那个会派活的蒸馏编排器),不在格式 / 内核 / 几个 TPS。
+
+---
+
+> 📚 **以下为研发期(2026-05 ~ 06)完整证据账本(归档)** —— 记录我们怎么一步步走到上面那张「力学图」与收口结论,供复盘与同行复核留存。**结论以顶部收口为准**;下方各「路线 / 后续」表是当时在推进的研究方向,已被收口收敛。
+
+## 🗄️ 研发期证据账本(归档)· 2026-06-04 snapshot
 
 | 方向 | 已 bank 证据 |
 |---|---|
